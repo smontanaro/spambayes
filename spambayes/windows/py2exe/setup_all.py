@@ -114,9 +114,10 @@ outlook_data_files = [
 ]
 proxy_data_files = [
     ["docs/sb_server", [os.path.join(sb_top_dir, r"windows\readme_proxy.html")]],
-    # this is hacky - the readme uses the Outlook data files.  We need to
-    # consolidate the documents.
-    ["docs/sb_server/docs/images", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\images\*.jpg"))],
+    # note that this includes images that are already in the outlook/docs/images
+    # directory - we need to consolidate the documentation (in terms of
+    # sharing images, if nothing else)
+    ["docs/sb_server/docs/images", glob.glob(os.path.join(sb_top_dir, r"windows\docs\images\*.jpg"))],
 ]
 
 common_data_files = [
