@@ -4,8 +4,8 @@
 
 [Setup]
 AppName=Spambayes Outlook Addin
-AppVerName=Spambayes Outlook Addin 0.0.1
-AppVersion=0.0.1
+AppVerName=Spambayes Outlook Addin 0.0.2
+AppVersion=0.0.2
 DefaultDirName={pf}\Spambayes Outlook Addin
 DefaultGroupName=Spambayes Outlook Addin
 OutputDir=.
@@ -14,6 +14,7 @@ OutputBaseFilename=SpamBayes-Outlook-Setup
 [Files]
 Source: "dist\spambayes_addin.dll"; DestDir: "{app}"; Flags: ignoreversion regserver
 Source: "dist\*.*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "dist\about.html"; DestDir: "{app}"; Flags: isreadme
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\support"
