@@ -239,15 +239,6 @@ robinson_probability_s: 0.45
 # all corpora.
 robinson_minimum_prob_strength: 0.1
 
-# For the default scheme, use "tim-combining" of probabilities.  Tim-
-# combining is a kind of cross between Paul Graham's and Gary Robinson's
-# combining schemes.  Unlike Paul's, it's never crazy-certain, and compared
-# to Gary's, in Tim's tests it greatly increased the spread between mean
-# ham-scores and spam-scores, while simultaneously decreasing the variance
-# of both.  Tim needed a higher spam_cutoff value for best results, but
-# spam_cutoff is less touchy than under Gary-combining.
-use_tim_combining: False
-
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
 # follows the chi-squared distribution with 2*n degrees of freedom.  That's
 # the "provably most-sensitive" test Gary's original scheme was monotonic
@@ -318,7 +309,6 @@ all_options = {
                    'robinson_probability_x': float_cracker,
                    'robinson_probability_s': float_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
-                   'use_tim_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
 
                    'use_mixed_combining': boolean_cracker,
