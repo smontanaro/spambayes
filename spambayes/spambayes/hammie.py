@@ -61,9 +61,9 @@ class Hammie:
 
         return self._scoremsg(msg, evidence)
 
-    def filter(self, msg, header=None, spam_cutoff=None,
-               ham_cutoff=None, debugheader=None,
-               debug=None, train=None):
+    def score_and_filter(self, msg, header=None, spam_cutoff=None,
+                         ham_cutoff=None, debugheader=None,
+                         debug=None, train=None):
         """Score (judge) a message and add a disposition header.
 
         msg can be a string, a file object, or a Message object.
@@ -83,7 +83,7 @@ class Hammie:
 
         All defaults for optional parameters come from the Options file.
 
-        Returns the same message with a new disposition header.
+        Returns the score and same message with a new disposition header.
         """
 
         if header == None:
@@ -145,6 +145,14 @@ class Hammie:
             msg.add_header(debugheader, disp)
         result = mboxutils.as_string(msg, unixfrom=(msg.get_unixfrom()
                                                     is not None))
+        return prob, result
+
+    def filter(self, msg, header=None, spam_cutoff=None,
+               ham_cutoff=None, debugheader=None,
+               debug=None, train=None):
+        prob, result = self.score_and_filter(
+            msg, header, spam_cutoff, ham_cutoff, debugheader,
+            debug, train)
         return result
 
     def train(self, msg, is_spam, add_header=False):
