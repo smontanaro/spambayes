@@ -38,7 +38,6 @@ from __future__ import generators
 # This implementation is due to Tim Peters et alia.
 
 import math
-import types
 try:
     # We have three possibilities for Set:
     #  (a) With Python 2.2 and earlier, we use our compatsets class
