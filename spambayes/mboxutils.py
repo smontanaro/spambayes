@@ -24,6 +24,7 @@ import glob
 import email
 import mailbox
 import email.Message
+import re
 
 class DirOfTxtFileMailbox:
 
@@ -118,3 +119,46 @@ def get_message(obj):
         msg = email.Message.Message()
         msg.set_payload(obj)
     return msg
+
+header_break_re = re.compile(r"\r?\n(\r?\n)")
+
+def extract_headers(text):
+    """Very simple-minded header extraction:  prefix of text up to blank line.
+
+    A blank line is recognized via two adjacent line-ending sequences, where
+    a line-ending sequence is a newline optionally preceded by a carriage
+    return.
+
+    If no blank line is found, all of text is considered to be a potential
+    header section.  If a blank line is found, the text up to (but not
+    including) the blank line is considered to be a potential header section.
+
+    The potential header section is returned, unless it doesn't contain a
+    colon, in which case an empty string is returned.
+
+    >>> extract_headers("abc")
+    ''
+    >>> extract_headers("abc\\n\\n\\n")  # no colon
+    ''
+    >>> extract_headers("abc: xyz\\n\\n\\n")
+    'abc: xyz\\n'
+    >>> extract_headers("abc: xyz\\r\\n\\r\\n\\r\\n")
+    'abc: xyz\\r\\n'
+    >>> extract_headers("a: b\\ngibberish\\n\\nmore gibberish")
+    'a: b\\ngibberish\\n'
+    """
+
+    m = header_break_re.search(text)
+    if m:
+        eol = m.start(1)
+        text = text[:eol]
+    if ':' not in text:
+        text = ""
+    return text
+
+def _test():
+    import doctest, mboxutils
+    return doctest.testmod(mboxutils)
+
+if __name__ == "__main__":
+    _test()
