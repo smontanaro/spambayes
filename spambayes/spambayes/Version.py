@@ -19,7 +19,7 @@ versions = {
         },
         "Outlook" : {
             "Version":          0.4,
-            "BinaryVersion":    004,
+            "BinaryVersion":    0.4,
             "Description":      "SpamBayes Outlook Addin (beta)",
             "Date":             "July 2003",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
