@@ -27,7 +27,7 @@ except ImportError:
     del parent
     import classifier
 
-import hammie
+from tokenizer import tokenize
 
 # Suck in CDO type lib
 win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}',
@@ -131,9 +131,6 @@ class BayesManager:
         self.bayes = bayes
         self.bayes_dirty = False
 
-    def MakeHammie(self):
-        return hammie.Hammie(self.bayes)
-
     def LoadConfig(self):
         try:
             f = open(self.config_filename, 'rb')
@@ -228,6 +225,9 @@ class BayesManager:
         while message is not None:
             yield message
             message = messages.GetNext()
+
+    def score(self, msg, evidence=False):
+        return self.bayes.spamprob(tokenize(msg), evidence)
 
 _mgr = None
 

@@ -143,8 +143,7 @@ def ShowClues(mgr, app):
 
     mapi_message = mgr.mapi.GetMessage(item.EntryID)
     stream = mgr.GetBayesStreamForMessage(mapi_message)
-    hammie = mgr.MakeHammie()
-    prob, clues = hammie.score(stream, evidence=True)
+    prob, clues = mgr.score(stream, evidence=True)
     new_msg = app.CreateItem(0)
     body = ["<h2>Spam Score: %g</h2><br>" % prob]
     push = body.append

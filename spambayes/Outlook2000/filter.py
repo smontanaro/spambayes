@@ -15,8 +15,7 @@ def filter_message(message, mgr):
         print "Failed to get a message: %s" % (d,)
         return
 
-    hammie = mgr.MakeHammie()
-    prob = hammie.score(stream, evidence=False)
+    prob = mgr.score(stream)
     num_rules = 0
     for rule in mgr.config.rules:
         if rule.enabled:

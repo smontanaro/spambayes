@@ -9,7 +9,6 @@ import pythoncom
 import win32con
 
 def classify_folder( f, mgr, config, progress):
-    hammie = mgr.MakeHammie()
     messages = f.Messages
     pythoncom.CoInitialize() # We are called on a different thread.
     # We must get outlook in this thread - can't use the main thread :(
@@ -23,7 +22,7 @@ def classify_folder( f, mgr, config, progress):
         try:
             progress.tick()
             stream = mgr.GetBayesStreamForMessage(message)
-            prob = hammie.score(stream, evidence=False)
+            prob = mgr.score(stream)
             added_prop = False
             try:
                 if outlook_ns is not None:
