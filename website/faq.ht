@@ -3,149 +3,321 @@ Author-Email: spambayes@python.org
 Author: spambayes
 
 <h2>Frequently Asked Questions</h2>
+
 <ol>
-<li>Development</li>
-<ol>
-<li><a href="#tokentrick">Hey!  Why don't you implement cool tokenizer trick X?  I think it would really foil those spammers!</a></li>
-<li><a href="#serverside">This software is great!  I want to implement it for all my users. Are there plans to develop a server-side spambayes solution?</a></li>
+  <li>
+    Development
+  </li>
+  <li>
+    <ol type="a">
+      <li>
+        <a href="#tokentrick">Hey! Why don't you implement cool
+        tokenizer trick X? I think it would really foil those
+        spammers!</a>
+      </li>
+      <li>
+        <a href="#serverside">This software is great! I want to
+        implement it for all my users. Are there plans to
+        develop a server-side spambayes solution?</a>
+      </li>
+    </ol>
+  </li>
+  <li>
+    Compatibility
+  </li>
+  <li>
+    <ol type="a">
+      <li>
+        <a href="#outlookversions">What version of Outlook does
+        it work with?</a>
+      </li>
+      <li>
+        <a href="#outlookexpress">Does Spambayes work with
+        Outlook Express?</a>
+      </li>
+      <li>
+        <a href="#nonoutlook">Forget Outlook, what clients will
+        Spambayes work with in general?</a>
+      </li>
+    </ol>
+  </li>
+  <li>
+    Using Spambayes
+  </li>
+  <li>
+    <ol type="a">
+      <li>
+        <a href="#unsure">I just got a spam, but the system
+        said it was "unsure". Why couldn't it tell that it was
+        spam - it's obvious?</a>
+      </li>
+      <li>
+        <a href="#stillunsure">OK, I trained on that message.
+        But I just got *another* one, and the stupid system
+        still thinks it's unsure. Why did it ignore me?</a>
+      </li>
+      <li>
+        <a href="#wipetraining">I've mucked up my training and
+        I want to start all over again, but there isn't an
+        option for this anywhere. What do I do?</a>
+      </li>
+      <li>
+        <a href="#configfiles">I can't use a web browser, so I
+        can't configure pop3proxy/imapfilter.<br>
+         Also: how do I configure hammiefilter and the other
+        applications that don't have a user interface?</a>
+      </li>
+      <li>
+        <a href="#optionstoset">That's great, now I know what
+        the format looks like, but what options do I need to
+        set?</a>
+      </li>
+      <li>
+        <a href="#configlocation">I've made a configuration
+        file, but Spambayes is ignoring it. Now what?</a>
+      </li>
+    </ol>
+  </li>
 </ol>
-<li>Using Spambayes</li>
-<ol>
-<li><a href="#unsure">I just got a spam, but the system said it was "unsure". Why couldn't it tell that it was spam - it's obvious?</a></li>
-<li><a href="#stillunsure">OK, I trained on that message. But I just got *another* one, and the stupid system still thinks it's unsure. Why did it ignore me???</a></li>
-<li><a href="#wipetraining">I've mucked up my training and I want to start all over again, but there isn't an option for this anywhere.  What do I do?</a></li>
-<li><a href="#configfiles">I can't use a web browser, so I can't configure
-   pop3proxy/imapfilter.<br />
-   Also: how do I configure hammiefilter and the other applications that
-   don't have a user interface?</a></li>
-<li><a href="#optionstoset">That's great, now I know what the format looks
-   like, but what options do I need to set?</a></li>
-<li><a href="#configlocation">I've made a configuration file, but Spambayes is
-   ignoring it. Now what?</a></li>
-</ol>
-</ol>
-<p>If you have any suggestions about other questions and answers that should be included
-here, please mail <a href="mailto:spambayes@python.org">the list</a> with them.</p>
-<h3><a name="#tokentrick">Hey!  Why don't you implement cool tokenizer trick 
-   X?  I think it would really foil those spammers!</a></h3>
-<p>Have you run your tokenizer trick against a set of messages to see if
-   it actually works?  Many times what seems like a good idea turns out
-   not to help much, and sometimes even hurts.  If you have a good idea,
-   you've run it against a batch of messages and can prove that it
-   helps, paste the code for your technique and the proof to the mailing
-   list.  If you're not a coder, but are really keen on your idea, post
-   a feature request on the project page, and wait for someone else to
-   code it for you (but make sure you do some testing when it's done).
-   Otherwise, you will likely get a message from Tim Peters about
-   why you need to test your idea :)  Note that as a general rule,
-   we've found that with the tokenizer, "stupid beats smart" -- that is, 
-   very specialised tokenizer behaviour usually produces worse results than
-   a more general approach that just generates tokens and throws them at the 
-   classifier.</p>
+<p>
+  If you have any suggestions about other questions and answers
+  that should be included here, please mail <a href=
+  "mailto:spambayes@python.org">the list</a> with them.
+</p>
+<h3>
+  <a name="tokentrick">Hey! Why don't you implement cool
+  tokenizer trick X? I think it would really foil those
+  spammers!</a>
+</h3>
+<p>
+  Have you run your tokenizer trick against a set of messages
+  to see if it actually works? Many times what seems like a
+  good idea turns out not to help much, and sometimes even
+  hurts. If you have a good idea, you've run it against a batch
+  of messages and can prove that it helps, paste the code for
+  your technique and the proof to the mailing list. If you're
+  not a coder, but are really keen on your idea, post a feature
+  request on the project page, and wait for someone else to
+  code it for you (but make sure you do some testing when it's
+  done). Otherwise, you will likely get a message from Tim
+  Peters about why you need to test your idea :) Note that as a
+  general rule, we've found that with the tokenizer, "stupid
+  beats smart" -- that is, very specialised tokenizer behaviour
+  usually produces worse results than a more general approach
+  that just generates tokens and throws them at the classifier.
+</p>
+<h3>
+  <a name="serverside">This software is great! I want to
+  implement it for all my users. Are there plans to develop a
+  server-side spambayes solution?</a>
+</h3>
+<p>
+  The problem with a server-side solution is that everyone has
+  a different idea of what is spam - that's the whole strength
+  of the bayesian-style filtering concept. If you are certain
+  that *all* of your users would agree on what is spam and what
+  is not, then this might work for you, but otherwise you
+  really have to have individual databases for each user.
+  Either way, you should be able to modify spambayes easily
+  enough to fit into your setup. Please let the list know if
+  you do have success in this area, and we'll update this
+  answer.
+</p>
+<h3>
+  <a name="unsure">I just got a spam, but the system said it
+  was "unsure". Why couldn't it tell that it was spam - it's
+  obvious?</a>
+</h3>
+<p>
+  It may be obvious to you, but the classifier only works on
+  the information it has been given. Maybe this is "new"
+  (you've never seen this particular flavour of spam before),
+  or maybe there aren't enough clues in the message which the
+  system is aware of as strong spam clues.
+</p>
+<h3>
+  <a name="stillunsure">OK, I trained on that message. But I
+  just got <i>another</i> one, and the stupid system still
+  thinks it's unsure. Why did it ignore me?</a>
+</h3>
+<p>
+  It didn't, but you may need to train on a few more of this
+  type of message to get it classified as "spam". The
+  classification algorithm weights its results based on the
+  number of times it has seen a particular clue, so that clues
+  unique to this type of message may need a few more instances
+  to become "convincing".
+</p>
+<h3>
+  <a name="wipetraining">I've mucked up my training and I want
+  to start all over again, but there isn't an option for this
+  anywhere. What do I do?</a>
+</h3>
+<p>
+  Because training from scratch is a very rare occurance, and
+  because deleting all your training information is something
+  you don't want to do by accident, there isn't an option for
+  this. However, you can quite simply do this manually. All the
+  training data is stored in a file, usually called hammie.db,
+  and if you delete (or rename) this, then you will start
+  training from scratch. If you are using the web interface for
+  the POP3 proxy, the configuration page tells you what this
+  file is called (and where it is) down towards the bottom of
+  the page.
+</p>
+<h3>
+  <a name="configfiles">I can't use a web browser, so I can't
+  configure pop3proxy/imapfilter.<br>
+   Also: how do I configure hammiefilter and the other
+  applications that don't have a user interface?</a>
+</h3>
+<p>
+  You need to create a configuration file. This is in the
+  'standard' ini file format (originally created for Windows
+  3.1, I believe). You can find documentation on this format in
+  the Python ConfigParser doc, <a href=
+  "http://www.python.org/doc/current/lib/module-ConfigParser.html">
+  http://www.python.org/doc/current/lib/module-ConfigParser.html</a>,
+  but basically, it's just a text file: lines beginning with #
+  are comments, sections start with a line like "[Section
+  Name]", and options are set out within the appropriate
+  section with lines like "opt = val" or "opt: val" (either is
+  ok). Whitespace other than line endings is for the most part
+  ignored, so you can make it look like whatever you like. You
+  can see a list of what a configuration file of all the
+  defaults would like like if you execute the following Python
+  commands:
+</p>
+<pre>
+  &gt;&gt;&gt; from spambayes.Options import options
+  &gt;&gt;&gt; print options.display()
+</pre><br>
+<br>
+ 
+<h3>
+  <a name="optionstoset">That's great, now I know what the
+  format looks like, but what options do I need to set?</a>
+</h3>
+<p>
+  This depends on exactly what you want to do, and which
+  application you are intending to use. The easiest thing is to
+  execute the following Python commands:
+</p>
+<pre>
+  &gt;&gt;&gt; from spambayes.Options import options
+  &gt;&gt;&gt; print options.display_full()
+</pre>
 
-<h3><a name="#serverside">This software is great!  I want to implement it 
-   for all my users.
-   Are there plans to develop a server-side spambayes solution?</a></h3>
-<p>The problem with a server-side solution is that everyone has a
-   different idea of what is spam - that's the whole strength of the
-   bayesian-style filtering concept.  If you are certain that *all*
-   of your users would agree on what is spam and what is not, then
-   this might work for you, but otherwise you really have to have
-   individual databases for each user.  Either way, you should be
-   able to modify spambayes easily enough to fit into your setup.
-   Please let the list know if you do have success in this area, and
-   we'll update this answer.</p>
+This will print out a complete list of the options, including
+scription of the option, and its default value. You can also
+up a single section, if you know its name:<br>
+ 
+<pre>
+  &gt;&gt;&gt; print options.display_full("section_name")
+</pre>
+Or just a single option:<br>
+ 
+<pre>
+  &gt;&gt;&gt; print options.display_full("section_name", "option_name")
+</pre>
 
-<h3><a name="#unsure">I just got a spam, but the system said it was "unsure". 
-   Why couldn't it tell that it was spam - it's obvious?</a></h3>
-<p>It may be obvious to you, but the classifier only works on
-   the information it has been given. Maybe this is "new" (you've
-   never seen this particular flavour of spam before), or maybe
-   there aren't enough clues in the message which the system is
-   aware of as strong spam clues.</p>
+If you want a list of all the sections, you can use this
+and:<br>
+ 
+<pre>
+  &gt;&gt;&gt; print options.sections()
+</pre>
 
-<h3><a name="#stillunsure">OK, I trained on that message. But I just got 
-   <i>another</i> one, and the stupid system still thinks it's unsure. Why 
-    did it ignore me???</a></h3>
-<p>It didn't, but you may need to train on a few more of this type
-   of message to get it classified as "spam". The classification
-   algorithm weights its results based on the number of times it
-   has seen a particular clue, so that clues unique to this type
-   of message may need a few more instances to become "convincing".</p>
+If you want a list of all the options, you can use this
+and:<br>
+ 
+<pre>
+  &gt;&gt;&gt; print options.options(prepend_section_name=False)
+</pre>
+<br>
+<br>
+ 
+<h3>
+  <a name="configlocation">I've made a configuration file, but
+  Spambayes is ignoring it. Now what?</a>
+</h3>
+<p>
+  Spambayes looks for your configuration file in three places -
+  if it can't find it, then, obviously, your options will not
+  be loaded. The first place that Spambayes checks is the
+  environment variable BAYESCUSTOMIZE. You can set this to the
+  path of your configuration file, wherever it is, and it will
+  be loaded. You can also specify more than one file, separated
+  by the appropriate path separator for your platform. This is
+  the recommended method of specifying the location of the
+  file, unless you do so via a user interface (as provided by
+  the POP3 proxy, the Outlook plugin, and the IMAP filter). If
+  Spambayes doesn't find anything in the BAYESCUSTOMIZE
+  variable, then it checks the current working directory and
+  your home directory for a bayescustomize.ini or .spambayesrc
+  file (respectively).
+</p>
+<h3>
+  <a name="outlookversions">What version of Outlook does it
+  work with?</a>
+</h3>
+<p>
+  The most up to date list of known compatible versions of
+  Outlook may be found <a href=
+  "http://spambayes.sourceforge.net/windows.html">here</a>.
+</p>
+<h3>
+  <a name="outlookexpress">Does Spambayes work with Outlook
+  Express?</a>
+</h3>
+<p>
+  Outlook Express isn't a version of Outlook, it's a completely
+  separate program (from the same company). Because they give
+  it away for free, OE is a really stripped down program, and
+  it's extremely difficult to create a plugin for it.
+</p>
+<p>
+  As someone else said, you can use pop3proxy or imapfilter
+  (depending on whether you use POP3 or IMAP). Check out the
+  INTEGRATION.TXT file for instructions.
+</p>
+<p>
+  Pop3proxy/imapfilter aren't quite as 'transparent' as the
+  Outlook plugin, but they're still quite easy to use/setup,
+  and they use the same core, so the results will be the same
+</p>
+<h3>
+  <a name="nonoutlook">Forget Outlook, what clients will
+  Spambayes work with in general?</a>
+</h3>
+<p>
+  Spambayes will work with most POP3 or IMAP compatible
+  clients. How you implement depends on your local architecture
+</p>
+<ul>
+  <li>
+    users with access to procmail can just write a recipe that
+    invokes spambayes like this:
+<pre>
+  :0fw
+  | /opt/spambayes/hammiefilter.py<br>
+</pre>
 
-<h3><a name="#wipetraining">I've mucked up my training and I want to 
-   start all over again, but there isn't an option for this anywhere.  
-   What do I do?</a></h3>
-<p>Because training from scratch is a very rare occurance, and because
-   deleting all your training information is something you don't want
-   to do by accident, there isn't an option for this.  However, you
-   can quite simply do this manually.  All the training data is stored
-   in a file, usually called hammie.db, and if you delete (or rename)
-   this, then you will start training from scratch.  If you are using
-   the web interface for the POP3 proxy, the configuration page tells
-   you what this file is called (and where it is) down towards the
-   bottom of the page.</p>
-
-<h3><a name="#configfiles">I can't use a web browser, so I can't configure
-   pop3proxy/imapfilter.<br />
-   Also: how do I configure hammiefilter and the other applications that
-   don't have a user interface?</a></h3>
-<p>You need to create a configuration file.  This is in the 'standard'
-   ini file format (originally created for Windows 3.1, I believe).  You
-   can find documentation on this format in the Python ConfigParser doc,
-   <a href="http://www.python.org/doc/current/lib/module-ConfigParser.html">
-   http://www.python.org/doc/current/lib/module-ConfigParser.html</a>, but
-   basically, it's just a text file: lines beginning with # are comments,
-   sections start with a line like "[Section Name]", and options are set
-   out within the appropriate section with lines like "opt = val" or
-   "opt: val" (either is ok).  Whitespace other than line endings is for
-   the most part ignored, so you can make it look like whatever you like.
-   You can see a list of what a configuration file of all the defaults
-   would like like if you execute the following Python commands:<br />
-   <pre>
-      >>> from spambayes.Options import options
-      >>> print options.display()
-   </pre></p>
-
-<h3><a name="#optionstoset">That's great, now I know what the format looks
-   like, but what options do I need to set?</a></h3>
-<p>This depends on exactly what you want to do, and which application you
-   are intending to use.  The easiest thing is to execute the following
-   Python commands:<br />
-   <pre>
-      >>> from spambayes.Options import options
-      >>> print options.display_full()
-   </pre>
-   This will print out a complete list of the options, including a
-   description of the option, and its default value.  You can also look up
-   a single section, if you know its name:<br />
-   <pre>
-      >>> print options.display_full("section_name")
-   </pre>
-   Or just a single option:<br />
-   <pre>
-      >>> print options.display_full("section_name", "option_name")
-   </pre>
-   If you want a list of all the sections, you can use this command:<br />
-   <pre>
-      >>> print options.sections()
-   </pre>
-   If you want a list of all the options, you can use this command:<br />
-   <pre>
-      >>> print options.options(prepend_section_name=False)
-   </pre></p>
-
-<h3><a name="#configlocation">I've made a configuration file, but Spambayes is
-   ignoring it. Now what?</a></h3>
-<p>Spambayes looks for your configuration file in three places - if it
-   can't find it, then, obviously, your options will not be loaded.  The
-   first place that Spambayes checks is the environment variable
-   BAYESCUSTOMIZE.  You can set this to the path of your configuration file,
-   wherever it is, and it will be loaded.  You can also specify more than
-   one file, separated by the appropriate path separator for your platform.
-   This is the recommended method of specifying the location of the file,
-   unless you do so via a user interface (as provided by the POP3 proxy,
-   the Outlook plugin, and the IMAP filter). If Spambayes doesn't find
-   anything in the BAYESCUSTOMIZE variable, then it checks the current
-   working directory and your home directory for a bayescustomize.ini or
-   .spambayesrc file (respectively).</p>
+    followed by a recipe to check the results and take action:
+<pre>
+  :0
+  * ^X-Spambayes-Classification: spam<br>
+  ${MAILDIR}/spam
+</pre>
+  </li>
+  <li>
+    Users limited to POP3/IMAP communications to the server can
+    use the <a href=
+    "http://spambayes.sourceforge.net/applications.html#pop3">POP3</a>
+    or <a href=
+    "http://spambayes.sourceforge.net/applications.html#imap">IMAP
+    proxy</a> with the <a href=
+    "https://sourceforge.net/project/showfiles.php?group_id=61702">
+    Spambayes source code.</a>
+  </li>
+</ul>
