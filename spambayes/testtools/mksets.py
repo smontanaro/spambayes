@@ -41,7 +41,12 @@ def usage(code, msg=''):
 
 def distribute(dir):
     files = glob.glob(os.path.join(dir, "*", "*"))
+    # Sort by time received, earliest first.  The base names must be such
+    # that sorting by basename accomplishes this; that's true if
+    # sort+group.py was run first.
+    files = [(os.path.basename(f), f) for f in files]
     files.sort()
+    files = [t[-1] for t in files]
 
     trash = glob.glob(os.path.join(dir, "Set*"))
     for set in range(1, nsets + 1):
