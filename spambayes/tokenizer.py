@@ -6,6 +6,8 @@ from __future__ import generators
 import email
 import email.Header
 import email.Message
+import email.Header
+import email.Utils
 import email.Errors
 import re
 import math
@@ -1071,13 +1073,25 @@ class Tokenizer:
         # Reply-To:     # my error rates are too low now to tell about this
         #               # one (smalls wins & losses across runs, overall
         #               # not significant), so leaving it out
-        for field in ('from',):
-            prefix = field + ':'
-            x = msg.get(field, 'none').lower()
-            for w in x.split():
-                for t in tokenize_word(w):
-                    yield prefix + t
-
+        # To:, Cc:      # These can help, if your ham and spam are sourced
+        #               # from the same location. If not, they'll be horrible.
+        for field in options.address_headers:
+            addrlist = msg.get_all(field, [])
+            if not addrlist:
+                yield field + ":none"
+            for addrs in addrlist:
+                for rname,ename in email.Utils.getaddresses([addrs]):
+                    if rname:
+                        for rname,rcharset in email.Header.decode_header(rname):
+                            for w in rname.lower().split():
+                                for t in tokenize_word(w):
+                                    yield field+'realname:'+t
+                            if rcharset is not None:
+                                yield field+'charset:'+rcharset
+                    if ename:
+                        for w in ename.lower().split('@'):
+                            for t in tokenize_word(w):
+                                yield field+'email:'+t
         # To:
         # Cc:
         # Count the number of addresses in each of the recipient headers.

@@ -89,6 +89,14 @@ safe_headers: abuse-reports-to
 # if your test corpora are from different sources.  Else set this to true.
 mine_received_headers: False
 
+# Mine the following address headers. If you have mixed source corpuses
+# (as opposed to a mixed sauce walrus, which is delicious!) then you
+# probably don't want to use 'to' or 'cc')
+# Address headers will be decoded, and will generate charset tokens as
+# well as the real address.
+# others to consider: to, cc, reply-to, errors-to, sender, ...
+address_headers: from
+
 # If legitimate mail contains things that look like text to the tokenizer
 # and turning turning off this option helps (perhaps binary attachments get
 # 'defanged' by something upstream from this operation and thus look like
@@ -339,6 +347,7 @@ string_cracker = ('get', None)
 
 all_options = {
     'Tokenizer': {'safe_headers': ('get', lambda s: Set(s.split())),
+                  'address_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'record_header_absence': boolean_cracker,
                   'generate_long_skips': boolean_cracker,
