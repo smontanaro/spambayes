@@ -99,7 +99,7 @@ def train_messages(ham_name, spam_name):
     print 'done'
 
 def filter_message(hamdir, spamdir):
-    signal.signal(signal.SIGALRM, lambda s: sys.exit(1))
+    signal.signal(signal.SIGALRM, lambda s, f: sys.exit(1))
     signal.alarm(24 * 60 * 60)
 
     # write message to temporary file (must be on same partition)
