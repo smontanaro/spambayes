@@ -26,7 +26,7 @@ environment.</p>
 <li>Create the database that spambayes will use to test your incoming mail:
 <pre>/usr/local/bin/hammiefilter.py -d $HOME/.hammie.db -n</pre></li>
 <li>Train it on your existing mail. This is optional, but a good idea. -g is the flag for the known good mail, and -s is for known spam 
-<pre>/usr/local/bin/mboxtrain.py -d $HOME/.hammiedb -g $HOME/Mail/inbox -s $HOME/Mail/spam</pre></li>
+<pre>/usr/local/bin/mboxtrain.py -d $HOME/.hammie.db -g $HOME/Mail/inbox -s $HOME/Mail/spam</pre></li>
 <li>Adding the following recipes to the top of your .procmailrc will get the spam and unsure stuff out of the way. Allowing everything else to be filtered as per your normal procmail recipes.
 <pre>
       :0fw:hamlock
@@ -42,7 +42,7 @@ environment.</p>
 </pre>
 </li>
 <li>For ongoing training, there is a handy little cronjob that will run at 2:21 am every morning, training the database with good mail from Inbox and spam from caughtspam. Just add the following to your crontab
-<pre>21 2 * * * /usr/local/bin/mboxtrain.py -d $HOME/.hammiedb -g $HOME/Mail/Inbox -s $HOME/Mail/spam</pre>
+<pre>21 2 * * * /usr/local/bin/mboxtrain.py -d $HOME/.hammie.db -g $HOME/Mail/Inbox -s $HOME/Mail/spam</pre>
 </li>
 </ol>
 </p>
