@@ -218,8 +218,6 @@ class GrahamBayes(object):
                  'nham',      # number of non-spam messages learn() has seen
                 )
 
-    DEBUG = False
-
     def __init__(self):
         self.wordinfo = {}
         self.nspam = self.nham = 0
@@ -435,9 +433,6 @@ class GrahamBayes(object):
         where evidence is a list of (word, probability) pairs.
         """
 
-        if self.DEBUG:
-            print "spamprob(%r)" % wordstream
-
         # A priority queue to remember the MAX_DISCRIMINATORS best
         # probabilities, where "best" means largest distance from 0.5.
         # The tuples are (distance, prob, word, wordinfo[word]).
@@ -494,8 +489,6 @@ class GrahamBayes(object):
                 record.killcount += 1
             if evidence:
                 clues.append((word, prob))
-            if self.DEBUG:
-                print 'nbest P(%r) = %g' % (word, prob)
             prob_product *= prob / sp
             inverse_prob_product *= (1.0 - prob) / hp
 
@@ -576,11 +569,6 @@ class GrahamBayes(object):
                 # to allow a persistent db to realize the record has changed.
                 self.wordinfo[word] = record
 
-        if self.DEBUG:
-            print 'New probabilities:'
-            for w, r in self.wordinfo.iteritems():
-                print "P(%r) = %g" % (w, r.spamprob)
-
     def clearjunk(self, oldesttime):
         """Forget useless wordinfo records.  This can shrink the database size.
 
@@ -592,14 +580,9 @@ class GrahamBayes(object):
         mincount = float(mincount)
         tonuke = [w for w, r in wordinfo.iteritems() if r.atime < oldesttime]
         for w in tonuke:
-            if self.DEBUG:
-                print "clearjunk removing word %r: %r" % (w, r)
             del wordinfo[w]
 
     def _add_msg(self, wordstream, is_spam):
-        if self.DEBUG:
-            print "_add_msg(%r, %r)" % (wordstream, is_spam)
-
         if is_spam:
             self.nspam += 1
         else:
@@ -619,14 +602,7 @@ class GrahamBayes(object):
                 record.hamcount += 1
             wordinfo[word] = record
 
-            if self.DEBUG:
-                print "new count for %r = %d" % (word,
-                      is_spam and record.spamcount or record.hamcount)
-
     def _remove_msg(self, wordstream, is_spam):
-        if self.DEBUG:
-            print "_remove_msg(%r, %r)" % (wordstream, is_spam)
-
         if is_spam:
             if self.nspam <= 0:
                 raise ValueError("spam count would go negative!")
