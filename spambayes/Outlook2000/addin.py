@@ -896,6 +896,7 @@ class ExplorerWithEvents:
                 # Toolbars seem to still fail randomly for some users.
                 # eg, bug [ 755738 ] Latest CVS outllok doesn't work
                 print "FAILED to add the toolbar item '%s' - %s" % (tag,e)
+                traceback.print_exc()
                 return
             if image_fname:
                 # Eeek - only available in derived class.
