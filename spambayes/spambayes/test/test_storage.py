@@ -1,10 +1,8 @@
 # Test the basic storage operations of the classifier.
 
 import unittest, os, sys
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import tempfile
+import cStringIO as StringIO
 
 import sb_test_support
 sb_test_support.fix_sys_path()
@@ -12,12 +10,12 @@ sb_test_support.fix_sys_path()
 from spambayes.storage import DBDictClassifier, PickledClassifier
 
 class _StorageTestBase(unittest.TestCase):
+    # Subclass must define a concrete StorageClass.
     StorageClass = None
 
     def setUp(self):
-        import tempfile
         self.db_name = tempfile.mktemp("spambayestest")
-        self.classifier = self.__class__.StorageClass(self.db_name)
+        self.classifier = self.StorageClass(self.db_name)
 
     def tearDown(self):
         self.classifier = None
@@ -28,7 +26,7 @@ class _StorageTestBase(unittest.TestCase):
         assert word
         info = self.classifier._wordinfoget(word)
         if info is None:
-            if expected_ham==0 and expected_spam==0:
+            if expected_ham == expected_spam == 0:
                 return
             self.fail("_CheckWordCounts for '%s' got None!")
         if info.hamcount != expected_ham:
@@ -128,52 +126,49 @@ class _StorageTestBase(unittest.TestCase):
 # Test classes for each classifier.
 class PickleStorageTestCase(_StorageTestBase):
     StorageClass = PickledClassifier
-    def setUp(self):
-        return _StorageTestBase.setUp(self)
 
 class DBStorageTestCase(_StorageTestBase):
     StorageClass = DBDictClassifier
-    def setUp(self):
-        return _StorageTestBase.setUp(self)
+
     def tearDown(self):
         self.classifier.db.close()
         _StorageTestBase.tearDown(self)
 
-    def fail_open_best(self, *args):
+    def _fail_open_best(self, *args):
         from spambayes import dbmstorage
         raise dbmstorage.error("No dbm modules available!")
-    def success(self, *args):
-        self.succeeded = True
+
     def testNoDBMAvailable(self):
         import tempfile
         from spambayes.storage import open_storage
+
+        db_name = tempfile.mktemp("nodbmtest")
         DBDictClassifier_load = DBDictClassifier.load
-        DBDictClassifier.load = self.fail_open_best
-        sys_exit = sys.exit
-        sys.exit = self.success
-        # redirect sys.stderr and sys.exit, as storage.py prints
-        # an error to stderr, then attempts to sys.exit
-        # (we probably could just catch SystemExit for sys.exit?)
+        DBDictClassifier.load = self._fail_open_best
+        # Redirect sys.stderr, as open_storage() prints a msg to stderr.
+        # Then it does sys.exit(), which we catch.
         sys_stderr = sys.stderr
         sys.stderr = StringIO.StringIO()
-        self.succeeded = False
-        db_name = tempfile.mktemp("nodbmtest")
         try:
-            s = open_storage(db_name, True)
+            try:
+                open_storage(db_name, True)
+            except SystemExit:
+                pass
+            else:
+                self.fail("expected SystemExit from open_storage() call")
         finally:
             DBDictClassifier.load = DBDictClassifier_load
-            sys.exit = sys_exit
             sys.stderr = sys_stderr
-        if not self.succeeded:
-            self.fail()
+
         if os.path.isfile(db_name):
             os.remove(db_name)
 
 def suite():
-    # We dont want our base class run
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(PickleStorageTestCase))
-    suite.addTest(unittest.makeSuite(DBStorageTestCase))
+    for cls in (PickleStorageTestCase,
+                DBStorageTestCase,
+               ):
+        suite.addTest(unittest.makeSuite(cls))
     return suite
 
 if __name__=='__main__':
