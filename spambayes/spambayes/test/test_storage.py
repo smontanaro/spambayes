@@ -141,6 +141,28 @@ class DBStorageTestCase(_StorageTestBase):
         self.classifier.db.close()
         _StorageTestBase.tearDown(self)
 
+    def fail_open_best(self, *args):
+        from spambayes import dbmstorage
+        raise dbmstorage.error("No dbm modules available!")
+    def success(self, *args):
+        self.succeeded = True
+    def testNoDBMAvailable(self):
+        import tempfile
+        from spambayes.storage import open_storage
+        DBDictClassifier_load = DBDictClassifier.load
+        DBDictClassifier.load = self.fail_open_best
+        sys_exit = sys.exit
+        sys.exit = self.success
+        self.succeeded = False
+        db_name = tempfile.mktemp("nodbmtest")
+        s = open_storage(db_name, True)
+        DBDictClassifier.load = DBDictClassifier_load
+        sys.exit = sys_exit
+        if not self.succeeded:
+            self.fail()
+        if os.path.isfile(db_name):
+            os.remove(db_name)
+
 def suite():
     # We dont want our base class run
     suite = unittest.TestSuite()
