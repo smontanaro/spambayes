@@ -479,6 +479,32 @@ clues unique to this type of message may need a few more instances to become
 "convincing".
 
 
+Spambayes doesn't seem to catch much spam.  What gives?
+-------------------------------------------------------
+
+Initially, Spambayes will not be able to distinguish spams from hams.  With
+no training inputs, the classifier will simply mark everything unsure.  Once
+you start training the classifier on a representative set of spams and hams
+it should very quickly begin to improve, however.  If that's not the case,
+perhaps you have something misconfigured.  Here are a couple things to
+check:
+
+1. What do you have your ham and spam thresholds set to?  The defaults are
+   0.2 and 0.9, respectively, and should be reasonable starting points.
+   They should not be close together (say, 0.4 and 0.6).
+
+2. Have you trained on a reasonable number of hams and spams?  You should
+   train on 10 to 20 of each to start with just to get a decent base.  After
+   that, you should be able to train on just mistakes and messages
+   classified as unsure.
+
+3. Check to be sure you haven't made any classification mistakes (trained
+   spams as hams or vice versa).  If so, you could really confuse things and
+   should move incorrectly classified messages to their correct locations
+   and retrain (which may happen automatically, depending on how you're
+   using Spambayes).
+
+
 How do I start from scratch after messing up my training?
 ---------------------------------------------------------
 
