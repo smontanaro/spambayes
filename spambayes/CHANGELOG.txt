@@ -1,9 +1,49 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
-Alpha Release 7
-===============
+Release 1.1a1
+=============
+Tony Meyer        06/10/2003  Add Tim's fix for the stats to the web interface stats as well.  i.e. round the percentages, don't truncate them.
+Tony Meyer        06/10/2003  imapfilter: When we mark a message as deleted, mark it as read (seen) as well.
+Richie Hindle     04/10/2003  Fix the help icon to look like the rest.
+Tony Meyer        03/10/2003  If sb_imapfilter.py is run without any switches, just serve the web interface (but don't launch a browser).
+Tim Peters        03/10/2003  Outlook: Stop spam and unsure messages being double-counted in the stats.
+Tony Meyer        02/10/2003  Fix a bug where messages wouldn't be trained via the web interface although no error would be reported (introduced after the previous release).
+Tony Meyer        02/10/2003  Provide a partially filled-in bug report message via the web interface.
+Tim Peters        01/10/2003  Round (not truncate) the stats information in the Outlook plugin.
+Tony Meyer        30/09/2003  Improve autoconfigure script to find the location of various config files.
+Tony Meyer        30/09/2003  Add basic statistics information to the web interface.
+Tony Meyer        29/09/2003  Add a basic help system to the web interface.
+Tony Meyer        29/09/2003  Add warning information to the web interface, for example if the user has imbalanced training, or not much training.
+Mark Hammond      29/09/2003  Don't start the pop3proxy service if a proxy is already running.
+Mark Hammond      29/09/2003  Outlook: Add slightly better stats, and a better framework to extend.
 Skip Montanaro    26/09/2003  Correct sense of include_trained test in mbox_train.
 Skip Montanaro    26/09/2003  Dump TRAINED_HDR global.  Reference options[...] instead.
+Mark Hammond      25/09/2003  Add patch [ 809008 ] safe start/stop and exlusive execution on windows
+Tony Meyer        24/09/2003  sb_filter.py: If the -n switch was before the -d/-p switch, then the name wouldn't be used. This is rather unintuitive, so fix this so that the -d/-p name is used wherever the -n switch is.
+Adam Walker       24/09/2003  pop3proxy_tray: Check if the web interface port can be bound as a simple test of if the proxy is running.
+Tony Meyer        20/09/2003  smtpproxy is now only a module, not a script.  Use sb_server instead.
+Tony Meyer        20/09/2003  Consolidate some of the many message classes - in particular Corpus.Message is removed in favour of message.Message
+Tony Meyer        20/09/2003  Improve the 'Find Message' query on the front page of the web UI.
+Tony Meyer        20/09/2003  Add an advanced word query to the web UI.
+Tony Meyer        20/09/2003  Make the review messages page on the web UI more customizable.
+
+1.0 Releases
+************
+
+Alpha Release 7
+===============
+Tony Meyer        06/10/2003  Trivial fix for imap over ssl being offered when it is available.
+Tony Meyer        03/10/2003  Fix [ 810342 ] sb_smtpproxy does not work with smtplib.SMTP.sendmail()
+Tony Meyer        03/10/2003  Fix [ spambayes-Bugs-816400 ] Crash because of bad date.
+Sjoerd Mullender  02/10/2003  imapfilter: if problems occur parsing the date, just use the current date/time.
+Tony Meyer        30/09/2003  Fix [ 814322 ] AttributeError: hdrtxt
+Tony Meyer        29/09/2003  smtpproxy: If we successfully trained a message from the pop3proxy cache or imap server, we still said that we couldn't find it.  Fix.
+Tony Meyer        29/09/2003  smtpproxy: Fix a minor printing error that would cause a traceback.
+Tony Meyer        29/09/2003  imapfilter: Fix trying to view imap folders before restarting and after entering in details.
+Tony Meyer        28/09/2003  Don't use 'pragma: no_cache' to try and stop browsers caching the web interface pages.
+Tony Meyer        26/09/2003  If the user is using Windows, also install pop3proxy_service.py and pop3proxy_tray.py.
+Tony Meyer        24/09/2003  Fix sb_xmlrpcserver to work with the renamed options/scripts.
+Tony Meyer        24/09/2003  Fix [ spambayes-Bugs-809769 ] TypeError when training 1.0a6
 
 Alpha Release 6
 ===============
