@@ -2,15 +2,24 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<h2>Source Releases</h2>
-<p>Beta release 1 of version 1.0 of the SpamBayes project is now
-available.
-Download version 1.0b1 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a>
-page as either a gzipped tarball or a zip file of the source files.
-</p>
-
-<p>This release is primarily to shake out those last few bugs on the way to a 1.0
+<p>Beta release 1 of version 1.0 of the SpamBayes project is now available.
+<p>This release is primarily to shake out those last few bugs on the way to a final 1.0
 release. Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
+
+<h2>Microsoft Windows</h2>
+<p>Microsoft Windows users are encouraged to use the installation program to 
+install SpamBayes.  This will install applications suitable for almost all
+email clients, including Microsoft Outlook and Microsoft Outlook Express.</p>
+
+<p>Please see our <a href="windows.html">Windows pages</a>, or jump directly 
+to the 
+<a href="https://sourceforge.net/project/showfiles.php?group_id=61702">file releases for this project</a>.
+
+<h2>Source Releases</h2>
+<p>The source-code releases can be used on any platform with a Python interpreter</p>
+<p>The source-code releases can be downloaded, as either a gzipped tarball or a zip file, directly from the 
+<a href="https://sourceforge.net/project/showfiles.php?group_id=61702">file releases for this project</a>.
+
 <p>Prerequisites:
 <ul>Either: 
 <li>Python 2.2.2 or above, or a CVS build of python, or
@@ -22,19 +31,6 @@ release. Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org<
 <li>otherwise, consult the <tt>README.txt</tt> file in the package and choose the method that suits your setup best.
 </ul>
 </p>
-
-<h2>Binary Releases</h2>
-<h3>Outlook Plugin</h3>
-<p>Mark has packaged up a standalone installer of the Outlook plugin. Get it
-from the <a href="windows.html">Windows</a> page on this site.</p>
-
-<h3>sb_server</h3>
-<p>Windows users that get mail via POP3, who do not use Outlook, can now
-get a standalone installer of sb_server.  Get it from the <a href="windows.html">
-Windows</a> page on this site.</p>
-
-<h3>Other</h3>
-<p>None as yet.</p>
 
 <a name="cvs"><h2>CVS Access</h2></a>
 <p>The code is currently available from sourceforge's CVS server -
