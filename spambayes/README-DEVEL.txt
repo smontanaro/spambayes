@@ -504,11 +504,34 @@ on Windows, so his approach to building the zip file is at the end.
    check the "Keep my preformatted text" checkbox.
  o Now commit spambayes/__init__.py and tag the whole checkout - see the
    existing tag names for the tag name format.
+ o Create MD5 checksums for the files, and update download.ht with these.
+   Tony uses wxChecksums (http://wxchecksums.sourceforge.net) for this,
+   but you could just do
+      >>> import md5
+      >>> print md5.md5(file("spambayes-1.0.1.exe", "rb").read()).hexdigest()
+ o Calculate the sizes of the files, and update download.ht with these.
+ o Create OpenPGP/PGP signatures for the files.  Using GnuPG:
+      % gpg -sab spambayes-1.0.1.zip
+      % gpg -sab spambayes-1.0.1.tar.gz
+      % gpg -sab spambayes-1.0.1.exe
+   Put the created *.asc files in the "sigs" directory of the website.
+ o If your public key isn't already linked to on the Download page, put
+   it there.
  o Update the website News, Download and Windows sections.
  o Update reply.txt in the website repository as needed (it specifies the
-   latest version).  Then let Tim, Barry, Tony, or Skip know that they need to
-   update the autoresponder.
-
+   latest version).  Then let Tim, Barry, Tony, or Skip know that they need
+   to update the autoresponder.
+ o Run "make install version" in the website directory to push the new
+   version file, so that "Check for new version" works.
+ o Add '+' to the end of spambayes/__init__.py's __version__, to
+   differentiate CVS users, and check this change in.  After a number of
+   changes have been checked in, this can be incremented and have "a0"
+   added to the end. For example, with a 1.1 release:
+       [before the release process] '1.1rc1'
+       [during the release process] '1.1'
+       [after the release process]  '1.1+'
+       [later]                      '1.2a0'
+       
 Then announce the release on the mailing lists and watch the bug reports
 roll in.  8-)
 
