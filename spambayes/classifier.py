@@ -400,12 +400,13 @@ class Bayes(object):
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
-                record = wordinfo[word] = WordInfo(now)
+                record = WordInfo(now)
 
             if is_spam:
                 record.spamcount += 1
             else:
                 record.hamcount += 1
+            # Needed to tell a persistent DB that the content changed.
             wordinfo[word] = record
 
     def _remove_msg(self, wordstream, is_spam):
@@ -418,7 +419,8 @@ class Bayes(object):
                 raise ValueError("non-spam count would go negative!")
             self.nham -= 1
 
-        wordinfoget = self.wordinfo.get
+        wordinfo = self.wordinfo
+        wordinfoget = wordinfo.get
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is not None:
@@ -429,7 +431,10 @@ class Bayes(object):
                     if record.hamcount > 0:
                         record.hamcount -= 1
                 if record.hamcount == 0 == record.spamcount:
-                    del self.wordinfo[word]
+                    del wordinfo[word]
+                else:
+                    # Needed to tell a persistent DB that the content changed.
+                    wordinfo[word] = record
 
     def _getclues(self, wordstream):
         mindist = options.robinson_minimum_prob_strength
