@@ -1,5 +1,10 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
+Alpha Release 7
+===============
+Skip Montanaro    26/09/2003  Correct sense of include_trained test in mbox_train.
+Skip Montanaro    26/09/2003  Dump TRAINED_HDR global.  Reference options[...] instead.
+
 Alpha Release 6
 ===============
 Skip Montanaro    19/09/2003  Worm around a possible email pkg bug.
