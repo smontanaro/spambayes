@@ -54,7 +54,7 @@ def dump(p1s, p2s):
         alltags += t + " "
     print
     for t in "won", "tied", "lost":
-        print "%-4s %2d %s" % (t, alltags.count(t), "times")
+        print "%-4s %2d times" % (t, alltags.count(t))
     print
 
 fp1, fn1, fptot1, fntot1 = suck(file(f1n + '.txt'))
