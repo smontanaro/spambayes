@@ -1138,7 +1138,7 @@ class Tokenizer:
                 return
 
         # Habeas Headers - see http://www.habeas.com
-        if options["Tokenizer", "X-search_for_habeas_headers"]:
+        if options["Tokenizer", "x-search_for_habeas_headers"]:
             habeas_headers = [
 ("X-Habeas-SWE-1", "winter into spring"),
 ("X-Habeas-SWE-2", "brightly anticipated"),
@@ -1155,7 +1155,7 @@ class Tokenizer:
             for opt, val in habeas_headers:
                 habeas = msg.get(opt)
                 if habeas is not None:
-                    if options["Tokenizer", "X-reduce_habeas_headers"]:
+                    if options["Tokenizer", "x-reduce_habeas_headers"]:
                         if habeas == val:
                             valid_habeas += 1
                         else:
@@ -1165,7 +1165,7 @@ class Tokenizer:
                             yield opt.lower() + ":valid"
                         else:
                             yield opt.lower() + ":invalid"
-            if options["Tokenizer", "X-reduce_habeas_headers"]:
+            if options["Tokenizer", "x-reduce_habeas_headers"]:
                 # If there was any invalid line, we record as invalid.
                 # If all nine lines were correct, we record as valid.
                 # Otherwise we ignore.

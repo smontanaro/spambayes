@@ -21,19 +21,19 @@ The OptionsClass class provides facility for a collection of Options.
 It is expected that manipulation of the options will be carried out
 via an instance of this class.
 
-Experimental or deprecated options are prefixed with 'X-', borrowing the
+Experimental or deprecated options are prefixed with 'x-', borrowing the
 practice from RFC-822 mail.  If the user sets an option like:
 
     [Tokenizer]
-    X-transmogrify: True
+    x-transmogrify: True
 
-and an 'X-transmogrify' or 'transmogrify' option exists, it is set silently
+and an 'x-transmogrify' or 'transmogrify' option exists, it is set silently
 to the value given by the user.  If the user sets an option like:
 
     [Tokenizer]
     transmogrify: True
 
-and no 'transmogrify' option exists, but an 'X-transmogrify' option does,
+and no 'transmogrify' option exists, but an 'x-transmogrify' option does,
 the latter is set to the value given by the users and a deprecation message
 is printed to standard error.
 
@@ -527,23 +527,19 @@ class OptionsClass(object):
                 option = opt
                 if not self._options.has_key((section, option)):
                     if option.startswith('x-'):
-                        # try setting option without the X- prefix
+                        # try setting option without the x- prefix
                         option = option[2:]
                         if self._options.has_key((section, option)):
                             self.convert_and_set(section, option, value)
                         # not an error if an X- option is missing
                     else:
-                        l_option = 'x-' + option
-                        u_option = 'X-' + option
+                        option = 'x-' + option
                         # going the other way, if the option has been
                         # deprecated, set its x-prefixed version and
                         # emit a warning
-                        if self._options.has_key((section, l_option)):
-                            self.convert_and_set(section, l_option, value)
-                            self._report_deprecated_error(section, option)
-                        elif self._options.has_key((section, u_option)):
-                            self.convert_and_set(section, u_option, value)
-                            self._report_deprecated_error(section, option)
+                        if self._options.has_key((section, option)):
+                            self.convert_and_set(section, option, value)
+                            self._report_deprecated_error(section, opt)
                         else:
                             print >> sys.stderr, (
                                 "warning: Invalid option %s in"

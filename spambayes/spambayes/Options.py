@@ -154,13 +154,13 @@ defaults = {
      known in advance to be a strong spam indicator.""",
      BOOLEAN, RESTORE),
 
-    ("X-search_for_habeas_headers", "Search for Habeas Headers", False,
+    ("x-search_for_habeas_headers", "Search for Habeas Headers", False,
      """If true, search for the habeas headers (see http://www.habeas.com)
      If they are present and correct, this should be a strong ham sign, if
      they are present and incorrect, this should be a strong spam sign.""",
      BOOLEAN, RESTORE),
 
-    ("X-reduce_habeas_headers", "Reduce Habeas Header Tokens to Single", False,
+    ("x-reduce_habeas_headers", "Reduce Habeas Header Tokens to Single", False,
      """If SpamBayes is set to search for the Habeas headers, nine tokens
      are generated for messages with habeas headers.  This should be fine,
      since messages with the headers should either be ham, or result in FN
