@@ -3,9 +3,11 @@ from __future__ import generators
 
 import pythoncom
 import os, sys
+import tempfile
 
 from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
+import win32clipboard
 
 import mapi_driver
 
@@ -74,7 +76,7 @@ def FormatPropertyValue(prop_tag, prop_val, item, shorten, get_large_props):
         prop_repr = prop_repr[:50]
     return prop_repr
 
-def DumpItemProps(item, shorten, get_large_props):
+def DumpItemProps(item, shorten, get_large_props, stream=None):
     all_props = GetAllProperties(item)
     all_props.sort() # sort by first tuple item, which is name :)
     for prop_name, prop_tag, prop_val in all_props:
@@ -84,34 +86,38 @@ def DumpItemProps(item, shorten, get_large_props):
             continue
         prop_repr = FormatPropertyValue(prop_tag, prop_val, item,
                                         shorten, get_large_props)
-        print "%-20s: %s" % (prop_name, prop_repr)
+        print >> stream, "%-20s: %s" % (prop_name, prop_repr)
+    print >> stream, "-- end of item properties --"
 
-def DumpProps(driver, mapi_folder, subject, include_attach, shorten, get_large):
+def DumpProps(driver, mapi_folder, subject, include_attach, shorten,
+              get_large, stream=None):
     hr, data = mapi_folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
     name = data[0][1]
     for item in driver.GetItemsWithValue(mapi_folder, PR_SUBJECT_A, subject):
-        DumpItemProps(item, shorten, get_large)
+        DumpItemProps(item, shorten, get_large, stream)
         if include_attach:
-            print
+            print >> stream
             table = item.GetAttachmentTable(0)
             rows = mapi.HrQueryAllRows(table, (PR_ATTACH_NUM,), None, None, 0)
             for row in rows:
                 attach_num = row[0][1]
-                print "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
+                print >> stream, \
+                      "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
                 attach = item.OpenAttach(attach_num, None,
                                          mapi.MAPI_DEFERRED_ERRORS)
-                DumpItemProps(attach, shorten, get_large)
-            print
-        print
+                DumpItemProps(attach, shorten, get_large, stream)
+            print >> stream
+        print >> stream
 
 # Generic table dumper.
-def DumpTable(driver, table, name_query_ob, shorten, large_props):
+def DumpTable(driver, table, name_query_ob, shorten, large_props, stream=None):
     cols = table.QueryColumns(TBL_ALL_COLUMNS)
     table.SetColumns(cols, 0)
     rows = mapi.HrQueryAllRows(table, cols, None, None, 0)
-    print "Table has %d rows, each with %d columns" % (len(rows), len(cols))
+    print >> stream, \
+          "Table has %d rows, each with %d columns" % (len(rows), len(cols))
     for row in rows:
-        print "-- new row --"
+        print >> stream, "-- new row --"
         for col in row:
             prop_tag, prop_val = col
             # If we want 'short' variables, drop 'not found' props.
@@ -121,11 +127,12 @@ def DumpTable(driver, table, name_query_ob, shorten, large_props):
             prop_name = GetPropTagName(name_query_ob, prop_tag)
             prop_repr = FormatPropertyValue(prop_tag, prop_val, name_query_ob,
                                             shorten, large_props)
-            print "%-20s: %s" % (prop_name, prop_repr)
+            print >> stream, "%-20s: %s" % (prop_name, prop_repr)
 
 # This dumps the raw binary data of the property Outlook uses to store
 # user defined fields.
-def FindAndDumpTableUserProps(driver, table, folder, shorten, get_large_props):
+def FindAndDumpTableUserProps(driver, table, folder, shorten,
+                              get_large_props, stream=None):
     restriction = (mapi.RES_PROPERTY,
                   (mapi.RELOP_EQ,
                    PR_MESSAGE_CLASS_A,
@@ -138,7 +145,7 @@ def FindAndDumpTableUserProps(driver, table, folder, shorten, get_large_props):
     prop_name = GetPropTagName(folder, tag)
     prop_repr = FormatPropertyValue(tag, val, folder,
                                     shorten, get_large_props)
-    print "%-20s: %s" % (prop_name, prop_repr)
+    print >> stream, "%-20s: %s" % (prop_name, prop_repr)
 
 def usage(driver, extra = None):
     folder_doc = driver.GetFolderNameDoc()
@@ -151,6 +158,7 @@ Usage: %s [options ...] subject of the message
 Dumps all properties for all messages that match the subject.  Subject
 matching is substring and ignore-case.
 
+-c - Write output to the clipboard, ready for pasting into an email
 -f - Search for the message in the specified folder (default = Inbox)
 -s - Shorten long property values.
 -a - Include attachments
@@ -174,7 +182,7 @@ def main():
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "af:snl",
+        opts, args = getopt.getopt(sys.argv[1:], "caf:snl",
                                    ["dump-folder",
                                     "dump-folder-assoc-contents",
                                     "dump-folder-user-props",
@@ -186,10 +194,13 @@ def main():
     shorten = False
     get_large_props = False
     include_attach = False
+    write_clipboard = False
     dump_folder = dump_folder_assoc_contents = dump_folder_user_props = False
     for opt, opt_val in opts:
         if opt == "-f":
             folder_name = opt_val
+        elif opt == "-c":
+            write_clipboard = True
         elif opt == "--dump-folder":
             dump_folder = True
         elif opt == "--dump-folder-assoc-contents":
@@ -208,6 +219,11 @@ def main():
         else:
             usage(driver, "Unknown arg '%s'" % opt)
 
+    stream = None
+    if write_clipboard:
+        stream_name = tempfile.mktemp("spambayes")
+        stream = open(stream_name, "w")
+        
     if not folder_name:
         folder_name = "Inbox" # Assume this exists!
 
@@ -228,17 +244,26 @@ def main():
 
     if is_table_dump:
         if dump_folder:
-            DumpItemProps(folder, shorten, get_large_props)
+            DumpItemProps(folder, shorten, get_large_props, stream)
         if dump_folder_assoc_contents:
             table = folder.GetContentsTable(mapi.MAPI_ASSOCIATED)
-            DumpTable(driver, table, folder, shorten, get_large_props)
+            DumpTable(driver, table, folder, shorten, get_large_props, stream)
         if dump_folder_user_props:
             table = folder.GetContentsTable(mapi.MAPI_ASSOCIATED)
             FindAndDumpTableUserProps(driver, table, folder,
-                                      shorten, get_large_props)
+                                      shorten, get_large_props, stream)
     else:
         DumpProps(driver, folder, subject, include_attach,
-                  shorten, get_large_props)
+                  shorten, get_large_props, stream)
+    if write_clipboard:
+        stream.close()
+        stream = open(stream_name, "r")
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardText(stream.read())
+        stream.close()
+        os.unlink(stream_name)
+        print "Output successfuly written to the Windows clipboard"
 
 if __name__=='__main__':
     main()
