@@ -456,10 +456,10 @@ class BayesManager:
             print "(but test suite running - not reported)"
             return
         print "ERROR:", repr(msg)
-        traceback.print_exc()
         if key in self.reported_error_map:
             print "(this error has already been reported - not displaying it again)"
         else:
+            traceback.print_exc()
             self.reported_error_map[key] = True
             ReportError(msg, title)
 
@@ -785,6 +785,8 @@ class BayesManager:
                   "We are working on solving this, but unfortunately you\r\n" \
                   "must re-train the system via the SpamBayes manager."
             self.ReportErrorOnce(msg)
+            # and disable the addin, as we are hosed!
+            self.config.filter.enabled = False
             raise
 
     def GetDisabledReason(self):
