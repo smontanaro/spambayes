@@ -71,7 +71,7 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    cmdclass = {'build_py': install_scripts},
+    cmdclass = {'install_scripts': install_scripts},
     scripts=['scripts/sb_client.py',
              'scripts/sb_dbexpimp.py',
              'scripts/sb_filter.py',
