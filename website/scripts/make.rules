@@ -42,7 +42,6 @@ LOCAL_INCLUDE =
 
 SCRIPTDIR =	$(ROOT_DIR)/scripts
 HT2HTML =	$(SCRIPTDIR)/ht2html/ht2html.py
-DUHTML =	html.py
 HTSTYLE =	SpamBayesGenerator
 HTALLFLAGS =	-f -s $(HTSTYLE)
 HTROOT = 	$(shell $(SCRIPTDIR)/calcroot.py $(ROOT_OFFSET))
@@ -56,9 +55,6 @@ GENERATED_HTML= $(SOURCES:.ht=.html)
 		$(HT2HTML) $(HTFLAGS) $(HTRELDIR)/$<
 
 all: $(TARGETS)
-
-faq.html : faq.txt
-	$(DUHTML) faq.txt faq.html
 
 # $(TARGETS): $(HT2HTML)
 
