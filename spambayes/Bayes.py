@@ -175,7 +175,7 @@ class DBDictBayes(PersistentBayes):
 
         self.db_name = db_name
         self.statekey = "saved state"
-        self.wordinfo = DBDict(db_name, (self.statekey,), 'c')  # r/rw?
+        self.wordinfo = DBDict(db_name, 'c', (self.statekey,))  # r/rw?
 
         self.load()
 
