@@ -781,6 +781,11 @@ class BayesManager:
         dialogs.ShowDialog(0, self, self.config, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
+    def ShowFilterNow(self):
+        import dialogs
+        dialogs.ShowDialog(0, self, self.config, "IDD_FILTER_NOW")
+        # And re-save now, just incase Outlook dies on the way down.
+        self.SaveConfig()
 
     def ShowHtml(self,url):
         """Displays the main SpamBayes documentation in your Web browser"""

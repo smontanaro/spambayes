@@ -795,6 +795,13 @@ class ExplorerWithEvents:
                            Tag = "SpamBayesCommand.Clues")
             self._AddControl(popup,
                            constants.msoControlButton,
+                           ButtonEvent, (manager.ShowFilterNow,),
+                           Caption="Filter messages...",
+                           Enabled=True,
+                           Visible=True,
+                           Tag = "SpamBayesCommand.FilterNow")
+            self._AddControl(popup,
+                           constants.msoControlButton,
                            ButtonEvent, (CheckLatestVersion, self.manager,),
                            Caption="Check for new version",
                            Enabled=True,
