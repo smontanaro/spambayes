@@ -145,15 +145,14 @@ def ShowClues(mgr, app):
     hammie = mgr.MakeHammie()
     prob, clues = hammie.score(stream, evidence=True)
     new_msg = app.CreateItem(0)
-    body = ["<h2>Calculated Probability: %g</h2><br>" % prob]
+    body = ["<h2>Spam Score: %g</h2><br>" % prob]
     push = body.append
+    # Format the clues.
     push("<PRE>\n")
-    words = ['%r' % word for word, prob in clues]
-    probs = ['%g' % prob for word, prob in clues]
-    max_word_len = max(map(len, words))
-    for word, prob in zip(words, probs):
-        push(escape(word) + ' ' * (max_word_len - len(word)))
-        push(' ' + prob + '\n')
+    for word, prob in clues:
+        word = repr(word)
+        push(escape(word) + ' ' * (30 - len(word)))
+        push(' %g\n' % prob)
     push("</PRE>\n")
     body = ''.join(body)
 
