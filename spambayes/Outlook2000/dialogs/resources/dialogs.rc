@@ -154,7 +154,6 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "Welcome to the SpamBayes configuration wizard",
                     IDC_STATIC,20,4,191,14
-    PUSHBUTTON      "About...",IDC_BUT_ABOUT,215,104,60,15
     LTEXT           "This wizard will help you configure the SpamBayes Outlook addin.  Please indicate how you have prepared for this application.",
                     IDC_STATIC,20,20,255,18
     CONTROL         "I haven't prepared for SpamBayes at all.",
@@ -162,12 +161,13 @@ BEGIN
                     WS_GROUP,20,42,190,11
     CONTROL         "I have already sorted good messages (ham) and spam messages into folders that are suitable for training purposes.",
                     IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP | 
-                    BS_MULTILINE,20,59,255,25
+                    BS_MULTILINE,20,59,255,18
     CONTROL         "I would prefer to configure SpamBayes manually.",
                     IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP,20,82,
-                    187,14
+                    187,12
     LTEXT           "If you would like more information about training and configuring SpamBayes, click the About button.",
                     IDC_STATIC,20,103,185,20
+    PUSHBUTTON      "About...",IDC_BUT_ABOUT,215,104,60,15
     LTEXT           "If you cancel the wizard, you can access it again via the SpamBayes Manager, available from the SpamBayes toolbar.",
                     IDC_STATIC,20,137,232,17
 END
