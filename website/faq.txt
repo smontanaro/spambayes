@@ -1086,6 +1086,16 @@ Applying content based filtering on the server is complex, as everyone's
 feeling about content differs - this is why it is a client end role that
 tools like SpamBayes fill.
 
+If you really need whitelisting, consider implementing rules in your    
+mailer to intercept the messages before they're passed to spambayes.    
+
+None of the existing Spambayes developers have an interest in
+implementing whitelisting - if it's something you feel really strongly
+about, download the source and look into making a patch. If someone
+implements whitelisting, including all the user interface side needed
+to manage it, there's no reason it wouldn't be accepted into the source
+code.
+
 .. _related page: related.html
 
 
