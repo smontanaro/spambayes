@@ -132,10 +132,9 @@ class MAPIMsgStore(MsgStore):
                       mapi.MAPI_EXTENDED |
                       mapi.MAPI_USE_DEFAULT)
         self.session = mapi.MAPILogonEx(0, None, None, logonFlags)
-        # Set our locale to be English, so our plugin works OK
-        # ([ spambayes-Bugs-725466 ] Include a proper locale fix in Options.py
-        # has discussion about this problem.)
-        locale.setlocale(locale.LC_NUMERIC, "en")
+        # Note that if the CRT still has a default "C" locale, MAPILogonEx()
+        # will change it.  See locale comments in addin.py
+        locale.setlocale(locale.LC_NUMERIC, "C")
         self.mapi_msg_stores = {}
         self.default_store_bin_eid = None
         self._GetMessageStore(None)

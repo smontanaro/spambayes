@@ -496,6 +496,10 @@ class BayesManager:
             self.ReportError(msg)
 
     def LoadConfig(self):
+        # Insist on english numeric conventions in config file.
+        # See addin.py, and [725466] Include a proper locale fix in Options.py
+        import locale; locale.setlocale(locale.LC_NUMERIC, "C")
+
         profile_name = self.message_store.GetProfileName()
         if profile_name is None:
             # should only happen in source-code versions - older win32alls can't
@@ -524,6 +528,11 @@ class BayesManager:
             self.LogDebug(self.verbose, "System verbosity set to", self.verbose)
 
         self.MigrateOldPickle()
+
+        if self.verbose > 1:
+            print "Dumping loaded configuration:"
+            print self.options.display()
+            print "-- end of configuration --"
 
     def MigrateOldPickle(self):
         assert self.config is not None, "Must have a config"
@@ -623,10 +632,16 @@ class BayesManager:
         return self.bayes
 
     def SaveConfig(self):
+        # Insist on english numeric conventions in config file.
+        # See addin.py, and [725466] Include a proper locale fix in Options.py
+        import locale; locale.setlocale(locale.LC_NUMERIC, "C")
+
         print "Saving configuration ->", self.config_filename.encode("mbcs", "replace")
         assert self.config and self.options, "Have no config to save!"
         if self.verbose > 1:
-            self.options.display()
+            print "Dumping configuration to save:"
+            print self.options.display()
+            print "-- end of configuration --"
         self.options.update_file(self.config_filename)
 
     def Save(self):
@@ -691,7 +706,6 @@ class BayesManager:
             d.DoModal()
             if dlg.mgr.addin is not None:
                 dlg.mgr.addin.FiltersChanged()
-
 
         import dialogs.ManagerDialog
         d = dialogs.ManagerDialog.ManagerDialog(self, do_train, do_filter, define_filter)

@@ -10,6 +10,21 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# We have lots of locale woes.  The short story:
+# * Outlook/MAPI will change the locale on us as some predictable
+#   times - but also at unpredictable times.
+# * Python currently insists on "C" locale - if it isn't, subtle things break,
+#   such as floating point constants loaded from .pyc files.
+# * Our config files also want a consistent locale, so periods and commas
+#   are the same when they are read as when they are written.
+# So, at a few opportune times, we simple set it back.
+# We do it here as early as possible, before any imports that may see this
+#
+# See also [725466] Include a proper locale fix in Options.py,
+# assorted errors relating to strange math errors, and spambayes-dev archives,
+# starting July 23 2003.
+import locale
+locale.setlocale(locale.LC_NUMERIC, "C")
 
 if sys.version_info >= (2, 3):
     # sick off the new hex() warnings!
@@ -57,13 +72,6 @@ except win32api.error:
         sys.stderr = sys.stdout
     else:
         import win32traceutil
-
-# Set our locale to be English, so our config parser works OK
-# (This should almost certainly be done elsewhere, but as no one
-# else seems to have an opinion on where this is, here is as good
-# as any!
-import locale
-locale.setlocale(locale.LC_NUMERIC, "en")
 
 # Attempt to catch the most common errors - COM objects not installed.
 try:
@@ -210,6 +218,8 @@ class ButtonEvent:
     def Close(self):
         self.handler = self.args = None
     def OnClick(self, button, cancel):
+        # Callback from Outlook - locale may have changed.
+        locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
         self.handler(*self.args)
 
 # Folder event handler classes
@@ -234,6 +244,8 @@ class FolderItemsEvent(_BaseItemsEvent):
         #     PR_RECEIVED_BY_NAME
         #     PR_RECEIVED_BY_ENTRYID
         #     PR_TRANSPORT_MESSAGE_HEADERS
+        # Callback from Outlook - locale may have changed.
+        locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
         self.manager.LogDebug(2, "OnItemAdd event for folder", self,
                               "with item", item)
         msgstore_message = self.manager.message_store.GetMessage(item)
@@ -767,7 +779,6 @@ class ExplorerWithEvents:
                         show_delete_as = True
             except:
                 print "Error finding the MAPI folders for a folder switch event"
-                import traceback
                 traceback.print_exc()
         if self.but_recover_as is not None:
             self.but_recover_as.Visible = show_recover_as
@@ -840,9 +851,11 @@ class OutlookAddin:
         # Handle failures during initialization so that we are not
         # automatically disabled by Outlook.
         # Our error reporter is in the "manager" module, so we get that first
+        locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
         import manager
         try:
             self.application = application
+
             self.manager = None # if we die while creating it!
             # Create our bayes manager
             self.manager = manager.GetManager(application)
