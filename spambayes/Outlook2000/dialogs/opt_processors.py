@@ -71,19 +71,28 @@ class OptionControlProcessor(processors.ControlProcessor):
 # (Little more complex to handle "radio buttons" that are also boolean
 # where we must "uncheck" the other button.
 class BoolButtonProcessor(OptionControlProcessor):
+    def __init__(self, window, control_ids, option, disable_when_false_ids=""):
+        OptionControlProcessor.__init__(self, window, control_ids, option)
+        self.disable_ids = [window.manager.dialog_parser.ids[id]
+                            for id in disable_when_false_ids.split()]
     def OnCommand(self, wparam, lparam):
         code = win32api.HIWORD(wparam)
         if code == win32con.BN_CLICKED:
             self.UpdateValue_FromControl()
+    def UpdateEnabledStates(self, enabled):
+        for other in self.disable_ids:
+            win32gui.EnableWindow(self.GetControl(other), enabled)
     def UpdateControl_FromValue(self):
         value = self.GetOptionValue()
         win32gui.SendMessage(self.GetControl(), win32con.BM_SETCHECK, value)
         for other in self.other_ids:
             win32gui.SendMessage(self.GetControl(other), win32con.BM_SETCHECK, not value)
+        self.UpdateEnabledStates(value)
     def UpdateValue_FromControl(self):
         check = win32gui.SendMessage(self.GetControl(), win32con.BM_GETCHECK)
         check = not not check # force bool!
         self.SetOptionValue(check)
+        self.UpdateEnabledStates(check)
 
 class RadioButtonProcessor(OptionControlProcessor):
     def OnCommand(self, wparam, lparam):
