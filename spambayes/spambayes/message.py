@@ -170,7 +170,8 @@ class MessageInfoBase(object):
 
     def store_msg(self, msg):
         if self.db is not None:
-            attributes = [("date_modified", time.time())]
+            msg.date_modified = time.time()
+            attributes = []
             for att in msg.stored_attributes:
                 attributes.append((att, getattr(msg, att)))
             self.db[msg.getDBKey()] = attributes
@@ -287,11 +288,12 @@ class Message(email.Message.Message):
         else:
             nm, typ = database_type()
             self.message_info_db = open_storage(nm, typ)
-        self.stored_attributes = ['c', 't',]
+        self.stored_attributes = ['c', 't', 'date_modified', ]
         self.getDBKey = self.getId
         self.id = None
         self.c = None
         self.t = None
+        self.date_modified = None
 
         if id is not None:
             self.setId(id)
