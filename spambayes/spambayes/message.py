@@ -275,7 +275,7 @@ class SBHeaderMessage(Message):
         self[options['Hammie','header_name']] = disposition
         
         if options['pop3proxy','include_prob']:
-            self[options['pop3proxy','prob_header_name']] = prob
+            self[options['pop3proxy','prob_header_name']] = str(prob)
             
         if options['pop3proxy','include_thermostat']:
             thermostat = '**********'
