@@ -104,8 +104,18 @@ class Service(win32serviceutil.ServiceFramework):
         sb_server.stop(sb_server.state)        
 
     def SvcDoRun(self):
+        import servicemanager
         # Setup our state etc
-        sb_server.prepare(state=sb_server.state)
+        try:
+            sb_server.prepare(state=sb_server.state)
+        except sb_server.AlreadyRunningException:
+            msg = "The SpamBayes proxy service could not be started, as "\
+                  "another SpamBayes server is already running on this machine"
+            servicemanager.LogErrorMsg(msg)
+            errCode = winerror.ERROR_SERVICE_SPECIFIC_ERROR 
+            self.ReportServiceStatus(win32service.SERVICE_STOPPED, 
+                                     win32ExitCode=errCode, svcExitCode = 1)
+            return
         assert not sb_server.state.launchUI, "Service can't launch a UI"
 
         # Start the thread running the server.
@@ -118,7 +128,6 @@ class Service(win32serviceutil.ServiceFramework):
         extra = " as user '%s', using config file '%s'" \
                 % (win32api.GetUserName(),
                    optionsPathname)
-        import servicemanager
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
             servicemanager.PYS_SERVICE_STARTED,
