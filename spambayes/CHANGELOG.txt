@@ -1,9 +1,41 @@
 (Next Release)
 ==============
+Mark Hammond   18/08/2003  Improve the starting/stopping of the pop3proxy service
+Tony Meyer     18/08/2003  Allow the pop3proxy_service to start smtpproxy as well
+Tony Meyer     18/08/2003  Add version information to the web interface, as requested in [ spambayes-Bugs-790051 ] Can't review messages if probability header is turned on
+Tony Meyer     16/08/2003  which_database.py: Make the script a little smarter about checking if bsddb[3] is available.
+Tony Meyer     14/08/2003  Fix [ spambayes-Bugs-788008 ] smtpproxy.py assumes toogood format for addresses
+Tony Meyer     14/08/2003  Implement patches from [ 788001 ] mboxtrain.py maildir bugfix and feature
+Tony Meyer     14/08/2003  Fix [ 787296 ] Local installation problem: hammiefilter_persistent_storage
+Tony Meyer     14/08/2003  Fix [ 788002 ] hammiebulk.py uses wrong option name
+Tony Meyer     13/08/2003  If you didn't use the -p switch to enter your password interactively, imapfilter would try and get it from the options, but if it wasn't there yet (because you hadn't done the setup yet), it would crash.  Fix this.
+Skip Montanaro 13/08/2003  Add a simple n-way classifier using a cascade of binary SpamBayes classifiers
+Tony Meyer     12/08/2003  Web interface: At some point (before the 1.0a4 release) selecting both "header" and "body" stopped working.  This fixes that.
+Tony Meyer     12/08/2003  Have the review messages page put the unsure messages at the top, because they are the most important to take action on
+Tony Meyer     07/08/2003  Add a mySQLClassifier class
+Skip Montanaro 07/08/2003  Add a postgreSQL classifier class, and a base SQLClassifier class
+Tony Meyer     07/08/2003  Remove dumbdbm from the config options
+Skip Montanaro 07/08/2003  Remove dumbdbm from the possible dbm storage options
+Tony Meyer     07/08/2003  Fix [ 784296 ] imapfilter broken with Python 2.3
+Mark Hammond   04/08/2003  Add a get_option method, so an option instance itself can be fetched.
+Mark Hammond   29/07/2003  Version.py: Indicate the generated output is generated :)  Make work for Python 2.2, but don't trust its config parser for remote data.
+Mark Hammond   29/07/2003  Support fetching the "latest" set of version data from the spambayes web site.
 Richie Hindle  28/07/2003  Made the pop3proxy work with fetchmail.
+Tim Peters     25/07/2003  Fix SF bug 777026: Possible cause for db corruption in DBDictClassifier.
+Mark Hammond   25/07/2003  Created a directory & readme for test suites, including a storage.py test.
+Tony Meyer     25/07/2003  [ 777165 ] Typo in Options.py causes bogus warning on reading config
 Richie Hindle  22/07/2003  You can once again specify local addresses as well as ports for the pop3proxy to listen on (was broken in 1.0a3 and 1.0a4).
+Mark Hammond   20/07/2003  pop3proxy_service: log exceptions if the server thread dies unexpectedly.
+Mark Hammond   20/07/2003  Fix [ 761499 ] pop3proxy_service doesn't stop when shutdown from browser.
+Mark Hammond   20/07/2003  Fix [ 769346 ] Problems after deleting certain spam folder as implemented in [ 769981 ] Outlook plugin: allow user to change spam and unsure.
+Mark Hammond   19/07/2003  pop3proxy_service: Redirect output to win32traceutil (for want of a better place)
 Richie Hindle  19/07/2003  pop3proxy: Print a traceback as well as adding an X-Spambayes-Exception header when there's an exception raised while processing a message.
 Richie Hindle  18/07/2003  pop3proxy:  "ASCII decoding error" problem fixed.
+Skip Montanaro 15/07/2003  dbmstorage: trivial hack to give dumbdbm a sync() method (which Shelve will call) and hopefully reduce database corruption
+Tony Meyer     09/07/2003  Allow $ in pathnames, which fixes [ 768162 ] UNC path for data_directory?
+Tony Meyer     09/07/2003  mboxtrain: Use /tmp/ as the temp directory, not /cur/tmp or /new/tmp.  Fixes [ 768221 ] v1.0a4 dies when training on Maildir
+Mark Hammond   08/07/2003  Fix [ 760062 ] Traceback untraining a single message - typo in assert.
+Tony Meyer     08/07/2003  hammiebulk: a belated patch to account for the default persistent_storage_file option changing.
 Richie Hindle  07/07/2003  Added no_cache_bulk_ham option: suppresses caching of 'Precedence: bulk' ham, to stop mailing list traffic swamping the web UI's training page.
 Richie Hindle  07/07/2003  Prevent the "Show clues" links on the web UI's training page from word-wrapping and making all the table rows two lines high.
 
