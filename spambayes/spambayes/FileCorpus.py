@@ -281,6 +281,8 @@ class FileMessage(message.SBHeaderMessage):
         for name, value in msg.items():
             del self[name]
             self[name] = value
+        print msg.get_payload()
+        print msg.as_string()
 
     def remove(self):
         '''Message hara-kiri'''
@@ -350,6 +352,7 @@ class FileMessageFactory(Corpus.MessageFactory):
                                             strict=False)
             msg.file_name = key
             msg.directory = directory
+            msg.loaded = True
             return msg
         return FileMessage(key, directory)
 
@@ -382,6 +385,7 @@ class GzipFileMessageFactory(FileMessageFactory):
                                             strict=False)
             msg.file_name = key
             msg.directory = directory
+            msg.loaded = True
             return msg
         return GzipFileMessage(key, directory)
 
