@@ -1,0 +1,9 @@
+This file is for ideas that have or have not yet been tried, and the
+results of these ideas.
+
+- If the email parser was able to emit warnings about misformed MIME 
+  that it encountered, we could turn this warnings into tokens.
+
+- The numeric entity support looks like it will only support 8-bit 
+  characters - an obvious problem is from wacky wide-char entities.
+
