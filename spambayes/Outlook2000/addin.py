@@ -183,9 +183,11 @@ def HaveSeenMessage(msgstore_message, manager):
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
 def ProcessMessage(msgstore_message, manager):
-    manager.LogDebug(2, "ProcessMessage starting for", msgstore_message)
+    manager.LogDebug(2, "ProcessMessage starting for message '%s'" \
+                        % msgstore_message.subject)
     if not msgstore_message.IsFilterCandidate():
-        manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!")
+        manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!" \
+                         % msgstore_message.subject)
         return
 
     if HaveSeenMessage(msgstore_message, manager):
@@ -260,7 +262,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             # The user wants to use a timer - see if we should only enable
             # the timer for known 'inbox' folders, or for all watched folders.
             is_inbox = self.target.IsReceiveFolder()
-            if not is_inbox and not self.manager.config.experimental.timer_only_receive_folders:
+            if not is_inbox and self.manager.config.experimental.timer_only_receive_folders:
                 use_timer = False
 
         # Good chance someone will assume timer is seconds, not ms.
@@ -307,13 +309,14 @@ class HamFolderItemsEvent(_BaseItemsEvent):
     def _KillTimer(self):
         assert thread.get_ident() == self.owner_thread_ident
         if self.timer_id is not None:
-            self.manager.LogDebug(2, "The timer with id=%d was stopped" % self.timer_id)
             timer.kill_timer(self.timer_id)
+            self.manager.LogDebug(2, "The timer with id=%d was stopped" % self.timer_id)
             self.timer_id = None
 
     def _TimerFunc(self, event, time):
         # Kill the timer first
         assert thread.get_ident() == self.owner_thread_ident
+        self.manager.LogDebug(1, "The timer with id=%s fired" % self.timer_id)
         self._KillTimer()
         assert self.timer_generator, "Can't have a timer with no generator"
         # Callback from Outlook - locale may have changed.
@@ -323,7 +326,16 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # If we didn't, we are done and can wait until some external
         # event triggers a new timer.
         try:
-            item = self.timer_generator.next()
+            # Zoom over items I have already seen.  This is so when the spam
+            # score it not saved, we do not continually look at the same old
+            # unread messages (assuming they have been trained) before getting
+            # to the new ones.
+            # If the Spam score *is* saved, the generator should only return
+            # ones that HaveSeen() returns False for, so therefore isn't a hit.
+            while 1:
+                item = self.timer_generator.next()
+                if not HaveSeenMessage(item, self.manager):
+                    break
         except StopIteration:
             # No items left in our generator
             self.timer_generator = None
@@ -341,7 +353,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # Callback from Outlook - locale may have changed.
         locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
         self.manager.LogDebug(2, "OnItemAdd event for folder", self,
-                              "with item", item)
+                              "with item", item.Subject.encode("mbcs", "ignore"))
         # Due to the way our "missed message" indicator works, we do
         # a quick check here for "UnRead".  If UnRead, we assume it is very
         # new and use our timer.  If not unread, we know our missed message
@@ -361,7 +373,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         # was *not* certain-spam, or it is in the ham corpa,
         # then it should be trained as such.
         self.manager.LogDebug(2, "OnItemAdd event for SPAM folder", self,
-                              "with item", item)
+                              "with item", item.Subject.encode("mbcs", "ignore"))
         if not self.manager.config.training.train_manual_spam:
             return
         msgstore_message = self.manager.message_store.GetMessage(item)
@@ -872,7 +884,7 @@ class ExplorerWithEvents:
 
     # The Outlook event handlers
     def OnActivate(self):
-        self.manager.LogDebug(2, "OnActivate", self)
+        self.manager.LogDebug(3, "OnActivate", self)
         # See comments for OnNewExplorer below.
         # *sigh* - OnActivate seems too early too for Outlook 2000,
         # but Outlook 2003 seems to work here, and *not* the folder switch etc
@@ -882,7 +894,7 @@ class ExplorerWithEvents:
         pass
 
     def OnSelectionChange(self):
-        self.manager.LogDebug(2, "OnSelectionChange", self)
+        self.manager.LogDebug(3, "OnSelectionChange", self)
         # See comments for OnNewExplorer below.
         if not self.have_setup_ui:
             self.SetupUI()
@@ -890,17 +902,17 @@ class ExplorerWithEvents:
             self.OnFolderSwitch()
 
     def OnClose(self):
-        self.manager.LogDebug(2, "OnClose", self)
+        self.manager.LogDebug(3, "OnClose", self)
         self.explorers_collection._DoDeadExplorer(self)
         self.explorers_collection = None
         self.toolbar = None
         self.close() # disconnect events.
 
     def OnBeforeFolderSwitch(self, new_folder, cancel):
-        self.manager.LogDebug(2, "OnBeforeFolderSwitch", self)
+        self.manager.LogDebug(3, "OnBeforeFolderSwitch", self)
 
     def OnFolderSwitch(self):
-        self.manager.LogDebug(2, "OnFolderSwitch", self)
+        self.manager.LogDebug(3, "OnFolderSwitch", self)
         # Yet another worm-around for our event timing woes.  This may
         # be the first event ever seen for this explorer if, eg,
         # "Outlook Today" is the initial Outlook view.
@@ -940,10 +952,10 @@ class ExplorerWithEvents:
             self.but_delete_as.Visible = show_delete_as
 
     def OnBeforeViewSwitch(self, new_view, cancel):
-        self.manager.LogDebug(2, "OnBeforeViewSwitch", self)
+        self.manager.LogDebug(3, "OnBeforeViewSwitch", self)
 
     def OnViewSwitch(self):
-        self.manager.LogDebug(2, "OnViewSwitch", self)
+        self.manager.LogDebug(3, "OnViewSwitch", self)
         if not self.have_setup_ui:
             self.SetupUI()
 
