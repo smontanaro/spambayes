@@ -397,8 +397,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
             plural = ''
             if numTrained != 1:
                 plural = 's'
-            self.write("Trained on %d message%s. " % (numTrained, plural))
             self._doSave()
+            self.write("Trained on %d message%s. " % (numTrained, plural))
             self.write("<br>&nbsp;")
 
         title = ""
