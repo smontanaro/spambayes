@@ -493,6 +493,42 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         self.assertEqual(data['2']["UID"], uid)
         self.assertEqual(data['2']["RFC822.HEADER"], headers)
 
+        # Another complicated one (like the previous, but the two message
+        # numbers are the same).
+        headers = 'Return-Path: <eleinbach@gmail.com>\r\n' \
+                  'X-Original-To: david@leinbach.name\r\n' \
+                  'Delivered-To: dleinbac@mail2.majro.dhs.org\r\n' \
+                  'Received: from cressida (unknown [70.70.206.137])' \
+                  '\r\n\tby mail2.majro.dhs.org (Postfix) with ESMTP' \
+                  'id AAD451CD28E\r\n\tfor <david@leinbach.name>; Mo' \
+                  'n,  6 Dec 2004 11:49:41 -0800 (PST)\r\n' \
+                  'From: "Erin Leinbach" <eleinbach@gmail.com>\r\n' \
+                  'To: "Dave" <david@leinbach.name>\r\n' \
+                  'Subject: Goo goo dolls songs\r\n' \
+                  'Date: Mon, 6 Dec 2004 11:51:07 -0800\r\n' \
+                  'Message-ID: <000001c4dbcc$ed6188a0$6801a8c0@cre' \
+                  'ssida>\r\nMIME-Version: 1.0\r\n' \
+                  'Content-Type: text/plain;\r\n' \
+                  '\tcharset="Windows-1252"\r\n' \
+                  'Content-Transfer-Encoding: 7bit\r\n' \
+                  'X-Priority: 3 (Normal)\r\n' \
+                  'X-MSMail-Priority: Normal\r\n' \
+                  'X-Mailer: Microsoft Outlook, Build 10.0.2616\r\n' \
+                  'Importance: Normal\r\n' \
+                  'X-MimeOLE: Produced By Microsoft MimeOLE V6.00.29' \
+                  '00.2180\r\nX-Spambayes-Classification: ham\r\n' \
+                  'X-Spambayes-MailId: 000001\r\n\r\n'
+        uid = '3086'
+        flags = '(\\Seen \\Deleted)'
+        response = [('5 (UID %s RFC822.HEADER {839}' % (uid,), headers),
+                    ')', '5 (FLAGS %s)' % (flags,)]
+        data = self.imap.extract_fetch_data(response)
+        self.assertEqual(data['5']["message_number"], '5')
+        self.assertEqual(data['5']["FLAGS"], flags)
+        self.assertEqual(data['5']["UID"], uid)
+        self.assertEqual(data['5']["RFC822.HEADER"], headers)
+
+
 class IMAPMessageTest(BaseIMAPFilterTest):
     def setUp(self):
         BaseIMAPFilterTest.setUp(self)
