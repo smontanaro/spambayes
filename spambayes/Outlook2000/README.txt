@@ -34,7 +34,7 @@ for the next time Outlook starts.  Re-executing 'addin.py' will ensure
 the addin is enabled (you can also locate and enable the addin via the 
 labyrinth of Outlook preference dialogs.)  If this happens and you have
 the Python exception that caused the failure (via the tracing mentioned 
-above) please send it to Mark.
+above) please send it to spambayes@python.org.
 
 To unregister the addin, execute "addin.py --unregister", then optionally
 remove the source files.  Note that as for the binary version, there is a
