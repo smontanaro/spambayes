@@ -1,9 +1,12 @@
 This directory contains tools for using the classifier with Microsoft
 Outlook 2000, courtesy of Sean True and Mark Hammond.  Note that you need 
 Python's win32com extensions (http://starship.python.net/crew/mhammond) and
-to run the Outlook Addin you *must* have win32all-149 or later.
+you *must* have win32all-149 or later.
 
 CDO is no longer needed :)
+
+See below for a list of known problems (particularly that you must manually
+create an Outlook property before you can see the Spam scores)
 
 Outlook Addin
 ==========
@@ -53,12 +56,22 @@ filter.py
     Define filters, and allow a bulk-filter to be applied.  (The outlook 
     plugin must be running for filtering of new mail to occur)
 
+Known Problems
+---------------
+* No field is created in Outlook for the Spam Score field.  To create
+  the field, go to the field chooser for the folder you are interested
+  in, and create a new User Property called "Spam".  Ensure the type
+  of the field is "Integer" (the last option), NOT "Number".  This is only
+  necessary for you to *see* the score, not for the scoring to work.
+
+* Filtering an Exchange Server public store appears to not work.
+
+* Sean reports bad output saving very large classifiers in training.py.
+  Somewhere over 4MB, they seem to stop working.  Mark's hasn't got
+  that big yet - just over 2MB and going strong.
+
 Misc Comments
 ===========
-Sean reports bad output saving very large classifiers in training.py.
-Somewhere over 4MB, they seem to stop working.  Mark's hasn't got
-that big yet - just over 2MB and going strong.
-
 Copyright transferred to PSF from Sean D. True and WebReply.com.
 Licensed under PSF, see Tim Peters for IANAL interpretation.
 
