@@ -289,7 +289,23 @@ class SBHeaderMessage(Message):
             for word, score in clues:
                 if (word[0] == '*' or score <= hco or score >= sco):
                     evd.append("%r: %.2f" % (word, score))
-            self[options['Headers','evidence_header_name']] = "; ".join(evd)
+
+            # Line-wrap this header, because it can get very long.  We don't
+            # use email.Header.Header because that can explode with unencoded
+            # non-ASCII characters.  We can't use textwrap because that's 2.3.
+            wrappedEvd = []
+            headerName = options['Headers','evidence_header_name']
+            lineLength = len(headerName) + len(': ')
+            for component, index in zip(evd, range(len(evd))):
+                wrappedEvd.append(component)
+                lineLength += len(component)
+                if index < len(evd)-1:
+                    if lineLength + len('; ') + len(evd[index+1]) < 78:
+                        wrappedEvd.append('; ')
+                    else:
+                        wrappedEvd.append(';\n\t')
+                        lineLength = 8
+            self[headerName] = "".join(wrappedEvd)
 
         # These are pretty ugly, but no-one has a better idea about how to
         # allow filtering in 'stripped down' mailers like Outlook Express,
