@@ -290,6 +290,7 @@ class FolderSelector(FolderSelector_Parent):
         self.checkbox_text = checkbox_text or "Include &subfolders"
         self.exclude_prop_ids = exclude_prop_ids
         self.in_label_edit = False
+        self.in_check_selections_valid = False
 
     def CompareIDs(self, id1, id2):
         # Compare the eid of the stores, then the objects
@@ -422,6 +423,8 @@ class FolderSelector(FolderSelector_Parent):
                 h = win32gui.SendMessage(self.list, commctrl.TVM_GETNEXTITEM,
                                          commctrl.TVGN_CARET, 0)
             except win32gui.error:
+                h = 0
+            if not h: # nothing selected.
                 return
             info = self._GetTVItem(h)
             spec = self.item_map[info[7]]
@@ -444,6 +447,59 @@ class FolderSelector(FolderSelector_Parent):
         check = win32gui.SendMessage(self.GetDlgItem("IDC_BUT_SEARCHSUB"),
                                      win32con.BM_GETCHECK, 0, 0)
         return ret, check != 0
+
+    def UnselectItem(self, item):
+        if self.single_select:
+            win32gui.SendMessage(self.list,
+                                 commctrl.TVM_SELECTITEM,
+                                 commctrl.TVGN_CARET, 0)
+        else:
+            state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
+            mask = commctrl.TVIS_STATEIMAGEMASK
+            buf, extra = PackTVITEM(item[0], state, mask,
+                                    None, None, None, None, None)
+            win32gui.SendMessage(self.list, commctrl.TVM_SETITEM,
+                                 0, buf)
+        
+    def _CheckSelectionsValid(self, is_close = False):
+        if self.in_check_selections_valid:
+            return
+        self.in_check_selections_valid = True
+        try:
+            if self.single_select:
+                if is_close:
+                    # Make sure one is selected.
+                    for ignore in self._YieldCheckedChildren():
+                        break
+                    else:
+                        self.manager.ReportInformation("You must select a folder")
+                        return False
+                else:
+                    # In a single-select dialog, we can't stop the user selecting
+                    # a 'top-level' folder - we can only stop them closing the
+                    # dialog while it is selected.
+                    return True
+            # For a multi-select dialog, we simply un-check the existing item.
+            # For single-select, we set no item selected.
+            result_valid = True
+            for info, spec in self._YieldCheckedChildren():
+                try:
+                    folder = self.manager.message_store.GetFolder(spec.folder_id)
+                    parent = folder.GetParent()
+                    valid = parent is not None and parent.GetParent() is not None
+                except self.manager.message_store.MsgStoreException, details:
+                    print "Eeek - couldn't get the folder to check valid"
+                    valid = False
+                if not valid:
+                    if result_valid: # are we the first invalid?
+                        self.manager.ReportInformation(
+                            "Please select a child folder - top-level folders " \
+                            "can not be used.")
+                    self.UnselectItem(info)
+                result_valid = result_valid and valid
+            return result_valid
+        finally:
+            self.in_check_selections_valid = False
 
     # Message processing
 #    def GetMessageMap(self):
@@ -520,18 +576,15 @@ class FolderSelector(FolderSelector_Parent):
                 return
             # Button clicks
             if id == win32con.IDOK:
+                if not self._CheckSelectionsValid(True):
+                    return
                 self.selected_ids, self.checkbox_state = self.GetSelectedIDs()
                 win32gui.EndDialog(hwnd, id)
             elif id == win32con.IDCANCEL:
                 win32gui.EndDialog(hwnd, id)
             elif id_name == "IDC_BUT_CLEARALL":
                 for info, spec in self._YieldCheckedChildren():
-                    state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
-                    mask = commctrl.TVIS_STATEIMAGEMASK
-                    buf, extra = PackTVITEM(info[0], state, mask,
-                                            None, None, None, None, None)
-                    win32gui.SendMessage(self.list, commctrl.TVM_SETITEM,
-                                         0, buf)
+                    self.UnselectItem(info)
             elif id_name == "IDC_BUT_NEW":
                 # Force a new entry in the tree at our location, and begin
                 # editing.
@@ -566,27 +619,31 @@ class FolderSelector(FolderSelector_Parent):
         self._UpdateStatus()
 
     def _DoUpdateStatus(self, id, timeval):
-        try:
-            names = []
-            num_checked = 0
-            for info, spec in self._YieldCheckedChildren():
-                num_checked += 1
-                if len(names) < 20:
-                    names.append(info[3])
+        import timer
+        # Kill the timer first to prevent it firing again.
+        self.timer_id = None
+        timer.kill_timer(id)
+        self._CheckSelectionsValid()
+        names = []
+        num_checked = 0
+        for info, spec in self._YieldCheckedChildren():
+            num_checked += 1
+            if len(names) < 20:
+                names.append(info[3])
 
-            status_string = "%s%s %d folder" % (self.select_desc_noun,
-                                                self.select_desc_noun_suffix,
-                                                num_checked)
-            if num_checked != 1:
-                status_string += "s"
-            self.SetDlgItemText("IDC_STATUS1", status_string)
-            self.SetDlgItemText("IDC_STATUS2", "; ".join(names))
-        finally:
-            import timer
-            self.timer_id = None
-            timer.kill_timer(id)
+        status_string = "%s%s %d folder" % (self.select_desc_noun,
+                                            self.select_desc_noun_suffix,
+                                            num_checked)
+        if num_checked != 1:
+            status_string += "s"
+        self.SetDlgItemText("IDC_STATUS1", status_string)
+        self.SetDlgItemText("IDC_STATUS2", "; ".join(names))
 
     def _UpdateStatus(self):
+        # We have problems with the order of events - we get the notification
+        # events before the new states are available via GetItem.
+        # Therefore, we start a one-shot, immediate timer, which ends up
+        # at the end of the message queue, and we work.
         import timer
         if self.timer_id is not None:
             timer.kill_timer(self.timer_id)
@@ -603,8 +660,10 @@ class FolderSelector(FolderSelector_Parent):
             if code == commctrl.NM_CLICK:
                 self._UpdateStatus()
             elif code == commctrl.NM_DBLCLK:
-                if self.single_select: # Only close on double-click for single-select
-                    self.OnOK()
+                # No special dblclick handling - default behaviour is to
+                # expand/collapse tree, and auto-closing the dialog, even
+                # when the folder has no children, doesn't really make sense.
+                pass
             elif code == commctrl.TVN_ITEMEXPANDING:
                 ignore, ignore, ignore, action, itemOld, itemNew = \
                                             UnpackTVNOTIFY(lparam)
@@ -667,6 +726,7 @@ class FolderSelector(FolderSelector_Parent):
                         self.in_label_edit = False
 
 def Test():
+    single_select =False
     import sys, os
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
     import manager
@@ -676,12 +736,12 @@ def Test():
         mgr.dialog_parser = dialogs.LoadDialogs()
 
     ids = [("0000","0000"),] # invalid ID for testing.
-    d=FolderSelector(0, mgr, ids, single_select = False)
+    d=FolderSelector(0, mgr, ids, single_select = single_select)
     if d.DoModal() != win32con.IDOK:
         print "Cancelled"
         return
     ids, include_sub = d.GetSelectedIDs()
-    d=FolderSelector(0, mgr, ids, single_select = False, checkbox_state = include_sub)
+    d=FolderSelector(0, mgr, ids, single_select = single_select, checkbox_state = include_sub)
     d.DoModal()
 
 if __name__=='__main__':
