@@ -22,14 +22,6 @@ def open_gdbm(*args):
     import gdbm
     return gdbm.open(*args)
 
-def open_dumbdbm(*args):
-    """Open a dumbdbm database."""
-    import dumbdbm
-    db = dumbdbm.open(*args)
-    if not hasattr(db, "sync"):
-        db.sync = db._commit
-    return db
-
 def open_best(*args):
     if sys.platform == "win32":
         # Note that Python 2.3 and later ship with the new bsddb interface
@@ -38,7 +30,7 @@ def open_best(*args):
         if sys.version_info >= (2,3):
             funcs.insert(0, open_dbhash)
     else:
-        funcs = [open_db3hash, open_dbhash, open_gdbm, open_dumbdbm]
+        funcs = [open_db3hash, open_dbhash, open_gdbm]
     for f in funcs:
         try:
             return f(*args)
@@ -51,7 +43,6 @@ open_funcs = {
     "db3hash": open_db3hash,
     "dbhash": open_dbhash,
     "gdbm": open_gdbm,
-    "dumbdbm": open_dumbdbm,
     }
 
 def open(*args):
