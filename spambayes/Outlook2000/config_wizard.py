@@ -22,11 +22,11 @@ wizard_defaults = {
             """""",
         config.BOOLEAN, config.RESTORE),
         # Spam
-        ("spam_folder_name", "Name of spam folder - ignored if ID set", "Spam",
+        ("spam_folder_name", "Name of spam folder - ignored if ID set", "Junk E-Mail",
             """""",
             "", config.RESTORE),
         # unsure
-        ("unsure_folder_name", "Name of unsure folder - ignored if ID set", "Maybe Spam",
+        ("unsure_folder_name", "Name of unsure folder - ignored if ID set", "Junk Suspects",
             """""",
             "", config.RESTORE),
         ("temp_training_names", "", [], "", "", config.RESTORE),
