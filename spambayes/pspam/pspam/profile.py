@@ -9,6 +9,7 @@ import classifier
 from tokenizer import tokenize
 
 from pspam.folder import Folder
+from pspam.options import options
 
 import os
 
@@ -35,7 +36,7 @@ class IterOOBTree(OOBTree):
 
 class WordInfo(Persistent):
 
-    def __init__(self, atime, spamprob=None):
+    def __init__(self, atime, spamprob=options.robinson_probability_x):
         self.atime = atime
         self.spamcount = self.hamcount = self.killcount = 0
         self.spamprob = spamprob
