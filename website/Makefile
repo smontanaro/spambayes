@@ -5,6 +5,12 @@ include scripts/make.rules
 ROOT_DIR = .
 ROOT_OFFSET = .
 
+VERSION_PY = $(shell python -c 'import os;\
+from spambayes import Version;\
+f = Version.__file__;\
+print os.path.splitext(f)[0]+".py";\
+')
+
 $(TARGETS): links.h
 
 # hackery to whack the faq into ht2html...
@@ -20,8 +26,8 @@ faq.ht : faq.txt
 faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
 
-download/Version.cfg: ../spambayes/Version.py
-	python ../spambayes/Version.py -g > download/Version.cfg
+download/Version.cfg: $(VERSION_PY)
+	python $(VERSION_PY) -g > download/Version.cfg
 
 local_install: 
 	cd download ; $(MAKE) install
