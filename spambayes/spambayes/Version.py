@@ -7,10 +7,16 @@ versions = {
     # Non app specific - changed when "spambayes\*" changes significantly
     "Version":          0.1,
     "Description":      "SpamBayes Beta1",
-    "Date":             "June 2003",
+    "Date":             "May 2003",
     "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
     # Sub-dict for application specific version strings.
     "Apps": {
+        "Hammie" : {
+            "Version":          0.1,
+            "Description":      "SpamBayes command line tool (Hammie) Beta1",
+            "Date":             "January 2003",
+            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+        },
         "Outlook" : {
             "Version":          0.3,
             "BinaryVersion":    003,
@@ -19,6 +25,36 @@ versions = {
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
             "Full Description Binary":
                                 "%(Description)s, Binary version %(BinaryVersion)s (%(Date)s)",
+        },
+        "POP3 Proxy" : {
+            "Version":          0.1,
+            "Description":      "SpamBayes POP3 Proxy Beta1",
+            "Date":             "May 2003",
+            "InterfaceVersion":            0.02,
+            "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha2",
+            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
+            using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+        },
+        "Lotus Notes Filter" : {
+            "Version":          0.01,
+            "Description":      "SpamBayes Lotus Notes Filter Alpha1",
+            "Date":             "March 2003",
+            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+        },
+        "SMTP Proxy" : {
+            "Version":          0.01,
+            "Description":      "SpamBayes SMTP Proxy Alpha1",
+            "Date":             "May 2003",
+            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+        },
+        "IMAP Filter" : {
+            "Version":          0.01,
+            "Description":      "SpamBayes IMAP Filter Alpha1",
+            "Date":             "May 2003",
+            "InterfaceVersion":            0.01,
+            "InterfaceDescription":        "SpamBayes IMAP Filter Web Interface Alpha1",
+            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
+            using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
     },
 }
