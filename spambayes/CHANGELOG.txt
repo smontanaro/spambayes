@@ -2,6 +2,7 @@
 
 Release 1.1a1
 =============
+Skip Montanaro	  28/10/2003  Determine dbm format from the file if it already exists
 Mark Hammond      10/10/2003  It is no longer necessary to pre-load our default message store, and doing so caused us to fail if this default store was in offline mode.
 Tony Meyer        08/10/2003  When training via the web interface record the training in the messageinfo db.
 Tony Meyer        07/10/2003  Fix [ 818871 ] sb_server.py calls undefined variable
