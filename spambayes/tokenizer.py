@@ -813,6 +813,48 @@ def crack_content_xyz(msg):
         if x is not None:
             yield 'content-transfer-encoding:' + x.lower()
 
+# The base64 decoder is actually very forgiving, but flubs one case:
+# if no padding is required (no trailing '='), it continues to read
+# following lines as if they were still part of the base64 part.  We're
+# actually stricter here.  The *point* is that some mailers tack plain
+# text on to the end of base64-encoded text sections.
+
+# Match a line of base64, up to & including the trailing newline.
+# We allow for optional leading and trailing whitespace, and don't care
+# about line length, but other than that are strict.  Group 1 is non-empty
+# after a match iff the last significant char on the line is '='; in that
+# case, it must be the last line of the base64 section.
+base64_re = re.compile(r"""
+    [ \t]*
+    [a-zA-Z0-9+/]*
+    (=*)
+    [ \t]*
+    \r?
+    \n
+""", re.VERBOSE)
+
+def try_to_repair_damaged_base64(text):
+    import binascii
+    i = 0
+    while True:
+        # text[:i] looks like base64.  Does the line starting at i also?
+        m = base64_re.match(text, i)
+        if not m:
+            break
+        i = m.end()
+        if m.group(1):
+            # This line has a trailing '=' -- the base64 part is done.
+            break
+    base64text = ''
+    if i:
+        base64 = text[:i]
+        try:
+            base64text = binascii.a2b_base64(base64)
+        except:
+            # There's no point in tokenizing raw base64 gibberish.
+            pass
+    return base64text + text[i:]
+
 def breakdown_host(host):
     parts = host.split('.')
     for i in range(1, len(parts) + 1):
@@ -1153,6 +1195,8 @@ class Tokenizer:
             except:
                 yield "control: couldn't decode"
                 text = part.get_payload(decode=False)
+                if text is not None:
+                    text = try_to_repair_damaged_base64(text)
 
             if text is None:
                 yield 'control: payload is None'
