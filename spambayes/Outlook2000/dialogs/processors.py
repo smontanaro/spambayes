@@ -22,7 +22,13 @@ class ControlProcessor:
         pass
     def GetControl(self, control_id = None):
         control_id = control_id or self.control_id
-        return win32gui.GetDlgItem(self.window.hwnd, control_id)
+        try:
+            h = win32gui.GetDlgItem(self.window.hwnd, control_id)
+        except:
+            hparent = win32gui.GetParent(self.window.hwnd)
+            hparent = win32gui.GetParent(hparent)
+            h = win32gui.GetDlgItem(hparent, control_id)
+        return h
     def GetPopupHelpText(self, idFrom):
         return None
     def OnCommand(self, wparam, lparam):
