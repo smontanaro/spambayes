@@ -17,7 +17,7 @@ To Do:
  o Suggestions?
 """
 
-import os
+import sys, os
 
 __all__ = ['options']
 
@@ -975,3 +975,21 @@ else:
 
 if not optionsPathname:
     optionsPathname = os.path.abspath('bayescustomize.ini')
+    if sys.platform.startswith("win") and not os.path.isfile(optionsPathname):
+        # If we are on Windows and still don't have an INI, default to the
+        # 'per-user' directory.
+        try:
+            from win32com.shell import shell, shellcon
+            windowsUserDirectory = os.path.join(
+                    shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),
+                    "SpamBayes", "Proxy")
+            optionsPathname = os.path.join(windowsUserDirectory, 'bayescustomize.ini')
+        except ImportError:
+            # We are on Windows, with no BAYESCUSTOMIZE set, no ini file
+            # in the current directory, and no win32 extensions installed
+            # to locate the "user" directory - seeing things are so lamely
+            # setup, it is worth printing a warning
+            print "NOTE: We can not locate an INI file for SpamBayes, and the"
+            print "Python for Windows extensions are not installed, meaning we"
+            print "can't locate your 'user' directory.  An empty configuration"
+            print "file at '%s' will be used." % optionsPathname.encode('mbcs')
