@@ -75,16 +75,6 @@ To Do:
       through some tests (perhaps with a *real* imap server, rather than
       a dummy one).  This would make it easier to carry out the tests
       against each server whenever a change is made.
-    o The RFC says that "unique identifiers persist across sessions", but
-      also that "[i]f unique identifiers from an earlier session fail to
-      persist to this session...".  This strikes me as fairly inconsistent.
-      If the uid does not persist, then we will end up re-training/filtering
-      the message, but I'm not sure what can be done about that.  There is
-      mention of the UID validity value, which each folder has.  If the uids
-      fail to persist, then this value will increase.  The RFC doesn't say
-      if this is the *only* time it will increase, though.  I'm not sure
-      if this value is of any use to us or not; it's worth keeping in mind,
-      though.
     o IMAP supports authentication via other methods than the plain-text
       password method that we are using at the moment.  Neither of the
       servers I have access to offer any alternative method, however.  If
@@ -92,11 +82,6 @@ To Do:
     o Usernames should be able to be literals as well as quoted strings.
       This might help if the username/password has special characters like
       accented characters.
-    o The code currently FETCHes the whole RFC822 message in training, even
-      if it will subsequently decide that the message has already been
-      trained (it won't then train on it, it just throws the message away).
-      This is really inefficient, and a better solution needs to be
-      developed.
     o Suggestions?
 """
 
@@ -124,6 +109,7 @@ import sys
 import getopt
 import types
 import email
+import email.Parser
 from getpass import getpass
 from email.Utils import parsedate
 
@@ -152,6 +138,7 @@ INTERNALDATE_RE = re.compile(r"(INTERNALDATE) (\"\d{1,2}\-[A-Za-z]{3,3}\-" +
                              r"\d{2,4} \d{2,2}\:\d{2,2}\:\d{2,2} " +
                              r"[\+\-]\d{4,4}\")")
 RFC822_RE = re.compile(r"(RFC822) (\{[\d]+\})")
+RFC822_HEADER_RE = re.compile(r"(RFC822.HEADER) (\{[\d]+\})")
 UID_RE = re.compile(r"(UID) ([\d]+)")
 FETCH_RESPONSE_RE = re.compile(r"([0-9]+) \(([" + \
                                re.escape(FLAG_CHARS) + r"\"\{\}\(\)\\ ]*)\)?")
@@ -159,7 +146,10 @@ LITERAL_RE = re.compile(r"^\{[\d]+\}$")
 
 def _extract_fetch_data(response):
     '''Extract data from the response given to an IMAP FETCH command.'''
-    # response might be a tuple containing literal data
+    # Response might be a tuple containing literal data
+    # At the moment, we only handle one literal per response.  This
+    # may need to be improved if our code ever asks for something
+    # more complicated (like RFC822.Header and RFC822.Body)
     if type(response) == types.TupleType:
         literal = response[1]
         response = response[0]
@@ -180,8 +170,10 @@ def _extract_fetch_data(response):
     #  INTERNALDATE
     #  RFC822
     #  UID
+    #  RFC822.HEADER
     # All others are ignored.
-    for r in [FLAGS_RE, INTERNALDATE_RE, RFC822_RE, UID_RE]:
+    for r in [FLAGS_RE, INTERNALDATE_RE, RFC822_RE, UID_RE,
+              RFC822_HEADER_RE]:
         mo = r.search(response)
         if mo is not None:
             if LITERAL_RE.match(mo.group(2)):
@@ -253,6 +245,8 @@ class IMAPMessage(message.SBHeaderMessage):
         message.Message.__init__(self)
         self.folder = None
         self.previous_folder = None
+        self.rfc822_command = "RFC822.PEEK"
+        self.got_substance = False
 
     def setFolder(self, folder):
         self.folder = folder
@@ -286,6 +280,40 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             return imaplib.Time2Internaldate(time.time())
 
+    def get_substance(self):
+        '''Retrieve the RFC822 message from the IMAP server and set as the
+        substance of this message.'''
+        if self.got_substance:
+            return
+        if self.uid is None or self.id is None:
+            print "Cannot get substance of message without an id and an UID"
+            return
+        imap.SelectFolder(self.folder.name)
+        # We really want to use RFC822.PEEK here, as that doesn't effect
+        # the status of the message.  Unfortunately, it appears that not
+        # all IMAP servers support this, even though it is in RFC1730
+        response = imap.uid("FETCH", self.uid, self.rfc822_command)
+        if response[0] != "OK":
+            self.rfc822_command = "RFC822"
+            response = imap.uid("FETCH", self.uid, self.rfc822_command)
+        self._check(response, "uid fetch")
+        data = _extract_fetch_data(response[1][0])
+        # Annoyingly, we can't just pass over the RFC822 message to an
+        # existing message object (like self) and have it parse it. So
+        # we go through the hoops of creating a new message, and then
+        # copying over all its internals.
+        new_msg = email.Parser.Parser().parsestr(data["RFC822"])
+        self._headers = new_msg._headers
+        self._unixfrom = new_msg._unixfrom
+        self._payload = new_msg._payload
+        self._charset = new_msg._charset
+        self.preamble = new_msg.preamble
+        self.epilogue = new_msg.epilogue
+        self._default_type = new_msg._default_type
+        if not self.has_key(options["pop3proxy", "mailid_header_name"]):
+            self[options["pop3proxy", "mailid_header_name"]] = self.id
+        self.got_substance = True
+
     def MoveTo(self, dest):
         '''Note that message should move to another folder.  No move is
         carried out until Save() is called, for efficiency.'''
@@ -318,13 +346,6 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             flags = None
 
-        # Once, we used the IMAP uid to keep track of messages.
-        # This fails miserably because it's only guarenteed to be unique
-        # within a particular folder.  Folders have a UID validity value,
-        # but this can change from session to session.  So we forget this
-        # imap rubbish and use our own id.
-        self[options["pop3proxy", "mailid_header_name"]] = self.id
-
         response = imap.append(self.folder.name, flags,
                                msg_time, self.as_string())
         self._check(response, 'append')
@@ -341,9 +362,9 @@ class IMAPMessage(message.SBHeaderMessage):
         # Although we don't use the UID to keep track of messages, we do
         # have to use it for IMAP operations.
         imap.SelectFolder(self.folder.name)
-        response = imap.uid("SEARCH", "HEADER",
-                            options["pop3proxy", "mailid_header_name"],
-                            self.id)
+        response = imap.uid("SEARCH", "(UNDELETED HEADER " + \
+                            options["pop3proxy", "mailid_header_name"] + \
+                            " " + self.id + ")")
         self._check(response, 'search')
         new_id = response[1][0]
         # Let's hope it doesn't, but, just in case, if the search
@@ -365,7 +386,6 @@ def imapmessage_from_string(s, _class=IMAPMessage, strict=False):
 class IMAPFolder(object):
     def __init__(self, folder_name):
         self.name = folder_name
-        self.rfc822_command = "RFC822.PEEK"
         # Unique names for cached messages - see _generate_id below.
         self.lastBaseMessageName = ''
         self.uniquifier = 2
@@ -408,31 +428,34 @@ class IMAPFolder(object):
         return response[1][0].split(' ')
 
     def __getitem__(self, key):
-        '''Return message matching the given uid'''
+        '''Return message (no substance) matching the given uid.'''
+        # We don't retrieve the substances of the message here - you need
+        # to call msg.get_substance() to do that.
         imap.SelectFolder(self.name)
-        # We really want to use RFC822.PEEK here, as that doesn't effect
-        # the status of the message.  Unfortunately, it appears that not
-        # all IMAP servers support this, even though it is in RFC1730
-        response = imap.uid("FETCH", key, self.rfc822_command)
-        if response[0] != "OK":
-            self.rfc822_command = "RFC822"
-            response = imap.uid("FETCH", key, self.rfc822_command)
-        self._check(response, "uid fetch")
+        # Using RFC822.HEADER.LINES would be better here, but it seems
+        # that not all servers accept it, even though it is in the RFC
+        response = imap.uid("FETCH", key, "RFC822.HEADER")
+        self._check(response, "uid fetch header lines")
         data = _extract_fetch_data(response[1][0])
-        messageText = data["RFC822"]
 
-        # we return an instance of *our* message class, not the
-        # raw rfc822 message
-        msg = imapmessage_from_string(messageText)
+        msg = IMAPMessage()
         msg.setFolder(self)
-        msg.uid = data["UID"]
-        if msg.setIdFromPayload() is None:
+        msg.uid = key
+        r = re.compile(re.escape(options["pop3proxy",
+                                         "mailid_header_name"]) + \
+                       "\:\s*(\d+(\-\d)?)")
+        mo = r.search(data["RFC822.HEADER"])
+        if mo is None:
             msg.setId(self._generate_id())
             # Unfortunately, we now have to re-save this message, so that
             # our id is stored on the IMAP server.  Before anyone suggests
             # it, we can't store it as a flag, because user-defined flags
             # aren't supported by all IMAP servers.
+            # This will need to be done once per message.
+            msg.get_substance()
             msg.Save()
+        else:
+            msg.setId(mo.group(1))
         
         return msg
 
@@ -454,6 +477,7 @@ class IMAPFolder(object):
         num_trained = 0
         for msg in self:
             if msg.GetTrained() == (not isSpam):
+                msg.get_substance()
                 classifier.unlearn(msg.asTokens(), not isSpam)
                 # Once the message has been untrained, it's training memory
                 # should reflect that on the off chance that for some reason
@@ -462,6 +486,7 @@ class IMAPFolder(object):
                 msg.RememberTrained(None)
 
             if msg.GetTrained() is None:
+                msg.get_substance()
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
@@ -471,6 +496,7 @@ class IMAPFolder(object):
     def Filter(self, classifier, spamfolder, unsurefolder):
         for msg in self:
             if msg.GetClassification() is None:
+                msg.get_substance()
                 (prob, clues) = classifier.spamprob(msg.asTokens(),
                                                     evidence=True)
                 # add headers and remember classification
