@@ -6,34 +6,57 @@
   <title>SpamBayes</title>
 </head>
 <body>
-<h1>SpamBayes Server/Proxy Application.</h1>
-<br>
-Wel come to SpamBayes<br>
-<br>
-This SpamBayes application sits between your Mail Server (generally at
-your ISP) and your Mail program.&nbsp; Your mail program still believes
+<table width="100%" cellspacing="0" cellpadding="0">
+  <tbody>
+    <tr>
+      <td width="380"><img src="docs/images/sblogo.jpg" title=""
+ alt="Logo" style="width: 380px; height: 77px;"></td>
+<!-- use background instead of styles to avoid mozilla bug 167262 -->
+      <td background="docs/images/span.jpg">&nbsp;</td>
+      <td width="78"><img src="docs/images/python.jpg"
+ style="width: 78px; height: 77px;"></td>
+    </tr>
+  </tbody>
+</table>
+<h1>SpamBayes Server/Proxy Application</h1>
+<h2>Welcome to SpamBayes</h2>
+
+<p><em>Note that if you use Microsoft Outlook, you should probably be using the
+Outlook Addin, which was presented as an option at installation time.</em></p>
+
+<p>This SpamBayes application sits between your mail server (generally at
+your ISP) and your mail program. Your mail program still believes
 it is talking to a real mail server, but instead it is talking to
 SpamBayes, which acts as a <span style="font-style: italic;">proxy</span>
-between the two.<br>
-<br>
-SpamBayes will let all good email through normally.&nbsp; All Spam or
-Unsure items are held by the application for your review.&nbsp; You
-review all messages and configure SpamBayes itself via your web browser.<br>
-<br>
-If you use Microsoft Outlook, you should probably be using the Outlook
-Addin, which was presented as an option at installation time.<br>
-<br>
+between the two.</p>
+
+<p>All your mail arrives as normal in your mail program, but, as it arrives,
+SpamBayes adds a classification to the messages - either <b>ham</b> (good
+mail), <b>spam</b> (bad mail), or <b>unsure</b> (messages that SpamBayes isn't
+certain about).  You can set your mail program up to automatically
+filter messages into folders based on this classification - for example you
+might move all <b>spam</b> messages to a folder called "Junk Mail", and all
+<b>unsure</b> messages to a folder called "Mail to review".</p>
+
+<p>In order to classify messages, you have to <i>train</i> SpamBayes.  The
+easiest method of doing this is via an interface that SpamBayes presents
+to you via your web browser.  SpamBayes will list all the messages that have
+been received, and let you train them as <b>ham</b> or <b>spam</b>.  You
+can also configure SpamBayes via this interface in your web browser.</p>
+
 <h3>Getting Started</h3>
-You should start the <span style="font-style: italic;">SpamBayes Tray
-Icon</span> program, which was installed on your Start menu.&nbsp; It
-is recommended<br>
-<br>
+<p>You should start the <span style="font-style: italic;">SpamBayes Tray
+Icon</span> program, which was installed into your Start menu. This is the
+recommended method of operating SpamBayes.  If you right-click on this
+icon you will be presented with a number of options to control SpamBayes,
+including an option to configure SpamBayes for your system.</p>
+
 <h3>Using the Service</h3>
-There is a windows service program installed, but it is not configured
-by the installation program.&nbsp; If you configure this manually, you
+<p>There is a windows service program installed, but it is not configured
+by the installation program. If you configure this manually, you
 can continue to use the Tray Icon program, as it will control the
-service instead of running the server internally as it normally does.<br>
-To install the service, perform the following steps:<br>
+service instead of running the server internally as it normally does.</p>
+<p>To install the service, perform the following steps:<br/>
 <ul>
   <li>Open a command prompt, and change to the <span
  style="font-style: italic;">\Program Files\SpamBayes\proxy</span>
@@ -44,14 +67,14 @@ directory.</li>
 Panel-&gt;Administrative Tools-&gt;Services</span>, and locate <span
  style="font-style: italic;">SpamBayes Service</span> in the list.</li>
   <li>Change the properties of the service so it logs on with your user
-account, rather than the builtin system account.&nbsp; This will ensure
+account, rather than the builtin system account. This will ensure
 that SpamBayes uses the same configuration and data files when running
 as a service and when running as a normal program.</li>
   <li>If desired, change the properties of the service to start at boot
 time.</li>
   <li>Start the service</li>
-  <li>Start the<span style="font-style: italic;"> SpamBayes Tray Icon</span>
-program, and confirm the server is running.&nbsp; Configure and manage
+  <li>Start the <span style="font-style: italic;">SpamBayes Tray Icon</span>
+program, and confirm the server is running. Configure and manage
 spambayes normally.</li>
 </ul>
 </body>
