@@ -1468,32 +1468,6 @@ class Tokenizer:
                         for tok in breakdown(m.group(1)):
                             yield 'received:' + tok
 
-        # Date:
-        if options["Tokenizer", "x-generate_time_buckets"]:
-            for header in msg.get_all("date", ()):
-                mat = self.date_hms_re.search(header)
-                # return the time in Date: headers arranged in
-                # 10-minute buckets
-                if mat is not None:
-                    h = int(mat.group('hour'))
-                    bucket = int(mat.group('minute')) // 10
-                    yield 'time:%02d:%d' % (h, bucket)
-
-        if options["Tokenizer", "x-extract_dow"]:
-            for header in msg.get_all("date", ()):
-                # extract the day of the week
-                for fmt in self.date_formats:
-                    try:
-                        timetuple = time.strptime(header, fmt)
-                    except ValueError:
-                        pass
-                    else:
-                        yield 'dow:%d' % timetuple[6]
-                        break
-                else:
-                    # if nothing matches, declare the Date: header invalid
-                    yield 'dow:invalid'
-
         # Message-Id:  This seems to be a small win and should not
         # adversely affect a mixed source corpus so it's always enabled.
         msgid = msg.get("message-id", "")
