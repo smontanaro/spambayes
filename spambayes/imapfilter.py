@@ -38,13 +38,11 @@ Examples:
         imapfilter -t -d bayes.db
 
 Warnings:
-    o This is very alpha.  The filter is currently being developed and
+    o This is alpha software!  The filter is currently being developed and
       tested.  We do *not* recommend using it on a production system unless
       you are confident that you can get your mail back if you lose it.  On
       the other hand, we do recommend that you test it for us and let us
-      know if anything does go wrong.  Once this appears in a release,
-      rather than just cvs, you can feel a *little* <wink> more confident
-      about using it.
+      know if anything does go wrong.
     o By default, the filter does *not* delete, modify or move any of your
       mail.  Due to quirks in how imap works, new versions of your mail are
       modified and placed in new folders, but the originals are still
@@ -366,7 +364,6 @@ class IMAPMessage(message.SBHeaderMessage):
             an id."""
         response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
-        #print response
         data = _extract_fetch_data(response[1][0])
         if data.has_key("INTERNALDATE"):
             msg_time = data["INTERNALDATE"]
@@ -382,6 +379,14 @@ class IMAPMessage(message.SBHeaderMessage):
 
         response = imap.append(self.folder.name, flags,
                                msg_time, self.as_string())
+        if response[0] == "NO":
+            # This may be because we have tried to set an invalid flag.
+            # Try again, losing all the flag information, but warn the
+            # user that this has happened.
+            response = imap.append(self.folder.name, None, msg_time,
+                                   self.as_string())
+            if response[0] == "OK":
+                print "WARNING: Could not append flags: %s" % (flags,)
         self._check(response, 'append')
 
         if self.previous_folder is None:
