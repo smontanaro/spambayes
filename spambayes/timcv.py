@@ -38,9 +38,8 @@ class Msg(object):
         path = dir + "/" + name
         self.tag = path
         f = open(path, 'rb')
-        guts = f.read()
+        self.guts = f.read()
         f.close()
-        self.guts = guts
 
     def __iter__(self):
         return tokenize(self.guts)
