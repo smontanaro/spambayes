@@ -90,7 +90,7 @@ def filter_folder(f, mgr, progress):
         if progress.stop_requested():
             break
         progress.tick()
-        if only_unread and not message.unread or \
+        if only_unread and message.GetReadState() or \
            only_unseen and message.GetField(field_name) is not None:
             continue
         try:

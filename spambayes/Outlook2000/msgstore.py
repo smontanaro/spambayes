@@ -51,7 +51,7 @@ class MsgStoreFolder:
 
 class MsgStoreMsg:
     def __init__(self):
-        self.unread = False
+        pass
     def GetEmailPackageObject(self):
         # Return a "read-only" Python email package object
         # "read-only" in that changes will never be reflected to the real store.
@@ -92,6 +92,11 @@ MESSAGE_MOVE = 0x1 # from MAPIdefs.h
 MSGFLAG_READ = 0x1 # from MAPIdefs.h
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
+
+CLEAR_READ_FLAG = 0x00000004
+CLEAR_RN_PENDING = 0x00000020
+CLEAR_NRN_PENDING = 0x00000040
+SUPPRESS_RECEIPT = 0x1
 
 USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
 
@@ -469,18 +474,12 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # (ie, someone would need to really want to change it <wink>)
         # Thus, searchkey is the only reliable long-lived message key.
         self.searchkey = searchkey
-        self.flags = flags
-        self.unread = flags & MSGFLAG_READ == 0
+        self.flags = flags #  flags are unreliable - they change!
         self.dirty = False
 
     def __repr__(self):
-        if self.unread:
-            urs = "read"
-        else:
-            urs = "unread"
-        return "<%s, '%s' (%s) id=%s/%s>" % (self.__class__.__name__,
+        return "<%s, '%s' id=%s/%s>" % (self.__class__.__name__,
                                      self.GetSubject(),
-                                     urs,
                                      mapi.HexFromBin(self.id[0]),
                                      mapi.HexFromBin(self.id[1]))
 
@@ -771,6 +770,25 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 return self._GetPropFromStream(prop)
             return None
         return val
+
+    def GetReadState(self):
+        val = self.GetField(PR_MESSAGE_FLAGS)
+        return (val&MSGFLAG_READ) != 0
+
+    def SetReadState(self, is_read):
+        self._EnsureObject()
+        # always try and clear any pending delivery reports of read/unread
+        if is_read:
+            self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|SUPPRESS_RECEIPT)
+        else:
+            self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|CLEAR_READ_FLAG)
+        if __debug__:
+            if self.GetReadState() != is_read:
+                print "MAPI SetReadState appears to have failed to change the message state"
+                print "Requested set to %s but the MAPI field after was %r" % \
+                      (is_read, self.GetField(PR_MESSAGE_FLAGS))
+
+    # unsent may also be useful - MSGFLAG_UNSENT bit in PR_MESSAGE_FLAGS .
 
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"

@@ -309,6 +309,11 @@ def ShowClues(mgr, explorer):
     # As above, use HTMLBody else Outlook refuses to behave.
     new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
     # Attach the source message to it
+    # Using the original message has the side-effect of marking the original
+    # as unread.  Tried to make a copy, but the copy then refused to delete
+    # itself.
+    # And the "UnRead" property of the message is not reflected in the object
+    # model (we need to "refresh" the message).  Oh well.
     new_msg.Attachments.Add(item, constants.olByValue,
                             DisplayName="Original Message")
     new_msg.Display()
@@ -359,6 +364,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
                                "Invalid Configuration")
             return
         import train
+        new_msg_state = self.manager.config.general.delete_as_spam_message_state
         for msgstore_message in msgstore_messages:
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
@@ -367,6 +373,17 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
                 print "trained as spam"
             else:
                 print "already was trained as spam"
+            # Do the new message state if necessary.
+            try:
+                if new_msg_state == "Read":
+                    msgstore_message.SetReadState(True)
+                elif new_msg_state == "Unread":
+                    msgstore_message.SetReadState(False)
+                else:
+                    if new_msg_state not in ["", "None", None]:
+                        print "*** Bad new_msg_state value: %r" % (new_msg_state,)
+            except pythoncom.com_error:
+                print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
             # Now move it.
             msgstore_message.MoveTo(spam_folder)
             # Note the move will possibly also trigger a re-train
@@ -398,6 +415,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         app = self.explorer.Application
         inbox_folder = msgstore.GetFolder(
                     app.Session.GetDefaultFolder(constants.olFolderInbox))
+        new_msg_state = self.manager.config.general.recover_from_spam_message_state
         import train
         for msgstore_message in msgstore_messages:
             # Recover where they were moved from
@@ -416,6 +434,17 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                 print "trained as ham"
             else:
                 print "already was trained as ham"
+            # Do the new message state if necessary.
+            try:
+                if new_msg_state == "Read":
+                    msgstore_message.SetReadState(True)
+                elif new_msg_state == "Unread":
+                    msgstore_message.SetReadState(False)
+                else:
+                    if new_msg_state not in ["", "None", None]:
+                        print "*** Bad new_msg_state value: %r" % (new_msg_state,)
+            except pythoncom.com_error:
+                print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
             # Now move it.
             msgstore_message.MoveTo(restore_folder)
             # Note the move will possibly also trigger a re-train

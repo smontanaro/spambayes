@@ -22,6 +22,7 @@ except NameError:
 FOLDER_ID = r"\(\'[a-fA-F0-9]+\', \'[a-fA-F0-9]+\'\)"
 FIELD_NAME = r"[a-zA-Z0-9 ]+"
 FILTER_ACTION = "Untouched", "Moved", "Copied"
+MSG_READ_STATE = "None", "Read", "Unread"
 
 from spambayes.OptionsClass import OptionsClass, Option
 from spambayes.OptionsClass import RESTORE, DO_NOT_RESTORE
@@ -91,6 +92,14 @@ defaults = {
     ("data_directory", "The directory to store the data files.", "",
         """""",
         PATH, RESTORE),
+    ("delete_as_spam_message_state", "How the 'read' flag on a message is modified", "None",
+        """When the 'Delete as Spam' function is used, the message 'read' flag can
+           also be set.""",
+           MSG_READ_STATE, RESTORE),
+    ("recover_from_spam_message_state", "How the 'read' flag on a message is modified", "None",
+        """When the 'Recover from Spam' function is used, the message 'read' flag can
+           also be set.""",
+           MSG_READ_STATE, RESTORE),
     ),
     "Training" : (
     (FolderIDOption,
