@@ -94,8 +94,7 @@ def filter_message(msg, mgr, all_actions=True):
         traceback.print_exc()
         return "Failed"
 
-def filter_folder(f, mgr, progress):
-    config = mgr.config.filter_now
+def filter_folder(f, mgr, config, progress):
     only_unread = config.only_unread
     only_unseen = config.only_unseen
     all_actions = config.action_all
@@ -121,8 +120,8 @@ def filter_folder(f, mgr, progress):
     return dispositions
 
 # Called for "filter now"
-def filterer(mgr, progress):
-    config = mgr.config.filter_now
+def filterer(mgr, config, progress):
+    config = config.filter_now
     if not config.folder_ids:
         progress.error("You must specify at least one folder")
         return
@@ -135,7 +134,7 @@ def filterer(mgr, progress):
     dispositions = {}
     for f in mgr.message_store.GetFolderGenerator(config.folder_ids, config.include_sub):
         progress.set_status("Filtering folder '%s'" % (f.name))
-        this_dispositions = filter_folder(f, mgr, progress)
+        this_dispositions = filter_folder(f, mgr, config, progress)
         for key, val in this_dispositions.items():
             dispositions[key] = dispositions.get(key, 0) + val
         if progress.stop_requested():

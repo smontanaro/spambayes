@@ -176,11 +176,11 @@ class TooltipDialog(Dialog):
 # A "Processor Dialog" works with Command Processors, to link SpamBayes
 # options with control IDS, giving a "data driven" dialog.
 class ProcessorDialog(TooltipDialog):
-    def __init__(self, parent, manager, idd, option_handlers):
+    def __init__(self, parent, manager, config, idd, option_handlers):
         TooltipDialog.__init__(self, parent, manager.dialog_parser, idd)
         parser = manager.dialog_parser
         self.manager = manager
-        self.options = manager.options
+        self.config = config
         self.command_processors = {}
         self.processor_message_map = {} # WM_MESSAGE : [processors_who_want_it]
         self.all_processors = []
@@ -298,8 +298,8 @@ class ProcessorDialog(TooltipDialog):
         self.ApplyHandlingOptionValueError(handler.OnCommand, wparam, lparam)
 
 class ProcessorPage(ProcessorDialog):
-    def __init__(self, parent, manager, idd, option_handlers, yoffset):
-        ProcessorDialog.__init__(self, parent, manager, idd,option_handlers)
+    def __init__(self, parent, manager, config, idd, option_handlers, yoffset):
+        ProcessorDialog.__init__(self, parent, manager, config, idd,option_handlers)
         self.yoffset = yoffset
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         self.hwnd = hwnd

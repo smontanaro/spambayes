@@ -222,7 +222,7 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
                     import win32process, win32api
                     THREAD_PRIORITY_BELOW_NORMAL=-1
                     win32process.SetThreadPriority(win32api.GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL)
-                    self.func( self.window.manager, progress)
+                    self.func( self.window.manager, self.window.config, progress)
                 finally:
                     try:
                         win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())

@@ -8,7 +8,7 @@ def LoadDialogs(rc_file = "dialogs.rc"):
         rc_file = os.path.join( os.path.dirname( rcparser.__file__ ), rc_file)
     return rcparser.ParseDialogs(rc_file)
 
-def ShowDialog(parent, manager, idd):
+def ShowDialog(parent, manager, config, idd):
     """Displays another dialog"""
     if manager.dialog_parser is None:
         manager.dialog_parser = LoadDialogs()
@@ -22,10 +22,21 @@ def ShowDialog(parent, manager, idd):
             pass
         
     import dlgcore
-    dlg = dlgcore.ProcessorDialog(parent, manager, idd, commands)
-    dlg.DoModal()
+    dlg = dlgcore.ProcessorDialog(parent, manager, config, idd, commands)
+    return dlg.DoModal()
+
+def ShowWizard(parent, manager, idd = "IDD_WIZARD", use_existing_config = True):
+    import config_wizard, win32con
+    config = config_wizard.CreateWizardConfig(manager, use_existing_config)
+    if ShowDialog(parent, manager, config, idd) == win32con.IDOK:
+        print "Saving wizard changes"
+        config_wizard.CommitWizardConfig(manager, config)
+        manager.SaveConfig()
+    else:
+        print "Cancelling wizard"
+        config_wizard.CancelWizardConfig(manager, config)
     
-def MakePropertyPage(parent, manager, idd, yoffset=24):
+def MakePropertyPage(parent, manager, config, idd, yoffset=24):
     """Creates a child dialog box to use as property page in a tab control"""
     if manager.dialog_parser is None:
         manager.dialog_parser = LoadDialogs()
@@ -35,7 +46,7 @@ def MakePropertyPage(parent, manager, idd, yoffset=24):
         raise "Parent must be the tab control"
         
     import dlgcore
-    dlg = dlgcore.ProcessorPage(parent, manager, idd, commands, yoffset)
+    dlg = dlgcore.ProcessorPage(parent, manager, config, idd, commands, yoffset)
     return dlg
     
 import dlgutils

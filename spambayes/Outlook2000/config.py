@@ -277,6 +277,10 @@ class OptionsContainer:
         raise AttributeError, "Options has no section '%s'" % attr
     def __setattr__(self, attr, val):
         raise AttributeError, "No section [%s]" % attr
+    # and delegate a few methods so this object can be used in place of
+    # a real options object. maybe should add this to getattr. do we want all?
+    def get_option(self, section, name):
+        return self._options.get_option(section, name)
 
 def CreateConfig(defaults=defaults):
     options = OptionsClass()

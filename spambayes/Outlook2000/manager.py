@@ -757,10 +757,10 @@ class BayesManager:
     def ShowManager(self):
         import dialogs
         # Need to get the plugin hwnd
-        dialogs.ShowDialog(0, self, "IDD_MANAGER")
+        dialogs.ShowDialog(0, self, self.config, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
-        
+
     def ShowHtml(self,url):
         """Displays the main SpamBayes documentation in your Web browser"""
         import sys, os, urllib

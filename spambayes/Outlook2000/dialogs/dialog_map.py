@@ -194,7 +194,7 @@ class TabProcessor(ControlProcessor):
                 win32gui.SendMessage(self.GetControl(), commctrl.TCM_SETCURSEL, self.currentPageIndex,0)
                 return 1
             win32gui.DestroyWindow(self.currentPageHwnd)
-        self.currentPage = MakePropertyPage(self.GetControl(), self.window.manager, self.pages[index])
+        self.currentPage = MakePropertyPage(self.GetControl(), self.window.manager, self.window.config, self.pages[index])
         self.currentPageHwnd = self.currentPage.CreateWindow()
         self.currentPageIndex = index
         return 0
@@ -235,7 +235,7 @@ class DialogCommand(ButtonProcessor):
         # options object, display the new dialog, then reload the current
         # form from the options object/
         self.window.SaveAllControls()
-        ShowDialog(parent, self.window.manager, self.idd)
+        ShowDialog(parent, self.window.manager, self.window.config, self.idd)
         self.window.LoadAllControls()
         
     def GetPopupHelpText(self, id):
@@ -256,22 +256,24 @@ class HiddenDialogCommand(DialogCommand):
         return "Nothing to see here."
 
 def WizardFinish(mgr, window):
-    wiz_cd = mgr.wizard_classifier_data
-    mgr.wizard_classifier_data = None
-    mgr.classifier_data.Adopt(wiz_cd)
-    print "Done!"
-    
-def WizardTrainer(mgr, progress):
+    print "Wizard Done!"
+
+def WizardTrainer(mgr, config, progress):
     import os, manager, train
     bayes_base = os.path.join(mgr.data_directory, "$sbwiz$default_bayes_database")
     mdb_base = os.path.join(mgr.data_directory, "$sbwiz$default_message_database")
+    fnames = []
+    for ext in ".pck", ".db":
+        fnames.append(bayes_base+ext)
+        fnames.append(mdb_base+ext)
+    config.wizard.temp_training_names = fnames
     # determine which db manager to use, and create it.
     ManagerClass = manager.GetStorageManagerClass()
     db_manager = ManagerClass(bayes_base, mdb_base)
     classifier_data = manager.ClassifierData(db_manager, mgr)
     classifier_data.InitNew()
 
-    rescore = mgr.config.training.rescore
+    rescore = config.training.rescore
 
     if rescore:
         stages = ("Training", .3), ("Saving", .1), ("Scoring", .6)
@@ -279,8 +281,10 @@ def WizardTrainer(mgr, progress):
         stages = ("Training", .9), ("Saving", .1)
     progress.set_stages(stages)
 
-    train.real_trainer(classifier_data, mgr.config, mgr.message_store, progress)
+    print "About to train with", config.training.spam_folder_ids
+    train.real_trainer(classifier_data, config, mgr.message_store, progress)
 
+    # xxx - more hacks - we should pass the classifier data in.
     orig_classifier_data = mgr.classifier_data
     mgr.classifier_data = classifier_data # temporary
     try:
@@ -288,17 +292,20 @@ def WizardTrainer(mgr, progress):
     
         if rescore:
             # Setup the "filter now" config to what we want.
-            config = mgr.config.filter_now
-            config.only_unread = False
-            config.only_unseen = False
-            config.action_all = False
-            config.folder_ids = mgr.config.training.ham_folder_ids + mgr.config.training.spam_folder_ids
-            config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
+            now_config = config.filter_now
+            now_config.only_unread = False
+            now_config.only_unseen = False
+            now_config.action_all = False
+            now_config.folder_ids = config.training.ham_folder_ids + \
+                                    config.training.spam_folder_ids
+            now_config.include_sub = config.training.ham_include_sub or \
+                                     config.training.spam_include_sub
             import filter
-            filter.filterer(mgr, progress)
+            filter.filterer(mgr, config, progress)
     
         bayes = classifier_data.bayes
-        progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
+        progress.set_status("Completed training with %d spam and %d good messages" \
+                            % (bayes.nspam, bayes.nham))
     finally:
         mgr.wizard_classifier_data = classifier_data
         mgr.classifier_data = orig_classifier_data
@@ -339,9 +346,11 @@ dialog_map = {
                                   "Filter_Now.folder_ids",
                                   "Filter_Now.include_sub"),
         (AsyncCommandProcessor,   "IDC_START IDC_PROGRESS IDC_PROGRESS_TEXT",
-                                  filter.filterer, "Start Filtering", "Stop Filtering",
-                                  "IDOK IDCANCEL IDC_TAB IDC_BUT_UNSEEN IDC_BUT_UNREAD IDC_BROWSE " \
-                                  "IDC_BUT_ACT_SCORE IDC_BUT_ACT_ALL"),
+                                  filter.filterer,
+                                  "Start Filtering", "Stop Filtering",
+                                  """IDOK IDCANCEL IDC_TAB IDC_BUT_UNSEEN
+                                  IDC_BUT_UNREAD IDC_BROWSE IDC_BUT_ACT_SCORE
+                                  IDC_BUT_ACT_ALL"""),
     ),
     "IDD_FILTER" : (
         (FolderIDProcessor,       "IDC_FOLDER_WATCH IDC_BROWSE_WATCH",
@@ -407,7 +416,8 @@ dialog_map = {
         ),
     "IDD_WIZARD_FOLDERS_REST": (
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
-                                      "Filter.spam_folder_id", "Wizard.spam_folder_name"),
+                                      "Filter.spam_folder_id", "Wizard.spam_folder_name",
+                                      "Training.spam_folder_ids"),
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_UNSURE IDC_BROWSE_UNSURE",
                                       "Filter.unsure_folder_id", "Wizard.unsure_folder_name"),
     ),

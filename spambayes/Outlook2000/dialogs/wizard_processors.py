@@ -33,7 +33,6 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         self.currentPageHwnd = None
         self.finish_fn = finish_fn
         self.page_placeholder_id = self.other_ids[1]
-        self.timer_id = None
 
     def Init(self):
         processors.ButtonProcessor.Init(self)
@@ -43,6 +42,8 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         self.page_placeholder_hwnd = self.GetControl(self.page_placeholder_id)
         self.page_stack = []
         self.switchToPage(0)
+        # brute-force timer to check if we can move forward.
+        self.timer_id = timer.set_timer(800, self.OnCheckForwardTimer)
 
     def Done(self):
         if self.timer_id is not None:
@@ -52,16 +53,11 @@ class WizardButtonProcessor(processors.ButtonProcessor):
 
     def changeControls(self):
         win32gui.EnableWindow(self.back_btn_hwnd,self.currentPageIndex!=0)
-        if self.window.manager.config.wizard.can_go_next:
-            win32gui.EnableWindow(self.forward_btn_hwnd,1)
-            if self.timer_id is not None:
-                timer.kill_timer(self.timer_id)
-                self.timer_id = None
+        if self.canGoNext():
+            enabled = 1
         else:
-            win32gui.EnableWindow(self.forward_btn_hwnd,0)
-            if self.timer_id is None:
-                self.timer_id = timer.set_timer(500, self.OnCheckForwardTimer)
-
+            enabled = 0
+        win32gui.EnableWindow(self.forward_btn_hwnd,enabled)
         index = 0
         if self.atFinish():
             index = 1
@@ -70,13 +66,13 @@ class WizardButtonProcessor(processors.ButtonProcessor):
     # No obvious way to communicate the state of what the "Forward" button
     # should be.  brute-force - check a config boolean on a timer.
     def OnCheckForwardTimer(self, event, time):
-        print "Timer fired"
-        if self.window.manager.config.wizard.can_go_next:
-            timer.kill_timer(self.timer_id)
-            self.timer_id = None
-            win32gui.EnableWindow(self.forward_btn_hwnd,1)
-        # else timer just continues on.
-            
+        #print "Timer fired"
+        if self.canGoNext():
+            enabled = 1
+        else:
+            enabled = 0
+        win32gui.EnableWindow(self.forward_btn_hwnd,enabled)
+
     def OnClicked(self, id):
         if id == self.control_id:
             if self.atFinish():
@@ -93,10 +89,10 @@ class WizardButtonProcessor(processors.ButtonProcessor):
                     pass
                         
                 self.finish_fn(self.window.manager, self.window)
-                win32gui.SendMessage(self.window.hwnd, win32con.WM_CLOSE, 0, 0)
+                win32gui.EndDialog(self.window.hwnd, win32con.IDOK)
             else:
                 #forward
-                if self.currentPage.SaveAllControls():
+                if self.canGoNext() and self.currentPage.SaveAllControls():
                     self.page_stack.append(self.currentPageIndex)
                     nextPage = self.getNextPageIndex()
                     self.switchToPage(nextPage)
@@ -116,6 +112,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         import dlgcore
         self.currentPage = MakePropertyPage(self.page_placeholder_hwnd,
                                             self.window.manager,
+                                            self.window.config,
                                             self.page_ids[index],
                                             3)
         self.currentPageHwnd = self.currentPage.CreateWindow()
@@ -137,6 +134,8 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         return self.currentPageIndex+1
     def atFinish(self):
         return self.currentPageIndex==len(self.page_ids)-1
+    def canGoNext(self):
+        return True
 
 # An implementation with the logic specific to our configuration wizard.
 class ConfigureWizardProcessor(WizardButtonProcessor):
@@ -152,21 +151,27 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
         # (and then I gave up)
         index = self.currentPageIndex
         id = self.page_ids[index]
-        config = self.window.manager.config
+        config = self.window.config
         ok = True
         if id == 'IDD_WIZARD_FOLDERS_WATCH':
-            # todo - check the folder is valid.
-            pass
+            ok = config.filter.watch_folder_ids
         elif id == 'IDD_WIZARD_FOLDERS_REST':
             # Check we have folders.
-            ok = (config.wizard.spam_folder_name or config.wizard.spam_folder_id) and \
-               (config.wizard.unsure_folder_name or config.wizard.unsure_folder_id)
+            ok = (config.wizard.spam_folder_name or config.filter.spam_folder_id) and \
+               (config.wizard.unsure_folder_name or config.filter.unsure_folder_id)
+        elif id == 'IDD_WIZARD_FOLDERS_TRAIN':
+            ok = config.training.ham_folder_ids and \
+                 config.training.spam_folder_ids
+        elif id == 'IDD_WIZARD_TRAIN':
+            # magically set to False when training finished (and back to True
+            # if a folder ID is changed)
+            ok = not self.window.config.wizard.need_train
         return ok
         
     def getNextPage(self):
         index = self.currentPageIndex
         id = self.page_ids[index]
-        config = self.window.manager.config
+        config = self.window.config
         print "GetNextPage with current", index, id
         if id == 'IDD_WIZARD_WELCOME':
             # Welcome page
@@ -179,7 +184,6 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
             else:
                 assert 0, "oops"
         elif id == 'IDD_WIZARD_FOLDERS_TRAIN':
-            self.window.manager.config.wizard.can_go_next = False
             return 'IDD_WIZARD_TRAIN'
         elif id == 'IDD_WIZARD_TRAIN':
             return 'IDD_WIZARD_FOLDERS_WATCH'
@@ -205,7 +209,7 @@ class WatchFolderIDProcessor(opt_processors.FolderIDProcessor):
 # if necessary.
 class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
     def __init__(self, window, control_ids,
-                 option, option_folder_name,
+                 option, option_folder_name, option_override = None,
                  use_fqn = False, name_joiner = "; "):
         self.button_id = control_ids[1]
         self.use_fqn = use_fqn
@@ -214,8 +218,14 @@ class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
        
         name_sect_name, name_sub_option_name = option_folder_name.split(".")
         
-        self.option_folder_name = window.options.get_option(name_sect_name,
+        self.option_folder_name = window.config.get_option(name_sect_name,
                                                             name_sub_option_name)
+        if option_override:
+            name_sect_name, name_sub_option_name = option_override.split(".")
+            self.option_override = window.config.get_option(name_sect_name,
+                                                            name_sub_option_name)
+        else:
+            self.option_override = None
 
         opt_processors.FolderIDProcessor.__init__(self, window, control_ids,
                                                   option, None,
@@ -223,41 +233,37 @@ class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
 
         # bit of a hack - if "Spam" is default and we have a training folder
         # then use that
-        if self.GetOptionValue() is None and self.window.manager.config.wizard.train_spam_ids:
-            self.SetOptionValue(self.window.manager.config.wizard.train_spam_ids)
-
+        if self.GetOptionValue() is None and self.option_override:
+            override = self.GetOptionValue(self.option_override)
+            if override:
+                # override is a multi-id value, we are single.
+                self.SetOptionValue(override[0])
+                self.SetOptionValue("", self.option_folder_name)
 
     def OnCommand(self, wparam, lparam):
-        mgr = self.window.manager
-        code = win32api.HIWORD(wparam)
-        id = win32api.LOWORD(wparam)
-        if id == self.button_id:
-            if self.DoBrowse():
-                # clobber the name
-                self.SetOptionValue("", self.option_folder_name)
-        elif id == self.control_id:
+        if id == self.control_id:
             if code==win32con.EN_CHANGE:
-                if not self.in_setting_name :
+                print "got change", self.in_setting_name
+                if not self.in_setting_name:
                     self.SetOptionValue(None) # reset the folder IDs.
+        return opt_processors.FolderIDProcessor.OnCommand(self, wparam, lparam)
 
     def UpdateControl_FromValue(self):
         name_val = self.GetOptionValue(self.option_folder_name)
         id_val = self.GetOptionValue()
         print "Got", name_val, id_val
-        if name_val:
-            assert not id_val, "Shouldn't have both name and id!"
-            self.in_setting_name = True
-            win32gui.SetWindowText(self.GetControl(), name_val)
-            self.in_setting_name = False
+        self.in_setting_name = True
+        if id_val:
+            self.SetOptionValue("", self.option_folder_name)
+            opt_processors.FolderIDProcessor.UpdateControl_FromValue(self)
         else:
-            if id_val:
-                self.in_setting_name = True
-                opt_processors.FolderIDProcessor.UpdateControl_FromValue(self)
-                self.in_setting_name = False
+            if name_val:
+                win32gui.SetWindowText(self.GetControl(), name_val)
+        self.in_setting_name = False
 
 class TrainFolderIDProcessor(opt_processors.FolderIDProcessor):
     def SetOptionValue(self, value, option = None):
-        self.window.manager.config.wizard.need_train = True
+        self.window.config.wizard.need_train = True
         return opt_processors.FolderIDProcessor.SetOptionValue(self, value, option)
 
 class WizAsyncProcessor(async_processor.AsyncCommandProcessor):
@@ -266,14 +272,12 @@ class WizAsyncProcessor(async_processor.AsyncCommandProcessor):
         async_processor.AsyncCommandProcessor.__init__(self, window, control_ids, func, start_text, stop_text, disable_ids)
     def Init(self):
         async_processor.AsyncCommandProcessor.Init(self)
-        if self.window.manager.config.wizard.need_train:
+        if self.window.config.wizard.need_train:
             self.StartProcess()
         else:
-            self.window.manager.config.wizard.can_go_next = True
-            self.SetStatusText("Training has already been completed")
+            self.SetStatusText("Training has already been completed - click Next to move to the next step.")
     def OnFinished(self, wparam, lparam):
         wasCancelled = wparam
         if not wasCancelled:
-            self.window.manager.config.wizard.can_go_next = True
-            self.window.manager.config.wizard.need_train = False
+            self.window.config.wizard.need_train = False
         return async_processor.AsyncCommandProcessor.OnFinished(self, wparam, lparam)

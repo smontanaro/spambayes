@@ -124,8 +124,7 @@ def real_trainer(classifier_data, config, message_store, progress):
     classifier_data.Save()
 
 # Called back from the dialog to do the actual training.
-def trainer(mgr, progress):
-    config = mgr.config
+def trainer(mgr, config, progress):
     rebuild = config.training.rebuild
     rescore = config.training.rescore
 

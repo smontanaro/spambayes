@@ -71,8 +71,7 @@ class ButtonProcessor(ControlProcessor):
 
 class CloseButtonProcessor(ButtonProcessor):
     def OnClicked(self, id):
-        print "clicked"
-        win32gui.SendMessage(self.window.hwnd, win32con.WM_CLOSE, 0, 0)
+        win32gui.EndDialog(self.window.hwnd, id)
     def GetPopupHelpText(self, ctrlid):
         return "Closes this dialog"
 

@@ -11,15 +11,13 @@ if __name__=='__main__':
     except ImportError:
         sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
     
-    import manager
+    import manager, win32con
     mgr = manager.GetManager()
-    from dialogs import ShowDialog
+    from dialogs import ShowDialog, ShowWizard
     idd = "IDD_MANAGER"
     if len(sys.argv)>1:
         idd = sys.argv[1]
     if idd=='IDD_WIZARD':
-        # not sure where this should go yet.
-        import config_wizard
-        mgr.options, mgr.config = config_wizard.CreateWizardConfig(mgr)
-
-    ShowDialog(0, mgr, idd)
+        ShowWizard(0, mgr, idd)
+    else:
+        ShowDialog(0, mgr, mgr.config, idd)
