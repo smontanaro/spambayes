@@ -83,6 +83,7 @@ adv_map = (
     ('Classifier',          'minimum_prob_strength'),
     ('Classifier',          'unknown_word_prob'),
     ('Classifier',          'unknown_word_strength'),
+    ('Classifier',          'use_bigrams'),
     ('Header Options',      None),
     ('Headers',             'include_score'),
     ('Headers',             'header_score_digits'),
