@@ -30,45 +30,41 @@ import distutils.command.install_scripts
 parent = distutils.command.install_scripts.install_scripts
 class install_scripts(parent):
     old_scripts=[
-        'unheader.py',
-        'hammie.py',
-        'hammiecli.py',
-        'hammiesrv.py',
-        'hammiefilter.py',
-        'pop3proxy.py',
-        'smtpproxy.py',
-        'proxytee.py',
-        'dbExpImp.py',
-        'mboxtrain.py',
-        'imapfilter.py',
-        'notesfilter.py',
+        'unheader',
+        'hammie',
+        'hammiecli',
+        'hammiesrv',
+        'hammiefilter',
+        'pop3proxy',
+        'smtpproxy',
+        'proxytee',
+        'dbExpImp',
+        'mboxtrain',
+        'imapfilter',
+        'notesfilter',
         ]
 
     def run(self):
         err = False
         for s in self.old_scripts:
             s = os.path.join(self.install_dir, s)
-            if os.path.exists(s):
-                print >> sys.stderr, "Error: old script", s, "still exists."
-                err = True
+            for e in (".py", ".pyc", ".pyo"):
+                if os.path.exists(s+e):
+                    print >> sys.stderr, "Error: old script", s+e,
+                    print >> sys.stderr, "still exists."
+                    err = True
         if err:
             print >>sys.stderr, "Do you want to delete these scripts? (y/n)"
             answer = raw_input("")
             if answer == "y":
                 for s in self.old_scripts:
                     s = os.path.join(self.install_dir, s)
-                    try:
-                        os.remove(s)
-                        # Also remove .pyc and .pyo, but quietly.
-                        pyc = "%sc" % (s,)
-                        pyo = "%so" % (s,)
-                        if os.path.exists(pyc):
-                            os.remove(pyc)
-                        if os.path.exists(pyo):
-                            os.remove(pyo)
-                        print "Removed", s
-                    except OSError:
-                        pass
+                    for e in (".py", ".pyc", ".pyo"):
+                        try:
+                            os.remove(s+e)
+                            print "Removed", s+e
+                        except OSError:
+                            pass
         return parent.run(self)
 
 setup(
