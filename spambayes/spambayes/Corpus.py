@@ -264,7 +264,7 @@ class ExpiryCorpus:
         for msg in self:
             if msg.createTimestamp() < time.time() - self.expireBefore:
                 if options.verbose:
-                    print 'message %s has expired' % (key)
+                    print 'message %s has expired' % (msg.key())
                 self.removeMessage(msg)
 
 
