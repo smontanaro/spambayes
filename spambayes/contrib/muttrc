@@ -20,10 +20,10 @@
 ## improvements, please mail them to me!  Thanks to Adam Hupp for
 ## helping out with the muttisms.
 ##
-macro index S "|sb_filter.py -s | procmail\n"
-macro pager S "|sb_filter.py -s | procmail\n"
-macro index H "|sb_filter.py -g | procmail\n"
-macro pager H "|sb_filter.py -g | procmail\n"
+macro index S "|sb_filter.py -s -f | procmail\n"
+macro pager S "|sb_filter.py -s -f | procmail\n"
+macro index H "|sb_filter.py -g -f | procmail\n"
+macro pager H "|sb_filter.py -g -f | procmail\n"
 color index red black "~h 'X-Spambayes-Disposition: spam' ~F"
 
 ## If you're feeling bold and don't mind the possibility of losing mail,
@@ -32,7 +32,7 @@ color index red black "~h 'X-Spambayes-Disposition: spam' ~F"
 ## If there's a problem with sb_filter, though, the message will be lost
 ## forever.
 ##
-#macro index S "<delete-message>|sb_filter.py -s | procmail\n"
-#macro pager S "<delete-message>|sb_filter.py -s | procmail\n"
-#macro index H "<delete-message>|sb_filter.py -g | procmail\n"
-#macro pager H "<delete-message>|sb_filter.py -g | procmail\n"
+#macro index S "<delete-message>|sb_filter.py -s -f | procmail\n"
+#macro pager S "<delete-message>|sb_filter.py -s -f | procmail\n"
+#macro index H "<delete-message>|sb_filter.py -g -f | procmail\n"
+#macro pager H "<delete-message>|sb_filter.py -g -f | procmail\n"

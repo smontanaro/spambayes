@@ -32,7 +32,7 @@ Where OPTIONS is one or more of:
         need to rebuild your database from scratch.
     -q
         quiet mode; no output
-        
+
     -n  train mail residing in "new" directory, in addition to "cur"
         directory, which is always trained (Maildir only)
 
@@ -45,12 +45,32 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
-import sys, os, getopt
-from spambayes import hammie, mboxutils
+import sys, os, getopt, email
+from spambayes import hammie
 from spambayes.Options import options
 
 program = sys.argv[0]
 loud = True
+
+def get_message(obj):
+    """Return an email Message object.
+
+    This works like mboxutis.get_message, except it doesn't junk the
+    headers if there's an error.  Doing so would cause a headerless
+    message to be written back out!
+
+    """
+
+    if isinstance(obj, email.Message.Message):
+        return obj
+    # Create an email Message object.
+    if hasattr(obj, "read"):
+        obj = obj.read()
+    try:
+        msg = email.message_from_string(obj)
+    except email.Errors.MessageParseError:
+        msg = None
+    return msg
 
 def msg_train(h, msg, is_spam, force):
     """Train bayes with a single message."""
@@ -109,8 +129,11 @@ def maildir_train(h, path, is_spam, force, removetrained):
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
         f = file(cfn, "rb")
-        msg = mboxutils.get_message(f)
+        msg = get_message(f)
         f.close()
+        if not msg:
+            print "Malformed message: %s.  Skipping..." % cfn
+            continue
         if not msg_train(h, msg, is_spam, force):
             continue
         trained += 1
@@ -142,13 +165,16 @@ def mbox_train(h, path, is_spam, force):
     # writes in order to assert an exclusive lock.
     f = file(path, "r+b")
     fcntl.flock(f, fcntl.LOCK_EX)
-    mbox = mailbox.PortableUnixMailbox(f, mboxutils.get_message)
+    mbox = mailbox.PortableUnixMailbox(f, get_message)
 
     outf = os.tmpfile()
     counter = 0
     trained = 0
 
     for msg in mbox:
+        if not msg:
+            print "Malformed message number %d.  I can't train on this mbox, sorry." % counter
+            return
         counter += 1
         if loud and counter % 10 == 0:
             sys.stdout.write("\r%6d" % counter)
@@ -203,8 +229,11 @@ def mhdir_train(h, path, is_spam, force):
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
         f = file(fn, "rb")
-        msg = mboxutils.get_message(f)
+        msg = get_message(f)
         f.close()
+        if not msg:
+            print "Malformed message: %s.  Skipping..." % cfn
+            continue
         msg_train(h, msg, is_spam, force)
         trained += 1
         if not options["Headers", "include_trained"]:

@@ -185,7 +185,7 @@ in here, but for the moment, just have these:
     persistent_storage_file = ~/.hammiedb
 
 (Replace the latter with the location of the .hammiedb file that
-hammiefilter created in the first step).
+sb_filter created in the first step).
 
 Once you've trained SpamBayes on your
 collection of know ham and spam, you can use the sb_filter.py script to
@@ -202,9 +202,9 @@ multiple invocations from stepping on each others' toes.  (It's not strictly
 necessary in this case since no files on-disk are modified, but Procmail
 will still complain if you don't specify a lock file.)
 
-The result of running hammie.py in filter mode is that Procmail will use the
+The result of running sb_filter.py in filter mode is that Procmail will use the
 output from the run as the mail message for further processing downstream.
-hammie.py inserts an X-SpamBayes-Classification header in the output message
+sb_filter.py inserts an X-SpamBayes-Classification header in the output message
 which looks like:
 
     X-SpamBayes-Classification: ham; 0.00; '*H*': 1.00; '*S*': 0.00; 'python': 0.00;
@@ -222,7 +222,7 @@ so:
     * ^X-SpamBayes-Classification: unsure
     unsure
 
-The first recipe catches all messages which hammie.py classified as spam.
+The first recipe catches all messages which sb_filter.py classified as spam.
 The second catches all messages about which it was unsure.  The combination
 allows you to isolate spam from your good mail and tuck away messages it was
 unsure about so you can scan them more closely.

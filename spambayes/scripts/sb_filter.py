@@ -27,15 +27,15 @@ Options can one or more of:
         use pickle (instead of database) in PICKLEFILE
     -n
         create a new database
-*+  -f
+*   -f
         filter (default if no processing options are given)
-*+  -t
-        [EXPERIMENTAL] filter and train based on the result (you must
-        make sure to untrain all mistakes later)
-*+  -g
+*   -g
         [EXPERIMENTAL] (re)train as a good (ham) message
-*+  -s
+*   -s
         [EXPERIMENTAL] (re)train as a bad (spam) message
+*   -t
+        [EXPERIMENTAL] filter and train based on the result -- you must
+        make sure to untrain all mistakes later.  Not recommended.
 *   -G
         [EXPERIMENTAL] untrain ham (only use if you've already trained
         this message)
@@ -46,8 +46,8 @@ Options can one or more of:
     -o section:option:value
         set [section, option] in the options database to value
 
-All options marked with '*' operate on stdin.  Only those processing options
-marked with '+' send a modified message to stdout.
+All options marked with '*' operate on stdin, and write the resultant
+message to stdout.
 
 If no filenames are given on the command line, standard input will be
 processed as a single message.  If one or more filenames are given on the

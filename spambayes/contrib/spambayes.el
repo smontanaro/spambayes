@@ -1,6 +1,6 @@
 ;; spambayes.el -- integrate spambayes into Gnus and VM
 ;; Copyright (C) 2003 Neale Pickett <neale@woozle.org>
-;; Time-stamp: <2003-10-14 21:59:11 neale>
+;; Time-stamp: <2003-11-17 11:49:29 neale>
 
 ;; This is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
@@ -31,8 +31,10 @@
 ;;     (define-key gnus-summary-mode-map [(B) (s)] 'spambayes-gnus-refile-as-spam)
 ;;     (define-key gnus-summary-mode-map [(B) (h)] 'spambayes-gnus-refile-as-ham)))
 ;;
-;; In summary mode, "B h" will refile a message as ham, and "B s",
-;; appropriately enough, will refile a message as spam.
+;; In summary mode, "B h" will train a message as ham and refile, and "B
+;; s", appropriately enough, will train a message as spam and refile.
+;; If you misfile something, simply locate it again and refile
+;; it--sb_filter will know that you're retraining the message.
 ;;
 ;;
 ;; You can also put the following in ~/.gnus to run messages through the
@@ -117,17 +119,20 @@ false if you want to retrain as ham.
 		    (message "Retraining...")
 		    (with-temp-buffer
 		      (gnus-request-article-this-buffer n group)
-		      (shell-command-on-region
-		       (point-min)
-		       (point-max)
-		       (concat
-			spambayes-filter-program
-			(if is-spam " -s" " -g")
-			" -f")
-		       (current-buffer)
-		       t)
-		      (gnus-request-replace-article n group (current-buffer)))
-		    (message "Retrained article.")))
+		      (cond
+		       ((zerop (shell-command-on-region
+			       (point-min)
+			       (point-max)
+			       (concat
+				spambayes-filter-program
+				(if is-spam " -s" " -g")
+				" -f")
+			       (current-buffer)
+			       t))
+			(gnus-request-replace-article n group (current-buffer))
+			(message "Retrained article."))
+		       (t
+			(message "Unable to parse article--leaving it alone."))))))
     (let ((group gnus-newsgroup-name)
 	  (list gnus-newsgroup-processable))
       (if (>= (length list) 1)
