@@ -1,4 +1,4 @@
-from Options import options, all_options, \
+from spambayes.Options import options, all_options, \
      boolean_cracker, float_cracker, int_cracker, string_cracker
 try: 
     from sets import Set
