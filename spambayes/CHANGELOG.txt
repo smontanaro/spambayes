@@ -18,7 +18,6 @@ Tony Meyer        29/09/2003  Add a basic help system to the web interface.
 Tony Meyer        29/09/2003  Add warning information to the web interface, for example if the user has imbalanced training, or not much training.
 Mark Hammond      29/09/2003  Don't start the pop3proxy service if a proxy is already running.
 Mark Hammond      29/09/2003  Outlook: Add slightly better stats, and a better framework to extend.
-Skip Montanaro    26/09/2003  Correct sense of include_trained test in mbox_train.
 Skip Montanaro    26/09/2003  Dump TRAINED_HDR global.  Reference options[...] instead.
 Mark Hammond      25/09/2003  Add patch [ 809008 ] safe start/stop and exlusive execution on windows
 Tony Meyer        24/09/2003  sb_filter.py: If the -n switch was before the -d/-p switch, then the name wouldn't be used. This is rather unintuitive, so fix this so that the -d/-p name is used wherever the -n switch is.
@@ -47,6 +46,7 @@ Tony Meyer        29/09/2003  smtpproxy: If we successfully trained a message fr
 Tony Meyer        29/09/2003  smtpproxy: Fix a minor printing error that would cause a traceback.
 Tony Meyer        29/09/2003  imapfilter: Fix trying to view imap folders before restarting and after entering in details.
 Tony Meyer        28/09/2003  Don't use 'pragma: no_cache' to try and stop browsers caching the web interface pages.
+Skip Montanaro    26/09/2003  Correct sense of include_trained test in mbox_train.
 Tony Meyer        26/09/2003  If the user is using Windows, also install pop3proxy_service.py and pop3proxy_tray.py.
 Tony Meyer        24/09/2003  Fix sb_xmlrpcserver to work with the renamed options/scripts.
 Tony Meyer        24/09/2003  Fix [ 809769 ] TypeError when training 1.0a6
