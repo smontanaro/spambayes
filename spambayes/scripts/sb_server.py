@@ -721,10 +721,11 @@ def _recreateState():
         proxy.close()
     del proxyListeners[:]
 
-    # Close the database; we should anyway, and gdbm complains if we
-    # try to reopen it without closing it first.
-    state.bayes.store()
-    state.bayes.close()
+    # Close the database (if there is one); we should anyway, and gdbm
+    # complains if we try to reopen it without closing it first.
+    if hasattr(state, "bayes"):
+        state.bayes.store()
+        state.bayes.close()
 
     state = State()
 
