@@ -59,10 +59,10 @@ class FlexCostCounter(CostCounter):
                       options.spam_cutoff - options.ham_cutoff)
 
     def spam(self, scr):
-        self.total += self._lambda(scr) * options.best_cutoff_fn_weight
+        self.total += (1 - self._lambda(scr)) * options.best_cutoff_fn_weight
 
     def ham(self, scr):
-        self.total += (1 - self._lambda(scr)) * options.best_cutoff_fp_weight
+        self.total += self._lambda(scr) * options.best_cutoff_fp_weight
 
 def default():
      return CompositeCostCounter([
