@@ -315,23 +315,19 @@ import filter, train
 
 dialog_map = {
     "IDD_MANAGER" : (
-        (ImageProcessor,          "IDC_LOGO_GRAPHIC"),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         (TabProcessor,            "IDC_TAB",
-                                  """IDD_GENERAL IDD_TRAINING IDD_FILTER
+                                  """IDD_GENERAL IDD_FILTER IDD_TRAINING 
                                   IDD_FILTER_NOW
                                   IDD_ADVANCED"""),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
     "IDD_GENERAL": (
+        (ImageProcessor,          "IDC_LOGO_GRAPHIC"),
         (VersionStringProcessor,  "IDC_VERSION"),
         (TrainingStatusProcessor, "IDC_TRAINING_STATUS"),
         (FilterEnableProcessor,   "IDC_BUT_FILTER_ENABLE", "Filter.enabled"),
         (FilterStatusProcessor,   "IDC_FILTER_STATUS"),
-        (BoolButtonProcessor,     "IDC_BUT_TRAIN_FROM_SPAM_FOLDER",
-                                  "Training.train_recovered_spam"),
-        (BoolButtonProcessor,     "IDC_BUT_TRAIN_TO_SPAM_FOLDER",
-                                  "Training.train_manual_spam"),
         (DialogCommand,           "IDC_BUT_FILTER_NOW", "IDD_FILTER_NOW"),
         (DialogCommand,           "IDC_BUT_FILTER_DEFINE", "IDD_FILTER"),
         (DialogCommand,           "IDC_BUT_TRAIN_NOW", "IDD_TRAINING"),
@@ -383,15 +379,20 @@ dialog_map = {
                                   train.trainer, "Start Training", "Stop",
                                   "IDOK IDCANCEL IDC_BROWSE_HAM IDC_BROWSE_SPAM " \
                                   "IDC_BUT_REBUILD IDC_BUT_RESCORE"),
+        (BoolButtonProcessor,     "IDC_BUT_TRAIN_FROM_SPAM_FOLDER",
+                                  "Training.train_recovered_spam"),
+        (BoolButtonProcessor,     "IDC_BUT_TRAIN_TO_SPAM_FOLDER",
+                                  "Training.train_manual_spam"),
+        (ComboProcessor,          "IDC_DEL_SPAM_RS", "General.delete_as_spam_message_state",
+         "not change the message,mark the message as read,mark the message as unread"),
+        (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state",
+         "not change the message,mark the message as read,mark the message as unread"),
+        
     ),
     "IDD_ADVANCED" : (
         (MsSliderProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Experimental.timer_start_delay"),
         (MsSliderProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Experimental.timer_interval"),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Experimental.timer_only_receive_folders"),
-        (ComboProcessor,          "IDC_DEL_SPAM_RS", "General.delete_as_spam_message_state",
-         "make no change to the read state,mark as read,mark as unread"),
-        (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state",
-         "make no change to the read state,mark as read,mark as unread"),
         (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSIC"),
         ),
     "IDD_DIAGNOSTIC" : (

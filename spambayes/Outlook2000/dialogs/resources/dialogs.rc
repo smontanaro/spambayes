@@ -46,31 +46,20 @@ BEGIN
     LTEXT           "seconds",IDC_STATIC,207,69,28,8
     CONTROL         "Timer only applies to Inbox",IDC_INBOX_TIMER_ONLY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,89,104,10
-    GROUPBOX        "Read States",IDC_STATIC,7,104,234,63
-    LTEXT           "When a message is deleted as spam, ",IDC_STATIC,17,115,
-                    121,8
-    LTEXT           "When a message is recovered from spam, ",IDC_STATIC,14,
-                    139,137,8
-    COMBOBOX        IDC_DEL_SPAM_RS,36,124,126,54,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_RECOVER_RS,36,148,126,63,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
     LTEXT           "I'm not here. Don't Right Click me.",IDC_HIDDEN,165,118,
                     69,46
 END
 
-IDD_MANAGER DIALOGEX 0, 0, 275, 300
+IDD_MANAGER DIALOGEX 0, 0, 275, 260
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "SpamBayes"
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,158,279,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,216,279,50,14
-    CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
-                    SS_REALSIZEIMAGE,0,0,275,52
-    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,9,54,255,220
-    PUSHBUTTON      "About",IDC_ABOUT_BTN,9,279,50,14
+    DEFPUSHBUTTON   "OK",IDOK,158,239,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,216,239,50,14
+    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,8,7,258,228
+    PUSHBUTTON      "About",IDC_ABOUT_BTN,9,239,50,14
 END
 
 IDD_FILTER_SPAM DIALOGEX 0, 0, 251, 147
@@ -315,7 +304,7 @@ BEGIN
 
     IDD_MANAGER, DIALOG
     BEGIN
-        BOTTOMMARGIN, 293
+        BOTTOMMARGIN, 253
     END
 
     IDD_FILTER_SPAM, DIALOG
@@ -423,62 +412,73 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
 // Dialog
 //
 
-IDD_GENERAL DIALOGEX 0, 0, 253, 187
+IDD_GENERAL DIALOGEX 0, 0, 253, 210
 STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_VISIBLE | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "General"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Training",IDC_STATIC,8,12,240,103
-    LTEXT           "Training is the process of giving examples of both good and bad email to the system so it can classify future email.",
-                    IDC_STATIC,17,22,222,17
-    LTEXT           "Automatically train that a message is good when:",
-                    IDC_STATIC,15,45,208,10
-    CONTROL         "It is moved from a spam folder back to the Inbox",
-                    IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,55,204,9
-    LTEXT           "Automatically train that a message is spam when:",
-                    IDC_STATIC,15,69,208,10
-    CONTROL         "It is moved to the certain-spam folder",
-                    IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,80,204,9
+    LTEXT           "SpamBayes Version Here",IDC_VERSION,6,58,242,8
+    LTEXT           "SpamBayes requires training before it is effective.  Click on the 'Training' tab, or use the Configuration Wizard to train",
+                    IDC_STATIC,6,86,222,17
+    LTEXT           "Training database status:",IDC_STATIC,6,108,222,8
     CONTROL         "123 spam messages; 456 good messages",
                     IDC_TRAINING_STATUS,"Static",SS_LEFTNOWORDWRAP | 
-                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,15,93,223,14
-    GROUPBOX        "Filtering",IDC_STATIC,7,116,241,60
-    LTEXT           "Filtering defines how spam is handled as it arrives",
-                    IDC_STATIC,15,127,205,8
-    CONTROL         "Enable &Filtering",IDC_BUT_FILTER_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,138,66,11
+                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,6,119,242,14
+    CONTROL         "Enable SpamBayes",IDC_BUT_FILTER_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,174,97,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
-                    IDC_FILTER_STATUS,15,153,223,18,SS_SUNKEN
-    LTEXT           "SpamBayes Version Here",IDC_VERSION,5,1,238,8
+                    IDC_FILTER_STATUS,6,148,242,19,SS_SUNKEN
+    PUSHBUTTON      "Reset Configuration...",IDC_BUTTON2,6,190,84,15
+    PUSHBUTTON      "Configuration Wizard...",IDC_BUTTON1,164,190,84,15
+    LTEXT           "Filtering Status",IDC_STATIC,6,138,222,8
+    CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
+                    SS_REALSIZEIMAGE,0,2,275,52
+    LTEXT           "Welcome to SpamBayes, a spam filter for Outlook",
+                    IDC_STATIC,6,72,187,10
 END
 
-IDD_TRAINING DIALOGEX 0, 0, 241, 140
+IDD_TRAINING DIALOGEX 0, 0, 252, 210
 STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Training"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
-    LTEXT           "Folders with known good messages.",IDC_STATIC,7,6,131,
+    GROUPBOX        "Bulk training",IDC_STATIC,5,1,243,113
+    LTEXT           "Folders with known good messages.",IDC_STATIC,11,11,131,
                     11
     CONTROL         "",IDC_STATIC_HAM,"Static",SS_LEFTNOWORDWRAP | 
-                    SS_CENTERIMAGE | SS_SUNKEN,7,17,167,12
-    PUSHBUTTON      "&Browse...",IDC_BROWSE_HAM,184,17,50,14
-    LTEXT           "Folders with spam or other junk messages",IDC_STATIC,7,
+                    SS_CENTERIMAGE | SS_SUNKEN,11,21,175,12
+    PUSHBUTTON      "&Browse...",IDC_BROWSE_HAM,192,20,50,14
+    LTEXT           "Folders with spam or other junk messages",IDC_STATIC,11,
                     36,171,9
     CONTROL         "Static",IDC_STATIC_SPAM,"Static",SS_LEFTNOWORDWRAP | 
-                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,7,47,167,12
-    PUSHBUTTON      "Brow&se...",IDC_BROWSE_SPAM,184,47,50,14
-    CONTROL         "&Rebuild entire database",IDC_BUT_REBUILD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,67,174,10
+                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,11,46,174,12
+    PUSHBUTTON      "Brow&se...",IDC_BROWSE_SPAM,192,46,50,14
     CONTROL         "Score &messages after training",IDC_BUT_RESCORE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,77,174,10
-    PUSHBUTTON      "&Train Now",IDC_START,7,119,50,14,BS_NOTIFY
-    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
-                    92,166,11
-    LTEXT           "",IDC_PROGRESS_TEXT,7,108,227,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,64,111,10
+    CONTROL         "&Rebuild entire database",IDC_BUT_REBUILD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,137,64,92,10
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
+                    11,76,231,11
+    PUSHBUTTON      "&Start Training",IDC_START,11,91,54,14,BS_NOTIFY
+    LTEXT           "training status training status training status training status training status training status training status ",
+                    IDC_PROGRESS_TEXT,75,89,149,17
+    GROUPBOX        "Incremental Training",IDC_STATIC,4,117,244,87
+    CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox",
+                    IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,11,127,204,18
+    LTEXT           "Clicking Delete as Spam should",IDC_STATIC,11,148,104,
+                    10
+    COMBOBOX        IDC_DEL_SPAM_RS,130,145,112,54,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Train that a message is spam when it is moved to the spam folder",
+                    IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,11,163,204,16
+    LTEXT           "Clicking Recover From Spam should",IDC_STATIC,11,183,
+                    115,10
+    COMBOBOX        IDC_RECOVER_RS,128,180,114,54,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_FILTER_NOW DIALOGEX 0, 0, 244, 178
@@ -506,53 +506,53 @@ BEGIN
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
                     129,230,11
     LTEXT           "Static",IDC_PROGRESS_TEXT,7,144,227,10
-    PUSHBUTTON      "Filter Now",IDC_START,7,161,50,14
+    PUSHBUTTON      "Start Filtering",IDC_START,7,161,52,14
 END
 
-IDD_FILTER DIALOGEX 0, 0, 249, 195
+IDD_FILTER DIALOGEX 0, 0, 249, 209
 STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
-CAPTION "Filter"
+CAPTION "Filtering"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Filter the following folders as messages arrive",
-                    IDC_STATIC,8,0,168,11
+                    IDC_STATIC,8,4,168,11
     CONTROL         "Folder names...\nLine 2",IDC_FOLDER_WATCH,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,7,11,177,12
-    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,192,10,50,14
-    GROUPBOX        "Certain Spam",IDC_STATIC,7,26,235,80
+                    WS_GROUP,7,16,177,12
+    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,192,14,50,14
+    GROUPBOX        "Certain Spam",IDC_STATIC,7,33,235,80
     LTEXT           "To be considered certain spam, a message must score at least",
-                    IDC_STATIC,13,35,212,10
+                    IDC_STATIC,13,42,212,10
     CONTROL         "Slider1",IDC_SLIDER_CERTAIN,"msctls_trackbar32",
-                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,45,165,22
-    EDITTEXT        IDC_EDIT_CERTAIN,184,46,51,14,ES_AUTOHSCROLL
-    LTEXT           "and these messages should be:",IDC_STATIC,13,65,107,10
-    COMBOBOX        IDC_ACTION_CERTAIN,13,76,55,40,CBS_DROPDOWNLIST | 
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,52,165,22
+    EDITTEXT        IDC_EDIT_CERTAIN,184,53,51,14,ES_AUTOHSCROLL
+    LTEXT           "and these messages should be:",IDC_STATIC,13,72,107,10
+    COMBOBOX        IDC_ACTION_CERTAIN,13,83,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,75,78,31,10
+    LTEXT           "to folder",IDC_STATIC,75,85,31,10
     CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,120,76,59,14
-    PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,76,50,14
-    GROUPBOX        "Possible Spam",IDC_STATIC,6,110,235,81
+                    WS_GROUP,120,83,59,14
+    PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,83,50,14
+    GROUPBOX        "Possible Spam",IDC_STATIC,6,117,235,81
     LTEXT           "To be considered uncertain, a message must score at least",
-                    IDC_STATIC,12,121,212,10
+                    IDC_STATIC,12,128,212,10
     CONTROL         "Slider1",IDC_SLIDER_UNSURE,"msctls_trackbar32",
-                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,12,128,165,20
-    EDITTEXT        IDC_EDIT_UNSURE,183,134,54,14,ES_AUTOHSCROLL
-    LTEXT           "and these messages should be:",IDC_STATIC,12,148,107,10
-    COMBOBOX        IDC_ACTION_UNSURE,12,159,55,40,CBS_DROPDOWNLIST | 
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,12,135,165,20
+    EDITTEXT        IDC_EDIT_UNSURE,183,141,54,14,ES_AUTOHSCROLL
+    LTEXT           "and these messages should be:",IDC_STATIC,12,155,107,10
+    COMBOBOX        IDC_ACTION_UNSURE,12,166,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,74,162,31,10
+    LTEXT           "to folder",IDC_STATIC,74,169,31,10
     CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,119,159,59,14
-    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,159,50,14
+                    WS_GROUP,119,166,59,14
+    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,166,50,14
     CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,13,93,81,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,100,81,10
     CONTROL         "Mark possible spam as read",IDC_MARK_UNSURE_AS_READ,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,179,101,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,186,101,10
 END
 
 IDD_FOLDER_SELECTOR DIALOGEX 0, 0, 247, 215
@@ -587,12 +587,21 @@ BEGIN
     IDD_GENERAL, DIALOG
     BEGIN
         RIGHTMARGIN, 248
-        BOTTOMMARGIN, 182
+        VERTGUIDE, 6
+        BOTTOMMARGIN, 205
+    END
+
+    IDD_TRAINING, DIALOG
+    BEGIN
+        RIGHTMARGIN, 241
+        VERTGUIDE, 11
+        VERTGUIDE, 242
+        BOTTOMMARGIN, 207
     END
 
     IDD_FILTER, DIALOG
     BEGIN
-        BOTTOMMARGIN, 192
+        BOTTOMMARGIN, 206
         HORZGUIDE, 127
     END
 END
