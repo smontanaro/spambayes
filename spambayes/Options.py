@@ -141,8 +141,14 @@ show_charlimit: 3000
 # name already exists, it's overwritten.  pickle_basename is ignored when
 # save_trained_pickles is false.
 
+# if save_histogram_pickles is true, Driver.train() saves a binary
+# pickle of the spam and ham histogram for "all test runs". The file
+# basename is given by pickle_basename, the suffix _spamhist.pik
+# or _hamhist.pik is appended  to the basename.
+
 save_trained_pickles: False
 pickle_basename: class
+save_histogram_pickles: False
 
 [Classifier]
 # Fiddling these can have extreme effects.  See classifier.py for comments.
@@ -225,6 +231,7 @@ all_options = {
                    'show_histograms': boolean_cracker,
                    'show_best_discriminators': int_cracker,
                    'save_trained_pickles': boolean_cracker,
+                   'save_histogram_pickles': boolean_cracker,
                    'pickle_basename': string_cracker,
                    'show_charlimit': int_cracker,
                    'spam_cutoff': float_cracker,
