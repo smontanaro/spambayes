@@ -140,7 +140,9 @@ class Message(email.Message.Message):
 
         
     def setPayload(self, payload):
-        prs = email.Parser.HeaderParser()
+        prs = email.Parser.Parser()
+        # this is kindof a hack, due to the fact that the parser creates a
+        # new message object, and we already have the message object
         prs._parseheaders(self, StringIO(payload))
         # we may want to do some header parsing error handling here
         # to try to extract important headers regardless of malformations
@@ -182,7 +184,7 @@ class Message(email.Message.Message):
             return options.header_ham_string
         if self.c == 'u':
             return options.header_unsure_string
-        
+
         return None
 
     def RememberClassification(self, cls):
@@ -265,6 +267,9 @@ class SBHeaderMessage(Message):
         
         if options.pop3proxy_add_mailid_to.find("header") != -1:
             self[options.pop3proxy_mailid_header_name] = self.id
+
+#        print self._headers
+ #       print self.as_string()
 
 # This won't work for now, because email.Message does not isolate message body
 # This is also not consistent with the function of this method...
