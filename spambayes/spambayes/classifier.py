@@ -360,46 +360,45 @@ class Classifier:
 
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
-        if not isinstance(wordstream, types.ListType):
-            wordstream = list(wordstream)
-
-        # clues is now a set so that that duplicates are removed.
-        # Otherwise if a token is a stronger clue than the bigrams
-        # it forms with the previous *and* next tokens, then it
-        # would be used twice.  As is, it is possible for a single
-        # token to be present in two bigram tokens (but in different
-        # positions).
-        clues = Set()  # (distance, prob, word, record) tuples
-        pushclue = clues.add
 
         if options["Classifier", "x-use_bigrams"]:
-            # The tokens list contains 3-tuples of a token,
-            # the bigram it forms with the next token, and the
-            # next token.  This makes it easier to select which
-            # one to use later on.
-            l = wordstream
-            tokens = [(l[i],"%s %s" % (l[i],l[(i+1)%len(l)]),
-                       l[(i+1)%len(l)]) for i in xrange(len(l))]
+            raw = []
+            push = raw.append
+            pair = None
+            seen = {pair: 1}
+            for i, token in enumerate(wordstream):
+                if i:
+                    pair = "bi:%s %s" % (last_token, token)
+                last_token = token
+                for clue, indices in (token, (i,)), (pair, (i-1, i)):
+                    if clue not in seen:
+                        seen[clue] = 1
+                        tup = self._worddistanceget(clue)
+                        if tup[0] >= mindist:
+                            push((tup, indices))
 
-            # Run through all the triplets and add the strongest
-            # clue from each (note also the comment above explaining
-            # how duplicates are treated).
-            for grams in tokens:
-                winner = (0, None, None, None) # distance, prob, word, record
-                for gram in grams:
-                    contestant = self._worddistanceget(gram)
-                    if contestant[0] > winner[0]:
-                        winner = contestant
-                if winner[0] >= mindist:
-                    pushclue(winner)
+            raw.sort()
+            raw.reverse()
+            clues = []
+            push = clues.append
+            seen = {}
+            for tup, indices in raw:
+                overlap = [i for i in indices if i in seen]
+                if not overlap:
+                    for i in indices:
+                        seen[i] = 1
+                    push(tup)
+            clues.reverse()
+
         else:
-            for word in wordstream: # Set() not necessary; see above.
-                contestant = self._worddistanceget(word)
-                if contestant[0] >= mindist:
-                    pushclue(contestant)
+            clues = []
+            push = clues.append
+            for word in Set(wordstream):
+                tup = self._worddistanceget(word)
+                if tup[0] >= mindist:
+                    push(tup)
+            clues.sort()
 
-        clues = list(clues)
-        clues.sort()
         if len(clues) > options["Classifier", "max_discriminators"]:
             del clues[0 : -options["Classifier", "max_discriminators"]]
         # Return (prob, word, record).
@@ -443,7 +442,7 @@ class Classifier:
         for token in wordstream:
             yield token
             if last:
-                yield "%s %s" % (last, token)
+                yield "bi:%s %s" % (last, token)
             last = token
 
     def _wordinfokeys(self):
