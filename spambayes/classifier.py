@@ -70,7 +70,7 @@ class MetaInfo(object):
     def __setstate__(self, t):
         if t[0] != PICKLE_VERSION:
             raise ValueError("Can't unpickle -- version %s unknown" % t[0])
-        (self._nspam, self._nham) = t[1:]
+        self._nspam, self._nham = t[1:]
         self.revision = 0
 
     def incr_rev(self):
