@@ -48,7 +48,7 @@ Usage:
             -v     : verbose mode (some additional diagnostic messages)
             -f: FN : flat file to export to or import from
             -p: FN : name of pickled database file to use
-            -f: FN : name of dbm database file to use
+            -d: FN : name of dbm database file to use
             -m     : merge import into an existing database file.  This is
                      meaningful only for import. If omitted, a new database
                      file will be created.  If specified, the imported
