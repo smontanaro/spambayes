@@ -241,7 +241,7 @@ def main(args):
         pass
 
     if not best:
-        pickle.dump(scores, file(picklefile, 'w'))
+        pickle.dump(scores, file(bestfile, 'w'))
 
     return 0
 
