@@ -25,7 +25,7 @@ If you only want to use some of the messages in each set,
 
     -s int
         A seed for the random number generator.  Has no effect unless
-        at least on of {--ham-keep, --spam-keep} is specified.  If -s
+        at least one of {--ham-keep, --spam-keep} is specified.  If -s
         isn't specifed, the seed is taken from current time.
 
 In addition, an attempt is made to merge bayescustomize.ini into the options.
