@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>SpamBayes Configuration</title>
+</head>
+<body style="background-image: url(about:blank);">
+<h1>SpamBayes Configuration</h1>
+<br>
+Many SpamBayes configuration options are managed via the SpamBayes
+manager, available from the SpamBayes toolbar item.&nbsp; While this
+dialog allows you to configure standard options, there are a number of
+other options that can be set manually.<br>
+<br>
+<span style="font-weight: bold;">WARNING</span>: Please read the
+following before going any further.<br>
+<ul>
+  <li>To change these options, you will need to use a text editor to
+edit the main SpamBayes configuration file.&nbsp; If something goes
+wrong here, you may lose your existing SpamBayes configuration.&nbsp;
+Taking a copy of any files you edit is recommended.</li>
+  <li>SpamBayes stores all configuration options, including the list of
+folders, in this file.&nbsp; Do NOT change anything you don't
+understand.&nbsp; Some of these lines are extremely long - please
+ensure they remain as a single line.<br>
+  </li>
+  <li>Before manually changing any configuration files, please ensure
+you have shut down Outlook - otherwise the configuration changes you
+have made will be lost if SpamBayes itself automatically saves its
+configuration.</li>
+</ul>
+If you have any further questions, please post them to the SpamBayes
+mailing list.<br>
+<h2>About SpamBayes configuration files</h2>
+SpamBayes configuration options are stored in the directory <span
+ style="font-style: italic;">\Documents and
+Settings\{username}\Application
+Data\SpamBayes\{outlook-profile-name}.ini</span>.&nbsp; Note that the
+name of the file depends on the name of your current Outlook profile;
+if you use Outlook in Internet Only mode, then the profile is generally
+named <span style="font-style: italic;">Microsoft Outlook Internet
+Settings</span>.&nbsp; This file is a standard text file, and can be
+edited with any text editor.<br>
+<br>
+A configuration file has a number of sections, and each section
+contains a number of named values.&nbsp; For example, you will find the
+following excerpt in your INI file:<br>
+<pre>[Filter]</pre>
+<pre>enabled:True</pre>
+This defines a section named <span style="font-style: italic;">Filter</span>,
+with value <span style="font-style: italic;">enabled </span>set to
+value <span style="font-style: italic;">True</span>.&nbsp; The valid
+section names, value names and valid values depends on the
+option.&nbsp; Note that in some cases, we will refer to options being
+in a certain section, but when you check your INI file, you will find
+no such section defined.&nbsp; In this case, simply add the section
+header, and any values manually.&nbsp; For example, it will not be
+uncommon for you to add a line<br>
+<pre>[General]</pre>
+if you need to set options in this section, as by default, you INI file
+will have no such section.<br>
+<h2>Additional Options</h2>
+The following options are supported in this version<br>
+<table cellpadding="2" cellspacing="2" border="1"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;">Section<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;">Option Name<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;">Valid Values<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;">Default<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;">Comments<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[Filter]<br>
+      </td>
+      <td style="vertical-align: top;">spam_mark_as_read<br>
+      </td>
+      <td style="vertical-align: top;">True, False<br>
+      </td>
+      <td style="vertical-align: top;">True<br>
+      </td>
+      <td style="vertical-align: top;">Determines if spam messages are
+marked as 'Read' as they are filtered.&nbsp; This can be set to 'True'
+if the new-mail icon bothers you when the only new items are
+spam.&nbsp; It can be set to 'False' if you use the 'read' state of
+these messages to determine which items you are yet to review.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[Filter]<br>
+      </td>
+      <td style="vertical-align: top;">unsure_mark_as_read<br>
+      </td>
+      <td style="vertical-align: top;">True, False<br>
+      </td>
+      <td style="vertical-align: top;">False<br>
+      </td>
+      <td style="vertical-align: top;">Determines if unsure messages
+are marked as 'Read' as they are filtered.&nbsp;
+See 'spam_mark_as_read' for more details.</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[General]<br>
+      </td>
+      <td style="vertical-align: top;">field_score_name<br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;">Spam<br>
+      </td>
+      <td style="vertical-align: top;">The name of the field used by
+SpamBayes to record spam scores.&nbsp; This should only be changed if
+you know what you are doing.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[General]<br>
+      </td>
+      <td style="vertical-align: top;">delete_as_spam_message_state<br>
+      </td>
+      <td style="vertical-align: top;">None, Read, Unread<br>
+      </td>
+      <td style="vertical-align: top;">None<br>
+      </td>
+      <td style="vertical-align: top;">Determines how to set the "Read"
+state of a message as they are manually managed by the "Delete as Spam"
+button.&nbsp; By default, the 'Read' state of the message is not
+changed, but this allows you to explicitly change it to either 'read'
+or 'unread'.<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[General]<br>
+      </td>
+      <td style="vertical-align: top;">recover_from_spam_message_state<br>
+      </td>
+      <td style="vertical-align: top;">None, Read, Unread<br>
+      </td>
+      <td style="vertical-align: top;">None<br>
+      </td>
+      <td style="vertical-align: top;">Determines how to set the "Read"
+state of a message as they are
+manually managed by the "Recover from Spam" button.&nbsp; By default,
+the
+'Read' state of the message is not changed, but this allows you to
+explicitly change it to either 'read' or 'unread'.</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">[General]<br>
+      </td>
+      <td style="vertical-align: top;">data_directory<br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td style="vertical-align: top;">The directory where SpamBayes
+will save its database and primary configuration file.&nbsp; This can
+only be set in the 'early' configuration files - see below.<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<h2>Multiple Configuration Files</h2>
+There is rudimentary support for multiple configuration files.&nbsp;
+The intention of these files is to site administrators can set global
+options for all SpamBayes users.&nbsp; Only some options make sense to
+store in other configuration files.<br>
+<br>
+All options from all configuration files are "merged".&nbsp; This means
+that any file can set any option, and as all options files are
+processed, all values are merged.&nbsp; If multiple configuration files
+specify the same option, the value from the file last merged is
+used.&nbsp; When SpamBayes writes its configuration during normal
+processing, the entire merged set of options is written.&nbsp; The end
+result of this means that next time SpamBayes is run, the earlier
+configuration files will have no effect, as the last one loaded (the
+main config file written by SpamBayes) will have all values already.<br>
+<br>
+SpamBayes processes configuration files in the following order:<br>
+<ul>
+  <li><span style="font-style: italic;">default_configuration.ini</span>
+in the SpamBayes application directory (ie, the directory where the
+application lives).&nbsp; By default, no such configuration file will
+exist.</li>
+  <li><span style="font-style: italic;">default_configuration.ini</span>
+in the directory <span style="font-style: italic;">\Documents and
+Settings\{username}\Application Data\SpamBayes.</span>&nbsp; By
+default, no such configuration file will exist.</li>
+  <li>SpamBayes then checks to see if a <span
+ style="font-style: italic;">data_directory</span> has been specified
+in a <span style="font-style: italic;">[General]</span> section.&nbsp;
+If so, this is used as the SpamBayes data directory - otherwise, the <span
+ style="font-style: italic;">\Documents and
+Settings\{username}\Application Data\SpamBayes</span> directory is used.</li>
+  <li><span style="font-style: italic;">{outlook-profile-name}.ini</span>
+in the data directory.&nbsp; Using the name of the Outlook profile
+means that SpamBayes will work in a multi-profile environment.</li>
+  <li>The mail SpamBayes databases are then loaded from the nominated
+data directory.</li>
+</ul>
+<span style="font-style: italic;"></span>
+</body>
+</html>
