@@ -62,6 +62,8 @@ from hammie import DBDict     # hammie only for DBDict, which should
                               # probably really be somewhere else
 import cPickle as pickle
 import errno
+import copy
+import anydbm
 
 PICKLE_TYPE = 1
 NO_UPDATEPROBS = False   # Probabilities will not be autoupdated with training
@@ -175,7 +177,6 @@ class DBDictBayes(PersistentBayes):
 
         self.db_name = db_name
         self.statekey = "saved state"
-        self.wordinfo = DBDict(db_name, 'c', (self.statekey,))  # r/rw?
 
         self.load()
 
@@ -185,26 +186,39 @@ class DBDictBayes(PersistentBayes):
         if Corpus.Verbose:
             print 'Loading state from',self.db_name,'DB_Dict'
 
-        if self.wordinfo.has_key(self.statekey):
-            self.nham, self.nspam = self.wordinfo[self.statekey]
-            
+        try:
+            wi = DBDict(self.db_name, 'r')
+        except anydbm.error:
+            wi = {}
+        
+        if wi.has_key(self.statekey):
             if Corpus.Verbose:
                 print '%s is an existing DBDict, with %d ham and %d spam' \
                       % (self.db_name, self.nham, self.nspam)
+
+            self.nham, self.nspam = wi[self.statekey]
+
+            for word,info in wi:
+                self.wordinfo[word] = info
         else:
             # new dbdict
             if Corpus.Verbose:
                 print self.db_name,'is a new DBDict'
+            self.wordinfo = {}
             self.nham = 0
             self.nspam = 0
 
     def store(self):
         '''Place state into persistent store'''
 
+        wi = DBDict(self.db_name, 'c')
+
         if Corpus.Verbose:
             print 'Persisting',self.db_name,'state in DBDict'
 
-        self.wordinfo[self.statekey] = (self.nham, self.nspam)
+        wi[self.statekey] = (self.nham, self.nspam)
+        for word in self.wordinfo:
+            wi[word] = self.wordinfo[word]
 
 
 class Trainer:
