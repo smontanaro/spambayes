@@ -22,6 +22,7 @@ def convert(inputFilename = None, outputFilename = None):
     out.write("\tdialogs = "+repr(rcp.dialogs)+"\n")
     out.write("\tids = "+repr(rcp.ids)+"\n")
     out.write("\tnames = "+repr(rcp.names)+"\n")
+    out.write("\tbitmaps = "+repr(rcp.bitmaps)+"\n")
     out.write("def ParseDialogs(s):\n")
     out.write("\treturn FakeParser()\n")
     out.close()

@@ -7,6 +7,7 @@ __author__="Adam Walker"
 
 import sys, os, shlex
 import win32con
+#import win32gui
 import commctrl
 
 _controlMap = {"DEFPUSHBUTTON":0x80,
@@ -91,13 +92,16 @@ class ControlDef:
         
 
 class RCParser:
-    ids = {"IDOK":1, "IDCANCEL":2, "IDC_STATIC": -1}
-    names = {1:"IDOK", 2:"IDCANCEL", -1:"IDC_STATIC"}
     next_id = 1001
     dialogs = {}
     _dialogs = {}
     debugEnabled = False;
     token = ""
+
+    def __init__(self):    
+        self.ids = {"IDOK":1, "IDCANCEL":2, "IDC_STATIC": -1}
+        self.names = {1:"IDOK", 2:"IDCANCEL", -1:"IDC_STATIC"}
+        self.bitmaps = {}
 
     def debug(self, *args):
         if self.debugEnabled:
@@ -117,6 +121,13 @@ class RCParser:
         using the "dialogs" dictionary member (name->DialogDef). The "ids" member contains the dictionary of id->name.
         The "names" member contains the dictionary of name->id
         """
+        hFileName = rcFileName[:-2]+"h"
+        try:
+            h = open(hFileName, "rU")
+            self.parseH(h)
+            h.close()
+        except:
+            print "No .h file. ignoring."
         f = open(rcFileName)
         self.open(f)
         self.getToken()
@@ -127,6 +138,23 @@ class RCParser:
     def open(self, file):
         self.lex = shlex.shlex(file)
         self.lex.commenters = "//#"
+
+    def parseH(self, file):
+        lex = shlex.shlex(file)
+        lex.commenters = "//"
+        token = " "
+        while token is not None:
+            token = lex.get_token()
+            if token == "" or token is None:
+                token = None
+            else:
+                if token=='define':
+                    n = lex.get_token()
+                    i = int(lex.get_token())
+                    self.ids[n] = i
+                    self.names[i] = n
+                    if self.next_id<=i:
+                        self.next_id = i+1
 
     def parse(self):
         deep = 0
@@ -140,13 +168,21 @@ class RCParser:
                     deep += 1
                 elif "END" == self.token:
                     deep -= 1
-        elif "IDD_" != self.token[:4]:
-            self.getToken()
-        else:
+        elif "IDD_" == self.token[:4]:
             possibleDlgName = self.token
+            #print "possible dialog:", possibleDlgName
             self.getToken()
             if "DIALOG" == self.token or "DIALOGEX" == self.token:
                 self.dialog(possibleDlgName)
+        elif "IDB_" == self.token[:4]:
+            possibleBitmap = self.token
+            self.getToken()
+            if "BITMAP" == self.token:
+                self.getToken()
+                bmf = self.token[1:-1] # quotes
+                self.bitmaps[possibleBitmap] = bmf
+                print "BITMAP", possibleBitmap, bmf
+                #print win32gui.LoadImage(0, bmf, win32con.IMAGE_BITMAP,0,0,win32con.LR_DEFAULTCOLOR|win32con.LR_LOADFROMFILE)
 
     def addId(self, id_name):
         if id_name in self.ids:
@@ -262,6 +298,10 @@ class RCParser:
             self.getToken()
             if self.token[0:1]=='"':
                 control.label = self.token[1:-1]
+                self.getToken() # ,
+                self.getToken()
+            elif self.token.isdigit():
+                control.label = self.token
                 self.getToken() # ,
                 self.getToken()
             control.id = self.token
