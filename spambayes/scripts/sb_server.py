@@ -858,7 +858,7 @@ def prepare():
     from spambayes import smtpproxy
     servers, proxyPorts = smtpproxy.LoadServerInfo()
     proxyListeners.extend(smtpproxy.CreateProxies(servers, proxyPorts,
-                                                  state))
+                                                  smtpproxy.SMTPTrainer(state.bayes, state)))
 
     # setup info for the web interface
     state.buildServerStrings()
