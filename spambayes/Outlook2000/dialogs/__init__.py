@@ -25,5 +25,18 @@ def ShowDialog(parent, manager, idd):
     dlg = dlgcore.ProcessorDialog(parent, manager, idd, commands)
     dlg.DoModal()
     
+def MakePropertyPage(parent, manager, idd):
+    """Creates a child dialog box to use as property page in a tab control"""
+    if manager.dialog_parser is None:
+        manager.dialog_parser = LoadDialogs()
+    import dialog_map
+    commands = dialog_map.dialog_map[idd]
+    if not parent:
+        raise "Parent must be the tab control"
+        
+    import dlgcore
+    dlg = dlgcore.ProcessorPage(parent, manager, idd, commands)
+    return dlg
+    
 import dlgutils
 SetWaitCursor = dlgutils.SetWaitCursor
