@@ -88,6 +88,8 @@ import Dibbler
 import tokenizer
 from spambayes import Stats
 from spambayes import Version
+from spambayes import storage
+from spambayes import FileCorpus
 from Options import options, optionsPathname, defaults, OptionsClass, _
 
 IMAGES = ('helmet', 'status', 'config', 'help',
@@ -493,38 +495,56 @@ class UserInterface(BaseUserInterface):
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
 
-        # The upload might be a single message or am mbox file.
+        # The upload might be a single message or a dbx/mbox file.
         messages = self._convertUploadToMessageList(content)
 
-        # Append the message(s) to a file, to make it easier to rebuild
-        # the database later.   This is a temporary implementation -
-        # it should keep a Corpus of trained messages.
-        # XXX Temporary, heh.  One of the problems with this is that
-        # XXX these files get opened in whatever happens to be the cwd.
-        # XXX I don't think anyone uses these anyway, but we should fix
-        # XXX this for 1.1.  I think that creating a new message in the
-        # XXX Ham/Spam corpus would work, and not interfere with anything.
-        # XXX We could later search for them, too, which would be a bonus.
+        # Add the messages(s) to the appropriate corpus.  This means
+        # that we can rebuild the database later, if desired (as long as
+        # they haven't expired), and can search for the messages later
+        # (and even correct training).  This also takes care of training
+        # the messages.
+        # This replaces the 1.0.x practice of opening a
+        # "_pop3proxyham.mbox" or "_pop3proxyspam.mbox" in the CWD and
+        # placing them there.
         if isSpam:
-            f = open("_pop3proxyspam.mbox", "a")
+            desired_corpus = "spamCorpus"
         else:
-            f = open("_pop3proxyham.mbox", "a")
+            desired_corpus = "hamCorpus"
+        if hasattr(self, desired_corpus):
+            corpus = getattr(self, desired_corpus)
+        else:
+            if hasattr(self, "state"):
+                # sb_server (exists in state)
+                corpus = getattr(self.state, desired_corpus)
+                setattr(self, desired_corpus, corpus)
+            else:
+                # sb_imapfilter (need to create)
+                if isSpam:
+                    fn = storage.get_pathname_option("Storage",
+                                                     "spam_cache")
+                else:
+                    fn = storage.get_pathname_option("Storage",
+                                                     "ham_cache")
+                storage.ensureDir(fn)
+                if self.gzipCache:
+                    factory = FileCorpus.GzipFileMessageFactory()
+                else:
+                    factory = FileCorpus.FileMessageFactory()
+                age = options["Storage", "cache_expiry_days"]*24*60*60
+                corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
+                                          '[0123456789\-]*', cacheSize=20)
+                setattr(self, desired_corpus, corpus)
 
         # Train on the uploaded message(s).
         self.write("<b>" + _("Training") + "...</b>\n")
         self.flush()
         for message in messages:
-            # XXX Here, we should really use the message.Message class,
-            # XXX so that the messageinfo database is updated (and so
-            # XXX the stats are correct, and so on).
-            tokens = tokenizer.tokenize(message)
-            self.classifier.learn(tokens, isSpam)
-            f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
-            f.write(message)
-            f.write("\n\n")
+            msg = factory.create(key, message)
+            corpus.addMessage(msg)
+            msg.RememberClassification(isSpam)
 
-        # Save the database and return a link Home and another training form.
-        f.close()
+        # Save the database and return a link Home and another training
+        # form.
         self._doSave()
         self.write(_("%sOK. Return %sHome%s or train again:%s") %
                    ("<p>", "<a href='home'>", "</a", "</p>"))
