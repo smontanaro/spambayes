@@ -45,7 +45,7 @@ class MsgStoreFolder:
     def GetParent(self):
         # return a folder object with the parent, or None
         raise NotImplementedError
-    def GetMessageGenerator(self, folder):
+    def GetMessageGenerator(self, folder, only_filter_candidates = True):
         # Return a generator of MsgStoreMsg objects for the folder
         raise NotImplementedError
 
@@ -75,6 +75,11 @@ class MsgStoreMsg:
         raise NotImplementedError
     def CopyTo(self, folder_id):
         # Copy the message to a folder.
+        raise NotImplementedError
+    def IsFilterCandidate(self):
+        # Return True if this is a message that should be checked for spam
+        # Return False if it should be ignored (eg, user-composed message,
+        # undeliverable report, meeting request etc.
         raise NotImplementedError
 
 # Our MAPI implementation
@@ -327,16 +332,9 @@ class MAPIMsgStore(MsgStore):
                 print "Unexpected MAPI error opening message"
                 print GetCOMExceptionString(details)
             return None
-        prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
         mapi_object = self._OpenEntry(message_id)
-        hr, data = mapi_object.GetProps(prop_ids,0)
-        folder_eid = data[0][1]
-        searchkey = data[1][1]
-        flags = data[2][1]
-        folder_id = message_id[0], folder_eid
-        folder = MAPIMsgStoreFolder(self, folder_id,
-                                    "Unknown - temp message", -1)
-        return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, flags)
+        hr, data = mapi_object.GetProps(MAPIMsgStoreMsg.message_init_props,0)
+        return MAPIMsgStoreMsg(self, data)
 
 _MapiTypeMap = {
     type(0.0): PT_DOUBLE,
@@ -400,17 +398,17 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         hex_store_id = mapi.HexFromBin(self.id[0])
         return self.msgstore.outlook.Session.GetFolderFromID(hex_item_id, hex_store_id)
 
-    def GetMessageGenerator(self):
+    def GetMessageGenerator(self, only_filter_candidates = True):
         folder = self.OpenEntry()
         table = folder.GetContentsTable(0)
-        # Limit ourselves to IPM.Note objects - ie, messages.
-        restriction = (mapi.RES_PROPERTY,   # a property restriction
-                       (mapi.RELOP_GE,      # >=
-                        PR_MESSAGE_CLASS_A,   # of the this prop
-                        (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
-        table.Restrict(restriction, 0)
-        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
-        table.SetColumns(prop_ids, 0)
+        if only_filter_candidates:
+            # Limit ourselves to IPM.Note objects - ie, messages.
+            restriction = (mapi.RES_PROPERTY,   # a property restriction
+                           (mapi.RELOP_GE,      # >=
+                            PR_MESSAGE_CLASS_A,   # of the this prop
+                            (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
+            table.Restrict(restriction, 0)
+        table.SetColumns(MAPIMsgStoreMsg.message_init_props, 0)
         while 1:
             # Getting 70 at a time was the random number that gave best
             # perf for me ;)
@@ -418,9 +416,11 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             if len(rows) == 0:
                 break
             for row in rows:
-                item_id = self.id[0], row[0][1] # assume in same store as folder!
-                yield MAPIMsgStoreMsg(self.msgstore, self,
-                                      item_id, row[1][1], row[2][1])
+                # Our restriction helped, but may not have filtered
+                # every message we don't want to touch.
+                msg = MAPIMsgStoreMsg(self.msgstore, row)
+                if not only_filter_candidates or msg.IsFilterCandidate():
+                    yield msg
 
     def GetNewUnscoredMessageGenerator(self, scoreFieldName):
         folder = self.msgstore._OpenEntry(self.id)
@@ -430,8 +430,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         resolve_ids = folder.GetIDsFromNames(resolve_props, 0)
         field_id = PROP_TAG( PT_DOUBLE, PROP_ID(resolve_ids[0]))
         # Setup the properties we want to read.
-        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
-        table.SetColumns(prop_ids, 0)
+        table.SetColumns(MAPIMsgStoreMsg.message_init_props, 0)
         # Set up the restriction
         # Need to check message-flags
         # (PR_CONTENT_UNREAD is optional, and somewhat unreliable
@@ -457,16 +456,30 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             if len(rows) == 0:
                 break
             for row in rows:
-                item_id = self.id[0], row[0][1] # assume in same store as folder!
-                yield MAPIMsgStoreMsg(self.msgstore, self,
-                                      item_id, row[1][1], row[2][1])
+                yield MAPIMsgStoreMsg(self.msgstore, row)
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
-    def __init__(self, msgstore, folder, entryid, searchkey, flags):
-        self.folder = folder
+    # All the properties we must initialize a message with.
+    # These include all the IDs we need, parent IDs, any properties needed
+    # to determine if this is a "filterable" message, etc
+    message_init_props = (PR_ENTRYID, PR_STORE_ENTRYID, PR_SEARCH_KEY,
+                          PR_PARENT_ENTRYID, # folder ID
+                          PR_MESSAGE_CLASS_A) # 'IPM.Note' etc
+
+    def __init__(self, msgstore, prop_row):
         self.msgstore = msgstore
         self.mapi_object = None
-        self.id = entryid
+
+        # prop_row is a single mapi property row, with fields as above.
+        tag, eid = prop_row[0] # ID
+        tag, store_eid = prop_row[1]
+        tag, searchkey = prop_row[2]
+        tag, parent_eid = prop_row[3]
+        tag, msgclass = prop_row[4]
+
+        self.id = store_eid, eid
+        self.folder_id = store_eid, parent_eid
+        self.msgclass = msgclass
         self.subject = None
         # Search key is the only reliable thing after a move/copy operation
         # only problem is that it can potentially be changed - however, the
@@ -474,7 +487,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # (ie, someone would need to really want to change it <wink>)
         # Thus, searchkey is the only reliable long-lived message key.
         self.searchkey = searchkey
-        self.flags = flags #  flags are unreliable - they change!
         self.dirty = False
 
     def __repr__(self):
@@ -507,6 +519,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         hex_item_id = mapi.HexFromBin(self.id[1])
         hex_store_id = mapi.HexFromBin(self.id[0])
         return self.msgstore.outlook.Session.GetItemFromID(hex_item_id, hex_store_id)
+
+    def IsFilterCandidate(self):
+        # We don't attempt to filter:
+        # * Non-mail items
+        # Later we would like to add:
+        # * Messages that have never been sent (ie, user-composed)
+        return self.msgclass.lower().startswith("ipm.note")
 
     def _GetPropFromStream(self, prop_id):
         try:
@@ -808,7 +827,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         assert not self.dirty, \
                "asking me to move a dirty message - later saves will fail!"
         dest_folder = self.msgstore._OpenEntry(folder.id)
-        source_folder = self.msgstore._OpenEntry(self.folder.id)
+        source_folder = self.msgstore._OpenEntry(self.folder_id)
         flags = 0
         if isMove: flags |= MESSAGE_MOVE
         eid = self.id[1]
@@ -823,7 +842,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # this become an issue.  We would need to re-fetch the eid of
         # the item, and set the store_id to the dest folder.
         self.id = None
-        self.folder = None
+        self.folder_id = None
 
     def MoveTo(self, folder):
         self._DoCopyMove(folder, True)
@@ -832,18 +851,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self._DoCopyMove(folder, False)
     def GetFolder(self):
         # return a folder object with the parent, or None
-        folder = self.msgstore._OpenEntry(self.id)
-        prop_ids = PR_PARENT_ENTRYID,
-        hr, data = folder.GetProps(prop_ids,0)
-        # Put parent ids together
-        parent_eid = data[0][1]
-        parent_id = self.id[0], parent_eid
-        parent = self.msgstore._OpenEntry(parent_id)
-        # Finally get the display name.
-        hr, data = folder.GetProps((PR_DISPLAY_NAME_A,), 0)
-        name = data[0][1]
-        count = parent.GetContentsTable(0).GetRowCount(0)
-        return MAPIMsgStoreFolder(self.msgstore, parent_id, name, count)
+        folder_id = (mapi.HexFromBin(self.folder_id[0]),
+                     mapi.HexFromBin(self.folder_id[1]))
+        return self.msgstore.GetFolder(folder_id)
 
     def RememberMessageCurrentFolder(self):
         self._EnsureObject()
@@ -881,10 +891,10 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 def test():
     from win32com.client import Dispatch
     outlook = Dispatch("Outlook.Application")
-    eid = outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID
-
+    inbox = outlook.Session.GetDefaultFolder(constants.olFolderInbox)
+    folder_id = inbox.Parent.StoreID, inbox.EntryID
     store = MAPIMsgStore()
-    for folder in store.GetFolderGenerator([eid,], True):
+    for folder in store.GetFolderGenerator([folder_id,], True):
         print folder
         for msg in folder.GetMessageGenerator():
             print msg
