@@ -52,22 +52,28 @@ LN2 = math.log(2)       # used frequently by chi-combining
 PICKLE_VERSION = 5
 
 class WordInfo(object):
+    # A WordInfo is created for each distinct word.  spamcount is the
+    # number of trained spam msgs in which the word appears, and hamcount
+    # the number of trained ham msgs.
+    #
     # Invariant:  For use in a classifier database, at least one of
     # spamcount and hamcount must be non-zero.
+    #
+    # Important:  This is a tiny object.  Use of __slots__ is essential
+    # to conserve memory.
+    __slots__ = 'spamcount', 'hamcount'
 
     def __init__(self):
         self.__setstate__((0, 0))
 
     def __repr__(self):
-        return "WordInfo%r" % repr((self.spamcount,
-                                    self.hamcount))
+        return "WordInfo" + repr((self.spamcount, self.hamcount))
 
     def __getstate__(self):
-        return (self.spamcount,
-                self.hamcount)
+        return self.spamcount, self.hamcount
 
     def __setstate__(self, t):
-        (self.spamcount, self.hamcount) = t
+        self.spamcount, self.hamcount = t
 
 
 class Classifier:
