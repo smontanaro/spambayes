@@ -17,6 +17,8 @@ the following problems listed:<br>
   <li><a href="#Messages_fail_to_filter">Messages fail to filter</a></li>
   <li><a href="#Messages_have_incorrect_or_unexpected">Messages have
 incorrect or unexpected Spam values</a></li>
+  <li><a href="#ResetConfiguration">Resetting SpamBayes configuration</a><br>
+  </li>
   <li><a href="#register-all-users">SpamBayes is not available for all
 users on the machine</a><br>
   </li>
@@ -204,6 +206,37 @@ you have probably stumbled across a bug - please mail the clues to the
 mailing list.</li>
   </ul>
 </ul>
+<h2><a name="ResetConfiguration"></a>Resetting SpamBayes configuration</h2>
+In some cases, it may become necessary to reset your SpamBayes
+configuration, especially if your configuration becomes invalid.&nbsp;
+SpamBayes attempts to detect this situation, but doesn't always get it
+right.&nbsp; This section details where critical configuration files
+are stored.<br>
+SpamBayes stores all configuration data in <a
+ href="#LocateDataDirectory">your data directory</a>.&nbsp; The
+configuration information is stored in a file called <span
+ style="font-style: italic;">[profile name].ini</span>, where <span
+ style="font-style: italic;">profile name</span> is the name of your
+Microsoft Outlook profile.&nbsp; The default profile name is usually <span
+ style="font-style: italic;">Outlook</span>
+or <span style="font-style: italic;">Microsoft Outlook&nbsp; Internet
+Settings</span>, but Outlook can be configured to use any number of
+profiles, with any name.<br>
+Note that in this directory, you will also find a file named <span
+ style="font-style: italic;">default_bayes_customize.ini</span> - this
+file <span style="font-weight: bold;">is not </span>used to configure
+the Outlook side of SpamBayes - look for any other .ini files in that
+directory.<br>
+If you delete the configuration file, SpamBayes will be completely
+reset.&nbsp; Note you will not lose your training data, only your
+configuration information.&nbsp; The next time you start Outlook, the
+SpamBayes configuration wizard should appear, guiding you through the
+configuration process<br>
+Your training data is also stored in this directory, but in files with
+a <span style="font-style: italic;">.db</span> extension.&nbsp; If you
+ever want to delete your training information, remove the two <span
+ style="font-style: italic;">.db</span> files in this directory.<br>
+You may like to consider backing up this directory.<br>
 <h2><a name="register-all-users"></a>SpamBayes is not available for all
 users on the machine.</h2>
 When SpamBayes is installed, by default it is available only for the
@@ -310,7 +343,29 @@ the previous large log file will still exist (see above).&nbsp; Either
 edit the file using a text editor to extract just the error
 information, or zip it up.&nbsp; If you don't know what that means,
 please send a mail.<br>
-<h3><a name="ReportABug"></a>Report a bug</h3>
+<h3><a name="LocateDataDirectory"></a>Locating your Data Directory</h3>
+SpamBayes stores all configuration and database information in a single
+directory.&nbsp; By default, this directory is located under the user's
+<span style="font-style: italic;">Application Data</span>
+directory.&nbsp; You can locate this directory by
+using the <span style="font-style: italic;">Show Data Folder</span>
+button on the <span style="font-style: italic;">Advanced</span> tab of
+the main SpamBayes Manager dialog.<br>
+If you need to locate it by hand, on
+Windows NT/2000/XP, it will probably be <span
+ style="font-style: italic;">C:\Documents
+and Settings\[username]\Application Data\Spambayes</span>, or on other
+versions of Windows it will probably be <span
+ style="font-style: italic;">C:\Windows\Application Data\Spambayes</span>.&nbsp;
+Note that the <span style="font-style: italic;">Application Data </span>folder
+may be hidden, so Windows
+Explorer may not show it by default, but you can enter the path into
+the Address Bar and Explorer will open it.<br>
+Note that by modifying the configuration files, you can tell SpamBayes
+to store this data in any directory, so it is possible your data is
+being stored elsewhere - contact your network administrator if this
+appear to be the case.
+<h3>Report a bug</h3>
 All SpamBayes bugs are maintained in <a
  href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">this
 page at sourceforge</a>.&nbsp; Please have a check of the bugs already
