@@ -119,6 +119,11 @@ class ManagerDialog(dialog.Dialog):
                 ok_to_enable = operator.truth(config.unsure_folder_id)
                 if ok_to_enable:
                     unsure_name = self.mgr.FormatFolderNames([config.unsure_folder_id], False)
+                else:
+                    filter_status = "You must define the folder to receive your possible spam"
+            else:
+                filter_status = "You must define the folder to receive your certain spam"
+                
             # whew
             if ok_to_enable:
                 watch_names = self.mgr.FormatFolderNames(config.watch_folder_ids, config.watch_include_sub)
