@@ -114,10 +114,11 @@ class MainWindow(object):
         # function is None will appear as separators.
         self.control_functions = {START_STOP_ID : ("Stop SpamBayes", self.StartStop),
                                   1025 : ("-", None),
-                                  1026 : ("View information ...", self.OpenInterface),
-                                  1027 : ("Configure ...", self.OpenConfig),
-                                  1028 : ("Check for latest version", self.CheckVersion),
-                                  1029 : ("-", None),
+                                  1026 : ("Review messages ...", self.OpenReview),
+                                  1027 : ("View information ...", self.OpenInterface),
+                                  1028 : ("Configure ...", self.OpenConfig),
+                                  1029 : ("Check for latest version", self.CheckVersion),
+                                  1030 : ("-", None),
                                   1099 : ("Exit SpamBayes", self.OnExit),
                                   }
         message_map = {
@@ -409,6 +410,13 @@ class MainWindow(object):
     def OpenConfig(self):		
         if self.started:
             webbrowser.open_new("http://localhost:%d/config" % \
+                                (options["html_ui", "port"],))
+        else:
+            self.ShowMessage("SpamBayes is not running.")
+            
+    def OpenReview(self):		
+        if self.started:
+            webbrowser.open_new("http://localhost:%d/review" % \
                                 (options["html_ui", "port"],))
         else:
             self.ShowMessage("SpamBayes is not running.")
