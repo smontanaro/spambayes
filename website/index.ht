@@ -4,7 +4,7 @@ Author: SpamBayes
 
 
 <h2>News</h2>
-<p>Third pre-release available. See the <a href="download.html">download</a> page for more.</p>
+<p>Fourth pre-release available. See the <a href="download.html">download</a> page for more.</p>
 <p>Spambayes (in particular the Outlook plugin) was recently featured in an
 <a href="http://www.infoworld.com/article/03/05/16/20TCspam_1.html?s=tc">
 InfoWorld article</a>, and
@@ -95,7 +95,7 @@ background.</p>
 
 <p>The code is currently available from a variety of methods from the
 <a href="download.html">downloads</a> page. The current release is
-1.0 alpha 2.
+1.0 alpha 4.
 </p>
 
 <p>
@@ -106,7 +106,7 @@ part of the source download.
 </p>
 
 <h2>Mailing lists</h2>
-<p>There are currently four mailing lists of interest:</p>
+<p>There are currently five mailing lists of interest:</p>
 <ul>
 <li>
 The 
@@ -126,6 +126,10 @@ make SB work with Outlook version X"), use the "spambayes" list for that.
 </li>
 <li>
 CVS commit messages go to the list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-checkins">spambayes-checkins</a>.
+</li>
+<li>
+<a href="http://sourceforge.net">Sourceforge</a> tracker items (bugs, feature requests and patches)
+go to the list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-bugs">spambayes-bugs</a>.
 </li>
 </ul>
 

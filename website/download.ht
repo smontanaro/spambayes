@@ -3,8 +3,8 @@ Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
 <h2>Source Releases</h2>
-<p>The third pre-release of version 1.0 of the SpamBayes project is available.
-Download version 1.0a3 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.
+<p>The fourth pre-release of version 1.0 of the SpamBayes project is available.
+Download version 1.0a4 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.
 </p>
 
 <p>The primary goal of this pre-release is to shake out any packaging, installation, or integration issues that might be lurking. Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
