@@ -15,6 +15,9 @@
 ## Neale Pickett <neale@woozle.org>
 ##
 
+# Test to run
+TEST=${1:-robinson1}
+
 # Number of messages per rebalanced set
 RNUM=200
 
@@ -27,21 +30,50 @@ python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n 0 -Q
 # Rebalance
 python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n $RNUM -Q
 python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n $RNUM -Q
-# Clear out .ini file
-rm -f bayescustomize.ini
-# Run 1
-python timcv.py -n $SETS > run1.txt
-# New .ini file
-cat > bayescustomize.ini <<EOF
+
+case "$TEST" in
+    robinson1)
+	# This test requires you have an appropriately-modified
+	# Tester.py.new and classifier.py.new as detailed in
+	# <LNBBLJKPBEHFEDALKOLCKENMBEAB.tim.one@comcast.net>
+
+	python timcv.py -n $SETS > run1.txt
+
+	mv Tester.py Tester.py.orig
+	cp Tester.py.new Tester.py
+	mv classifier.py classifier.py.orig
+	cp classifier.py.new classifier.py
+	python timcv.py -n $SETS > run2.txt
+
+	python rates.py run1 run2 > runrates.txt
+
+        python cmp.py run1s run2s | tee results.txt
+
+	mv Tester.py.orig Tester.py
+	mv classifier.py.orig classifier.py
+	;;
+    mass)
+	## Tim took this code out, don't run this test.  I'm leaving
+	## this stuff in here for the time being so I can refer to it
+	## later when I need to do this sort of thing again :)
+
+        # Clear out .ini file
+        rm -f bayescustomize.ini
+        # Run 1
+	python timcv.py -n $SETS > run1.txt
+        # New .ini file
+	cat > bayescustomize.ini <<EOF
 [Classifier]
 adjust_probs_by_evidence_mass: True
 min_spamprob: 0.001
 max_spamprob: 0.999
 hambias: 1.5
 EOF
-# Run 2
-python timcv.py -n $SETS > run2.txt
-# Generate rates
-python rates.py run1 run2 > runrates.txt
-# Compare rates
-python cmp.py run1s run2s | tee results.txt
+        # Run 2
+	python timcv.py -n $SETS > run2.txt
+        # Generate rates
+	python rates.py run1 run2 > runrates.txt
+        # Compare rates
+	python cmp.py run1s run2s | tee results.txt
+	;;
+esac
