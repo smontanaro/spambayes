@@ -89,6 +89,11 @@ General
    when there are no proxies configured.
  o Prevent the "Show clues" links on the web interface's training page
    from word-wrapping and making all the table rows two lines high.
+ o Added a new script (code-named 'overkill.py') which enables
+   'drag and drop' training for POP3 users.  This is currently still in
+   the experimental stage, and anyone interested in trying it out should
+   enquire on the SpamBayes mailing list
+   (<http://mail.python.org/pipermail/spambayes>).
 
 Developer
 ---------
@@ -100,8 +105,33 @@ Developer
 
 Transition
 ==========
-Transition between release a3 and a4 should be seamless.  Refer to the a3
-release for information about transitioning between a2 and a4.
+If you are transitioning from a version older than 1.0a4, please also
+read the notes in the previous release notes (accessible from
+<>).
+
+ o If you were previously using the 'dumbdbm' storage method (you will
+   have files called "hammie.db.dat", "hamie.db.dir" and "hammie.db.bak",
+   rather than one file called "hammie.db"), then you will need to
+   change to using either a pickle (please see the FAQ:
+   <http://spambayes.org/faq.html>), bsddb, gdbm, or one of the new SQL
+   based storage methods.  The 'dumbdbm' storage method resulting in
+   many databases being corrupted, and was never the best choice for
+   storage, in any case.  Although you can use the dbExpImp.py script
+   to convert your database to your new storage system, we recommend
+   that you retrain from scratch, as it is most likely that your
+   database has been corrupted.
+ o If you were using the options to notate the "To" or "Subject" headers
+   with the message's classification, you will need to update your
+   configuration file, as the format for these options have changed.
+ o The ability to add the SpamBayes id to the message body has been
+   removed, which means that Outlook Express users can no longer use
+   the SMTP proxy and have it retrieve messages from the cache.  These
+   users can use the SMTP proxy by training on the forwarded message
+   itself, but this is not recommended, as clues in the message will have
+   changed (the "From" address will be yours, for example).  At this time,
+   you will have to use the web interface for training, although there is
+   the possibility of 'drag and drop' training being added in a release in
+   the near future.
 
 
 Reported Bugs Fixed
