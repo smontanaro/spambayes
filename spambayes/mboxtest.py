@@ -25,7 +25,7 @@ import re
 from sets import Set
 import sys
 
-from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
+from tokenizer import tokenize
 from TestDriver import Driver
 from timtest import Msg
 from Options import options
@@ -35,24 +35,6 @@ mbox_fmts = {"unix": mailbox.PortableUnixMailbox,
              "mh": mailbox.MHMailbox,
              "qmail": mailbox.Maildir,
              }
-
-class MyTokenizer(Tokenizer):
-
-    skip = [re.compile(rx) for rx in options.skip_headers]
-
-    def tokenize_headers(self, msg):
-        if options.tokenize_header_words:
-            for k, v in msg.items():
-                k = k.lower()
-                for rx in self.skip:
-                    if rx.match(k):
-                        continue
-                for w in subject_word_re.findall(v):
-                    for t in tokenize_word(w):
-                        yield "%s:%s" % (k, t)
-        if options.tokenize_header_default:
-            for tok in Tokenizer.tokenize_headers(self, msg):
-                yield tok
 
 class MboxMsg(Msg):
 
@@ -77,10 +59,8 @@ class MboxMsg(Msg):
             lines.append(line)
         return "\n".join(lines)
 
-    tokenize = MyTokenizer().tokenize
-
     def __iter__(self):
-        return self.tokenize(self.guts)
+        return tokenize(self.guts)
 
 class mbox(object):
 
@@ -131,6 +111,8 @@ def sort(seq):
 
 def main(args):
     global FMT
+
+    print options.display()
 
     FMT = "unix"
     NSETS = 10

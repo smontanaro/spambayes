@@ -12,6 +12,26 @@ __all__ = ['options']
 
 defaults = """
 [Tokenizer]
+# If true, tokenizer.Tokenizer.tokenize_headers() will tokenize the
+# contents of each header field just like the text of the message
+# body, using the name of the header as a tag.  Tokens look like
+# "header:word".  The basic approach is simple and effective, but also
+# very sensitive to biases in the ham and spam collections.  For
+# example, if the ham and spam were collected at different times,
+# several headers with date/time information will become the best
+# discriminators.  (Not just Date, but Received and X-From_.)
+basic_header_tokenize: False
+
+# If true and basic_header_tokenize is also true, then
+# basic_header_tokenize is the only action performed.
+basic_header_tokenize_only: False
+
+# If basic_header_tokenize is true, then basic_header_skip is a set of
+# headers that should be skipped.
+basic_header_skip: received
+    date
+    x-.*
+
 # If false, tokenizer.Tokenizer.tokenize_body() strips HTML tags
 # from pure text/html messages.  Set true to retain HTML tags in this
 # case.  On the c.l.py corpus, it helps to set this true because any
@@ -66,21 +86,6 @@ safe_headers: abuse-reports-to
 # headers.  Again this can give spectacular results for bogus reasons
 # if your test corpora are from different sources.  Else set this to true.
 mine_received_headers: False
-
-[MboxTest]
-# If tokenize_header_words is true, then the header values are
-# tokenized using the default text tokenize.  The words are tagged
-# with "header:" where header is the name of the header.
-tokenize_header_words: False
-# If tokenize_header_default is True, use the base header tokenization
-# logic described in the Tokenizer section.
-tokenize_header_default: True
-
-# skip_headers is a set of regular expressions describing headers that
-# should not be tokenized if tokenize_header is True.
-skip_headers: received
-    date
-    x-.*
 
 [TestDriver]
 # These control various displays in class TestDriver.Driver.
@@ -150,6 +155,9 @@ all_options = {
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'mine_received_headers': boolean_cracker,
+                  'basic_header_tokenize': boolean_cracker,
+                  'basic_header_tokenize_only': boolean_cracker,
+                  'basic_header_skip': ('get', lambda s: Set(s.split())),
                  },
     'TestDriver': {'nbuckets': int_cracker,
                    'show_ham_lo': float_cracker,
@@ -172,10 +180,6 @@ all_options = {
                    'max_discriminators': int_cracker,
                    'adjust_probs_by_evidence_mass': boolean_cracker,
                    },
-    'MboxTest': {'tokenize_header_words': boolean_cracker,
-                 'tokenize_header_default': boolean_cracker,
-                 'skip_headers': ('get', lambda s: Set(s.split())),
-                 },
 }
 
 def _warn(msg):
@@ -221,7 +225,6 @@ class OptionsClass(object):
         self._config.write(output)
         return output.getvalue()
 
-
 options = OptionsClass()
 
 d = StringIO.StringIO(defaults)
@@ -229,3 +232,4 @@ options.mergefilelike(d)
 del d
 
 options.mergefiles(['bayescustomize.ini'])
+

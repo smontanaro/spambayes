@@ -828,6 +828,11 @@ def crack_urls(text):
 
 class Tokenizer:
 
+    def __init__(self):
+        if options.basic_header_tokenize:
+            self.basic_skip = [re.compile(s)
+                               for s in options.basic_header_skip]
+
     def get_message(self, obj):
         if isinstance(obj, email.Message.Message):
             return obj
@@ -856,14 +861,37 @@ class Tokenizer:
     def tokenize_headers(self, msg):
         # Special tagging of header lines.
 
+        # Basic header tokenization
+        # Tokenize the contents of each header field just like the
+        # text of the message body, using the name of the header as a
+        # tag.  Tokens look like "header:word".  The basic approach is
+        # simple and effective, but also very sensitive to biases in
+        # the ham and spam collections.  For example, if the ham and
+        # spam were collected at different times, several headers with
+        # date/time information will become the best discriminators.
+        # (Not just Date, but Received and X-From_.)
+        if options.basic_header_tokenize:
+            for k, v in msg.items():
+                k = k.lower()
+                match = False
+                for rx in self.basic_skip:
+                    if rx.match(k) is not None:
+                        match = True
+                        continue
+                if match:
+                    continue
+                for w in subject_word_re.findall(v):
+                    for t in tokenize_word(w):
+                        yield "%s:%s" % (k, t)
+            if options.basic_header_tokenize_only:
+                return
+
         # XXX TODO Neil Schemenauer has gotten a good start on this
         # XXX (pvt email).  The headers in my spam and ham corpora are
         # XXX so different (they came from different sources) that if
         # XXX I include them the classifier's job is trivial.  Only
         # XXX some "safe" header lines are included here, where "safe"
         # XXX is specific to my sorry <wink> corpora.
-        # XXX Jeremy Hylton also reported good results from the general
-        # XXX header-mining in mboxtest.MyTokenizer.tokenize_headers.
 
         # Content-{Type, Disposition} and their params, and charsets.
         for x in msg.walk():
