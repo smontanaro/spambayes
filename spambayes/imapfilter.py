@@ -122,8 +122,6 @@ from spambayes.ImapUI import IMAPUserInterface
 global imap
 imap = None
 
-CRLF_RE = re.compile(r'\r\n|\r|\n')
-
 # A flag can have any character in the ascii range 32-126
 # except for (){ %*"\
 FLAG_CHARS = ""

@@ -103,6 +103,8 @@ from cStringIO import StringIO
 from spambayes import dbmstorage
 import shelve
 
+CRLF_RE = re.compile(r'\r\n|\r|\n')
+
 class MessageInfoDB:
     def __init__(self, db_name, mode='c'):
         self.mode = mode
