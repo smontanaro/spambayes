@@ -696,7 +696,7 @@ defaults = {
      """Some email clients (Outlook Express, for example) can only set up
      filtering rules on a limited set of headers.  These clients cannot
      test for the existence/value of an arbitrary header and filter mail
-     based on that information.  To accomodate these kind of mail clients,
+     based on that information.  To accommodate these kind of mail clients,
      you can add "spam", "ham", or "unsure" to the recipient list.  A
      filter rule can then use this to see if one of these words (followed
      by a comma) is in the recipient list, and route the mail to an
