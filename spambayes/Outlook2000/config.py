@@ -145,6 +145,10 @@ defaults = {
     ("filter_now", "State of 'Filter Now' checkbox", False,
         """Something useful.""",
         BOOLEAN, RESTORE),
+    ("save_spam_info", "Save spam score", True,
+        """Should the spam score and other information be saved in each message
+        as it is filtered or scored?""",
+        BOOLEAN, RESTORE),
     (FolderIDOption,
        "watch_folder_ids", "Folders to watch for new messages", [],
         """The list of folders SpamBayes will watch for new messages,

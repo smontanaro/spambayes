@@ -206,6 +206,8 @@ def TestSpamFilter(driver):
     spam_msg.Move(driver.folder_watch)
     WaitForFilters()
     spam_msg = driver.FindTestMessage(driver.folder_watch)
+    if spam_msg is None:
+        TestFailed("The message appears to have been filtered out of the watch folder")
     store_msg = driver.manager.message_store.GetMessage(spam_msg)
     need_untrain = True
     try:
@@ -280,7 +282,7 @@ def TestSpamFilter(driver):
     print "Created a Spam message, and saw it get filtered and trained."
 
 def TestHamFilter(driver):
-    # Create a spam message in the Inbox - it should get immediately filtered
+    # Create a ham message in the Inbox - it should not get filtered
     msg, words = driver.CreateTestMessageInFolder(HAM, driver.folder_watch)
     # sleep to ensure filtering.
     WaitForFilters()
@@ -305,8 +307,7 @@ def TestUnsureFilter(driver):
     spam_msg.Delete()
     print "Created an unsure message, and saw it get filtered"
 
-def test(manager = None):
-    # Run the tests - called from our plugin.
+def run_tests(manager):
     driver = Driver(manager)
     manager.Save() # necessary after a full retrain
     assert driver.manager.config.filter.enabled, "Filtering must be enabled for these tests"
@@ -317,6 +318,24 @@ def test(manager = None):
     TestUnsureFilter(driver)
     TestHamFilter(driver)
     driver.CleanAllTestMessages()
+
+def test(manager = None):
+    # Run the tests - called from our plugin.
+    try:
+        # setup config to save info with the message, and test
+        print "Running tests with save_spam_info=True"
+        manager.config.filter.save_spam_info = True
+        run_tests(manager)
+        # do it again with the same config, just to prove we can.
+        print "Running them again with save_spam_info=True"
+        run_tests(manager)
+        # and with save_spam_info False.
+        print "Running tests with save_spam_info=False"
+        manager.config.filter.save_spam_info = False
+        run_tests(manager)
+    finally:
+        # Always restore configuration to how we started.
+        manager.LoadConfig()
 
 if __name__=='__main__':
     print "NOTE: This will NOT work from the command line"

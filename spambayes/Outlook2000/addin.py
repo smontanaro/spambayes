@@ -152,11 +152,28 @@ except ImportError: # appears in 151 and later.
 
 # Whew - we seem to have all the COM support we need - let's rock!
 
+# Determine if we have ever seen a message before.  If we have saved the spam
+# field, then we know we have - but saving the spam field is an option (and may
+# fail, depending on the message store).  So if no spam field, we check if
+# ever been trained on.
+def HaveSeenMessage(msgstore_message, manager):
+    if msgstore_message.GetField(manager.config.general.field_score_name) is not None:
+        return True
+    # If the message has been trained on, we certainly have seen it before.
+    import train
+    if train.been_trained_as_ham(msgstore_message, manager) or \
+       train.been_trained_as_spam(msgstore_message, manager):
+        return True
+    # I considered checking if the "save spam score" option is enabled - but
+    # even when enabled, this sometimes fails (IMAP, hotmail)
+    # Best we ca do not is to assume if it is read, we have seen it.
+    return msgstore_message.GetReadState()
+
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
 def ProcessMessage(msgstore_message, manager):
     manager.LogDebug(2, "ProcessMessage starting for", msgstore_message)
-    if msgstore_message.GetField(manager.config.general.field_score_name) is not None:
+    if HaveSeenMessage(msgstore_message, manager):
         # Already seen this message - user probably moving it back
         # after incorrect classification.
         # If enabled, re-train as Ham
@@ -231,20 +248,32 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         if not self.manager.config.training.train_manual_spam:
             return
         msgstore_message = self.manager.message_store.GetMessage(item)
-        prop = msgstore_message.GetField(self.manager.config.general.field_score_name)
-        if prop is not None:
+        if HaveSeenMessage(msgstore_message, self.manager):
+            # If the message has ever been previously trained as ham, then
+            # we *must* train as spam (well, we must untrain, but re-training
+            # makes sense.
+            # If we haven't been trained, but the spam score on the message
+            # if not inside our spam threshold, then we also train as spam
+            # (hopefully moving closer towards the spam threshold.)
+
+            # Assuming that rescoring is more expensive than checking if
+            # previously trained, try and optimize.
             import train
-            trained_as_good = train.been_trained_as_ham(msgstore_message, self.manager)
-            if self.manager.config.filter.spam_threshold > prop * 100 or \
-               trained_as_good:
+            if train.been_trained_as_ham(msgstore_message, self.manager):
+                need_train = True
+            else:
+                prop = msgstore_message.GetField(self.manager.config.general.field_score_name)
+                # We may not have been able to save the score - re-score now
+                if prop is None:
+                    prop = self.manager.score(msgstore_message)
+                need_train = self.manager.config.filter.spam_threshold > prop * 100
+            if need_train:
                 subject = item.Subject.encode("mbcs", "replace")
                 print "Training on message '%s' - " % subject,
                 if train.train_message(msgstore_message, True, self.manager, rescore = True):
                     print "trained as spam"
                 else:
                     # This shouldn't really happen, but strange shit does
-                    # (and there are cases where it could given a big enough
-                    # idiot at the other end of the mouse <wink>)
                     print "already was trained as spam"
                 assert train.been_trained_as_spam(msgstore_message, self.manager)
                 # And if the DB can save itself incrementally, do it now

@@ -30,17 +30,18 @@ def filter_message(msg, mgr, all_actions=True):
 
     try:
         try:
-            # Save the score
-            # Catch this exception, as failing to save the score need not
-            # be fatal - it may still be possible to perform the move.
-            msg.SetField(mgr.config.general.field_score_name, prob)
-            # and the ID of the folder we were in when scored.
-            # (but only if we want to perform all actions)
-            # Note we must do this, and the Save, before the
-            # filter, else the save will fail.
-            if all_actions:
-                msg.RememberMessageCurrentFolder()
-            msg.Save()
+            if config.save_spam_info:
+                # Save the score
+                # Catch this exception, as failing to save the score need not
+                # be fatal - it may still be possible to perform the move.
+                msg.SetField(mgr.config.general.field_score_name, prob)
+                # and the ID of the folder we were in when scored.
+                # (but only if we want to perform all actions)
+                # Note we must do this, and the Save, before the
+                # filter, else the save will fail.
+                if all_actions:
+                    msg.RememberMessageCurrentFolder()
+                msg.Save()
         except pythoncom.com_error, (hr, msg, exc, arg_err):
             # This seems to happen for IMAP mails (0x800cccd3)
             # and also for hotmail messages (0x8004dff7)
