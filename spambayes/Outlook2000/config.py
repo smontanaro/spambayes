@@ -104,7 +104,7 @@ defaults = {
            also be set.""",
            MSG_READ_STATE, RESTORE),
     ("verbose", "Changes the verbosity of the debug output from the program", 0,
-        """""",
+        """Indicates how much information is written to the SpamBayes log file.""",
         INTEGER, RESTORE),
     ),
     # Experimental options may change, may get removed, and *will* get moved
