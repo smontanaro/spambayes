@@ -239,15 +239,6 @@ Compatibility
 =============
 
 
-What version of Outlook does it work with?
-------------------------------------------
-
-The most up to date list of known compatible versions of Outlook may be
-found on the `Windows page`_.
-
-.. _Windows page: http://spambayes.sf.net/windows.html
-
-
 Does Spambayes work with Outlook Express?
 -----------------------------------------
 
@@ -268,15 +259,8 @@ but they're still quite easy to use/setup, and they use the same core, so
 the results will be the same.
 
 
-Do I have to have Python installed to use Spambayes with Outlook?
------------------------------------------------------------------
-
-If you use the Outlook plugin binary installer there's no need to explicitly
-install Python.
-
-
-Forget Outlook, what clients will Spambayes work with in general?
------------------------------------------------------------------
+What clients will Spambayes work with in general?
+-------------------------------------------------
 
 Spambayes will work with most POP3 or IMAP compatible clients.  How you
 implement depends on your local architecture.  Users with access to procmail
@@ -323,11 +307,38 @@ IMAP_ proxies which are part of the Spambayes source.
 .. _IMAP: http://spambayes.sf.net/applications.html#imap
 
 
+Outlook Plugin
+==============
+
+
+What version(s) of Outlook does the plugin work with?
+-----------------------------------------------------
+
+The most up to date list of known compatible versions of Outlook may be
+found on the `Windows page`_.
+
+.. _Windows page: http://spambayes.sf.net/windows.html
+
+
+Do I have to have Python installed to use Spambayes with Outlook?
+-----------------------------------------------------------------
+
+If you use the Outlook plugin binary installer there's no need to explicitly
+install Python.
+
+
 Will Spambayes work with Outlook 2000 connecting to an Exchange 2000 server?
 ----------------------------------------------------------------------------
 
 It should, yes.  There haven't been any problems reported using that
 combination.
+
+
+Can mail marked as spam automatically be marked as read?
+--------------------------------------------------------
+
+This is currently not possible.  It's a known problem with an as-yet unknown
+solution.
 
 
 Using Spambayes
