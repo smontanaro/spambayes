@@ -7,7 +7,7 @@ Author: spambayes
 </p>
 <ul>
 <li>Gary Arnold's <a href="http://www.garyarnold.com/projects.php#bayespam">bayespam</a>, a perl qmail filter.
-<li>The mozilla project is working on this, see <a href="http://bugzilla.mozilla.org/show_bug.cgi?id=163188">bug 163188</a>
+<li>The mozilla project is working on this, see <a href="http://bugzilla.mozilla.org/show_bug.cgi?id=163188">bug 163188</a>, or <a href="http://www.mozilla.org/mailnews/spam.html">this section</a> on the mozilla website. It looks like they're only using the Graham-style filtering, which is a pity.
 <li>Eric Raymond's <a href="http://bogofilter.sf.net/">bogofilter</a>, a C code bayesian filter.
 <li><a href="http://www.ai.mit.edu/~jrennie/ifile/">ifile</a>, a Naive Bayes classification system.
 <li><a href="http://sourceforge.net/projects/pasp">PASP</a>, the Python Anti-Spam Proxy - a POP3 proxy for filtering email. Also uses Bayesian-ish classification.
