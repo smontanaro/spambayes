@@ -610,7 +610,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         # the button state as the manager dialog closes.
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
-                "You must enable SpamBayes before you can delete as spam")
+                "You must configure and enable SpamBayes before you can " \
+                "delete as spam")
             return
         SetWaitCursor(1)
         # Delete this item as spam.
@@ -630,6 +631,9 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         import train
         new_msg_state = self.manager.config.general.delete_as_spam_message_state
         for msgstore_message in msgstore_messages:
+            # Record this recovery in our stats.
+            self.manager.stats.RecordManualClassification(False,
+                                    self.manager.score(msgstore_message))
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Moving and spam training message '%s' - " % (subject,),
@@ -665,7 +669,8 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         # the button state as the manager dialog closes.
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
-                "You must enable SpamBayes before you can recover spam")
+                "You must configure and enable SpamBayes before you can " \
+                "recover spam")
             return
         SetWaitCursor(1)
         # Get the inbox as the default place to restore to
@@ -679,6 +684,9 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # During experimenting/playing/debugging, it is possible
             # that the source folder == dest folder - restore to
             # the inbox in this case.
+            # (But more likely is that the original store may be read-only
+            # so we were unable to record the initial folder, as we save it
+            # *before* we do the move (and saving after is hard))
             try:
                 subject = msgstore_message.GetSubject()
                 restore_folder = msgstore_message.GetRememberedFolder()
@@ -687,6 +695,9 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                     print "Unable to determine source folder for message '%s' - restoring to Inbox" % (subject,)
                     restore_folder = inbox_folder
 
+                # Record this recovery in our stats.
+                self.manager.stats.RecordManualClassification(True,
+                                        self.manager.score(msgstore_message))
                 # Must train before moving, else we lose the message!
                 print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
                 TrainAsHam(msgstore_message, self.manager)
@@ -1234,7 +1245,6 @@ class OutlookAddin:
                 "Please re-start Outlook and try again.")
 
     def ProcessMissedMessages(self):
-        # This could possibly spawn threads if it was too slow!
         from time import clock
         config = self.manager.config.filter
         manager = self.manager
@@ -1338,9 +1348,8 @@ class OutlookAddin:
             # config never needs saving as it is always done by whoever changes
             # it (ie, the dialog)
             self.manager.Save()
-            stats = self.manager.stats
-            print "SpamBayes processed %d messages, finding %d spam and %d unsure" % \
-                (stats.num_seen, stats.num_spam, stats.num_unsure)
+            # Report some simple stats.
+            print "\r\n".join(self.manager.stats.GetStats())
             self.manager.Close()
             self.manager = None
 

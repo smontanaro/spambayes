@@ -12,7 +12,6 @@ except NameError:
 def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
     prob = mgr.score(msg)
-    mgr.stats.num_seen += 1
     prob_perc = prob * 100
     if prob_perc >= config.spam_threshold:
         disposition = "Yes"
@@ -80,6 +79,7 @@ def filter_message(msg, mgr, all_actions=True):
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 
+        mgr.stats.RecordClassification(prob)
         return disposition
     except:
         print "Failed filtering message!", msg

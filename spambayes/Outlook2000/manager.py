@@ -14,6 +14,7 @@ import win32com.client.gencache
 import pythoncom
 
 import msgstore
+import oastats
 
 try:
     True, False
@@ -132,9 +133,6 @@ def import_core_spambayes_stuff(ini_filename):
 class ManagerError(Exception):
     pass
 
-class Stats:
-    def __init__(self):
-        self.num_seen = self.num_spam = self.num_unsure = 0
 
 # Function to "safely" save a pickle, only overwriting
 # the existing file after a successful write.
@@ -322,7 +320,6 @@ class BayesManager:
         self.config = self.options = None
         self.addin = None
         self.verbose = verbose
-        self.stats = Stats()
         self.outlook = outlook
         self.dialog_parser = None
         self.test_suite_running = False
@@ -385,6 +382,7 @@ class BayesManager:
         db_manager = ManagerClass(bayes_base, mdb_base)
         self.classifier_data = ClassifierData(db_manager, self)
         self.LoadBayes()
+        self.stats = oastats.Stats(self.config)
 
     # "old" bayes functions - new code should use "classifier_data" directly
     def LoadBayes(self):

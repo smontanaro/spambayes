@@ -15,6 +15,14 @@ except NameError:   # enumerate new in 2.3
         return [(i, seq[i]) for i in xrange(len(seq))]
 
 # "dialog specific" processors:
+class StatsProcessor(ControlProcessor):
+    def Init(self):
+        text = "\n".join(self.window.manager.stats.GetStats())
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0, text)
+
+    def GetPopupHelpText(self, cid):
+        return "Displays statistics on mail processed by SpamBayes"
+
 class VersionStringProcessor(ControlProcessor):
     def Init(self):
         from spambayes.Version import get_version_string
@@ -474,6 +482,7 @@ dialog_map = {
         (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20),
         (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Filter.timer_only_receive_folders"),
+        (StatsProcessor,        "IDC_STATISTICS"),
         (CommandButtonProcessor,  "IDC_SHOW_DATA_FOLDER", ShowDataFolder, ()),
         (DialogCommand,         "IDC_BUT_SHOW_DIAGNOSTICS", "IDD_DIAGNOSTIC"),
         ),
