@@ -4,95 +4,102 @@
 ### Run this prior to mksets.py for setting stuff up for
 ### testing of chronological incremental training.
 
-"""Usage: %(program)s
+"""Usage: sort+group.py
 
 This program has no options!  Muahahahaha!
 """
 
 import sys
 import os
-import getopt
 import glob
-import re
 import time
-import filecmp
 
-program = sys.argv[0]
+from email.Utils import parsedate_tz, mktime_tz
+
 loud = True
-day = 24 * 60 * 60
-dates = {}
+SECONDS_PER_DAY = 24 * 60 * 60
 
-def usage(code, msg=''):
-    """Print usage message and sys.exit(code)."""
-    if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
-    sys.exit(code)
-
-def bydate(name1, name2):
-    return cmp(dates[name1], dates[name2])
+# Scan the file with path fpath for its first Received header, and return
+# a UTC timestamp for the date-time it specifies.  If anything goes wrong
+# (can't find a Received header; can't parse the date), return None.
+# This is the best guess about when we received the msg.
+def get_time(fpath):
+    fh = file(fpath, 'rb')
+    lines = iter(fh)
+    # Find first Received header.
+    for line in lines:
+        if line.lower().startswith("received:"):
+            break
+    else:
+        print "\nNo Received header found."
+        fh.close()
+        return None
+    # Paste on continuation lines, if any.
+    received = line
+    for line in lines:
+        if line[0] in ' \t':
+            received += line
+        else:
+            break
+    fh.close()
+    # RFC 2822 says the date-time field must follow a semicolon at the end.
+    i = received.rfind(';')
+    if i < 0:
+        print "\n" + received
+        print "No semicolon found in Received header."
+        return None
+    # We only want the part after the semicolon.
+    datestring = received[i+1:]
+    # It may still be split across lines (like "Wed, \r\n\t22 Oct ...").
+    datestring = ' '.join(datestring.split())
+    as_tuple = parsedate_tz(datestring)
+    if as_tuple is None:
+        print "\n" + received
+        print "Couldn't parse the date: %r" % datestring
+        return None
+    return mktime_tz(as_tuple)
 
 def main():
     """Main program; parse options and go."""
 
-    global dates
-    dates = {}
-    names = []
-    date_re = re.compile(
-        r";[^0]* (\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2,4})")
-    now = time.mktime(time.strptime(time.strftime("%d %b %Y"), "%d %b %Y"))
-    if loud: print "Scanning everything"
+    from os.path import join, split
+
+    data = []   # list of (time_received, dirname, basename) triples
+    if loud:
+        print "Scanning everything"
+    now = time.time()
     for name in glob.glob('Data/*/*/*'):
         if loud:
             sys.stdout.write("%-78s\r" % name)
             sys.stdout.flush()
-        fh = file(name, "rb")
-        received = ""
-        line = fh.readline()
-        while line != "\r\n" and line != "\n" and line != "":
-            if line.lower().startswith("received:"):
-                received = line
-                line = fh.readline()
-                while line != "" and (line[0] == " " or line[0] == "\t"):
-                    received += line
-                    line = fh.readline()
-                break
-            line = fh.readline()
-        fh.close()
-        # Figure out how old the message is
-        date = now
-        try:
-            log = str(received)
-            received = date_re.search(received).group(1)
-            log = "\n" + str(received)
-            date = time.mktime(time.strptime(received, "%d %b %Y"))
-        except:
-            print "Couldn't parse " + name + ":"
-            print log
-            pass
-        dates[name] = date
-        names.append(name)
-    if loud: print ""
+        when_received = get_time(name) or now
+        data.append((when_received,) + split(name))
 
-    if loud: print "Sorting"
-    names.sort(bydate)
+    if loud:
+        print ""
+        print "Sorting ..."
+    data.sort()
 
-    if loud: print "Renaming first pass"
-    for name in names:
-        dir = os.path.dirname(name)
-        base = os.path.basename(name)
-        os.rename(name, os.path.join(dir, "-"+base))
+    # First rename all the files to a form we can't produce in the end.
+    # This is to protect against name clashes in case the files are
+    # already named according to the scheme we use.
+    if loud:
+        print "Renaming first pass ..."
+    for dummy, dirname, basename in data:
+        os.rename(join(dirname, basename),
+                  join(dirname, "-" + basename))
 
-    if loud: print "Renaming second pass"
-    first = dates[names[0]]
-    for num in range(0, len(names)):
-        name = names[num]
-        dir = os.path.dirname(name)
-        base = os.path.basename(name)
-        group = int((dates[name] - first) // day)
-        os.rename(os.path.join(dir, "-"+base),
-                  os.path.join(dir, "%04d-%06d" % (group, num)))
+    if loud:
+        print "Renaming second pass ..."
+    earliest = data[0][0]  # timestamp of earliest msg received
+    i = 0
+    for when_received, dirname, basename in data:
+        extension = os.path.splitext(basename)[-1]
+        group = int((when_received - earliest) / SECONDS_PER_DAY)
+        newbasename = "%04d-%06d" % (group, i)
+        os.rename(join(dirname, "-" + basename),
+                  join(dirname, newbasename + extension))
+        i += 1
 
 if __name__ == "__main__":
     main()
