@@ -442,7 +442,7 @@ def main():
             spams += s
             hams += h
         print "Total %d spam, %d ham" % (spams, hams)
-            
+
 
 if __name__ == "__main__":
     main()
