@@ -477,8 +477,8 @@ dialog_map = {
                                 """IDC_DELAY1_TEXT IDC_DELAY1_SLIDER
                                    IDC_DELAY2_TEXT IDC_DELAY2_SLIDER
                                    IDC_INBOX_TIMER_ONLY"""),
-        (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20),
-        (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20),
+        (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20, 60),
+        (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20, 60),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Filter.timer_only_receive_folders"),
         (StatsProcessor,        "IDC_STATISTICS"),
         (CommandButtonProcessor,  "IDC_SHOW_DATA_FOLDER", ShowDataFolder, ()),

@@ -167,10 +167,12 @@ class ComboProcessor(OptionControlProcessor):
         self.SetOptionValue(self.text_to_option[text])
 
 class EditNumberProcessor(OptionControlProcessor):
-    def __init__(self, window, control_ids, option, min_val = 0, max_val = 100, ticks = 100):
+    def __init__(self, window, control_ids, option, min_val=0, max_val=100,
+                 ticks=100, max_edit_val=100):
         self.slider_id = control_ids and control_ids[1]
         self.min_val = min_val
         self.max_val = max_val
+        self.max_edit_val = max_edit_val
         self.ticks = ticks
         OptionControlProcessor.__init__(self, window, control_ids, option)
 
@@ -245,7 +247,7 @@ class EditNumberProcessor(OptionControlProcessor):
                                       buf_size, buf)
         str_val = buf[:nchars]
         val = float(str_val)
-        if val < self.min_val or val > self.max_val:
+        if val < self.min_val or val > self.max_edit_val:
             raise ValueError, "Value must be between %d and %d" % (self.min_val, self.max_val)
         self.SetOptionValue(val)
 
