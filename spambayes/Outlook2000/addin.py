@@ -123,7 +123,9 @@ def HaveSeenMessage(msgstore_message, manager):
 def TrainAsHam(msgstore_message, manager, rescore = True):
     import train
     subject = msgstore_message.subject
-    print "Training on message '%s' - " % subject,
+    print "Training on message '%s' in '%s - " % \
+            (subject,
+             msgstore_message.GetFolder().GetFQName()),
     if train.train_message(msgstore_message, False, manager.classifier_data):
         print "trained as good"
         # Simplest way to rescore is to re-filter with all_actions = False
@@ -139,7 +141,9 @@ def TrainAsHam(msgstore_message, manager, rescore = True):
 def TrainAsSpam(msgstore_message, manager, rescore = True):
     import train
     subject = msgstore_message.subject
-    print "Training on message '%s' - " % subject,
+    print "Training on message '%s' in '%s - " % \
+            (subject,
+             msgstore_message.GetFolder().GetFQName()),
     if train.train_message(msgstore_message, True, manager.classifier_data):
         print "trained as spam"
         # Simplest way to rescore is to re-filter with all_actions = False
@@ -192,14 +196,18 @@ def ProcessMessage(msgstore_message, manager):
             return
         if manager.config.filter.enabled:
             import filter
+            # get the foldername before the move operation!
+            folder_name = msgstore_message.GetFolder().GetFQName()
             disposition = filter.filter_message(msgstore_message, manager)
-            print "Message '%s' had a Spam classification of '%s'" \
-                  % (msgstore_message.GetSubject(), disposition)
+            print "Message '%s' in '%s' had a Spam classification of '%s'" \
+                  % (msgstore_message.GetSubject(),
+                     folder_name,
+                     disposition)
         else:
             print "Spam filtering is disabled - ignoring new message"
     except manager.message_store.NotFoundException:
         manager.LogDebug(1, "ProcessMessage had the message moved out from underneath us")
-    manager.LogDebug(2, "ProcessMessage finished for", msgstore_message)
+    manager.LogDebug(2, "ProcessMessage finished for", msgstore_message.subject)
 
 # Button/Menu and other UI event handler classes
 class ButtonEvent:
@@ -1296,14 +1304,16 @@ class OutlookAddin:
         new_hooks.update(
             self._HookFolderEvents(config.watch_folder_ids,
                                    config.watch_include_sub,
-                                   HamFolderItemsEvent)
+                                   HamFolderItemsEvent,
+                                   "filtering")
             )
         # For spam manually moved
         if config.spam_folder_id:
             new_hooks.update(
                 self._HookFolderEvents([config.spam_folder_id],
                                        False,
-                                       SpamFolderItemsEvent)
+                                       SpamFolderItemsEvent,
+                                       "incremental training")
                 )
         for k in self.folder_hooks.keys():
             if not new_hooks.has_key(k):
@@ -1317,7 +1327,7 @@ class OutlookAddin:
         assert ret.target == folder
         return ret
 
-    def _HookFolderEvents(self, folder_ids, include_sub, HandlerClass):
+    def _HookFolderEvents(self, folder_ids, include_sub, HandlerClass, what):
         new_hooks = {}
         for msgstore_folder in self.manager.message_store.GetFolderGenerator(
                     folder_ids, include_sub):
@@ -1362,7 +1372,7 @@ class OutlookAddin:
                 if new_hook is not None:
                     new_hook.Init(msgstore_folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
-                    print "SpamBayes: Watching for new messages in folder", name
+                    print "SpamBayes: Watching (for %s) in '%s'" % (what, name)
             else:
                 new_hooks[msgstore_folder.id] = existing
                 existing.ReInit()
