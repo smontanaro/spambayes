@@ -1,0 +1,41 @@
+Title: SpamBayes: Experimental Options Information.
+Author-Email: spambayes@python.org
+Author: SpamBayes
+
+
+<h2>SpamBayes Experimental Options</h2>
+
+<p>We would like to remind users about our set of experimental options.
+These are options which we believe may be of benefit to users, but have not
+been tested throughly enough to warrent full inclusion.  We would greatly
+appreciate feedback from users willing to try these options out as to their
+perceived benefit.  Both source code and binary users (including Outlook)
+can try these options out.</p>
+
+<p>If you have any queries about the experimental options, please email
+<a href="mailto:spambayes@python.org">spambayes@python.org</a> and we will
+try and answer them.</p>
+
+<h3>sb_server &amp; sb_imapfilter</h3>
+<p>To enable an experimental option, sb_server and sb_imapfilter users
+should click on the &quot;Experimental Configuration&quot; button on the
+main configuration page, and select the option(s) they wish to try.</p>
+
+<h3>Outlook</h3>
+<p>To enable an experimental option, Outlook plug-in users should open
+their "Data Directory" (via SpamBayes->SpamBayes Manager->Advanced->Show
+Data Folder) and open the "default_bayes_customize.ini" file in there
+(create one with Notepad if there isn't already one).  In this file, add
+the options that you wish to try - for example, to enable searching for
+"Habeas" headers, add a line with "Tokenizer" and, below that, a line with
+"x-search_for_habeas_headers:True".</p>
+
+<p>More information about editing Outlook configuration files can be found
+by selecting SpamBayes->Help->About->Configuration from within Outlook.</p>
+
+<h3>Available options</h3>
+
+<p>A <a href="experimental_options.html">list of the experimental options
+that are available in the current release</a> is available, as is
+<a href="experimental.ini">a configuration file</a> that is filled out with
+all experimental options set to their default values.</p>
