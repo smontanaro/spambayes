@@ -235,7 +235,9 @@ def ShowDataFolder(window):
     files are stored
     """
     import os
-    os.startfile(window.manager.data_directory)
+    import sys
+    filesystem_encoding = sys.getfilesystemencoding()
+    os.startfile(window.manager.data_directory.encode(filesystem_encoding))
 def ShowLog(window):
     """Opens the log file for the current SpamBayes session
     """
