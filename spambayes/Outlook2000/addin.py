@@ -1,10 +1,11 @@
 # Mark's Outlook addin
 
-
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning, append=1) # sick off the new hex() warnings!
-
 import sys
+import warnings
+
+if sys.version_info >= (2, 3):
+    # sick off the new hex() warnings!
+    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
 
 from win32com import universal
 from win32com.server.exception import COMException
@@ -51,7 +52,7 @@ except pythoncom.com_error, (hr, msg, exc, arg):
         print "COM Error 0x%x (%s)" % (hr, msg)
         if exc:
             print "Exception: %s" % (exc)
-        print 
+        print
         print "Sorry, I can't be more help, but I can't continue while I have this error."
     else:
         print "CDO is not currently installed.  To install CDO, you must locate the"
@@ -132,7 +133,7 @@ def ShowClues(mgr, app):
     text = headers + body
     hammie = mgr.MakeHammie()
     prob, clues = hammie.score(text, evidence=True)
-    
+
     new_msg = app.CreateItem(0)
     body = "<h2>Calculated Probability: %.2f</h2><br>" % (prob,)
     body += "<pre>" + hammie.formatclues(clues, "<br>") + "</pre>"
@@ -166,7 +167,7 @@ class OutlookAddin:
         self.manager = manager.GetManager()
         assert self.manager.addin is None, "Should not already have an addin"
         self.manager.addin = self
-        
+
         # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
         if activeExplorer is not None:
@@ -178,7 +179,7 @@ class OutlookAddin:
             popup.TooltipText = "Anti-Spam filters and functions"
             popup.Enabled = True
             popup = CastTo(popup, "CommandBarPopup")
-            
+
             item = popup.Controls.Add(Type=constants.msoControlButton, Temporary=True)
             # Hook events for the item
             item = DispatchWithEvents(item, ButtonEvent)
@@ -201,7 +202,7 @@ class OutlookAddin:
     def FiltersChanged(self):
         # Create a notification hook for all folders we filter.
         self.UpdateFolderHooks()
-        
+
     def UpdateFolderHooks(self):
         new_hooks = {}
         for mapi_folder in self.manager.BuildFolderList(self.manager.config.filter.folder_ids, self.manager.config.filter.include_sub):
@@ -224,7 +225,7 @@ class OutlookAddin:
             if not new_hooks.has_key(k):
                 self.folder_hooks[k]._obj_.close()
         self.folder_hooks = new_hooks
-            
+
     def OnDisconnection(self, mode, custom):
         print "SpamAddin - Disconnecting from Outlook"
         self.folder_hooks = None
