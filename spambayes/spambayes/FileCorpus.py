@@ -281,8 +281,6 @@ class FileMessage(message.SBHeaderMessage):
         for name, value in msg.items():
             del self[name]
             self[name] = value
-        print msg.get_payload()
-        print msg.as_string()
 
     def remove(self):
         '''Message hara-kiri'''
