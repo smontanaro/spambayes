@@ -23,9 +23,12 @@ See Gary Robinson's blog:
     http://www.garyrobinson.net/2004/02/spam_filtering_.html
 """
 
+from __future__ import division
+
 import sys
 import getopt
 import os
+import datetime
 
 from spambayes import storage
 from spambayes import Options
@@ -49,6 +52,7 @@ def train(store, ham, spam, maxmsgs):
         spamcan = mboxutils.getmbox(spam)
         round += 1
         hmisses = smisses = nmsgs = 0
+        start = datetime.datetime.now()
         try:
             while not maxmsgs or nmsgs < maxmsgs:
                 hammsg = hambone.next()
@@ -68,9 +72,28 @@ def train(store, ham, spam, maxmsgs):
 
         except StopIteration:
             pass
-        
-        print "\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d" % \
-              (round, nmsgs, hmisses, smisses)
+            
+        delta = datetime.datetime.now()-start
+        seconds = delta.seconds + delta.microseconds/1000000
+
+        print "\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d, %.3fs" % \
+              (round, nmsgs, hmisses, smisses, seconds)
+
+    nhamleft = 0
+    try:
+        while True:
+            hambone.next()
+            nhamleft += 1
+    except StopIteration:
+        if nhamleft: print nhamleft, "untrained hams"
+
+    nspamleft = 0
+    try:
+        while True:
+            spamcan.next()
+            nspamleft += 1
+    except StopIteration:
+        if nspamleft: print nspamleft, "untrained spams"
 
 def main(args):
     try:
