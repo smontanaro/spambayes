@@ -367,7 +367,11 @@ class IMAPMessage(message.SBHeaderMessage):
         # existing message object (like self) and have it parse it. So
         # we go through the hoops of creating a new message, and then
         # copying over all its internals.
-        new_msg = email.Parser.Parser().parsestr(data["RFC822"])
+        try:
+            new_msg = email.Parser.Parser().parsestr(data["RFC822"])
+        except email.Errors.MessageParseError, e:
+            print 'Skipping unparseable message: %s' % e
+            return
         self._headers = new_msg._headers
         self._unixfrom = new_msg._unixfrom
         self._payload = new_msg._payload
