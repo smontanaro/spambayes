@@ -17,7 +17,7 @@ options:
 The script will work with a variable number of Set directories, but they
 must already exist.
 
-Example: 
+Example:
 
     rebal.py -r reservoir -s Set -n 300
 
@@ -63,29 +63,26 @@ options:
    -c     - confirm file moves into Set directory [%(CONFIRM)s]
    -Q     - be quiet and don't confirm moves
 """ % globals()
-    
+
 def migrate(f, dir, verbose):
     """rename f into dir, making sure to avoid name clashes."""
     base = os.path.split(f)[-1]
-    if os.path.exists(os.path.join(dir,base)):
-        # this path can get slow if we have a lot of name collisions
-        # but we should rarely encounter that case (so he says smugly)
-        reslist = [int(n) for n in os.listdir(dir)]
-        reslist.sort()
-        out = os.path.join(dir, "%d"%(reslist[-1]+1))
-    else:
-        out = os.path.join(dir, base)
+    out = os.path.join(dir, base)
+    while os.path.exists(out):
+        basename, ext = os.path.splitext(base)
+        digits = random.randrange(100000000)
+        out = os.path.join(dir, str(digits) + ext)
     if verbose:
         print "moving", f, "to", out
     os.rename(f, out)
-    
+
 def main(args):
     nperdir = NPERDIR
     resdir = RESDIR
     setpfx = SETPFX
     verbose = VERBOSE
     confirm = CONFIRM
-    
+
     try:
         opts, args = getopt.getopt(args, "r:s:n:vqcQh")
     except getopt.GetoptError:
