@@ -558,8 +558,9 @@ class IMAPMessage(message.SBHeaderMessage):
         # Although we don't use the UID to keep track of messages, we do
         # have to use it for IMAP operations.
         self.imap_server.SelectFolder(self.folder.name)
-        search_string = "(UNDELETED HEADER %s %s)" % \
-                        (options["Headers", "mailid_header_name"], self.id)
+        search_string = "(UNDELETED HEADER %s \"%s\")" % \
+                        (options["Headers", "mailid_header_name"],
+                         self.id.replace('\\',r'\\').replace('"',r'\"'))
         response = self.imap_server.uid("SEARCH", search_string)
         data = self.imap_server.check_response("search " + search_string,
                                                response)
