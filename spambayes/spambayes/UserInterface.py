@@ -331,40 +331,40 @@ class UserInterface(BaseUserInterface):
     def _convertOutlookExpressToMbox(self, content):
         """Check if the uploaded mailbox file is an Outlook Express DBX one.
 
-        In such a case we use the module oe.mailbox to convert the DBX
+        In such a case we use the module oe_mailbox to convert the DBX
         content into a standard mbox file. When the file is not a DBX one,
         this method returns the original content. Testing if the file is a
         DBX one is very quick (just a matter of checking the first few
         bytes), and should not alter the overall performance."""
 
         dbxStream = StringIO.StringIO(content)
-        header = oe.mailbox.dbxFileHeader(dbxStream)
+        header = oe_mailbox.dbxFileHeader(dbxStream)
 
         if header.isValid() and header.isMessages():
-            file_info_len = oe.mailbox.dbxFileHeader.FH_FILE_INFO_LENGTH
-            fh_entries = oe.mailbox.dbxFileHeader.FH_ENTRIES
-            fh_ptr = oe.mailbox.dbxFileHeader.FH_TREE_ROOT_NODE_PTR
+            file_info_len = oe_mailbox.dbxFileHeader.FH_FILE_INFO_LENGTH
+            fh_entries = oe_mailbox.dbxFileHeader.FH_ENTRIES
+            fh_ptr = oe_mailbox.dbxFileHeader.FH_TREE_ROOT_NODE_PTR
             
-            info = oe.mailbox.dbxFileInfo(dbxStream,
+            info = oe_mailbox.dbxFileInfo(dbxStream,
                                           header.getEntry(file_info_len))
             entries = header.getEntry(fh_entries)
             address = header.getEntry(fh_ptr)
             
             if address and entries:
-                tree = oe.mailbox.dbxTree(dbxStream, address, entries)
+                tree = oe_mailbox.dbxTree(dbxStream, address, entries)
                 dbxBuffer = ""
 
                 for i in range(entries):
                     address = tree.getValue(i)
-                    messageInfo = oe.mailbox.dbxMessageInfo(dbxStream,
+                    messageInfo = oe_mailbox.dbxMessageInfo(dbxStream,
                                                             address)
 
                     if messageInfo.isIndexed(\
-                        oe.mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS):
-                        address = oe.mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS
+                        oe_mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS):
+                        address = oe_mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS
                         messageAddress = \
                                        messageInfo.getValueAsLong(address)
-                        message = oe.mailbox.dbxMessage(dbxStream,
+                        message = oe_mailbox.dbxMessage(dbxStream,
                                                         messageAddress)
 
                         # This fakes up a from header to conform to mbox
