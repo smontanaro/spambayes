@@ -250,9 +250,13 @@ def score(bayes, msgs):
         i += 1
         prob, clues = bayes.spamprob(tokenize(msg), True)
         isspam = prob >= 0.9
+        if hasattr(msg, '_mh_msgno'):
+            msgno = msg._mh_msgno
+        else:
+            msgno = i
         if isspam:
             spams += 1
-            print "%6s %4.2f %1s" % (i, prob, isspam and "S" or "."),
+            print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
             print formatclues(clues)
         else:
             hams += 1
