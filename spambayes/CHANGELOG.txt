@@ -2,12 +2,36 @@
 
 Future Release
 ==============
+Tony Meyer        19/07/2004  Fix [ 990700 ] Changes to asyncore in Python 2.4 break ServerLineReader
+Kenny Pitt        17/07/2004  Add an "Empty Spam Folder" option to the plug-in dropdown menu. (Patch [831941])
+Kenny Pitt        17/07/2004  Fix [941639] and [986353].  Use a non-standard extension for our py2exe created zip to get around Windows extensions that automatically expand zip files.
+Tony Meyer        16/07/2004  Fix [ 943852 ] Incorrect sort order for Score column
+Tony Meyer        16/07/2004  Implemented [ 887984 ] Remove "Save and Shutdown" button when running as service
+Tony Meyer        14/07/2004  Fix [ 790757 ] signal handler created with wrong # of args
+Tony Meyer        14/07/2004  Fix [ 944109 ] notate_to/subject option valid values should be dynamic
+Tony Meyer        14/07/2004  Fix [ 959937 ] "Invalid server" message not always correct
+Tony Meyer        14/07/2004  When slurping, use a lower timeout so things work faster (with Python >=2.3)
+Tony Meyer        14/07/2004  setPayload() in message.py doesn't work in Python 2.4, so avoid.  Refactor Corpus.py and FileCorpus.py to allow this.
+Skip Montanaro    10/07/2004  tte.py: 2.3 compatibility: add reversed() function
+Skip Montanaro    10/07/2004  tte.py: When deciding if messages are misses or not, consider whether they have Message-Id or Subject headers.
+Tony Meyer        09/07/2004  Using -u with sb_server had been broken.  Fix this.
+Tony Meyer        09/07/2004  Update test_storage.py test to reflect (current) correct way to call open_storage. Fixes part of [ 981970 ] tests failing.
+Tony Meyer        04/07/2004  Add a time stamp to the Outlook plug-in logs.
+Tony Meyer        04/07/2004  Fix [ 933473 ] Unnecessary spam folder hook.
+Neil Schemenauer  30/06/2004  New script, hammie2cdb.py, that converts hammie databases into cdb databases (usable by CdbClassifier).
+Skip Montanaro    29/06/2004  tte.py: Worm around the extremely rare case during verbose most where the message sneaks through without either a message-id or a subject.
+Skip Montanaro    26/06/2004  New script, postfixproxy.py, a first cut proxy filter for use with PostFix 2.1's content filter stuff.
+Skip Montanaro    26/06/2004  hammie: Rename filter() to score_and_filter() and return both the spamprob and the modified message.
 Tony Meyer        11/06/2004  Add the "sb_culler.py" script from the SB wiki by Andrew Dalke.
 Tony Meyer        01/06/2004  Add fixes from [ 962693 ] mozilla/thunderbird/netscape profile dir detection
 Skip Montanaro    26/05/2004  New file: pycksum.py - A fuzzy checksum program similar based on a message posted a long time ago by Justin Mason of the SpamAssassin group.
 Tony Meyer        24/05/2004  imapfilter: With the verbose output, put the final counts on a line all by themselves.
 Tony Meyer        16/05/2004  imapfilter: Sometimes we can't fetch a message, so we can't add the exception header.  Don't crash, just warn and continue.
 Toby Dickenson    06/05/2004  Add a C implementation of sb_bnfilter. Tweak the Python version to minimise differences between the two. Enable psyco in sb_bnserver.
+
+1.0 Final
+=========
+(no changes from 1.0rc2)
 
 Release Candidate 2
 ===================
