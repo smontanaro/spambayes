@@ -46,6 +46,8 @@ import win32ui
 
 import win32gui, win32con, win32clipboard # for button images!
 
+import timer, thread
+
 toolbar_name = "SpamBayes"
 
 # If we are not running in a console, redirect all print statements to the
@@ -175,7 +177,7 @@ def HaveSeenMessage(msgstore_message, manager):
         return True
     # I considered checking if the "save spam score" option is enabled - but
     # even when enabled, this sometimes fails (IMAP, hotmail)
-    # Best we ca do not is to assume if it is read, we have seen it.
+    # Best we can do now is to assume if it is read, we have seen it.
     return msgstore_message.GetReadState()
 
 # Function to filter a message - note it is a msgstore msg, not an
@@ -226,32 +228,130 @@ class ButtonEvent:
 # Folder event handler classes
 class _BaseItemsEvent:
     def Init(self, target, application, manager):
+        self.owner_thread_ident = thread.get_ident() # check we arent multi-threaded
         self.application = application
         self.manager = manager
         self.target = target
+        self.use_timer = False
+    def ReInit(self):
+        pass
     def Close(self):
         self.application = self.manager = self.target = None
+        self.close() # the events
 
-class FolderItemsEvent(_BaseItemsEvent):
+class HamFolderItemsEvent(_BaseItemsEvent):
+    def Init(self, *args):
+        _BaseItemsEvent.Init(self, *args)
+        
+        start_delay = self.manager.config.experimental.timer_start_delay
+        interval = self.manager.config.experimental.timer_interval
+        use_timer = start_delay and interval
+        if use_timer:
+            # The user wants to use a timer - see if we should only enable
+            # the timer for known 'inbox' folders, or for all watched folders.
+            is_inbox = self.target.IsReceiveFolder()
+            if not is_inbox and not self.manager.config.experimental.timer_only_receive_folders:
+                use_timer = False
+
+        if use_timer and not hasattr(timer, "__version__"):
+            # No binaries will see this.
+            print "*" * 50
+            print "SORRY: You have tried to enable the timer, but you have a"
+            print "leaky version of the 'timer' module.  These leaks prevent"
+            print "Outlook from shutting down.  Please update win32all to post 154"
+            print "The timer is NOT enabled..."
+            print "*" * 50
+            use_timer = False
+
+        # Good chance someone will assume timer is seconds, not ms.
+        if use_timer and (start_delay < 500 or interval < 500):
+            print "*" * 50
+            print "The timer is configured to fire way too often " \
+                  "(delay=%s milliseconds, interval=%s milliseconds)" \
+                  % (start_delay, interval)
+            print "This is very high, and is likely to starve Outlook and the "
+            print "SpamBayes addin.  Please adjust your configuration"
+            print "The timer is NOT enabled..."
+            print "*" * 50
+            use_timer = False
+
+        self.use_timer = use_timer
+        self.timer_id = None
+
+    def ReInit(self):
+        # We may have swapped between timer and non-timer.
+        if self.use_timer:
+            self._KillTimer()
+        self.Init(self, self.target, self.application, self.manager)
+
+    def Close(self, *args):
+        self._KillTimer()
+        _BaseItemsEvent.Close(self, *args)
+    def _DoStartTimer(self, delay):
+        assert thread.get_ident() == self.owner_thread_ident
+        assert self.timer_id is None, "Shouldn't start a timer when already have one"
+        # And start a new timer.
+        assert delay, "No delay means no timer!"
+        self.timer_id = timer.set_timer(delay, self._TimerFunc)
+        self.manager.LogDebug(1, "New message timer started - id=%d, delay=%d" % (self.timer_id, delay))
+
+    def _StartTimer(self):
+        # First kill any existing timer
+        self._KillTimer()
+        # And start a new timer.
+        delay = self.manager.config.experimental.timer_start_delay
+        field_name = self.manager.config.general.field_score_name
+        self.timer_generator = self.target.GetNewUnscoredMessageGenerator(field_name)
+        self._DoStartTimer(delay)
+
+    def _KillTimer(self):
+        assert thread.get_ident() == self.owner_thread_ident
+        if self.timer_id is not None:
+            self.manager.LogDebug(2, "The timer with id=%d was stopped" % self.timer_id)
+            timer.kill_timer(self.timer_id)
+            self.timer_id = None
+
+    def _TimerFunc(self, event, time):
+        # Kill the timer first
+        assert thread.get_ident() == self.owner_thread_ident
+        self._KillTimer()
+        assert self.timer_generator, "Can't have a timer with no generator"
+        # Callback from Outlook - locale may have changed.
+        locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
+        # Find a single to item process
+        # If we did manage to process one, start a new timer.
+        # If we didn't, we are done and can wait until some external
+        # event triggers a new timer.
+        try:
+            item = self.timer_generator.next()
+        except StopIteration:
+            # No items left in our generator
+            self.timer_generator = None
+            self.manager.LogDebug(1, "The new message timer found no new items, so is stopping")
+        else:
+            # We have an item to process - do it.
+            try:
+                ProcessMessage(item, self.manager)
+            finally:
+                # And setup the timer for the next check.
+                delay = self.manager.config.experimental.timer_interval
+                self._DoStartTimer(delay)
+
     def OnItemAdd(self, item):
-        # Note:  There's no distinction made here between msgs that have
-        # been received, and, e.g., msgs that were sent and moved from the
-        # Sent Items folder.  It would be good not to train on the latter,
-        # since it's simply not received email.  An article on the web said
-        # the distinction can't be made with 100% certainty, but that a good
-        # heuristic is to believe that a msg has been received iff at least
-        # one of these properties has a sensible value:
-        #     PR_RECEIVED_BY_EMAIL_ADDRESS
-        #     PR_RECEIVED_BY_NAME
-        #     PR_RECEIVED_BY_ENTRYID
-        #     PR_TRANSPORT_MESSAGE_HEADERS
         # Callback from Outlook - locale may have changed.
         locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
         self.manager.LogDebug(2, "OnItemAdd event for folder", self,
                               "with item", item)
-        msgstore_message = self.manager.message_store.GetMessage(item)
-        if msgstore_message is not None:
-            ProcessMessage(msgstore_message, self.manager)
+        # Due to the way our "missed message" indicator works, we do
+        # a quick check here for "UnRead".  If UnRead, we assume it is very
+        # new and use our timer.  If not unread, we know our missed message
+        # generator would miss it, so we process it synchronously.
+        if not self.use_timer or not item.UnRead:
+            msgstore_message = self.manager.message_store.GetMessage(item)
+            if msgstore_message is not None:
+                ProcessMessage(msgstore_message, self.manager)
+        else:
+            self._StartTimer()
 
 # Event fired when item moved into the Spam folder.
 class SpamFolderItemsEvent(_BaseItemsEvent):
@@ -915,14 +1015,20 @@ class OutlookAddin:
         for folder in manager.message_store.GetFolderGenerator(
                                     config.watch_folder_ids,
                                     config.watch_include_sub):
-            num = 0
-            start = clock()
-            for message in folder.GetNewUnscoredMessageGenerator(field_name):
-                ProcessMessage(message, manager)
-                num += 1
-            # See if perf hurts anyone too much.
-            print "Processing %d missed spam in folder '%s' took %gms" \
-                  % (num, folder.name, (clock()-start)*1000)
+            event_hook = self._GetHookForFolder(folder)
+            if event_hook.use_timer:
+                print "Processing missed spam in folder '%s' by starting a timer" \
+                      % (folder.name,)
+                event_hook._StartTimer()
+            else:
+                num = 0
+                start = clock()
+                for message in folder.GetNewUnscoredMessageGenerator(field_name):
+                    ProcessMessage(message, manager)
+                    num += 1
+                # See if perf hurts anyone too much.
+                print "Processing %d missed spam in folder '%s' took %gms" \
+                      % (num, folder.name, (clock()-start)*1000)
 
     def FiltersChanged(self):
         try:
@@ -938,7 +1044,7 @@ class OutlookAddin:
         new_hooks.update(
             self._HookFolderEvents(config.watch_folder_ids,
                                    config.watch_include_sub,
-                                   FolderItemsEvent)
+                                   HamFolderItemsEvent)
             )
         # For spam manually moved
         if config.spam_folder_id:
@@ -949,8 +1055,13 @@ class OutlookAddin:
                 )
         for k in self.folder_hooks.keys():
             if not new_hooks.has_key(k):
-                self.folder_hooks[k]._obj_.close()
+                self.folder_hooks[k].Close()
         self.folder_hooks = new_hooks
+
+    def _GetHookForFolder(self, folder):
+        ret = self.folder_hooks[folder.id]
+        assert ret.target == folder
+        return ret
 
     def _HookFolderEvents(self, folder_ids, include_sub, HandlerClass):
         new_hooks = {}
@@ -959,24 +1070,28 @@ class OutlookAddin:
             existing = self.folder_hooks.get(msgstore_folder.id)
             if existing is None or existing.__class__ != HandlerClass:
                 folder = msgstore_folder.GetOutlookItem()
-                name = folder.Name.encode("mbcs", "replace")
+                name = msgstore_folder.name
                 try:
                     new_hook = DispatchWithEvents(folder.Items, HandlerClass)
                 except ValueError:
                     print "WARNING: Folder '%s' can not hook events" % (name,)
                     new_hook = None
                 if new_hook is not None:
-                    new_hook.Init(folder, self.application, self.manager)
+                    new_hook.Init(msgstore_folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
                     self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
                     print "SpamBayes: Watching for new messages in folder ", name
             else:
                 new_hooks[msgstore_folder.id] = existing
+                exiting.ReInit()
         return new_hooks
 
     def OnDisconnection(self, mode, custom):
         print "SpamBayes - Disconnecting from Outlook"
-        self.folder_hooks = None
+        if self.folder_hooks:
+            for hook in self.folder_hooks.values():
+                hook.Close()
+            self.folder_hooks = None
         self.application = None
         self.explorers_events = None
         if self.manager is not None:

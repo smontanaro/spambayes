@@ -107,6 +107,31 @@ defaults = {
         """""",
         INTEGER, RESTORE),
     ),
+    # Experimental options may change, may get removed, and *will* get moved
+    # should they be kept.
+    "Experimental" : (
+        ("timer_start_delay", "The interval, (in ms) before the timer starts.", 0,
+            """Once a new item is received in the inbox, SpamBayes will begin
+            processing messages after the given delay.  If a new message arrives
+            during this period, the timer will be reset and delay will start again.""",
+            INTEGER, RESTORE),
+        ("timer_interval", "The interval between subsequent timer checks (in ms)", 1000,
+            """Once the a new message timer found a new message, how long should
+            SpamBayes wait before checking for another new message, assuming no
+            other new messages arrive.  Should a new message arrive during this
+            process, the timer will reset, meaning that timer_start_delay will
+            elapse before the process begins again.""",
+            INTEGER, RESTORE),
+        ("timer_only_receive_folders",
+            "Should the timer only be used for 'Inbox' type folders", True,
+            """The point of using a timer is to prevent the SpamBayes filter
+            getting in the way the builtin Outlook rules.  Therefore, is it 
+            generally only necessary to use a timer for folders that have new
+            items being delivered directly to them.  Folders that are not inbox
+            style folders generally are not subject to builtin filtering, so
+            generally have no problems filtering messages in 'real time'.""",
+            BOOLEAN, RESTORE),
+    ),
     "Training" : (
     (FolderIDOption,
         "ham_folder_ids", "Folders containing known good messages", [],
