@@ -1350,6 +1350,48 @@ as a service, you will need to do this from source.  You can, of course,
 run sb_server.exe or sb_tray.exe, without having the service installed.
 
 
+Why does the spambayes@python.org mailing list get spam?
+--------------------------------------------------------
+
+A reasonably small amount of messages posted to spambayes@python.org are
+spam, bounce messages, out-of-office messages, and so on.  People often
+wonder (and ask) why we don't filter these out, or require all posters
+to be subscribers to the mailing list, or moderate the list.
+
+No filtering is done because spam is often discussed on the list.  For
+example, you can send in a spam message that you received, with the clues
+that it generated, and ask why it scored what it did.  Or you might want
+to give an example of a new technique that spammers are using, and ask
+how well we think that SpamBayes will handle it.  It's very difficult
+to distinguish between this mail and legitimate mail, and we don't want
+any false positives (this is a small amount of traffic, after all).
+
+We don't require all posters to be subscribers because this is hard on
+one-time posters, who are probably start three-quarters of all threads,
+and account for about half the messages.  These people often want help
+with setting up SpamBayes, and are sometimes not particularly confortable
+with computers, so the fewer loops to jump through to get help, the
+better.  It would also defeat the "submit bug report" ability of
+sb_server (which ensures that we get enough information), which is also
+likely to appear in the Outlook plug-in.
+
+We don't moderate the list, because we're too busy to give timely answers
+to everyone as it is, let alone continue developing and testing.  If you
+understand the time commitment involved in moderation, and can do it
+24 hours a day, 7 days a week (we're an international bunch around here),
+then please let us know, and we can give this a shot.
+
+None of this should bother you, though.  Why?  Because if you set SpamBayes
+up, and train it appropriately, you'll see almost none of these messages.
+Just about all the developers do this, and we don't see any of these messages
+(often the first time is when someone quotes it asking why it got to the
+list) unless we're checking through caught spam.  There's a higher than
+normal chance of a false positive (those messages about spam), but there's
+a reasonable chance you don't care about missing those anyway, and, at least
+in our experience, SpamBayes does a pretty good job at correctly classifying
+those anyway (given good training).
+
+
 Development
 ===========
 
