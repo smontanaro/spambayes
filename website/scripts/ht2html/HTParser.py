@@ -81,10 +81,15 @@ class HTParser(rfc822.Message):
         if otherlinks:
             self.__parse(otherlinks)
         # always have an email address
-        self.sidebar.append('Email Us')
-        author = self.get('author')               # guaranteed
-        email = self.get('author-email', author)
-        self.sidebar.append(('mailto:' + email, author))
+        # except that lots of people think that this goes to a single
+        # support person, rather than a mailing list.  So, instead, we
+        # link to a whole page of contact information, which includes
+        # the 'author' email
+        self.sidebar.append('Contact Us')
+        self.sidebar.append(('contact.html', 'Contact details'))
+        #author = self.get('author')               # guaranteed
+        #email = self.get('author-email', author)
+        #self.sidebar.append(('mailto:' + email, author))
 
     # regular expressions used in massage()
     cre = re.compile(
