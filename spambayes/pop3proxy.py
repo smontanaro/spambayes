@@ -349,7 +349,7 @@ class BayesProxy(POP3ProxyBase):
             else:
                 disposition = "No "
             headers, body = re.split(r'\n\r?\n', response, 1)
-            headers = headers + "\r\n" + HEADER_FORMAT % disposition + "\r\n"
+            headers = headers + "\n" + HEADER_FORMAT % disposition + "\r\n"
             return headers + body
         else:
             # Must be an error response.
