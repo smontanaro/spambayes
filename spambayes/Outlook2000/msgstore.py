@@ -167,7 +167,8 @@ _MapiTypeMap = {
     type(0): PT_I4,
     type(''): PT_STRING8,
     type(u''): PT_UNICODE,
-    type(1==1): PT_BOOLEAN,
+    # In Python 2.2.2, bool isn't a distinct type (type(1==1) is type(0)).
+#    type(1==1): PT_BOOLEAN,
 }
 
 class MAPIMsgStoreFolder(MsgStoreMsg):
@@ -313,8 +314,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # XXX PT_BOOLEAN entry from that dict.  Dumping in prints below show
         # XXX that type_tag is 3 then, and that matches the defn of PT_I4 in
         # XXX my system header files.
+        # XXX Later:  This works after all, but the field shows up as all
+        # XXX blanks unless I *first* modify the view (like Messages) in
+        # XXX Outlook to define a custom Integer field of the same name.
         self._EnsureObject()
-        if type(prop)!=type(0):
+        if type(prop) != type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             propIds = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
             type_tag = _MapiTypeMap.get(type(val))

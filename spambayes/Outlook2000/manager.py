@@ -204,14 +204,6 @@ class BayesManager:
         else:
             score = result
         score = int(round(score * 100.0))
-
-        # XXX If I actually return an int, the SpamProb (Hammie, whatever)
-        # XXX custom field shows up as blank.  I haven't been able to figure
-        # XXX out why.  Returning a float here sucks, as it gets displayed
-        # XXX with a useless ".00" tacked on to the end -- but at least it
-        # XXX isn't blank!
-        score = float(score)
-
         if evidence:
             return score, the_evidence
         else:
