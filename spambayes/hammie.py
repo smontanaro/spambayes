@@ -214,7 +214,7 @@ def train(bayes, msgs, is_spam):
         # back in the day.  Maybe it's a line-printer-ism ;)
         sys.stdout.write("\r%6d" % i)
         sys.stdout.flush()
-        bayes.learn(tokenize(str(msg)), is_spam, False)
+        bayes.learn(tokenize(msg), is_spam, False)
     print
 
 def formatclues(clues, sep="; "):
@@ -226,7 +226,7 @@ def formatclues(clues, sep="; "):
 def filter(bayes, input, output):
     """Filter (judge) a message"""
     msg = email.message_from_file(input)
-    prob, clues = bayes.spamprob(tokenize(str(msg)), True)
+    prob, clues = bayes.spamprob(tokenize(msg), True)
     if prob < 0.9:
         disp = "No"
     else:
@@ -244,7 +244,7 @@ def score(bayes, msgs):
     spams = hams = 0
     for msg in mbox:
         i += 1
-        prob, clues = bayes.spamprob(tokenize(str(msg)), True)
+        prob, clues = bayes.spamprob(tokenize(msg), True)
         isspam = prob >= 0.9
         print "%6d %4.2f %1s" % (i, prob, isspam and "S" or "."),
         if isspam:
