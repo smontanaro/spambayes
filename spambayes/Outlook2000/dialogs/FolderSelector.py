@@ -378,7 +378,11 @@ class FolderSelector(FolderSelector_Parent):
                 print "Can't find a folder to expand:", details
                 folder = None
             while folder is not None:
-                parent = folder.GetParent()
+                try:
+                    parent = folder.GetParent()
+                except self.manager.message_store.MsgStoreException, details:
+                    print "Can't find folder's parent:", details
+                    parent = None
                 if parent is not None and \
                    not self.InIDs(parent.GetID(), folders_to_expand):
                     folders_to_expand.append(parent.GetID())
