@@ -8,4 +8,5 @@ recursive-include utilities *.py *.txt
 recursive-include scripts *.py *.txt
 recursive-include testtools *.py *.txt *.sh
 recursive-include windows *.py *.txt *.h *.rc *.ico *.html *.iss
+recursive-include languages *.py *.html *.rc
 include *.txt *.py MANIFEST.in *.sh
