@@ -35,11 +35,14 @@ class TrainingStatusProcessor(ControlProcessor):
         nspam = bayes.nspam
         nham = bayes.nham
         if nspam > 10 and nham > 10:
-            db_status = "Database has %d good and %d spam" % (nham, nspam)
+            db_status = "Database has %d good and %d spam." % (nham, nspam)
         elif nspam > 0 or nham > 0:
-            db_status = "Database only has %d good and %d spam - you should consider performing additional training" % (nham, nspam)
+            db_status = "Database only has %d good and %d spam - you should " \
+                        "consider performing additional training." % (nham, nspam)
         else:
-            db_status = "Database has no training information"
+            db_status = "Database has no training information.  SpamBayes " \
+                        "will deliver all messages to your 'Unsure' folder, " \
+                        "ready for you to classify."
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                              0, db_status)
 
@@ -82,6 +85,14 @@ class IntProcessor(OptionControlProcessor):
                 pass
 
 class FilterEnableProcessor(BoolButtonProcessor):
+    def OnOptionChanged(self, option):
+        self.Init()
+
+    def Init(self):
+        BoolButtonProcessor.Init(self)
+        reason = self.window.manager.GetDisabledReason()
+        win32gui.EnableWindow(self.GetControl(), reason is None)
+
     def UpdateValue_FromControl(self):
         check = win32gui.SendMessage(self.GetControl(), win32con.BM_GETCHECK)
         if check:
