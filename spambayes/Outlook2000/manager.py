@@ -826,6 +826,33 @@ class BayesManager:
             return "You must define the folder to receive your certain spam.  " \
                    "Select the 'Filtering' tab to define this folders."
 
+        # Check that the user hasn't selected the same folder as both
+        # 'Spam' or 'Unsure', and 'Watch' - this would confuse us greatly.
+        ms = self.message_store
+        unsure_folder = None # unsure need not be specified.
+        if config.unsure_folder_id:
+            try:
+                unsure_folder = ms.GetFolder(config.unsure_folder_id)
+            except ms.MsgStoreException, details:
+                return "The unsure folder is invalid: %s" % (details,)
+        try:
+            spam_folder = ms.GetFolder(config.spam_folder_id)
+        except ms.MsgStoreException, details:
+            return "The spam folder is invalid: %s" % (details,)
+        if ok_to_enable:
+            for folder in ms.GetFolderGenerator(config.watch_folder_ids,
+                                                config.watch_include_sub):
+                bad_folder_type = None
+                if unsure_folder is not None and unsure_folder == folder:
+                    bad_folder_type = "unsure"
+                    bad_folder_name = unsure_folder.GetFQName()
+                if spam_folder == folder:
+                    bad_folder_type = "spam"
+                    bad_folder_name = spam_folder.GetFQName()
+                if bad_folder_type is not None:
+                    return "You can not specify folder '%s' as both the " \
+                           "%s folder, and as being watched." \
+                           % (bad_folder_name, bad_folder_type)
         return None
 
     def ShowManager(self):
