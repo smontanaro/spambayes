@@ -178,7 +178,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                    )
         self._writePreamble("Home")
         self.write(content)
-        self._writePostamble()
+        self._writePostamble(help_topic="home_proxy")
 
     def onUpload(self, file):
         """Save a message for later training - used by Skip's proxytee.py."""
