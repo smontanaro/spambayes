@@ -285,18 +285,40 @@ use_chi_squared_combining: True
 
 [Hammie]
 # The name of the header that hammie adds to an E-mail in filter mode
+# It contains the "classification" of the mail, plus the score.
 hammie_header_name: X-Hammie-Disposition
 
-# The default database path used by hammie
-persistent_storage_file: hammie.db
+# The three disposition names are added to the header as the following
+# Three words:
+header_spam_string: Yes
+header_unsure_string: Unsure
+header_ham_string: No
 
-# The range of clues that are added to the "hammie" header in the E-mail
+# Accuracy of the score in the header in decimal digits
+header_score_digits: 2
+
+# Set this to "True", to augment scores of 1.00 or 0.00 by a logarithmic
+# "one-ness" or "zero-ness" score (basically it shows the "number of zeros"
+# or "number of nines" next to the score value).
+header_score_logarithm: False
+
+# Enable debugging information in the header.
+hammie_debug_header: False
+
+# Name of a debugging header for spambayes hackers, showing the strongest
+# clues that have resulted in the classification in the standard header.
+hammie_debug_header_name: X-Hammie-Debug
+
+# The range of clues that are added to the "debug" header in the E-mail
 # All clues that have their probability smaller than this number, or larger
 # than one minus this number are added to the header such that you can see
 # why spambayes thinks this is ham/spam or why it is unsure. The default is
 # to show all clues, but you can reduce that by setting showclue to a lower
-# value, such as 0.1 (which Rob is using)
+# value, such as 0.1
 clue_mailheader_cutoff: 0.5
+
+# The default database path used by hammie
+persistent_storage_file: hammie.db
 
 # hammie can use either a database (quick to score one message) or a pickle
 # (quick to train on huge amounts of messages). Set this to True to use a
@@ -362,6 +384,13 @@ all_options = {
                'persistent_storage_file': string_cracker,
                'clue_mailheader_cutoff': float_cracker,
                'persistent_use_database': boolean_cracker,
+               'header_spam_string': string_cracker,
+               'header_unsure_string': string_cracker,
+               'header_ham_string': string_cracker,
+               'header_score_digits': int_cracker,
+               'header_score_logarithm': boolean_cracker,
+               'hammie_debug_header': boolean_cracker,
+               'hammie_debug_header_name': string_cracker,
                },
 
 }

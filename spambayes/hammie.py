@@ -56,6 +56,8 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Name of the header to add in filter mode
 DISPHEADER = options.hammie_header_name
+DEBUGHEADER = options.hammie_debug_header_name
+DODEBUG = options.hammie_debug_header
 
 # Default database name
 DEFAULTDB = options.persistent_storage_file
@@ -241,14 +243,20 @@ class Hammie:
             traceback.print_exc()
 
     def filter(self, msg, header=DISPHEADER, spam_cutoff=SPAM_THRESHOLD,
-               ham_cutoff=HAM_THRESHOLD):
+               ham_cutoff=HAM_THRESHOLD, debugheader=DEBUGHEADER,
+               debug=DODEBUG):
         """Score (judge) a message and add a disposition header.
 
         msg can be a string, a file object, or a Message object.
 
         Optionally, set header to the name of the header to add, and/or
-        cutoff to the probability value which must be met or exceeded
-        for a message to get a 'Yes' disposition.
+        spam_cutoff/ham_cutoff to the probability values which must be met
+        or exceeded for a message to get a 'Spam' or 'Ham' classification.
+
+        An extra debugging header can be added if 'debug' is set to True.
+        The name of the debugging header is given as 'debugheader'.
+
+        All defaults for optional parameters come from the Options file.
 
         Returns the same message with a new disposition header.
 
@@ -260,14 +268,25 @@ class Hammie:
             msg = email.message_from_string(msg)
         prob, clues = self._scoremsg(msg, True)
         if prob < ham_cutoff:
-            disp = "No"
+            disp = options.header_ham_string
         elif prob > spam_cutoff:
-            disp = "Yes"
+            disp = options.header_spam_string
         else:
-            disp = "Unsure"
-        disp += "; %.2f" % prob
-        disp += "; " + self.formatclues(clues)
+            disp = options.header_unknown_string
+        disp += ("; %."+str(options.header_score_digits)+"f") % prob
+        if options.header_score_logarithm:
+            if prob<=0.005 and prob>0.0:
+                import math
+                x=-math.log10(prob)
+                disp += " (%d)"%x
+            if prob>=0.995 and prob<1.0:
+                import math
+                x=-math.log10(1.0-prob)
+                disp += " (%d)"%x
         msg.add_header(header, disp)
+        if debug:
+            disp = self.formatclues(clues)
+            msg.add_header(debugheader, disp)
         return msg.as_string(unixfrom=(msg.get_unixfrom() is not None))
 
     def train(self, msg, is_spam):
