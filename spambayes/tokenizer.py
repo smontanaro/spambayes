@@ -550,7 +550,7 @@ else:
 
 def octetparts(msg):
     return Set(filter(lambda part:
-                      part.get_content_type() == 'application/octet-stream',
+                      part.get_type() == 'application/octet-stream',
                       msg.walk()))
 
 url_re = re.compile(r"""
