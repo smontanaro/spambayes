@@ -260,10 +260,13 @@ class Option(object):
         if self.multiple_values_allowed():
             # This will fall apart if the allowed_value is a tuple,
             # but not a homogenous one...
-            if type(self.allowed_values) in types.StringTypes:
+            if isinstance(self.allowed_values, types.StringTypes):
                 vals = list(self._split_values(value))
             else:
-                vals = value.split()
+                if isinstance(value, types.TupleType):
+                    vals = list(value)
+                else:
+                    vals = value.split()
             if len(self.default_value) > 0:
                 to_type = type(self.default_value[0])
             else:
