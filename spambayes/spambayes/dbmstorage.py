@@ -25,7 +25,10 @@ def open_gdbm(*args):
 def open_dumbdbm(*args):
     """Open a dumbdbm database."""
     import dumbdbm
-    return dumbdbm.open(*args)
+    db = dumbdbm.open(*args)
+    if not hasattr(db, "sync"):
+        db.sync = db._commit
+    return db
 
 def open_best(*args):
     if sys.platform == "win32":
