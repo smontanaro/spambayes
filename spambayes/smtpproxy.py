@@ -143,7 +143,7 @@ from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
 from pop3proxy import _addressPortStr, ServerLineReader
-from pop3proxy import _addressAndPort, proxyListeners
+from pop3proxy import _addressAndPort
 
 class SMTPProxyBase(Dibbler.BrighterAsyncChat):
     """An async dispatcher that understands SMTP and proxies to a SMTP
@@ -515,10 +515,12 @@ def CreateProxies(servers, proxyPorts, trainer):
     # allow for old versions of pop3proxy
     if not isinstance(trainer, SMTPTrainer):
         trainer = SMTPTrainer(trainer.bayes, trainer)
+    proxyListeners = []
     for (server, serverPort), proxyPort in zip(servers, proxyPorts):
         listener = BayesSMTPProxyListener(server, serverPort, proxyPort,
                                           trainer)
         proxyListeners.append(listener)
+    return proxyListeners
 
 def main():
     """Runs the proxy until a 'KILL' command is received or someone hits
@@ -560,8 +562,9 @@ def main():
 
     servers, proxyPorts = LoadServerInfo()
     trainer = SMTPTrainer(classifier)
-    CreateProxies(servers, proxyPorts, trainer)
+    proxyListeners = CreateProxies(servers, proxyPorts, trainer)
     Dibbler.run()
+
 
 if __name__ == '__main__':
     main()

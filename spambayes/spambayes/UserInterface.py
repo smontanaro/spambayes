@@ -712,6 +712,7 @@ class UserInterface(BaseUserInterface):
         html.pagename = '&gt; Defaults Restored'
         self.writeOKHeaders('text/html')
         self.write(html)
+        self.reReadOptions()
 
     def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''

@@ -709,8 +709,6 @@ def _createProxies(servers, proxyPorts):
 def _recreateState():
     global state
     state = State()
-    state.buildServerStrings()
-    state.createWorkers()
 
     # Close the existing listeners and create new ones.  This won't
     # affect any running proxies - once a listener has created a proxy,
@@ -718,7 +716,10 @@ def _recreateState():
     for proxy in proxyListeners:
         proxy.close()
     del proxyListeners[:]
+
+    prepare(state)
     _createProxies(state.servers, state.proxyPorts)
+    
     return state
 
 def main(servers, proxyPorts, uiPort, launchUI):
@@ -739,7 +740,8 @@ def prepare(state):
     # happen.
     import smtpproxy
     servers, proxyPorts = smtpproxy.LoadServerInfo()
-    smtpproxy.CreateProxies(servers, proxyPorts, state)
+    proxyListeners.extend(smtpproxy.CreateProxies(servers, proxyPorts,
+                                                  state))
 
     # setup info for the web interface
     state.buildServerStrings()
