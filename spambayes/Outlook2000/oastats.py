@@ -161,7 +161,7 @@ class Stats:
         else:
             perc_spam_correct = 100.0
             perc_spam_unsure = 0.0
-            perc_spam_incorrect_or_unsure = 100.0
+            perc_spam_correct_or_unsure = 100.0
         format_dict = locals().copy()
         del format_dict["self"]
         del format_dict["push"]
@@ -251,7 +251,7 @@ class Stats:
 
         push((_("Spam correctly identified:\t%(perc_spam_correct_s)s (+ %(perc_spam_unsure_s)s unsure)") \
              % format_dict) % format_dict)
-        push((_("Ham incorrectly identified:\t%(perc_ham_incorrect_s)s (+ %(perc_ham_unsure_s)s unsure)") \
+        push((_("Good incorrectly identified:\t%(perc_ham_incorrect_s)s (+ %(perc_ham_unsure_s)s unsure)") \
              % format_dict) % format_dict)
 
         return chunks
