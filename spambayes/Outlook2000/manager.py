@@ -38,10 +38,6 @@ def import_core_spambayes_stuff(ini_filename):
     bayes_classifier = classifier
     bayes_tokenize = tokenize
 
-# Suck in CDO type lib
-win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}',
-                                      0, 1, 21, bForDemand=True)
-
 class ManagerError(Exception):
     pass
 
