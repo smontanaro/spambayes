@@ -475,6 +475,52 @@ def ShowClues(mgr, explorer):
                             DisplayName="Original Message")
     new_msg.Display()
 
+def CheckLatestVersion(manager):
+    from spambayes.Version import get_version_string, get_version_number, fetch_latest_dict
+    if hasattr(sys, "frozen"):
+        version_number_key = "BinaryVersion"
+        version_string_key = "Full Description Binary"
+    else:
+        version_number_key = "Version"
+        version_string_key = "Full Description"
+
+    app_name = "Outlook"
+    cur_ver_string = get_version_string(app_name, version_string_key)
+    cur_ver_num = get_version_number(app_name, version_number_key)
+
+    try:
+        win32ui.DoWaitCursor(1)
+        latest = fetch_latest_dict()
+        win32ui.DoWaitCursor(0)
+        latest_ver_string = get_version_string(app_name, version_string_key,
+                                               version_dict=latest)
+        latest_ver_num = get_version_number(app_name, version_number_key,
+                                            version_dict=latest)
+    except:
+        print "Error checking the latest version"
+        traceback.print_exc()
+        manager.ReportError(
+            "There was an error checking for the latest version\r\n"
+            "For specific details on the error, please see the SpamBayes log"
+            "\r\n\r\nPlease check your internet connection, or try again later"
+        )
+        return
+
+    print "Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num)
+    if latest_ver_num > cur_ver_num:
+        url = get_version_string(app_name, "Download Page", version_dict=latest)
+        msg = "You are running %s\r\n\r\nThe latest available version is %s" \
+              "\r\n\r\nThe download page for the latest version is\r\n%s" \
+              "\r\n\r\nWould you like to visit this page now?" \
+              % (cur_ver_string, latest_ver_string, url)
+        rc = win32ui.MessageBox(msg, "SpamBayes", win32con.MB_YESNO)
+        if rc == win32con.IDYES:
+            print "Opening browser page", url
+            os.startfile(url)
+    else:
+        win32ui.MessageBox("You are already running the latest version",
+                           "SpamBayes")
+
 # A hook for whatever tests we have setup
 def Tester(manager):
     import tester, traceback
@@ -708,6 +754,13 @@ class ExplorerWithEvents:
                            Enabled=True,
                            Visible=True,
                            Tag = "SpamBayesCommand.Clues")
+            self._AddControl(popup,
+                           constants.msoControlButton,
+                           ButtonEvent, (CheckLatestVersion, self.manager,),
+                           Caption="Check for new version",
+                           Enabled=True,
+                           Visible=True,
+                           Tag = "SpamBayesCommand.CheckVersion")
         # If we are running from Python sources, enable a few extra items
         if not hasattr(sys, "frozen"):
             self._AddControl(popup,
