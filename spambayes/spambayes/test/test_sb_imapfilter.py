@@ -1,9 +1,5 @@
 # Test sb_imapfilter script.
 
-# At the moment, the script needs to be provided with an IMAP server to
-# use for the testing.  It would be nice if we provided a dummy server
-# like test_sb-server.py does for POP, but this will do for the moment.
-
 import sys
 import time
 import types
@@ -27,9 +23,42 @@ IMAP_PASSWORD = "testp"
 IMAP_FOLDER_LIST = ["INBOX", "unsure", "ham_to_train", "spam"]
 # Key is UID.
 IMAP_MESSAGES = {101 : """Subject: Test\r\n\r\nBody test.""",
-                 102 : """Subject: Test2\r\n\r\nAnother body test."""}
+                 102 : """Subject: Test2\r\n\r\nAnother body test.""",
+                 # 103 is taken from Anthony's email torture test
+                 # (the test_zero-length-boundary file).
+                 103 : """Received: from noisy-2-82-67-182-141.fbx.proxad.net(82.67.182.141)
+ via SMTP by mx1.example.com, id smtpdAAAzMayUR; Tue Apr 27 18:56:48 2004
+Return-Path: " Freeman" <XLUPSYGSHLBAPN@runbox.com>
+Received: from  rly-xn05.mx.aol.com (rly-xn05.mail.aol.com [172.20.83.138]) by air-xn02.mail.aol.com (v98.10) with ESMTP id MAILINXN22-6504043449c151; Tue, 27 Apr 2004 16:57:46 -0300
+Received: from 132.16.224.107 by 82.67.182.141; Tue, 27 Apr 2004 14:54:46 -0500
+From: " Gilliam" <.@doramail.com>
+To: To: user@example.com
+Subject: Your Source For Online Prescriptions....Soma-Watson..VALIUM-Roche    .		
+Date: Wed, 28 Apr 2004 00:52:46 +0500
+Mime-Version: 1.0
+Content-Type: multipart/alternative;
+        boundary=""
+X-Mailer: AOL 7.0 for Windows US sub 118
+X-AOL-IP: 114.204.176.98
+X-AOL-SCOLL-SCORE: 1:XXX:XX
+X-AOL-SCOLL-URL_COUNT: 2
+Message-ID: <@XLUPSYGSHLBAPN@runbox.com>
+
+--
+Content-Type: text/html;
+        charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<strong><a href=3D"http://www.ibshels454drugs.biz/c39/">ENTER HERE</a> to
+ORDER MEDS Online, such as XANAX..VALIUM..SOMA..Much MORE SHIPPED
+OVERNIGHT,to US and INTERNATIONAL</strong>
+
+---
+
+""",
+                 }
 # Map of ID -> UID
-IMAP_UIDS = {1 : 101, 2: 102}
+IMAP_UIDS = {1 : 101, 2: 102, 3:103}
 
 class TestListener(Dibbler.Listener):
     """Listener for TestIMAP4Server.  Works on port 8143, to co-exist
@@ -39,6 +68,8 @@ class TestListener(Dibbler.Listener):
                                   (socketMap,), socketMap=socketMap)
 
 
+# If true, the next command will fail, whatever it is.
+FAIL_NEXT = False
 class TestIMAP4Server(Dibbler.BrighterAsyncChat):
     """Minimal IMAP4 server, for testing purposes.  Accepts a limited
     subset of commands, and also a KILL command, to terminate."""
@@ -68,7 +99,13 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
 
     def found_terminator(self):
         """Asynchat override."""
+        global FAIL_NEXT
         id, command = self.request.split(None, 1)
+
+        if FAIL_NEXT:
+            FAIL_NEXT = False
+            self.push("%s NO Was told to fail.\r\n" % (id,))
+
         if ' ' in command:
             command, args = command.split(None, 1)
         else:
@@ -181,11 +218,17 @@ class BaseIMAPFilterTest(unittest.TestCase):
 
 
 class IMAPSessionTest(BaseIMAPFilterTest):
+    def testConnection(self):
+        # Connection is made in setup, just need to check
+        # that it worked.
+        self.assert_(self.imap.connected)
+        
     def testGoodLogin(self):
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
         self.assert_(self.imap.logged_in)
 
     def testBadLogin(self):
+        print "\nYou should see a message indicating that login failed."
         self.assertRaises(SystemExit, self.imap.login, IMAP_USERNAME,
                           "wrong password")
 
@@ -208,29 +251,36 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # Check selection.
         self.imap.SelectFolder("Inbox")
         response = self.imap.response('OK')
-        self.assert_(response[0] == "OK")
+        self.assertEquals(response[0], "OK")
         self.assert_(response[1] != [None])
 
         # Check that we don't reselect if we are already in that folder.
         self.imap.SelectFolder("Inbox")
         response = self.imap.response('OK')
-        self.assert_(response[0] == "OK")
-        self.assert_(response[1] == [None])
+        self.assertEquals(response[0], "OK")
+        self.assertEquals(response[1], [None])
 
     def test_folder_list(self):
+        global FAIL_NEXT
+
         # This test will fail if testGoodLogin fails.
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
-        
-        # If we had more control over what the IMAP server returned
-        # (say we had our own one, as suggested above), then we could
-        # test returning literals, getting an error, and a bad literal,
-        # but since we don't, just do a simple test for now.
 
+        # Everything working.        
         folders = self.imap.folder_list()
         correct = IMAP_FOLDER_LIST[:]
         correct.sort()
         self.assertEqual(folders, correct)
 
+        # Bad command.
+        print "\nYou should see a message indicating that getting the " \
+              "folder list failed."
+        FAIL_NEXT = True
+        self.assertEqual(self.imap.folder_list(), [])
+
+        # Literals in response.
+        # XXX TO DO!
+        
     def test_extract_fetch_data(self):
         response = "bad response"
         self.assertRaises(BadIMAPResponseError,
@@ -324,9 +374,6 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         self.msg.uid = response[1][0][7:-1]
         self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server)
 
-        # When we have a dummy server, check for MemoryError here.
-        # And also an unparseable message (for Python < 2.4).
-
         new_msg = self.msg.get_full_message()
         self.assertEqual(new_msg.folder, self.msg.folder)
         self.assertEqual(new_msg.previous_folder, self.msg.previous_folder)
@@ -342,11 +389,93 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         # These should be the same object, not just equal.
         self.assert_(new_msg is new_msg2)
 
+    def test_get_bad_message(self):
+        self.msg.id = "unittest"
+        self.msg.imap_server.login(IMAP_USERNAME, IMAP_PASSWORD)
+        self.msg.imap_server.select()
+        self.msg.uid = 103 # id of malformed message in dummy server
+        self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server)
+        print "\nWith email package versions less than 3.0, you should " \
+              "see an error parsing the message."
+        new_msg = self.msg.get_full_message()
+        # With Python < 2.4 (i.e. email < 3.0) we get an exception
+        # header.  With more recent versions, we get a defects attribute.
+        # XXX I can't find a message that generates a defect!  Until
+        # message 103 is replaced with one that does, this will fail with
+        # Python 2.4/email 3.0.
+        has_header = "X-Spambayes-Exception: " in new_msg.as_string()
+        has_defect = hasattr(new_msg, "defects") and len(new_msg.defects) > 0
+        self.assert_(has_header or has_defect)
+
+    def test_get_memory_error_message(self):
+        # XXX Figure out a way to trigger a memory error - but not in
+        # the fake IMAP server, in imaplib, or our IMAP class.
+        pass
+
+    def test_Save(self):
+        # XXX To-do
+        pass
+
+
+class IMAPFolderTest(BaseIMAPFilterTest):
+    def setUp(self):
+        BaseIMAPFilterTest.setUp(self)
+        self.folder = IMAPFolder("testfolder", self.imap)
+
+    def test_cmp(self):
+        folder2 = IMAPFolder("testfolder", self.imap)
+        folder3 = IMAPFolder("testfolder2", self.imap)
+        self.assertEqual(self.folder, folder2)
+        self.assertNotEqual(self.folder, folder3)
+        
+    def test_iter(self):
+        # XXX To-do
+        pass
+    def test_keys(self):
+        # XXX To-do
+        pass
+    def test_getitem(self):
+        # XXX To-do
+        pass
+
+    def test_generate_id(self):
+        print "\nThis test takes slightly over a second."
+        id1 = self.folder._generate_id()
+        id2 = self.folder._generate_id()
+        id3 = self.folder._generate_id()
+        # Need to wait at least one clock tick.
+        time.sleep(1)
+        id4 = self.folder._generate_id()
+        self.assertEqual(id2, id1 + "-2")
+        self.assertEqual(id3, id1 + "-3")
+        self.assertNotEqual(id1, id4)
+        self.assertNotEqual(id2, id4)
+        self.assertNotEqual(id3, id4)
+        self.assert_('-' not in id4)
+        
+    def test_Train(self):
+        # XXX To-do
+        pass
+    def test_Filter(self):
+        # XXX To-do
+        pass
+
+
+class IMAPFilterTest(BaseIMAPFilterTest):
+    def test_Train(self):
+        # XXX To-do
+        pass
+    def test_Filter(self):
+        # XXX To-do
+        pass
+
 
 def suite():
     suite = unittest.TestSuite()
     for cls in (IMAPSessionTest,
                 IMAPMessageTest,
+                IMAPFolderTest,
+                IMAPFilterTest,
                ):
         suite.addTest(unittest.makeSuite(cls))
     return suite
