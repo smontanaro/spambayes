@@ -930,7 +930,14 @@ the `SpamBayes` button on the `SpamBayes` toolbar.
 
 If you use the POP3 proxy or IMAP filter, then simply open a browser
 window to http://localhost:8880, click on the configuration link on the top
-right of the page that opens up, and fill in the details.  If you're using
+right of the page that opens up, and fill in the details.
+
+With the POP3 proxy, when you need to select local port numbers to proxy
+on, if you are only proxying one server, then try 110 first.  If that
+doesn't work, or you are proxying multiple servers, then try higher numbers,
+such as 8110, 8111, 8112, and so on.
+
+If you're using
 the POP3 proxy, you'll also need to configure your email client to talk to
 the proxies instead of the real email servers. Change your equivalent of
 `pop3.example.com` to `localhost` (or to the name of the machine you're
