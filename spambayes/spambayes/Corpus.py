@@ -201,10 +201,15 @@ class Corpus:
         self.addMessage(msg)
 
     def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
+        # the old version would never return the default,
+        # it would just create a new message, even if that
+        # message did not exist in the cache
+        # we need to check for the key in our msgs, but we can't check
+        # for None, because that signifies a non-cached message
+        if self.msgs.get(key, "") is "":
             return default
+        else:
+            return self[key]
 
     def __getitem__(self, key):
         '''Corpus is a dictionary'''
