@@ -76,6 +76,17 @@ There are four mailing lists which support Spambayes:
    changes to the Spambayes software.  This is generally only of interest to
    developers.
 
+All the mailing lists are managed by Mailman, which uses pipermail to
+archive messages.  There is no search capability, so your best bet is to use
+Google to search for stuff.  For example, searching for
+
+::
+
+    site:mail.python.org pop3proxy -checkins
+
+would search for messages which mention pop3proxy but exclude checkin
+messages.
+
 .. _Spambayes list: http://mail.python.org/mailman/listinfo/spambayes
 .. _Spambayes developers list: http://mail.python.org/mailman/listinfo/spambayes-dev
 .. _Spambayes announcements list: http://mail.python.org/mailman/listinfo/spambayes-announce
