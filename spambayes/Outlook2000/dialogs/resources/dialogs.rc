@@ -150,20 +150,20 @@ BEGIN
     LTEXT           "Welcome to the SpamBayes configuration wizard",
                     IDC_STATIC,20,4,191,14
     PUSHBUTTON      "About...",IDC_BUT_ABOUT,215,104,60,15
-    LTEXT           "This wizard will help you configure the SpamBayes Outlook addin.  Please indicate how you have prepared for this application",
+    LTEXT           "This wizard will help you configure the SpamBayes Outlook addin.  Please indicate how you have prepared for this application.",
                     IDC_STATIC,20,20,255,18
-    CONTROL         "I haven't prepared for SpamBayes at all",
+    CONTROL         "I haven't prepared for SpamBayes at all.",
                     IDC_BUT_PREPARATION,"Button",BS_AUTORADIOBUTTON | BS_TOP | 
                     WS_GROUP,20,42,190,11
-    CONTROL         "I have already sorted good messages (ham) and spam messages into folders that are suitable for training purposes",
+    CONTROL         "I have already sorted good messages (ham) and spam messages into folders that are suitable for training purposes.",
                     IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP | 
                     BS_MULTILINE,20,59,255,25
-    CONTROL         "I would prefer to configure SpamBayes manually",
+    CONTROL         "I would prefer to configure SpamBayes manually.",
                     IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP,20,82,
                     187,14
-    LTEXT           "If you would like more information about training and configuring SpamBayes, click the About button",
+    LTEXT           "If you would like more information about training and configuring SpamBayes, click the About button.",
                     IDC_STATIC,20,103,185,20
-    LTEXT           "If you cancel the wizard, you can access it again via the SpamBayes Manager, available from the SpamBayes toolbar",
+    LTEXT           "If you cancel the wizard, you can access it again via the SpamBayes Manager, available from the SpamBayes toolbar.",
                     IDC_STATIC,20,137,232,17
 END
 
@@ -179,7 +179,7 @@ BEGIN
                     IDC_STATIC,20,42,247,27
     LTEXT           "If you wish to speed up the training process, you can move all the existing Spam from your Inbox to the new Spam folder, then select 'Training' from the SpamBayes manager.",
                     IDC_STATIC,20,83,247,31
-    LTEXT           "As you train, you will find the accuracy of SpamBayes increases",
+    LTEXT           "As you train, you will find the accuracy of SpamBayes increases.",
                     IDC_STATIC,20,69,247,15
     LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,121,
                     148,9
@@ -194,7 +194,7 @@ BEGIN
     LTEXT           "Spam and Unsure Folders",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes uses two folders to manage your Spam - a folder where 'certain' spam is stored, and another for unsure messages.",
                     IDC_STATIC,20,20,247,22
-    LTEXT           "If you enter a folder name and it does not exist, it will be automatically created.  If you would prefer to select an existing folder, click the Browse button",
+    LTEXT           "If you enter a folder name and it does not exist, it will be automatically created.  If you would prefer to select an existing folder, click the Browse button.",
                     IDC_STATIC,20,44,243,24
     EDITTEXT        IDC_FOLDER_CERTAIN,20,85,179,14,ES_AUTOHSCROLL
     LTEXT           "Unsure messages will be delivered to a folder named",
@@ -213,11 +213,11 @@ BEGIN
     PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,225,134,50,14
     LTEXT           "Folders that receive new messages",IDC_STATIC,20,4,247,
                     14
-    LTEXT           "SpamBayes needs to know what folders are used to receive new messages.  In most cases, this will be your Inbox, but you may also specify additional folders to be watched for spam",
+    LTEXT           "SpamBayes needs to know what folders are used to receive new messages.  In most cases, this will be your Inbox, but you may also specify additional folders to be watched for spam.",
                     IDC_STATIC,20,21,247,25
     LTEXT           "The following folders will be watched for new messages",
                     IDC_STATIC,20,90,247,13
-    LTEXT           "If you use the Outlook rule wizard to move messages into folders, you may like to select these folders in addition to your inbox",
+    LTEXT           "If you use the Outlook rule wizard to move messages into folders, you may like to select these folders in addition to your inbox.",
                     IDC_STATIC,20,51,241,20
     EDITTEXT        IDC_FOLDER_WATCH,20,100,195,48,ES_MULTILINE | 
                     ES_AUTOHSCROLL | ES_READONLY
@@ -252,7 +252,7 @@ BEGIN
     LTEXT           "Examples of good messages can be found in",IDC_STATIC,
                     20,38,153,8
     PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM,208,81,60,15
-    LTEXT           "If you have not pre-sorted your messages, or already have training information you wish to keep, please select the Back button and indicate you have not prepared for SpamBayes",
+    LTEXT           "If you have not pre-sorted your messages, or already have training information you wish to keep, please select the Back button and indicate you have not prepared for SpamBayes.",
                     IDC_STATIC,20,128,243,26
     CONTROL         "Score messages when training is complete",
                     IDC_BUT_RESCORE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,
@@ -265,7 +265,7 @@ EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "Training",-1,20,4,247,14
-    LTEXT           "SpamBayes is training on your good and spam messages",
+    LTEXT           "SpamBayes is training on your good and spam messages.",
                     -1,20,22,247,16
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",WS_BORDER,20,45,255,
                     11
@@ -291,10 +291,10 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-    LTEXT           "SpamBayes will not be effective until it is trained",
+    LTEXT           "SpamBayes will not be effective until it is trained.",
                     IDC_STATIC,11,8,191,14
     PUSHBUTTON      "About...",IDC_BUT_ABOUT,214,140,60,15
-    LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no built-in rules, so must have some training information before it will be effective",
+    LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no built-in rules, so must have some training information before it will be effective.",
                     IDC_STATIC,11,21,263,30
     LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Delete as Spam' and 'Recover from Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
                     IDC_STATIC,22,61,252,29
