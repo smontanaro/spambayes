@@ -17,10 +17,11 @@ except NameError:
 
 # Helpers for building the folder list
 class FolderSpec:
-    def __init__(self, folder_id, name):
+    def __init__(self, folder_id, name, ignore_eids = None):
         self.folder_id = folder_id
         self.name = name
         self.children = []
+        self.ignore_eids = ignore_eids
 
     def dump(self, level=0):
         prefix = "  " * level
@@ -52,10 +53,10 @@ from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
 import pythoncom
 
-def _BuildFoldersMAPI(manager, folder_id):
+def _BuildFoldersMAPI(manager, folder_spec):
     # This is called dynamically as folders are expanded.
     win32ui.DoWaitCursor(1)
-    folder = manager.message_store.GetFolder(folder_id).OpenEntry()
+    folder = manager.message_store.GetFolder(folder_spec.folder_id).OpenEntry()
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
     children = []
@@ -67,10 +68,17 @@ def _BuildFoldersMAPI(manager, folder_id):
         # Note the eid we get here is short-term - hence we must
         # re-fetch from the object itself (which is what our manager does,
         # so no need to do it explicitly - just believe folder.id over eid)
+        ignore = False
+        for check_eid in folder_spec.ignore_eids:
+            if manager.message_store.session.CompareEntryIDs(check_eid, eid):
+                ignore = True
+                break
+        if ignore:
+            continue
         temp_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
         child_folder = manager.message_store.GetFolder(temp_id)
         if child_folder is not None:
-            spec = FolderSpec(child_folder.GetID(), name)
+            spec = FolderSpec(child_folder.GetID(), name, folder_spec.ignore_eids)
             # If we have no children at all, indicate
             # the item is not expandable.
             table = child_folder.OpenEntry().GetHierarchyTable(0)
@@ -82,7 +90,7 @@ def _BuildFoldersMAPI(manager, folder_id):
     win32ui.DoWaitCursor(0)
     return children
 
-def BuildFolderTreeMAPI(session):
+def BuildFolderTreeMAPI(session, ignore_ids):
     root = FolderSpec(None, "root")
     tab = session.GetMsgStoresTable(0)
     prop_tags = PR_ENTRYID, PR_DISPLAY_NAME_A
@@ -93,9 +101,9 @@ def BuildFolderTreeMAPI(session):
         try:
             msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
                                                           mapi.MAPI_DEFERRED_ERRORS)
-            hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,), 0)
+            hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,)+ignore_ids, 0)
             subtree_eid = data[0][1]
-            folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
+            ignore_eids = [item[1] for item in data[1:] if PROP_TYPE(item[0])==PT_BINARY]
         except pythoncom.com_error, details:
             # Some weird error opening a folder tree
             # Just print a warning and ignore the tree.
@@ -103,7 +111,7 @@ def BuildFolderTreeMAPI(session):
             print "Exception details:", details
             continue
         folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
-        spec = FolderSpec(folder_id, name)
+        spec = FolderSpec(folder_id, name, ignore_eids)
         spec.children = None
         root.children.append(spec)
     return root
@@ -154,7 +162,11 @@ class FolderSelector(dialog.Dialog):
                               checkbox_state=False,
                               checkbox_text=None,
                               desc_noun="Select",
-                              desc_noun_suffix="ed"):
+                              desc_noun_suffix="ed",
+                              exclude_prop_ids=(PR_IPM_WASTEBASKET_ENTRYID,
+                                                PR_IPM_SENTMAIL_ENTRYID,
+                                                PR_IPM_OUTBOX_ENTRYID)
+                                    ):
         assert not single_select or selected_ids is None or len(selected_ids)<=1
         dialog.Dialog.__init__ (self, self.dt)
         self.single_select = single_select
@@ -167,6 +179,7 @@ class FolderSelector(dialog.Dialog):
         self.manager = manager
         self.checkbox_state = checkbox_state
         self.checkbox_text = checkbox_text or "Include &subfolders"
+        self.exclude_prop_ids = exclude_prop_ids
 
     def CompareIDs(self, id1, id2):
         # Compare the eid of the stores, then the objects
@@ -315,7 +328,7 @@ class FolderSelector(dialog.Dialog):
         # selected folders, and all parents.
         win32ui.DoWaitCursor(1)
         self.expand_ids = self._DetermineFoldersToExpand()
-        tree = BuildFolderTreeMAPI(self.manager.message_store.session)
+        tree = BuildFolderTreeMAPI(self.manager.message_store.session, self.exclude_prop_ids)
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # Only use this while creating dialog.
         self.expand_ids = [] # Only use this while creating dialog.
@@ -386,7 +399,7 @@ class FolderSelector(dialog.Dialog):
         info = self.list.GetItem(itemHandle)
         folderSpec = self.item_map[info[7]]
         if folderSpec.children is None:
-            folderSpec.children = _BuildFoldersMAPI(self.manager, folderSpec.folder_id)
+            folderSpec.children = _BuildFoldersMAPI(self.manager, folderSpec)
             self._InsertSubFolders(itemHandle, folderSpec)
         return 0
 
