@@ -297,7 +297,7 @@ def main():
     files.sort(lambda a,b: cmp(os.path.basename(a), os.path.basename(b)))
 
     tests = []
-    regimes = []
+    rules = []
     nham_tested = []
     nham_trained = []
     nham_right = []
@@ -312,7 +312,7 @@ def main():
         # if which is not None and j != which:
         #     continue
         tests.append(Test(classifier.Bayes()))
-        exec """regimes.append(regimes.%s())""" % (regime) in globals(), locals()
+        exec """rules.append(regimes.%s())""" % (regime) in globals(), locals()
         nham_tested.append([])
         nham_trained.append([])
         nham_right.append([])
@@ -333,15 +333,15 @@ def main():
         set = int(set[3:]) - 1
         isspam = (dir.find('Spam') >= 0)
  
-        sys.stderr.write("%-78s\r" % ("%s  : %d" % (base, set)))
-        sys.stderr.flush()
- 
         msg = msgs.Msg(dir, base)
         
         for j in range(0, nsets):
             if which is not None and j != which:
                 continue
             if group != oldgroup:
+                sys.stderr.write("%-78s\r" % ("%s  : %d" % (base, set)))
+                sys.stderr.flush()
+ 
                 nham_tested[j].append(tests[j].nham_tested)
                 nham_trained[j].append(tests[j].nham_trained)
                 nham_right[j].append(tests[j].nham_right)
@@ -353,7 +353,7 @@ def main():
                 nspam_wrong[j].append(tests[j].nspam_wrong)
                 nspam_unsure[j].append(tests[j].nspam_unsure)
                 # tests[j].reset_test_results()
-                regimes[j].group_action(j, tests[j])
+                rules[j].group_action(j, tests[j])
  
             if j != set:
                 guess = tests[j].predict([msg], isspam)
@@ -361,7 +361,7 @@ def main():
                     actual = -1
                 else:
                     actual = 1
-                todo = regimes[j].guess_action(j, tests[j], guess, actual, msg)
+                todo = rules[j].guess_action(j, tests[j], guess, actual, msg)
                 if todo == -1:
                     tests[j].train(None, [msg])
                 elif todo == 1:
