@@ -5,7 +5,7 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with either Python 2.2.2, Python2.3 (currently in alpha), 
+<p>This project works with either Python 2.2.2, Python 2.3 (currently in alpha), 
 or on the bleeding edge of python code,
 available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
 sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
@@ -29,12 +29,15 @@ or even most cases.</p>
 available as links from the <a href="docs.html">documentation</a> page.
 
 <h3>So what needs to be done</h3>
-<p>Currently (early November) work is now being focussed on finding 
-additional things that are beneficial to the tokenizer. The combining
-scheme is now pretty solid and pretty amazing. The other big body of
-work at the moment is producing something that's useful to end-users -
-actually building the applications and the code so that Tim's sister
-&lt;wink&gt; can use the system.</p>
+<p>Currently (April) work is now being focused on improving deployment
+of the system (actually building the applications and the code so that
+Tim's sister &lt;wink&gt; can use the system), with the aim of eventually
+putting out a beta (or even full!) release.  There is still a certain
+amount of interest in finding additional things that are beneficial to
+the tokenizer, although most people are pretty happy with how it works
+at the moment. The combining scheme is now pretty solid and pretty amazing.
+The other big body of work is monitoring the bug reports and feature requests
+that come in and trying to resolve those.</p>
 
 <h2>Collecting training data</h2>
 <p>One of the tricky problems is collecting a set of data that's 

@@ -4,8 +4,8 @@ Author: SpamBayes
 
 
 <h2>News</h2>
-<p>First pre-release available. See the <a href="download.html">download</a> page for more.</p>
-<H2>What is SpamBayes?</h2>
+<p>Second pre-release available. See the <a href="download.html">download</a> page for more.</p>
+<h2>What is SpamBayes?</h2>
 <p>
 The SpamBayes 
 project is working on developing a <a href="docs.html#glossary">Bayesian</a> 
@@ -91,7 +91,7 @@ background.</p>
 
 <p>The code is currently available from a variety of methods from the
 <a href="download.html">downloads</a> page. The current release is
-1.0 prerelease 1.
+1.0 alpha 2.
 </p>
 
 <p>
