@@ -4,8 +4,8 @@
 
 [Setup]
 AppName=Spambayes Outlook Addin
-AppVerName=Spambayes Outlook Addin 0.0.2
-AppVersion=0.0.2
+AppVerName=Spambayes Outlook Addin 0.3
+AppVersion=0.3
 DefaultDirName={pf}\Spambayes Outlook Addin
 DefaultGroupName=Spambayes Outlook Addin
 OutputDir=.
