@@ -1082,9 +1082,10 @@ class Tokenizer:
             for t in tokens:
                 yield t
 
-            # Remove HTML/XML tags.
+            # Remove HTML/XML tags.  Also &nbsp;.
             if (part.get_content_type() == "text/plain" or
                     not options.retain_pure_html_tags):
+                text = text.replace('&nbsp;', ' ')
                 text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.
