@@ -484,6 +484,7 @@ def ShowClues(mgr, explorer):
     if original_score is None:
         push("This message has not been filtered.")
     else:
+        original_score = round(original_score)
         push("When this message was last filtered, it was classified " \
              "as %s (it scored %d%%)." % (original_class, original_score))
     # Report whether this message has been trained or not.
