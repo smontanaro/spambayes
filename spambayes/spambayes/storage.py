@@ -584,7 +584,7 @@ _storage_types = {"dbm" : DBDictClassifier,
                   }
 
 def open_storage(data_source_name, useDB=True):
-    '''Return a storage object appropriate to the given parameters.
+    """Return a storage object appropriate to the given parameters.
 
     By centralizing this code here, all the applications will behave
     the same given the same options.
@@ -592,9 +592,9 @@ def open_storage(data_source_name, useDB=True):
     If useDB is false, a pickle will be used, otherwise if the data
     source name includes "::", whatever is before that determines
     the type of database.  If the source name doesn't include "::",
-    then a DBDictClassifier is used.'''
+    then a DBDictClassifier is used."""
     if useDB:
-        if '::' in data_source_name:
+        if data_source_name.find('::') != -1:
             db_type, rest = data_source_name.split('::', 1)
             if _storage_types.has_key(db_type.lower()):
                 klass = _storage_types[db_type.lower()]
