@@ -1013,6 +1013,7 @@ class Tokenizer:
                         pass
                     else:
                         yield 'dow:%d' % timetuple[6]
+                        break
                 else:
                     # if nothing matches, declare the Date: header invalid
                     yield 'dow:invalid'
