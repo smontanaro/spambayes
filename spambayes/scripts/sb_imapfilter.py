@@ -319,31 +319,10 @@ class IMAPSession(BaseIMAP):
     FETCH_RESPONSE_RE = re.compile(r"([0-9]+) \(([" + \
                                    re.escape(FLAG_CHARS) + r"\"\{\}\(\)\\ ]*)\)?")
     LITERAL_RE = re.compile(r"^\{[\d]+\}$")
-    def extract_fetch_data(self, response):
-        """Extract data from the response given to an IMAP FETCH command.
-
-        The data is put into a dictionary, which is returned, where the
-        keys are the fetch items.
+    def _extract_fetch_data(self, response):
+        """This does the real work of extracting the data, for each message
+        number.
         """
-        # The response might be a tuple containing literal data.
-        # At the moment, we only handle one literal per response.  This
-        # may need to be improved if our code ever asks for something
-        # more complicated (like RFC822.Header and RFC822.Body).
-        if isinstance(response, types.TupleType):
-            literal = response[1]
-            response = response[0]
-        else:
-            literal = None
-
-        # The first item will always be the message number.
-        mo = self.FETCH_RESPONSE_RE.match(response)
-        data = {}
-        if mo:
-            data["message_number"] = mo.group(1)
-            response = mo.group(2)
-        else:
-            raise BadIMAPResponseError("FETCH response", response)
-
         # We support the following FETCH items:
         #  FLAGS
         #  INTERNALDATE
@@ -352,14 +331,62 @@ class IMAPSession(BaseIMAP):
         #  RFC822.HEADER
         #  BODY.PEEK
         # All others are ignored.
-        for r in [self.FLAGS_RE, self.INTERNALDATE_RE, self.RFC822_RE,
-                  self.UID_RE, self.RFC822_HEADER_RE, self.BODY_PEEK_RE]:
-            mo = r.search(response)
-            if mo is not None:
-                if self.LITERAL_RE.match(mo.group(2)):
-                    data[mo.group(1)] = literal
-                else:
-                    data[mo.group(1)] = mo.group(2)
+
+        if isinstance(response, types.StringTypes):
+            response = (response,)
+
+        data = {}
+        expected_literal = None
+        for part in response:
+            # We ignore parentheses by themselves, for convenience.
+            if part == ')':
+                continue
+            if expected_literal:
+                # This should be a literal of a certain size.
+                key, expected_size = expected_literal
+##                if len(part) != expected_size:
+##                    raise BadIMAPResponseError(\
+##                        "FETCH response (wrong size literal %d != %d)" % \
+##                        (len(part), expected_size), response)
+                data[key] = part
+                expected_literal = None
+                continue
+            # The first item will always be the message number.
+            mo = self.FETCH_RESPONSE_RE.match(part)
+            if mo:
+                data["message_number"] = mo.group(1)
+                rest = mo.group(2)
+            else:
+                raise BadIMAPResponseError("FETCH response", response)
+            
+            for r in [self.FLAGS_RE, self.INTERNALDATE_RE, self.RFC822_RE,
+                      self.UID_RE, self.RFC822_HEADER_RE, self.BODY_PEEK_RE]:
+                mo = r.search(rest)
+                if mo is not None:
+                    if self.LITERAL_RE.match(mo.group(2)):
+                        # The next element will be a literal.
+                        expected_literal = (mo.group(1),
+                                            int(mo.group(2)[1:-1]))
+                    else:
+                        data[mo.group(1)] = mo.group(2)
+        return data
+
+    def extract_fetch_data(self, response):
+        """Extract data from the response given to an IMAP FETCH command.
+
+        The data is put into a dictionary, which is returned, where the
+        keys are the fetch items.
+        """
+        # There may be more than one message number in the response, so
+        # handle separately.
+        if isinstance(response, types.StringTypes):
+            response = (response,)
+
+        data = {}
+        for msg in response:
+            msg_data = self._extract_fetch_data(msg)
+            if msg_data:
+                data[msg_data["message_number"]] = msg_data
         return data
 
 
@@ -447,12 +474,22 @@ class IMAPMessage(message.SBHeaderMessage):
             return self
 
         command = "uid fetch %s" % (self.uid,)
-        data = self.imap_server.check_response(command, response)
-        data = self.imap_server.extract_fetch_data(data[0])
+        response_data = self.imap_server.check_response(command, response)
+        data = self.imap_server.extract_fetch_data(response_data)
+        # The data will be a dictionary - hopefully with only one element,
+        # but maybe more than one.  The key is the message number, which we
+        # do not have (we use the UID instead).  So we look through the
+        # message and use the first data of the right type we find.
+        rfc822_data = None
+        for msg_data in data.itervalues():
+            if self.rfc822_key in msg_data:
+                rfc822_data = msg_data[self.rfc822_key]
+                break
+        if rfc822_data is None:
+            raise BadIMAPResponseError("FETCH response", response_data)
 
         try:
-            new_msg = email.message_from_string(data[self.rfc822_key],
-                                                IMAPMessage)
+            new_msg = email.message_from_string(rfc822_data, IMAPMessage)
         # We use a general 'except' because the email package doesn't
         # always return email.Errors (it can return a TypeError, for
         # example) if the email is invalid.  In any case, we want
@@ -470,7 +507,7 @@ class IMAPMessage(message.SBHeaderMessage):
             # exception data and then the original message.
             self.invalid = True
             text, details = message.insert_exception_header(
-                data[self.rfc822_key], self.id)
+                rfc822_data, self.id)
             self.invalid_content = text
             self.got_substance = True
 
@@ -526,22 +563,23 @@ class IMAPMessage(message.SBHeaderMessage):
         response = self.imap_server.uid("FETCH", self.uid,
                                         "(FLAGS INTERNALDATE)")
         command = "fetch %s (flags internaldate)" % (self.uid,)
-        data = self.imap_server.check_response(command, response)
-        data = self.imap_server.extract_fetch_data(data[0])
-        
-        if data.has_key("INTERNALDATE"):
-            msg_time = data["INTERNALDATE"]
-        else:
-            msg_time = self.extractTime()
-
-        if data.has_key("FLAGS"):
-            flags = data["FLAGS"]
-            # The \Recent flag can be fetched, but cannot be stored
-            # We must remove it from the list if it is there.
-            flags = self.recent_re.sub("", flags)
-        else:
-            flags = None
-
+        response_data = self.imap_server.check_response(command, response)
+        data = self.imap_server.extract_fetch_data(response_data)
+        # The data will be a dictionary - hopefully with only one element,
+        # but maybe more than one.  The key is the message number, which we
+        # do not have (we use the UID instead).  So we look through the
+        # message and use the last data of the right type we find.
+        msg_time = self.extractTime()
+        flags = None
+        for msg_data in data.itervalues():
+            if "INTERNALDATE" in msg_data:
+                msg_time = msg_data["INTERNALDATE"]
+            if "FLAGS" in msg_data:
+                flags = msg_data["FLAGS"]
+                # The \Recent flag can be fetched, but cannot be stored
+                # We must remove it from the list if it is there.
+                flags = self.recent_re.sub("", flags)
+                
         # We try to save with flags and time, then with just the
         # time, then with the flags and the current time, then with just
         # the current time.  The first should work, but the first three
@@ -696,7 +734,18 @@ class IMAPFolder(object):
         response = self.imap_server.uid("FETCH", key, "RFC822.HEADER")
         response_data = self.imap_server.check_response(\
             "fetch %s rfc822.header" % (key,), response)
-        data = self.imap_server.extract_fetch_data(response_data[0])
+        data = self.imap_server.extract_fetch_data(response_data)
+        # The data will be a dictionary - hopefully with only one element,
+        # but maybe more than one.  The key is the message number, which we
+        # do not have (we use the UID instead).  So we look through the
+        # message and use the first data of the right type we find.
+        headers = None
+        for msg_data in data.itervalues():
+            if "RFC822.HEADER" in msg_data:
+                headers = msg_data["RFC822.HEADER"]
+                break
+        if headers is None:
+            raise BadIMAPResponseError("FETCH response", response_data)
 
         # Create a new IMAPMessage object, which will be the return value.
         msg = IMAPMessage()
@@ -706,21 +755,6 @@ class IMAPFolder(object):
 
         # We use the MessageID header as the ID for the message, as long
         # as it is available, and if not, we add our own.
-        try:
-            headers = data["RFC822.HEADER"]
-        except KeyError:
-            # This is bad!  We asked for this in the fetch, so either
-            # our parsing is wrong or the response from the server is
-            # wrong.  For the moment, print out some debugging info
-            # and don't do anything else (which means we will keep
-            # coming back to this message).
-            print >> sys.stderr, "Trouble parsing response:", \
-                  response_data, data
-            print >> sys.stderr, "Please report this to spambayes@python.org"
-            if options["globals", "verbose"]:
-                sys.stdout.write("?")
-            return msg
-        
         # Search for our custom id first, for backwards compatibility.
         for id_header_re in [self.custom_header_id_re, self.message_id_re]:
             mo = id_header_re.search(headers)
