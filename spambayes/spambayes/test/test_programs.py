@@ -3,6 +3,7 @@ import sys
 import errno
 import unittest
 import time
+from urllib import urlopen, urlencode
 
 import sb_test_support
 sb_test_support.fix_sys_path()
@@ -19,6 +20,14 @@ from spambayes.Options import options
 default_shutdown_port = options["html_ui", "port"]
 
 verbose = 0
+
+def call_web_function(url, **kw):
+    got = urlopen(url, urlencode(kw)).read()
+    # Very simple - just look for tracebacks
+    if got.find("Traceback (most recent call last)")>=0:
+        print "FAILED calling URL", url
+        print got
+        raise AssertionError, "Opening URL %s appeared to fail" % (url,)
 
 class Spawner:
     def __init__(self, test_case, spawn_args):
@@ -100,13 +109,16 @@ class Spawner_sb_server(Spawner):
         # Copied from sb_server.stop()
         # Shutdown as though through the web UI.  This will save the DB, allow
         # any open proxy connections to complete, etc.
-        from urllib import urlopen, urlencode
-        urlopen('http://localhost:%d/save' % self.shutdown_port,
-                urlencode({'how': 'Save & shutdown'})).read()
+        call_web_function('http://localhost:%d/save' % self.shutdown_port,
+                          how='Save & shutdown')
         # wait for it to stop - 5 secs, 0.25 per check
         for i in range(20):
             time.sleep(0.25)
             if not self.is_running() and not is_any_sb_server_running():
+                # stopped - check the exit code
+                temp_pid, rc = os.waitpid(self.pid, 0)
+                if rc:
+                    self.test_case.fail("sb_server returned exit code %s" % rc)
                 return
         # gave up waiting.
         self.test_case.fail("sb_server appeared to not stop")
@@ -160,6 +172,16 @@ class TestServer(unittest.TestCase):
         self._start_spawner(s)
         self._stop_spawner(s)
 
+    def test_sb_server_restore(self):
+        # Make sure we can do a restore defaults and shutdown without incident.
+        from spambayes.Options import options
+        port = options["html_ui", "port"]
+        s = Spawner_sb_server(self, [], shutdown_port=port)
+        self._start_spawner(s)
+        # do the reload
+        call_web_function('http://localhost:%d/restoredefaults' % port, how='')
+        self._stop_spawner(s)
+
 if sys.platform.startswith("win"):
     import win32service # You need win32all to run the tests!
     import win32serviceutil
@@ -206,10 +228,9 @@ if sys.platform.startswith("win"):
             self._start_service()
             # Should be using the default port from the options file.
             from spambayes.Options import options
-            from urllib import urlopen, urlencode
             port = options["html_ui", "port"]
-            urlopen('http://localhost:%d/save' % port,
-                    urlencode({'how': 'Save & shutdown'})).read()
+            call_web_function ('http://localhost:%d/save' % port,
+                               how='Save & shutdown')
             # wait for it to stop - 5 secs, 0.25 per check
             for i in range(10):
                 time.sleep(0.5)
