@@ -14,6 +14,55 @@ suggesting some improvements to Graham's original approach.
 </ul>
 <p><i>more links? mail anthony at interlink.com.au</i></p>
 
+<h2>Overall Approach</h2>
+<b>Please note that I (Anthony) am writing this based on memory and
+limited understanding of some of the subtler points of the maths. Gentle
+corrections are welcome, or even encouraged.</b>
+<h3>Tokenizing</h3>
+<p>The architecture of the spambayes system has a couple of distinct 
+parts. The first, and most obvious, is the <i>tokenizer</i>. This takes
+a mail message and breaks it up into a series of tokens. At the moment
+it splits words out of the text parts of a message, there's a variety
+of header tokenization that goes on as well. The code in tokenizer.py
+and the comments in the Tokenizer section of Options.py contain more 
+information about various approaches to tokenizing.</p>
+
+<h3>Combining and Scoring</h3>
+<p>The next part of the system is the scoring and combining part. This
+is where the hairy mathematics and statistics come in. </p>
+<p>Initially we started with Paul Graham's original combining scheme - 
+this has a number of "magic numbers" and "fuzz factors" built into it. 
+The Graham combining scheme has a number of problems, aside from the
+magic in the internal fudge factors - it tends to produce scores of 
+either 1 or 0, and there's a very small middle ground in between - it 
+doesn't often claim to be "unsure", and gets it wrong because of this. 
+There's a number of discussions back and forth between Tim Peters and 
+Gary Robinson on this subject in the mailing list archives - I'll try 
+and put links to the relevant threads at some point.</p>
+<p>Gary produced a number of alternative approaches to combining and
+scoring word probabilities. The initial one, after much back and forth
+in the mailing list, is in the code today as 'gary_combining'. A couple
+of other approaches, using the Central Limit Theorem, were also tried.
+They produced interesting output - but histograms of the ham and spam
+distributions had a disturbingly large overlap in the middle. There was
+also an issue with incremental training and untraining of messages that
+made it harder to use in the "real world". These two central limit 
+approaches were dropped after Tim, Gary and Rob Hooft produced a combining
+scheme using chi-squared probabilities. This is now the default combining
+scheme. </p>
+<p>The chi-squared approach produces two numbers - a "ham probability" ("*H*")
+and a "spam probability" ("*S*"). A typical spam will have a high *S*
+and low *H*, while a ham will have high *H* and low *S*. In the case where
+the message looks entirely unlike anything the system's been trained on,
+you can end up with a low *H* and low *S* - this is the code saying "I don't
+know what this message is". So at the end of the processing, you end up 
+with three possible results - "Spam", "Ham", or "Unsure". It's possible to
+tweak the high and low cutoffs for the Unsure window - this trades off 
+unsure messages vs possible false positives or negatives.</P>
+
+<h3>Training</h3>
+<p>TBD</p>
+
 <h2>Mailing list archives</h2>
 <p>There's a lot of background on what's been tried available from
 the mailing list archives. Initially, the discussion started on 
