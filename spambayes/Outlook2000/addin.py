@@ -254,6 +254,7 @@ def ShowClues(mgr, explorer):
     msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
     push(escape(msg.as_string(), True))
     push("</PRE>\n")
+
     # Show all the tokens in the message
     from spambayes.tokenizer import tokenize
     from spambayes.classifier import Set # whatever classifier uses
@@ -263,14 +264,15 @@ def ShowClues(mgr, explorer):
     toks = Set(tokenize(
         msgstore_message.GetEmailPackageObject(strip_mime_headers=True)))
     # create a sorted list
-    toks = [tok for tok in toks]
+    toks = list(toks)
     toks.sort()
-    push("%d unique tokens<br>" % len(toks))
+    push("%d unique tokens<br><br>" % len(toks))
     # Use <code> instead of <pre>, as <pre> is not word-wrapped by IE
     # However, <code> does not require escaping.
     # could use pprint, but not worth it.
     for token in toks:
-        push("<code>" + repr(token) + "</code>, ")
+        push("<code>" + repr(token) + "</code><br>\n")
+
     # Put the body together, then the rest of the message.
     body = ''.join(body)
     new_msg.Subject = "Spam Clues: " + item.Subject
