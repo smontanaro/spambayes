@@ -14,6 +14,14 @@ Author: spambayes
 <li><a href="#unsure">I just got a spam, but the system said it was "unsure". Why couldn't it tell that it was spam - it's obvious?</a></li>
 <li><a href="#stillunsure">OK, I trained on that message. But I just got *another* one, and the stupid system still thinks it's unsure. Why did it ignore me???</a></li>
 <li><a href="#wipetraining">I've mucked up my training and I want to start all over again, but there isn't an option for this anywhere.  What do I do?</a></li>
+<li><a href="#configfiles">I can't use a web browser, so I can't configure
+   pop3proxy/imapfilter.<br />
+   Also: how do I configure hammiefilter and the other applications that
+   don't have a user interface?</a></li>
+<li><a href="#optionstoset">That's great, now I know what the format looks
+   like, but what options do I need to set?</a></li>
+<li><a href="#configlocation">I've made a configuration file, but Spambayes is
+   ignoring it. Now what?</a></li>
 </ol>
 </ol>
 <p>If you have any suggestions about other questions and answers that should be included
@@ -77,3 +85,67 @@ here, please mail <a href="mailto:spambayes@python.org">the list</a> with them.<
    the web interface for the POP3 proxy, the configuration page tells
    you what this file is called (and where it is) down towards the
    bottom of the page.</p>
+
+<h3><a name="#configfiles">I can't use a web browser, so I can't configure
+   pop3proxy/imapfilter.<br />
+   Also: how do I configure hammiefilter and the other applications that
+   don't have a user interface?</a></h3>
+<p>You need to create a configuration file.  This is in the 'standard'
+   ini file format (originally created for Windows 3.1, I believe).  You
+   can find documentation on this format in the Python ConfigParser doc,
+   <a href="http://www.python.org/doc/current/lib/module-ConfigParser.html">
+   http://www.python.org/doc/current/lib/module-ConfigParser.html</a>, but
+   basically, it's just a text file: lines beginning with # are comments,
+   sections start with a line like "[Section Name]", and options are set
+   out within the appropriate section with lines like "opt = val" or
+   "opt: val" (either is ok).  Whitespace other than line endings is for
+   the most part ignored, so you can make it look like whatever you like.
+   You can see a list of what a configuration file of all the defaults
+   would like like if you execute the following Python commands:<br />
+   <pre>
+      >>> from spambayes.Options import options
+      >>> print options.display()
+   </pre></p>
+
+<h3><a name="#optionstoset">That's great, now I know what the format looks
+   like, but what options do I need to set?</a></h3>
+<p>This depends on exactly what you want to do, and which application you
+   are intending to use.  The easiest thing is to execute the following
+   Python commands:<br />
+   <pre>
+      >>> from spambayes.Options import options
+      >>> print options.display_full()
+   </pre>
+   This will print out a complete list of the options, including a
+   description of the option, and its default value.  You can also look up
+   a single section, if you know its name:<br />
+   <pre>
+      >>> print options.display_full("section_name")
+   </pre>
+   Or just a single option:<br />
+   <pre>
+      >>> print options.display_full("section_name", "option_name")
+   </pre>
+   If you want a list of all the sections, you can use this command:<br />
+   <pre>
+      >>> print options.sections()
+   </pre>
+   If you want a list of all the options, you can use this command:<br />
+   <pre>
+      >>> print options.options(prepend_section_name=False)
+   </pre></p>
+
+<h3><a name="#configlocation">I've made a configuration file, but Spambayes is
+   ignoring it. Now what?</a></h3>
+<p>Spambayes looks for your configuration file in three places - if it
+   can't find it, then, obviously, your options will not be loaded.  The
+   first place that Spambayes checks is the environment variable
+   BAYESCUSTOMIZE.  You can set this to the path of your configuration file,
+   wherever it is, and it will be loaded.  You can also specify more than
+   one file, separated by the appropriate path separator for your platform.
+   This is the recommended method of specifying the location of the file,
+   unless you do so via a user interface (as provided by the POP3 proxy,
+   the Outlook plugin, and the IMAP filter). If Spambayes doesn't find
+   anything in the BAYESCUSTOMIZE variable, then it checks the current
+   working directory and your home directory for a bayescustomize.ini or
+   .spambayesrc file (respectively).</p>
