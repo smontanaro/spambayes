@@ -89,11 +89,11 @@ class Hist:
 
 def printhist(tag, ham, spam):
     print
-    print "Ham distribution for", tag
+    print "-> <stat> Ham distribution for", tag,
     ham.display()
 
     print
-    print "Spam distribution for", tag
+    print "-> <stat> Spam distribution for", tag,
     spam.display()
 
 def printmsg(msg, prob, clues):
