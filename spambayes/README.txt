@@ -78,6 +78,10 @@ unheader.py
     A script to remove unwanted headers from an mbox file.  This is mostly
     useful to delete headers which incorrectly might bias the results.
 
+loosecksum.py
+    A script to calculate a "loose" checksum for a message.  See the text of
+    the script for an operational definition of "loose".
+
 mboxcount.py
     Count the number of messages (both parseable and unparseable) in
     mbox archives.
