@@ -9,7 +9,7 @@ import pythoncom
 import win32con
 
 def classify_folder( f, mgr, config, progress):
-    hammie = mgr.hammie
+    hammie = mgr.MakeHammie()
     messages = f.Messages
     pythoncom.CoInitialize() # We are called on a different thread.
     # We must get outlook in this thread - can't use the main thread :(

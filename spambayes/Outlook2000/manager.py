@@ -104,8 +104,10 @@ class BayesManager:
             print ("Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
         self.bayes = bayes
-        self.hammie = hammie.Hammie(bayes)
         self.bayes_dirty = False
+
+    def MakeHammie(self):
+        return hammie.Hammie(self.bayes)
 
     def LoadConfig(self):
         try:

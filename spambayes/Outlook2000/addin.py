@@ -130,11 +130,12 @@ def ShowClues(mgr, app):
     headers = headers.encode('ascii', 'replace')
     body = mapi_message.Text.encode('ascii', 'replace')
     text = headers + body
-    prob, clues = mgr.hammie.score(text, evidence=True)
+    hammie = mgr.MakeHammie()
+    prob, clues = hammie.score(text, evidence=True)
     
     new_msg = app.CreateItem(0)
     body = "<h2>Calculated Probability: %.2f</h2><br>" % (prob,)
-    body += "<pre>" + mgr.hammie.formatclues(clues, "<br>") + "</pre>"
+    body += "<pre>" + hammie.formatclues(clues, "<br>") + "</pre>"
     new_msg.Subject = "Spam Clues: " + item.Subject
     # Stupid outlook always switches to RTF :( Work-around
 ##    new_msg.Body = body

@@ -18,7 +18,8 @@ def filter_message(message, mgr):
         print "Failed to get a message: %s" % (d,)
         return
 
-    prob = mgr.hammie.score(text, evidence=False)
+    hammie = mgr.MakeHammie()
+    prob = hammie.score(text, evidence=False)
     num_rules = 0
     for rule in mgr.config.rules:
         if rule.enabled:
@@ -34,7 +35,6 @@ def filter_message(message, mgr):
 def filter_folder(f, mgr, progress, filter):
     only_unread = filter.only_unread
     num_messages = 0
-    hammie = mgr.hammie
     for message in mgr.YieldMessageList(f):
         if progress.stop_requested():
             break
