@@ -92,7 +92,7 @@ class Stats(object):
             elif m.t == False:
                 self.trn_ham += 1
 
-    def GetStats(self):
+    def GetStats(self, use_html=True):
         if self.total == 0:
             return ["SpamBayes has processed zero messages"]
         chunks = []
@@ -175,6 +175,13 @@ class Stats(object):
                 format_dict[key] = 'was'
             else:
                 format_dict[key] = 'were'
+        # Possibly use HTML for breaks/tabs.
+        if use_html:
+            format_dict["br"] = "<br/>"
+            format_dict["tab"] = "&nbsp;&nbsp;&nbsp;&nbsp;"
+        else:
+            format_dict["br"] = "\r\n"
+            format_dict["tab"] = "\t"
 
 ##        Our result should look something like this:
 ##        (devised by Mark Moraes and Kenny Pitt)
@@ -199,35 +206,35 @@ class Stats(object):
 
         push("SpamBayes has classified a total of " \
              "%(num_seen)d message%(sp1)s:" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(cls_ham)d " \
+             "%(br)s%(tab)s%(cls_ham)d " \
              "(%(perc_cls_ham).0f%% of total) good" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(cls_spam)d " \
+             "%(br)s%(tab)s%(cls_spam)d " \
              "(%(perc_cls_spam).0f%% of total) spam" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(cls_unsure)d " \
+             "%(br)s%(tab)s%(cls_unsure)d " \
              "(%(perc_cls_unsure).0f%% of total) unsure." % \
              format_dict)
         push("%(correct)d message%(sp2)s %(wp1)s classified correctly " \
              "(%(perc_correct).0f%% of total)" \
-             "<br/>%(incorrect)d message%(sp3)s %(wp2)s classified " \
+             "%(br)s%(incorrect)d message%(sp3)s %(wp2)s classified " \
              "incorrectly " \
              "(%(perc_incorrect).0f%% of total)" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(fp)d false positive%(sp4)s " \
+             "%(br)s%(tab)s%(fp)d false positive%(sp4)s " \
              "(%(perc_fp).0f%% of total)" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(fn)d false negative%(sp5)s " \
+             "%(br)s%(tab)s%(fn)d false negative%(sp5)s " \
              "(%(perc_fn).0f%% of total)" % \
              format_dict)
         push("%(trn_unsure_ham)d unsure%(sp6)s trained as good " \
              "(%(unsure_ham_perc).0f%% of unsures)" \
-             "<br/>%(trn_unsure_spam)d unsure%(sp7)s trained as spam " \
+             "%(br)s%(trn_unsure_spam)d unsure%(sp7)s trained as spam " \
              "(%(unsure_spam_perc).0f%% of unsures)" \
-             "<br/>%(not_trn_unsure)d unsure%(sp8)s %(wp3)s not trained " \
+             "%(br)s%(not_trn_unsure)d unsure%(sp8)s %(wp3)s not trained " \
              "(%(unsure_not_perc).0f%% of unsures)" % \
              format_dict)
         push("A total of %(trn_total)d message%(sp9)s have been trained:" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(trn_ham)d good " \
+             "%(br)s%(tab)s%(trn_ham)d good " \
              "(%(trn_perc_ham)0.f%% good, %(trn_perc_unsure_ham)0.f%% " \
              "unsure, %(trn_perc_fp).0f%% false positives)" \
-             "<br/>&nbsp;&nbsp;&nbsp;&nbsp;%(trn_spam)d spam " \
+             "%(br)s%(tab)s%(trn_spam)d spam " \
              "(%(trn_perc_spam)0.f%% spam, %(trn_perc_unsure_spam)0.f%% " \
              "unsure, %(trn_perc_fn).0f%% false negatives)" % \
              format_dict)

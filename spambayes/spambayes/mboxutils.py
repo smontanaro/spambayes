@@ -116,7 +116,7 @@ def get_message(obj):
     Note that we can't use our own message class here, because this
     function is imported by tokenizer, and our message class imports
     tokenizer, so we get a circular import problem.  In any case, this
-    function does need anything that our message class offers, so that
+    function does not need anything that our message class offers, so that
     shouldn't matter.
     """
 

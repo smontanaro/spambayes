@@ -494,7 +494,7 @@ def sbheadermessage_from_string(s, _class=SBHeaderMessage, strict=False):
 # Utility function to insert an exception header into the given RFC822 text.
 # This is used by both sb_server and sb_imapfilter, so it's handy to have
 # it available separately.
-def insert_exception_header(string_msg, msg_id):
+def insert_exception_header(string_msg, msg_id=None):
     """Insert an exception header into the given RFC822 message (as text).
 
     Returns a tuple of the new message text and the exception details."""
@@ -509,12 +509,14 @@ def insert_exception_header(string_msg, msg_id):
     headerName = 'X-Spambayes-Exception'
     header = email.Header.Header(dottedDetails, header_name=headerName)
 
-    # Insert the exception header, and also insert the id header,
+    # Insert the exception header, and optionally also insert the id header,
     # otherwise we might keep doing this message over and over again.
     # We also ensure that the line endings are /r/n as RFC822 requires.
     headers, body = re.split(r'\n\r?\n', string_msg, 1)
     header = re.sub(r'\r?\n', '\r\n', str(header))
-    headers += "\n%s: %s\r\n%s: %s\r\n\r\n" % \
-               (headerName, header,
-                options["Headers", "mailid_header_name"], msg_id)
+    headers += "\n%s: %s\r\n" % \
+               (headerName, header)
+    if msg_id:
+        headers += "%s: %s\r\n" % \
+                   (options["Headers", "mailid_header_name"], msg_id)
     return (headers + body, details)
