@@ -20,6 +20,14 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# Notes on Unicode directory names
+# You will have much more success with extended characters in
+# directory names using Python 2.3.
+try:
+    filesystem_encoding = sys.getfilesystemencoding()
+except AttributeError:
+    filesystem_encoding = "mbcs"
+
 # Work out our "application directory", which is
 # the directory of our main .py/.dll/.exe file we
 # are running from.
@@ -72,7 +80,8 @@ def import_core_spambayes_stuff(ini_filename):
     assert "spambayes.Options" not in sys.modules, \
         "'spambayes.Options' was imported too early"
     global bayes_classifier, bayes_tokenize, bayes_storage
-    os.environ["BAYESCUSTOMIZE"] = ini_filename
+    # ini_filename is Unicode, but environ not unicode aware
+    os.environ["BAYESCUSTOMIZE"] = ini_filename.encode(filesystem_encoding)
     from spambayes import classifier
     from spambayes.tokenizer import tokenize
     from spambayes import storage
@@ -156,12 +165,15 @@ class PickleStorageManager(BasicStorageManager):
 class DBStorageManager(BasicStorageManager):
     db_extension = ".db"
     def open_bayes(self):
-        return bayes_storage.DBDictClassifier(self.bayes_filename)
+        # bsddb doesn't handle unicode filenames yet :(
+        fname = self.bayes_filename.encode(filesystem_encoding)
+        return bayes_storage.DBDictClassifier(fname)
     def close_bayes(self, bayes):
         bayes.db.close()
         bayes.dbm.close()
     def open_mdb(self):
-        return bsddb.hashopen(self.mdb_filename)
+        fname = self.mdb_filename.encode(filesystem_encoding)
+        return bsddb.hashopen(fname)
     def new_mdb(self):
         try:
             os.unlink(self.mdb_filename)
@@ -200,6 +212,15 @@ class BayesManager:
         # use the default Windows data directory for our app.
         value = self.config.general.data_directory
         if value:
+            # until I know otherwise, config files are ASCII - but our
+            # file system is unicode to some degree.
+            # (do config files support encodings at all?)
+            # Assume the file system encoding for file names!
+            try:
+                value = value.decode(filesystem_encoding)
+            except AttributeError: # May already be Unicode
+                pass
+            assert type(value) == type(u''), "%r should be a unicode" % value
             try:
                 if not os.path.isdir(value):
                     os.makedirs(value)
@@ -215,7 +236,7 @@ class BayesManager:
             self.data_directory = value
         else:
             self.data_directory = self.windows_data_directory
-            
+
         # Now we have the data directory, migrate anything needed, and load
         # any config from it.
         self.MigrateDataDirectory()
@@ -417,12 +438,14 @@ class BayesManager:
         try:
             # file-not-found handled gracefully by storage.
             bayes = self.db_manager.open_bayes()
-            print "Loaded bayes database from '%s'" % (self.db_manager.bayes_filename,)
+            fname = self.db_manager.bayes_filename.encode("mbcs", "replace")
+            print "Loaded bayes database from '%s'" % (fname,)
         except:
             self.ReportFatalStartupError("Failed to load bayes database")
         try:
             message_db = self.db_manager.open_mdb()
-            print "Loaded message database from '%s'" % (self.db_manager.mdb_filename,)
+            fname = self.db_manager.mdb_filename.encode("mbcs", "replace")
+            print "Loaded message database from '%s'" % (fname,)
         except IOError:
             pass
         except:
@@ -600,7 +623,7 @@ class BayesManager:
         return self.bayes
 
     def SaveConfig(self):
-        print "Saving configuration ->", self.config_filename
+        print "Saving configuration ->", self.config_filename.encode("mbcs", "replace")
         assert self.config and self.options, "Have no config to save!"
         if self.verbose > 1:
             self.options.display()
