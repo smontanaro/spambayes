@@ -1253,6 +1253,39 @@ present the web interface, is already taken on your machine.  Try using
 port that you know is free and available on your machine.
 
 
+How do I set up SpamBayes and Outlook Express?
+----------------------------------------------
+
+1.  Download the latest version of SpamBayes from `the download page`_.
+2.  Run the installer - you want "sb_server", not the Outlook plug-in.
+3.  Open the SpamBayes configuration page at http://localhost:8880/config (you can do this via the tray application, or just type that address into your browser).
+4.  Enter your POP3 server's name in the top box ("Remote Servers").
+5.  Enter "110" (no quotes) in the second box ("SpamBayes ports").
+6.  Tick the "unsure" and "spam" boxes in the "Notate to" option, about halfway down the page.
+7.  Click the "Save configuration" button at the end of the page.
+8.  Open Outlook Express.
+9.  From the "Tools" menu, choose "Accounts".
+10.  Select your mail account and click "Properties".
+11.  Click the "Servers" tab.
+12.  Change the "incoming mail server" from the name of your POP3 server to "localhost" (no quotes).
+13.  Click "OK".
+14.  Click "Close".
+
+Everything should now be setup.  Try doing a send/receive - mail should
+arrive as normal, but any mail that SpamBayes is unsure about will have
+'unsure,' (1.0.x) or 'unsure@spambayes.invalid' (1.1) in the recipient list, and
+any mail that SpamBayes thinks is spam will have 'spam,' (1.0.x) or
+'spam@spambayes.invalid' (1.1) in the recipient list.  You can use Outlook Express's
+Rules Wizard to create rules that automatically move these messages to
+other folders.
+
+If you have any more queries, please look through the rest of this FAQ,
+and if you can't find the answer, ask `the mailing list`_.
+
+.. _the download page: download.html
+.. _the mailing list: mailto:spambayes@python.org
+
+
 Known Problems & Workarounds
 ============================
 
