@@ -9,7 +9,7 @@ Author: spambayes
  comments on python-dev.
 <li>A rudimentary set of <a href="faq.html">Frequently Asked Questions (FAQ)</a>.</li>
 <li>Instructions on <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">integrating Spambayes</a> into your mail system.</li>
-<li>There're also a vast number of clues and notes scattered as block comments through the code.
+<li>There's also a vast number of clues and notes scattered as block comments through the code.
 </ul>
 
 <h2>Search the mailing lists</h2>
@@ -39,7 +39,7 @@ Author: spambayes
 <dt>f-p, FP<dd>(abbrev.) false positive
 <dt>corpus<dd> in this context, a body of messages. Usually referring to a
 training database. (plural is corpora).
-<dt>hapax, hapax legomenon <dd>a word or form occuring only once in a 
+<dt>hapax, hapax legomenon <dd>a word or form occurring only once in a 
 document or corpus. (plural is hapax legomena).
 <dt>training<dd>The process of feeding spambayes some sample spam and ham messages, to teach it what to look for.
 <dt>Bayesian<dd>A form of statistical analysis used (in a form) in Paul Graham's

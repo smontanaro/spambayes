@@ -384,7 +384,7 @@ servers, if you have more than one email account.
   however you must have either the alpha 3 release, or a recent CVS
   snapshot in order to do so (alpha 2 does not include all the
   necessary features). Because Outlook Express does not let you
-  filter on arbitary headers (like X-Spambayes-Classification),
+  filter on arbitrary headers (like X-Spambayes-Classification),
   pop3proxy must add the classification to the "To:" line, or the
   "Subject" line.
 </p>
@@ -618,7 +618,7 @@ above.
   What do I do?</a>
 </h3>
 <p>
-  Because training from scratch is a very rare occurance, and because
+  Because training from scratch is a very rare occurrence, and because
   deleting all your training information is something you don't want
   to do by accident, there isn't an option for this. However, you can
   quite simply do this manually. All the training data is stored in a
