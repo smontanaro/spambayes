@@ -4,9 +4,7 @@
 
     Convert saved binary pickle of histograms to gnu plot output
 
-"""
-
-"""Usage: %(program)s [options] [histogrampicklefile ...]
+Usage: %(program)s [options] [histogrampicklefile ...]
 
 reads pickle filename from options if not specified
 
@@ -56,10 +54,10 @@ def plot(files):
     cmd.write(globalOptions)
     args = []
     for file in files:
-        args.append("""'-' %s title "%s" """ % (dataSetOptions,file))
+        args.append("""'-' %s title "%s" """ % (dataSetOptions, file))
     cmd.write('plot %s\n' % ",".join(args))
     for file in files:
-        outputHist(loadHist(file),cmd)
+        outputHist(loadHist(file), cmd)
         cmd.write('e\n')
 
     cmd.write('pause 100\n')
