@@ -16,18 +16,26 @@ try:
 except NameError:
     this_filename = os.path.abspath(sys.argv[0])
 
-# This is a little of a hack <wink>.  We are generally in a child directory of the
-# bayes code.  To help installation, we handle the fact that this may not be
-# on sys.path.
-try:
-    import classifier
-except ImportError:
-    parent = os.path.abspath(os.path.join(os.path.dirname(this_filename), ".."))
-    sys.path.insert(0, parent)
-    del parent
-    import classifier
+# This is a little bit of a hack <wink>.  We are generally in a child directory
+# of the bayes code.  To help installation, we handle the fact that this may
+# not be on sys.path.  Note that doing these imports is delayed, so that we
+# can set the BAYESCUSTOMIZE envar first (if we import anything from the core
+# spambayes code before setting that envar, our .ini file may have no effect).
+def import_core_spambayes_stuff(ini_filename):
+    global bayes_classifier, bayes_tokenize
 
-from tokenizer import tokenize
+    os.environ["BAYESCUSTOMIZE"] = ini_filename
+    try:
+        import classifier
+    except ImportError:
+        parent = os.path.abspath(os.path.join(os.path.dirname(this_filename),
+                                              ".."))
+        sys.path.insert(0, parent)
+
+    import classifier
+    from tokenizer import tokenize
+    bayes_classifier = classifier
+    bayes_tokenize = tokenize
 
 # Suck in CDO type lib
 win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}',
@@ -59,6 +67,7 @@ class BayesManager:
         self.outlook = outlook
         os.chdir(cwd)
 
+        import_core_spambayes_stuff(self.ini_filename)
         self.LoadBayes()
 
     # Outlook gives us thread grief :(
@@ -113,8 +122,7 @@ class BayesManager:
                                self.ini_filename, self.bayes_filename))
         bayes = None
         try:
-            os.environ["BAYESCUSTOMIZE"]=self.ini_filename
-            bayes = cPickle.load(open(self.bayes_filename,'rb'))
+            bayes = cPickle.load(open(self.bayes_filename, 'rb'))
             print "Loaded bayes database from '%s'" % (self.bayes_filename,)
         except IOError:
             pass # ignore file-not-found
@@ -160,8 +168,7 @@ class BayesManager:
         return ret
 
     def InitNewBayes(self):
-        os.environ["BAYESCUSTOMIZE"]=self.ini_filename
-        self.bayes = classifier.Bayes()
+        self.bayes = bayes_classifier.Bayes()
         self.bayes_dirty = True
 
     def SaveBayes(self):
@@ -227,7 +234,7 @@ class BayesManager:
             message = messages.GetNext()
 
     def score(self, msg, evidence=False):
-        return self.bayes.spamprob(tokenize(msg), evidence)
+        return self.bayes.spamprob(bayes_tokenize(msg), evidence)
 
 _mgr = None
 
