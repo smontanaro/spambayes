@@ -237,6 +237,12 @@ class BayesManager:
         self.bayes = self.message_db = None
         self.LoadBayes()
 
+    def LogDebug(self, level, *args):
+        if self.verbose >= level:
+            for arg in args[:-1]:
+                print arg,
+            print args[-1]
+
     def ReportError(self, message, title = None):
         ReportError(message, title)
 
@@ -360,9 +366,8 @@ class BayesManager:
             return
             
         folder = msgstore_folder.GetOutlookItem()
-        if self.verbose > 1:
-            print "Checking folder '%s' for our field '%s'" \
-                  % (self.config.general.field_score_name,folder.Name.encode("mbcs", "replace"))
+        self.LogDebug(2, "Checking folder '%s' for our field '%s'" \
+                  % (self.config.general.field_score_name,folder.Name.encode("mbcs", "replace")))
         items = folder.Items
         item = items.GetFirst()
         while item is not None:
@@ -389,8 +394,7 @@ class BayesManager:
                            True, # Add to folder
                            format)
                     item.Save()
-                    if self.verbose > 1:
-                        print "Created the UserProperty!"
+                    self.LogDebug(2, "Created the UserProperty!")
                 except pythoncom.com_error, details:
                     print "Warning: failed to create the Outlook " \
                           "user-property in folder '%s'" \
@@ -430,8 +434,7 @@ class BayesManager:
             self.InitNewBayes()
             bayes = self.bayes
             message_db = self.message_db
-        if self.verbose:
-            print ("Bayes database initialized with "
+        self.LogDebug(0, "Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
         if len(message_db) != bayes.nham + bayes.nspam:
             print "*** - message database has %d messages - bayes has %d - something is screwey" % \
@@ -439,8 +442,7 @@ class BayesManager:
         self.bayes = bayes
         self.message_db = message_db
         self.bayes_dirty = False
-        if self.verbose:
-            print "Loaded databases in %gms" % ((time.clock()-start)*1000)
+        self.LogDebug(1, "Loaded databases in %gms" % ((time.clock()-start)*1000))
 
     def PrepareConfig(self):
         # Load our Outlook specific configuration.  This is done before
@@ -489,6 +491,11 @@ class BayesManager:
         self.config_filename = os.path.join(self.data_directory, profile_name + ".ini")
         # Now load it up
         self._MergeConfigFile(self.config_filename)
+        # Set global verbosity from the options file.
+        self.verbose = self.config.general.verbose
+        if self.verbose:
+            self.LogDebug(self.verbose, "System verbosity set to", self.verbose)
+
         self.MigrateOldPickle()
 
     def MigrateOldPickle(self):
@@ -498,8 +505,7 @@ class BayesManager:
         try:
             f = open(pickle_filename, 'rb')
         except IOError:
-            if self.verbose:
-                print "No old pickle file to migrate"
+            self.LogDebug(1, "No old pickle file to migrate")
             return
         print "Migrating old pickle '%s'" % pickle_filename
         try:
@@ -532,12 +538,9 @@ class BayesManager:
         # Save the config, then delete the pickle so future attempts to
         # migrate will fail.  We save first, so failure here means next
         # attempt should still find the pickle.
-        if self.verbose:
-            print "pickle migration doing initial configuration save"
-        self.SaveConfig()
+        self.LogDebug(1, "pickle migration doing initial configuration save")
         try:
-            if self.verbose:
-                print "pickle migration removing '%s'" % pickle_filename
+            self.LogDebug(1, "pickle migration removing '%s'" % pickle_filename)
             os.remove(pickle_filename)
         except os.error:
             msg = "There was an error migrating and removing your old\r\n" \
@@ -586,8 +589,7 @@ class BayesManager:
             print " ->", self.db_manager.mdb_filename
         self.db_manager.store_mdb(self.message_db)
         self.bayes_dirty = False
-        if self.verbose:
-            print "Saved databases in %gms" % ((time.clock()-start)*1000)
+        self.LogDebug(1, "Saved databases in %gms" % ((time.clock()-start)*1000))
 
     def GetClassifier(self):
         """Return the classifier we're using."""

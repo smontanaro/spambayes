@@ -26,7 +26,7 @@ MSG_READ_STATE = "None", "Read", "Unread"
 
 from spambayes.OptionsClass import OptionsClass, Option
 from spambayes.OptionsClass import RESTORE, DO_NOT_RESTORE
-from spambayes.OptionsClass import BOOLEAN, REAL, PATH
+from spambayes.OptionsClass import BOOLEAN, INTEGER, REAL, PATH
 
 class FolderIDOption(Option):
     def convert(self, value):
@@ -100,6 +100,9 @@ defaults = {
         """When the 'Recover from Spam' function is used, the message 'read' flag can
            also be set.""",
            MSG_READ_STATE, RESTORE),
+    ("verbose", "Changes the verbosity of the debug output from the program", 0,
+        """""",
+        INTEGER, RESTORE),
     ),
     "Training" : (
     (FolderIDOption,

@@ -640,7 +640,7 @@ class ExplorerWithEvents:
 
     # The Outlook event handlers
     def OnActivate(self):
-        #print "OnActivate", self
+        self.manager.LogDebug(2, "OnActivate", self)
         # See comments for OnNewExplorer below.
         # *sigh* - OnActivate seems too early too for Outlook 2000,
         # but Outlook 2003 seems to work here, and *not* the folder switch etc
@@ -650,7 +650,7 @@ class ExplorerWithEvents:
         pass
 
     def OnSelectionChange(self):
-        #print "OnSelChange", self
+        self.manager.LogDebug(2, "OnSelectionChange", self)
         # See comments for OnNewExplorer below.
         if not self.have_setup_ui:
             self.SetupUI()
@@ -658,14 +658,17 @@ class ExplorerWithEvents:
             self.OnFolderSwitch()
 
     def OnClose(self):
-        #print "OnClose", self
+        self.manager.LogDebug(2, "OnClose", self)
         self.explorers_collection._DoDeadExplorer(self)
         self.explorers_collection = None
         self.toolbar = None
         self.close() # disconnect events.
 
+    def OnBeforeFolderSwitch(self, new_folder, cancel):
+        self.manager.LogDebug(2, "OnBeforeFolderSwitch", self)
+
     def OnFolderSwitch(self):
-        #print "OnFolderSwitch", self
+        self.manager.LogDebug(2, "OnFolderSwitch", self)
         # Yet another worm-around for our event timing woes.  This may
         # be the first event ever seen for this explorer if, eg,
         # "Outlook Today" is the initial Outlook view.
@@ -705,8 +708,11 @@ class ExplorerWithEvents:
         if self.but_delete_as is not None:
             self.but_delete_as.Visible = show_delete_as
 
+    def OnBeforeViewSwitch(self, new_view, cancel):
+        self.manager.LogDebug(2, "OnBeforeViewSwitch", self)
+
     def OnViewSwitch(self):
-        #print "OnViewSwitch", self
+        self.manager.LogDebug(2, "OnViewSwitch", self)
         if not self.have_setup_ui:
             self.SetupUI()
 
@@ -923,14 +929,18 @@ class OutlookAddin:
         pass
 
 def RegisterAddin(klass):
+    # prints to help debug binary install issues.
+    print "Starting register"
     import _winreg
     key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER,
                             "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
+    print "Setting values"
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
     _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, "SpamBayes anti-spam tool")
     _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, "SpamBayes")
+    print "Registration complete."
 
 def UnregisterAddin(klass):
     import _winreg
