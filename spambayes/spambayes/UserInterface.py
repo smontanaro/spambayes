@@ -518,46 +518,7 @@ class UserInterface(BaseUserInterface):
         content into a standard mbox file.  Testing if the file is a
         DBX one is very quick (just a matter of checking the first few
         bytes), and should not alter the overall performance."""
-
-        dbxStream = StringIO.StringIO(content)
-        header = oe_mailbox.dbxFileHeader(dbxStream)
-
-        if header.isValid() and header.isMessages():
-            file_info_len = oe_mailbox.dbxFileHeader.FH_FILE_INFO_LENGTH
-            fh_entries = oe_mailbox.dbxFileHeader.FH_ENTRIES
-            fh_ptr = oe_mailbox.dbxFileHeader.FH_TREE_ROOT_NODE_PTR
-
-            info = oe_mailbox.dbxFileInfo(dbxStream,
-                                          header.getEntry(file_info_len))
-            entries = header.getEntry(fh_entries)
-            address = header.getEntry(fh_ptr)
-
-            if address and entries:
-                tree = oe_mailbox.dbxTree(dbxStream, address, entries)
-                dbxBuffer = ""
-
-                for i in range(entries):
-                    address = tree.getValue(i)
-                    messageInfo = oe_mailbox.dbxMessageInfo(dbxStream,
-                                                            address)
-
-                    if messageInfo.isIndexed(\
-                        oe_mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS):
-                        address = oe_mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS
-                        messageAddress = \
-                                       messageInfo.getValueAsLong(address)
-                        message = oe_mailbox.dbxMessage(dbxStream,
-                                                        messageAddress)
-
-                        # This fakes up a from header to conform to mbox
-                        # standards.  It would be better to extract this
-                        # data from the message itself, as this will
-                        # result in incorrect tokens.
-                        dbxBuffer += "From spambayes@spambayes.org %s\n%s" \
-                                     % (strftime("%a %b %d %H:%M:%S MET %Y",
-                                                 gmtime()), message.getText())
-                content = dbxBuffer
-        dbxStream.close()
+        content = oe_mailbox.convertToMbox(content)
         return content
 
     def _convertUploadToMessageList(self, content):
@@ -650,6 +611,9 @@ class UserInterface(BaseUserInterface):
         html.mainContent = self.html.configForm.clone()
         html.mainContent.configFormContent = ""
         html.mainContent.optionsPathname = optionsPathname
+        return self._buildConfigPageBody(html, parm_map)
+
+    def _buildConfigPageBody(self, html, parm_map):
         configTable = None
         section = None
 
@@ -715,10 +679,10 @@ class UserInterface(BaseUserInterface):
                         newOption.input_box.name = html_key
                     # Tim thinks that Yes/No makes more sense than True/False
                     if options.is_boolean(sect, opt):
-                        if val == False:
-                            val = "No"
-                        elif val == True:
+                        if val is True:
                             val = "Yes"
+                        elif val is False:
+                            val = "No"
                     newOption.val_label = str(val)
                     newOption.input_box.value = str(val)
                     if firstOpt:
