@@ -648,7 +648,7 @@ html_re = re.compile(r"""
 #   Received: (from itin@localhost)
 #       by manatee.mojam.com (8.12.1-20030917/8.12.1/Submit) id hBIEQFxF018044
 #       for skip@manatee.mojam.com; Thu, 18 Dec 2003 08:26:15 -0600
-received_host_re = re.compile(r'from ([a-zA-Z0-9._-]+[a-zA-Z])[)\s]')
+received_host_re = re.compile(r'from ([a-z0-9._-]+[a-z])[)\s]')
 # 99% of the time, the receiving host places the sender's ip address in
 # square brackets as it should, but every once in awhile it turns up in
 # parens.  Yahoo seems to be guilty of this minor infraction:
@@ -1092,6 +1092,8 @@ class URLStripper(Stripper):
                 pushclue("url:" + chunk)
         return tokens
 
+received_complaints_re = re.compile(r'\([a-z]+(?:\s+[a-z]+)+\)')
+
 class SlurpingURLStripper(URLStripper):
     def __init__(self):
         URLStripper.__init__(self)
@@ -1451,18 +1453,19 @@ class Tokenizer:
         # Neil Schemenauer reports good results from this.
         if options["Tokenizer", "mine_received_headers"]:
             for header in msg.get_all("received", ()):
-                # Sendmail adds a chit to Received: headers if it thinks
-                # the sender is forging its identity.  That seems to be
-                # a pretty reliable spam clue.  I'll leave it for others
-                # to decide if this should be pulled outside the check
-                # for mine_received_headers.
-                if header.lower().find('may be forged') != -1:
-                    yield 'received:may be forged'
+                # everything here should be case insensitive and not be
+                # split across continuation lines, so normalize whitespace
+                # and letter case just once per header
+                header = ' '.join(header.split()).lower()
+
+                for clue in received_complaints_re.findall(header):
+                    yield 'received:' + clue
+
                 for pat, breakdown in [(received_host_re, breakdown_host),
                                        (received_ip_re, breakdown_ipaddr)]:
                     m = pat.search(header)
                     if m:
-                        for tok in breakdown(m.group(1).lower()):
+                        for tok in breakdown(m.group(1)):
                             yield 'received:' + tok
 
         # Date:
