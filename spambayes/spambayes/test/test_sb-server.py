@@ -13,7 +13,7 @@ other testing purposes.
 
 Usage:
 
-    pop3proxytest.py [options]
+    test_sb-server.py [options]
 
         options:
             -z      : Runs a self-test and exits.
