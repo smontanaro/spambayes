@@ -19,16 +19,12 @@ class Test:
     #             false_negatives(), and false_positives()
 
     def __init__(self, classifier):
-        self.set_classifier(classifier, 0, 0)
+        self.set_classifier(classifier)
         self.reset_test_results()
 
-    # Tell the tester which classifier to use, and how many ham and spam it's
-    # been trained on.
-    def set_classifier(self, classifier, nham, nspam):
+    # Tell the tester which classifier to use.
+    def set_classifier(self, classifier):
         self.classifier = classifier
-        # The number of ham and spam instances in the training data.
-        self.nham = nham
-        self.nspam = nspam
 
     def reset_test_results(self):
         # The number of ham and spam instances tested.
@@ -52,11 +48,9 @@ class Test:
         if hamstream is not None:
             for example in hamstream:
                 learn(example, False, False)
-                self.nham += 1
         if spamstream is not None:
             for example in spamstream:
                 learn(example, True, False)
-                self.nspam += 1
         self.classifier.update_probabilities()
 
     # Untrain the classifier on streams of ham and spam.  Updates
@@ -67,11 +61,9 @@ class Test:
         if hamstream is not None:
             for example in hamstream:
                 unlearn(example, False, False)
-                self.nham -= 1
         if spamstream is not None:
             for example in spamstream:
                 unlearn(example, True, False)
-                self.nspam -= 1
         self.classifier.update_probabilities()
 
     # Run prediction on each sample in stream.  You're swearing that stream

@@ -11,6 +11,8 @@
 #         Loop:
 #             test(ham, spam)
 #         # Display stats against all runs on this classifier variant.
+#         # This also saves the trained classifer, if desired (option
+#         # save_trained_pickles).
 #         finishtest()
 # # Display stats against all runs.
 # alldone()
@@ -85,40 +87,33 @@ class Driver:
         self.falseneg = Set()
         self.global_ham_hist = Hist(options.nbuckets)
         self.global_spam_hist = Hist(options.nbuckets)
-        self.ntimes_train_called = 0
+        self.ntimes_finishtest_called = 0
 
     def train(self, ham, spam):
-        self.classifier = classifier.GrahamBayes()
-        t = self.tester = Tester.Test(self.classifier)
+        c = self.classifier = classifier.GrahamBayes()
+        t = self.tester = Tester.Test(c)
 
         print "Training on", ham, "&", spam, "...",
         t.train(ham, spam)
-        print t.nham, "hams &", t.nspam, "spams"
-        self.orig_nham = t.nham
-        self.orig_nspam = t.nspam
+        print c.nham, "hams &", c.nspam, "spams"
 
         self.trained_ham_hist = Hist(options.nbuckets)
         self.trained_spam_hist = Hist(options.nbuckets)
 
-        self.ntimes_train_called += 1
-        if options.save_trained_pickles:
-            fname = "%s%d.pik" % (options.pickle_basename,
-                                  self.ntimes_train_called)
-            print "    saving pickle to", fname
-            fp = file(fname, 'wb')
-            pickle.dump(self.classifier, fp, 1)
-            fp.close()
-
     def forget(self, ham, spam):
-        c = self.classifier
-        t = self.tester
-        nham, nspam = self.orig_nham, self.orig_nspam
-        t.set_classifier(c.copy(), nham, nspam)
+        import copy
 
         print "Forgetting", ham, "&", spam, "...",
-        t.untrain(ham, spam)
-        print nham - t.nham, "hams &", nspam - t.nspam, "spams"
+        c = self.classifier
+        nham, nspam = c.nham, c.nspam
+        c = copy.deepcopy(c)
+        t.set_classifier(c)
 
+        self.tester.untrain(ham, spam)
+        print nham - c.nham, "hams &", nspam - c.nspam, "spams"
+
+        self.global_ham_hist += self.trained_ham_hist
+        self.global_spam_hist += self.trained_spam_hist
         self.trained_ham_hist = Hist(options.nbuckets)
         self.trained_spam_hist = Hist(options.nbuckets)
 
@@ -128,6 +123,15 @@ class Driver:
                       self.trained_ham_hist, self.trained_spam_hist)
         self.global_ham_hist += self.trained_ham_hist
         self.global_spam_hist += self.trained_spam_hist
+
+        self.ntimes_finishtest_called += 1
+        if options.save_trained_pickles:
+            fname = "%s%d.pik" % (options.pickle_basename,
+                                  self.ntimes_finishtest_called)
+            print "    saving pickle to", fname
+            fp = file(fname, 'wb')
+            pickle.dump(self.classifier, fp, 1)
+            fp.close()
 
     def alldone(self):
         if options.show_histograms:
