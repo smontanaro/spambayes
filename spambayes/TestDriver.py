@@ -1,12 +1,16 @@
 # Loop:
-#     # Set up a new base classifier for testing.
-#     train(ham, spam)
+#     Optional:
+#         # Set up a new base classifier for testing.
+#         new_classifier()
 #     # Run tests against (possibly variants of) this classifier.
 #     Loop:
-#         Optional:
-#             # Forget training for some subset of ham and spam.  This
-#             # works against the base classifier trained at the start.
-#             forget(ham, spam)
+#         Loop:
+#             Optional:
+#                 # train on more ham and spam
+#                 train(ham, spam)
+#             Optional:
+#                 # Forget training for some subset of ham and spam.
+#                 untrain(ham, spam)
 #         # Predict against other data.
 #         Loop:
 #             test(ham, spam)
@@ -88,34 +92,27 @@ class Driver:
         self.global_ham_hist = Hist(options.nbuckets)
         self.global_spam_hist = Hist(options.nbuckets)
         self.ntimes_finishtest_called = 0
+        self.new_classifier()
+
+    def new_classifier(self):
+        c = self.classifier = classifier.GrahamBayes()
+        self.tester = Tester.Test(c)
+        self.trained_ham_hist = Hist(options.nbuckets)
+        self.trained_spam_hist = Hist(options.nbuckets)
 
     def train(self, ham, spam):
-        c = self.classifier = classifier.GrahamBayes()
-        t = self.tester = Tester.Test(c)
-
-        print "Training on", ham, "&", spam, "...",
-        t.train(ham, spam)
-        print c.nham, "hams &", c.nspam, "spams"
-
-        self.trained_ham_hist = Hist(options.nbuckets)
-        self.trained_spam_hist = Hist(options.nbuckets)
-
-    def forget(self, ham, spam):
-        import copy
-
-        print "    forgetting", ham, "&", spam, "...",
+        print "-> Training on", ham, "&", spam, "...",
         c = self.classifier
         nham, nspam = c.nham, c.nspam
-        c = copy.deepcopy(c)
-        self.tester.set_classifier(c)
+        self.tester.train(ham, spam)
+        print c.nham - nham, "hams &", c.nspam- nspam, "spams"
 
+    def untrain(self, ham, spam):
+        print "-> Forgetting", ham, "&", spam, "...",
+        c = self.classifier
+        nham, nspam = c.nham, c.nspam
         self.tester.untrain(ham, spam)
         print nham - c.nham, "hams &", nspam - c.nspam, "spams"
-
-        self.global_ham_hist += self.trained_ham_hist
-        self.global_spam_hist += self.trained_spam_hist
-        self.trained_ham_hist = Hist(options.nbuckets)
-        self.trained_spam_hist = Hist(options.nbuckets)
 
     def finishtest(self):
         if options.show_histograms:
@@ -123,6 +120,8 @@ class Driver:
                       self.trained_ham_hist, self.trained_spam_hist)
         self.global_ham_hist += self.trained_ham_hist
         self.global_spam_hist += self.trained_spam_hist
+        self.trained_ham_hist = Hist(options.nbuckets)
+        self.trained_spam_hist = Hist(options.nbuckets)
 
         self.ntimes_finishtest_called += 1
         if options.save_trained_pickles:
@@ -162,17 +161,20 @@ class Driver:
                 printmsg(msg, prob, clues)
 
         t.reset_test_results()
-        print "    testing against", ham, "&", spam, "...",
+        print "-> Predicting", ham, "&", spam, "..."
         t.predict(spam, True, new_spam)
         t.predict(ham, False, new_ham)
-        print t.nham_tested, "hams &", t.nspam_tested, "spams"
+        print "-> <stat> tested", t.nham_tested, "hams &", t.nspam_tested, \
+              "spams against", c.nham, "hams &", c.nspam, "spams"
 
-        print "    false positive:", t.false_positive_rate()
-        print "    false negative:", t.false_negative_rate()
+        print "-> <stat> false positive %:", t.false_positive_rate()
+        print "-> <stat> false negative %:", t.false_negative_rate()
 
         newfpos = Set(t.false_positives()) - self.falsepos
         self.falsepos |= newfpos
-        print "    new false positives:", [e.tag for e in newfpos]
+        print "-> <stat> %d new false positives" % len(newfpos)
+        if newfpos:
+            print "    new fp:", [e.tag for e in newfpos]
         if not options.show_false_positives:
             newfpos = ()
         for e in newfpos:
@@ -182,7 +184,9 @@ class Driver:
 
         newfneg = Set(t.false_negatives()) - self.falseneg
         self.falseneg |= newfneg
-        print "    new false negatives:", [e.tag for e in newfneg]
+        print "-> <stat> %d new false negatives" % len(newfneg)
+        if newfneg:
+            print "    new fn:", [e.tag for e in newfneg]
         if not options.show_false_negatives:
             newfneg = ()
         for e in newfneg:

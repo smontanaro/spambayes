@@ -73,7 +73,7 @@ class MsgStream(object):
         all = os.listdir(directory)
         random.seed(hash(directory))
         random.shuffle(all)
-        for fname in all[-1500:-1000:]:
+        for fname in all[-1500:-1300:]:
             yield Msg(directory, fname)
 
     def __iter__(self):
@@ -88,6 +88,7 @@ def drive(nsets):
 
     d = Driver()
     for spamdir, hamdir in spamhamdirs:
+        d.new_classifier()
         d.train(MsgStream(hamdir), MsgStream(spamdir))
         for sd2, hd2 in spamhamdirs:
             if (sd2, hd2) == (spamdir, hamdir):

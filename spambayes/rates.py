@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-rates.py basename
+rates.py basename ...
 
 Assuming that file
 
@@ -18,22 +18,22 @@ will display stuff for as far as the output file has gotten so far.
 Two of these summary files can later be fed to cmp.py.
 """
 
-import re
 import sys
 
 """
-Training on Data/Ham/Set1 & Data/Spam/Set1 ... 4000 hams & 2750 spams
-    testing against Data/Ham/Set2 & Data/Spam/Set2 ... 4000 hams & 2750 spams
-    false positive: 0.025
-    false negative: 1.34545454545
-    new false positives: ['Data/Ham/Set2/66645.txt']
+-> Training on Data/Ham/Set2-3 & Data/Spam/Set2-3 ... 8000 hams & 5500 spams
+-> Predicting Data/Ham/Set1 & Data/Spam/Set1 ...
+-> <stat> tested 4000 hams & 2750 spams against 8000 hams & 5500 spams
+-> <stat> false positive %: 0.025
+-> <stat> false negative %: 0.327272727273
+-> <stat> 1 new false positives
 """
-pat1 = re.compile(r'\s*Training on ').match
-pat2 = re.compile(r'\s+false (positive|negative): (.*)').match
-pat3 = re.compile(r"\s+new false (positives|negatives): \[(.+)\]").match
 
 def doit(basename):
     ifile = file(basename + '.txt')
+    interesting = filter(lambda line: line.startswith('-> '), ifile)
+    ifile.close()
+
     oname = basename + 's.txt'
     ofile = file(oname, 'w')
     print basename, '->', oname
@@ -43,42 +43,50 @@ def doit(basename):
         print msg
         print >> ofile, msg
 
-    nfn = nfp = 0
+    ntests = nfn = nfp = 0
+    sumfnrate = sumfprate = 0.0
     ntrainedham = ntrainedspam = 0
-    for line in ifile:
-        "Training on Data/Ham/Set1 & Data/Spam/Set1 ... 4000 hams & 2750 spams"
-        m = pat1(line)
-        if m:
-            dump(line[:-1])
-            fields = line.split()
+
+    for line in interesting:
+        dump(line[:-1])
+        fields = line.split()
+
+        # 0      1      2    3    4 5    6                 -5  -4 -3   -2    -1
+        #-> <stat> tested 4000 hams & 2750 spams against 8000 hams & 5500 spams
+        if line.startswith('-> <stat> tested '):
             ntrainedham += int(fields[-5])
             ntrainedspam += int(fields[-2])
+            ntests += 1
             continue
 
-        "false positive: 0.025"
-        "false negative: 1.34545454545"
-        m = pat2(line)
-        if m:
-            kind, guts = m.groups()
-            guts = float(guts)
+        #  0      1     2        3
+        # -> <stat> false positive %: 0.025
+        # -> <stat> false negative %: 0.327272727273
+        if line.startswith('-> <stat> false '):
+            kind = fields[3]
+            percent = float(fields[-1])
             if kind == 'positive':
-                lastval = guts
+                sumfprate += percent
+                lastval = percent
             else:
-                dump('    %7.3f %7.3f' % (lastval, guts))
+                sumfnrate += percent
+                dump('    %7.3f %7.3f' % (lastval, percent))
             continue
 
-        "new false positives: ['Data/Ham/Set2/66645.txt']"
-        m = pat3(line)
-        if m:   # note that it doesn't match at all if the list is "[]"
-            kind, guts = m.groups()
-            n = len(guts.split())
+        #  0      1 2   3     4         5
+        # -> <stat> 1 new false positives
+        if fields[3] == 'new' and fields[4] == 'false':
+            kind = fields[-1]
+            count = int(fields[2])
             if kind == 'positives':
-                nfp += n
+                nfp += count
             else:
-                nfn += n
+                nfn += count
 
-    dump('total false pos', nfp, nfp * 1e2 / ntrainedham)
-    dump('total false neg', nfn, nfn * 1e2 / ntrainedspam)
+    dump('total unique false pos', nfp)
+    dump('total unique false neg', nfn)
+    dump('average fp %', sumfprate / ntests)
+    dump('average fn %', sumfnrate / ntests)
 
 for name in sys.argv[1:]:
     doit(name)

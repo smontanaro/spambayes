@@ -13,7 +13,8 @@ make genuine algorithm improvements.  I think we've done quite well at
 that so far.  The focus of this codebase may change to small/fast
 later -- as is, the false positive rate has gotten too small to measure
 reliably across test sets with 4000 hams + 2750 spams, but the false
-negative rate is still over 1%.
+negative rate is still over 1%.  Later:  the f-n rate has also gotten
+too small to measure reliably across that much training data.
 
 The code here depends in various ways on the latest Python from CVS
 (a.k.a. Python 2.3a0 :-).
@@ -46,12 +47,10 @@ Tester.py
     of false positives and false negatives.
 
 TestDriver.py
-    A higher layer of test helpers, building on Tester above.  It's
-    quite usable as-is for building simple test drivers, and more
-    complicated ones up to NxN test grids.  It's in the process of being
-    extended to allow easy building of N-way cross validation drivers
-    (the trick to that is doing so efficiently).  See also rates.py
-    and cmp.py below.
+    A flexible higher layer of test helpers, building on Tester above.
+    For example, it's usable for building simple test drivers, NxN test
+    grids, and N-fold cross validation drivers.  See also rates.py and
+    cmp.py below.
 
 
 Apps
@@ -70,7 +69,7 @@ mboxtest.py
 timtest.py
     A concrete test driver like mboxtest.py, but working with "a
     standard" test data setup (see below) rather than the specialized
-    mboxtest setup.
+    mboxtest setup.  This runs an NxN test grid, skipping the diagonal.
 
 timcv.py
     A first stab at an N-fold cross-validating test driver.  Assumes
@@ -81,13 +80,14 @@ timcv.py
 Test Utilities
 ==============
 rates.py
-    Scans the output (so far) from timtest.py, and captures summary
-    statistics.
+    Scans the output (so far) produced by TestDriver.Drive(), and captures
+    summary statistics.
 
 cmp.py
     Given two summary files produced by rates.py, displays an account
     of all the f-p and f-n rates side-by-side, along with who won which
-    (etc), and the change in total # of f-ps and f-n.
+    (etc), the change in total # of unique false positives and negatives,
+    and the change in average f-p and f-n rates.
 
 
 Test Data Utilities
@@ -126,12 +126,6 @@ rebal.py
 
 Standard Test Data Setup
 ========================
-[Caution:  I'm going to switch this to support N-way cross validation,
- instead of an NxN test grid.  The only effect on the directory structure
- here is that you'll want more directories with fewer msgs in each
- (splitting the data at random into 10 pairs should work very well).
-]
-
 Barry gave me mboxes, but the spam corpus I got off the web had one spam
 per file, and it only took two days of extreme pain to realize that one msg
 per file is enormously easier to work with when testing:  you want to split
@@ -141,6 +135,9 @@ etc -- even pasting examples into email is much easier when it's one msg
 per file (and the test driver makes it easy to print a msg's file path).
 
 The directory structure under my spambayes directory looks like so:
+[But due to a better testing infrastructure, I'm going to spread this
+ across 20 subdirectories under Spam and under Ham, and use groups
+ of 10 for 10-fold cross validation]
 
 Data/
     Spam/
@@ -158,11 +155,11 @@ Data/
         reservoir/ (contains "backup ham")
 
 If you use the same names and structure, huge mounds of the tedious testing
-code will work as-is.  The more Set directories the merrier, although
-you'll hit a point of diminishing returns if you exceed 10.  The "reservoir"
-directory contains a few thousand other random hams.  When a ham is found
-that's really spam, I delete it, and then the rebal.py utility moves in a
-message at random from the reservoir to replace it.  If I had it to do over
+code will work as-is.  The more Set directories the merrier, although you
+want at least a few hundred messages in each one.  The "reservoir" directory
+contains a few thousand other random hams.  When a ham is found that's
+really spam, I delete it, and then the rebal.py utility moves in a message
+at random from the reservoir to replace it.  If I had it to do over
 again, I think I'd move such spam into a Spam set (chosen at random),
 instead of deleting it.
 
@@ -171,9 +168,19 @@ The spams are essentially all of Bruce Guenter's 2002 spam archive:
 
     <http://www.em.ca/~bruceg/spam/>
 
-The sets are grouped into 5 pairs in the obvious way:  Spam/Set1 with
+The sets are grouped into pairs in the obvious way:  Spam/Set1 with
 Ham/Set1, and so on.  For each such pair, timtest trains a classifier on
 that pair, then runs predictions on each of the other 4 pairs.  In effect,
 it's a 5x5 test grid, skipping the diagonal.  There's no particular reason
 to avoid predicting against the same set trained on, except that it
 takes more time and seems the least interesting thing to try.
+
+Later, support for N-fold cross validation testing was added, which allows
+more accurate measurement of error rates with smaller amounts of training
+data.  That's recommended now.
+
+CAUTION:  The parititioning of your corpora across directories should
+be random.  If it isn't, bias creeps in to the test results.  This is
+usually screamingly obvious under the NxN grid method (rates vary by a
+factor of 10 or more across training sets, and even within runs against
+a single training set), but harder to spot using N-fold c-v.

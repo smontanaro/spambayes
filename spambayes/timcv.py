@@ -76,19 +76,29 @@ def drive(nsets):
     spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
 
     d = Driver()
-    # Train it on all the data.
-    d.train(MsgStream("%s-%d" % (hamdirs[0], nsets), hamdirs),
-            MsgStream("%s-%d" % (spamdirs[0], nsets), spamdirs))
+    # Train it on all sets except the first.
+    d.train(MsgStream("%s-%d" % (hamdirs[1], nsets), hamdirs[1:]),
+            MsgStream("%s-%d" % (spamdirs[1], nsets), spamdirs[1:]))
 
-    # Now run nsets times, removing one pair per run.
+    # Now run nsets times, predicting pair i against all except pair i.
     for i in range(nsets):
         h = hamdirs[i]
         s = spamdirs[i]
         hamstream = MsgStream(h, [h])
         spamstream = MsgStream(s, [s])
-        d.forget(hamstream, spamstream)
+
+        if i > 0:
+            # Forget this set.
+            d.untrain(hamstream, spamstream)
+
+        # Predict this set.
         d.test(hamstream, spamstream)
         d.finishtest()
+
+        if i < nsets - 1:
+            # Add this set back in.
+            d.train(hamstream, spamstream)
+
     d.alldone()
 
 if __name__ == "__main__":

@@ -165,6 +165,7 @@ def main(args):
     driver = Driver()
 
     for iham, ispam in testsets:
+        driver.new_classifier()
         driver.train(mbox(ham, iham), mbox(spam, ispam))
         for ihtest, istest in testsets:
             if (iham, ispam) == (ihtest, istest):
