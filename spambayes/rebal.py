@@ -127,8 +127,8 @@ def main(args):
         return 1
 
     # weak check against mixing ham and spam
-    if ("Ham" in setpfx and "Spam" in resdir or
-        "Spam" in setpfx and "Ham" in resdir):
+    if (setpfx.find("Ham") >= 0 and resdir.find("Spam") >= 0 or
+        setpfx.find("Spam") >= 0 and resdir.find("Ham") >= 0):
         yn = raw_input("Reservoir and Set dirs appear not to match. "
                        "Continue? (y/n) ")
         if yn.lower()[0:1] != 'y':
