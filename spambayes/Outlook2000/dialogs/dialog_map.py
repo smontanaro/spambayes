@@ -188,7 +188,7 @@ class TabProcessor(ControlProcessor):
             template = self.window.manager.dialog_parser.dialogs[page_id]
             self.addPage(index, page_id, template[0][0])
         self.switchToPage(0)
-        print "TabProcessor init"
+
     def Done(self):
         print "TabProcessor Done"
         if self.currentPageHwnd is not None:
@@ -247,7 +247,7 @@ def ResetConfig(window):
                "It will not reset the folders you have selected, nor your\r\n" \
                "training information, but all other options will be reset\r\n" \
                "and SpamBayes will need to be re-enabled before it will\r\n" \
-               "continuefiltering.\r\n\r\n" \
+               "continue filtering.\r\n\r\n" \
                "Are you sure you wish to reset all options?"
     flags = win32con.MB_ICONQUESTION | win32con.MB_YESNO | win32con.MB_DEFBUTTON2
     if win32gui.MessageBox(window.hwnd,
@@ -391,10 +391,6 @@ dialog_map = {
         (TrainingStatusProcessor, "IDC_TRAINING_STATUS"),
         (FilterEnableProcessor,   "IDC_BUT_FILTER_ENABLE", "Filter.enabled"),
         (FilterStatusProcessor,   "IDC_FILTER_STATUS"),
-        (DialogCommand,           "IDC_BUT_FILTER_NOW", "IDD_FILTER_NOW"),
-        (DialogCommand,           "IDC_BUT_FILTER_DEFINE", "IDD_FILTER"),
-        (DialogCommand,           "IDC_BUT_TRAIN_NOW", "IDD_TRAINING"),
-        (DialogCommand,           "IDC_ADVANCED_BTN", "IDD_ADVANCED"),
         (ShowWizardCommand,       "IDC_BUT_WIZARD", "IDD_WIZARD"),
         (CommandButtonProcessor,  "IDC_BUT_RESET", ResetConfig, ()),
         ),
@@ -478,11 +474,12 @@ dialog_map = {
          WizardFinish),
         ),
     "IDD_WIZARD_WELCOME": (
-        (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
+        (CommandButtonProcessor,  "IDC_BUT_ABOUT", ShowAbout, ()),
         (RadioButtonProcessor,    "IDC_BUT_PREPARATION", "Wizard.preparation"),
         ),
     "IDD_WIZARD_TRAINING_IS_IMPORTANT" : (
         (BoolButtonProcessor,     "IDC_BUT_TRAIN IDC_BUT_UNTRAINED",    "Wizard.will_train_later"),
+        (CommandButtonProcessor,  "IDC_BUT_ABOUT", ShowAbout, ()),
     ),
     "IDD_WIZARD_FOLDERS_REST": (
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
