@@ -196,7 +196,7 @@ class Message(email.Message.Message):
             self.c = 's'
         elif cls == options.header_ham_string:
             self.c = 'h'
-        else
+        else:
             self.c = 'u'
 
         self.modified()
