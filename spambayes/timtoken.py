@@ -1,7 +1,6 @@
 import re
 
 import email
-from email import message_from_string
 
 from sets import Set
 
@@ -554,14 +553,19 @@ def crack_content_xyz(msg):
         if x is not None:
             yield 'content-transfer-encoding:' + x.lower()
 
-def tokenize(string):
+def tokenize(obj):
     # Create an email Message object.
-    try:
-        msg = message_from_string(string)
-    except email.Errors.MessageParseError:
-        yield 'control: MessageParseError'
-        # XXX Fall back to the raw body text?
-        return
+    if isinstance(obj, email.Message.Message):
+        msg = obj
+    elif hasattr(obj, "readline"):
+        msg = email.message_from_file(obj)
+    else:
+        try:
+            msg = email.message_from_string(obj)
+        except email.Errors.MessageParseError:
+            yield 'control: MessageParseError'
+            # XXX Fall back to the raw body text?
+            return
 
     # Special tagging of header lines.
     # XXX TODO Neil Schemenauer has gotten a good start on this (pvt email).
