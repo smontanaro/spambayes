@@ -4,112 +4,238 @@
   <title>About SpamBayes</title>
 </head>
 <body>
-<h1>SpamBayes Outlook Plugin<br>
-</h1>
-<span style="font-style: italic;">NOTE: This is very very early code.
-&nbsp;If you are looking at this, you have probably been told about it
-against our better judgement &lt;wink&gt;. &nbsp;Stuff doesnt work
-correctly. &nbsp;If you want something known to work well today for alot
-of people, this is not for you.</span> &nbsp;That said, this plug-in
-works amazingly well! So welcome aboard.<span
- style="font-style: italic;"><br>
-</span><br style="font-style: italic;">
-This spam filter uses Bayesian analysis to filter spam. &nbsp;Unlike
-other spam detection systems, Bayesian systems actually "learn" about
-what you consider spam, and continually adapt as both your regular email
-and spam patterns change. The source code is maintained at <a
- href="http://spambayes.sourceforge.net">SourceForge</a>.<br>
+<h1>SpamBayes Outlook Plugin</h1>
 <br>
-Here you can find information on:<br>
-<div style="margin-left: 40px;"><a href="#Training">Training</a><br>
-<a href="#Field">Viewing the Spam Score field</a><br>
-</div>
-<h2><a name="Training"></a>Training</h2>
-Due to the nature of the system, it must be trained before it can be
-effective. &nbsp;Although the system does learn over time, when first
-installed it has no knowledge of either spam or good email.<br>
-<h3>Initial Training</h3>
-When first installed, it is recommended you perform the following steps:<br>
+This plugin provides a spam filter based on statistical analysis of
+your personal mail. &nbsp;Unlike other spam detection systems, SpamBayes
+actually learns what you consider spam, and continually adapts as both
+your regular email and spam patterns change.&nbsp; There are no builtin
+rules, so anything you consider spam will be treated as spam by this
+system, even if it does not conform to the traditional definitions of
+spam.<br>
+<br>
+Some time must be spent configuring the system, and performing initial
+training.&nbsp; Once this has been completed, you will find the filter
+amazingly effective and making very few errors.<br>
+<br>
+Bear in mind that this is an early version, and there are plenty of
+things to improve, particularly related to the initial configuration and
+training process.&nbsp; Please bear with us.&nbsp; This is free
+software, so your help is needed - please see the <a
+ href="http://spambayes.sourceforge.net">main project page</a> for
+information.<br>
+<br>
+If you want a better picture of how the plugin actually operates, see <a
+ href="#Using_the_plugin">using the plugin</a>.&nbsp; Also here you
+will find information on:<br>
 <ul>
-  <li>Create two folders - one for "Spam", and one for "Possible Spam"</li>
-  <li>Go through your Inbox and Deleted Items, and move as much spam as
-you can find to the "Spam" folder. &nbsp;Try and get as much Spam out of
-your inbox as possible.</li>
-  <li>Select the <span style="font-style: italic;">Training</span>
-dialog. &nbsp;Nominate your Spam folder for spam, and your Inbox for
-good messages, and start training.</li>
+  <li><a href="#Installing_and_Configuring">Installing and configuring
+the plugin</a></li>
+  <li><a href="#Field">Viewing the Spam score field.</a></li>
+  <li><a href="#Filtering">Configuring the plugin for filtering</a></li>
+  <li><a href="#Your_help_is_needed">How you can help improve this free
+software.</a><br>
+  </li>
 </ul>
-To see how effective your Inbox cleanup was, you may like to try:<br>
+<h2><a name="Using_the_plugin"></a>Using the plugin<br>
+</h2>
+As messages arrive, they are given a "spam score".&nbsp; This score is
+the measure of how "spammy" the system has decided a mail is, with 100%
+being certain spam, and 0% meaning the message is certainly not
+spam.&nbsp; The SpamBayes addin uses three different spam categories
+based on these scores to classify mail into one of three categories -
+certain spam, unsure, and good messages.&nbsp; Good messages are often
+known in the anti-spam community as <span style="font-style: italic;">ham</span>.<br>
+Mail that is classified as good is never touched by this plugin - they
+will remain in your inbox, or be filtered normally by Outlook's builtin
+rules.&nbsp; Mail that is classified as either unsure, or certain spam
+is moved into different folders for future review.<br>
+There are three ways in which the system can get things wrong:
 <ul>
-  <li>Go to the <span style="font-style: italic;">Filter Now</span>
-dialog.</li>
-  <li>Select your Inbox as the folder to filter.</li>
-  <li>Select <span style="font-style: italic;">Score messages, but
-dont perform filter action</span>.</li>
-  <li>Clear both checkboxes so all messages will be scored.</li>
-  <li>Start the score operation.</li>
+  <li>A spam stays in your inbox.&nbsp; This is known as a <span
+ style="font-style: italic;">false negative</span>.&nbsp; In this case
+you can either drag the message to the Spam folder or click on the <span
+ style="font-style: italic;">Delete as Spam</span> button on the Outlook
+toolbar.&nbsp; In both cases, the message will be trained as spam and
+will be moved to the spam folder.</li>
+  <li>Any message is moved to the unsure folder.&nbsp; In this case,
+the system is simply unsure about the message, and moves it to the
+possible spam folder for human review.&nbsp; All unsure messages should
+be manually classified; good messages can either be dragged back to the
+inbox, or have the <span style="font-style: italic;">Recover from Spam</span>
+toolbar button clicked, while spam messages can either be dragged to the
+Spam folder or have the <span style="font-style: italic;">Delete as Spam</span>
+toobar button clicked.&nbsp; In all cases, the system will automatically
+be trained appropriately.</li>
+  <li>A wanted (ham) message is moved to the Spam folder. This is known
+as a <span style="font-style: italic;">false positive</span>.<span
+ style="font-style: italic;"></span><span style="font-style: italic;"></span>&nbsp;In
+this case you can either drag the message back to the folder from which
+it came (generally the inbox), or click on the <span
+ style="font-style: italic;">Recover from Spam</span> button.&nbsp; In
+both cases the message will be trained as good, and moved back to the
+original folder.</li>
 </ul>
-You can then look at and sort by the Spam field in your Inbox - this is
-likely to find hidden spam that you missed from your inbox cleanup.
-<h3>Incremental Training</h3>
-When you drag a message to your Spam folder, it will be automatically
-trained as spam. &nbsp;Thus, as the classifier misses spam (or is unsure
-about them), it learns as you correct it.<br>
-If messages are dropped back into a folder being watched, they are trained as good -
-thus, the system learns what good messages look like should it
-incorrectly classify it as spam or possible spam.<br>
-You will also notice a "Delete as Spam" button (in all folders except
-the Spam folder) and a "Recover from Spam" button in the Spam and Unsure
-folders. &nbsp;These buttons have the same effect as the drags above.
-&nbsp;(Note that currently the "Recover from Spam" option will also restore the message to
-the folder from which it was originally filtered.<br>
-<h2><a name="Field"></a>Viewing the Spam Score Field</h2>
+Note that in all cases, as you take corrective action on the mail, the
+system is also trained.&nbsp; This makes it less likely that another
+similar mail will be incorrectly classified in the future.<br>
+<br>
+<h2><a name="Installing_and_Configuring"></a>Installing and Configuring
+the plugin</h2>
+If you download the installer version of this plugin (ie, you
+downloaded a .EXE file you use to install), then everthing is installed
+and just needs to be configured.&nbsp; If you downloaded the sourcecode
+version of the plugin, please view README.txt for installation
+instructions.<br>
+Configuring the plugin requires the following steps:<br>
+<table cellpadding="2" cellspacing="2" border="0"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">
+      <ol>
+        <li>Confirm the plugin is installed:<br>
+Start Outlook, and look at the standard Outlook toolbar.&nbsp; On the
+right-hand side, you should see an Anti-Spam dropdown button.&nbsp; If
+this button appears, then the plugin is correctly installed and ready to
+use.&nbsp; If the button does not appear, please see XXXXXXXXXX</li>
+        <li>Create <span style="font-style: italic;">Spam</span> and <span
+ style="font-style: italic;">Usure</span> folders<br>
+Use the normal Outlook functions to create two new folders.&nbsp; These
+can be named anything you like, and can appear anywhere in the folder
+hierarchy you choose - however, it is recommended you call them
+something like <span style="font-style: italic;">Spam</span> and <span
+ style="font-style: italic;">Possible Spam</span>.</li>
+        <li>Manually create initial training data<br>
+Go through your <span style="font-style: italic;">Inbox, Deleted Items</span>
+and any other folders likely to have spam, and move as much as possible
+to the new Spam folder you just created.&nbsp; Try and get as much Spam
+out of your inbox as possible, as your inbox will form the initial set
+of good messages we train on.&nbsp; Don't worry too much about missing
+one or two spam - the system is likely to find them for you as we
+rescore your existing email.</li>
+        <li>Configure and Train SpamBayes<br>
+Now we have our folders setup with some initial training data, we can
+configure the plugin.&nbsp; From the <span style="font-style: italic;">Anti-Spam</span>
+button on the toolbar select <span style="font-style: italic;">Anti-Spam
+Manager...</span>&nbsp; This will display the main dialog, as shown to
+the right.</li>
+        <li>Select Train Now, and the training dialog, also shown to
+the right will appear.&nbsp; The Inbox will be the default for good
+messages, so you need to select your new Spam folder as the source of
+junk messages.&nbsp; Ensure that <span style="font-style: italic;">Score
+messages after training</span> is selected, so we can see how effective
+our Inbox cleanup was.<br>
+        </li>
+        <li>Click on the Train Now button, and a progress indicator
+will be displayed as your messages are trained, and another progress
+indicator as they are scored.&nbsp; Close the training window to return
+to the Anti-Spam window.</li>
+      </ol>
+      </td>
+      <td style="vertical-align: top;"><img
+ src="file:///E:/src/spambayes/Outlook2000/docs/images/manager.jpg"
+ title="" alt="Anti-Spam manager" style="width: 369px; height: 335px;"><br>
+      <div style="text-align: center;">The Anti-Spam Manager dialog<br>
+      <br>
+      <img src="docs/images/training.jpg" title="" alt=""
+ style="width: 368px; height: 253px;"><br>
+      </div>
+      <div style="text-align: center;">The training dialog<br>
+      </div>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<h2><a name="Field"></a>Viewing and Using the Spam Score Field</h2>
 A custom property named <span style="font-style: italic;">Spam</span>
-is added to all Outlook messages scored. This is a percentage indicating
-the likelihood of the message being spam (ie, 0% is "certain" ham; 100%
-if "certain" spam). You can teach Outlook to display this field as a
-column in any table view, like the standard Messages view.
+is added to all Outlook messages scored.&nbsp; You can teach Outlook to
+display this field as a column in any table view, like the standard
+Messages view.
 <p> This takes some work, and has to be done again for every folder in
-which you want to display a Spam column: </p>
-<ul>
-  <li>While looking at an Outlook table view (like Messages),
+which you want to display a Spam column - typically this will be all
+folders you are filtering, and your Spam and Unsure folders.&nbsp;
+Perform the following steps<br>
+</p>
+<table cellpadding="2" cellspacing="2" border="0"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">
+      <ul>
+        <li>While looking at an Outlook table view (like Messages),
 right-click on the line with column headers (From, Subject, To,
 Received, ...).         In the context menu that pops up, click on Field
-Chooser.  A box         with title <i>Field Chooser</i> pops up.</li>
-  <li>In the drop-down list at the top of the <span
+Chooser. A box         with title <i>Field Chooser</i> pops up.</li>
+        <li>In the drop-down list at the top of the <span
  style="font-style: italic;">Field Chooser</span> window, select <span
  style="font-style: italic;">User Defined Fields</span></li>
-  <li>Below the drop-down, you         should see a rectangular button
-with a <span style="font-style: italic;">Spam</span> label . This<span
+        <li>Below the drop-down, you         should see a rectangular
+button with a <span style="font-style: italic;">Spam</span> label . This<span
  style="font-style: italic;"></span> should be automatically created for
 all folders managed by the system, but if it does not appear, you will
 need to add it yourself. &nbsp;To do this, perform the following steps</li>
-  <ul>
-    <li>In the lower left corner of the <i>Field Chooser</i> box, click
- <i>New...</i>.  A box with title <i>New Field</i> pops up. </li>
-    <li>In the <i>Name:</i> box, type Spam. </li>
-    <li>In the <i>Type:</i> dropdown list, select <i>Percent</i>.
+        <ul>
+          <li>In the lower left corner of the <i>Field Chooser</i> box,
+click <i>New...</i>.  A box with title <i>New Field</i> pops up. </li>
+          <li>In the <i>Name:</i> box, type Spam. </li>
+          <li>In the <i>Type:</i> dropdown list, select <i>Percent</i>.
 This is the         third choice in the dropdown list.         Do not
 select any other format -- it won't work. </li>
-    <li>The <i>Format:</i> select the first entry in the list -
-"Rounded"</li>
-    <li>Click OK in the <i>New Field</i> box.  Now you're back in the <i>Field
-Chooser</i> box, with a new <span style="font-style: italic;">Spam</span>
-button shown. </li>
-  </ul>
-  <li>Use your mouse to drag the <span style="font-style: italic;">Spam</span>
-button to the column header position         where you want to see the
-Spam column.  You don't have to be precise         here -- you can
-rearrange or resize the column later just by dragging         it around. </li>
-  <li>You're done!  Close the <i>Field Chooser</i> box. </li>
+          <li>The <i>Format:</i> select the first entry in the list -
+"Rounded".&nbsp; The Field Chooser should now look like the first image
+on the right.<br>
+          </li>
+          <li>Click OK in the <i>New Field</i> box.  Now you're back in
+the <i>Field Chooser</i> box, with a new <span
+ style="font-style: italic;">Spam</span> button shown, as the second
+figure shows.<br>
+          </li>
+        </ul>
+        <li>Use your mouse to drag the <span
+ style="font-style: italic;">Spam</span> button to the column header
+position where you want to see the Spam column.  You don't have to be
+precise         here -- you can rearrange or resize the column later
+just by dragging         it around. </li>
+        <li>You're done!  Close the <i>Field Chooser</i> box.</li>
+      </ul>
+      </td>
+      <td style="vertical-align: top;"><img
+ src="docs/images/field_chooser_new_field.jpg" title="" alt=""
+ style="width: 288px; height: 155px;"><br>
+      <div style="text-align: center;">Creating the new field<br>
+      <br>
+      <img src="docs/images/field_chooser_after.jpg" title="" alt=""
+ style="width: 179px; height: 308px;"><br>
+The Field Chooser after creating the field.<br>
+      </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<ul>
 </ul>
 Outlook's standard Automatic Formatting features can also be taught how
 to access the value of this field; for example, you could tell Outlook
 to display rows with suspected spam messages in green italic.  However,
 for whatever reason, the Outlook Rules Wizard does not allow creating
 rules based on user-defined fields.  That's why this addin supplies its
-own filtering rules.
-<p> Contributions to this documentation are welcome!<br>
+own filtering rules.<br>
+<h2><a name="Filtering"></a>Configuring the plugin for filtering</h2>
+Once the system is trained an configured, you are ready to enable the
+filtering capabilities.&nbsp; From the Anti-Spam manager, select <span
+ style="font-style: italic;">Filters</span>.&nbsp; From this dialog you
+can select all the folders that you wish to watch for spam.&nbsp; You
+also configure the folder where you want the certain spam and unsure
+messages to be moved to.<br>
+Once this is done, you simply enable filtering from the main dialog,
+and sit back and wait for spam!&nbsp; See <a href="#Using_the_plugin">using
+the plugin</a> for details further details.<br>
+<h2><a name="Your_help_is_needed"></a>Your help is needed!</h2>
+<p>This is free software.&nbsp; Please offer any help you are able
+to.&nbsp; In particular, contributions to this documentation are welcome!<br>
 <br>
 </p>
 </body>
