@@ -254,6 +254,12 @@ class BayesManager:
                   % (self.config.field_score_name,folder.Name.encode("mbcs", "replace"))
         items = folder.Items
         item = items.GetFirst()
+        while item is not None:
+            if item.Class != win32com.client.constants.olMail:
+                item = items.GetNext()
+                continue
+            break
+        # OK - item is either a mail item, or None
         if item is not None:
             ups = item.UserProperties
             # *sigh* - need to search by int index
@@ -279,14 +285,14 @@ class BayesManager:
                           "user-property in folder '%s'" \
                           % (folder.Name.encode("mbcs", "replace"),)
                     print "", details
+            if include_sub:
+                # Recurse down the folder list.
+                folders = item.Folders
+                folder = folders.GetFirst()
+                while folder is not None:
+                    self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
+                    folder = folders.GetNext()
         # else no items in this folder - not much worth doing!
-        if include_sub:
-            # Recurse down the folder list.
-            folders = item.Folders
-            folder = folders.GetFirst()
-            while folder is not None:
-                self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
-                folder = folders.GetNext()
 
     def LoadBayes(self):
         import time
