@@ -630,10 +630,12 @@ class NoSuchClassifierError(Exception):
     def __str__(self):
         return repr(self.invalid_name)
 
-_storage_types = {"dbm" : DBDictClassifier,
-                  "pickle" : PickledClassifier,
-                  "pgsql" : PGClassifier,
-                  "mysql" : mySQLClassifier,
+# values are classifier class and True if it accepts a mode
+# arg, False otherwise
+_storage_types = {"dbm" : (DBDictClassifier, True),
+                  "pickle" : (PickledClassifier, False),
+                  "pgsql" : (PGClassifier, False),
+                  "mysql" : (mySQLClassifier, False),
                   }
 
 def open_storage(data_source_name, useDB=True, mode=None):
@@ -650,18 +652,19 @@ def open_storage(data_source_name, useDB=True, mode=None):
         if data_source_name.find('::') != -1:
             db_type, rest = data_source_name.split('::', 1)
             if _storage_types.has_key(db_type.lower()):
-                klass = _storage_types[db_type.lower()]
+                klass, supports_mode = _storage_types[db_type.lower()]
                 data_source_name = rest
             else:
                 raise NoSuchClassifierError(db_type)
         else:
-            klass = DBDictClassifier
+            klass, supports_mode = _storage_types["dbm"]
     else:
-        klass = PickledClassifier
+        klass, supports_mode = _storage_types["pickle"]
     try:
-        if mode is not None:
+        if supports_mode and mode is not None:
             return klass(data_source_name, mode)
-        return klass(data_source_name)
+        else:
+            return klass(data_source_name)
     except dbmstorage.error, e:
         if str(e) == "No dbm modules available!":
             # We expect this to hit a fair few people, so warn them nicely,
