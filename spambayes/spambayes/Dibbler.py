@@ -582,9 +582,9 @@ class _HTTPHandler(BrighterAsyncChat):
 
     def _getCurrentNonce(self):
         """Returns the current nonce value. This value is a Base64 encoding 
-        of current time plus one minute. This means the nonce will expire a
-        minute from now."""
-        timeString = time.asctime(time.localtime(time.time() + 60))
+        of current time plus 20 minutes. This means the nonce will expire 20
+        minutes from now."""
+        timeString = time.asctime(time.localtime(time.time() + 20*60))
         return base64.encodestring(timeString).rstrip('\n=')
 
     def _isValidNonce(self, nonce):
