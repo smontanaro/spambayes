@@ -454,7 +454,7 @@ dialog_map = {
         (MsSliderProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Experimental.timer_start_delay"),
         (MsSliderProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Experimental.timer_interval"),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Experimental.timer_only_receive_folders"),
-        (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSIC"),
+        (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSTIC"),
         ),
     "IDD_DIAGNOSTIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),
