@@ -17,10 +17,12 @@ This spam filter uses Bayesian analysis to filter spam. &nbsp;Unlike other
 spam detection systems, Bayesian systems actually "learn" about what you
 consider spam, and continually adapt as both your regular email and spam
 patterns change.<br>
+
 <h2>Training</h2>
 Due to the nature of the system, it must be trained before it can be effective.
 &nbsp;Although the system does learn over time, when first installed it has
 no knowledge of either spam or good email.<br>
+
 <h3>Initial Training</h3>
 When first installed, it is recommended you perform the following steps:<br>
 <ul>
@@ -43,6 +45,7 @@ filter action</span>.</li>
 </ul>
 You can then look at and sort by the Spam field in your Inbox - this is likely
 to find hidden spam that you missed from your inbox cleanup.
+
 <h3>Incremental Training</h3>
 When you drag a message to your Spam folder, it will be automatically trained
 as spam. &nbsp;Thus, as the classifier misses spam (or is unsure about them),
@@ -50,7 +53,46 @@ it learns as you correct it.<br>
 If messages are dropped back into the Inbox, they are trained as good - thus,
 the system learns what good messages look like should it incorrectly classify
 it as spam or possible spam.<br>
-<br>
+
+<h2>Creating a Spam Score Field</h2>
+A custom property named "Spam" is added to all Outlook messages scored.
+This is an integer in 0 (ham) through 100 (spam) inclusive.
+You can teach Outlook to display this field as a column in any table view,
+like the standard Messages view.
+<p>
+This takes some work, and has to be done again for every folder in which
+you want to display a Spam column:
+<ul>
+    <li>While looking at an Outlook table view (like Messages), right-click
+        on the line with column headers (From, Subject, To, Received, ...).
+        In the context menu that pops up, click on Field Chooser.  A box
+        with title <i>Field Chooser</i> pops up.
+    <li>In the lower left corner of the <i>Field Chooser</i> box, click
+        <i>New...</i>.  A box with title <i>New Field</i> pops up.
+    <li>In the <i>Name:</i> box, type Spam.
+    <li>In the <i>Type:</i> dropdown list, select <i>Integer</i>.  This is the
+        last choice in the dropdown list.
+        Do not select <i>Number</i> -- it won't work.
+    <li>The <i>Format:</i> dropdown list should display "1,234" now.  Leave it alone.
+    <li>Click OK in the <i>New Field</i> box.  Now you're back in the
+        <i>Field Chooser</i> box.
+    <li>The dropdown list at the top of the <i>Field Chooser</i> box should say
+        <i>User-defined fields in FOLDER</i> now, where FOLDER is the name of the
+        folder you're currently looking at (like Inbox).  Below that, you
+        should see a new rectangular button with a Spam label.
+    <li>Use your mouse to drag the Spam button to the column header position
+        where you want to see the Spam column.  You don't have to be precise
+        here -- you can rearrange or resize the column later just by dragging
+        it around.
+    <li>You're done!  Close the <i>Field Chooser</i> box.
+</ul>
+Outlook's standard Automatic Formatting features can also be taught how
+access the value of this field; for example, you could tell Outlook to display
+rows with suspected spam messages in green italic.  However, for whatever reason,
+the Outlook Rules Wizard does not allow creating rules based on user-defined
+fields.  That's why this addin supplies its own filtering rules.
+
+<p>
 Contributions to this documentation are welcome!<br>
 <br>
 </body>
