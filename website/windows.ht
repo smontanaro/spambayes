@@ -11,7 +11,7 @@ you should be able to simply download and run the <a
 href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-003.exe">Outlook
 plug-in installer</a>.  A separate Python installation is not necessary.</p>
 
-<p>Note that all users who installed version 002 of the plugin are recommended to upgrade to the 003 release.</p>
+<p>Note that all users who installed version 002 of the plugin are recommended to upgrade to the 005 release.</p>
 
 <p>The Outlook add-in was developed mostly using Outlook 2000 on Windows
 2000 and Win98SE, in Outlook's Internet Mail Only configuration.  Those
