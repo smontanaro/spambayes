@@ -474,10 +474,10 @@ def convertToMbox(content):
     dbxStream.close()
     return content
 
-def OEStoreRoot():
-    """Return the path to the Outlook Express Store Root.
+def OEIdentityKeys():
+    """Return the OE identity keys.
 
-    Tested with Outlook Express 5.0 with Windows XP."""
+    Tested with Outlook Express 6.0 with Windows XP."""
     if sys.platform != "win32":
         # AFAIK, there is only a Win32 OE, and a Mac OE.
         # The Mac OE should be easy enough, but I don't know
@@ -524,16 +524,85 @@ def OEStoreRoot():
             except win32api.error:
                 # Not this user
                 continue
+            yield subkey
 
+def OEStoreRoot():
+    """Return the path to the Outlook Express Store Root.
+
+    Tested with Outlook Express 6.0 with Windows XP."""
+    # Run through the identity keys, using the first that
+    # works.
+    raw = ""
+    for identity in OEIdentityKeys():
+        try:
+            raw = win32api.RegQueryValueEx(identity, "Store Root")
+        except win32api.error:
+            pass
+        else:
+            break
+    # I can't find a shellcon to that is the same as %UserProfile%,
+    # so extract it from CSIDL_LOCAL_APPDATA
+    UserDirectory = shell.SHGetFolderPath \
+                    (0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0)
+    parts = UserDirectory.split(os.sep)
+    UserProfile = os.sep.join(parts[:-2])
+    raw = raw[0].replace("%UserProfile%", UserProfile)
+    return raw
+
+def OEAccountKeys(permission = win32con.KEY_READ | win32con.KEY_SET_VALUE):
+    """Return registry keys for each of the OE mail accounts, along
+    with information about what type of mail account it is."""
+    possible_root_keys = []
+    
+    # This appears to be the place for OE6 and WinXP
+    # (So I'm guessing also for NT4)
+    if sys.getwindowsversion()[0] >= 4:
+        possible_root_keys = ["Software\\Microsoft\\" \
+                             "Internet Account Manager\\Accounts"]
+    else:
+        # This appears to be the place for OE6 and Win98
+        # (So I'm guessing also for Win95)
+        possible_root_keys = oe_mailbox.OEIdentityKeys()
+
+    for key in possible_root_keys:
+        reg = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
+        account_index = 0
+        while True:
+            # Loop through all the accounts
+            account = {}
             try:
-                raw = win32api.RegQueryValueEx(subkey, "Store Root")
+                subkey_name = "%s\\%s" % \
+                              (key, win32api.RegEnumKey(reg, account_index))
             except win32api.error:
                 break
-            UserDirectory = shell.SHGetFolderPath \
-                            (0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0)
-            raw = raw[0].replace("%UserProfile%\\Local Settings\\" \
-                                 "Application Data", UserDirectory)
-            return raw
+            account_index += 1
+            index = 0
+            subkey = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
+                                           subkey_name, 0, permission)
+            while True:
+                # Loop through all the keys so that we can determine
+                # what type of account this is.
+                try:
+                    name, value, typ = win32api.RegEnumValue(subkey, index)
+                except win32api.error:
+                    break
+                account[name] = (value, typ)
+                index += 1
+
+            # Yield, as appropriate.
+            if account.has_key("POP3 Server"):
+                yield("POP3", subkey, account)
+            elif account.has_key("IMAP Server"):
+                yield("IMAP4", subkey, account)
+
+def OEIsInstalled():
+    """Return True if Outlook Express appears to be installed,
+    and in use (I think if sys.platform == "win32" would say if
+    it was installed at all)."""
+    # Our heuristic is that there is at least one mail account setup.
+    if len(list(OEAccountKeys)) > 0:
+        return True
+    return False
 
 ## For use by the test tools.
 class OEMsg(msgs.Msg):
@@ -587,7 +656,7 @@ class OESpamStream(msgs.SpamStream):
 ## TEST DRIVER
 ###########################################################################
 
-if __name__ == '__main__':
+def test():
     import sys
     import getopt
 
@@ -605,11 +674,10 @@ if __name__ == '__main__':
         elif opt == '-p':
             print_message = True
 
-    if not args:
-        print "Please enter a directory with dbx files."
-        sys.exit()
-
-    MAILBOX_DIR = args[0]
+    if args:
+        MAILBOX_DIR = args[0]
+    else:
+        MAILBOX_DIR = OEStoreRoot()
 
     files = [os.path.join(MAILBOX_DIR, file) for file in \
              os.listdir(MAILBOX_DIR) if os.path.splitext(file)[1] == '.dbx']
@@ -654,3 +722,6 @@ if __name__ == '__main__':
             print strerror
 
         dbx.close()
+
+if __name__ == '__main__':
+    test()

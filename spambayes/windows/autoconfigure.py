@@ -69,14 +69,16 @@ try:
     import win32ui
     import win32api
     import win32con
+    import pywintypes
     from win32com.shell import shell, shellcon
 except ImportError:
     # The ImportError is delayed until these are needed - if we
     # did it here, the functions that don't need these would still
     # fail.  (And having "import win32api" in lots of functions
     # didn't seem to make much sense).
-    win32api = win32con = shell = shellcon = win32ui = None
+    win32api = win32con = shell = shellcon = win32ui = pywintypes = None
 
+from spambayes import oe_mailbox
 from spambayes import OptionsClass
 from spambayes.Options import options, optionsPathname
 
@@ -120,6 +122,7 @@ def configure_eudora(config_location):
     pop_proxy = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
+    results = []
     for sect in c.sections():
         if sect.startswith("Persona-") or sect == "Settings":
             if c.get(sect, "UsesIMAP") == "0":
@@ -148,9 +151,8 @@ def configure_eudora(config_location):
                     server = "%s:%s" % (c.get(sect, eud_name), port)
                     options[us_name, "remote_servers"] += (server,)
                     options[us_name, "listen_ports"] += (proxy_port,)
-                    if options["globals", "verbose"]:
-                        print "[%s] Proxy %s on localhost:%s" % \
-                              (sect, server, proxy_port)
+                    results.append("[%s] Proxy %s on localhost:%s" % \
+                                   (sect, server, proxy_port))
                     c.set(sect, eud_name, "localhost")
                     c.set(sect, eud_port, proxy_port)
             else:
@@ -199,6 +201,7 @@ def configure_eudora(config_location):
     filter_file = file(filter_filename, "a")
     filter_file.write(filter_rules)
     filter_file.close()
+    return results
 
 def configure_mozilla(config_location):
     """Configure Mozilla to use the SpamBayes POP3 and SMTP proxies, and
@@ -213,6 +216,7 @@ def configure_mozilla(config_location):
 
     r = re.compile(r"user_pref\(\"mail.server.server(\d+).(real)?hostname\", \"([^\"]*)\"\);")
     current_pos = 0
+    results = []
     while True:
         m = r.search(prefs[current_pos:])
         if not m:
@@ -271,9 +275,8 @@ def configure_mozilla(config_location):
         else:
             save_prefs = save_prefs.replace(old_port, port_pref)
         save_prefs = save_prefs.replace(old_pref, pref)
-        if options["globals", "verbose"]:
-            print "[%s] Proxy %s on localhost:%s" % \
-                  (num, server, proxy_port)
+        results.append("[%s] Proxy %s on localhost:%s" % \
+                       (num, server, proxy_port))
 
     # Do the SMTP server.
     # Mozilla recommends that only advanced users setup more than one,
@@ -322,9 +325,8 @@ def configure_mozilla(config_location):
         else:
             save_prefs = save_prefs.replace(old_port, port_pref)
         save_prefs = save_prefs.replace(old_pref, pref)
-        if options["globals", "verbose"]:
-            print "[%s] Proxy %s on localhost:%s" % \
-                  (num, server, proxy_port)
+        results.append("[%s] Proxy %s on localhost:%s" % \
+                       (num, server, proxy_port))
 
     prefs_file = file("%s%sprefs.js" % (config_location, os.sep), "w")
     prefs_file.write(save_prefs)
@@ -360,6 +362,7 @@ def configure_mozilla(config_location):
     # into them all?
     # We are assuming that a rules file already exists, otherwise there
     # is a bit more to go at the top.
+    return results
 
 def configure_m2(config_location):
     """Configure M2 (Opera's mailer) to use the SpamBayes POP3 and SMTP
@@ -382,6 +385,7 @@ def configure_m2(config_location):
     pop_proxy = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
+    results = []
     for sect in c.sections():
         if sect.startswith("Account") and sect != "Accounts":
             if c.get(sect, "Incoming Protocol") == "POP":
@@ -404,9 +408,8 @@ def configure_m2(config_location):
                     server = "%s:%s" % (c.get(sect, m2_name), port)
                     options[us_name, "remote_servers"] += (server,)
                     options[us_name, "listen_ports"] += (proxy_port,)
-                    if options["globals", "verbose"]:
-                        print "[%s] Proxy %s on localhost:%s" % \
-                              (sect, server, proxy_port)
+                    results.append("[%s] Proxy %s on localhost:%s" % \
+                                   (sect, server, proxy_port))
                     c.set(sect, m2_name, "localhost")
                     c.set(sect, m2_port, proxy_port)
             elif c.get(sect, "Incoming Protocol") == "IMAP":
@@ -422,6 +425,7 @@ def configure_m2(config_location):
     # right rule is - M2 doesn't move mail, it just displays a subset.
     # If someone can describe the best all-purpose rule, I'll pop it in
     # here.
+    return results
 
 def configure_outlook_express(unused):
     """Configure OE to use the SpamBayes POP3 and SMTP proxies, and
@@ -431,8 +435,7 @@ def configure_outlook_express(unused):
     if win32api is None:
         raise ImportError("win32 extensions required")
 
-    # OE stores its configuration in the registry, not a file.
-    key = "Software\\Microsoft\\Internet Account Manager\\Accounts"
+    accounts = oe_mailbox.OEAccountKeys()
 
     translate = {("POP3 Server", "POP3 Port") : "pop3proxy",
                  ("SMTP Server", "SMTP Port") : "smtpproxy",
@@ -441,36 +444,12 @@ def configure_outlook_express(unused):
     pop_proxy = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
-    reg = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
-    account_index = 0
-    while True:
-        # Loop through all the accounts
-        config = {}
-        try:
-            subkey_name = "%s\\%s" % (key,
-                                      win32api.RegEnumKey(reg,
-                                                          account_index))
-        except win32api.error:
-            break
-        account_index += 1
-        index = 0
-        subkey = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
-                                       subkey_name, 0, win32con.KEY_READ |
-                                       win32con.KEY_SET_VALUE)
-        while True:
-            # Loop through all the keys
-            try:
-                raw = win32api.RegEnumValue(subkey, index)
-            except win32api.error:
-                break
-            config[raw[0]] = (raw[1], raw[2])
-            index += 1
-
-        # Process this account
-        if config.has_key("POP3 Server"):
+    results = []
+    for proto, subkey, account in accounts:
+        if proto == "POP3":
             for (server_key, port_key), sect in translate.items():
-                server = "%s:%s" % (config[server_key][0],
-                                    config[port_key][0])
+                server = "%s:%s" % (account[server_key][0],
+                                    account[port_key][0])
                 if sect[:4] == "pop3":
                     pop_proxy = move_to_next_free_port(pop_proxy)
                     proxy = pop_proxy
@@ -483,10 +462,9 @@ def configure_outlook_express(unused):
                                        win32con.REG_SZ, "127.0.0.1")
                 win32api.RegSetValueEx(subkey, port_key, 0,
                                        win32con.REG_SZ, str(proxy))
-                if options["globals", "verbose"]:
-                    print "[%s] Proxy %s on localhost:%s" % \
-                          (config["Account Name"][0], server, proxy)
-        elif config.has_key("IMAP Server"):
+                results.append("[%s] Proxy %s on localhost:%s" % \
+                               (account["Account Name"][0], server, proxy))
+        elif proto == "IMAP4":
             # Setup imapfilter instead.
             pass
 
@@ -495,6 +473,7 @@ def configure_outlook_express(unused):
     # Outlook Express rules are done in much the same way.  Should one
     # be set up to work with notate_to or notate_subject?  (and set that
     # option, obviously)
+    return results
 
 def configure_pegasus_mail(config_location):
     """Configure Pegasus Mail to use the SpamBayes POP3 and SMTP proxies,
@@ -508,6 +487,7 @@ def configure_pegasus_mail(config_location):
     pop_proxy = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
+    results = []
     for filename in os.listdir(config_location):
         if filename.lower().startswith("pop") or filename.lower().startswith("smt"):
             full_filename = os.path.join(config_location, filename)
@@ -530,9 +510,8 @@ def configure_pegasus_mail(config_location):
             c.set("all", "host", "127.0.0.1")
             c.set("all", "port", proxy)
             c.update_file(working_filename)
-            if options["globals", "verbose"]:
-                print "[%s] Proxy %s on localhost:%s" % \
-                      (c.get("all", "title"), server, proxy)
+            results.append("[%s] Proxy %s on localhost:%s" % \
+                           (c.get("all", "title"), server, proxy))
         elif filename.lower() == "IMAP.PM":
             # Setup imapfilter instead.
             pass
@@ -557,24 +536,31 @@ def configure_pegasus_mail(config_location):
     rules_file = file(rules_filename, "a")
     rules_file.write(rule)
     rules_file.close()
+    return results
 
-def configure_pocomail(unused):
-    # Requires win32all to be available.
+def pocomail_accounts_filename():
     if win32api is None:
-        raise ImportError("win32 extensions required")
+        # If we don't have win32, then we don't know.
+        return ""
     key = "Software\\Poco Systems Inc"
 
     pop_proxy  = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
-    reg           = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
-    subkey_name   = "%s\\%s" % (key, win32api.RegEnumKey(reg, 0))
-    reg           = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
-                                          subkey_name)
-    pocomail_path = win32api.RegQueryValueEx(reg, "Path")[0]
+    try:
+        reg = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
+    except pywintypes.error:
+        # It seems that we don't have PocoMail
+        return ""
+    else:
+        subkey_name   = "%s\\%s" % (key, win32api.RegEnumKey(reg, 0))
+        reg           = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
+                                              subkey_name)
+        pocomail_path = win32api.RegQueryValueEx(reg, "Path")[0]
 
-    pocomail_accounts_file = os.path.join(pocomail_path, "accounts.ini")
+    return os.path.join(pocomail_path, "accounts.ini")
 
+def configure_pocomail(pocomail_accounts_file):
     if os.path.exists(pocomail_accounts_file):
         f = open(pocomail_accounts_file, "r")
 
@@ -667,6 +653,7 @@ def configure_pocomail(unused):
                 for filter in pocomail_filters[filterName]:
                     f.write(filter + '\n')
             f.close()
+    return []
 
 
 def find_config_location(mailer):
@@ -677,54 +664,68 @@ def find_config_location(mailer):
     # fixes the function to look in the right places for *nix/Mac.
     if win32api is None:
         raise ImportError("win32 extensions required")
-    if mailer in ["Outlook Express", "PocoMail"]:
-        # Outlook Express and PocoMail can be configured without a
-        # config location, because it's all in the registry
+    if mailer in ["Outlook Express", ]:
+        # Outlook Express can be configured without a
+        # config location, because it's all in the registry.
         return ""
     windowsUserDirectory = shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0)
-    potential_locations = {"Eudora" : ("Qualcomm%(sep)sEudora",),
-                           "Mozilla" : ("Mozilla%(sep)sProfiles%(sep)s%(user)s",
-                                        "Mozilla%(sep)sProfiles%(sep)sdefault",),
-                           "M2" : ("Opera%(sep)sOpera7",),
-                           }
+    potential_locations = \
+                        {"Eudora" : ("%(wud)s%(sep)sQualcomm%(sep)sEudora",),
+                         "Mozilla" : \
+                         ("%(wud)s%(sep)sMozilla%(sep)sProfiles%(sep)s%(user)s",
+                          "%(wud)s%(sep)sMozilla%(sep)sProfiles%(sep)sdefault",),
+                         "M2" : ("%(wud)s%(sep)sOpera%(sep)sOpera7",),
+                         "PocoMail" : (pocomail_accounts_filename(),),
+                         }
     # We try with the username that the user uses
     # for Windows, even though that might not be the same as their profile
     # names for mailers.  We can get smarter later.
     username = win32api.GetUserName()
     loc_dict = {"sep" : os.sep,
+                "wud" : windowsUserDirectory,
                 "user" : username}
     for loc in potential_locations[mailer]:
         loc = loc % loc_dict
-        loc = os.path.join(windowsUserDirectory, loc)
         if os.path.exists(loc):
             return loc
     return None
 
-
 def configure(mailer):
-    """Automatically configure the specified mailer and SpamBayes.
-    Return True if successful, False otherwise.
-    """
+    """Automatically configure the specified mailer and SpamBayes."""
     loc = find_config_location(mailer)
     if loc is None:
-        return False
+        # Can't set it up, so do nothing.
+        return
     funcs = {"Eudora" : configure_eudora,
              "Mozilla" : configure_mozilla,
              "M2" : configure_m2,
              "Outlook Express" : configure_outlook_express,
              "PocoMail" : configure_pocomail,
              }
-    funcs[mailer](loc)
-    return True
+    return funcs[mailer](loc)
 
+def is_installed(mailer):
+    """Return True if we believe that the mailer is installed."""
+    # For the simpler mailers, we believe it is installed if the
+    # configuration path can be found and exists.
+    config_location = find_config_location(mailer)
+    if config_location:
+        if os.path.exists(config_location):
+            return True
+        return False
+    # For the ones based in the registry, we have different
+    # techniques.
+    if mailer == "Outlook Express":
+        if oe_mailbox.OEIsInstalled():
+            return True
+        return False
+
+    # If we don't know, guess that it isn't.
+    return False
 
 def offer_to_configure(mailer):
     """If the mailer appears to be installed, offer to set it up for
     SpamBayes (and SpamBayes for it)."""
-    # Requires win32all to be available, or someone to write a version
-    # with a different gui.
-    if win32api is None:
-        raise ImportError("win32 extensions required")
     # At the moment, the test we use to check if the mailer is installed
     # is whether a valid path to the configuration file can be found.
     # This is ok, except for those that are setup in the registry - there
@@ -738,7 +739,13 @@ def offer_to_configure(mailer):
         ans = win32ui.MessageBox(confirm_text, "Configure?",
                                  win32con.MB_YESNO)
         if ans == win32con.IDYES:
-            configure(mailer)
+            results = configure(mailer)
+            if results is None:
+                win32ui.MessageBox("Configuration unsuccessful.", "Error",
+                                   win32con.MB_OK)
+            else:
+                text = "Configuration complete.\n\n" + "\n".join(results)
+                win32ui.MessageBox(text, "Complete", win32con.MB_OK)
 
 
 if __name__ == "__main__":
