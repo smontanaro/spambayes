@@ -53,3 +53,7 @@ SPAN.faq-header {
   font-weight: bold;
   font-size: large;
 }
+
+TT.literal { 
+  font-size: 12pt;
+}
