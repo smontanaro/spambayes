@@ -11,35 +11,34 @@
     <tr>
       <td width="380"><img src="images/sblogo.jpg" title="" alt="Logo"
  style="width: 380px; height: 77px;"></td>
-<!-- use background instead of styles to avoid mozilla bug 167262 --> <td
- background="images/span.jpg">&nbsp;</td>
+<!-- use background instead of styles to avoid mozilla bug 167262 -->
+      <td background="images/span.jpg">&nbsp;</td>
       <td width="78"><img src="images/python.jpg"
  style="width: 78px; height: 77px;"></td>
     </tr>
   </tbody>
 </table>
-<h1>Welcome to SpamBayes <br>
-</h1>
+<h1>Welcome to SpamBayes</h1>
 <p>SpamBayes is an Outlook plugin that provides a spam filter based on
 statistical analysis of
-your personal mail. &nbsp;Unlike many other spam detection systems,
+your personal mail. Unlike many other spam detection systems,
 SpamBayes
 actually learns what you consider spam, and continually adapts as both
 your regular email and spam patterns change.</p>
 <p>When you first start Outlook after SpamBayes has been installed, the
-SpamBayes Installation Wizard will appear.&nbsp; This Wizard will guide
+SpamBayes Installation Wizard will appear. This Wizard will guide
 you through the configuration process and allow you to quickly have
-SpamBayes filtering your mail.&nbsp; This document contains additional
+SpamBayes filtering your mail. This document contains additional
 information which will help make SpamBayes effective from the first
 time you use it.</p>
 <p>Please remember that this is free software; please be patient, and
-note that there are plenty of things to improve.&nbsp; There are ways
+note that there are plenty of things to improve. There are ways
 you can help, even if you aren't a programmer - you could help with
 this documentation, or <a
  href="http://www.spambayes.org/donations.html">make a donation</a>, or
 any number of other ways - please see the <a
  href="http://www.spambayes.org">main project
-page</a> for information.&nbsp; The list of <a
+page</a> for information. The list of <a
  href="http://www.spambayes.org/faq.html">Frequently Asked Questions</a>
 may also answer some of yours.</p>
 <p>For more information on SpamBayes, including links to the rest of
@@ -48,30 +47,30 @@ the documentation, see <a href="../About.html">About SpamBayes</a>.</p>
 SpamBayes has no builtin
 rules, so anything you consider spam will be treated as spam by this
 system, even if it does not conform to the traditional definitions of
-spam.&nbsp; This means that SpamBayes requires <span
+spam. This means that SpamBayes requires <span
  style="font-style: italic;">training </span>before it will be
-effective.&nbsp; There are two ways that this training can be done:<br>
+effective. There are two ways that this training can be done:<br>
 <ul>
-  <li>Allow SpamBayes to learn as it goes.&nbsp; Initially, SpamBayes
+  <li>Allow SpamBayes to learn as it goes. Initially, SpamBayes
 will consider all mail items <span style="font-style: italic;">unsure</span>,
 and each item will be used to
-train.&nbsp; In this scenario, SpamBayes will take some time to become
-effective.&nbsp; It will rarely make mistakes, but will continue to be
+train. In this scenario, SpamBayes will take some time to become
+effective. It will rarely make mistakes, but will continue to be
 unsure about items until the training information grows.<br>
   </li>
   <li>Pre-sorting mail into two folders; one containing only examples
-of good messages, and another containing only examples of spam.&nbsp;
+of good messages, and another containing only examples of spam.
 SpamBayes will then process all these messages gathering the clues it
-uses to filter mail..&nbsp; Depending on how many messages you train
+uses to filter mail. Depending on how many messages you train
 on, SpamBayes will be immediately effective at correctly classifying
 your mail.</li>
 </ul>
 <p>The Installation Wizard will guide you through these options.</p>
 <p>It is important to note that even when SpamBayes has little training
 information, it rarely gets things wrong - the worst it generally does
-is to classify a message as <span style="font-style: italic;">unsure</span>.&nbsp;
+is to classify a message as <span style="font-style: italic;">unsure</span>.
 However, as mentioned, the more training information SpamBayes has, the
-less it is unsure about new messages.&nbsp; See using the plugin below
+less it is unsure about new messages. See using the plugin below
 for more information.</p>
 <h3>Using the Plugin</h3>
 <table cellpadding="2" cellspacing="2" border="0"
@@ -79,7 +78,7 @@ for more information.</p>
   <tbody>
     <tr>
       <td style="vertical-align: top;">This section describes how the
-plugin operates once it is configured.&nbsp;
+plugin operates once it is configured.
 You can access the SpamBayes features from the SpamBayes toolbar (shown
 to the right), but
 in general, SpamBayes will simply and silently filter your mail.<br>
@@ -87,69 +86,68 @@ in general, SpamBayes will simply and silently filter your mail.<br>
       </td>
       <td style="vertical-align: top;"><img
  src="images/manager-select.jpg" title="" alt="SpamBayes Toolbar"
- style="width: 354px; height: 138px;"><br>
+ style="width: 354px; height: 138px;"><br/>
       </td>
     </tr>
   </tbody>
 </table>
 <br>
 <p>As messages arrive, they are given a <span
- style="font-style: italic;">spam score</span>.&nbsp; This score is
+ style="font-style: italic;">spam score</span>. This score is
 the measure of how "spammy" the system has decided a mail is, with 100%
 being certain spam, and 0% meaning the message is certainly not
-spam.&nbsp; The SpamBayes addin uses these scores to classify mail into
+spam. The SpamBayes addin uses these scores to classify mail into
 one of three categories -
 <span style="font-style: italic;">certain spam</span>, <span
- style="font-style: italic;">unsure</span>, and good messages.&nbsp;
+ style="font-style: italic;">unsure</span>, and good messages.
 Good messages are often
 known in the anti-spam community as <span style="font-style: italic;">ham</span>.</p>
 <p>Mail that is classified as good is never touched by this plugin -
 they
 will remain in your inbox, or be filtered normally by Outlook's builtin
-rules.&nbsp; Mail that is classified as either <span
+rules. Mail that is classified as either <span
  style="font-style: italic;">unsure</span> or <span
  style="font-style: italic;">certain spam</span>
 is moved into different folders for future review.</p>
 <p>Outlook does not allow us to automatically add the <span
  style="font-style: italic;">spam score</span> to your Outlook folder
 views - but you can <a href="../about.html#Field">do it
-manually by following these instructions</a>.<br>
+manually by following these instructions</a>.<br/>
 </p>
 There are three ways in which the system can get things wrong:
 <ul>
-  <li>A spam stays in your inbox.&nbsp; This is known as a <span
- style="font-style: italic;">false negative</span>.&nbsp; In this case
+  <li>A spam stays in your inbox. This is known as a <span
+ style="font-style: italic;">false negative</span>. In this case
 you can either drag the message to the Spam folder or click on the <span
  style="font-style: italic;">Delete as Spam</span> button on the
 Outlook
-toolbar.&nbsp; In both cases, the message will be trained as spam and
+toolbar. In both cases, the message will be trained as spam and
 will be moved to the spam folder.</li>
-  <li>Any message is moved to the unsure folder.&nbsp; In this case,
+  <li>Any message is moved to the unsure folder. In this case,
 the system is simply unsure about the message, and moves it to the
-possible spam folder for human review.&nbsp; All unsure messages should
+possible spam folder for human review. All unsure messages should
 be manually classified; good messages can either be dragged back to the
 inbox, or have the <span style="font-style: italic;">Recover from Spam</span>
 toolbar button clicked, while spam messages can either be dragged to
 the
 Spam folder or have the <span style="font-style: italic;">Delete as
 Spam</span>
-toobar button (shown above) clicked.&nbsp; In all cases, the system
+toobar button (shown above) clicked. In all cases, the system
 will
 automatically
 be trained appropriately.</li>
   <li>A wanted (ham) message is moved to the Spam folder. This is known
-as a <span style="font-style: italic;">false positive</span>.<span
- style="font-style: italic;"></span><span style="font-style: italic;"></span>&nbsp;In
+as a <span style="font-style: italic;">false positive</span>. In
 this case you can either drag the message back to the folder from which
 it came (generally the inbox), or click on the <span
- style="font-style: italic;">Recover from Spam</span> button.&nbsp; In
+ style="font-style: italic;">Recover from Spam</span> button. In
 both cases the message will be trained as good, and moved back to the
 original folder.</li>
 </ul>
 Note that in all cases, as you take corrective action on the mail, the
-system is also trained.&nbsp; This makes it less likely that another
-similar mail will be incorrectly classified in the future.<br>
-<br>
-<br>
+system is also trained. This makes it less likely that another
+similar mail will be incorrectly classified in the future.<br/>
+<br/>
+<br/>
 </body>
 </html>
