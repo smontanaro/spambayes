@@ -98,7 +98,7 @@ def main():
         usage()
 
     if len(args)==0:
-        directory = os.path.join(os.path.dirname(sys.argv[0]), "..\\Data")
+        directory = os.path.join(os.path.dirname(sys.argv[0]), "..\\spambayes\\Data")
     else:
         directory = args[0]
 
