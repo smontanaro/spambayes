@@ -112,7 +112,7 @@ class Stats:
                                   self.totals["num_deleted_spam_fn"]
         perc_ham = 100.0 * num_ham / num_seen
         perc_spam = 100.0 * num_spam / num_seen
-        perc_unsure = 100.0 * self.num_unsure / num_seen
+        perc_unsure = 100.0 * num_unsure / num_seen
         format_dict = locals().copy()
         del format_dict["self"]
         del format_dict["push"]
