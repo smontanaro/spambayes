@@ -16,6 +16,7 @@ from sets import Set
 
 from Options import options
 
+import mboxutils
 from mboxutils import get_message
 
 try:

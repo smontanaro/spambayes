@@ -113,9 +113,8 @@ def get_message(obj):
         # Wrap the raw text in a bare Message object.  Since the
         # headers are most likely damaged, we can't use the email
         # package to parse them, so just get rid of them first.
-        i = obj.find('\n\n')
-        if i >= 0:
-            obj = obj[i+2:]     # strip headers
+        headers = extract_headers(obj)
+        obj = obj[len(headers):]
         msg = email.Message.Message()
         msg.set_payload(obj)
     return msg
