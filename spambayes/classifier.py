@@ -313,18 +313,47 @@ class GrahamBayes(object):
             for x in longer[:tokeep]:
                 heapreplace(nbest, x)
 
-        prob_product = inverse_prob_product = 1.0
-        for distance, prob, word, record in nbest:
-            if prob is None:    # it's one of the dummies nbest started with
-                continue
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
-            if evidence:
-                clues.append((word, prob))
-            prob_product *= prob
-            inverse_prob_product *= 1.0 - prob
+        if options.use_robinson_probability:
+            # This combination method is due to Gary Robinson.
+            # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
+            # In preliminary tests, it did just as well as Graham's scheme,
+            # but creates a definite "middle ground" around 0.5 where false
+            # negatives and false positives can actually found in non-trivial
+            # number.
+            P = Q = 1.0
+            num_clues = 0
+            for distance, prob, word, record in nbest:
+                if prob is None:    # it's one of the dummies nbest started with
+                    continue
+                if record is not None:  # else wordinfo doesn't know about it
+                    record.killcount += 1
+                if evidence:
+                    clues.append((word, prob))
+                num_clues += 1
+                P *= 1.0 - prob
+                Q *= prob
 
-        prob = prob_product / (prob_product + inverse_prob_product)
+            if num_clues:
+                P = 1.0 - P**(1./num_clues)
+                Q = 1.0 - Q**(1./num_clues)
+                prob = (P-Q)/(P+Q)  # in -1 .. 1
+                prob = 0.5 + prob/2 # shift to 0 .. 1
+            else:
+                prob = 0.5
+        else:
+            prob_product = inverse_prob_product = 1.0
+            for distance, prob, word, record in nbest:
+                if prob is None:    # it's one of the dummies nbest started with
+                    continue
+                if record is not None:  # else wordinfo doesn't know about it
+                    record.killcount += 1
+                if evidence:
+                    clues.append((word, prob))
+                prob_product *= prob
+                inverse_prob_product *= 1.0 - prob
+
+            prob = prob_product / (prob_product + inverse_prob_product)
+
         if evidence:
             clues.sort(lambda a, b: cmp(a[1], b[1]))
             return prob, clues

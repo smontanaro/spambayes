@@ -1,3 +1,5 @@
+from Options import options
+
 class Test:
     # Pass a classifier instance (an instance of GrahamBayes).
     # Loop:
@@ -82,7 +84,7 @@ class Test:
             prob = guess(example)
             if callback:
                 callback(example, prob)
-            is_spam_guessed = prob > 0.90
+            is_spam_guessed = prob > options.spam_cutoff
             correct = is_spam_guessed == is_spam
             if is_spam:
                 self.nspam_tested += 1

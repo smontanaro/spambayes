@@ -88,7 +88,17 @@ safe_headers: abuse-reports-to
 mine_received_headers: False
 
 [TestDriver]
-# These control various displays in class TestDriver.Driver.
+# These control various displays in class TestDriver.Driver, and Tester.Test.
+
+# A message is considered spam iff it scores greater than spam_cutoff.
+# If using Graham's combining scheme, 0.90 seems to work best for "small"
+# training sets.  As the size of the training sets increase, there's not
+# yet any bound in sight for how low this can go (0.075 would work as
+# well as 0.90 on Tim's large c.l.py data).
+# For Gary Robinson's scheme, 0.50 works best for *us*.  Other people
+# who have implemented Graham's scheme, and stuck to it in most respects,
+# report values closer to 0.70 working best for them.
+spam_cutoff: 0.90
 
 # Number of buckets in histograms.
 nbuckets: 40
@@ -138,6 +148,9 @@ max_spamprob: 0.99
 unknown_spamprob: 0.5
 
 max_discriminators: 16
+
+# Use Gary Robinson's scheme for combining probabilities.
+use_robinson_probability: False
 """
 
 int_cracker = ('getint', None)
@@ -167,6 +180,7 @@ all_options = {
                    'save_trained_pickles': boolean_cracker,
                    'pickle_basename': string_cracker,
                    'show_charlimit': int_cracker,
+                   'spam_cutoff': float_cracker,
                   },
     'Classifier': {'hambias': float_cracker,
                    'spambias': float_cracker,
@@ -174,7 +188,7 @@ all_options = {
                    'max_spamprob': float_cracker,
                    'unknown_spamprob': float_cracker,
                    'max_discriminators': int_cracker,
-                   'adjust_probs_by_evidence_mass': boolean_cracker,
+                   'use_robinson_probability': boolean_cracker,
                    },
 }
 
