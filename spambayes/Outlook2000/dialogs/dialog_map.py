@@ -482,9 +482,11 @@ dialog_map = {
                                   "Filter.unsure_folder_id"),
         (EditNumberProcessor,     "IDC_EDIT_UNSURE IDC_SLIDER_UNSURE",
                                   "Filter.unsure_threshold"),
-
         (ComboProcessor,          "IDC_ACTION_UNSURE", "Filter.unsure_action"),
         (BoolButtonProcessor,     "IDC_MARK_UNSURE_AS_READ",    "Filter.unsure_mark_as_read"),
+        (FolderIDProcessor,       "IDC_FOLDER_HAM IDC_BROWSE_HAM",
+                                  "Filter.ham_folder_id"),
+        (ComboProcessor,          "IDC_ACTION_HAM", "Filter.ham_action"),
         ),
     "IDD_TRAINING" : (
         (FolderIDProcessor,       "IDC_STATIC_HAM IDC_BROWSE_HAM",
