@@ -5,7 +5,9 @@ Author: spambayes
 <h1>SpamBayes server-side</h1>
 
 <p>This page includes notes from users that have successfully managed to
-get SpamBayes working server-side.</p>
+get SpamBayes working server-side.  You should also see the
+<a href="related.html">related projects</a> page for server-side projects
+based on SpamBayes.</p>
 
 <h2>postfix notes from Jonathan St-Andre</h2>
 <p>SpamBayes has been installed on one of our MX (running postfix) and

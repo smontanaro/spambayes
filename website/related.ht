@@ -62,7 +62,10 @@ and deliver mail that SpamBayes classifies as spam; it also does a RBL
 check (before the content analysis). Messages are then made available in
 the normal SpamBayes web interface for training.  The 'punishment' takes
 the form of slowing down the SMTP connection.</li>
-</ul>
+<li><a href="http://sourceforge.net/projects/tugast">TUGAST</a>
+is a server-side anti-spam (open source) filter based on
+SpamBayes, started by Simone Piunno, who is "open for discussion, help,
+critics, everything.".</ul>
 
 <h2>Other Commercial Products using "Bayesian" style filtering</h2>
 <ul>
