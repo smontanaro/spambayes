@@ -43,6 +43,11 @@ rates.py
     Scans the output (so far) from timtest.py, and captures summary
     statistics.
 
+cmp.py
+    Given two summary files produced by rates.py, displays an account
+    of all the f-p and f-n rates side-by-side, along with who won which
+    (etc), and the change in total # of f-ps and f-n.
+
 
 Test Data Utilities
 ===================
