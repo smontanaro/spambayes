@@ -23,6 +23,7 @@ import os
 import glob
 import email
 import mailbox
+import email.Message
 
 class DirOfTxtFileMailbox:
 
@@ -42,13 +43,6 @@ class DirOfTxtFileMailbox:
                 continue
             yield self.factory(f)
             f.close()
-
-def _factory(fp):
-    # Helper for getmbox
-    try:
-        return email.message_from_file(fp)
-    except email.Errors.MessageParseError:
-        return ''
 
 def _cat(seqs):
     for seq in seqs:
@@ -73,7 +67,7 @@ def getmbox(name):
         mhpath = mh.getpath()
         for name in names:
             filename = os.path.join(mhpath, name)
-            mbox = mailbox.MHMailbox(filename, _factory)
+            mbox = mailbox.MHMailbox(filename, get_message)
             mboxes.append(mbox)
         if len(mboxes) == 1:
             return iter(mboxes[0])
@@ -84,12 +78,43 @@ def getmbox(name):
         # XXX Bogus: use a Maildir if /cur is a subdirectory, else a MHMailbox
         # if the pathname contains /Mail/, else a DirOfTxtFileMailbox.
         if os.path.exists(os.path.join(name, 'cur')):
-            mbox = mailbox.Maildir(name, _factory)
+            mbox = mailbox.Maildir(name, get_message)
         elif name.find("/Mail/") >= 0:
-            mbox = mailbox.MHMailbox(name, _factory)
+            mbox = mailbox.MHMailbox(name, get_message)
         else:
-            mbox = DirOfTxtFileMailbox(name, _factory)
+            mbox = DirOfTxtFileMailbox(name, get_message)
     else:
         fp = open(name, "rb")
-        mbox = mailbox.PortableUnixMailbox(fp, _factory)
+        mbox = mailbox.PortableUnixMailbox(fp, get_message)
     return iter(mbox)
+
+def get_message(obj):
+    """Return an email Message object.
+
+    The argument may be a Message object already, in which case it's
+    returned as-is.
+
+    If the argument is a string or file-like object (supports read()),
+    the email package is used to create a Message object from it.  This
+    can fail if the message is malformed.  In that case, the headers
+    (everything through the first blank line) are thrown out, and the
+    rest of the text is wrapped in a bare email.Message.Message.
+    """
+
+    if isinstance(obj, email.Message.Message):
+        return obj
+    # Create an email Message object.
+    if hasattr(obj, "read"):
+        obj = obj.read()
+    try:
+        msg = email.message_from_string(obj)
+    except email.Errors.MessageParseError:
+        # Wrap the raw text in a bare Message object.  Since the
+        # headers are most likely damaged, we can't use the email
+        # package to parse them, so just get rid of them first.
+        i = obj.find('\n\n')
+        if i >= 0:
+            obj = obj[i+2:]     # strip headers
+        msg = email.Message.Message()
+        msg.set_payload(obj)
+    return msg
