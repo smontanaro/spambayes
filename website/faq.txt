@@ -1338,7 +1338,10 @@ cannot be used in this case.
 
 If you don't want to risk it happening again, switch to using the pickle
 storage (web interface: Configuration / Advanced Configuration /
-Storage Options / Use database for storage: No) instead.
+Storage Options / Use database for storage: No) instead.  Note that users
+of the 1.0.x Outlook plug-in can only change their database type if they are
+running from source - however corruption is extremely rare with the plug-in,
+so this should not be a problem.
 
 Note, however, that there are two issues with this:
 
