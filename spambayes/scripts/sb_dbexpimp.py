@@ -229,7 +229,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     bayes.store()
     print "Finished storing database"
 
-    if useDBM:
+    if useDBM == "dbm" or useDBM == True:
         words = bayes.db.keys()
         words.remove(bayes.statekey)
     else:
@@ -249,7 +249,7 @@ if __name__ == '__main__':
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    useDBM = False
+    useDBM = "pickle"
     newDBM = True
     dbFN = None
     flatFN = None
