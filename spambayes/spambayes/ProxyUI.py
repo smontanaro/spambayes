@@ -583,8 +583,17 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def onView(self, key, corpus):
         """View a message - linked from the Review page."""
         self._writePreamble("View message", parent=('review', 'Review'))
-        message = state.unknownCorpus.get(key)
-        if message:
+        sourceCorpus = None
+        message = None
+        if state.unknownCorpus.get(key) is not None:
+            sourceCorpus = state.unknownCorpus
+        elif state.hamCorpus.get(key) is not None:
+            sourceCorpus = state.hamCorpus
+        elif state.spamCorpus.get(key) is not None:
+            sourceCorpus = state.spamCorpus
+        if sourceCorpus is not None:
+            message = sourceCorpus.get(key)
+        if message is not None:
             self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
         else:
             self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
@@ -594,9 +603,18 @@ class ProxyUserInterface(UserInterface.UserInterface):
         """Show clues for a message - linked from the Review page."""
         tokens = bool(int(tokens)) # needs the int, as bool('0') is True
         self._writePreamble("Message clues", parent=('review', 'Review'))
-        message = state.unknownCorpus.get(key).as_string()
-        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
-        if message:
+        sourceCorpus = None
+        message = None
+        if state.unknownCorpus.get(key) is not None:
+            sourceCorpus = state.unknownCorpus
+        elif state.hamCorpus.get(key) is not None:
+            sourceCorpus = state.hamCorpus
+        elif state.spamCorpus.get(key) is not None:
+            sourceCorpus = state.spamCorpus
+        if sourceCorpus is not None:
+            message = sourceCorpus.get(key).as_string()
+        if message is not None:
+            message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
             results = self._buildCluesTable(message, subject, tokens)
             del results.classifyAnother
             self.write(results)
