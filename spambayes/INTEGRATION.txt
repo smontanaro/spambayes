@@ -245,6 +245,26 @@ script as explained in the "Command-line training" section, or by giving
 messages to the web interface via the "Train" form on the Home page.  You
 can train on individual messages (which is tedious) or using mbox files.
 
+An alternative to training via the web interface is to run the SMTP proxy.
+Just as the POP3 proxy sits between your mail client and your POP3 server,
+the SMTP proxy sits between your mail client and your SMTP server.  To run
+the server, start pop3proxy with the "-s" switch.  You will need to setup
+your mail client just as with the POP3 proxy - change the outgoing mail
+(SMTP) server to localhost (or if you are running pop3proxy on a different
+machine, replace localhost with the name of the machine).  In the web
+interface, set the SMTP options to the address and port of your SMTP
+server.  You will also need to set the "add mail id to" option to "header".
+To train, you can now forward or bounce mail to spambayes_ham@localhost,
+or spambayes_spam@localhost (you can change these addresses via the web
+interface).
+
+Note that some mail clients (particularly Outlook Express) do not forward
+all headers when you bounce, forward or redirect mail.  For these clients,
+you will need to set (via the web interface) the "add mail id to" option
+to body, which will add a unique id to the body of each message you
+receive.  You can also use this id to find a particular message via the
+web interface.
+
 
 Procmail filtering
 ------------------

@@ -94,6 +94,13 @@ pop3proxy.py
     the token database.  This piece will at some point be split out into
     a separate module.
 
+smtpproxy.py
+   A message training SMTP proxy.  It sits between your email client and
+   your SMTP server and intercepts mail to set ham and spam addresses.
+   A unique spambayes id is extracted from the message and it is
+   (re)trained appropriately.  All other mail is simply passed through
+   to the SMTP server.
+
 mailsort.py
     A delivery agent that uses a CDB of word probabilities and delivers
     a message to one of two Maildir message folders, depending on the
