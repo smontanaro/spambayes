@@ -92,10 +92,11 @@ safe_headers: abuse-reports-to
 # if your test corpora are from different sources.  Else set this to true.
 mine_received_headers: False
 
-# If your ham corpus is generated from sources which contain few, if any
-# attachments you probably want to leave this alone.  If you have many
-# legitimate correspondents who send you attachments (Excel spreadsheets,
-# etc), you might want to set this to False.
+# If legitimate mail contains things that look like text to the tokenizer
+# and turning turning off this option helps (perhaps binary attachments get
+# 'defanged' by something upstream from this operation and thus look like
+# text), this may help, and should be an alert that perhaps the tokenizer is
+# broken.
 generate_long_skips: True
 
 [TestDriver]
