@@ -88,6 +88,17 @@ show_charlimit: 3000
 
 save_trained_pickles: False
 pickle_basename: class
+
+[Classifier]
+# Fiddling these can have extreme effects.  See classifier.py for comments.
+hambias: 2.0
+spambias: 1.0
+
+min_spamprob: 0.01
+max_spamprob: 0.99
+unknown_spamprob: 0.5
+
+max_discriminators: 16
 """
 
 int_cracker = ('getint', None)
@@ -114,6 +125,13 @@ all_options = {
                    'pickle_basename': string_cracker,
                    'show_charlimit': int_cracker,
                   },
+    'Classifier': {'hambias': float_cracker,
+                   'spambias': float_cracker,
+                   'min_spamprob': float_cracker,
+                   'max_spamprob': float_cracker,
+                   'unknown_spamprob': float_cracker,
+                   'max_discriminators': int_cracker,
+                   },
 }
 
 def _warn(msg):

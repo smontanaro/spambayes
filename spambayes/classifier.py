@@ -9,6 +9,8 @@ import time
 from heapq import heapreplace
 from sets import Set
 
+from Options import options
+
 # The count of each word in ham is artificially boosted by a factor of
 # HAMBIAS, and similarly for SPAMBIAS.  Graham uses 2.0 and 1.0.  Final
 # results are very sensitive to the HAMBIAS value.  On my 5x5 c.l.py
@@ -25,8 +27,8 @@ from sets import Set
 #    total unique false positives goes down by a factor of 4.6 ( 23 ->   5)
 #    total unique false negatives goes up   by a factor of 2.1 (337 -> 702)
 
-HAMBIAS  = 2.0
-SPAMBIAS = 1.0
+HAMBIAS  = options.hambias  # 2.0
+SPAMBIAS = options.spambias # 1.0
 
 # "And then there is the question of what probability to assign to words
 # that occur in one corpus but not the other. Again by trial and error I
@@ -34,8 +36,8 @@ SPAMBIAS = 1.0
 # into this range.  That's good in principle (IMO), because no finite amount
 # of training data is good enough to justify probabilities of 0 or 1.  It
 # may justify probabilities outside this range, though.
-MIN_SPAMPROB = 0.01
-MAX_SPAMPROB = 0.99
+MIN_SPAMPROB = options.min_spamprob # 0.01
+MAX_SPAMPROB = options.max_spamprob # 0.99
 
 # The spam probability assigned to words never seen before.  Graham used
 # 0.2 here.  Neil Schemenauer reported that 0.5 seemed to work better.  In
@@ -49,7 +51,7 @@ MAX_SPAMPROB = 0.99
 # differing from 0.5.  At 0.2, an unknown word favors ham at the expense
 # of kicking out a word with a prob in (0.2, 0.8), and that seems dubious
 # on the face of it.
-UNKNOWN_SPAMPROB = 0.5
+UNKNOWN_SPAMPROB = options.unknown_spamprob # 0.5
 
 # "I only consider words that occur more than five times in total".
 # But the code snippet considers words that appear at least five times.
@@ -171,7 +173,7 @@ UNKNOWN_SPAMPROB = 0.5
 # of the other flavor are fed into the probability computation.  This change
 # was a pure win, lowering the false negative rate consistently, and it even
 # managed to tickle a couple rare false positives into "not spam" terrority.
-MAX_DISCRIMINATORS = 16
+MAX_DISCRIMINATORS = options.max_discriminators # 16
 
 PICKLE_VERSION = 1
 
