@@ -555,23 +555,24 @@ def _restore_mapi_failure():
     msgstore.test_suite_failure = None
     msgstore.test_suite_failure_request = None
 
-def _setup_for_mapi_failure(checkpoint, hr):
+def _setup_for_mapi_failure(checkpoint, hr, fail_count = None):
     assert msgstore.test_suite_running, "msgstore should already know its running"
     assert not msgstore.test_suite_failure, "should already have torn down previous failure"
     msgstore.test_suite_failure = pythoncom.com_error, \
                          (hr, "testsuite generated error", None, -1)
     msgstore.test_suite_failure_request = checkpoint
+    msgstore.test_suite_failure_count = fail_count
 
 def _setup_mapi_notfound_failure(checkpoint):
     _setup_for_mapi_failure(checkpoint, mapi.MAPI_E_NOT_FOUND)
 
-def _do_single_failure_ham_test(driver, checkpoint, hr):
-    _do_single_failure_test(driver, True, checkpoint, hr)
+def _do_single_failure_ham_test(driver, checkpoint, hr, fail_count = None):
+    _do_single_failure_test(driver, True, checkpoint, hr, fail_count)
 
-def _do_single_failure_spam_test(driver, checkpoint, hr):
-    _do_single_failure_test(driver, False, checkpoint, hr)
+def _do_single_failure_spam_test(driver, checkpoint, hr, fail_count = None):
+    _do_single_failure_test(driver, False, checkpoint, hr, fail_count)
 
-def _do_single_failure_test(driver, is_ham, checkpoint, hr):
+def _do_single_failure_test(driver, is_ham, checkpoint, hr, fail_count):
     print "-> Testing MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
                                               checkpoint)
     # message moved after we have ID, but before opening.
@@ -582,7 +583,7 @@ def _do_single_failure_test(driver, is_ham, checkpoint, hr):
         else:
             msg, words = driver.CreateTestMessageInFolder(SPAM, folder)
         try:
-            _setup_for_mapi_failure(checkpoint, hr)
+            _setup_for_mapi_failure(checkpoint, hr, fail_count)
             try:
                 # sleep to ensure filtering.
                 WaitForFilters()
@@ -609,6 +610,8 @@ def do_failure_tests(manager):
         _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg._EnsureObject", mapi.MAPI_E_NOT_FOUND)
         _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.SetField", -2146644781)
         _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.Save", -2146644781)
+        _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.Save",
+                                    mapi.MAPI_E_OBJECT_CHANGED, fail_count=1)
         # SetReadState???
         _do_single_failure_spam_test(driver, "MAPIMsgStoreMsg._DoCopyMove", mapi.MAPI_E_TABLE_TOO_BIG)
 
@@ -650,8 +653,10 @@ def test(manager):
         run_filter_tests(manager)
         run_failure_tests(manager)
         run_invalid_id_tests(manager)
-        # non-filter tests take alot of time - do them last.
-        run_nonfilter_tests(manager)
+        # non-filter tests take alot of time - ask if you want to do them
+        if manager.AskQuestion("Do you want to run the non-filter tests?" \
+                               "\r\n\r\nThese may take some time"):
+            run_nonfilter_tests(manager)
         print "*" * 20
         print "Test suite finished without error!"
         print "*" * 20
