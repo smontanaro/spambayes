@@ -130,6 +130,7 @@ def printmsg(msg, prob, clues):
         guts = guts[:options.show_charlimit]
     print guts
 
+
 class Driver:
 
     def __init__(self):
@@ -140,6 +141,8 @@ class Driver:
         self.global_spam_hist = Hist()
         self.ntimes_finishtest_called = 0
         self.new_classifier()
+        import CostCounter
+        self.cc=CostCounter.default()
 
     def new_classifier(self):
         """Create and use a new, virgin classifier."""
@@ -203,6 +206,7 @@ class Driver:
               nfp * options.best_cutoff_fp_weight +
               nfn * options.best_cutoff_fn_weight +
               nun * options.best_cutoff_unsure_weight)
+        print self.cc
 
         if options.save_histogram_pickles:
             for f, h in (('ham', self.global_ham_hist),
@@ -222,6 +226,7 @@ class Driver:
         def new_ham(msg, prob, lo=options.show_ham_lo,
                                hi=options.show_ham_hi):
             local_ham_hist.add(prob * 100.0)
+            self.cc.ham(prob)
             if lo <= prob <= hi:
                 print
                 print "Ham with prob =", prob
@@ -231,6 +236,7 @@ class Driver:
         def new_spam(msg, prob, lo=options.show_spam_lo,
                                 hi=options.show_spam_hi):
             local_spam_hist.add(prob * 100.0)
+            self.cc.spam(prob)
             if lo <= prob <= hi:
                 print
                 print "Spam with prob =", prob
