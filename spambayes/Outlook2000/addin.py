@@ -135,8 +135,18 @@ def ShowClues(mgr, app):
     prob, clues = hammie.score(text, evidence=True)
 
     new_msg = app.CreateItem(0)
-    body = "<h2>Calculated Probability: %.2f</h2><br>" % (prob,)
-    body += "<pre>" + hammie.formatclues(clues, "<br>") + "</pre>"
+    body = ["<h2>Calculated Probability: %g</h2><br>" % prob]
+    push = body.append
+    push("<PRE>\n")
+    words = ['%r' % word for word, prob in clues]
+    probs = ['%g' % prob for word, prob in clues]
+    max_word_len = max(map(len, words))
+    for word, prob in zip(words, probs):
+        push(word + ' ' * (max_word_len - len(word)))
+        push(' ' + prob + '\n')
+    push("</PRE>\n")
+    body = ''.join(body)
+
     new_msg.Subject = "Spam Clues: " + item.Subject
     # Stupid outlook always switches to RTF :( Work-around
 ##    new_msg.Body = body
