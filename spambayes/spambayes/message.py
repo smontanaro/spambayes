@@ -241,6 +241,11 @@ class Message(email.Message.Message):
     #   >>> msg = sbheadermessage_from_string(substance)
     # imapfilter has an example of this in action
     def setPayload(self, payload):
+        """DEPRECATED.
+
+        This function does not work (as a result of using private
+        methods in a hackish way) in Python 2.4, so is now deprecated.
+        Use *_from_string as described above."""
         prs = email.Parser.Parser()
         fp = StringIO(payload)
         # this is kindof a hack, due to the fact that the parser creates a
