@@ -126,14 +126,29 @@ class BadIMAPResponseError(Exception):
 class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
 
+    timeout = 60 # seconds
     def __init__(self, server, port, debug=0, do_expunge=False):
+        # There's a tricky situation where if use_ssl is False, but we
+        # try to connect to a IMAP over SSL server, we will just hang
+        # forever, waiting for a repsonse that will never come.  To
+        # get past this, just for the welcome message, we install a
+        # timeout on the connection.  Normal service is then returned.
+        # This only applies when we are not using SSL.
+        if not hasattr(self, "ssl"):
+            readline = self.readline
+            self.readline = self.readline_timeout
         try:
             BaseIMAP.__init__(self, server, port)
         except (BaseIMAP.error, socket.gaierror, socket.error):
             print "Cannot connect to server %s on port %s" % (server, port)
+            if not hasattr(self, "ssl"):
+                print "If you are connecting to an SSL server, please " \
+                      "ensure that you have the 'Use SSL' option enabled."
             self.connected = False
         else:
             self.connected = True
+        if not hasattr(self, "ssl"):
+            self.readline = readline
         self.debug = debug
         self.do_expunge = do_expunge
         self.logged_in = False
@@ -143,6 +158,31 @@ class IMAPSession(BaseIMAP):
         # we want to *change* folders.  This functionality is used by
         # both IMAPMessage and IMAPFolder.
         self.current_folder = None
+
+    def readline_timeout(self):
+        """Read line from remote, possibly timing out."""
+        st_time = time.time()
+        self.sock.setblocking(False)
+        buffer = []
+        while True:
+            if (time.time() - st_time) > self.timeout:
+                if options["globals", "verbose"]:
+                    print >> sys.stderr, "IMAP Timing out"
+                break
+            try:
+                data = self.sock.recv(1)
+            except socket.error, e:
+                if e[0] == 10035:
+                    # Nothing to receive, keep going.
+                    continue
+                raise
+            if not data:
+                break
+            if data == '\n':
+                break
+            buffer.append(data)
+        self.sock.setblocking(True)
+        return "".join(buffer)
 
     def login(self, username, pwd):
         """Log in to the IMAP server, catching invalid username/password."""
