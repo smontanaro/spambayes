@@ -530,8 +530,9 @@ def CheckLatestVersion(manager):
             print "Opening browser page", url
             os.startfile(url)
     else:
-        win32ui.MessageBox("You are already running the latest version",
-                           "SpamBayes")
+        msg = "The latest available version is %s\r\n\r\n" \
+              "You already have the latest version." % latest_ver_string
+        win32ui.MessageBox(msg, "SpamBayes")
 
 # A hook for whatever tests we have setup
 def Tester(manager):
