@@ -370,14 +370,6 @@ defaults = {
      tests.  0.1 appeared to work well across all corpora.""",
      REAL, RESTORE),
 
-    ("use_gary_combining", "Use gary-combining", False,
-     """The combining scheme currently detailed on the Robinson web page.
-     The middle ground here is touchy, varying across corpus, and within
-     a corpus across amounts of training data.  It almost never gives
-     extreme scores (near 0.0 or 1.0), but the tail ends of the ham and
-     spam distributions overlap.""",
-     BOOLEAN, RESTORE),
-
     ("use_chi_squared_combining", "Use chi-squared combining", True,
      """For vectors of random, uniformly distributed probabilities,
      -2*sum(ln(p_i)) follows the chi-squared distribution with 2*n degrees

@@ -24,6 +24,9 @@
 # However, it doesn't appear possible to guess the best spam_cutoff value in
 # advance, and it's touchy.
 #
+# The last version of the Gary-combining scheme can be retrieved from our
+# CVS repository via tag Last-Gary.
+#
 # The chi-combining scheme used by default here gets closer to the theoretical
 # basis of Gary's combining scheme, and does give extreme scores, but also
 # has a very useful middle ground (small # of msgs spread across a large range
@@ -107,76 +110,8 @@ class Classifier:
 
     # spamprob() implementations.  One of the following is aliased to
     # spamprob, depending on option settings.
-
-    def gary_spamprob(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import frexp
-
-        # This combination method is due to Gary Robinson; see
-        # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
-
-        # The real P = this P times 2**Pexp.  Likewise for Q.  We're
-        # simulating unbounded dynamic float range by hand.  If this pans
-        # out, *maybe* we should store logarithms in the database instead
-        # and just add them here.  But I like keeping raw counts in the
-        # database (they're easy to understand, manipulate and combine),
-        # and there's no evidence that this simulation is a significant
-        # expense.
-        P = Q = 1.0
-        Pexp = Qexp = 0
-        clues = self._getclues(wordstream)
-        for prob, word, record in clues:
-            P *= 1.0 - prob
-            Q *= prob
-            if P < 1e-200:  # move back into range
-                P, e = frexp(P)
-                Pexp += e
-            if Q < 1e-200:  # move back into range
-                Q, e = frexp(Q)
-                Qexp += e
-
-        P, e = frexp(P)
-        Pexp += e
-        Q, e = frexp(Q)
-        Qexp += e
-
-        num_clues = len(clues)
-        if num_clues:
-            #P = 1.0 - P**(1./num_clues)
-            #Q = 1.0 - Q**(1./num_clues)
-            #
-            # (x*2**e)**n = x**n * 2**(e*n)
-            n = 1.0 / num_clues
-            P = 1.0 - P**n * 2.0**(Pexp * n)
-            Q = 1.0 - Q**n * 2.0**(Qexp * n)
-
-            # (P-Q)/(P+Q) is in -1 .. 1; scaling into 0 .. 1 gives
-            # ((P-Q)/(P+Q)+1)/2 =
-            # ((P-Q+P-Q)/(P+Q)/2 =
-            # (2*P/(P+Q)/2 =
-            # P/(P+Q)
-            prob = P/(P+Q)
-        else:
-            prob = 0.5
-
-        if evidence:
-            clues = [(w, p) for p, w, r in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            return prob, clues
-        else:
-            return prob
-
-    if options["Classifier", "use_gary_combining"]:
-        spamprob = gary_spamprob
+    # Currently only chi-squared is available, but maybe there will be
+    # an alternative again someday.
 
     # Across vectors of length n, containing random uniformly-distributed
     # probabilities, -2*sum(ln(p_i)) follows the chi-squared distribution
