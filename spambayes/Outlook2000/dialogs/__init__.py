@@ -4,7 +4,7 @@ import os, sys, stat
 
 def LoadDialogs(rc_name = "dialogs.rc"):
     base_name = os.path.splitext(rc_name)[0]
-    mod_name = "resources." + base_name
+    mod_name = "dialogs.resources." + base_name
     mod = None
     # If we are running from source code, check the .py file is up to date
     # wrt the .rc file passed in.
@@ -20,8 +20,7 @@ def LoadDialogs(rc_name = "dialogs.rc"):
         if os.path.exists(py_name):
             try:
                 mod = __import__(mod_name)
-                # mod is the top-level 'resources' module
-                mod = getattr(mod, base_name)
+                mod = sys.modules[mod_name]
                 mtime = mod._rc_mtime_
                 size = mod._rc_size_
             except (ImportError, AttributeError):
@@ -38,8 +37,7 @@ def LoadDialogs(rc_name = "dialogs.rc"):
             rc2py.convert(rc_name, py_name)
     if mod is None:
         mod = __import__(mod_name)
-        # mod is the top-level 'resources' module
-        mod = getattr(mod, base_name)
+        mod = sys.modules[mod_name]
     return mod.FakeParser()
 
 def ShowDialog(parent, manager, config, idd):
