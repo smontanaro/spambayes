@@ -393,6 +393,8 @@ def tokenize_word(word, _len=len):
     # XXX sense" so far driving the exclusion of lengths 1 and 2.
     # XXX Later:  A test with no lower bound showed a significant increase
     # XXX in the f-n rate.  Curious!
+    # XXX Later:  Boosting the lower bound to 4 is a Bad Idea too:  f-p and
+    # XXX f-n rates both suffered then.
 
     # Make sure this range matches in tokenize().
     if 3 <= n <= 12:

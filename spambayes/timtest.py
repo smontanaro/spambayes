@@ -128,6 +128,12 @@ class Driver:
         self.trained_ham_hist = Hist(self.nbuckets)
         self.trained_spam_hist = Hist(self.nbuckets)
 
+        #f = file('w.pik', 'wb')
+        #pickle.dump(self.classifier, f, 1)
+        #f.close()
+        #import sys
+        #sys.exit(0)
+
     def finishtest(self):
         printhist("all in this training set:",
                   self.trained_ham_hist, self.trained_spam_hist)
