@@ -484,6 +484,8 @@ class Bayes(object):
         if evidence:
             clues = [(w, p) for p, w, r in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
+            clues.insert(0, ('*S*', S))
+            clues.insert(0, ('*H*', H))
             return prob, clues
         else:
             return prob
@@ -524,6 +526,9 @@ class Bayes(object):
         if evidence:
             clues = [(w, p) for p, w, r in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
+            clues.insert(0, ('*zsum*', zsum))
+            clues.insert(0, ('*n*', n))
+            clues.insert(0, ('*zscore*', zsum / sqrt(n or 1)))
             return prob, clues
         else:
             return prob
