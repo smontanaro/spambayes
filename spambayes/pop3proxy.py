@@ -88,12 +88,10 @@ Gimmicks:
  o Zoe...!
 """
 
-import os, sys, re, errno, getopt, time, traceback
-import socket
+import os, sys, re, errno, getopt, time, traceback, socket, cStringIO
 from thread import start_new_thread
 from email.Header import Header
 
-import smtpproxy
 import spambayes.message
 from spambayes import Dibbler
 from spambayes import storage
@@ -490,21 +488,24 @@ class BayesProxy(POP3ProxyBase):
                 body = re.split(r'\n\r?\n', messageText, 1)[1]
                 messageText = "\r\n".join(headers) + "\r\n\r\n" + body
 
+                crashMe()
+
             except:
                 # Something nasty happened while parsing or classifying -
                 # report the exception in a hand-appended header and recover.
                 # This is one case where an unqualified 'except' is OK, 'cos
                 # anything's better than destroying people's email...
-                eType, eValue, eTraceback = sys.exc_info()
+                stream = cStringIO.StringIO()
+                traceback.print_exc(None, stream)
+                details = stream.getvalue()
+                
+                # Build the header.  This will strip leading whitespace from
+                # the lines, so we add a leading dot to maintain indentation.
+                detailLines = details.strip().split('\n')
+                dottedDetails = '\n.'.join(detailLines)
                 headerName = 'X-Spambayes-Exception'
-                file, line, func, code = traceback.extract_tb(eTraceback)[-1]
-
-                # Build the header.
-                details = "%s(%s) in %s() at %s line %d: %s" % \
-                           (eType, eValue, func, file, line, code)
-                header = Header(details, header_name=headerName,
-                                         continuation_ws='\t')
-
+                header = Header(dottedDetails, header_name=headerName)
+                
                 # Insert the header, converting email.Header's '\n' line
                 # breaks to POP3's '\r\n'.
                 headers, body = re.split(r'\n\r?\n', messageText, 1)
@@ -513,7 +514,7 @@ class BayesProxy(POP3ProxyBase):
                 messageText = headers + body
 
                 # Print the exception and a traceback.
-                traceback.print_exc()
+                print >>sys.stderr, details
 
             # Restore the +OK and the POP3 .\r\n terminator if there was one.
             retval = ok + "\n" + messageText
@@ -738,6 +739,7 @@ def prepare(state):
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
+    import smtpproxy
     servers, proxyPorts = smtpproxy.LoadServerInfo()
     smtpproxy.CreateProxies(servers, proxyPorts, state)
 
