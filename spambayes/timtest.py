@@ -4,7 +4,7 @@
 # A test driver using "the standard" test directory structure.  See also
 # rates.py and cmp.py for summarizing results.
 
-"""Usage: %(program)s [options]
+"""Usage: %(program)s [-h] -n nsets
 
 Where:
     -h
@@ -26,7 +26,9 @@ from heapq import heapreplace
 import Tester
 import classifier
 from tokenizer import tokenize
-import Options
+from Options import options
+
+program = sys.argv[0]
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -144,12 +146,11 @@ class MsgStream(object):
 
 class Driver:
 
-    def __init__(self, nbuckets=40):
-        self.nbuckets = nbuckets
+    def __init__(self):
         self.falsepos = Set()
         self.falseneg = Set()
-        self.global_ham_hist = Hist(self.nbuckets)
-        self.global_spam_hist = Hist(self.nbuckets)
+        self.global_ham_hist = Hist(options.nbuckets)
+        self.global_spam_hist = Hist(options.nbuckets)
 
     def train(self, ham, spam):
         self.classifier = classifier.GrahamBayes()
@@ -159,8 +160,8 @@ class Driver:
         t.train(ham, spam)
         print t.nham, "hams &", t.nspam, "spams"
 
-        self.trained_ham_hist = Hist(self.nbuckets)
-        self.trained_spam_hist = Hist(self.nbuckets)
+        self.trained_ham_hist = Hist(options.nbuckets)
+        self.trained_spam_hist = Hist(options.nbuckets)
 
         #f = file('w.pik', 'wb')
         #pickle.dump(self.classifier, f, 1)
@@ -169,28 +170,37 @@ class Driver:
         #sys.exit(0)
 
     def finishtest(self):
-        printhist("all in this training set:",
-                  self.trained_ham_hist, self.trained_spam_hist)
+        if options.show_histograms:
+            printhist("all in this training set:",
+                      self.trained_ham_hist, self.trained_spam_hist)
         self.global_ham_hist += self.trained_ham_hist
         self.global_spam_hist += self.trained_spam_hist
 
     def alldone(self):
-        printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
+        if options.show_histograms:
+            printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
 
     def test(self, ham, spam, charlimit=None):
         c = self.classifier
         t = self.tester
-        local_ham_hist = Hist(self.nbuckets)
-        local_spam_hist = Hist(self.nbuckets)
+        local_ham_hist = Hist(options.nbuckets)
+        local_spam_hist = Hist(options.nbuckets)
 
-        def new_ham(msg, prob):
+        def new_ham(msg, prob, lo=options.show_ham_lo,
+                               hi=options.show_ham_hi):
             local_ham_hist.add(prob)
-
-        def new_spam(msg, prob):
-            local_spam_hist.add(prob)
-            if prob < 0.1:
+            if lo <= prob <= hi:
                 print
-                print "Low prob spam!", prob
+                print "Ham with prob =", prob
+                prob, clues = c.spamprob(msg, True)
+                printmsg(msg, prob, clues, charlimit)
+
+        def new_spam(msg, prob, lo=options.show_spam_lo,
+                                hi=options.show_spam_hi):
+            local_spam_hist.add(prob)
+            if lo <= prob <= hi:
+                print
+                print "Spam with prob =", prob
                 prob, clues = c.spamprob(msg, True)
                 printmsg(msg, prob, clues, charlimit)
 
@@ -206,6 +216,8 @@ class Driver:
         newfpos = Set(t.false_positives()) - self.falsepos
         self.falsepos |= newfpos
         print "    new false positives:", [e.tag for e in newfpos]
+        if not options.show_false_positives:
+            newfpos = ()
         for e in newfpos:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
@@ -214,32 +226,36 @@ class Driver:
         newfneg = Set(t.false_negatives()) - self.falseneg
         self.falseneg |= newfneg
         print "    new false negatives:", [e.tag for e in newfneg]
-        for e in []:#newfneg:
+        if not options.show_false_negatives:
+            newfneg = ()
+        for e in newfneg:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues, 1000)
 
-        print
-        print "    best discriminators:"
-        stats = [(-1, None) for i in range(30)]
-        smallest_killcount = -1
-        for w, r in c.wordinfo.iteritems():
-            if r.killcount > smallest_killcount:
-                heapreplace(stats, (r.killcount, w))
-                smallest_killcount = stats[0][0]
-        stats.sort()
-        for count, w in stats:
-            if count < 0:
-                continue
-            r = c.wordinfo[w]
-            print "        %r %d %g" % (w, r.killcount, r.spamprob)
+        if options.show_best_discriminators:
+            print
+            print "    best discriminators:"
+            stats = [(-1, None) for i in range(30)]
+            smallest_killcount = -1
+            for w, r in c.wordinfo.iteritems():
+                if r.killcount > smallest_killcount:
+                    heapreplace(stats, (r.killcount, w))
+                    smallest_killcount = stats[0][0]
+            stats.sort()
+            for count, w in stats:
+                if count < 0:
+                    continue
+                r = c.wordinfo[w]
+                print "        %r %d %g" % (w, r.killcount, r.spamprob)
 
-        printhist("this pair:", local_ham_hist, local_spam_hist)
+        if options.show_histograms:
+            printhist("this pair:", local_ham_hist, local_spam_hist)
         self.trained_ham_hist += local_ham_hist
         self.trained_spam_hist += local_spam_hist
 
 def drive(nsets):
-    print Options.options.display()
+    print options.display()
 
     spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
     hamdirs  = ["Data/Ham/Set%d" % i for i in range(1, nsets+1)]
@@ -272,6 +288,8 @@ if __name__ == "__main__":
 
     if args:
         usage(1, "Positional arguments not supported")
+    if nsets is None:
+        usage(1, "-n is required")
 
-    Options.options.mergefiles(['bayescustomize.ini'])
+    options.mergefiles(['bayescustomize.ini'])
     drive(nsets)

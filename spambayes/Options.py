@@ -8,12 +8,26 @@ import StringIO
 import ConfigParser
 from sets import Set
 
-__all__ = ['buildoptions', 'options']
+__all__ = ['options']
+
+int_cracker = ('getint', None)
+float_cracker = ('getfloat', None)
+boolean_cracker = ('getboolean', bool)
 
 all_options = {
-    'Tokenizer': {'retain_pure_html_tags': ('getboolean', lambda i: bool(i)),
+    'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
                  },
+    'TestDriver': {'nbuckets': int_cracker,
+                   'show_ham_lo': float_cracker,
+                   'show_ham_hi': float_cracker,
+                   'show_spam_lo': float_cracker,
+                   'show_spam_hi': float_cracker,
+                   'show_false_positives': boolean_cracker,
+                   'show_false_negatives': boolean_cracker,
+                   'show_histograms': boolean_cracker,
+                   'show_best_discriminators': boolean_cracker,
+                  }
 }
 
 def _warn(msg):
@@ -38,8 +52,9 @@ class OptionsClass(object):
                          "section %r" % (option, section))
                     continue
                 fetcher, converter = goodopts[option]
-                rawvalue = getattr(c, fetcher)(section, option)
-                value = converter(rawvalue)
+                value = getattr(c, fetcher)(section, option)
+                if converter is not None:
+                    value = converter(value)
                 setattr(options, option, value)
 
     def display(self):
