@@ -5,7 +5,7 @@ Train to exhaustion: train repeatedly on a pile of ham and spam until
 everything scores properly.
 
 usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
-               [ -m N ] [ -r N ] [ -c ext ] [ -o sect:opt:val ]
+               [ -m N ] [ -r N ] [ -c ext ] [ -o sect:opt:val ] [ -v ]
 
 -h      - Print this usage message and exit.
 
@@ -30,6 +30,9 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 
 -o sect:opt:val -
           Set [sect, opt] in the options database to val.
+
+-v        Be very verbose, spewing all sorts of stuff out to stderr.
+
 
 Note: The -c command line argument isn't quite as benign as it might first
 appear.  Since the tte protocol trains on the same number of ham and spam
@@ -77,7 +80,7 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-def train(store, ham, spam, maxmsgs, maxrounds, tdict):
+def train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose):
     smisses = hmisses = round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
@@ -86,6 +89,10 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict):
         hambone = mboxutils.getmbox(ham)
         spamcan = mboxutils.getmbox(spam)
         round += 1
+
+        if verbose:
+            print >> sys.stderr, "*** round", round, "***"
+
         hmisses = smisses = nmsgs = 0
         start = datetime.datetime.now()
         try:
@@ -97,12 +104,18 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict):
                 sys.stdout.write("\r%5d" % nmsgs)
                 sys.stdout.flush()
 
-                if store.spamprob(tokenize(hammsg)) > ham_cutoff:
+                score = store.spamprob(tokenize(hammsg))
+                if score > ham_cutoff:
+                    if verbose:
+                        print >> sys.stderr, "miss ham:  %.6f %s" % (score, hammsg["message-id"])
                     hmisses += 1
                     tdict[hammsg["message-id"]] = True
                     store.learn(tokenize(hammsg), False)
 
-                if store.spamprob(tokenize(spammsg)) < spam_cutoff:
+                score = store.spamprob(tokenize(spammsg))
+                if score < spam_cutoff:
+                    if verbose:
+                        print >> sys.stderr, "miss spam: %.6f %s" % (score, spammsg["message-id"])
                     smisses += 1
                     tdict[spammsg["message-id"]] = True
                     store.learn(tokenize(spammsg), True)
@@ -139,9 +152,9 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict):
 
 def main(args):
     try:
-        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:",
+        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:v",
                                    ["help", "good=", "spam=",
-                                    "database=", "pickle=",
+                                    "database=", "pickle=", "verbose",
                                     "option=", "max=", "maxrounds=",
                                     "cullext="])
     except getopt.GetoptError, msg:
@@ -151,10 +164,13 @@ def main(args):
     ham = spam = dbname = usedb = cullext = None
     maxmsgs = 0
     maxrounds = MAXROUNDS
+    verbose = False
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
             return 0
+        elif opt in ("-v", "--verbose"):
+            verbose = True
         elif opt in ("-g", "--good"):
             ham = arg
         elif opt in ("-s", "--spam"):
@@ -182,7 +198,7 @@ def main(args):
     store = storage.open_storage(dbname, usedb)
 
     tdict = {}
-    train(store, ham, spam, maxmsgs, maxrounds, tdict)
+    train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose)
 
     store.store()
 
