@@ -50,6 +50,7 @@ class FolderSpec:
 #########################################################################
 from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
+import pythoncom
 
 def _BuildFoldersMAPI(manager, folder_id):
     folder = manager.message_store.GetFolder(folder_id).OpenEntry()
@@ -86,11 +87,18 @@ def BuildFolderTreeMAPI(session):
     for row in rows:
         (eid_tag, eid), (name_tag, name) = row
         hex_eid = mapi.HexFromBin(eid)
-        msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
-                                                      mapi.MAPI_DEFERRED_ERRORS)
-        hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,), 0)
-        subtree_eid = data[0][1]
-        folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
+        try:
+            msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
+                                                          mapi.MAPI_DEFERRED_ERRORS)
+            hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,), 0)
+            subtree_eid = data[0][1]
+            folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
+        except pythoncom.com_error, details:
+            # Some weired error opening a folder tree
+            # Just print a warning and ignore the tree.
+            print "Failed to open a folder for the FolderSelector dialog"
+            print "Exception details:", details
+            continue
         folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
         spec = FolderSpec(folder_id, name)
         spec.children = None
