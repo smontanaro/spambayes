@@ -59,9 +59,8 @@ def AskQuestion(message, title = None):
     return _DoMessage(message, title, win32con.MB_YESNO | \
                                       win32con.MB_ICONQUESTION) == win32con.IDYES
 
-# Notes on Unicode directory names
-# You will have much more success with extended characters in
-# directory names using Python 2.3.
+# Non-ascii characters in file or directory names only fully work in
+# Python 2.3.3+, but latin-1 "compatible" filenames should work in 2.2
 try:
     filesystem_encoding = sys.getfilesystemencoding()
 except AttributeError:
@@ -70,17 +69,14 @@ except AttributeError:
 # Work out our "application directory", which is
 # the directory of our main .py/.dll/.exe file we
 # are running from.
-try:
-    if hasattr(sys, "frozen"):
-        if sys.frozen == "dll":
-            this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
-        else:
-            # Don't think we will ever run as a .EXE, but...
-            this_filename = os.path.abspath(sys.argv[0])
-    else:
+if hasattr(sys, "frozen"):
+    assert sys.frozen == "dll", "outlook only supports inproc servers"
+    this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
+else:
+    try:
         this_filename = os.path.abspath(__file__)
-except NameError: # no __file__
-    this_filename = os.path.abspath(sys.argv[0])
+    except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
+        this_filename = os.path.abspath(sys.argv[0])
 
 # See if we can use the new bsddb module. (The old one is unreliable
 # on Windows, so we don't use that)
@@ -95,6 +91,8 @@ except ImportError:
         use_db = hasattr(bsddb, "db") # This name is not in the old one.
     except ImportError:
         # No DB library at all!
+        assert not hasattr(sys, "frozen"), \
+               "Don't build binary versions without bsbbd!"
         use_db = False
 
 # This is a little bit of a hack <wink>.  We are generally in a child
@@ -116,8 +114,17 @@ def import_early_core_spambayes_stuff():
         sys.path.insert(0, parent)
 
 def import_core_spambayes_stuff(ini_filename):
-    assert "spambayes.Options" not in sys.modules, \
-        "'spambayes.Options' was imported too early"
+    if "spambayes.Options" in sys.modules:
+        # Manager probably being re-initialized (via the Outlook 'addin' GUI
+        # Check that nothing has changed underneath us.
+        if __debug__:
+            import spambayes.Options
+            assert spambayes.Options.optionsPathname == \
+                   ini_filename.encode(filesystem_encoding), \
+                   "'spambayes.Options' was imported too early, with the " \
+                   "incorrect directory %r" \
+                   % (spambayes.Options.optionsPathname,)
+        return
     global bayes_classifier, bayes_tokenize, bayes_storage
     # ini_filename is Unicode, but environ not unicode aware
     os.environ["BAYESCUSTOMIZE"] = ini_filename.encode(filesystem_encoding)
@@ -129,10 +136,6 @@ def import_core_spambayes_stuff(ini_filename):
     bayes_storage = storage
     assert "spambayes.Options" in sys.modules, \
         "Expected 'spambayes.Options' to be loaded here"
-
-class ManagerError(Exception):
-    pass
-
 
 # Function to "safely" save a pickle, only overwriting
 # the existing file after a successful write.
@@ -350,13 +353,12 @@ class BayesManager:
             try:
                 if not os.path.isdir(value):
                     os.makedirs(value)
-                if not os.path.isdir(value):
-                    raise os.error
+                assert os.path.isdir(value), "just made the *ucker"
                 value = os.path.abspath(value)
             except os.error:
-                print "The configuration files have specified a data directory of"
-                print repr(value)
-                print "but it is not valid.  Using default"
+                print "The configuration files have specified a data " \
+                      "directory of", repr(value), "but it is not valid. " \
+                      "Using default."
                 value = None
         if value:
             self.data_directory = value
@@ -372,7 +374,8 @@ class BayesManager:
         self.message_store = msgstore.MAPIMsgStore(outlook)
         self.LoadConfig()
 
-        bayes_options_filename = os.path.join(self.data_directory, "default_bayes_customize.ini")
+        bayes_options_filename = os.path.join(self.data_directory,
+                                              "default_bayes_customize.ini")
         import_core_spambayes_stuff(bayes_options_filename)
 
         bayes_base = os.path.join(self.data_directory, "default_bayes_database")
@@ -486,7 +489,7 @@ class BayesManager:
     def MigrateDataDirectory(self):
         # A bit of a nod to save people doing a full retrain.
         # Try and locate our files in the old location, and move
-        # then to the new one.
+        # them to the new one.
         # Also used first time SpamBayes is run - this will cause
         # the ini file to be *copied* to the correct directory
         self._MigrateFile("default_bayes_customize.ini", False)
@@ -752,12 +755,17 @@ class BayesManager:
             self.LogDebug(1, "Bayes database is not dirty - not writing")
 
     def Close(self):
+        global _mgr
         self.classifier_data.Close()
-        self.config = None
+        self.config = self.options = None
         if self.message_store is not None:
             self.message_store.Close()
             self.message_store = None
         self.outlook = None
+        self.addin = None
+        # If we are the global manager, reset that
+        if _mgr is self:
+            _mgr = None
 
     def score(self, msg, evidence=False):
         """Score a msg.
@@ -849,13 +857,8 @@ def ShowManager(mgr):
     mgr.ShowManager()
 
 def main(verbose_level = 1):
-    try:
-        mgr = GetManager()
-        mgr.verbose = max(mgr.verbose, verbose_level)
-    except ManagerError, d:
-        print "Error initializing Bayes manager"
-        print d
-        return 1
+    mgr = GetManager()
+    mgr.verbose = max(mgr.verbose, verbose_level)
     ShowManager(mgr)
     mgr.Save()
     mgr.Close()
