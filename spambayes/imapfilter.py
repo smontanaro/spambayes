@@ -41,7 +41,8 @@ Examples:
         imapfilter -t -d bayes.db
  
 To Do:
-    o Remove old msg from info database when saveing modified messages
+    o Find a better way to remove old msg from info database when saving
+      modified messages
     o Use DELETE rather than storing //DELETED flag when saving modified messages
     o Web UI for configuration and setup. # Tony thinks it would be
         nice if there was a web ui to this for the initial setup (i.e. like
@@ -130,7 +131,6 @@ class IMAPMessage(message.SBHeaderMessage):
         #self.id = response[1][0]
 
         old_id = self.id
-        self.id = new_id
         if self.previous_folder is not None:
             response = imap.select(self.previous_folder.name, False)
             self._check(response, 'folder select')
@@ -138,8 +138,14 @@ class IMAPMessage(message.SBHeaderMessage):
             response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
             self._check(response, 'store')
 
-            #XXX We really should delete the old message from the msgid db.
-            #XXX There is currently no interface to do this with.
+            #XXX This code to deletd the old message id from the message
+            #XXX info db and manipulate the message id, is a *serious* hack.
+            #XXX There's gotta be a better way to do this.
+
+            message.msginfoDB._delState(self)
+            
+        self.id = str(new_id)
+        self.modified()
 
 
 class IMAPFolder(object):
