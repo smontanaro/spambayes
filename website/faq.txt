@@ -733,6 +733,19 @@ correctly remove these entries.
 .. _`a bug with the plug-in`: http://sourceforge.net/tracker/index.php?func=detail&aid=675811&group_id=61702&atid=498103
 
 
+Is it OK to delete the messages in the Spam folder?
+---------------------------------------------------
+
+If SpamBayes identifies a message correctly then it is fine to delete it.
+After a message is identified, SpamBayes only uses the message if you need
+to train an unsure or incorrect identification.
+
+It is also safe to delete any messages that you have already trained on using
+the "Delete as Spam" and "Recover from Spam" buttons.  All the information
+that SpamBayes needs to know about trained messages is stored in a separate
+file.
+
+
 Using SpamBayes
 ===============
 
