@@ -19,12 +19,19 @@
   </tbody>
 </table>
 <h1>SpamBayes Server/Proxy Application</h1>
+<strong>A spam filter based on statistical analysis of your personal mail.</strong>
+
 <h2>Welcome to SpamBayes</h2>
 
 <p><em>Note that if you use Microsoft Outlook, you should probably be using the
 Outlook Addin, which was presented as an option at installation time.</em>
 If you are using Outlook Express or almost any other mail program, 
-you are in the right place</p>
+you are in the right place.</p>
+
+<p>SpamBayes is an application that provides spam classification based on statistical
+analysis of your personal mail. Unlike many other spam detection systems, SpamBayes
+actually learns what you consider spam, and continually adapts as both your regular
+email and spam patterns change.</p>
 
 <p>This SpamBayes application sits between your mail server (generally at
 your Internet Service Provider) and your mail program. Your mail program still believes
@@ -46,24 +53,37 @@ to you via your web browser.  SpamBayes will list all the messages that have
 been received, and let you train them as <b>ham</b> or <b>spam</b>.  You
 can also configure SpamBayes via this interface in your web browser.</p>
 
-<p>The <a href="http://spambayes.sourceforge.net/faq.html#using-spambayes">
-using SpamBayes section in the online FAQ</a> has alot of information
-which you may find useful, especially considering how little documentation
-is supplied.  The <a href="http://spambayes.sourceforge.net/">main SpamBayes
-project pages</a> may also be of interest.</p>
+<p>Please remember that this is free software; please be patient, and
+note that there are plenty of things to improve. There are ways
+you can help, even if you aren't a programmer - you could help with
+this documentation, or <a
+ href="http://spambayes.org/donations.html">make a donation</a>, or
+any number of other ways - please see the <a
+ href="http://spambayes.org">main project
+page</a> for information. The list of <a
+ href="http://spambayes.org/faq.html">Frequently Asked Questions</a>
+may also answer some of yours, especially considering the (current)
+lack of documentation - you may wish to start in the 
+<a href="http://spambayes.sourceforge.net/faq.html#using-spambayes">
+"Using SpamBayes" section</a>.</p>
 
 <h3>Getting Started</h3>
-<p>You should start the <span style="font-style: italic;">SpamBayes Tray
+<p><img src="docs/images/tray.jpg" style="float:right" alt="Tray menu" />
+You should start the <span style="font-style: italic;">SpamBayes Tray
 Icon</span> program, which was installed into your Start menu. This is the
 recommended method of operating SpamBayes.  If you right-click on this
-icon you will be presented with a number of options to control SpamBayes,
-including an option to configure SpamBayes for your system.</p>
+icon you will be presented with a number of options to control SpamBayes
+(see figure on the right), including an option to configure SpamBayes for
+your system. Double-clicking on the icon will bring up the messages that
+SpamBayes has for you to review.</p>
 
 <h3>Using the Service</h3>
-<p>There is a windows service program installed, but it is not configured
+<p>There is a Windows service program installed, but it is not configured
 by the installation program. If you configure this manually, you
 can continue to use the Tray Icon program, as it will control the
-service instead of running the server internally as it normally does.</p>
+service instead of running the server internally as it normally does.
+If you don't know what a "Windows service program" is, don't worry about it;
+you don't need to use this.</p>
 <p>To install the service, perform the following steps:<br/>
 <ul>
   <li>Open a command prompt, and change to the <span
@@ -80,10 +100,98 @@ that SpamBayes uses the same configuration and data files when running
 as a service and when running as a normal program.</li>
   <li>If desired, change the properties of the service to start at boot
 time.</li>
-  <li>Start the service</li>
+  <li>Start the service.</li>
   <li>Start the <span style="font-style: italic;">SpamBayes Tray Icon</span>
 program, and confirm the server is running. Configure and manage
 spambayes normally.</li>
 </ul>
+
+<h3>Configuration</h3>
+
+<p><img alt="Config page" style="float: right; margin: 1em" src="docs/images/config.jpg" />
+There are two configuration steps that you need to take:</p>
+<ol>
+<li><strong>Setup SpamBayes:</strong> SpamBayes comes with default settings
+that, for the most part, should be suitable for your system.  There is
+one setting that you will need to fill out, however, which is the address of
+your mail server (at your ISP, most likely).  Right-click on the tray icon
+and choose <em>Configure...</em>; this will open up a browser window like the
+one in the figure on the right.  You can skip over most of the settings here,
+apart from the top one (shown in the figure).  You need to enter the address
+of your mail server.  If you don't know the address, you can find it in the
+settings of your mail client.
+<br /><br />
+If you wish to, you can change other settings on this page - to the right
+of each option is a description of what it does.  There are also some
+more advanced options available via a button at the end of the page
+(note that these are not all of the SpamBayes options - see the
+<a href="http://spambayes.org/faq.html">FAQ</a> for information about how
+to access other options).
+<br /><br />
+Once you are satisfied that you have entered the correct options for your
+setup, click the <em>Save</em> button at the end of the page.  These
+values will be saved in your personal configuration file and be used
+each time SpamBayes is started up.
+<br /><br />
+<li><strong>Setup your mail client:</strong> You need to set your
+mail client to receive mail from <em>localhost</em> rather than your
+mail server.</li>
+</ol>
+
+<h3>Training</h3>
+<p>When you first start using SpamBayes, all your mail will be classified as
+'unsure' because SpamBayes doesn't have any preconceived ideas about what
+looks like good or bad mail.  As soon as you start training the classification
+will improve, and by the time you've classified even 20 messages of each you'll
+be seeing quite reasonable results.</p>
+
+<p><img alt="Empty review page" style="float:right; margin: 1em" src="docs/images/review.jpg" />
+SpamBayes saves a <strong>temporary copy</strong> of all incoming mail so that
+classification can be independant of whatever mail client (Outlook Express, Eudora, ...)
+you are using.  You need to run through these messages and tell SpamBayes how to
+handle mail like that in the future.</p>
+
+<p>If you double-click the tray icon a browser window will open looking like the
+figure on the right.  For each message listed, you need to choose to either
+discard (don't train on this message), defer (leave training on this message
+until later), or train (as either good - <em>ham</em>), or bad - <em>spam</em>).
+You do this by simply clicking in the circle in the appropriate column; if you
+wish to change all the messages to the same action, you can simply click the
+column heading.</p>
+
+<p>You are presented with the subject and sender of each message, but, if this
+isn't enough information for you to make a decision on the message, you can also
+view the message text (this is the raw text, so you can't do any damage if the
+message contains a virus or any other malignant data).  To do this, simply click
+on the subject of the message.</p>
+
+<p>Once you have chosen the actions you wish to perform on all the displayed
+messages, click the <em>Train</em> button at the end of the page.  SpamBayes
+will then update its database to reflect this data.</p>
+
+<p>Note that the messages are split up into the classification that SpamBayes
+would place the message with current training data (if this is correct, you might
+choose to <em>Discard</em> the message, rather than train on it - see the 
+<a href="http://entrian.com/sbwiki">SpamBayes wiki</a> for discussion of training
+techniques).  You can also see the <em>Tokens</em> that the message contains
+(the words in the message, plus some additional tokens that SpamBayes generates)
+and the <em>Clues</em> that SpamBayes used in classifying the message (not all
+tokens are used in classification).</p>
+
+<p>So that the page isn't overwhelmingly long, messages waiting for review are
+split by the day they arrived.  You can use the <em>Previous Day</em> or
+<em>Next Day</em> buttons at the top of the page to move between days.  If mail
+arrives while the review page is open the new messages will <strong>not</strong>
+be automatically added to the displayed list; to view the new message, click
+the <em>Refresh</em> button at the top of the page.</p>
+
+<h2><a name="Your_help_is_needed"></a>Your help is needed!</h2>
+<p>This is free software. Please offer any help you are able
+to. In particular, contributions to this documentation are
+welcome! If you don't know where to start, the
+<a href="http://spambayes.org/faq.html">FAQ</a> has
+<a href="http://spambayes.org/faq.html#i-m-not-a-programmer-but-want-to-help-out-what-can-i-do">
+details about how you can help</a>.
+</p>
 </body>
 </html>
