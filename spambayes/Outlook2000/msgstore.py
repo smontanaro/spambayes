@@ -806,6 +806,13 @@ class MAPIMsgStoreMsg:
         self.was_received = PROP_TYPE(recby_tag) == PT_BINARY or has_headers
         self.dirty = False
 
+        # For use with the spambayes.message messageinfo database.
+        self.stored_attributes = ['t',]
+
+    def getDBKey(self):
+        # Long lived search key.
+        return self.searchkey
+
     def __repr__(self):
         if self.id is None:
             id_str = "(deleted/moved)"

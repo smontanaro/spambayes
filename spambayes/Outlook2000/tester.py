@@ -257,10 +257,11 @@ def TestSpamFilter(driver):
 
         # Now move the message back to the inbox - it should get trained.
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
+        driver.manager.classifier_data.message_db.load_msg(store_msg)
         import train
-        if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+        if train.been_trained_as_ham(store_msg):
             TestFailed("This new spam message should not have been trained as ham yet")
-        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+        if train.been_trained_as_spam(store_msg):
             TestFailed("This new spam message should not have been trained as spam yet")
         spam_msg.Move(folder_watch)
         WaitForFilters()
@@ -268,15 +269,16 @@ def TestSpamFilter(driver):
         if spam_msg is None:
             TestFailed("The message appears to have been filtered out of the watch folder")
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
+        driver.manager.classifier_data.message_db.load_msg(store_msg)
         need_untrain = True
         try:
             if nspam != bayes.nspam:
                 TestFailed("There were not the same number of spam messages after a re-train")
             if nham+1 != bayes.nham:
                 TestFailed("There was not one more ham messages after a re-train")
-            if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+            if train.been_trained_as_spam(store_msg):
                 TestFailed("This new spam message should not have been trained as spam yet")
-            if not train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+            if not train.been_trained_as_ham(store_msg):
                 TestFailed("This new spam message should have been trained as ham now")
             # word infos should have one extra ham
             check_words(words, bayes, 0, 1)
@@ -288,13 +290,14 @@ def TestSpamFilter(driver):
             if spam_msg is None:
                 TestFailed("Could not find the message in the Spam folder")
             store_msg = driver.manager.message_store.GetMessage(spam_msg)
+            driver.manager.classifier_data.message_db.load_msg(store_msg)
             if nspam +1 != bayes.nspam:
                 TestFailed("There should be one more spam now")
             if nham != bayes.nham:
                 TestFailed("There should be the same number of hams again")
-            if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+            if not train.been_trained_as_spam(store_msg):
                 TestFailed("This new spam message should have been trained as spam by now")
-            if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+            if train.been_trained_as_ham(store_msg):
                 TestFailed("This new spam message should have been un-trained as ham")
             # word infos should have one extra spam, no extra ham
             check_words(words, bayes, 1, 0)
@@ -307,7 +310,8 @@ def TestSpamFilter(driver):
             if spam_msg is None:
                 TestFailed("Could not find the message in the Unsure folder")
             store_msg = driver.manager.message_store.GetMessage(spam_msg)
-            if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+            driver.manager.classifier_data.message_db.load_msg(store_msg)
+            if not train.been_trained_as_spam(store_msg):
                 TestFailed("Message was not identified as Spam after moving")
 
             # word infos still be 'spam'
@@ -315,10 +319,11 @@ def TestSpamFilter(driver):
 
             # Now undo the damage we did.
             was_spam = train.untrain_message(store_msg, driver.manager.classifier_data)
+            driver.manager.classifier_data.message_db.load_msg(store_msg)
             if not was_spam:
                 TestFailed("Untraining this message did not indicate it was spam")
-            if train.been_trained_as_spam(store_msg, driver.manager.classifier_data) or \
-               train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+            if train.been_trained_as_spam(store_msg) or \
+               train.been_trained_as_ham(store_msg):
                 TestFailed("Untraining this message kept it has ham/spam")
             need_untrain = False
         finally:

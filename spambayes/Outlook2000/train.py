@@ -4,6 +4,7 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
+import sys
 import traceback
 from win32com.mapi import mapi
 
@@ -16,15 +17,15 @@ except NameError:
 
 # Note our Message Database uses PR_SEARCH_KEY, *not* PR_ENTRYID, as the
 # latter changes after a Move operation - see msgstore.py
-def been_trained_as_ham(msg, cdata):
-    if not cdata.message_db.has_key(msg.searchkey):
+def been_trained_as_ham(msg):
+    if msg.t is None:
         return False
-    return cdata.message_db[msg.searchkey]=='0'
+    return msg.t == False
 
-def been_trained_as_spam(msg, cdata):
-    if not cdata.message_db.has_key(msg.searchkey):
+def been_trained_as_spam(msg):
+    if msg.t is None:
         return False
-    return cdata.message_db[msg.searchkey]=='1'
+    return msg.t == True
 
 def train_message(msg, is_spam, cdata):
     # Train an individual message.
@@ -35,10 +36,8 @@ def train_message(msg, is_spam, cdata):
     # be written to the message (so the user can see some effects)
     from spambayes.tokenizer import tokenize
 
-    if not cdata.message_db.has_key(msg.searchkey):
-        was_spam = None
-    else:
-        was_spam = cdata.message_db[msg.searchkey]=='1'
+    cdata.message_db.load_msg(msg)
+    was_spam = msg.t
     if was_spam == is_spam:
         return False    # already correctly classified
 
@@ -50,7 +49,8 @@ def train_message(msg, is_spam, cdata):
 
     # Learn the correct classification.
     cdata.bayes.learn(tokenize(stream), is_spam)
-    cdata.message_db[msg.searchkey] = ['0', '1'][is_spam]
+    msg.t = is_spam
+    cdata.message_db.store_msg(msg)
     cdata.dirty = True
     return True
 
@@ -61,16 +61,17 @@ def train_message(msg, is_spam, cdata):
 def untrain_message(msg, cdata):
     from spambayes.tokenizer import tokenize
     stream = msg.GetEmailPackageObject()
-    if been_trained_as_spam(msg, cdata):
-        assert not been_trained_as_ham(msg, cdata), "Can't have been both!"
+    cdata.message_db.load_msg(msg)
+    if been_trained_as_spam(msg):
+        assert not been_trained_as_ham(msg), "Can't have been both!"
         cdata.bayes.unlearn(tokenize(stream), True)
-        del cdata.message_db[msg.searchkey]
+        cdata.message_db.remove_msg(msg)
         cdata.dirty = True
         return True
-    if been_trained_as_ham(msg, cdata):
-        assert not been_trained_as_spam(msg, cdata), "Can't have been both!"
+    if been_trained_as_ham(msg):
+        assert not been_trained_as_spam(msg), "Can't have been both!"
         cdata.bayes.unlearn(tokenize(stream), False)
-        del cdata.message_db[msg.searchkey]
+        cdata.message_db.remove_msg(msg)
         cdata.dirty = True
         return False
     return None

@@ -117,7 +117,8 @@ def import_early_core_spambayes_stuff():
     bayes_i18n = i18n
 
 def import_core_spambayes_stuff(ini_filenames):
-    global bayes_classifier, bayes_tokenize, bayes_storage, bayes_options
+    global bayes_classifier, bayes_tokenize, bayes_storage, bayes_options, \
+           bayes_message
     if "spambayes.Options" in sys.modules:
         # The only thing we are worried about here is spambayes.Options
         # being imported before we have determined the INI files we need to
@@ -143,9 +144,11 @@ def import_core_spambayes_stuff(ini_filenames):
     from spambayes import classifier
     from spambayes.tokenizer import tokenize
     from spambayes import storage
+    from spambayes import message
     bayes_classifier = classifier
     bayes_tokenize = tokenize
     bayes_storage = storage
+    bayes_message = message
     assert "spambayes.Options" in sys.modules, \
         "Expected 'spambayes.Options' to be loaded here"
     from spambayes.Options import options
@@ -169,7 +172,9 @@ def SavePickle(what, filename):
 
 # Base class for our "storage manager" - we choose between the pickle
 # and DB versions at runtime.  As our bayes uses spambayes.storage,
-# our base class can share common bayes loading code.
+# our base class can share common bayes loading code, and we use
+# spambayes.message, so the base class can share common message info
+# code, too.
 class BasicStorageManager:
     db_extension = None # for pychecker - overwritten by subclass
     def __init__(self, bayes_base_name, mdb_base_name):
@@ -185,44 +190,38 @@ class BasicStorageManager:
     def store_bayes(self, bayes):
         bayes.store()
     def open_bayes(self):
-        raise NotImplementedError
+        return bayes_storage.open_storage(self.bayes_filename, self.klass)
     def close_bayes(self, bayes):
         bayes.close()
+    def open_mdb(self):
+        return bayes_message.open_storage(self.mdb_filename, self.klass)
+    def store_mdb(self, mdb):
+        mdb.store()
+    def close_mdb(self, mdb):
+        mdb.close()
 
 class PickleStorageManager(BasicStorageManager):
     db_extension = ".pck"
-    def open_bayes(self):
-        return bayes_storage.PickledClassifier(self.bayes_filename)
-    def open_mdb(self):
-        return cPickle.load(open(self.mdb_filename, 'rb'))
+    klass = "pickle"
     def new_mdb(self):
         return {}
-    def store_mdb(self, mdb):
-        SavePickle(mdb, self.mdb_filename)
-    def close_mdb(self, mdb):
-        pass
     def is_incremental(self):
         return False # False means we always save the entire DB
 
 class DBStorageManager(BasicStorageManager):
     db_extension = ".db"
-    def open_bayes(self):
-        # bsddb doesn't handle unicode filenames yet :(
-        fname = self.bayes_filename.encode(filesystem_encoding)
-        return bayes_storage.DBDictClassifier(fname)
-    def open_mdb(self):
-        fname = self.mdb_filename.encode(filesystem_encoding)
-        return bsddb.hashopen(fname)
+    klass = "dbm"
+    def __init__(self, bayes_base_name, mdb_base_name):
+        self.bayes_filename = bayes_base_name.encode(filesystem_encoding) + \
+                              self.db_extension
+        self.mdb_filename = mdb_base_name.encode(filesystem_encoding) + \
+                            self.db_extension
     def new_mdb(self):
         try:
             os.unlink(self.mdb_filename)
         except EnvironmentError, e:
             if e.errno != errno.ENOENT: raise
         return self.open_mdb()
-    def store_mdb(self, mdb):
-        mdb.sync()
-    def close_mdb(self, mdb):
-        mdb.close()
     def is_incremental(self):
         return True # True means only changed records get actually written
 
@@ -423,24 +422,14 @@ class BayesManager:
         ManagerClass = GetStorageManagerClass()
         db_manager = ManagerClass(bayes_base, mdb_base)
         self.classifier_data = ClassifierData(db_manager, self)
-        self.LoadBayes()
-        self.stats = oastats.Stats(self.config, self.data_directory)
-
-    # "old" bayes functions - new code should use "classifier_data" directly
-    def LoadBayes(self):
         try:
             self.classifier_data.Load()
         except:
             self.ReportFatalStartupError("Failed to load bayes database")
             self.classifier_data.InitNew()
+        self.stats = oastats.Stats(self.config, self.data_directory)
 
-    def InitNewBayes(self):
-        self.classifier_data.InitNew()
-    def SaveBayes(self):
-        self.classifier_data.Save()
-    def SaveBayesPostIncrementalTrain(self):
-        self.classifier_data.SavePostIncrementalTrain()
-    # Logging - this too should be somewhere else.
+    # Logging - this should be somewhere else.
     def LogDebug(self, level, *args):
         if self.verbose >= level:
             for arg in args[:-1]:

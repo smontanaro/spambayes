@@ -124,8 +124,9 @@ def HaveSeenMessage(msgstore_message, manager):
         return True
     # If the message has been trained on, we certainly have seen it before.
     import train
-    if train.been_trained_as_ham(msgstore_message, manager.classifier_data) or \
-       train.been_trained_as_spam(msgstore_message, manager.classifier_data):
+    manager.classifier_data.message_db.load_msg(msgstore_message)
+    if train.been_trained_as_ham(msgstore_message) or \
+       train.been_trained_as_spam(msgstore_message):
         return True
     # I considered checking if the "save spam score" option is enabled - but
     # even when enabled, this sometimes fails (IMAP, hotmail)
@@ -148,9 +149,10 @@ def TrainAsHam(msgstore_message, manager, rescore = True, save_db = True):
 
     else:
         print "already was trained as good"
-    assert train.been_trained_as_ham(msgstore_message, manager.classifier_data)
+    manager.classifier_data.message_db.load_msg(msgstore_message)
+    assert train.been_trained_as_ham(msgstore_message)
     if save_db:
-        manager.SaveBayesPostIncrementalTrain()
+        manager.classifier_data.SavePostIncrementalTrain()
 
 def TrainAsSpam(msgstore_message, manager, rescore = True, save_db = True):
     import train
@@ -166,10 +168,11 @@ def TrainAsSpam(msgstore_message, manager, rescore = True, save_db = True):
             filter.filter_message(msgstore_message, manager, all_actions = False)
     else:
         print "already was trained as spam"
-    assert train.been_trained_as_spam(msgstore_message, manager.classifier_data)
+    manager.classifier_data.message_db.load_msg(msgstore_message)
+    assert train.been_trained_as_spam(msgstore_message)
     # And if the DB can save itself incrementally, do it now
     if save_db:
-        manager.SaveBayesPostIncrementalTrain()
+        manager.classifier_data.SavePostIncrementalTrain()
 
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
@@ -189,7 +192,8 @@ def ProcessMessage(msgstore_message, manager):
             # otherwise just ignore.
             if manager.config.training.train_recovered_spam:
                 import train
-                if train.been_trained_as_spam(msgstore_message, manager.classifier_data):
+                manager.classifier_data.message_db.load_msg(msgstore_message)
+                if train.been_trained_as_spam(msgstore_message):
                     need_train = True
                 else:
                     prop = msgstore_message.GetField(manager.config.general.field_score_name)
@@ -199,7 +203,7 @@ def ProcessMessage(msgstore_message, manager):
                     # If it was not previously classified as either 'Spam' or
                     # 'Unsure', then this event is unlikely to be the user
                     # re-classifying (and in fact it may simply be the Outlook
-                    # rules moving the item.
+                    # rules moving the item).
                     need_train = manager.config.filter.unsure_threshold < prop * 100
 
                 if need_train:
@@ -421,7 +425,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
             # Assuming that rescoring is more expensive than checking if
             # previously trained, try and optimize.
             import train
-            if train.been_trained_as_ham(msgstore_message, self.manager.classifier_data):
+            self.manager.classifier_data.message_db.load_msg(msgstore_message)
+            if train.been_trained_as_ham(msgstore_message):
                 need_train = True
             else:
                 prop = msgstore_message.GetField(self.manager.config.general.field_score_name)
@@ -440,6 +445,7 @@ def ShowClues(mgr, explorer):
     msgstore_message = explorer.GetSelectedMessages(False)
     if msgstore_message is None:
         return
+    mgr.classifier_data.message_db.load_msg(msgstore_message)
 
     item = msgstore_message.GetOutlookItem()
     score, clues = mgr.score(msgstore_message, evidence=True)
@@ -478,10 +484,9 @@ def ShowClues(mgr, explorer):
              "as %s (it scored %d%%)." % (original_class, original_score))
     # Report whether this message has been trained or not.
     push("<br>\n")
-    trained_as = mgr.classifier_data.message_db.get(msgstore_message.searchkey)
     push("This message has %sbeen trained%s." % \
-         {'0' : ("", " as ham"), '1' : ("", " as spam"), None : ("not ", "")}
-         [trained_as])
+         {False : ("", " as ham"), True : ("", " as spam"),
+          None : ("not ", "")}[msgstore_message.t])
     # Format the clues.
     push("<h2>%s Significant Tokens</h2>\n<PRE>" % len(clues))
     push("<strong>")
@@ -706,7 +711,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
-        self.manager.SaveBayesPostIncrementalTrain()
+        self.manager.classifier_data.SavePostIncrementalTrain()
         SetWaitCursor(0)
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
@@ -773,7 +778,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
-        self.manager.SaveBayesPostIncrementalTrain()
+        self.manager.classifier_data.SavePostIncrementalTrain()
         SetWaitCursor(0)
 
 # Helpers to work with images on buttons/toolbars.
