@@ -10,10 +10,10 @@ Where:
         show usage and exit
     -g PATH
         mbox or directory of known good messages (non-spam) to train on.
-        Can be specified more than once.
+        Can be specified more than once, or use - for stdin.
     -s PATH
         mbox or directory of known spam messages to train on.
-        Can be specified more than once.
+        Can be specified more than once, or use - for stdin.
     -u PATH
         mbox of unknown messages.  A ham/spam decision is reported for each.
         Can be specified more than once.
@@ -40,6 +40,7 @@ from __future__ import generators
 
 import sys
 import os
+import types
 import getopt
 import mailbox
 import glob
@@ -109,13 +110,23 @@ class DBDict:
         self.iterskip = iterskip
 
     def __getitem__(self, key):
-        if self.hash.has_key(key):
-            return pickle.loads(self.hash[key])
+        v = self.hash[key]
+        if v[0] == 'W':
+            val = pickle.loads(v[1:])
+            # We could be sneaky, like pickle.Unpickler.load_inst,
+            # but I think that's overly confusing.
+            obj = classifier.WordInfo(0)
+            obj.__setstate__(val)
+            return obj
         else:
-            raise KeyError(key)
+            return pickle.loads(v)
 
     def __setitem__(self, key, val):
-        v = pickle.dumps(val, 1)
+        if isinstance(val, classifier.WordInfo):
+            val = val.__getstate__()
+            v = 'W' + pickle.dumps(val, 1)
+        else:
+            v = pickle.dumps(val, 1)
         self.hash[key] = v
 
     def __delitem__(self, key, val):

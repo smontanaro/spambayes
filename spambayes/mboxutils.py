@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Utilities for dealing with various types of mailboxes.
 
 This is mostly a wrapper around the various useful classes in the
@@ -20,6 +21,7 @@ mailbox type given a mailbox argument.
 from __future__ import generators
 
 import os
+import sys
 import glob
 import email
 import mailbox
@@ -52,6 +54,9 @@ def _cat(seqs):
 
 def getmbox(name):
     """Return an mbox iterator given a file/directory/folder name."""
+
+    if name == "-":
+        return [get_message(sys.stdin)]
 
     if name.startswith("+"):
         # MH folder name: +folder, +f1,f2,f2, or +ALL

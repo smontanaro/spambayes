@@ -67,6 +67,13 @@ hammiesrv.py
     A first stab at making hammie into a client/server model, using
     XML-RPC.
 
+hammiecli.py
+    A client for hammiesrv.
+
+hammiefilter.py
+    A simpler hammie front-end that doesn't print anything.  Useful for
+    procmail filering and scoring from your MUA.
+
 pop3proxy.py
     A spam-classifying POP3 proxy.  It adds a spam-judgement header to
     each mail as it's retrieved, so you can use your email client's
