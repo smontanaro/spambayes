@@ -551,63 +551,63 @@ class OptionsClass(object):
     # not strictly necessary, but convenient shortcuts to self._options
     def display_name(self, sect, opt):
         '''A name for the option suitable for display to a user.'''
-        return self._options[sect, opt].display_name()
+        return self._options[sect, opt.lower()].display_name()
     def default(self, sect, opt):
         '''The default value for the option.'''
-        return self._options[sect, opt].default()
+        return self._options[sect, opt.lower()].default()
     def doc(self, sect, opt):
         '''Documentation for the option.'''
-        return self._options[sect, opt].doc()
+        return self._options[sect, opt.lower()].doc()
     def valid_input(self, sect, opt):
         '''Valid values for the option.'''
-        return self._options[sect, opt].valid_input()
+        return self._options[sect, opt.lower()].valid_input()
     def no_restore(self, sect, opt):
         '''Do not restore this option when restoring to defaults.'''
-        return self._options[sect, opt].no_restore()
+        return self._options[sect, opt.lower()].no_restore()
     def is_valid(self, sect, opt, value):
         '''Check if this is a valid value for this option.'''
-        return self._options[sect, opt].is_valid(value)
+        return self._options[sect, opt.lower()].is_valid(value)
     def multiple_values_allowed(self, sect, opt):
         '''Multiple values are allowed for this option.'''
-        return self._options[sect, opt].multiple_values_allowed()
+        return self._options[sect, opt.lower()].multiple_values_allowed()
 
     def is_boolean(self, sect, opt):
         '''The option is a boolean value. (Support for Python 2.2).'''
-        return self._options[sect, opt].is_boolean()
+        return self._options[sect, opt.lower()].is_boolean()
 
     def convert(self, sect, opt, value):
         '''Convert value from a string to the appropriate type.'''
-        return self._options[sect, opt].convert(value)
+        return self._options[sect, opt.lower()].convert(value)
 
     def unconvert(self, sect, opt):
         '''Convert value from the appropriate type to a string.'''
-        return self._options[sect, opt].unconvert()
+        return self._options[sect, opt.lower()].unconvert()
 
     def get_option(self, sect, opt):
         '''Get an option.'''
         if self.conversion_table.has_key((sect, opt)):
             sect, opt = self.conversion_table[sect, opt]
-        return self._options[sect, opt]
+        return self._options[sect, opt.lower()]
 
     def get(self, sect, opt):
         '''Get an option value.'''
-        if self.conversion_table.has_key((sect, opt)):
-            sect, opt = self.conversion_table[sect, opt]
-        return self.get_option(sect, opt).get()
+        if self.conversion_table.has_key((sect, opt.lower())):
+            sect, opt = self.conversion_table[sect, opt.lower()]
+        return self.get_option(sect, opt.lower()).get()
 
     def __getitem__(self, key):
         return self.get(key[0], key[1])
 
     def set(self, sect, opt, val=None):
         '''Set an option.'''
-        if self.conversion_table.has_key((sect, opt)):
-            sect, opt = self.conversion_table[sect, opt]
+        if self.conversion_table.has_key((sect, opt.lower())):
+            sect, opt = self.conversion_table[sect, opt.lower()]
         if self.is_valid(sect, opt, val):
-            self._options[sect, opt].set(val)
+            self._options[sect, opt.lower()].set(val)
         else:
             print >> sys.stderr, ("Attempted to set [%s] %s with invalid"
                                   " value %s (%s)" % 
-                                  (sect, opt, val, type(val)))
+                                  (sect, opt.lower(), val, type(val)))
 
     def set_from_cmdline(self, arg, stream=None):
         """Set option from colon-separated sect:opt:val string.
@@ -616,6 +616,7 @@ class OptionsClass(object):
         on stream, otherwise KeyErrors will be propagated up the call chain.
         """
         sect, opt, val = arg.split(':', 2)
+        opt = opt.lower()
         try:
             val = self.convert(sect, opt, val)
         except (KeyError, TypeError), msg:
@@ -715,7 +716,7 @@ class OptionsClass(object):
        # is nothing more than a call to as_nice_string
        if section is not None and option is not None:
            output.write(self._options[section,
-                                      option].as_nice_string(section))
+                                      option.lower()].as_nice_string(section))
            return output.getvalue()
        
        all = self._options.keys()
@@ -723,7 +724,7 @@ class OptionsClass(object):
        for sect, opt in all:
            if section is not None and sect != section:
                continue
-           output.write(self._options[sect, opt].as_nice_string(sect))
+           output.write(self._options[sect, opt.lower()].as_nice_string(sect))
        return output.getvalue()
 
 # These are handy references to commonly used regex/tuples defining
