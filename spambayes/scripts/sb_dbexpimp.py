@@ -101,6 +101,15 @@ import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno, re
 import urllib
+from types import UnicodeType
+
+def uquote(s):
+    if isinstance(s, UnicodeType):
+        s = s.encode('utf-8')
+    return urllib.quote(s)
+
+def uunquote(s):
+    return unicode(urllib.unquote(s), 'utf-8')
 
 def runExport(dbFN, useDBM, outFN):
 
@@ -131,7 +140,7 @@ def runExport(dbFN, useDBM, outFN):
         wi = bayes._wordinfoget(word)
         hamcount = wi.hamcount
         spamcount = wi.spamcount
-        word = urllib.quote(word)
+        word = uquote(word)
         fp.write("%s`%s`%s`\n" % (word, hamcount, spamcount))
         
     fp.close()
@@ -189,7 +198,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     
     for line in lines:
         (word, hamcount, spamcount, junk) = re.split('`', line)
-        word = urllib.unquote(word)
+        word = uunquote(word)
        
         try:
             wi = bayes.wordinfo[word]
