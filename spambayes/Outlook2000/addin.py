@@ -1265,6 +1265,20 @@ class OutlookAddin:
         except:
             self.manager.ReportFatalStartupError(
                 "Could not watch the specified folders")
+        # UpdateFolderHooks takes care of ensuring the Outlook field exists
+        # for all folders we watch - but we never watch the 'Unsure'
+        # folder, and this one is arguably the most important to have it.
+        unsure_id = self.manager.config.filter.unsure_folder_id
+        if unsure_id:
+            try:
+                self.manager.EnsureOutlookFieldsForFolder(unsure_id)
+            except:
+                # If this fails, just log an error - don't bother with
+                # the traceback
+                print "Error adding field to 'Unsure' folder %r" % (unsure_id,)
+                etype, value, tb = sys.exc_info()
+                tb = None # dont want it, and nuke circular ref
+                traceback.print_exception(etype, value, tb)
 
     def UpdateFolderHooks(self):
         config = self.manager.config.filter
