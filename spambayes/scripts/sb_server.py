@@ -102,7 +102,7 @@ from spambayes import Dibbler
 from spambayes import storage
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
 from spambayes.Version import get_version_string
@@ -724,7 +724,7 @@ class State:
             self.useDB = True
             options["Storage", "persistent_storage_file"] = \
                         '_pop3proxy_test.pickle'   # This is never saved.
-        filename = options["Storage", "persistent_storage_file"]
+        filename = get_pathname_option("Storage", "persistent_storage_file")
         filename = os.path.expanduser(filename)
         self.bayes = storage.open_storage(filename, self.useDB)
 
@@ -742,28 +742,23 @@ class State:
 
             # Create/open the Corpuses.  Use small cache sizes to avoid hogging
             # lots of memory.
-            map(ensureDir, [options["Storage", "spam_cache"],
-                            options["Storage", "ham_cache"],
-                            options["Storage", "unknown_cache"]])
+            sc = get_pathname_option("Storage", "spam_cache")
+            hc = get_pathname_option("Storage", "ham_cache")
+            uc = get_pathname_option("Storage", "unknown_cache")
+            map(ensureDir, [sc, hc, uc])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
                 factory = FileMessageFactory()
             age = options["Storage", "cache_expiry_days"]*24*60*60
-            self.spamCorpus = ExpiryFileCorpus(age, factory,
-                                               options["Storage",
-                                                       "spam_cache"],
+            self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
                                                '[0123456789\-]*',
                                                cacheSize=20)
-            self.hamCorpus = ExpiryFileCorpus(age, factory,
-                                              options["Storage",
-                                                      "ham_cache"],
+            self.hamCorpus = ExpiryFileCorpus(age, factory, hc,
                                               '[0123456789\-]*',
                                               cacheSize=20)
-            self.unknownCorpus = ExpiryFileCorpus(age, factory,
-                                            options["Storage",
-                                                    "unknown_cache"],
-                                            '[0123456789\-]*',
+            self.unknownCorpus = ExpiryFileCorpus(age, factory, uc,
+                                                  '[0123456789\-]*',
                                                   cacheSize=20)
 
             # Given that (hopefully) users will get to the stage

@@ -28,10 +28,10 @@ def main(argv):
         messageFactory = GzipFileMessageFactory()
     else:
         messageFactory = FileMessageFactory()
-    spamCorpus = FileCorpus(messageFactory, options["pop3proxy",
-                                                    "spam_cache"])
-    hamCorpus = FileCorpus(messageFactory, options["pop3proxy",
-                                                   "ham_cache"])
+    sc = get_pathname_option("Storage", "spam_cache")
+    hc = get_pathname_option("Storage", "ham_cache")
+    spamCorpus = FileCorpus(messageFactory, sc)
+    hamCorpus = FileCorpus(messageFactory, hc)
 
     # Read in all the trained messages.
     allTrained = {}

@@ -33,7 +33,7 @@ from __future__ import generators
 
 import sys,os
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes import hammie, msgs, CostCounter
 
 program = sys.argv[0]
@@ -147,9 +147,9 @@ class Updater:
 def drive(nsets,decision):
     print options.display()
 
-    spamdirs = [options["TestDriver", "spam_directories"] % \
+    spamdirs = [get_pathname_option("TestDriver", "spam_directories") % \
                 i for i in range(1, nsets+1)]
-    hamdirs  = [options["TestDriver", "ham_directories"] % \
+    hamdirs  = [get_pathname_option("TestDriver", "ham_directories") % \
                 i for i in range(1, nsets+1)]
 
     spamfns = [(x,y,1) for x in spamdirs for y in os.listdir(x)]

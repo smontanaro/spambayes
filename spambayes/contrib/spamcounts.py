@@ -24,7 +24,7 @@ import shelve
 import pickle
 import csv
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
 from spambayes.storage import STATE_KEY
 
@@ -96,7 +96,7 @@ def main(args):
         return 1
 
     usere = False
-    dbname = options["Storage", "persistent_storage_file"]
+    dbname = get_pathname_option("Storage", "persistent_storage_file")
     ispickle = not options["Storage", "persistent_use_database"]
     tokenizestdin = False
     for opt, arg in opts:

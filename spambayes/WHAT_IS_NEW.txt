@@ -16,7 +16,18 @@ New in Alpha Release 8
 ** Incompatible changes **
 --------------------------
 
- o XXX
+ o The way pathnames in option files are handled has changed, as has the
+   default values for some pathname options, in some situations.  All
+   pathnames in option values that are not absolute (with Windows, this
+   means they will start with a drive letter) are now relative to the
+   directory of the last configuration file to be loaded, rather than to
+   the current working directory.
+
+   What does this mean for you?  Nothing, as long as your pathnames
+   (the cache directories and databases, primarily) are either absolute
+   or in the same directory as your configuration file.  If, after
+   upgrading, your database is suddenly empty, then you need to fix your
+   configuration so that it points to the correct place.
 
 There should be no other incompatible changes (from 1.0a7) in this release.
 

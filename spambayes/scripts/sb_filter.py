@@ -145,8 +145,8 @@ class HammieFilter(object):
                                     "~/.hammiedb"
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
-        self.dbname = options["Storage", "persistent_storage_file"]
-        self.dbname = os.path.expanduser(self.dbname)
+        self.dbname = Options.get_pathname_option("Storage",
+                                                  "persistent_storage_file")
         self.usedb = options["Storage", "persistent_use_database"]
 
     def newdb(self):

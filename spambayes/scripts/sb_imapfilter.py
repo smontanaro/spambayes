@@ -100,7 +100,7 @@ import email.Parser
 from getpass import getpass
 from email.Utils import parsedate
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
@@ -697,7 +697,7 @@ def run():
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    bdbname = options["Storage", "persistent_storage_file"]
+    bdbname = get_pathname_option("Storage", "persistent_storage_file")
     useDBM = options["Storage", "persistent_use_database"]
     doTrain = False
     doClassify = False

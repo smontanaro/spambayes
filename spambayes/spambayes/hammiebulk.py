@@ -51,7 +51,7 @@ import sys
 import os
 import getopt
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes import classifier, mboxutils, hammie, Corpus
 
 Corpus.Verbose = True
@@ -59,13 +59,15 @@ Corpus.Verbose = True
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Default database name
-DEFAULTDB = os.path.expanduser(options["Storage", "persistent_storage_file"])
 # This is a bit of a hack to counter the default for
 # persistent_storage_file changing from ~/.hammiedb to hammie.db
 # This will work unless a user had hammie.db as their value for
 # persistent_storage_file
-if DEFAULTDB == options.default("Storage", "persistent_storage_file"):
-    DEFAULTDB = os.path.expanduser(os.path.join("~", ".hammiedb"))
+if options["Storage", "persistent_storage_file"] == \
+   options.default("Storage", "persistent_storage_file"):
+    options["Storage", "persistent_storage_file"] = \
+                       os.path.join("~", ".hammiedb"))
+DEFAULTDB = get_pathname_option("Storage", "persistent_storage_file")
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options["Categorization", "spam_cutoff"]

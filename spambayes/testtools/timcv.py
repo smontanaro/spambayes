@@ -55,7 +55,7 @@ sys.path.insert(-1, os.getcwd())
 sys.path.insert(-1, os.path.dirname(os.getcwd()))
 
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes import TestDriver
 from spambayes import msgs
 
@@ -72,9 +72,9 @@ def usage(code, msg=''):
 def drive(nsets):
     print options.display()
 
-    hamdirs  = [options["TestDriver", "ham_directories"] % \
+    hamdirs  = [get_pathname_options("TestDriver", "ham_directories") % \
                 i for i in range(1, nsets+1)]
-    spamdirs = [options["TestDriver", "spam_directories"] % \
+    spamdirs = [get_pathname_options("TestDriver", "spam_directories") % \
                 i for i in range(1, nsets+1)]
 
     d = TestDriver.Driver()

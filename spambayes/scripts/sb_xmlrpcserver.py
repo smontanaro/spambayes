@@ -77,8 +77,8 @@ def main():
 
     options = Options.options
 
-    dbname = options["Storage", "persistent_storage_file"]
-    dbname = os.path.expanduser(dbname)
+    dbname = Options.get_pathname_option("Storage",
+                                         "persistent_storage_file")
     usedb = options["Storage", "persistent_use_database"]
     for opt, arg in opts:
         if opt == '-h':

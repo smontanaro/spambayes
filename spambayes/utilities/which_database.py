@@ -26,7 +26,7 @@ import sys
 sys.path.insert(-1, os.getcwd())
 sys.path.insert(-1, os.path.dirname(os.getcwd()))
 
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 import dumbdbm
 import dbhash
 import whichdb
@@ -72,7 +72,7 @@ def main():
 
     print
 
-    hammie = os.path.expanduser(options["Storage", "persistent_storage_file"])
+    hammie = get_pathname_option("Storage", "persistent_storage_file")
     use_dbm = options["Storage", "persistent_use_database"]
     if not use_dbm:
         print "Your storage %s is a: pickle" % (hammie,)
