@@ -880,7 +880,7 @@ class ExplorerWithEvents:
                 ret.append(msgstore_message)
 
         if len(ret) == 0:
-            self.manager.ReportError("No mail items are selected", "No selection")
+            self.manager.ReportError("No filterable mail items are selected", "No selection")
             return None
         if allow_multi:
             return ret
