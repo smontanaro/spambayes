@@ -28,75 +28,20 @@ from heapq import heapreplace
 from Options import options
 import Tester
 import classifier
+from Histogram import Hist
 
-class Hist:
-    """Simple histograms of float values in [0.0, 1.0]."""
-
-    def __init__(self, nbuckets=20):
-        self.buckets = [0] * nbuckets
-        self.nbuckets = nbuckets
-        self.n = 0          # number of data points
-        self.sum = 0.0      # sum of their values
-        self.sumsq = 0.0    # sum of their squares
-
-    def add(self, x):
-        n = self.nbuckets
-        i = int(n * x)
-        if i >= n:
-            i = n-1
-        self.buckets[i] += 1
-
-        self.n += 1
-        x *= 100.0
-        self.sum += x
-        self.sumsq += x*x
-
-    def __iadd__(self, other):
-        if self.nbuckets != other.nbuckets:
-            raise ValueError('bucket size mismatch')
-        for i in range(self.nbuckets):
-            self.buckets[i] += other.buckets[i]
-        self.n += other.n
-        self.sum += other.sum
-        self.sumsq += other.sumsq
-        return self
-
-    def display(self, WIDTH=61):
-        from math import sqrt
-        if self.n > 0:
-            mean = self.sum / self.n
-            var = self.sumsq / self.n - mean**2
-            # The vagaries of f.p. rounding can make var come out negative.
-            # There are ways to fix that, but they're too painful for this
-            # part of the code to endure.
-            if var < 0.0:
-                var = 0.0
-            print "%d items; mean %.2f; sdev %.2f" % (self.n, mean, sqrt(var))
-
-        biggest = max(self.buckets)
-        hunit, r = divmod(biggest, WIDTH)
-        if r:
-            hunit += 1
-        print "* =", hunit, "items"
-
-        ndigits = len(str(biggest))
-        format = "%5.1f %" + str(ndigits) + "d"
-
-        for i in range(len(self.buckets)):
-            n = self.buckets[i]
-            print format % (100.0 * i / self.nbuckets, n),
-            print '*' * ((n + hunit - 1) // hunit)
-
-def printhist(tag, ham, spam):
+def printhist(tag, ham, spam, nbuckets=options.nbuckets):
     print
     print "-> <stat> Ham scores for", tag,
-    ham.display()
+    ham.display(nbuckets)
 
     print
     print "-> <stat> Spam scores for", tag,
-    spam.display()
+    spam.display(nbuckets)
 
     if not options.compute_best_cutoffs_from_histograms:
+        return
+    if ham.n == 0 or spam.n == 0:
         return
 
     # Figure out "the best" spam cutoff point, meaning the one that minimizes
@@ -111,7 +56,7 @@ def printhist(tag, ham, spam):
     fn = 0
     best_total = fpw * fp + fn
     bests = [(0, fp, fn)]
-    for i in range(ham.nbuckets):
+    for i in range(nbuckets):
         # When moving the cutoff beyond bucket i, the ham in bucket i
         # are redeemed, and the spam in bucket i become false negatives.
         fp -= ham.buckets[i]
@@ -126,7 +71,7 @@ def printhist(tag, ham, spam):
     assert fn == spam.n
 
     i, fp, fn = bests.pop(0)
-    print '-> best cutoff for', tag, float(i) / ham.nbuckets
+    print '-> best cutoff for', tag, float(i) / nbuckets
     print '->     with weighted total %g*%d fp + %d fn = %g' % (
           fpw, fp, fn, best_total)
     print '->     fp rate %.3g%%  fn rate %.3g%%' % (
@@ -154,16 +99,16 @@ class Driver:
     def __init__(self):
         self.falsepos = Set()
         self.falseneg = Set()
-        self.global_ham_hist = Hist(options.nbuckets)
-        self.global_spam_hist = Hist(options.nbuckets)
+        self.global_ham_hist = Hist()
+        self.global_spam_hist = Hist()
         self.ntimes_finishtest_called = 0
         self.new_classifier()
 
     def new_classifier(self):
         c = self.classifier = classifier.Bayes()
         self.tester = Tester.Test(c)
-        self.trained_ham_hist = Hist(options.nbuckets)
-        self.trained_spam_hist = Hist(options.nbuckets)
+        self.trained_ham_hist = Hist()
+        self.trained_spam_hist = Hist()
 
     # CAUTION:  this just doesn't work for incrememental training when
     # options.use_central_limit is in effect.
@@ -191,8 +136,8 @@ class Driver:
                       self.trained_ham_hist, self.trained_spam_hist)
         self.global_ham_hist += self.trained_ham_hist
         self.global_spam_hist += self.trained_spam_hist
-        self.trained_ham_hist = Hist(options.nbuckets)
-        self.trained_spam_hist = Hist(options.nbuckets)
+        self.trained_ham_hist = Hist()
+        self.trained_spam_hist = Hist()
 
         self.ntimes_finishtest_called += 1
         if options.save_trained_pickles:
@@ -219,12 +164,12 @@ class Driver:
     def test(self, ham, spam):
         c = self.classifier
         t = self.tester
-        local_ham_hist = Hist(options.nbuckets)
-        local_spam_hist = Hist(options.nbuckets)
+        local_ham_hist = Hist()
+        local_spam_hist = Hist()
 
         def new_ham(msg, prob, lo=options.show_ham_lo,
                                hi=options.show_ham_hi):
-            local_ham_hist.add(prob)
+            local_ham_hist.add(prob * 100.0)
             if lo <= prob <= hi:
                 print
                 print "Ham with prob =", prob
@@ -233,7 +178,7 @@ class Driver:
 
         def new_spam(msg, prob, lo=options.show_spam_lo,
                                 hi=options.show_spam_hi):
-            local_spam_hist.add(prob)
+            local_spam_hist.add(prob * 100.0)
             if lo <= prob <= hi:
                 print
                 print "Spam with prob =", prob
