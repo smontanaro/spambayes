@@ -155,8 +155,9 @@ except ImportError: # appears in 151 and later.
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
 def ProcessMessage(msgstore_message, manager):
+    manager.LogDebug(2, "ProcessMessage starting for", msgstore_message)
     if msgstore_message.GetField(manager.config.general.field_score_name) is not None:
-        # Already seem this message - user probably moving it back
+        # Already seen this message - user probably moving it back
         # after incorrect classification.
         # If enabled, re-train as Ham
         # otherwise just ignore.
@@ -178,6 +179,7 @@ def ProcessMessage(msgstore_message, manager):
               % (msgstore_message.GetSubject(), disposition)
     else:
         print "Spam filtering is disabled - ignoring new message"
+    manager.LogDebug(2, "ProcessMessage finished for", msgstore_message)
 
 # Button/Menu and other UI event handler classes
 class ButtonEvent:
@@ -211,6 +213,8 @@ class FolderItemsEvent(_BaseItemsEvent):
         #     PR_RECEIVED_BY_NAME
         #     PR_RECEIVED_BY_ENTRYID
         #     PR_TRANSPORT_MESSAGE_HEADERS
+        self.manager.LogDebug(2, "OnItemAdd event for folder", self,
+                              "with item", item)
         msgstore_message = self.manager.message_store.GetMessage(item)
         if msgstore_message is not None:
             ProcessMessage(msgstore_message, self.manager)
@@ -222,6 +226,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         # now, we assume that if the calculated spam prob
         # was *not* certain-spam, or it is in the ham corpa,
         # then it should be trained as such.
+        self.manager.LogDebug(2, "OnItemAdd event for SPAM folder", self,
+                              "with item", item)
         if not self.manager.config.training.train_manual_spam:
             return
         msgstore_message = self.manager.message_store.GetMessage(item)
