@@ -3,7 +3,7 @@ EXTRA_TARGETS = reply.txt faq.html default.css download/Version.cfg
 
 include scripts/make.rules
 ROOT_DIR = .
-ROOT_OFFSET = .	
+ROOT_OFFSET = .
 
 $(TARGETS): links.h
 
@@ -21,4 +21,8 @@ faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
 
 download/Version.cfg: ../spambayes/Version.py
-	../spambayes/Version.py -g > download/Version.cfg
+	python ../spambayes/Version.py -g > download/Version.cfg
+
+local_install: 
+	cd download ; $(MAKE) install
+
