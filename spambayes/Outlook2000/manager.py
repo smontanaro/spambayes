@@ -104,7 +104,8 @@ class Stats:
 def ReportError(message, title = None):
     import traceback
     print "ERROR:", repr(message)
-    traceback.print_exc()
+    if sys.exc_info()[0] is not None:
+        traceback.print_exc()
     if title is None:
         title = "SpamBayes Anti-Spam plugin"
     win32ui.MessageBox(message, title)
