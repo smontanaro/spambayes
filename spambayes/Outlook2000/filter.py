@@ -53,6 +53,9 @@ def filter_message(msg, mgr, all_actions=True):
         if all_actions and attr_prefix is not None:
             folder_id = getattr(config, attr_prefix + "_folder_id")
             action = getattr(config, attr_prefix + "_action").lower()
+            mark_as_read = getattr(config, attr_prefix + "_mark_as_read")
+            if mark_as_read:
+                msg.SetReadState(True)
             if action.startswith("un"): # untouched
                 pass
             elif action.startswith("co"): # copied
