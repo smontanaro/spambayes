@@ -1,9 +1,9 @@
-# Exports your ham and spam folders to a standard SpamBayes test directory
+# Exports your ham and spam folders to a standard SpamBayes test directory.
 
 import sys, os, shutil
 from manager import GetManager
 
-FILES_PER_DIRECTORY = 400
+NUM_BUCKETS = 10
 DEFAULT_DIRECTORY = "..\\testtools\\Data"
 
 # Return # of msgs in folder (a MAPIMsgStoreFolder).
@@ -17,7 +17,7 @@ def count_messages(folder):
 #                num_ham_messages,
 #                ["Set1", "Set2", ...])
 # where the list contains one entry for each bucket.
-def BuildBuckets(manager):
+def BuildBuckets(manager, num_buckets):
     store = manager.message_store
     config = manager.config
 
@@ -28,10 +28,6 @@ def BuildBuckets(manager):
     for folder in store.GetFolderGenerator(config.training.ham_folder_ids,
                                            config.training.ham_include_sub):
         num_ham += count_messages(folder)
-
-    num_buckets = min(num_ham, num_spam) // FILES_PER_DIRECTORY
-    if num_buckets == 0:
-        num_buckets = 1
 
     dirs = ["Set%d" % i for i in range(1, num_buckets + 1)]
     return num_spam, num_ham, dirs
@@ -72,11 +68,11 @@ def _export_folders(manager, root, buckets, folder_ids, include_sub):
 
 # This does all the work.  'directory' is the parent directory for the
 # generated Ham and Spam sub-folders.
-def export(directory):
+def export(directory, num_buckets):
     print "Loading bayes manager..."
     manager = GetManager()
     config = manager.config
-    num_spam, num_ham, buckets = BuildBuckets(manager)
+    num_spam, num_ham, buckets = BuildBuckets(manager, num_buckets)
     print "Have", num_spam, "spam and", num_ham, "ham to export,",
     print "spread over", len(buckets), "directories."
 
@@ -104,7 +100,6 @@ def export(directory):
     print "Exported", num, "ham messages."
 
 def main():
-    global FILES_PER_DIRECTORY
     import getopt
 
     try:
@@ -112,13 +107,14 @@ def main():
     except getopt.error, d:
         usage(d)
     quiet = 0
+    num_buckets = NUM_BUCKETS
     for opt, val in opts:
         if opt == '-h':
             usage()
         elif opt == '-q':
             quiet = 1
         elif opt == '-n':
-            FILES_PER_DIRECTORY = int(val)
+            num_buckets = int(val)
         else:
             assert 0, "internal error on option '%s'" % opt
 
@@ -130,6 +126,9 @@ def main():
         directory = os.path.join(os.path.dirname(sys.argv[0]),
                                  DEFAULT_DIRECTORY)
 
+    if num_buckets < 1:
+        usage("-n must be at least 1.")
+
     directory = os.path.abspath(directory)
     print "This program will export your Outlook Ham and Spam folders"
     print "to the directory '%s'" % directory
@@ -139,7 +138,7 @@ def main():
         print "*******"
     if not quiet:
         raw_input("Press enter to continue, or Ctrl+C to abort.")
-    export(directory)
+    export(directory, num_buckets)
 
 # Display errormsg (if specified), a blank line, and usage information; then
 # exit with status 1 (usage doesn't return).
@@ -149,22 +148,24 @@ def usage(errormsg=None):
         print
 
     print """ \
-Usage: %s [-h] [-q] [-n min] [directory]
+Usage: %s [-h] [-q] [-n nsets] [directory]
 
 -h : help - display this msg and stop
 -q : quiet - don't prompt for confirmation.
--n : Minimum number of files to aim for in each directory, default=%d
+-n : number of Set subdirectories in the Ham and Spam dirs, default=%d
 
-Export Spam and Ham training folders defined in the Outlook Plugin to a
-test directory.  The directory structure is as defined in the parent
-README.txt file, in the "Standard Test Data Setup" section.
+Export Spam and Ham training folders defined in the Outlook Plugin to a test
+directory.  The directory structure is as defined in the parent
+README-DEVEL.txt file, in the "Standard Test Data Setup" section.  Files are
+distributed randomly among the Set subdirectories.  You should probably use
+rebal.py afterwards to even them out.
 
 If 'directory' is not specified, '%s' is assumed.
 
 If 'directory' exists, it will be recursively deleted before
 the export (but you will be asked to confirm unless -q is given).""" \
             % (os.path.basename(sys.argv[0]),
-               FILES_PER_DIRECTORY,
+               NUM_BUCKETS,
                DEFAULT_DIRECTORY)
     sys.exit(1)
 
