@@ -43,7 +43,6 @@ import threading
 import cStringIO
 
 # The spambayes imports we need.
-import smtpproxy # eek - pop3proxy fails to import unless we do this :(
 import pop3proxy
 
 # The win32 specific modules.
