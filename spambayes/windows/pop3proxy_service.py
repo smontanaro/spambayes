@@ -1,4 +1,4 @@
-# Run the pop3proxy as a WinNT service.  Should work on Windows 2000
+# Run the sb_server as a WinNT service.  Should work on Windows 2000
 # and Windows XP.
 #
 # * Install as a service using "pop3proxy_service.py install"
@@ -25,14 +25,19 @@ try:
     # exists, *and* sys.argv[0] is always already absolute)
     this_filename=__file__
 except NameError:
+    this_filename = sys.argv[0]
+if not os.path.isabs(sys.argv[0]):
     # Python 2.3 __main__
     # patch up sys.argv, as our cwd will confuse service registration code
     sys.argv[0] = os.path.abspath(sys.argv[0])
     this_filename = sys.argv[0]
 
+print sys.argv[0]
 sb_dir = os.path.dirname(os.path.dirname(this_filename))
+sb_scripts_dir = os.path.join(sb_dir,"scripts")
 
 sys.path.insert(0, sb_dir)
+sys.path.insert(-1, sb_scripts_dir)
 # and change directory here, so pop3proxy uses the default
 # config file etc
 os.chdir(sb_dir)
@@ -43,7 +48,7 @@ import threading
 import cStringIO
 
 # The spambayes imports we need.
-import pop3proxy
+import sb_server
 
 # The win32 specific modules.
 import win32serviceutil, win32service
@@ -67,8 +72,10 @@ except ImportError:
     pass
 
 class Service(win32serviceutil.ServiceFramework):
+    # The script name was changed to "sb_server" but I'll leave this as pop3proxy
+    # overwise people might accidently run two proxies.
     _svc_name_ = "pop3proxy"
-    _svc_display_name_ = "SpamBayes pop3proxy Service"
+    _svc_display_name_ = "SpamBayes Service"
     _svc_deps_ =  ['tcpip'] # We depend on the tcpip service.
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
@@ -79,13 +86,13 @@ class Service(win32serviceutil.ServiceFramework):
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         self.event_stopping.set()
-        pop3proxy.stop(pop3proxy.state)        
+        sb_server.stop(sb_server.state)        
         
 
     def SvcDoRun(self):
         # Setup our state etc
-        pop3proxy.prepare(state=pop3proxy.state)
-        assert not pop3proxy.state.launchUI, "Service can't launch a UI"
+        sb_server.prepare(state=sb_server.state)
+        assert not sb_server.state.launchUI, "Service can't launch a UI"
 
         # Start the thread running the server.
         thread = threading.Thread(target=self.ServerThread)
@@ -121,7 +128,7 @@ class Service(win32serviceutil.ServiceFramework):
             pass
         
         # Write another event log record.
-        s = pop3proxy.state
+        s = sb_server.state
         status = " after %d sessions (%d ham, %d spam, %d unsure)" % \
                 (s.totalSessions, s.numHams, s.numSpams, s.numUnsure)
 
@@ -134,7 +141,7 @@ class Service(win32serviceutil.ServiceFramework):
     def ServerThread(self):
         try:
             try:
-                pop3proxy.start(pop3proxy.state)
+                sb_server.start(sb_server.state)
             except SystemExit:
                 # user requested shutdown
                 print "pop3proxy service shutting down due to user request"
