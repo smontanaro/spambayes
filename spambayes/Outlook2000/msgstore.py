@@ -709,13 +709,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self._EnsureObject()
         prop_ids = (PR_BODY_A,
                     MYPR_BODY_HTML_A,
-                    PR_HASATTACH,
                     PR_TRANSPORT_MESSAGE_HEADERS_A)
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         body = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         html = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
-        has_attach = data[2][1]
-        headers = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
+        headers = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
 
         # Some Outlooks deliver a strange notion of headers, including
         # interior MIME armor.  To prevent later errors, try to get rid
@@ -946,7 +944,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             if PROP_TYPE(tag) == PT_ERROR:
                 if val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
                     # Too big for simple properties - get via a stream
-                    return self._GetPropFromStream(prop)
+                    return GetPropFromStream(self.mapi_object, prop)
                 return None
             return val
         except:
