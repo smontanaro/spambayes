@@ -20,7 +20,6 @@ from win32com.client import gencache, DispatchWithEvents, Dispatch
 import win32api
 import pythoncom
 from win32com.client import constants, getevents
-import win32ui
 
 import win32gui, win32con, win32clipboard # for button images!
 
@@ -348,7 +347,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         spam_folder_id = self.manager.config.filter.spam_folder_id
         spam_folder = msgstore.GetFolder(spam_folder_id)
         if not spam_folder:
-            win32ui.MessageBox("You must configure the Spam folder",
+            self.manager.ReportError("You must configure the Spam folder",
                                "Invalid Configuration")
             return
         import train
@@ -534,7 +533,7 @@ class ExplorerWithEvents:
             explorer = self.Application.ActiveExplorer()
         sel = explorer.Selection
         if sel.Count > 1 and not allow_multi:
-            win32ui.MessageBox("Please select a single item", "Large selection")
+            self.manager.ReportError("Please select a single item", "Large selection")
             return None
 
         ret = []
@@ -545,7 +544,7 @@ class ExplorerWithEvents:
                 ret.append(msgstore_message)
 
         if len(ret) == 0:
-            win32ui.MessageBox("No mail items are selected", "No selection")
+            self.manager.ReportError("No mail items are selected", "No selection")
             return None
         if allow_multi:
             return ret
@@ -704,16 +703,8 @@ class OutlookAddin:
             # Create a notification hook for all folders we filter.
             self.UpdateFolderHooks()
         except:
-            import traceback
-            print "Error installing folder hooks."
-            traceback.print_exc()
-            self.manager.config.filter.enabled = False
-            self.manager.SaveConfig()
-            win32ui.MessageBox(
-                "There was an error initializing the Spam plugin\r\n\r\n"
-                "Spam filtering has been disabled.  Please re-configure\r\n"
-                "and re-enable this plugin",
-                "Anti-Spam plugin")
+            self.manager.ReportFatalStartupError(
+                "Could not watch the specified folders")
 
     def UpdateFolderHooks(self):
         config = self.manager.config.filter

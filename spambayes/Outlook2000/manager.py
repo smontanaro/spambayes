@@ -5,7 +5,7 @@ import os
 import sys
 import errno
 import shutil
-import win32api, win32con
+import win32api, win32con, win32ui
 
 import win32com.client
 import win32com.client.gencache
@@ -77,6 +77,22 @@ def import_core_spambayes_stuff(ini_filename):
 class ManagerError(Exception):
     pass
 
+# Function to "safely" save a pickle, only overwriting
+# the existing file after a successful write.
+def SavePickle(what, filename):
+    temp_filename = filename + ".tmp"
+    file = open(temp_filename,"wb")
+    try:
+        cPickle.dump(what, file, 1)
+    finally:
+        file.close()
+    # now rename to the correct file.
+    try:
+        os.unlink(filename)
+    except os.error:
+        pass
+    os.rename(temp_filename, filename)
+
 # Base class for our "storage manager" - we choose between the pickle
 # and DB versions at runtime.  As our bayes uses spambayes.storage,
 # our base class can share common bayes loading code.
@@ -108,7 +124,7 @@ class PickleStorageManager(BasicStorageManager):
     def new_mdb(self):
         return {}
     def store_mdb(self, mdb):
-        cPickle.dump(mdb, open(self.mdb_filename,"wb"), 1)
+        SavePickle(mdb, self.mdb_filename)
     def close_mdb(self, mdb):
         pass
 
@@ -135,6 +151,8 @@ class DBStorageManager(BasicStorageManager):
 # Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
+        self.reported_startup_error = False
+        self.config = None
         self.addin = None
         self.verbose = verbose
         self.application_directory = os.path.dirname(this_filename)
@@ -164,6 +182,40 @@ class BayesManager:
         self.bayes = self.message_db = None
         self.LoadBayes()
         self.message_store = msgstore.MAPIMsgStore(outlook)
+
+    # Report a message to the user - should only be used for pretty serious errors
+    # hence we also print a traceback.
+    def ReportError(self, message, title = None):
+        import traceback
+        print "ERROR:", message
+        traceback.print_exc()
+        if title is None:
+            title = "SpamBayes Anti-Spam plugin"
+        win32ui.MessageBox(message, title)
+    
+    # Report a super-serious startup error to the user.
+    # This should only be used when SpamBayes was previously working, but a
+    # critical error means we are probably not working now.
+    # We just report the first such error - subsequent ones are likely a result of
+    # the first - hence, this must only be used for startup errors.
+    def ReportFatalStartupError(self, message):
+        if not self.reported_startup_error:
+            self.reported_startup_error = True
+            full_message = \
+                "There was an error initializing the Spam plugin.\r\n\r\n" \
+                "Spam filtering has been disabled.  Please re-configure\r\n" \
+                "and re-enable this plugin\r\n\r\n" \
+                "Error details:\r\n" + message
+            # Disable the plugin
+            if self.config is not None:
+                self.config.filter.enabled = False
+            self.ReportError(full_message)
+        else:
+            # We have reported the error, but for the sake of the log, we
+            # still want it logged there.
+            import traceback
+            print "ERROR:", message
+            traceback.print_exc()
 
     # Outlook used to give us thread grief - now we avoid Outlook
     # from threads, but this remains a worthwhile abstraction.
@@ -310,18 +362,14 @@ class BayesManager:
             bayes = self.db_manager.open_bayes()
             print "Loaded bayes database from '%s'" % (self.db_manager.bayes_filename,)
         except:
-            print "Failed to load bayes database"
-            import traceback
-            traceback.print_exc()
+            self.ReportFatalStartupError("Failed to load bayes database")
         try:
             message_db = self.db_manager.open_mdb()
             print "Loaded message database from '%s'" % (self.db_manager.mdb_filename,)
         except IOError:
             pass
         except:
-            print "Failed to load bayes message database"
-            import traceback
-            traceback.print_exc()
+            self.ReportFatalStartupError("Failed to load bayes message database")
         if bayes is None or message_db is None:
             self.bayes = bayes
             self.message_db = message_db
@@ -357,17 +405,18 @@ class BayesManager:
             if self.verbose > 1:
                 print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
-        except (AttributeError, ImportError):
-            ret = config.ConfigurationRoot()
-            print "FAILED to load configuration from '%s' - using default:" % (self.config_filename,)
-            import traceback
-            traceback.print_exc()
         except IOError, details:
             # File-not-found - less serious.
             ret = config.ConfigurationRoot()
             if self.verbose > 1:
                 # filename included in exception!
                 print "IOError loading configuration (%s) - using default:" % (details)
+        except:
+            # Any other error loading configuration is nasty, but should not
+            # cause a fatal error.
+            msg = "FAILED to load configuration from '%s'" % (self.config_filename,)
+            self.ReportFatalStartupError(msg)
+            ret = config.ConfigurationRoot()
         return ret
 
     def InitNewBayes(self):
@@ -406,7 +455,7 @@ class BayesManager:
             print "Saving configuration:"
             self.config._dump()
             print " ->", self.config_filename
-        cPickle.dump(self.config, open(self.config_filename,"wb"), 1)
+        SavePickle(self.config, self.config_filename)
 
     def Save(self):
         self.SaveConfig()
@@ -464,6 +513,8 @@ class BayesManager:
         import dialogs.ManagerDialog
         d = dialogs.ManagerDialog.ManagerDialog(self, do_train, do_filter, define_filter)
         d.DoModal()
+        # And re-save now, just incase Outlook dies on the way down.
+        self.SaveConfig()
 
 _mgr = None
 
