@@ -9,92 +9,30 @@ import time
 import signal
 import socket
 import email
-from heapq import heapreplace
-from sets import Set
 import cdb
 from tokenizer import tokenize
-from classifier import MIN_SPAMPROB, MAX_SPAMPROB, UNKNOWN_SPAMPROB, \
-    MAX_DISCRIMINATORS
+import classifier
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 BLOCK_SIZE = 10000
 SIZE_LIMIT = 5000000 # messages larger are not analyzed
-SPAM_THRESHOLD = 0.9
+SPAM_CUTOFF = 0.57
 
-def spamprob(wordprobs, wordstream):
-    """Return best-guess probability that wordstream is spam.
-
-    wordprobs is a CDB of word probabilities
-
-    wordstream is an iterable object producing words.
-    The return value is a float in [0.0, 1.0].
-    """
-
-    # A priority queue to remember the MAX_DISCRIMINATORS best
-    # probabilities, where "best" means largest distance from 0.5.
-    # The tuples are (distance, prob, word).
-    nbest = [(-1.0, None, None)] * MAX_DISCRIMINATORS
-    smallest_best = -1.0
-
-    mins = []   # all words w/ prob MIN_SPAMPROB
-    maxs = []   # all words w/ prob MAX_SPAMPROB
-    # Counting a unique word multiple times hurts, although counting one
-    # at most two times had some benefit whan UNKNOWN_SPAMPROB was 0.2.
-    # When that got boosted to 0.5, counting more than once became
-    # counterproductive.
-    for word in Set(wordstream):
-        prob = float(wordprobs.get(word, UNKNOWN_SPAMPROB))
-        distance = abs(prob - 0.5)
-        if prob == MIN_SPAMPROB:
-            mins.append((distance, prob, word))
-        elif prob == MAX_SPAMPROB:
-            maxs.append((distance, prob, word))
-        elif distance > smallest_best:
-            # Subtle:  we didn't use ">" instead of ">=" just to save
-            # calls to heapreplace().  The real intent is that if
-            # there are many equally strong indicators throughout the
-            # message, we want to favor the ones that appear earliest:
-            # it's expected that spam headers will often have smoking
-            # guns, and, even when not, spam has to grab your attention
-            # early (& note that when spammers generate large blocks of
-            # random gibberish to throw off exact-match filters, it's
-            # always at the end of the msg -- if they put it at the
-            # start, *nobody* would read the msg).
-            heapreplace(nbest, (distance, prob, word))
-            smallest_best = nbest[0][0]
-
-    # Compute the probability.  Note:  This is what Graham's code did,
-    # but it's dubious for reasons explained in great detail on Python-
-    # Dev:  it's missing P(spam) and P(not-spam) adjustments that
-    # straightforward Bayesian analysis says should be here.  It's
-    # unclear how much it matters, though, as the omissions here seem
-    # to tend in part to cancel out distortions introduced earlier by
-    # HAMBIAS.  Experiments will decide the issue.
-
-    # First cancel out competing extreme clues (see comment block at
-    # MAX_DISCRIMINATORS declaration -- this is a twist on Graham).
-    if mins or maxs:
-        if len(mins) < len(maxs):
-            shorter, longer = mins, maxs
+class CdbWrapper(cdb.Cdb):
+    def get(self, key, default=None,
+            cdb_get=cdb.Cdb.get,
+            WordInfo=classifier.WordInfo):
+        prob = cdb_get(self, key, default)
+        if prob is None:
+            return None
         else:
-            shorter, longer = maxs, mins
-        tokeep = min(len(longer) - len(shorter), MAX_DISCRIMINATORS)
-        # They're all good clues, but we're only going to feed the tokeep
-        # initial clues from the longer list into the probability
-        # computation.
-        for x in longer[:tokeep]:
-            heapreplace(nbest, x)
-
-    prob_product = inverse_prob_product = 1.0
-    for distance, prob, word in nbest:
-        if prob is None:    # it's one of the dummies nbest started with
-            continue
-        prob_product *= prob
-        inverse_prob_product *= 1.0 - prob
-
-    prob = prob_product / (prob_product + inverse_prob_product)
-    return prob
+            return WordInfo(0, float(prob))
+    
+class CdbBayes(classifier.Bayes):
+    def __init__(self, cdbfile):
+        classifier.Bayes.__init__(self)
+        self.wordinfo = CdbWrapper(cdbfile)
 
 def maketmp(dir):
     hostname = socket.gethostname()
@@ -155,12 +93,12 @@ def main():
             del blocks
             msg = email.message_from_string(msgdata)
             del msgdata
-            wordprobs = cdb.Cdb(open(wordprobfilename, 'rb'))
-            prob = spamprob(wordprobs, tokenize(msg))
+            bayes = CdbBayes(open(wordprobfilename, 'rb'))
+            prob = bayes.spamprob(tokenize(msg))
         else:
             prob = 0.0
 
-        if prob > SPAM_THRESHOLD:
+        if prob > SPAM_CUTOFF:
             os.rename(pathname, "%s/new/%s" % (spamdir, filename))
         else:
             os.rename(pathname, "%s/new/%s" % (hamdir, filename))
