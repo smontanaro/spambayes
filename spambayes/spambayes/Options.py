@@ -74,10 +74,6 @@ try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
-try:
-    from sets import Set
-except ImportError:
-    from compatsets import Set
 
 import re
 import types
@@ -918,19 +914,6 @@ defaults = {
      BOOLEAN, RESTORE),
   ),
  
-  "globals" : (
-    ("verbose", "Verbose", False,
-     """""",
-     BOOLEAN, RESTORE),
-
-    ("dbm_type", "Database storage type", "best",
-     """What DBM storage type should we use?  Must be best, db3hash, dbhash,
-     gdbm, or dumbdbm.  Windows folk should steer clear of dbhash.  Default
-     is "best", which will pick the best DBM type available on your
-     platform.""",
-     ("best", "bd3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
-  ),
-
   "imap" : (
     ("server", "Server", (),
      """This is the name and port of the imap server that stores your mail,
@@ -997,6 +980,19 @@ defaults = {
      to train as spam.""",
      IMAP_FOLDER, DO_NOT_RESTORE),
   ),
+ 
+  "globals" : (
+    ("verbose", "Verbose", False,
+     """""",
+     BOOLEAN, RESTORE),
+
+    ("dbm_type", "Database storage type", "best",
+     """What DBM storage type should we use?  Must be best, db3hash, dbhash,
+     gdbm, or dumbdbm.  Windows folk should steer clear of dbhash.  Default
+     is "best", which will pick the best DBM type available on your
+     platform.""",
+     ("best", "bd3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
+  ),
 }
 
 class Option(object):
@@ -1008,7 +1004,7 @@ class Option(object):
         self.explanation_text = help_text
         self.allowed_values = allowed
         self.restore = restore
-        self.value = None
+        self.value = default
         self.delimiter = None
 
     def display_name(self):
@@ -1065,7 +1061,7 @@ class Option(object):
 
     def is_valid_single(self, value):
         '''Return True iff value is a valid value for this option.
-        Use if multiple values are not allowed.'''
+        Use when multiple values are not allowed.'''
         if type(self.allowed_values) == types.TupleType:
             if value in self.allowed_values:
                 return True
@@ -1395,6 +1391,10 @@ class OptionsClass(object):
         # A (really ugly) bit of backwards compatability
         # *** This will vanish soon, so do not make use of it in
         #     new code ***
+        for (oldsect, oldopt), (newsect, newopt) in conversion_table.items():
+            if (newsect, newopt) == (section, option):
+                section = oldsect
+                option = oldopt
         setattr(options, option, value)
         old_name = section[0:1].lower() + section[1:] + "_" + option
         setattr(options, old_name, value)
