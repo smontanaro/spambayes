@@ -49,7 +49,6 @@ def AssertRaises(exception, func, *args):
 filter_event = threading.Event()
 
 def WaitForFilters():
-    import pythoncom
     # Must wait longer than normal, so when run with a timer we still work.
     filter_event.clear()
     for i in range(500):
@@ -162,9 +161,11 @@ class Driver:
         for i in range(5):
             if self.FindTestMessage(folder) is None:
                 break
-            sleep(.5)
+            for j in range(10):
+                sleep(.05)
         else:
-            TestFailed("The test message remained in folder %r" % folder.Name)
+            ms_folder = self.manager.message_store.GetFolder(folder)
+            TestFailed("The test message remained in folder '%s'" % ms_folder.GetFQName())
         
     def _CleanTestMessageFromFolder(self, folder):
         subject = TEST_SUBJECT
@@ -351,15 +352,17 @@ def _DoTestHamTrain(driver, folder1, folder2):
     # sleep to ensure filtering.
     WaitForFilters()
     # It should still be in the Inbox.
-    driver.CheckMessageFilteredFrom(folder1)
+    if driver.FindTestMessage(folder1) is None:
+        TestFailed("The test ham message appeared to have been filtered!")
 
     # Manually move it to folder2
     msg.Move(folder2)
-    # re-find it in folder2
-    msg = driver.FindTestMessage(folder2)
-
     # sleep to any processing in this folder.
     WaitForFilters()
+    # re-find it in folder2
+    msg = driver.FindTestMessage(folder2)
+    if driver.FindTestMessage(folder2) is None:
+        TestFailed("Couldn't find the ham message we just moved")
 
     if nspam != bayes.nspam or nham != bayes.nham:
         TestFailed("Move of existing ham caused a train")
@@ -382,11 +385,23 @@ def TestHamFilter(driver):
                         mgr.config.filter.watch_folder_ids,
                         mgr.config.filter.watch_include_sub)
     num = 0
+    folders = []
     for f in gen:
         print "Running ham filter tests on folder '%s'" % f.GetFQName()
         f = f.GetOutlookItem()
         _DoTestHamFilter(driver, f)
         num += 1
+        folders.append(f)
+    # Now test incremental train logic, between all these folders.
+    if len(folders)<2:
+        print "NOTE: Can't do incremental training tests as only 1 watch folder is in place"
+    else:
+        for f in folders:
+            # 'targets' is a list of all folders except this
+            targets = folders[:]
+            targets.remove(f)
+            for t in targets:
+                _DoTestHamTrain(driver, f, t)
     print "Created a Ham message, and saw it remain in place (in %d watch folders.)" % num
 
 def TestUnsureFilter(driver):
@@ -613,10 +628,10 @@ def run_failure_tests(manager):
     
 def filter_message_with_event(msg, mgr, all_actions=True):
     import filter
-    try:
-        return filter._original_filter_message(msg, mgr, all_actions)
-    finally:
-        filter_event.set()
+    ret = filter._original_filter_message(msg, mgr, all_actions)
+    if ret != "Failed":
+        filter_event.set() # only set if it works
+    return ret
 
 def test(manager):
     from dialogs import SetWaitCursor
