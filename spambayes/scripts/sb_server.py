@@ -548,23 +548,8 @@ class BayesProxy(POP3ProxyBase):
             # report the exception in a hand-appended header and recover.
             # This is one case where an unqualified 'except' is OK, 'cos
             # anything's better than destroying people's email...
-            stream = cStringIO.StringIO()
-            traceback.print_exc(None, stream)
-            details = stream.getvalue()
-
-            # Build the header.  This will strip leading whitespace from
-            # the lines, so we add a leading dot to maintain indentation.
-            detailLines = details.strip().split('\n')
-            dottedDetails = '\n.'.join(detailLines)
-            headerName = 'X-Spambayes-Exception'
-            header = Header(dottedDetails, header_name=headerName)
-
-            # Insert the header, converting email.Header's '\n' line
-            # breaks to POP3's '\r\n'.
-            headers, body = re.split(r'\n\r?\n', messageText, 1)
-            header = re.sub(r'\r?\n', '\r\n', str(header))
-            headers += "\n%s: %s\r\n\r\n" % (headerName, header)
-            messageText = headers + body
+            messageText, details = spambayes.message.\
+                                   insert_exception_header(messageText)
 
             # Print the exception and a traceback.
             print >>sys.stderr, details

@@ -538,10 +538,14 @@ def insert_exception_header(string_msg, msg_id=None):
     # Insert the exception header, and optionally also insert the id header,
     # otherwise we might keep doing this message over and over again.
     # We also ensure that the line endings are /r/n as RFC822 requires.
-    headers, body = re.split(r'\n\r?\n', string_msg, 1)
+    try:
+        headers, body = re.split(r'\n\r?\n', string_msg, 1)
+    except ValueError:
+        # No body - this is a bad message!
+        headers = string_msg
+        body = ""
     header = re.sub(r'\r?\n', '\r\n', str(header))
-    headers += "\n%s: %s\r\n" % \
-               (headerName, header)
+    headers += "\n%s: %s\r\n" % (headerName, header)
     if msg_id:
         headers += "%s: %s\r\n" % \
                    (options["Headers", "mailid_header_name"], msg_id)
