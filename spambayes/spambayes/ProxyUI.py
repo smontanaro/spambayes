@@ -488,6 +488,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 text = '(this message has no text body)'
         if type(text) == type([]):  # gotta be a 'right' way to do this
             text = "(this message is a digest of %s messages)" % (len(text))
+        elif text is None:
+            text = "(this message has no body)"
         else:
             text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
             text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
