@@ -718,6 +718,8 @@ class BayesManager:
         # See addin.py, and [725466] Include a proper locale fix in Options.py
         import locale; locale.setlocale(locale.LC_NUMERIC, "C")
 
+        # Update our runtime verbosity from the options.
+        self.verbose = self.config.general.verbose
         print "Saving configuration ->", self.config_filename.encode("mbcs", "replace")
         assert self.config and self.options, "Have no config to save!"
         if self.verbose > 1:
@@ -733,7 +735,7 @@ class BayesManager:
         if self.classifier_data.dirty:
             self.classifier_data.Save()
         else:
-            print "Bayes database is not dirty - not writing"
+            self.LogDebug(1, "Bayes database is not dirty - not writing")
 
     def Close(self):
         self.classifier_data.Close()
@@ -773,11 +775,13 @@ class BayesManager:
         config = self.config.filter
         ok_to_enable = operator.truth(config.watch_folder_ids)
         if not ok_to_enable:
-            return "You must define folders to watch for new messages"
+            return "You must define folders to watch for new messages.  " \
+                   "Select the 'Filtering' tab to define these folders."
 
         ok_to_enable = operator.truth(config.spam_folder_id)
         if not ok_to_enable:
-            return "You must define the folder to receive your certain spam"
+            return "You must define the folder to receive your certain spam.  " \
+                   "Select the 'Filtering' tab to define this folders."
 
         return None
 
