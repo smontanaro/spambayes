@@ -23,4 +23,4 @@ folder-hook . "macro index S '|hammiefilter.py -s\n <save-message>=caughtspam\n'
 folder-hook . "macro pager S '|hammiefilter.py -s\n <save-message>=caughtspam\n'"
 folder-hook . "macro index H '|hammiefilter.py -g\r <save-message>!\r'"
 folder-hook . "macro pager H '|hammiefilter.py -g\r <save-message>!\r'"
-color index red black "~h 'X-Hammie-Disposition: spam' ~F"
+color index red black "~h 'X-Spambayes-Disposition: spam' ~F"
