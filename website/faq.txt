@@ -315,8 +315,8 @@ Outlook Plugin
 What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
-The 002 installer for the binary had a number of problems with various
-versions of Outlook/Windows.  However, to our knowledge, the 003 installer
+Previous versions of the binary had a number of problems with various
+versions of Outlook/Windows.  However, to our knowledge, the current version
 should work with any combination of Windows/Outlook versions.  Please let us
 know if this is not the case.  The `troubleshooting guide`_ for the Outlook
 plugin contains the most up-to-date help for working around known problems.
@@ -334,19 +334,21 @@ install Python.
 Will Spambayes work with Outlook 2000 connecting to an Exchange 2000 server?
 ----------------------------------------------------------------------------
 
-It should, yes.  There haven't been any problems reported using that
-combination.
-
+Yes.
 
 Can mail marked as spam automatically be marked as read?
 --------------------------------------------------------
 
-This is a 'hidden' feature in the 003 release of the binary (also alpha3
-source release and current CVS).  Details about how to enable this feature
+This is a 'hidden' feature in the post 003 releases of the binary (also post 
+alpha3 source releases and CVS).  Details about how to enable this feature
 can be found in the "configuration.html" file in the "docs" directory in
 the folder Spambayes was installed to.  You can also set up mail that is
 trained using the "Delete as spam" button to be marked as read, rather than
-all mail classified as spam.
+all mail classified as spam.  However, you should also see the
+`envelope icon question`_.
+
+.. _`envelope icon question`: #how-can-I-get-rid-of-the-envelope-tray-icon-for-spam
+
 
 Outlook forgets all training/configuration when I quit and start again
 ----------------------------------------------------------------------
@@ -426,7 +428,17 @@ means that we do not know whether we should delete the icon or not.
 
 Until someone comes up with a clever solution for all of this, you'll have to
 put up with the little envelope, sorry.
-     
+
+
+How can I configure SpamBayes to delete spam rather than moving it?
+-------------------------------------------------------------------
+Sorry, but you can't.  However, Outlook has an excellent "auto-archive" 
+facility which can be used to the same effect - simply configure
+auto-archive to periodically delete your Spam folder.
+
+It is recommended that you configure auto-complete to keep at least a 
+few days of Spam around, should the SpamBayes database become corrupt and 
+require you to perform a full re-train.
 
 Using Spambayes
 ===============
