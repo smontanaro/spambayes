@@ -1250,6 +1250,21 @@ increase, without any tokens increasing their count, but that shouldn't have
 any effect, as long as it doesn't happen regularly.
 
 
+The 1.0a9 (0.9) installer is missing the pop3proxy_service file.
+----------------------------------------------------------------
+
+There are two bugs here - one is that the readme_proxy.html file installed
+by the 1.0a9 (0.9) installer talks about a directory that doesn't exist,
+namely {Program Files}/SpamBayes/Proxy.  This should be {Program Files}/SpamBayes/bin,
+but that won't help you, because the executable that you need to install
+the service isn't installed.
+
+This will be fixed in the next release (in the 'bin' directory will be a
+file called "sb_server.exe").  Until then, if you want to install sb_server
+as a service, you will need to do this from source.  You can, of course,
+run sb_server.exe or sb_tray.exe, without having the service installed.
+
+
 Development
 ===========
 
