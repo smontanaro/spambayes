@@ -7,7 +7,7 @@ The original filter design owed much to isbg by Roger Binns
 (http://www.rogerbinns.com/isbg).
 
 Usage:
-    imapfilter [options]
+    sb_imapfilter [options]
 
 	note: option values with spaces in them must be enclosed
 	      in double quotes
@@ -29,13 +29,13 @@ Usage:
 Examples:
 
     Classify inbox, with dbm database
-        imapfilter -c -D bayes.db
+        sb_imapfilter -c -D bayes.db
         
     Train Spam and Ham, then classify inbox, with dbm database
-        imapfilter -t -c -D bayes.db
+        sb_imapfilter -t -c -D bayes.db
 
     Train Spam and Ham only, with pickled database
-        imapfilter -t -d bayes.db
+        sb_imapfilter -t -d bayes.db
 
 Warnings:
     o This is alpha software!  The filter is currently being developed and

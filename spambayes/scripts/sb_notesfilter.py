@@ -77,7 +77,7 @@ Abstract:
     for classification.
 
 Usage:
-    notesfilter [options]
+    sb_notesfilter [options]
 
 	note: option values with spaces in them must be enclosed
 	      in double quotes
@@ -106,13 +106,13 @@ Usage:
 Examples:
 
     Replicate and classify inbox
-        notesfilter -c -d notesbayes -r mynoteserv -l mail.nsf -f Spambayes
+        sb_notesfilter -c -d notesbayes -r mynoteserv -l mail.nsf -f Spambayes
         
     Train Spam and Ham, then classify inbox
-        notesfilter -t -c -d notesbayes -l mail.nsf -f Spambayes
+        sb_notesfilter -t -c -d notesbayes -l mail.nsf -f Spambayes
     
     Replicate, then classify inbox      
-        notesfilter -c -d test7 -l mail.nsf -r nynoteserv -f Spambayes
+        sb_notesfilter -c -d test7 -l mail.nsf -r nynoteserv -f Spambayes
  
 To Do:
     o Dump/purge notesindex file
