@@ -2,139 +2,121 @@
 
 # A server version of hammie.py
 
-# Server code
+
+"""Usage: %(program)s [options] IP:PORT
+
+Where:
+    -h
+        show usage and exit
+    -p FILE
+        use file as the persistent store.  loads data from this file if it
+        exists, and saves data to this file at the end.  Default: %(DEFAULTDB)s
+    -d
+        use the DBM store instead of cPickle.  The file is larger and
+        creating it is slower, but checking against it is much faster,
+        especially for large word databases.
+
+    IP
+        IP address to bind (use 0.0.0.0 to listen on all IPs of this machine)
+    PORT
+        Port number to listen to.
+"""
 
 import SimpleXMLRPCServer
-import email
+import getopt
+import sys
+import traceback
+import xmlrpclib
 import hammie
-from tokenizer import tokenize
 
-# Default header to add
-DFL_HEADER = "X-Hammie-Disposition"
+program = sys.argv[0] # For usage(); referenced by docstring above
 
-# Default spam cutoff
-DFL_CUTOFF = 0.9
+# Default DB path
+DEFAULTDB = hammie.DEFAULTDB
 
-class Hammie:
-    def __init__(self, bayes):
-        self.bayes = bayes
+class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
+    def do_POST(self):
+        """Handles the HTTP POST request.
 
-    def _scoremsg(self, msg, evidence=False):
-        """Score an email.Message.
+        Attempts to interpret all HTTP POST requests as XML-RPC calls,
+        which are forwarded to the _dispatch method for handling.
 
-        Returns the probability the message is spam.  If evidence is
-        true, returns a tuple: (probability, clues), where clues is a
-        list of the words which contributed to the score.
-
+        This one also prints out tracebacks, to help me debug :)
         """
 
-        return self.bayes.spamprob(tokenize(msg), evidence)
+        try:
+            # get arguments
+            data = self.rfile.read(int(self.headers["content-length"]))
+            params, method = xmlrpclib.loads(data)
 
-    def score(self, msg, evidence=False):
-        """Score (judge) a message.
-
-        Pass in a message as a string.
-
-        Returns the probability the message is spam.  If evidence is
-        true, returns a tuple: (probability, clues), where clues is a
-        list of the words which contributed to the score.
-
-        """
-
-        return self._scoremsg(email.message_from_string(msg), evidence)
-
-    def filter(self, msg, header=DFL_HEADER, cutoff=DFL_CUTOFF):
-        """Score (judge) a message and add a disposition header.
-
-        Pass in a message as a string.  Optionally, set header to the
-        name of the header to add, and/or cutoff to the probability
-        value which must be met or exceeded for a message to get a 'Yes'
-        disposition.
-
-        Returns the same message with a new disposition header.
-
-        """
-
-        msg = email.message_from_string(msg)
-        prob, clues = self._scoremsg(msg, True)
-        if prob < cutoff:
-            disp = "No"
+            # generate response
+            try:
+                response = self._dispatch(method, params)
+                # wrap response in a singleton tuple
+                response = (response,)
+            except:
+                # report exception back to server
+                response = xmlrpclib.dumps(
+                    xmlrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value))
+                    )
+            else:
+                response = xmlrpclib.dumps(response, methodresponse=1)
+        except:
+            # internal error, report as HTTP server error
+            traceback.print_exc()
+            print `data`
+            self.send_response(500)
+            self.end_headers()
         else:
-            disp = "Yes"
-        disp += "; %.2f" % prob
-        disp += "; " + hammie.formatclues(clues)
-        msg.add_header(header, disp)
-        return msg.as_string(unixfrom=(msg.get_unixfrom() is not None))
+            # got a valid XML RPC response
+            self.send_response(200)
+            self.send_header("Content-type", "text/xml")
+            self.send_header("Content-length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
 
-    def train(self, msg, is_spam):
-        """Train bayes with a message.
+            # shut down the connection
+            self.wfile.flush()
+            self.connection.shutdown(1)
+            
 
-        msg should be the message as a string, and is_spam should be 1
-        if the message is spam, 0 if not.
+def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
+    if msg:
+        print >> sys.stderr, msg
+        print >> sys.stderr
+    print >> sys.stderr, __doc__ % globals()
+    sys.exit(code)
 
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
-
-        """
-
-        self.bayes.learn(tokenize(msg), is_spam, False)
-
-    def train_ham(self, msg):
-        """Train bayes with ham.
-
-        msg should be the message as a string.
-
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
-
-        """
-
-        self.train(msg, False)
-
-    def train_spam(self, msg):
-        """Train bayes with spam.
-
-        msg should be the message as a string.
-
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
-
-        """
-
-        self.train(msg, True)
-
-    def update_probabilities(self):
-        """Update probability values.
-
-        You would want to call this after a training session.  It's
-        pretty slow, so if you have a lot of messages to train, wait
-        until you're all done before calling this.
-
-        """
-
-        self.bayes.update_probabilites()
 
 def main():
-    usedb = True
-    pck = "/home/neale/lib/hammie.db"
+    """Main program; parse options and go."""
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hdp:')
+    except getopt.error, msg:
+        usage(2, msg)
 
-    if usedb:
-        bayes = hammie.PersistentGrahamBayes(pck)
-    else:
-        bayes = None
-        try:
-            fp = open(pck, 'rb')
-        except IOError, e:
-            if e.errno <> errno.ENOENT: raise
-        else:
-            bayes = pickle.load(fp)
-            fp.close()
-        if bayes is None:
-            import classifier
-            bayes = classifier.GrahamBayes()
+    pck = DEFAULTDB
+    usedb = False
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-p':
+            pck = arg
+        elif opt == "-d":
+            usedb = True
 
-    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("localhost", 7732))
-    server.register_instance(Hammie(bayes))
+    if len(args) != 1:
+        usage(2, "IP:PORT not specified")
+
+    ip, port = args[0].split(":")
+    port = int(port)
+    
+    bayes = hammie.createbayes(pck, usedb)
+    h = hammie.Hammie(bayes)
+
+    server = SimpleXMLRPCServer.SimpleXMLRPCServer((ip, port), HammieHandler)
+    server.register_instance(h)
     server.serve_forever()
 
 if __name__ == "__main__":

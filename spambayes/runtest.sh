@@ -39,6 +39,9 @@ if [ -n "$REBAL" ]; then
 fi
 
 case "$TEST" in
+    run1)
+	python timcv.py -n $SETS > run1.txt
+	;;
     run2|useold)
 	python timcv.py -n $SETS > run2.txt
 

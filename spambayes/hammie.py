@@ -60,7 +60,8 @@ SPAM_THRESHOLD = 0.9
 from tokenizer import tokenize
 
 class DBDict:
-    """Database Dictionary
+
+    """Database Dictionary.
 
     This wraps an anydbm to make it look even more like a dictionary.
 
@@ -135,7 +136,8 @@ class DBDict:
 
 
 class PersistentGrahamBayes(classifier.GrahamBayes):
-    """A persistent GrahamBayes classifier
+
+    """A persistent GrahamBayes classifier.
 
     This is just like classifier.GrahamBayes, except that the dictionary
     is a database.  You take less disk this way, I think, and you can
@@ -176,7 +178,127 @@ class PersistentGrahamBayes(classifier.GrahamBayes):
             self.nham, self.nspam = self.wordinfo[self.statekey]
 
 
-def train(bayes, msgs, is_spam):
+class Hammie:
+
+    """A spambayes mail filter"""
+    
+    def __init__(self, bayes):
+        self.bayes = bayes
+
+    def _scoremsg(self, msg, evidence=False):
+        """Score a Message.
+
+        msg can be a string, a file object, or a Message object.
+
+        Returns the probability the message is spam.  If evidence is
+        true, returns a tuple: (probability, clues), where clues is a
+        list of the words which contributed to the score.
+
+        """
+
+        return self.bayes.spamprob(tokenize(msg), evidence)
+        
+    def formatclues(self, clues, sep="; "):
+        """Format the clues into something readable."""
+
+        return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
+
+    def score(self, msg, evidence=False):
+        """Score (judge) a message.
+
+        msg can be a string, a file object, or a Message object.
+
+        Returns the probability the message is spam.  If evidence is
+        true, returns a tuple: (probability, clues), where clues is a
+        list of the words which contributed to the score.
+
+        """
+
+        try:
+            return self._scoremsg(msg, evidence)
+        except:
+            print msg
+            import traceback
+            traceback.print_exc()
+
+    def filter(self, msg, header=DISPHEADER, cutoff=SPAM_THRESHOLD):
+        """Score (judge) a message and add a disposition header.
+
+        msg can be a string, a file object, or a Message object.
+
+        Optionally, set header to the name of the header to add, and/or
+        cutoff to the probability value which must be met or exceeded
+        for a message to get a 'Yes' disposition.
+        
+        Returns the same message with a new disposition header.
+
+        """
+
+        if hasattr(msg, "readlines"):
+            msg = email.message_from_file(msg)
+        elif not hasattr(msg, "add_header"):
+            msg = email.message_from_string(msg)
+        prob, clues = self._scoremsg(msg, True)
+        if prob < cutoff:
+            disp = "No"
+        else:
+            disp = "Yes"
+        disp += "; %.2f" % prob
+        disp += "; " + self.formatclues(clues)
+        msg.add_header(header, disp)
+        return msg.as_string(unixfrom=(msg.get_unixfrom() is not None))
+
+    def train(self, msg, is_spam):
+        """Train bayes with a message.
+
+        msg can be a string, a file object, or a Message object.
+
+        is_spam should be 1 if the message is spam, 0 if not.
+
+        Probabilities are not updated after this call is made; to do
+        that, call update_probabilities().
+        
+        """
+        
+        self.bayes.learn(tokenize(msg), is_spam, False)
+
+    def train_ham(self, msg):
+        """Train bayes with ham.
+
+        msg can be a string, a file object, or a Message object.
+
+        Probabilities are not updated after this call is made; to do
+        that, call update_probabilities().
+
+        """
+
+        self.train(msg, False)
+
+    def train_spam(self, msg):
+        """Train bayes with spam.
+
+        msg can be a string, a file object, or a Message object.
+
+        Probabilities are not updated after this call is made; to do
+        that, call update_probabilities().
+
+        """
+
+        self.train(msg, True)
+
+    def update_probabilities(self):
+        """Update probability values.
+
+        You would want to call this after a training session.  It's
+        pretty slow, so if you have a lot of messages to train, wait
+        until you're all done before calling this.
+
+        """
+        
+        self.bayes.update_probabilities()
+    
+
+def train(hammie, msgs, is_spam):
     """Train bayes with all messages from a mailbox."""
     mbox = mboxutils.getmbox(msgs)
     i = 0
@@ -186,27 +308,10 @@ def train(bayes, msgs, is_spam):
         # back in the day.  Maybe it's a line-printer-ism ;)
         sys.stdout.write("\r%6d" % i)
         sys.stdout.flush()
-        bayes.learn(tokenize(msg), is_spam, False)
+        hammie.train(msg, is_spam)
     print
 
-def formatclues(clues, sep="; "):
-    """Format the clues into something readable."""
-    return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
-
-def filter(bayes, input, output):
-    """Filter (judge) a message"""
-    msg = email.message_from_file(input)
-    prob, clues = bayes.spamprob(tokenize(msg), True)
-    if prob < SPAM_THRESHOLD:
-        disp = "No"
-    else:
-        disp = "Yes"
-    disp += "; %.2f" % prob
-    disp += "; " + formatclues(clues)
-    msg.add_header(DISPHEADER, disp)
-    output.write(msg.as_string(unixfrom=(msg.get_unixfrom() is not None)))
-
-def score(bayes, msgs):
+def score(hammie, msgs):
     """Score (judge) all messages from a mailbox."""
     # XXX The reporting needs work!
     mbox = mboxutils.getmbox(msgs)
@@ -214,7 +319,7 @@ def score(bayes, msgs):
     spams = hams = 0
     for msg in mbox:
         i += 1
-        prob, clues = bayes.spamprob(tokenize(msg), True)
+        prob, clues = hammie.score(msg, True)
         isspam = prob >= SPAM_THRESHOLD
         if hasattr(msg, '_mh_msgno'):
             msgno = msg._mh_msgno
@@ -223,7 +328,7 @@ def score(bayes, msgs):
         if isspam:
             spams += 1
             print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
-            print formatclues(clues)
+            print hammie.formatclues(clues)
         else:
             hams += 1
     print "Total %d spam, %d ham" % (spams, hams)
@@ -291,33 +396,35 @@ def main():
     save = False
 
     bayes = createbayes(pck, usedb)
+    h = Hammie(bayes)
 
-    if good:
-        for g in good:
-            print "Training ham (%s):" % g
-            train(bayes, g, False)
+    for g in good:
+        print "Training ham (%s):" % g
+        train(h, g, False)
         save = True
-    if spam:
-        for s in spam:
-            print "Training spam (%s):" % s
-            train(bayes, s, True)
+
+    for s in spam:
+        print "Training spam (%s):" % s
+        train(h, s, True)
         save = True
 
     if save:
-        bayes.update_probabilities()
+        h.update_probabilities()
         if not usedb and pck:
             fp = open(pck, 'wb')
             pickle.dump(bayes, fp, 1)
             fp.close()
 
     if do_filter:
-        filter(bayes, sys.stdin, sys.stdout)
+        msg = sys.stdin.read()
+        filtered = h.filter(msg)
+        sys.stdout.write(filtered)
 
     if unknown:
         for u in unknown:
             if len(unknown) > 1:
                 print "Scoring", u
-            score(bayes, u)
+            score(h, u)
 
 if __name__ == "__main__":
     main()
