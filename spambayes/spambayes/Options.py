@@ -154,20 +154,20 @@ defaults = {
      known in advance to be a strong spam indicator.""",
      BOOLEAN, RESTORE),
 
-    ("search_for_habeas_headers", "", False,
+    ("X-search_for_habeas_headers", "Search for Habeas Headers", False,
      """If true, search for the habeas headers (see http://www.habeas.com)
-     If they are present and correct, this is a strong ham sign, if they
-     are present and incorrect, this is a strong spam sign""",
+     If they are present and correct, this should be a strong ham sign, if
+     they are present and incorrect, this should be a strong spam sign.""",
      BOOLEAN, RESTORE),
 
-    ("reduce_habeas_headers", "", False,
-     """If search_for_habeas_headers is set, nine tokens are generated for
-     messages with habeas headers.  This should be fine, since messages
-     with the headers should either be ham, or result in FN so that we can
-     send them to habeas so they can be sued.  However, to reduce the
-     strength of habeas headers, we offer the ability to reduce the nine
-     tokens to one. (This option has no effect if search_for_habeas_headers
-     is False)""",
+    ("X-reduce_habeas_headers", "Reduce Habeas Header Tokens to Single", False,
+     """If SpamBayes is set to search for the Habeas headers, nine tokens
+     are generated for messages with habeas headers.  This should be fine,
+     since messages with the headers should either be ham, or result in FN
+     so that we can send them to habeas so they can be sued.  However, to 
+     reduce the strength of habeas headers, we offer the ability to reduce 
+     the nine tokens to one. (This option has no effect if 
+     search_for_habeas_headers is False)""",
      BOOLEAN, RESTORE),
   ),
 
@@ -363,7 +363,7 @@ defaults = {
      the counting estimates are believed 100%, even to the extent of
      assigning certainty (0 or 1) to a word that has appeared in only ham
      or only spam.  This is a disaster.
-
+     
      As unknown_word_strength tends toward infintity, all probabilities
      tend toward unknown_word_prob.  All reports were that a value near 0.4
      worked best, so this does not seem to be corpus-dependent.""",
@@ -952,7 +952,7 @@ defaults = {
      """The port to serve the SpamBayes IMAP server on.""",
      PORT, RESTORE),
   ),
-
+ 
   "globals" : (
     ("verbose", "Verbose", False,
      """""",
@@ -1014,7 +1014,7 @@ def load_options():
         if alts:
             options.merge_files(alts)
             optionsPathname = os.path.abspath(alts[-1])
-
+    
     if not optionsPathname:
         optionsPathname = os.path.abspath('bayescustomize.ini')
         if sys.platform.startswith("win") and \

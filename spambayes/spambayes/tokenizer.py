@@ -658,36 +658,36 @@ def crack_filename(fname):
 
 def tokenize_word(word, _len=len, maxword=options["Tokenizer",
                                                   "skip_max_word_size"]):
-    n = _len(word)
-    # Make sure this range matches in tokenize().
-    if 3 <= n <= maxword:
-        yield word
+   n = _len(word)
+   # Make sure this range matches in tokenize().
+   if 3 <= n <= maxword:
+       yield word
 
-    elif n >= 3:
-        # A long word.
+   elif n >= 3:
+       # A long word.
 
-        # Don't want to skip embedded email addresses.
-        # An earlier scheme also split up the y in x@y on '.'.  Not splitting
-        # improved the f-n rate; the f-p rate didn't care either way.
-        if n < 40 and '.' in word and word.count('@') == 1:
-            p1, p2 = word.split('@')
-            yield 'email name:' + p1
-            yield 'email addr:' + p2
+       # Don't want to skip embedded email addresses.
+       # An earlier scheme also split up the y in x@y on '.'.  Not splitting
+       # improved the f-n rate; the f-p rate didn't care either way.
+       if n < 40 and '.' in word and word.count('@') == 1:
+           p1, p2 = word.split('@')
+           yield 'email name:' + p1
+           yield 'email addr:' + p2
 
-        else:
-            # There's value in generating a token indicating roughly how
-            # many chars were skipped.  This has real benefit for the f-n
-            # rate, but is neutral for the f-p rate.  I don't know why!
-            # XXX Figure out why, and/or see if some other way of summarizing
-            # XXX this info has greater benefit.
-            if options["Tokenizer", "generate_long_skips"]:
-                yield "skip:%c %d" % (word[0], n // 10 * 10)
-            if has_highbit_char(word):
-                hicount = 0
-                for i in map(ord, word):
-                    if i >= 128:
-                        hicount += 1
-                yield "8bit%%:%d" % round(hicount * 100.0 / len(word))
+       else:
+           # There's value in generating a token indicating roughly how
+           # many chars were skipped.  This has real benefit for the f-n
+           # rate, but is neutral for the f-p rate.  I don't know why!
+           # XXX Figure out why, and/or see if some other way of summarizing
+           # XXX this info has greater benefit.
+           if options["Tokenizer", "generate_long_skips"]:
+               yield "skip:%c %d" % (word[0], n // 10 * 10)
+           if has_highbit_char(word):
+               hicount = 0
+               for i in map(ord, word):
+                   if i >= 128:
+                       hicount += 1
+               yield "8bit%%:%d" % round(hicount * 100.0 / len(word))
 
 # Generate tokens for:
 #    Content-Type
@@ -1137,6 +1137,43 @@ class Tokenizer:
             if options["Tokenizer", "basic_header_tokenize_only"]:
                 return
 
+        # Habeas Headers - see http://www.habeas.com
+        if options["Tokenizer", "search_for_habeas_headers"]:
+            habeas_headers = [
+("X-Habeas-SWE-1", "winter into spring"),
+("X-Habeas-SWE-2", "brightly anticipated"),
+("X-Habeas-SWE-3", "like Habeas SWE (tm)"),
+("X-Habeas-SWE-4", "Copyright 2002 Habeas (tm)"),
+("X-Habeas-SWE-5", "Sender Warranted Email (SWE) (tm). The sender of this"),
+("X-Habeas-SWE-6", "email in exchange for a license for this Habeas"),
+("X-Habeas-SWE-7", "warrant mark warrants that this is a Habeas Compliant"),
+("X-Habeas-SWE-8", "Message (HCM) and not spam. Please report use of this"),
+("X-Habeas-SWE-9", "mark in spam to <http://www.habeas.com/report/>.")
+            ]
+            valid_habeas = 0
+            invalid_habeas = False
+            for opt, val in habeas_headers:
+                habeas = msg.get(opt)
+                if habeas is not None:
+                    if options["Tokenizer", "reduce_habeas_headers"]:
+                        if habeas == val:
+                            valid_habeas += 1
+                        else:
+                            invalid_habeas = True
+                    else:
+                        if habeas == val:
+                            yield opt.lower() + ":valid"
+                        else:
+                            yield opt.lower() + ":invalid"
+            if options["Tokenizer", "reduce_habeas_headers"]:
+                # If there was any invalid line, we record as invalid.
+                # If all nine lines were correct, we record as valid.
+                # Otherwise we ignore.
+                if invalid_habeas == True:
+                    yield "x-habeas-swe:invalid"
+                elif valid_habeas == 9:
+                    yield "x-habeas-swe:valid"
+                    
         # Subject:
         # Don't ignore case in Subject lines; e.g., 'free' versus 'FREE' is
         # especially significant in this context.  Experiment showed a small
