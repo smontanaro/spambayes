@@ -436,10 +436,12 @@ about finding this directory, see the `backup question`_.
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
 
 
-Why is the enable filter button grayed out?
--------------------------------------------
+I get a message that says I need to "enable SpamBayes", or the enable button is greyed out.
+-------------------------------------------------------------------------------------------
 
-You need to have done these things to enable that button:
+To activate SpamBayes, you need to tick the "enable filtering" button in
+main SpamBayes dialog.  Note that this button will initially be greyed out;
+you need to have done these things to enable the button:
 
 1. Trained at least 5 ham and 5 spam
 
