@@ -519,7 +519,7 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             command = "append %s %s %s %s" % (self.folder.name, flgs, tme,
                                               self.as_string)
-            raise BadIMAPReponseError(command)
+            raise BadIMAPResponseError(command)
 
         if self.previous_folder is None:
             self.imap_server.SelectFolder(self.folder.name)
@@ -709,7 +709,7 @@ class IMAPFolder(object):
                     # the errors and move it soon enough.
                     continue
                 msg.delSBHeaders()
-                classifier.unlearn(msg.asTokens(), not isSpam)
+                classifier.unlearn(msg.tokenize(), not isSpam)
 
                 # Once the message has been untrained, it's training memory
                 # should reflect that on the off chance that for some
@@ -722,7 +722,7 @@ class IMAPFolder(object):
                     continue
                 saved_headers = msg.currentSBHeaders()
                 msg.delSBHeaders()
-                classifier.learn(msg.asTokens(), isSpam)
+                classifier.learn(msg.tokenize(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
                 if isSpam:
@@ -753,7 +753,7 @@ class IMAPFolder(object):
                     # script runs, but hopefully the user will notice
                     # the errors and move it soon enough.
                     continue
-                (prob, clues) = classifier.spamprob(msg.asTokens(),
+                (prob, clues) = classifier.spamprob(msg.tokenize(),
                                                     evidence=True)
                 # Add headers and remember classification.
                 msg.delSBHeaders()
