@@ -158,7 +158,24 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
             self.connect((serverName, serverPort))
         except socket.error, e:
             error = "Can't connect to %s:%d: %s" % (serverName, serverPort, e)
-            print >>sys.stderr, error
+            # Some people have their system setup to check mail very
+            # frequently, but without being clever enough to check whether
+            # the network is available.  If we continually print the
+            # "can't connect" error, we use up lots of CPU and disk space.
+            # To avoid this, if not verbose only print each distinct error
+            # once per hour.
+            # See also: [ 1113863 ] sb_tray eats all cpu time
+            now = time.time()
+            then = time.time() - 3600
+            if error not in state.reported_errors or \
+               options["globals", "verbose"] or \
+               state.reported_errors[error] < then:
+                print >>sys.stderr, error
+
+                # Record this error in the list of ones we have seen this
+                # session.
+                state.reported_errors[error] = now
+
             self.lineCallback('-ERR %s\r\n' % error)
             self.lineCallback('')   # "The socket's been closed."
             self.close()
@@ -744,6 +761,9 @@ class State:
             print "pop3proxy_servers & pop3proxy_ports are different lengths!"
             sys.exit()
 
+        # Remember reported errors.
+        self.reported_errors = {}
+
         # Set up the statistics.
         self.totalSessions = 0
         self.activeSessions = 0
@@ -860,19 +880,12 @@ class State:
         # Don't set up the caches and training objects when running the self-test,
         # so as not to clutter the filesystem.
         if not self.isTest:
-            def ensureDir(dirname):
-                try:
-                    os.mkdir(dirname)
-                except OSError, e:
-                    if e.errno != errno.EEXIST:
-                        raise
-
             # Create/open the Corpuses.  Use small cache sizes to avoid hogging
             # lots of memory.
             sc = get_pathname_option("Storage", "spam_cache")
             hc = get_pathname_option("Storage", "ham_cache")
             uc = get_pathname_option("Storage", "unknown_cache")
-            map(ensureDir, [sc, hc, uc])
+            map(storage.ensureDir, [sc, hc, uc])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
