@@ -472,7 +472,7 @@ def LoadServerInfo():
     servers = []
     proxyPorts = []
     if options.smtpproxy_servers:
-        for server in options.smtpproxy_servers.split(','):
+        for server in options.smtpproxy_servers:
             server = server.strip()
             if server.find(':') > -1:
                 server, port = server.split(':', 1)
@@ -480,7 +480,7 @@ def LoadServerInfo():
                 port = '25'
             servers.append((server, int(port)))
     if options.smtpproxy_ports:
-        splitPorts = options.smtpproxy_ports.split(',')
+        splitPorts = options.smtpproxy_ports
         proxyPorts = map(_addressAndPort, splitPorts)
     if len(servers) != len(proxyPorts):
         print "smtpproxy_servers & smtpproxy_ports are different lengths!"

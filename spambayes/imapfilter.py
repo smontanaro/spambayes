@@ -62,13 +62,12 @@ To Do:
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
+    o We should check if the spam and unsure folders exist before filtering.
     o IMAP over SSL would be nice. (isbg has an example of how to do this)
-    o The flags should be copied along with the message (especially
-      the /Seen flag, but all of them, really).
-    o Should the imap options server and port be combined?  i.e. instead
-      of having server=imap.example.com and port=143, have
-      server=imap.example.com:143?  This would be more consistent with
-      pop3proxy and would get rid of one option at no real cost.
+    o Develop a test script, like testtools/pop3proxytest.py that runs
+      through some tests (perhaps with a *real* imap server, rather than
+      a dummy one).  This would make it easier to carry out the tests
+      against each server whenever a change is made.
     o Suggestions?
 """
 
@@ -94,6 +93,7 @@ import re
 import time
 import sys
 import getopt
+import types
 from getpass import getpass
 import email.Parser
 from email.Utils import parsedate
@@ -107,21 +107,73 @@ from spambayes.ImapUI import IMAPUserInterface
 global imap
 imap = None
 
-# global rfc822 fetch command
-rfc822_command = "(RFC822.PEEK)"
+CRLF_RE = re.compile(r'\r\n|\r|\n')
+
+# A flag can have any character in the ascii range 32-127
+# except for (){ %*"\
+FLAG_CHARS = ""
+for i in range(32, 127):
+    if not chr(i) in ['(', ')', '{', ' ', '%', '*', '"', '\\']:
+        FLAG_CHARS += chr(i)
+FLAG = r"\\?[" + re.escape(FLAG_CHARS) + r"]+"
+# The empty flag set "()" doesn't match, so that extract returns
+# data["FLAGS"] == None
+FLAGS_RE = re.compile(r"(FLAGS) (\((" + FLAG + r" )*(" + FLAG + r")\))")
+INTERNALDATE_RE = re.compile(r"(INTERNALDATE) (\"\d{1,2}\-[A-Za-z]{3,3}\-" +
+                             r"\d{2,4} \d{2,2}\:\d{2,2}\:\d{2,2} " +
+                             r"[\+\-]\d{4,4}\")")
+RFC822_RE = re.compile(r"(RFC822) (\{[\d]+\})")
+UID_RE = re.compile(r"(UID) ([\d]+)")
+FETCH_RESPONSE_RE = re.compile(r"([0-9]+) \(([" + \
+                               re.escape(FLAG_CHARS) + r"\"\{\}\(\)\\ ]*)\)?")
+LITERAL_RE = re.compile(r"^\{[\d]+\}$")
+
+def _extract_fetch_data(response):
+    '''Extract data from the response given to an IMAP FETCH command.'''
+    # response might be a tuple containing literal data
+    if type(response) == types.TupleType:
+        literal = response[1]
+        response = response[0]
+    else:
+        literal = None
+    # the first item will always be the message number
+    mo = FETCH_RESPONSE_RE.match(response)
+    data = {}
+    if mo is None:
+        print """IMAP server gave strange fetch response.  Please
+        report this as a bug."""
+        print response
+    else:
+        data["message_number"] = mo.group(1)
+        response = mo.group(2)
+    # We support the following FETCH items:
+    #  FLAGS
+    #  INTERNALDATE
+    #  RFC822
+    #  UID
+    # All others are ignored.
+    for r in [FLAGS_RE, INTERNALDATE_RE, RFC822_RE, UID_RE]:
+        mo = r.search(response)
+        if mo is not None:
+            if LITERAL_RE.match(mo.group(2)):
+                data[mo.group(1)] = literal
+            else:
+                data[mo.group(1)] = mo.group(2)
+    return data
 
 class IMAPSession(imaplib.IMAP4):
     '''A class extending the IMAP4 class, with a few optimizations'''
     
-    def __init__(self, server, port, debug):
+    def __init__(self, server, port, debug=0, do_expunge=False):
         imaplib.Debug = debug  # this is a global in the imaplib module
         imaplib.IMAP4.__init__(self, server, port)
+        # XXX We should check here to see if the server/port were valid
         # For efficiency, we remember which folder we are currently
         # in, and only send a select command to the IMAP server if
         # we want to *change* folders.  This function is used by
         # both IMAPMessage and IMAPFolder.
         self.current_folder = None
-        self.current_folder_readonly = None
+        self.do_expunge = do_expunge
 
     def login(self, uid, pw):
         try:
@@ -134,33 +186,37 @@ class IMAPSession(imaplib.IMAP4):
             else:
                 raise
     
-    def logout(self, expunge):
+    def logout(self):
         # sign off
-        if expunge:
+        if self.do_expunge:
             self.expunge()
         imaplib.IMAP4.logout(self)  # superclass logout
         
-    def SelectFolder(self, folder, readOnly=True, force=False):
+    def SelectFolder(self, folder):
         '''A method to point ensuing imap operations at a target folder'''
-        
-        if self.current_folder != folder or \
-           self.current_folder_readonly != readOnly or force:
-            # Occasionally, we need to force a command, because we
-            # are interested in the response.  Things would be much
-            # nicer if we cached this information somewhere.
-            response = self.select(folder, readOnly)
+        if self.current_folder != folder:
+            if self.current_folder != None:
+                if self.do_expunge:
+                    # It is faster to do close() than a single
+                    # expunge when we log out (because expunge returns
+                    # a list of all the deleted messages, that we don't do
+                    # anything with)
+                    imap.close()
+            # We *always* use SELECT and not EXAMINE, because this
+            # speeds things up considerably.
+            response = self.select(folder, False)
             if response[0] != "OK":
-                print "Invalid response to %s:\n%s" % (command, response)
+                print "Invalid response to select %s:\n%s" % (folder,
+                                                              response)
                 sys.exit(-1)
             self.current_folder = folder
-            self.current_folder_readonly = readOnly
             return response
 
 class IMAPMessage(message.SBHeaderMessage):
     def __init__(self, folder, id):
         message.Message.__init__(self)
-
         self.id = id
+        message.msginfoDB._getState(self)
         self.folder = folder
         self.previous_folder = None
 
@@ -169,6 +225,19 @@ class IMAPMessage(message.SBHeaderMessage):
             print "Invalid response to %s:\n%s" % (command, response)
             sys.exit(-1)
 
+    def _force_CRLF(self, data):
+        """Make sure data uses CRLF for line termination.
+        """
+        return CRLF_RE.sub('\r\n', data)
+
+    def as_string(self):
+        # The email package stores line endings in the "internal" Python
+        # format ('\n').  It is up to whoever transmits that information to
+        # convert to appropriate line endings (according to RFC822, that is
+        # \r\n *only*).  imaplib *should* take care of this for us (in the
+        # append function), but does not, so we do it here
+        return self._force_CRLF(message.SBHeaderMessage.as_string(self))
+        
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
         # a timestamp for the message.  If the message has a date header
@@ -188,6 +257,7 @@ class IMAPMessage(message.SBHeaderMessage):
         if self.previous_folder is None:
             self.previous_folder = self.folder
             self.folder = dest
+        self.modified()
 
     def Save(self):
         # we can't actually update the message with IMAP
@@ -195,28 +265,31 @@ class IMAPMessage(message.SBHeaderMessage):
         # we need to copy the flags as well
         response = imap.uid("FETCH", self.id, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
-        response_pattern = r"[\d]+ \(UID [\w]+ FLAGS (\([\\\w]*\)) "
-        response_pattern += r'INTERNALDATE ["]?([\w\-\+: ]+)["]?\)'
-        mo = re.match(response_pattern, response[1][0])
-        if mo is None:
-            msg_time = self.extractTime()
-            flags = ""
+        data = _extract_fetch_data(response[1][0])
+        if data.has_key("INTERNALDATE"):
+            msg_time = data["INTERNALDATE"]
         else:
-            flags = mo.group(1)
-            msg_time = mo.group(2)
+            msg_time = self.extractTime()
+        if data.has_key("FLAGS"):
+            flags = data["FLAGS"]
+            # The \Recent flag can be fetched, but cannot be stored
+            # We must remove it from the list if it is there.
+            flags = re.sub(r"\\Recent ?|\\ ?Recent", "", flags)
+        else:
+            flags = None
 
         # See searching for new uid comments below
         old_id = self.id
         self["X-Spambayes-IMAP-OldID"] = old_id
                     
-        response = imap.append(self.folder.name, None,
+        response = imap.append(self.folder.name, flags,
                                msg_time, self.as_string())
         self._check(response, 'append')
 
         if self.previous_folder is None:
-            imap.SelectFolder(self.folder.name, False)
+            imap.SelectFolder(self.folder.name)
         else:
-            imap.SelectFolder(self.previous_folder.name, False)
+            imap.SelectFolder(self.previous_folder.name)
             self.previous_folder = None
         response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
         self._check(response, 'store')
@@ -226,8 +299,8 @@ class IMAPMessage(message.SBHeaderMessage):
         # the text sends far too much data through the connection, and
         # doesn't work reliably anyway.  We instead search for a special
         # header that we add for this explicit purpose.
-        imap.SelectFolder(self.folder.name, False)
-        response = imap.uid("SEARCH", "(HEADER)", "X-Spambayes-IMAP-OldID",
+        imap.SelectFolder(self.folder.name)
+        response = imap.uid("SEARCH", "HEADER", "X-Spambayes-IMAP-OldID",
                             old_id)
         self._check(response, 'search')
         new_id = response[1][0]
@@ -236,16 +309,11 @@ class IMAPMessage(message.SBHeaderMessage):
         # turns up empty, we make the very big assumption that the new
         # message is the last one with a recent flag
         if new_id == "":
-            response = imap.uid("SEARCH", "(RECENT)")
+            response = imap.uid("SEARCH", "RECENT")
             new_id = response[1][0]
             if new_id.find(' ') > -1:
                 ids = new_id.split(' ')
                 new_id = ids[-1]
-
-        # now that we know the new id, we need to correct the flags
-        if flags != "":
-            response = imap.uid("STORE", new_id, "+FLAGS.SILENT", flags)
-            self._check(response, "store flags")
 
         #XXX This code to delete the old message id from the message
         #XXX info db and manipulate the message id, is a *serious* hack.
@@ -258,6 +326,7 @@ class IMAPMessage(message.SBHeaderMessage):
 class IMAPFolder(object):
     def __init__(self, folder_name, readOnly=True):
         self.name = folder_name
+        self.rfc822_command = "RFC822.PEEK"
 
     def __cmp__(self, obj):
         '''Two folders are equal if their names are equal'''
@@ -280,63 +349,37 @@ class IMAPFolder(object):
         '''Returns uids for all the messages in the folder that
         are flagged as recent, but not flagged as deleted.'''
         imap.SelectFolder(self.name, True)
-        response = imap.uid("SEARCH", "(RECENT UNDELETED)")
-        self._check(response, "SEARCH (RECENT UNDELETED)")
+        response = imap.uid("SEARCH", "RECENT UNDELETED")
+        self._check(response, "SEARCH RECENT UNDELETED")
         return response[1][0].split(' ')
 
     def keys(self):
-        '''Returns uids for all the messages in the folder'''
+        '''Returns uids for all the messages in the folder not
+        marked as deleted.'''
         # request message range
-        response = imap.SelectFolder(self.name, True, True)
-        total_messages = response[1][0]
-        if total_messages == '0':
+        imap.SelectFolder(self.name)
+        response = imap.uid("SEARCH", "UNDELETED")
+        self._check(response, "SEARCH UNDELETED")
+        if response[1][0] == "":
             return []
-        response = imap.fetch("1:" + total_messages, "(UID FLAGS)")
-        r = re.compile(r"[0-9]+ \(UID ([0-9]+) FLAGS \(([\\\w]*)\)\)")
-        uids = []
-        for resp in response[1]:
-            data = self._extract_fetch_data(resp)
-            if data.has_key("FLAGS"):
-                if data["FLAGS"].lower().find("\\deleted") == -1:
-                    # We are interested in messages not marked as deleted
-                    uids.append(data["UID"])
-            else:
-                uids.append(data["UID"])
-        return uids
-
-    def _extract_fetch_data(self, response):
-        '''Extract data from the response given to an IMAP FETCH command.'''
-        data = {}
-        # the first item will always be the message number
-        mo = re.match(r"([0-9]+) \(?([\w\\\(\) ]*)\)?", response)
-        if mo is None:
-            print """IMAP server gave strange fetch response.  Please
-            report this as a bug."""
-        else:
-            data["message_number"] = mo.group(1)
-            response = mo.group(2)
-        mo = re.findall(r"([\w]+) \(?([\w\\]+)\)?", response)
-        for key, val in mo:
-            data[key] = val
-        return data
-        
+        return response[1][0].split(' ')
 
     def __getitem__(self, key):
         '''Return message matching the given uid'''
-        global rfc822_command
-        imap.SelectFolder(self.name, True)
+        imap.SelectFolder(self.name)
         # We really want to use RFC822.PEEK here, as that doesn't effect
         # the status of the message.  Unfortunately, it appears that not
         # all IMAP servers support this, even though it is in RFC1730
-        response = imap.uid("FETCH", key, rfc822_command)
+        response = imap.uid("FETCH", key, self.rfc822_command)
         if response[0] != "OK":
-            rfc822_command = "(RFC822)"
-            response = imap.uid("FETCH", key, rfc822_command)
+            self.rfc822_command = "RFC822"
+            response = imap.uid("FETCH", key, self.rfc822_command)
         self._check(response, "uid fetch")
-        messageText = response[1][0][1]
+        data = _extract_fetch_data(response[1][0])
+        messageText = data["RFC822"]
+
         # we return an instance of *our* message class, not the
         # raw rfc822 message
-
         msg = IMAPMessage(self, key)
         msg.setPayload(messageText)
         
@@ -364,7 +407,8 @@ class IMAPFolder(object):
     def Filter(self, classifier, spamfolder, unsurefolder):
         for msg in self:
             if msg.GetClassification() is None:
-                (prob, clues) = classifier.spamprob(msg.asTokens(), evidence=True)
+                (prob, clues) = classifier.spamprob(msg.asTokens(),
+                                                    evidence=True)
                 # add headers and remember classification
                 msg.addSBHeaders(prob, clues)
 
@@ -394,8 +438,7 @@ class IMAPFilter(object):
         total_spam_trained = 0
 
         if options["imap", "ham_train_folders"] != "":
-            ham_training_folders = \
-                                 options["imap", "ham_train_folders"].split()
+            ham_training_folders = options["imap", "ham_train_folders"]
             for fol in ham_training_folders:
                 if options['globals', 'verbose']:
                     print "   Training ham folder %s" % (fol)
@@ -406,8 +449,7 @@ class IMAPFilter(object):
                     print "       %s trained." % (num_ham_trained)
 
         if options["imap", "spam_train_folders"] != "":
-            spam_training_folders = \
-                                  options["imap", "spam_train_folders"].split()
+            spam_training_folders = options["imap", "spam_train_folders"]
             for fol in spam_training_folders:
                 if options['globals', 'verbose']:
                     print "   Training spam folder %s" % (fol)
@@ -428,7 +470,7 @@ class IMAPFilter(object):
         if options["globals", "verbose"]:
             t = time.time()
             
-        for filter_folder in options["imap", "filter_folders"].split():
+        for filter_folder in options["imap", "filter_folders"]:
             folder = IMAPFolder(filter_folder, False)
             folder.Filter(self.classifier, self.spam_folder,
                           self.unsure_folder)
@@ -454,6 +496,8 @@ def run():
     sleepTime = 0
     promptForPass = False
     launchUI = False
+    server = ""
+    username = ""
 
     for opt, arg in opts:
         if opt == '-h':
@@ -496,17 +540,6 @@ def run():
 The user interface will be launched, but no classification
 or training will be performed."""
 
-    server = options["imap", "server"]
-    username = options["imap", "username"]
-    if server == "" or username == "":
-        print "You need to specify both a server and a username."
-        sys.exit()
-
-    if promptForPass:
-        pwd = getpass()
-    else:
-        pwd = options["imap", "password"]
-
     bdbname = os.path.expanduser(bdbname)
     
     if options["globals", "verbose"]:
@@ -519,7 +552,22 @@ or training will be performed."""
 
     if options["globals", "verbose"]:
         print "Done."            
-                
+
+    if options["imap", "server"]:
+        # The options class is ahead of us here:
+        #   it knows that imap:server will eventually be able to have
+        #   multiple values, but for the moment, we just use the first one
+        server = options["imap", "server"][0]
+        username = options["imap", "username"][0]
+        pwd = options["imap", "password"][0]
+    else:
+        if not launchUI:
+            print "You need to specify both a server and a username."
+            sys.exit()
+
+    if promptForPass:
+        pwd = getpass()
+
     if server.find(':') > -1:
         server, port = server.split(':', 1)
         port = int(port)
@@ -528,20 +576,18 @@ or training will be performed."""
             port = 993
         else:
             port = 143
-    imap = IMAPSession(server, port, imapDebug)
 
     imap_filter = IMAPFilter(classifier)
 
     # Web interface
-    # XXX If someone is running *both* pop3proxy and imapfilter
-    # XXX then there will be trouble since both interfaces are
-    # XXX using the same port by default.
     if launchUI:
-        imap.login(username, pwd)
+        if server != "":
+            imap = IMAPSession(server, port, imapDebug, doExpunge)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
-        httpServer.register(IMAPUserInterface(classifier, imap))
+        httpServer.register(IMAPUserInterface(classifier, imap, pwd))
         Dibbler.run(launchBrowser=launchUI)
     else:
+        imap = IMAPSession(server, port, imapDebug, doExpunge)
         while True:
             imap.login(username, pwd)
 
@@ -554,7 +600,7 @@ or training will be performed."""
                     print "Classifying"
                 imap_filter.Filter()
 
-            imap.logout(doExpunge)
+            imap.logout()
             
             if sleepTime:
                 time.sleep(sleepTime)

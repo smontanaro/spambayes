@@ -38,6 +38,8 @@ User interface improvements:
 
  o Can it cleanly dynamically update its status display while having a POP3
    conversation?  Hammering reload sucks.
+ o Have both the trained evidence (if present) and current evidence on the
+   show clues page.
 
  o Suggestions?
 """
@@ -468,8 +470,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         errmsg = UserInterface.UserInterface.verifyInput(self, parms)
         
         # check for equal number of pop3servers and ports
-        slist = parms['pop3proxy_servers'].split(',')
-        plist = parms['pop3proxy_ports'].split(',')
+        slist = list(parms['pop3proxy_servers'])
+        plist = list(parms['pop3proxy_ports'])
         if len(slist) != len(plist):
             errmsg += '<li>The number of POP3 proxy ports specified ' + \
                       'must match the number of servers specified</li>\n'
@@ -485,8 +487,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 pass
 
         # check for equal number of smtpservers and ports
-        slist = parms['smtpproxy_servers'].split(',')
-        plist = parms['smtpproxy_ports'].split(',')
+        slist = list(parms['smtpproxy_servers'])
+        plist = list(parms['smtpproxy_ports'])
         if len(slist) != len(plist):
             errmsg += '<li>The number of SMTP proxy ports specified ' + \
                       'must match the number of servers specified</li>\n'

@@ -1304,15 +1304,16 @@ class Tokenizer:
             # collected from different sources, the count of some header
             # lines can be a too strong a discriminator for accidental
             # reasons.
-            safe_headers = options.safe_headers
+            safe_headers = options["Tokenizer", "safe_headers"]
             for x in msg.keys():
                 if x.lower() in safe_headers:
                     x2n[x] = x2n.get(x, 0) + 1
         for x in x2n.items():
             yield "header:%s:%d" % x
-        if options.record_header_absence:
-            for x in options.safe_headers - Set([k.lower() for k in x2n]):
-                yield "noheader:" + x
+        if options["Tokenizer", "record_header_absence"]:
+            for k in x2n:
+                if not k.lower() in options["Tokenizer", "safe_headers"]:
+                    yield "noheader:" + k
 
     def tokenize_body(self, msg, maxword=options.skip_max_word_size):
         """Generate a stream of tokens from an email Message.

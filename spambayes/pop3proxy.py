@@ -501,7 +501,7 @@ class State:
         self.servers = []
         self.proxyPorts = []
         if options["pop3proxy", "servers"]:
-            for server in options["pop3proxy", "servers"].split(','):
+            for server in options["pop3proxy", "servers"]:
                 server = server.strip()
                 if server.find(':') > -1:
                     server, port = server.split(':', 1)
@@ -510,7 +510,7 @@ class State:
                 self.servers.append((server, int(port)))
 
         if options["pop3proxy", "ports"]:
-            splitPorts = options["pop3proxy", "ports"].split(',')
+            splitPorts = options["pop3proxy", "ports"]
             self.proxyPorts = map(_addressAndPort, splitPorts)
 
         if len(self.servers) != len(self.proxyPorts):

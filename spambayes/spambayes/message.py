@@ -102,8 +102,6 @@ from cStringIO import StringIO
 from spambayes import dbmstorage
 import shelve
 
-CRLFRE = re.compile(r'\r\n|\r|\n')
-
 class MessageInfoDB:
     def __init__(self, db_name, mode='c'):
         self.mode = mode
@@ -173,21 +171,6 @@ class Message(email.Message.Message):
     def asTokens(self):
         return tokenize(self.as_string())
 
-    def _force_CRLF(self, data):
-        """Make sure data uses CRLF for line termination.
-        """
-        return CRLFRE.sub('\r\n', data)
-
-    def as_string(self):
-        # The email package stores line endings in the "internal" Python
-        # format ('\n').  According to that package, it is up to the
-        # server of that information to convert to appropriate line
-        # endings (according to RFC822, that is \r\n *only*).
-        # We, however, always want to return correct endings from
-        # as_string(), so we make the change here, rather than having
-        # the same code in imapfilter, pop3proxy, and so on.
-        return self._force_CRLF(email.Message.Message.as_string(self))
-        
     def modified(self):
         if self.id:    # only persist if key is present
             msginfoDB._setState(self)
@@ -281,7 +264,7 @@ class SBHeaderMessage(Message):
                     evd.append("%r: %.2f" % (word, score))
             self[options['pop3proxy','evidence_header_name']] = "; ".join(evd)
         
-        if options['pop3proxy','add_mailid_to'].find("header") != -1:
+        if "header" in options['pop3proxy','add_mailid_to']:
             self[options['pop3proxy','mailid_header_name']] = self.id
 
 # This won't work for now, because email.Message does not isolate message body

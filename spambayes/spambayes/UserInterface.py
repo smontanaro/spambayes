@@ -409,12 +409,12 @@ class UserInterface(BaseUserInterface):
             html_key = sect + '_' + opt
 
             # Populate the rows with the details and add them to the table.
-            if type(options.valid_input(sect, opt)) == type(""):
+            if type(options.valid_input(sect, opt)) in types.StringTypes:
                 # we provide a text input
                 newConfigRow1 = configTextRow1.clone()
                 newConfigRow1.label = options.display_name(sect, opt)
                 newConfigRow1.input.name = html_key
-                newConfigRow1.input.value = options.get(sect, opt)
+                newConfigRow1.input.value = options.unconvert(sect, opt)
             else:
                 # we provide checkboxes/radio buttons
                 newConfigRow1 = configCbRow1.clone()
@@ -424,22 +424,24 @@ class UserInterface(BaseUserInterface):
                 i = 0
                 for val in options.valid_input(sect, opt):
                     newOption = blankOption.clone()
-                    if str(val) in str(options[sect, opt]).split():
-                        newOption.input_box.checked = "checked" 
-                    # help for Python 2.2
-                    if options.is_boolean(sect, opt):
-                        if str(val) == "0":
-                            val = "No"
-                        elif str(val) == "1":
-                            val = "Yes"
-                    newOption.val_label = str(val)
                     if options.multiple_values_allowed(sect, opt):
+                        if val in options[sect, opt]:
+                            newOption.input_box.checked = "checked" 
                         newOption.input_box.type = "checkbox"
                         newOption.input_box.name = html_key + '-' + str(i)
                         i += 1
                     else:
+                        if val == options[sect, opt]:
+                            newOption.input_box.checked = "checked"
                         newOption.input_box.type = "radio"
                         newOption.input_box.name = html_key
+                    # Tim thinks that Yes/No makes more sense than True/False
+                    if options.is_boolean(sect, opt):
+                        if val == False:
+                            val = "No"
+                        elif val == True:
+                            val = "Yes"
+                    newOption.val_label = str(val)
                     newOption.input_box.value = str(val)
                     if firstOpt: 
                         newConfigRow1.input = newOption
@@ -455,18 +457,18 @@ class UserInterface(BaseUserInterface):
             newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]
  
-            if type(currentValue) in types.StringTypes and \
-                str(currentValue) not in (0,1):
+            if type(currentValue) in types.StringTypes:
                 currentValue = currentValue.replace(',', ', ')
                 newConfigRow2 = configTextRow2.clone()
             else:
+                currentValue = options.unconvert(sect, opt)
                 newConfigRow2 = configRow2.clone()
             
-            # for Python 2.2
+            # Tim thinks that Yes/No makes more sense than True/False
             if options.is_boolean(sect, opt):
-                if str(currentValue) == '0':
+                if currentValue == "False":
                     currentValue = "No"
-                elif str(currentValue) == '1':
+                elif currentValue == "True":
                     currentValue = "Yes"
             # XXX Something needs to be done here, otherwise really
             # XXX long options squeeze the help text too far to the
@@ -494,6 +496,7 @@ class UserInterface(BaseUserInterface):
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
         errmsg = self.verifyInput(parms)
+
         if errmsg != '':
             html.mainContent.heading = "Errors Detected"
             html.mainContent.boxContent = errmsg
@@ -508,9 +511,7 @@ class UserInterface(BaseUserInterface):
             if (sect, opt) in self.parm_ini_map:
                 options.set(sect, opt, value)
 
-        op = open(optionsPathname, "r")
-        options.update_file(op)
-        op.close()
+        options.update_file(optionsPathname)
         self.reReadOptions()
 
         html.mainContent.heading = "Options Changed"
@@ -560,20 +561,27 @@ class UserInterface(BaseUserInterface):
             html_key = sect + '_' + opt
             if not parms.has_key(html_key):
                 # This is a set of checkboxes where none are selected
-                value = None
+                value = ()
+                entered_value = "None"
             else:
                 value = parms[html_key]
-            if value is not None:
-                if type(value) == type((0,1)):
-                    value_string = ""
-                    for val in value:
-                        value_string += val
-                        value_string += ','
-                    value = value_string[:-1]   # remove trailing comma
+                entered_value = value
+                # Tim thinks that Yes/No makes more sense than True/False
+                if options.is_boolean(sect, opt):
+                    if value == "No":
+                        value = False
+                    elif value == "Yes":
+                        value = True
+                if options.multiple_values_allowed(sect, opt):
+                    if value == "":
+                        value = ()
+                    else:
+                        if type(value) != types.TupleType:
+                            value = (value,)
                 value = options.convert(sect, opt, value)
             if not options.is_valid(sect, opt, value):
                 errmsg += '<li>\'%s\' is not a value valid for [%s] %s' % \
-                          (value, nice_section_name,
+                          (entered_value, nice_section_name,
                            options.display_name(sect, opt))
                 if type(options.valid_input(sect, opt)) == type((0,1)):
                     errmsg += '. Valid values are: '

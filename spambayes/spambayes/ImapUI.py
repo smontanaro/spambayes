@@ -92,12 +92,13 @@ parm_map = (
 
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
-
-    def __init__(self, cls, imap):
+    def __init__(self, cls, imap, pwd):
         global classifier
         UserInterface.UserInterface.__init__(self, cls, parm_map)
         classifier = cls
         self.imap = imap
+        self.imap_pwd = pwd
+        self.imap_logged_in = False
 
     def onHome(self):
         """Serve up the homepage."""
@@ -106,9 +107,10 @@ class IMAPUserInterface(UserInterface.UserInterface):
         statusTable = self.html.statusTable.clone()
         del statusTable.proxyDetails
         # This could be a bit more modular
-        statusTable.configurationLink += """You can also <a href=
-        'filterfolders'>configure folders to filter</a> and <a href=
-        'trainingfolders'>Configure folders to train</a>"""
+        statusTable.configurationLink += """<br />&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;You can also <a href='filterfolders'>configure folders to
+        filter</a><br />and <a
+        href='trainingfolders'>Configure folders to train</a>"""
         content = (self._buildBox('Status and Configuration',
                                   'status.gif', statusTable % stateDict)+
                    self._buildTrainBox() +
@@ -132,10 +134,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
         from Options import options
 
     def onSave(self, how):
-        self.imap.logout(False) # never expunge from the web ui
+        if self.imap is not None:
+            self.imap.logout()
         UserInterface.UserInterface.onSave(self, how)
 
     def onFilterfolders(self):
+        self._writePreamble("Select Filter Folders")
+        self._login_to_imap()
         available_folders = self._folder_list()
         content = self.html.configForm.clone()
         content.configFormContent = ""
@@ -149,11 +154,42 @@ class IMAPUserInterface(UserInterface.UserInterface):
             folderBox = self._buildFolderBox("imap", opt, available_folders)
             content.configFormContent += folderBox
 
-        self._writePreamble("Select Filter Folders")
         self.write(content)
         self._writePostamble()
 
+    def _login_to_imap(self):
+        if self.imap_logged_in:
+            return
+        if self.imap is None:
+            server = options["imap", "server"][0]
+            if server.find(':') > -1:
+                server, port = server.split(':', 1)
+                port = int(port)
+            else:
+                if options["imap", "use_ssl"]:
+                    port = 993
+                else:
+                    port = 143
+            imap = IMAPSession(server, port)
+        if self.imap is None:
+            content = self._buildBox("Error", None,
+                                     """Must specify server details first.""")
+            self.write(content)
+            self._writePostamble()
+            return
+        username = options["imap", "username"][0]
+        if username == "":
+            content = self._buildBox("Error", None,
+                                     """Must specify username first.""")
+            self.write(content)
+            self._writePostamble()
+            return
+        self.imap.login(username, self.imap_pwd)
+        self.imap_logged_in = True
+
     def onTrainingfolders(self):
+        self._writePreamble("Select Training Folders")
+        self._login_to_imap()
         available_folders = self._folder_list()
         content = self.html.configForm.clone()
         content.configFormContent = ""
@@ -167,13 +203,11 @@ class IMAPUserInterface(UserInterface.UserInterface):
             folderBox = self._buildFolderBox("imap", opt, available_folders)
             content.configFormContent += folderBox
 
-        self._writePreamble("Select Training Folders")
         self.write(content)
         self._writePostamble()
 
     def onChangeopts(self, **parms):
         backup = self.parm_ini_map
-        print parms
         if parms["how"] == "Save Training Folders" or \
            parms["how"] == "Save Filter Folders":
             del parms["how"]
@@ -191,14 +225,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
                     parms[key] += ',' + value
                 else:
                     parms[key] = value
-        print self.parm_ini_map
-        print parms
         UserInterface.UserInterface.onChangeopts(self, **parms)
         self.parm_ini_map = backup
         
     def _buildFolderBox(self, section, option, available_folders):
         folderTable = self.html.configTable.clone()
         del folderTable.configTextRow1
+        del folderTable.configTextRow2
         del folderTable.configCbRow1
         del folderTable.configRow2
         del folderTable.blankRow
@@ -215,12 +248,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
             folderRow.folderBox.value = folder
             folderRow.folderName = folder
             if options.multiple_values_allowed(section, option):
+                if folder in options[section, option]:
+                    folderRow.folderBox.checked = "checked"
                 folderRow.folderBox.name += folder
             else:
+                if folder == options[section, option]:
+                    folderRow.folderBox.checked = "checked"
                 folderRow.folderBox.type = "radio"
-            current_options = ',' + options[section, option] + ','
-            if current_options.find(',' + folder + ',') != -1:
-                folderRow.folderBox.checked = "checked"
             folderTable += folderRow
         return self._buildBox(options.display_name(section, option),
                               None, folderTable)
@@ -237,6 +271,9 @@ class IMAPUserInterface(UserInterface.UserInterface):
             r = re.compile(r"\(([\w\\ ]*)\) ")
             m = r.search(fol)
             name_attributes = fol[:m.end()-1]
+            # IMAP is a truly odd protocol.  The delimiter is
+            # only the delimiter for this particular folder - each
+            # folder *may* have a different delimiter
             self.folder_delimiter = fol[m.end()+1:m.end()+2]
             # a bit of a hack, but we really need to know if this is
             # the case
