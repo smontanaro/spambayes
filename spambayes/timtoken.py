@@ -355,6 +355,26 @@ def textparts(msg):
 # XXX So, if another way is found to slash the f-n rate, the decision here
 # XXX not to strip HTML from HTML-only msgs should be revisited.
 
+##############################################################################
+# How big should "a word" be?
+#
+# As I write this, words less than 3 chars are ignored completely, and words
+# with more than 12 are special-cased, replaced with a summary "I skipped
+# about so-and-so many chars starting with such-and-such a letter" token.
+# This makes sense for English if most of the info is in "regular size"
+# words.
+#
+# A test run boosting to 13 had no effect on f-p rate, and did a little
+# better or worse than 12 across runs -- overall, no significant difference.
+# The database size is smaller at 12, so there's nothing in favor of 13.
+# A test at 11 showed a slight but consistent bad effect on the f-n rate
+# (lost 12 times, won once, tied 7 times).
+#
+# A test with no lower bound showed a significant increase in the f-n rate.
+# Curious, but not worth digging into.  Boosting the lower bound to 4 is a
+# worse idea:  f-p and f-n rates both suffered significantly then.  I didn't
+# try testing with lower bound 2.
+
 url_re = re.compile(r"""
     (https? | ftp)  # capture the protocol
     ://             # skip the boilerplate
@@ -385,16 +405,6 @@ subject_word_re = re.compile(r"[\w\x80-\xff$.%]+")
 
 def tokenize_word(word, _len=len):
     n = _len(word)
-
-    # XXX How big should "a word" be?
-    # XXX I expect 12 is fine -- a test run boosting to 13 had no effect
-    # XXX on f-p rate, and did a little better or worse than 12 across
-    # XXX runs -- overall, no significant difference.  It's only "common
-    # XXX sense" so far driving the exclusion of lengths 1 and 2.
-    # XXX Later:  A test with no lower bound showed a significant increase
-    # XXX in the f-n rate.  Curious!
-    # XXX Later:  Boosting the lower bound to 4 is a Bad Idea too:  f-p and
-    # XXX f-n rates both suffered then.
 
     # Make sure this range matches in tokenize().
     if 3 <= n <= 12:
