@@ -106,8 +106,8 @@ def maildir_train(h, path, is_spam, force, removetrained):
         if (os.path.isdir(cfn)):
             continue
         counter += 1
-        if loud:
-            sys.stdout.write("  %s        \r" % fn)
+        if loud and counter % 10 == 0:
+            sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
         f = file(cfn, "rb")
         msg = mboxutils.get_message(f)
@@ -127,8 +127,9 @@ def maildir_train(h, path, is_spam, force, removetrained):
             os.unlink(cfn)
 
     if loud:
-        print ("  Trained %d out of %d messages                " %
-               (trained, counter))
+        sys.stdout.write("\r%6d" % counter)
+        sys.stdout.write("\r  Trained %d out of %d messages\n" %
+                         (trained, counter))
 
 def mbox_train(h, path, is_spam, force):
     """Train bayes with a Unix mbox"""
@@ -151,8 +152,8 @@ def mbox_train(h, path, is_spam, force):
 
     for msg in mbox:
         counter += 1
-        if loud:
-            sys.stdout.write("  %s\r" % counter)
+        if loud and counter % 10 == 0:
+            sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
         if msg_train(h, msg, is_spam, force):
             trained += 1
@@ -180,8 +181,9 @@ def mbox_train(h, path, is_spam, force):
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
     if loud:
-        print ("  Trained %d out of %d messages                " %
-               (trained, counter))
+        sys.stdout.write("\r%6d" % counter)
+        sys.stdout.write("\r  Trained %d out of %d messages\n" %
+                         (trained, counter))
 
 def mhdir_train(h, path, is_spam, force):
     """Train bayes with an mh directory"""
@@ -198,8 +200,8 @@ def mhdir_train(h, path, is_spam, force):
 
         cfn = fn
         tfn = os.path.join(path, "spambayes.tmp")
-        if loud:
-            sys.stdout.write("  %s        \r" % fn)
+        if loud and counter % 10 == 0:
+            sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
         f = file(fn, "rb")
         msg = mboxutils.get_message(f)
@@ -217,8 +219,9 @@ def mhdir_train(h, path, is_spam, force):
         os.rename(tfn, cfn)
 
     if loud:
-        print ("  Trained %d out of %d messages                " %
-               (trained, counter))
+        sys.stdout.write("\r%6d" % counter)
+        sys.stdout.write("\r  Trained %d out of %d messages\n" %
+                         (trained, counter))
 
 def train(h, path, is_spam, force, trainnew, removetrained):
     if not os.path.exists(path):

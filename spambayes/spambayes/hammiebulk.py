@@ -78,9 +78,12 @@ def train(h, msgs, is_spam):
     i = 0
     for msg in mbox:
         i += 1
-        sys.stdout.write("\r%6d" % i)
-        sys.stdout.flush()
+        if i % 10 == 0:
+            sys.stdout.write("\r%6d" % i)
+            sys.stdout.flush()
         h.train(msg, is_spam)
+    sys.stdout.write("\r%6d" % i)
+    sys.stdout.flush()
     print
 
 def untrain(h, msgs, is_spam):
@@ -89,9 +92,12 @@ def untrain(h, msgs, is_spam):
     i = 0
     for msg in mbox:
         i += 1
-        sys.stdout.write("\r%6d" % i)
-        sys.stdout.flush()
+        if i % 10 == 0:
+            sys.stdout.write("\r%6d" % i)
+            sys.stdout.flush()
         h.untrain(msg, is_spam)
+    sys.stdout.write("\r%6d" % i)
+    sys.stdout.flush()
     print
 
 def score(h, msgs, reverse=0):
