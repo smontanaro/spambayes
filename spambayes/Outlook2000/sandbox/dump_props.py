@@ -54,7 +54,7 @@ def _FindItemsWithValue(folder, prop_tag, prop_val):
                                0)               # any # of results is fine
     # get entry IDs
     return [row[0][1] for row in rows]
-    
+
 def _FindFolderEID(name):
     assert name
     from win32com.mapi import exchange
@@ -66,20 +66,20 @@ def _FindFolderEID(name):
 
 # Also in new versions of mapituil
 def GetAllProperties(obj, make_tag_names = True):
-	tags = obj.GetPropList(0)
-	hr, data = obj.GetProps(tags)
-	ret = []
-	for tag, val in data:
-		if make_tag_names:
-			hr, tags, array = obj.GetNamesFromIDs( (tag,) )
-			if type(array[0][1])==type(u''):
-				name = array[0][1]
-			else:
-				name = mapiutil.GetPropTagName(tag)
-		else:
-			name = tag
-		ret.append((name, val))
-	return ret
+    tags = obj.GetPropList(0)
+    hr, data = obj.GetProps(tags)
+    ret = []
+    for tag, val in data:
+        if make_tag_names:
+            hr, tags, array = obj.GetNamesFromIDs( (tag,) )
+            if type(array[0][1])==type(u''):
+                name = array[0][1]
+            else:
+                name = mapiutil.GetPropTagName(tag)
+        else:
+            name = tag
+        ret.append((name, val))
+    return ret
 
 def DumpItemProps(item, shorten):
     for prop_name, prop_val in GetAllProperties(item):
@@ -87,7 +87,7 @@ def DumpItemProps(item, shorten):
         if shorten:
             prop_repr = prop_repr[:50]
         print "%-20s: %s" % (prop_name, prop_repr)
-    
+
 def DumpProps(folder_eid, subject, include_attach, shorten):
     mapi_msgstore = _FindDefaultMessageStore()
     mapi_folder = mapi_msgstore.OpenEntry(folder_eid,
@@ -166,7 +166,7 @@ def main():
 
     if not folder_name:
         folder_name = "Inbox" # Assume this exists!
-        
+
     eid = _FindFolderEID(folder_name)
     if eid is None:
         print "*** Cant find folder", folder_name
