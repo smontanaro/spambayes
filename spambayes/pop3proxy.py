@@ -145,6 +145,7 @@ from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
+import spambayes.message
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
 if sys.platform == 'darwin':
@@ -480,90 +481,34 @@ class BayesProxy(POP3ProxyBase):
             # Break off the first line, which will be '+OK'.
             ok, messageText = response.split('\n', 1)
 
+            msg = spambayes.message.SBHeaderMessage()
+            msg.setPayload(messageText)
+            msg.setId(state.getNewMessageName())
             # Now find the spam disposition and add the header.
-            (prob, clues) = state.bayes.spamprob\
-                            (tokenizer.tokenize(messageText),
+            (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
                              evidence=True)
-            if prob < options["Categorization", "ham_cutoff"]:
-                disposition = options["Hammie", "header_ham_string"]
-                if command == 'RETR':
+
+            msg.addSBHeaders(prob, clues)            
+            
+            if command == 'RETR':
+                cls = msg.GetClassification()
+                if cls == options["Hammie", "header_ham_string"]:
                     state.numHams += 1
-            elif prob > options["Categorization", "spam_cutoff"]:
-                disposition = options["Hammie", "header_spam_string"]
-                if command == 'RETR':
+                elif cls == options["Hammie", "header_spam_string"]:
                     state.numSpams += 1
-            else:
-                disposition = options["Hammie", "header_unsure_string"]
-                if command == 'RETR':
+                else:
                     state.numUnsure += 1
 
-            if options["pop3proxy", "strip_incoming_mailids"] == True:
-                s = re.compile(options["pop3proxy", "mailid_header_name"] + \
-                               ': [\d-]+[\\r]?[\\n]?')
-                messageText = s.sub('', messageText)
-
-            headers, body = re.split(r'\n\r?\n', messageText, 1)
-            messageName = state.getNewMessageName()
-            headers += '\n%s: %s\r\n' % (options["Hammie", "header_name"],
-                                           disposition)
-            if command == 'RETR' and not state.isTest:
-                if options["pop3proxy", "add_mailid_to"].find("header") != -1:
-                    headers += options["pop3proxy", "mailid_header_name"] \
-                            + ": " + messageName + "\r\n"
-                if options["pop3proxy", "add_mailid_to"].find("body") != -1:
-                    body = body[:len(body)-3] + \
-                           options["pop3proxy", "mailid_header_name"] + \
-                           ": " + messageName + "\r\n.\r\n"
-            else:
-                headers += options["Hammie", "header_name"] + "-ID: Test\r\n"
-
-            if options["pop3proxy", "include_prob"]:
-                headers += '%s: %s\r\n' % (options["pop3proxy",
-                                                   "prob_header_name"],
-                                           prob)
-            if options["pop3proxy", "include_thermostat"]:
-                thermostat = '**********'
-                headers += '%s: %s\r\n' % \
-                          (options["pop3proxy", "thermostat_header_name"],
-                           thermostat[int(prob*10):])
-            if options["pop3proxy", "include_evidence"]:
-                headers += options["pop3proxy", "evidence_header_name"] \
-                           + ": "
-                headers += "; ".join(["%r: %.2f" % (word, prob)
-                         for word, score in clues
-                         if (word[0] == '*' or
-                             score <= options["Hammie",
-                                              "clue_mailheader_cutoff"] or
-                             score >= 1.0 - options["Hammie",
-                                                    "clue_mailheader_cutoff"])])
-            headers += "\r\n"
-            
-            if options["pop3proxy", "notate_to"] \
-                and disposition == options["Hammie", "header_spam_string"]:
-                # add 'spam' as recip only if spam
-                tore = re.compile("^To: ", re.IGNORECASE | re.MULTILINE)
-                headers = re.sub(tore,"To: %s," % (disposition),
-                     headers)
-                
-            if options["pop3proxy", "notate_subject"] \
-                and disposition == options["Hammie", "header_spam_string"]:
-                # add 'spam' to subject if spam
-                tore = re.compile("^Subject: ", re.IGNORECASE | re.MULTILINE)
-                headers = re.sub(tore,"Subject: %s " % (disposition),
-                     headers)
-                
-            messageText = headers + body
-
             # Cache the message; don't pollute the cache with test messages.
-            if command == 'RETR' and not state.isTest \
+                if not state.isTest \
                     and options["pop3proxy", "cache_messages"]:
-                # Write the message into the Unknown cache.
-                message = state.unknownCorpus.makeMessage(messageName)
-                message.setSubstance(messageText)
-                state.unknownCorpus.addMessage(message)
+                    # Write the message into the Unknown cache.
+                    message = state.unknownCorpus.makeMessage(msg.getId())
+                    message.setSubstance(msg.as_string())
+                    state.unknownCorpus.addMessage(message)
 
             # Return the +OK and the message with the header added.
-            return ok + "\n" + messageText
+            return ok + "\n" + msg.as_string()
 
         else:
             # Must be an error response.
