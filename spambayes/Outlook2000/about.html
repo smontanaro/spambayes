@@ -1,7 +1,57 @@
-<HTML>
-<Title>About SpamBayes</Title>
-
-<BODY>
-Contributions welcome!
-</BODY>
-</HTML>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>About SpamBayes</title>
+</head>
+<body>
+<span style="font-style: italic;">NOTE: This is very very early code. &nbsp;If
+you are looking this, you have probably been told about it against our better
+judgement &lt;wink&gt;. &nbsp;Stuff doesnt work correctly. &nbsp;Fields are
+funny. &nbsp;If you want something known to work well today for alot of people,
+this is not for you.<br>
+</span><br style="font-style: italic;">
+The source code is maintained at <a
+ href="http://spambayes.sourceforge.net">SourceForge</a>.<br>
+<br>
+This spam filter uses Bayesian analysis to filter spam. &nbsp;Unlike other
+spam detection systems, Bayesian systems actually "learn" about what you
+consider spam, and continually adapt as both your regular email and spam
+patterns change.<br>
+<h2>Training</h2>
+Due to the nature of the system, it must be trained before it can be effective.
+&nbsp;Although the system does learn over time, when first installed it has
+no knowledge of either spam or good email.<br>
+<h3>Initial Training</h3>
+When first installed, it is recommended you perform the following steps:<br>
+<ul>
+  <li>Create two folders - one for "Spam", and one for "Possible Spam"</li>
+  <li>Go through your Inbox and Deleted Items, and move as much spam as you
+can find to the "Spam" folder. &nbsp;Try and get as much Spam out of your
+inbox as possible.</li>
+  <li>Select the <span style="font-style: italic;">Training</span> dialog.
+&nbsp;Nominate your Spam folder for spam, and your Inbox for good messages,
+and start training.</li>
+</ul>
+To see how effective your Inbox cleanup was, you may like to try:<br>
+<ul>
+  <li>Go to the <span style="font-style: italic;">Filter Now</span> dialog.</li>
+  <li>Select your Inbox as the folder to filter.</li>
+  <li>Select <span style="font-style: italic;">Score messages, but dont perform
+filter action</span>.</li>
+  <li>Clear both checkboxes so all messages will be scored.</li>
+  <li>Start the score operation.</li>
+</ul>
+You can then look at and sort by the Spam field in your Inbox - this is likely
+to find hidden spam that you missed from your inbox cleanup.
+<h3>Incremental Training</h3>
+When you drag a message to your Spam folder, it will be automatically trained
+as spam. &nbsp;Thus, as the classifier misses spam (or is unsure about them),
+it learns as you correct it.<br>
+If messages are dropped back into the Inbox, they are trained as good - thus,
+the system learns what good messages look like should it incorrectly classify
+it as spam or possible spam.<br>
+<br>
+Contributions to this documentation are welcome!<br>
+<br>
+</body>
+</html>
