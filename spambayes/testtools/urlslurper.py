@@ -101,7 +101,7 @@ from spambayes.classifier import Classifier, Bayes
 import spambayes
 import timtest
 
-cache_filename = "url.pck"
+cache_filename = os.getcwd() + os.sep + "url.pck"
 proxy_info = {}
 # Fill in the details here (and uncomment these lines) if you connect via
 # a proxy and don't want to enter the details via the command line.
