@@ -55,10 +55,10 @@ GENERATED_HTML= $(SOURCES:.ht=.html)
 .ht.html:
 		$(HT2HTML) $(HTFLAGS) $(HTRELDIR)/$<
 
-faq.html : faq.txt
-		$(DUHTML) faq.txt faq.html
-
 all: $(TARGETS)
+
+faq.html : faq.txt
+	$(DUHTML) faq.txt faq.html
 
 # $(TARGETS): $(HT2HTML)
 
