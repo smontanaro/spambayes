@@ -9,13 +9,23 @@ from sets import Set
 
 option_descriptions = """
 retain_pure_html_tags   default False
-    By default, HTML tags are stripped from pure text/html messages.
-    Set retain_pure_html_tags True to retain HTML tags in this case.
+    By default, tokenizer.Tokenizer.tokenize_headers() strips HTML tags
+    stripped from pure text/html messages.  Set to True to retain HTML tags
+    in this case.
+
+safe_headers  default Set("abuse-reports-to date errors-to from importance in-reply-to message-id mime-version organization received reply-to return-path subject to user-agent x-abuse-info x-complaints-to x-face".split())
+    tokenizer.Tokenizer.tokenize_headers() generates tokens just counting
+    the number of instances of the headers in this set, in a case-sensitive
+    way.  Depending on data collection, some headers aren't safe to count.
+    For example, if ham is collected from a mailing list but spam from your
+    regular inbox traffic, the presence of a header like List-Info will be a
+    very strong ham clue, but a bogus one.
 """
 
 class OptionsClass(dict):
     def __init__(self):
         self.optnames = Set()
+        evaldict = {'Set': Set}
         for line in option_descriptions.split('\n'):
             if not line or line.startswith(' '):
                 continue
@@ -23,7 +33,7 @@ class OptionsClass(dict):
             name = line[:i]
             self.optnames.add(name)
             i = line.index(' default ', i)
-            self.setopt(name, eval(line[i+9:], {}))
+            self.setopt(name, eval(line[i+9:], evaldict))
 
     def _checkname(self, name):
         if name not in self.optnames:

@@ -746,28 +746,6 @@ def breakdown_ipaddr(ipaddr):
     for i in range(1, 5):
         yield '.'.join(parts[:i])
 
-# We're merely going to count the number of these, and case-sensitively.
-safe_headers = Set("""
-    abuse-reports-to
-    date
-    errors-to
-    from
-    importance
-    in-reply-to
-    message-id
-    mime-version
-    organization
-    received
-    reply-to
-    return-path
-    subject
-    to
-    user-agent
-    x-abuse-info
-    x-complaints-to
-    x-face
-""".split())
-
 class Tokenizer:
 
     def get_message(self, obj):
@@ -883,6 +861,7 @@ class Tokenizer:
         ##    yield "header:%s:%d" % x
 
         # Do a "safe" approximation to that for now.
+        safe_headers = options['safe_headers']
         x2n = {}
         for x in msg.keys():
             if x.lower() in safe_headers:
