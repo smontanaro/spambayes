@@ -441,29 +441,17 @@ def GetPotentiallyLargeStringProp(mapi_object, prop_id, row):
     return ret
 
 # Some nasty stuff for getting RTF out of the message
-_have_complained_about_missing_rtf = False
 def GetHTMLFromRTFProperty(mapi_object, prop_tag = PR_RTF_COMPRESSED):
-    global _have_complained_about_missing_rtf
     try:
         rtf_stream = mapi_object.OpenProperty(prop_tag, pythoncom.IID_IStream,
                                               0, 0)
+        html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
+        html = mapi.RTFStreamToHTML(html_stream)
     except pythoncom.com_error, details:
         if not IsNotFoundCOMException(details):
             print "ERROR getting RTF body", details
         return ""
-    try:
-        html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
-    except AttributeError:
-        if not _have_complained_about_missing_rtf:
-            print "*" * 50
-            print "Sorry, but you need to update to a new win32all (158 or "
-            print "later), so we correctly get the HTML from messages."
-            print "See http://starship.python.net/crew/mhammond/win32"
-            print "*" * 50
-            _have_complained_about_missing_rtf = True
-        return ""
-    html = mapi.RTFStreamToHTML(html_stream)
-    # html may be None if not RTF originally from HTML, but here we
+    # html may be None if RTF not originally from HTML, but here we
     # always want a string
     return html or ''
 
