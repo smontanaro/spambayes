@@ -1,3 +1,5 @@
+from __future__ import generators
+
 import cPickle
 import os
 import sys
