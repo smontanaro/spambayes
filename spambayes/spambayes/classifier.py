@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+
+from __future__ import generators
+
 # An implementation of a Bayes-like spam classifier.
 #
 # Paul Graham's original description:
@@ -35,6 +38,7 @@
 # This implementation is due to Tim Peters et alia.
 
 import math
+import types
 try:
     from sets import Set
 except ImportError:
@@ -205,9 +209,10 @@ class Classifier:
         wordstream is a word stream representing a message.  If is_spam is
         True, you're telling the classifier this message is definitely spam,
         else that it's definitely not spam.
-
         """
-
+        if options["Classifier", "x-use_bigrams"] and \
+           isinstance(wordstream, types.GeneratorType):
+            wordstream = self._enhance_wordstream(wordstream)
         self._add_msg(wordstream, is_spam)
 
     def unlearn(self, wordstream, is_spam):
@@ -215,6 +220,9 @@ class Classifier:
 
         Pass the same arguments you passed to learn().
         """
+        if options["Classifier", "x-use_bigrams"] and \
+           isinstance(wordstream, types.GeneratorType):
+            wordstream = self._enhance_wordstream(wordstream)
         self._remove_msg(wordstream, is_spam)
 
     def probability(self, record):
@@ -299,14 +307,10 @@ class Classifier:
     # appears in a msg, but distorting spamprob doesn't appear a correct way
     # to exploit it.
     def _add_msg(self, wordstream, is_spam):
-        # I think the string stuff is hiding the cause of the db ham/spam
-        # count problem, so remove it for now.
         self.probcache = {}    # nuke the prob cache
         if is_spam:
-            #self.nspam = int(self.nspam) + 1  # account for string nspam
             self.nspam += 1
         else:
-            #self.nham = int(self.nham) + 1   # account for string nham
             self.nham += 1
 
         for word in Set(wordstream):
@@ -358,26 +362,65 @@ class Classifier:
 
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
-        unknown = options["Classifier", "unknown_word_prob"]
 
-        clues = []  # (distance, prob, word, record) tuples
-        pushclue = clues.append
+        # clues is now a set so that that duplicates are removed.
+        # Otherwise if a token is a stronger clue than the bigrams
+        # it forms with the previous *and* next tokens, then it
+        # would be used twice.  As is, it is possible for a single
+        # token to be present in two bigram tokens (but in different
+        # positions).
+        clues = Set()  # (distance, prob, word, record) tuples
+        pushclue = clues.add
 
-        for word in Set(wordstream):
-            record = self._wordinfoget(word)
-            if record is None:
-                prob = unknown
-            else:
-                prob = self.probability(record)
-            distance = abs(prob - 0.5)
-            if distance >= mindist:
-                pushclue((distance, prob, word, record))
+        if options["Classifier", "x-use_bigrams"]:
+            # The tokens list contains 3-tuples of a token,
+            # the bigram it forms with the next token, and the
+            # next token.  This makes it easier to select which
+            # one to use later on.
+            tokens = []
+            p = None
+            while True:
+                try:
+                    q = wordstream.next()
+                    if p:
+                        tokens.append((p, ' '.join([p, q]), q))
+                    p = q
+                except StopIteration:
+                    break
+            
+            # Run through all the triplets and add the strongest
+            # clue from each (note also the comment above explaining
+            # how duplicates are treated).
+            for grams in tokens:
+                winner = (0, None, None, None) # distance, prob, word, record
+                for gram in grams:
+                    contestant = self._worddistanceget(gram)
+                    if contestant[0] > winner[0]:
+                        winner = contestant
+                if winner[0] >= mindist:
+                    pushclue(winner)
+        else:
+            for word in wordstream: # Set() not necessary; see above.
+                contestant = self._worddistanceget(word)
+                if contestant[0] >= mindist:
+                    pushclue(contestant)
 
+        clues = list(clues)
         clues.sort()
         if len(clues) > options["Classifier", "max_discriminators"]:
             del clues[0 : -options["Classifier", "max_discriminators"]]
         # Return (prob, word, record).
         return [t[1:] for t in clues]
+
+    def _worddistanceget(self, word):
+        unknown = options["Classifier", "unknown_word_prob"]
+        record = self._wordinfoget(word)
+        if record is None:
+            prob = unknown
+        else:
+            prob = self.probability(record)
+        distance = abs(prob - 0.5)
+        return distance, prob, word, record
 
     def _wordinfoget(self, word):
         return self.wordinfo.get(word)
@@ -388,6 +431,31 @@ class Classifier:
     def _wordinfodel(self, word):
         del self.wordinfo[word]
 
+    def _enhance_wordstream(self, wordstream):
+        """Add bigrams to the wordstream.  This wraps the last token
+        to the first one, so a small number of odd tokens might get
+        generated from that, but it shouldn't be significant.  Note
+        that these are *token* bigrams, and not *word* bigrams - i.e.
+        'synthetic' tokens get bigram'ed, too.
+
+        The bigram token is simply "unigram1 unigram2" - a space should
+        be sufficient as a separator, since spaces aren't in any other
+        tokens, apart from 'synthetic' ones.
+
+        If the experimental "Classifier":"x-use_bigrams" option is
+        removed, this function can be removed, too."""
+        p = None
+        while True:
+            try:
+                if p:
+                    yield p
+                q = wordstream.next()
+                if p:
+                    yield "%s %s" % (p, q)
+                p = q
+            except StopIteration:
+                break
+            
     def _wordinfokeys(self):
         return self.wordinfo.keys()
 

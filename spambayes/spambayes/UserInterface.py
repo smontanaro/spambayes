@@ -305,6 +305,10 @@ class UserInterface(BaseUserInterface):
             clues = []
             for tok in tokens:
                 clues.append((tok, None))
+            # Need to regenerate the tokens (is there a way to
+            # 'rewind' or copy a generator?  Would that be
+            # more effecient?
+            tokens = tokenizer.tokenize(message)
             probability = self.classifier.spamprob(tokens)
             cluesTable = self._fillCluesTable(clues)
             head_name = "Tokens"
