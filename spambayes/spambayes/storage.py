@@ -5,6 +5,8 @@
 Classes:
     PickledClassifier - Classifier that uses a pickle db
     DBDictClassifier - Classifier that uses a shelve db
+    PGClassifier - Classifier that uses postgres
+    mySQLClassifier - Classifier that uses mySQL
     Trainer - Classifier training observer
     SpamTrainer - Trainer for spam
     HamTrainer - Trainer for ham
@@ -12,6 +14,8 @@ Classes:
 Abstract:
     *Classifier are subclasses of Classifier (classifier.Classifier)
     that add automatic state store/restore function to the Classifier class.
+    All SQL based classifiers are subclasses of SQLClassifier, which is a
+    subclass of Classifier.
 
     PickledClassifier is a Classifier class that uses a cPickle
     datastore.  This database is relatively small, but slower than other
@@ -411,6 +415,89 @@ class PGClassifier(SQLClassifier):
                 print self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
+
+
+class mySQLClassifier(SQLClassifier):
+    '''Classifier object persisted in a mySQL database
+
+    It is assumed that the database already exists, and that the mySQL
+    server is currently running.'''
+ 
+    def __init__(self, data_source_name):
+        self.table_definition = ("create table bayes ("
+                                 "  word varchar(255) not null default '',"
+                                 "  nspam integer not null default 0,"
+                                 "  nham integer not null default 0,"
+                                 "  primary key(word)"
+                                 ");")
+        self.host = "localhost"
+        self.username = "root"
+        self.password = ""
+        db_name = "spambayes"
+        source_info = data_source_name.split()
+        for info in source_info:
+            if info.startswith("host"):
+                self.host = info[5:]
+            elif info.startswith("user"):
+                self.username = info[5:]
+            elif info.startswith("pass"):
+                self.username = info[5:]
+            elif info.startswith("dbname"):
+                db_name = info[7:]
+        SQLClassifier.__init__(self, db_name)
+
+    def cursor(self):
+        return self.db.cursor()
+
+    def fetchall(self, c):
+        return c.fetchall()
+
+    def commit(self, c):
+        self.db.commit()
+
+    def load(self):
+        '''Load state from database'''
+
+        import MySQLdb
+        
+        if options.verbose:
+            print 'Loading state from',self.db_name,'database'
+
+        self.db = MySQLdb.connect(host=self.host, db=self.db_name,
+                                  user=self.username, passwd=self.password)
+
+        c = self.cursor()
+        try:
+            c.execute("select count(*) from bayes")
+        except MySQLdb.ProgrammingError:
+            self.db.rollback()
+            self.create_bayes()
+        
+        if self._has_key(self.statekey):
+            row = self._get_row(self.statekey)
+            self.nspam = int(row[1])
+            self.nham = int(row[2])
+            if options.verbose:
+                print '%s is an existing database, with %d spam and %d ham' \
+                      % (self.db_name, self.nspam, self.nham)
+        else:
+            # new database
+            if options.verbose:
+                print self.db_name,'is a new database'
+            self.nspam = 0
+            self.nham = 0
+
+    def _wordinfoget(self, word):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
+
+        row = self._get_row(word)
+        if row:
+            item = self.WordInfoClass()
+            item.__setstate__((row[1], row[2]))
+            return item
+        else:
+            return None
 
 
 class Trainer:
