@@ -11,7 +11,8 @@ Author: spambayes
 <li>Eric Raymond's <a href="http://bogofilter.sf.net/">bogofilter</a>, a C code bayesian filter.
 <li><a href="http://www.ai.mit.edu/~jrennie/ifile/">ifile</a>, a Naive Bayes classification system.
 <li><a href="http://sourceforge.net/projects/pasp">PASP</a>, the Python Anti-Spam Proxy - a POP3 proxy for filtering email. Also uses Bayesian-ish classification.
-<li> ...
+<li><a href="http://pauillac.inria.fr/~xleroy/software.html">spamoracle</a>, a Paul Graham based spam filter written in OCaml, designed for use with procmail.
+<li><a href="http://popfile.sf.net">popfile</a>, a pop3 proxy written in Perl with a Naive Bayes classifier.
 </ul>
 
 <p><i>(got more? email anthony at interlink.com.au and I'll add links, or correct descriptions.)</i>
