@@ -112,7 +112,15 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
                 score = store.spamprob(tokenize(hammsg))
                 if score > ham_cutoff:
                     if verbose:
-                        print >> sys.stderr, "miss ham:  %.6f %s" % (score, hammsg["message-id"])
+                        selector = (hammsg["message-id"] or
+                                    hammsg["subject"])
+                        if selector is None:
+                            print >> sys.stderr, "-"*25
+                            print >> sys.stderr, mboxutils.as_string(hammsg)
+                            print >> sys.stderr, "-"*25
+                        else:
+                            print >> sys.stderr, "miss ham:  %.6f %s" % (
+                                score, selector)
                     hmisses += 1
                     tdict[hammsg["message-id"]] = True
                     store.learn(tokenize(hammsg), False)
@@ -120,7 +128,15 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
                 score = store.spamprob(tokenize(spammsg))
                 if score < spam_cutoff:
                     if verbose:
-                        print >> sys.stderr, "miss spam: %.6f %s" % (score, spammsg["message-id"])
+                        selector = (spammsg["message-id"] or
+                                    spammsg["subject"])
+                        if selector is None:
+                            print >> sys.stderr, "-"*25
+                            print >> sys.stderr, mboxutils.as_string(spammsg)
+                            print >> sys.stderr, "-"*25
+                        else:
+                            print >> sys.stderr, "miss spam: %.6f %s" % (
+                                score, selector)
                     smisses += 1
                     tdict[spammsg["message-id"]] = True
                     store.learn(tokenize(spammsg), True)
