@@ -272,7 +272,7 @@ class Message(email.Message.Message):
         return self.id
 
     def asTokens(self):
-        return tokenize(self.as_string())
+        return tokenize(self)
 
     def tokenize(self):
         return self.asTokens()
