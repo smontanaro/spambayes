@@ -321,7 +321,7 @@ class Message(email.Message.Message):
                       "Message) instead.",
                       DeprecationWarning, 2)
         new_me = email.message_from_string(payload, _class=Message)
-        self.__dict__ = new_me.__dict__
+        self.__dict__.update(new_me.__dict__)
 
     def setId(self, id):
         if self.id and self.id != id:
@@ -421,7 +421,7 @@ class SBHeaderMessage(Message):
                       "SBHeaderMessage) instead.",
                       DeprecationWarning, 2)
         new_me = email.message_from_string(payload, _class=SBHeaderMessage)
-        self.__dict__ = new_me.__dict__
+        self.__dict__.update(new_me.__dict__)
 
     def setIdFromPayload(self):
         try:
