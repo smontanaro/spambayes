@@ -32,7 +32,7 @@ class StatsProcessor(ControlProcessor):
             reset_date = localtime(self.stats.from_date)
             date_string = strftime("%a, %d %b %Y %I:%M:%S %p", reset_date)
         else:
-            date_string = "None"
+            date_string = "Never"
         win32gui.SendMessage(date_label, win32con.WM_SETTEXT, 0, date_string)
 
     def OnCommand(self, wparam, lparam):
