@@ -111,8 +111,8 @@ import time
 import sys
 import getopt
 import types
+import email
 from getpass import getpass
-import email.Parser
 from email.Utils import parsedate
 
 from spambayes.Options import options
@@ -230,12 +230,13 @@ class IMAPSession(imaplib.IMAP4):
             return response
 
 class IMAPMessage(message.SBHeaderMessage):
-    def __init__(self, folder, id):
+    def __init__(self):
         message.Message.__init__(self)
-        self.id = id
-        message.msginfoDB._getState(self)
-        self.folder = folder
+        self.folder = None
         self.previous_folder = None
+
+    def setFolder(self, folder):
+        self.folder = folder
 
     def _check(self, response, command):
         if response[0] != "OK":
@@ -268,6 +269,8 @@ class IMAPMessage(message.SBHeaderMessage):
             return imaplib.Time2Internaldate(time.time())
 
     def MoveTo(self, dest):
+        '''Note that message should move to another folder.  No move is
+        carried out until Save() is called.'''
         # This move operation just changes where we think we are,
         # and we do an actual move on save (to avoid doing
         # this more than once)
@@ -276,9 +279,16 @@ class IMAPMessage(message.SBHeaderMessage):
             self.folder = dest
 
     def Save(self):
+        '''Save message to imap server.'''
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
         # we need to copy the flags as well
+        if self.folder is None:
+            raise RuntimeError, """Can't save a message that doesn't
+            have a folder."""
+        if self.id is None:
+            raise RuntimeError, """Can't save a message that doesn't have
+            an id."""
         response = imap.uid("FETCH", self.id, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
         data = _extract_fetch_data(response[1][0])
@@ -297,7 +307,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # See searching for new uid comments below
         old_id = self.id
         self["X-Spambayes-IMAP-OldID"] = old_id
-                    
+
         response = imap.append(self.folder.name, flags,
                                msg_time, self.as_string())
         self._check(response, 'append')
@@ -338,6 +348,10 @@ class IMAPMessage(message.SBHeaderMessage):
         self.id = new_id
         self.modified()
 
+# This performs a similar function to email.message_from_string()
+def imapmessage_from_string(s, _class=IMAPMessage, strict=False):
+    return email.message_from_string(s, _class, strict)
+
 
 class IMAPFolder(object):
     def __init__(self, folder_name, readOnly=True):
@@ -346,6 +360,8 @@ class IMAPFolder(object):
 
     def __cmp__(self, obj):
         '''Two folders are equal if their names are equal'''
+        if obj is None:
+            return False
         return cmp(self.name, obj.name)
 
     def _check(self, response, command):
@@ -396,8 +412,9 @@ class IMAPFolder(object):
 
         # we return an instance of *our* message class, not the
         # raw rfc822 message
-        msg = IMAPMessage(self, key)
-        msg.setPayload(messageText)
+        msg = imapmessage_from_string(messageText)
+        msg.setId(key)
+        msg.setFolder(self)
         
         return msg
    
@@ -405,7 +422,7 @@ class IMAPFolder(object):
         '''Train folder as spam/ham'''
         num_trained = 0
         for msg in self:
-            if msg.GetTrained() == isSpam:
+            if msg.GetTrained() == (not isSpam):
                 classifier.unlearn(msg.asTokens(), not isSpam)
                 # Once the message has been untrained, it's training memory
                 # should reflect that on the off chance that for some reason

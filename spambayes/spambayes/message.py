@@ -32,34 +32,34 @@ Abstract:
 Usage:
     A typical classification usage pattern would be something like:
     
-    >>>msg = spambayes.message.SBHeaderMessage()
-    >>>msg.setPayload(substance) # substance comes from somewhere else
-    >>>id = msg.setIdFromPayload()
+    >>> msg = spambayes.message.SBHeaderMessage()
+    >>> msg.setPayload(substance) # substance comes from somewhere else
+    >>> id = msg.setIdFromPayload()
     
-    >>>if id is None:
-    >>>    msg.setId(time())   # or some unique identifier
+    >>> if id is None:
+    >>>     msg.setId(time())   # or some unique identifier
      
-    >>>msg.delSBHeaders()      # never include sb headers in a classification
+    >>> msg.delSBHeaders()      # never include sb headers in a classification
     
-    >>># bayes object is your responsibility   
-    >>>(prob, clues) = bayes.spamprob(msg.asTokens(), evidence=True)
+    >>> # bayes object is your responsibility   
+    >>> (prob, clues) = bayes.spamprob(msg.asTokens(), evidence=True)
 
-    >>>msg.addSBHeaders(prob, clues)
+    >>> msg.addSBHeaders(prob, clues)
     
     
     A typical usage pattern to train as spam would be something like:
     
-    >>>msg = spambayes.message.SBHeaderMessage()
-    >>>msg.setPayload(substance) # substance comes from somewhere else
-    >>>id = msg.setId(msgid)     # id is a fname, outlook msg id, something...
+    >>> msg = spambayes.message.SBHeaderMessage()
+    >>> msg.setPayload(substance) # substance comes from somewhere else
+    >>> id = msg.setId(msgid)     # id is a fname, outlook msg id, something...
 
-    >>>msg.delSBHeaders()        # never include sb headers in a train
+    >>> msg.delSBHeaders()        # never include sb headers in a train
     
-    >>>if msg.getTraining() == False:   # could be None, can't do boolean test
-    >>>    bayes.unlearn(msg.asTokens(), False)  # untrain the ham
+    >>> if msg.getTraining() == False:   # could be None, can't do boolean test
+    >>>     bayes.unlearn(msg.asTokens(), False)  # untrain the ham
     
-    >>>bayes.learn(msg.asTokens(), True) # train as spam
-    >>>msg.rememberTraining(True)
+    >>> bayes.learn(msg.asTokens(), True) # train as spam
+    >>> msg.rememberTraining(True)
     
 
 To Do:
@@ -91,6 +91,7 @@ import sys
 import types
 import re
 
+import email            # for message_from_string
 import email.Message
 import email.Parser
 
@@ -140,7 +141,14 @@ class Message(email.Message.Message):
         
         # non-persistent state includes all of email.Message.Message state
 
-        
+    # This function (and it's hackishness) can be avoided by using the
+    # message_from_string and sbheadermessage_from_string functions
+    # at the end of the module.  i.e. instead of doing this:
+    #   >>> msg = spambayes.message.SBHeaderMessage()
+    #   >>> msg.setPayload(substance)
+    # you do this:
+    #   >>> msg = sbheadermessage_from_string(substance)
+    # imapfilter has an example of this in action
     def setPayload(self, payload):
         prs = email.Parser.Parser()
         fp = StringIO(payload)
@@ -280,3 +288,10 @@ class SBHeaderMessage(Message):
         del self[options['pop3proxy','prob_header_name']]
         del self[options['pop3proxy','thermostat_header_name']]
         del self[options['pop3proxy','evidence_header_name']]
+
+# These perform similar functions to email.message_from_string()
+def message_from_string(s, _class=Message, strict=False):
+    return email.message_from_string(s, _class, strict)
+
+def sbheadermessage_from_string(s, _class=SBHeaderMessage, strict=False):
+    return email.message_from_string(s, _class, strict)
