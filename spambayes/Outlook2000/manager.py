@@ -91,7 +91,7 @@ class BayesManager:
         # Should be called once per folder you are watching/filtering etc
         assert self.outlook is not None, "I need outlook :("
         ol = self.outlook
-        folder = ol.Session.GetFolderFromID(folder_id)
+        folder = ol.Session.GetFolderFromID(*folder_id)
         if self.verbose > 1:
             print "Checking folder '%s' for our field '%s'" \
                   % (self.config.field_score_name,folder.Name.encode("mbcs", "replace"))

@@ -52,29 +52,39 @@ def BuildFolderTreeCDO(session):
 from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
 
+default_store_id = None
+
 def _BuildFoldersMAPI(msgstore, folder):
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
     children = []
-    rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,PR_DISPLAY_NAME_A), None, None, 0)
-    for (eid_tag, eid),(name_tag, name) in rows:
-        spec = FolderSpec(mapi.HexFromBin(eid), name)
+    rows = mapi.HrQueryAllRows(table, (PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_A), None, None, 0)
+    for (eid_tag, eid),(storeeid_tag, store_eid), (name_tag, name) in rows:
+        folder_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
+        spec = FolderSpec(folder_id, name)
         child_folder = msgstore.OpenEntry(eid, None, mapi.MAPI_DEFERRED_ERRORS)
         spec.children = _BuildFoldersMAPI(msgstore, child_folder)
         children.append(spec)
     return children
 
 def BuildFolderTreeMAPI(session):
+    global default_store_id
     root = FolderSpec(None, "root")
     tab = session.GetMsgStoresTable(0)
-    rows = mapi.HrQueryAllRows(tab, (PR_ENTRYID, PR_DISPLAY_NAME_A), None, None, 0)
+    prop_tags = PR_ENTRYID, PR_DEFAULT_STORE, PR_DISPLAY_NAME_A
+    rows = mapi.HrQueryAllRows(tab, prop_tags, None, None, 0)
     for row in rows:
-        (eid_tag, eid), (name_tag, name) = row
+        (eid_tag, eid), (is_def_tag, is_def), (name_tag, name) = row
+        hex_eid = mapi.HexFromBin(eid)
+        if is_def:
+            default_store_id = hex_eid
+
         msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL | mapi.MAPI_DEFERRED_ERRORS)
         hr, data = msgstore.GetProps( ( PR_IPM_SUBTREE_ENTRYID,), 0)
         subtree_eid = data[0][1]
         folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
-        spec = FolderSpec(mapi.HexFromBin(subtree_eid), name)
+        folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
+        spec = FolderSpec(folder_id, name)
         spec.children = _BuildFoldersMAPI(msgstore, folder)
         root.children.append(spec)
     return root
@@ -125,6 +135,20 @@ class FolderSelector(dialog.Dialog):
         self.checkbox_state = checkbox_state
         self.checkbox_text = checkbox_text or "Include &subfolders"
 
+    def CompareIDs(self, id1, id2):
+        if type(id1) != type(()):
+            id1 = default_store_id, id1
+        if type(id2) != type(()):
+            id2 = default_store_id, id2
+        return self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
+               self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
+
+    def InIDs(self, id, ids):
+        for id_check in ids:
+            if self.CompareIDs(id_check, id):
+                return True
+        return False
+
     def _MakeItemParam(self, item):
         item_id = self.next_item_id
         self.next_item_id += 1
@@ -143,7 +167,7 @@ class FolderSelector(dialog.Dialog):
             if self.single_select:
                 mask = state = 0
             else:
-                if self.selected_ids and child.folder_id in self.selected_ids:
+                if self.selected_ids and self.InIDs(child.folder_id, self.selected_ids):
                     state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
                     num_children_selected += 1
                 else:
@@ -151,7 +175,7 @@ class FolderSelector(dialog.Dialog):
                 mask = commctrl.TVIS_STATEIMAGEMASK
             item_id = self._MakeItemParam(child)
             hitem = self.list.InsertItem(hParent, 0, (None, state, mask, text, bitmapCol, bitmapSel, cItems, item_id))
-            if self.single_select and self.selected_ids and child.folder_id in self.selected_ids:
+            if self.single_select and self.selected_ids and self.InIDs(child.folder_id, self.selected_ids):
                 self.list.SelectItem(hitem)
 
             num_children_selected += self._InsertSubFolders(hitem, child)

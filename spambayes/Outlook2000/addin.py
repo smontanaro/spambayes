@@ -307,7 +307,7 @@ class OutlookAddin:
             eid = msgstore_folder.GetOutlookEntryID()
             existing = self.folder_hooks.get(eid)
             if existing is None or existing.__class__ != HandlerClass:
-                folder = self.application.Session.GetFolderFromID(eid)
+                folder = self.application.Session.GetFolderFromID(*eid)
                 name = folder.Name.encode("mbcs", "replace")
                 try:
                     new_hook = DispatchWithEvents(folder.Items, HandlerClass)

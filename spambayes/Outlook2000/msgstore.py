@@ -90,70 +90,103 @@ class MAPIMsgStore(MsgStore):
                       mapi.MAPI_EXTENDED |
                       mapi.MAPI_USE_DEFAULT)
         self.session = mapi.MAPILogonEx(0, None, None, logonFlags)
-        self._FindDefaultMessageStore()
+        self.mapi_msg_stores = {}
+        self.default_store_bin_eid = None
+        self._GetMessageStore(None)
         os.chdir(cwd)
 
     def Close(self):
-        self.mapi_msgstore = None
+        self.mapi_msg_stores = None
         self.session.Logoff(0, 0, 0)
         self.session = None
         mapi.MAPIUninitialize()
 
-    def _FindDefaultMessageStore(self):
-        tab = self.session.GetMsgStoresTable(0)
-        # Restriction for the table:  get rows where PR_DEFAULT_STORE is true.
-        # There should be only one.
-        restriction = (mapi.RES_PROPERTY,   # a property restriction
-                       (mapi.RELOP_EQ,      # check for equality
-                        PR_DEFAULT_STORE,   # of the PR_DEFAULT_STORE prop
-                        (PR_DEFAULT_STORE, True))) # with True
-        rows = mapi.HrQueryAllRows(tab,
-                                   (PR_ENTRYID,),   # columns to retrieve
-                                   restriction,     # only these rows
-                                   None,            # any sort order is fine
-                                   0)               # any # of results is fine
-        # get first entry, a (property_tag, value) pair, for PR_ENTRYID
-        row = rows[0]
-        eid_tag, eid = row[0]
-        # Open the store.
-        self.mapi_msgstore = self.session.OpenMsgStore(
+    def _GetMessageStore(self, store_eid): # bin eid.
+        try:
+            # Will usually be pre-fetched, so fast-path out
+            return self.mapi_msg_stores[store_eid]
+        except KeyError:
+            pass
+        given_store_eid = store_eid
+        if store_eid is None:
+            # Find the EID for the default store.
+            tab = self.session.GetMsgStoresTable(0)
+            # Restriction for the table:  get rows where PR_DEFAULT_STORE is true.
+            # There should be only one.
+            restriction = (mapi.RES_PROPERTY,   # a property restriction
+                           (mapi.RELOP_EQ,      # check for equality
+                            PR_DEFAULT_STORE,   # of the PR_DEFAULT_STORE prop
+                            (PR_DEFAULT_STORE, True))) # with True
+            rows = mapi.HrQueryAllRows(tab,
+                                       (PR_ENTRYID,),   # columns to retrieve
+                                       restriction,     # only these rows
+                                       None,            # any sort order is fine
+                                       0)               # any # of results is fine
+            # get first entry, a (property_tag, value) pair, for PR_ENTRYID
+            row = rows[0]
+            eid_tag, store_eid = row[0]
+            self.default_store_bin_eid = store_eid
+
+        # Open it.
+        store = self.session.OpenMsgStore(
                                 0,      # no parent window
-                                eid,    # msg store to open
+                                store_eid,    # msg store to open
                                 None,   # IID; accept default IMsgStore
                                 # need write access to add score fields
                                 mapi.MDB_WRITE |
                                     # we won't send or receive email
                                     mapi.MDB_NO_MAIL |
                                     USE_DEFERRED_ERRORS)
+        # cache it
+        self.mapi_msg_stores[store_eid] = store
+        if given_store_eid is None: # The default store
+            self.mapi_msg_stores[None] = store
+        return store
+
+    def _OpenEntry(self, id, iid = None, flags = None):
+        # id is already normalized.
+        store_id, item_id = id
+        store = self._GetMessageStore(store_id)
+        if flags is None:
+            flags = mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS
+        return store.OpenEntry(item_id, iid, flags)
+
+    # Given an ID, normalize it into a (store_id, item_id) binary tuple.
+    # item_id may be:
+    # - Simple hex EID, in wich case default store ID is assumed.
+    # - Tuple of (None, hex_eid), in which case default store assumed.
+    # - Tuple of (hex_store_id, hex_id)
+    def NormalizeID(self, item_id):
+        if type(item_id)==type(()):
+            store_id, item_id = item_id
+            item_id = mapi.BinFromHex(item_id)
+            if store_id is None:
+                store_id = self.default_store_bin_eid
+            else:
+                store_id = mapi.BinFromHex(store_id)
+            return store_id, item_id
+        assert type(item_id) in [type(''), type(u'')], "What kind of ID is '%r'?" % (item_id,)
+        return self.default_store_bin_eid, mapi.BinFromHex(item_id)
 
     def _GetSubFolderIter(self, folder):
         table = folder.GetHierarchyTable(0)
         rows = mapi.HrQueryAllRows(table,
-                                   (PR_ENTRYID, PR_DISPLAY_NAME_A),
+                                   (PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_A),
                                    None,
                                    None,
                                    0)
-        for (eid_tag, eid),(name_tag, name) in rows:
-            sub = self.mapi_msgstore.OpenEntry(eid,
-                                               None,
-                                               mapi.MAPI_MODIFY |
-                                                   USE_DEFERRED_ERRORS)
+        for (eid_tag, eid), (store_eid_tag, store_eid), (name_tag, name) in rows:
+            item_id = store_eid, eid
+            sub = self._OpenEntry(item_id)
             table = sub.GetContentsTable(0)
-            yield MAPIMsgStoreFolder(self, eid, name, table.GetRowCount(0))
-            folder = self.mapi_msgstore.OpenEntry(eid,
-                                                  None,
-                                                  mapi.MAPI_MODIFY |
-                                                      USE_DEFERRED_ERRORS)
-            for store_folder in self._GetSubFolderIter(folder):
+            yield MAPIMsgStoreFolder(self, item_id, name, table.GetRowCount(0))
+            for store_folder in self._GetSubFolderIter(sub):
                 yield store_folder
 
     def GetFolderGenerator(self, folder_ids, include_sub):
         for folder_id in folder_ids:
-            folder_id = mapi.BinFromHex(folder_id)
-            folder = self.mapi_msgstore.OpenEntry(folder_id,
-                                                  None,
-                                                  mapi.MAPI_MODIFY |
-                                                      USE_DEFERRED_ERRORS)
+            folder_id = self.NormalizeID(folder_id)
+            folder = self._OpenEntry(folder_id)
             table = folder.GetContentsTable(0)
             rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
             yield MAPIMsgStoreFolder(self, folder_id, props[0][1],
@@ -164,11 +197,8 @@ class MAPIMsgStore(MsgStore):
 
     def GetFolder(self, folder_id):
         # Return a single folder given the ID.
-        folder_id = mapi.BinFromHex(folder_id)
-        folder = self.mapi_msgstore.OpenEntry(folder_id,
-                                              None,
-                                              mapi.MAPI_MODIFY |
-                                                  USE_DEFERRED_ERRORS)
+        folder_id = self.NormalizeID(folder_id)
+        folder = self._OpenEntry(folder_id)
         table = folder.GetContentsTable(0)
         rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
         return MAPIMsgStoreFolder(self, folder_id, props[0][1],
@@ -176,17 +206,15 @@ class MAPIMsgStore(MsgStore):
 
     def GetMessage(self, message_id):
         # Return a single message given the ID.
-        message_id = mapi.BinFromHex(message_id)
+        message_id = self.NormalizeID(message_id)
         prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
-        mapi_object = self.mapi_msgstore.OpenEntry(message_id,
-                                                   None,
-                                                   mapi.MAPI_MODIFY |
-                                                       USE_DEFERRED_ERRORS)
+        mapi_object = self._OpenEntry(message_id)
         hr, data = mapi_object.GetProps(prop_ids,0)
         folder_eid = data[0][1]
         searchkey = data[1][1]
         unread = data[2][1]
-        folder = MAPIMsgStoreFolder(self, folder_eid,
+        folder_id = message_id[0], folder_eid
+        folder = MAPIMsgStoreFolder(self, folder_id,
                                     "Unknown - temp message", -1)
         return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, unread)
 
@@ -215,19 +243,22 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         self.count = count
 
     def __repr__(self):
-        return "<%s '%s' (%d items), id=%s>" % (self.__class__.__name__,
+        return "<%s '%s' (%d items), id=%s/%s>" % (self.__class__.__name__,
                                                 self.name,
                                                 self.count,
-                                                mapi.HexFromBin(self.id))
+                                                mapi.HexFromBin(self.id[0]),
+                                                mapi.HexFromBin(self.id[1]))
 
     def GetOutlookEntryID(self):
-        return mapi.HexFromBin(self.id)
+        # Return EntryID, StoreID - we use this order as it is the same as
+        # Session.GetItemFromID() uses - thus:
+        # ids = me.GetOutlookEntryID()
+        # session.GetItemFromID(*ids)
+        # should work.
+        return mapi.HexFromBin(self.id[1]), mapi.HexFromBin(self.id[0])
 
     def GetMessageGenerator(self):
-        folder = self.msgstore.mapi_msgstore.OpenEntry(self.id,
-                                                       None,
-                                                       mapi.MAPI_MODIFY |
-                                                           USE_DEFERRED_ERRORS)
+        folder = self.msgstore._OpenEntry(self.id)
         table = folder.GetContentsTable(0)
         prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
         table.SetColumns(prop_ids, 0)
@@ -238,8 +269,9 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             if len(rows) == 0:
                 break
             for row in rows:
+                item_id = self.id[0], row[0][1] # assume in same store as folder!
                 yield MAPIMsgStoreMsg(self.msgstore, self,
-                                      row[0][1], row[1][1], row[2][1])
+                                      item_id, row[1][1], row[2][1])
 
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
@@ -262,12 +294,18 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             urs = "read"
         else:
             urs = "unread"
-        return "<%s, (%s) id=%s>" % (self.__class__.__name__,
+        return "<%s, (%s) id=%s/%s>" % (self.__class__.__name__,
                                      urs,
-                                     mapi.HexFromBin(self.id))
+                                     mapi.HexFromBin(self.id[0]),
+                                     mapi.HexFromBin(self.id[1]))
 
     def GetOutlookEntryID(self):
-        return mapi.HexFromBin(self.id)
+        # Return EntryID, StoreID - we use this order as it is the same as
+        # Session.GetItemFromID() uses - thus:
+        # ids = me.GetOutlookEntryID()
+        # session.GetItemFromID(*ids)
+        # should work.
+        return mapi.HexFromBin(self.id[1]), mapi.HexFromBin(self.id[0])
 
     def _GetPropFromStream(self, prop_id):
         try:
@@ -318,10 +356,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def _EnsureObject(self):
         if self.mapi_object is None:
-            self.mapi_object = self.msgstore.mapi_msgstore.OpenEntry(
-                                   self.id,
-                                   None,
-                                   mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+            self.mapi_object = self.msgstore._OpenEntry(self.id)
 
     def GetEmailPackageObject(self, strip_mime_headers=True):
         import email
@@ -417,23 +452,23 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 ##        self.mapi_object = None # release the COM pointer
         assert not self.dirty, \
                "asking me to move a dirty message - later saves will fail!"
-        dest_folder = self.msgstore.mapi_msgstore.OpenEntry(
-                          folder.id,
-                          None,
-                          mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
-        source_folder = self.msgstore.mapi_msgstore.OpenEntry(
-                            self.folder.id,
-                            None,
-                            mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        dest_folder = self.msgstore._OpenEntry(folder.id)
+        source_folder = self.msgstore._OpenEntry(self.folder.id)
         flags = 0
         if isMove: flags |= MESSAGE_MOVE
-        source_folder.CopyMessages((self.id,),
+        eid = self.id[1]
+        source_folder.CopyMessages((eid,),
                                    None,
                                    dest_folder,
                                    0,
                                    None,
                                    flags)
-        self.folder = self.msgstore.GetFolder(mapi.HexFromBin(folder.id))
+        # At this stage, I think we have lost meaningful ID etc values
+        # Set everything to None to make it clearer what is wrong should
+        # this become an issue.  We would need to re-fetch the eid of
+        # the item, and set the store_id to the dest folder.
+        self.id = None
+        self.folder = None
 
     def MoveTo(self, folder):
         self._DoCopyMode(folder, True)
@@ -452,7 +487,6 @@ def test():
         for msg in folder.GetMessageGenerator():
             print msg
     store.Close()
-
 
 if __name__=='__main__':
     test()
