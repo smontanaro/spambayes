@@ -362,6 +362,8 @@ class Classifier:
 
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
+        if not isinstance(wordstream, types.ListType):
+            wordstream = list(wordstream)
 
         # clues is now a set so that that duplicates are removed.
         # Otherwise if a token is a stronger clue than the bigrams
@@ -377,16 +379,9 @@ class Classifier:
             # the bigram it forms with the next token, and the
             # next token.  This makes it easier to select which
             # one to use later on.
-            tokens = []
-            p = None
-            while True:
-                try:
-                    q = wordstream.next()
-                    if p:
-                        tokens.append((p, ' '.join([p, q]), q))
-                    p = q
-                except StopIteration:
-                    break
+            l = wordstream
+            tokens = [(l[i],"%s %s" % (l[i],l[(i+1)%len(l)]),
+                       l[(i+1)%len(l)]) for i in xrange(len(l))]
             
             # Run through all the triplets and add the strongest
             # clue from each (note also the comment above explaining
