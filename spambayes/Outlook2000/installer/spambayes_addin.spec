@@ -27,11 +27,14 @@ for fname in glob.glob(PROJECT_ROOT + "/docs/images/*"):
 # config
 extras.append( ("default_bayes_customize.ini", join(PROJECT_ROOT, "default_bayes_customize.ini"), 'DATA') )
 
-excludes = ['timer', 'dde', 'win32help', 'spambayes.compatsets', 'pywin.dialogs']
+excludes = ['dde', 'win32help']
 
-a = Analysis([INSTALLER_ROOT+'/support/_mountzlib.py',
-              INSTALLER_ROOT+'/support/useUnicode.py',
-              'spambayes_addin.py'],
+mods = []
+mods += [INSTALLER_ROOT+'/support/_mountzlib.py']
+mods += [INSTALLER_ROOT+'/support/useUnicode.py']
+mods.append('spambayes_addin.py')
+
+a = Analysis(mods,
              excludes = excludes, 
              pathex=[PROJECT_ROOT,os.path.join(PROJECT_ROOT, '..')])
 pyz = PYZ(a.pure)
