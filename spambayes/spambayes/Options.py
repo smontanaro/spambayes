@@ -1233,6 +1233,11 @@ class OptionsClass(object):
                     if converter is not None:
                         value = converter(value)
                 self._options[section, option].set(value)
+                # just for the moment, here's some more
+                # backwards compatability - this will go
+                # away very soon, so don't rely on this working
+                old_name = section[0:1].lower() + section[1:] + '_' + option
+                setattr(options, old_name, value) # ugly!
         if nerrors:
             raise ValueError("errors while parsing .ini file")
 
