@@ -10,7 +10,10 @@ DefaultDirName={pf}\Spambayes Outlook Addin
 DefaultGroupName=Spambayes Outlook Addin
 OutputDir=.
 OutputBaseFilename=SpamBayes-Outlook-Setup
-
+; Note the check for Outlook running has already been done, so no point
+; having this file tell them to shutdown outlook!
+; Edit file using Windows 'wordpad'
+InfoBeforeFile=installation_notes.rtf
 [Files]
 Source: "dist\spambayes_addin.dll"; DestDir: "{app}"; Flags: ignoreversion regserver
 Source: "dist\*.*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
@@ -38,8 +41,10 @@ begin
 
           Result := MsgBox(
               'You must close Outlook before SpamBayes can be installed.' + #13 + #13 +
-              'Please close all Outlook Windows and click Retry' + #13 +
-              'or click Cancel to exit the installation.',
+              'Please close all Outlook Windows (using "File->Exit and Log off"' + #13 +
+              'if available) and click Retry, or click Cancel to exit the installation.'+ #13 + #13 +
+              'If this message persists after closing all Outlook windows, you may' + #13 +
+              'need to log off from Windows, and try again.',
               mbConfirmation, MB_RETRYCANCEL) = idRetry;
     end;
 end;
