@@ -290,7 +290,8 @@ class BayesManager:
                 folders = item.Parent.Folders
                 folder = folders.GetFirst()
                 while folder is not None:
-                    self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
+                    this_id = folder.StoreID, folder.EntryID
+                    self.EnsureOutlookFieldsForFolder(this_id, True)
                     folder = folders.GetNext()
         # else no items in this folder - not much worth doing!
 
