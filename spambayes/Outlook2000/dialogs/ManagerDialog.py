@@ -68,8 +68,10 @@ class ManagerDialog(dialog.Dialog):
 
         self.checkbox_items = [
             (IDC_BUT_FILTER_ENABLE, "self.mgr.config.filter.enabled"),
-            (IDC_BUT_TRAIN_FROM_SPAM_FOLDER, "self.mgr.config.training.train_recovered_spam"),
-            (IDC_BUT_TRAIN_TO_SPAM_FOLDER, "self.mgr.config.training.train_manual_spam"),
+            (IDC_BUT_TRAIN_FROM_SPAM_FOLDER,
+                     "self.mgr.config.training.train_recovered_spam"),
+            (IDC_BUT_TRAIN_TO_SPAM_FOLDER,
+                     "self.mgr.config.training.train_manual_spam"),
         ]
 
         dialog.Dialog.__init__(self, self.dt)
@@ -104,41 +106,52 @@ class ManagerDialog(dialog.Dialog):
         min_spam = 5
         ok_to_enable = operator.truth(config.watch_folder_ids)
         if not ok_to_enable:
-            filter_status = "You must define folders to watch for new messages"
+            filter_status = "You must define folders to watch "\
+                            "for new messages"
         if ok_to_enable:
             ok_to_enable = nspam >= min_spam and nham >= min_ham
             if not ok_to_enable:
-                filter_status = "There must be %d good and %d spam messages\n" \
-                                "trained before filtering can be enabled" \
+                filter_status = "There must be %d good and %d spam  " \
+                                "messages\ntrained before filtering " \
+                                "can be enabled" \
                                 % (min_ham, min_spam)
         if ok_to_enable:
             self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(config.enabled)
             ok_to_enable = operator.truth(config.spam_folder_id)
             if ok_to_enable:
-                certain_spam_name = self.mgr.FormatFolderNames([config.spam_folder_id], False)
-                ok_to_enable = operator.truth(config.unsure_folder_id)
-                if ok_to_enable:
-                    unsure_name = self.mgr.FormatFolderNames([config.unsure_folder_id], False)
+                certain_spam_name = self.mgr.FormatFolderNames(
+                                        [config.spam_folder_id], False)
+                if config.unsure_folder_id:
+                    unsure_name = self.mgr.FormatFolderNames(
+                                        [config.unsure_folder_id], False)
+                    unsure_text = "unsure managed in '%s'" % (unsure_name,)
                 else:
-                    filter_status = "You must define the folder to receive your possible spam"
+                    unsure_text = "unsure messages untouched"
             else:
-                filter_status = "You must define the folder to receive your certain spam"
-                
+                filter_status = "You must define the folder to " \
+                                "receive your certain spam"
+
             # whew
             if ok_to_enable:
-                watch_names = self.mgr.FormatFolderNames(config.watch_folder_ids, config.watch_include_sub)
-                filter_status = "Watching '%s'. Spam managed in '%s', unsure managed in '%s'" \
-                                % (watch_names, certain_spam_name, unsure_name)
+                watch_names = self.mgr.FormatFolderNames(
+                        config.watch_folder_ids, config.watch_include_sub)
+                filter_status = "Watching '%s'. Spam managed in '%s', %s" \
+                                % (watch_names,
+                                   certain_spam_name,
+                                   unsure_text)
 
         self.GetDlgItem(IDC_BUT_FILTER_ENABLE).EnableWindow(ok_to_enable)
         enabled = config.enabled
-        self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(ok_to_enable and enabled)
+        self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(
+                                                ok_to_enable and enabled)
         self.SetDlgItemText(IDC_FILTER_STATUS, filter_status)
 
     def OnButAbout(self, id, code):
         if code == win32con.BN_CLICKED:
 
-            fname = os.path.join(os.path.dirname(__file__), os.pardir, "about.html")
+            fname = os.path.join(os.path.dirname(__file__),
+                                 os.pardir,
+                                 "about.html")
             fname = os.path.abspath(fname)
             print fname
             if os.path.isfile(fname):
