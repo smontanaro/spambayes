@@ -1,0 +1,258 @@
+[Clues about the practice of statistical testing, adapted from Tim's
+ comments on python-dev.]
+
+Combining pairs of words is called "word bigrams".  My intuition at the
+start was that it would do better.  OTOH, my intuition also was that
+character n-grams for a relatively large n would do better still.  The
+latter may be so for "foreign" languages, but for this particular task using
+Graham's scheme on the c.l.py tests, turns out they sucked.  A comment block
+in timtest.py explains why.
+
+I didn't try word bigrams because the f-p rate is already supernaturally
+low, so there doesn't seem anything left to be gained there.  This echoes
+what Graham sez on his web page:
+
+    One idea that I haven't tried yet is to filter based on word pairs, or
+    even triples, rather than individual words.  This should yield a much
+    sharper estimate of the probability.
+
+My comment with benefit of hindsight:  it doesn't.  Because the scoring
+scheme throws away everything except about a dozen extremes, the
+"probabilities" that come out are almost always very near 0 or very near 1;
+only very short or (or especially "and") very bland msgs come out in
+between.  This outcome is largely independent of the tokenization scheme --
+the scoring scheme forces it, provided only that the tokenization scheme
+produces stuff *some* of which *does* vary in frequency between spam and
+ham.
+
+    For example, in my current database, the word "offers" has a
+    probability of .96. If you based the probabilities on word pairs, you'd
+    end up with "special offers" and "valuable offers" having probabilities
+    of .99 and, say, "approach offers" (as in "this approach offers")
+    having a probability of .1 or less.
+
+The theory is indeed appealing <wink>.
+
+    The reason I haven't done this is that filtering based on individual
+    words already works so well.
+
+Which is also the reason I didn't pursue it.
+
+    But it does mean that there is room to tighten the filters if spam gets
+    harder to detect.
+
+I expect it would also need a different scoring scheme then.
+
+OK, I ran a full test using word bigrams.  It gets one strike against it at
+the start because the database size grows by a factor between 2 and 3.
+That's only justified if the results are better.  Before-and-after f-p
+(false positive) percentages:
+
+   before   bigrams
+    0.000   0.025
+    0.000   0.025
+    0.050   0.050
+    0.000   0.025
+    0.025   0.050
+    0.025   0.100
+    0.050   0.075
+    0.025   0.025
+    0.025   0.050
+    0.000   0.025
+    0.075   0.050
+    0.050   0.000
+    0.025   0.050
+    0.000   0.025
+    0.050   0.075
+    0.025   0.025
+    0.025   0.025
+    0.000   0.000
+    0.025   0.050
+    0.050   0.025
+
+Lost on 12 runs
+Tied on  5 runs
+Won  on  3 runs
+
+total # of unique fps across all runs rose from 8 to 17
+
+The f-n percentages on the same runs:
+
+   before   bigrams
+    1.236   1.091
+    1.164   1.091
+    1.454   1.708
+    1.599   1.563
+    1.527   1.491
+    1.236   1.127
+    1.163   1.345
+    1.309   1.309
+    1.891   1.927
+    1.418   1.382
+    1.745   1.927
+    1.708   1.963
+    1.491   1.782
+    0.836   0.800
+    1.091   1.127
+    1.309   1.309
+    1.491   1.709
+    1.127   1.018
+    1.309   1.018
+    1.636   1.672
+
+Lost on  9 runs
+Tied on  2 runs
+Won  on  9 runs
+
+total # of unique fns across all runs rose from 336 to 350
+
+This doesn't need deep analysis:  it costs more, and on the face of it
+either doesn't help, or helps so little it's not worth the cost.
+
+Now I'll tell you in confidence <wink> that the way to make a scheme like
+this excellent is to keep your ego out of it and let the data *tell* you
+what works:  getting the best test setup you can is the most important thing
+you can possibly do.  It must include multiple training and test corpora
+(e.g., if I had used only one pair, I would have had a 3/20 chance of
+erroneously concluding that bigrams might help the f-p rate, when running
+across 20 pairs shows that they almost certainly do it harm; while I would
+have had an even chance of drawing a wrong conclusion-- in either direction
+--about the effect on the f-n rate).
+
+The second most important thing is to run a fat test all the way to the end
+before concluding anything.  A subtler point is that you should never keep
+a change that doesn't *prove* itself a winner:  neutral changes bloat your
+code with proven irrelevancies that will come back to make your life harder
+later, in part because they'll randomly interfere with future changes in
+ways that make it harder to recognize a significant change when you stumble
+into one.
+
+Most things you try won't help -- indeed, many of them will deliver worse
+results.  I dare say my intuition for this kind of classification task is
+better than most programmers' (in part because I had years of professional
+experience in a related field), and most of the things I tried I had to
+throw away.  BFD -- then you try something else.  When I find something
+that works I can rationalize it, but when I try something that doesn't, no
+amount of argument can change that the data said it sucked <wink>.
+
+Two things about *this* task have fooled me repeatedly:
+
+1. The "only look at smoking guns" nature of the scoring step makes many
+   kinds of "on average" intuitions worthless:  "on average" almost
+   everything is thrown away!  For example, you're not going to find bad
+   results reported for n-grams (neither character- nor word-based) in the
+   literature, and because most scoring schemes throw much less away.
+   Graham's scheme strikes me as brilliant in this specific respect:  it's
+   worth enduring the ego humiliation to get such a spectacularly
+   low f-p rate from such simple and fast code.  Graham's assumption
+   that the spam-vs-ham distinction should be *easy* pays off big.
+
+2. Most mailing-list messages are much shorter than this one.  This
+   systematically frustrates "well, averaged over enough words" intuitions
+   too.
+
+Cute:  In particular, word bigrams systematically hate conference
+announcements.  The current word one-gram scheme hated them too, until I
+started folding case.  Then their SCREAMING stopped acting against them.
+But they're still using the language of advertisement, and word bigrams
+can't help but notice that more strongly than individual words do.
+
+Here from the TOOLS Europe '99 announcement:
+
+prob('more information') = 0.916003
+prob('web site') = 0.895518
+prob('please write') = 0.99
+prob('you wish') = 0.984494
+prob('our web') = 0.985578
+prob('visit our') = 0.99
+
+Here from the XP2001 - FINAL CALL FOR PAPERS:
+
+prob('web site:') = 0.926174
+prob('receive this') = 0.945813
+prob('you receive') = 0.987542
+prob('most exciting') = 0.99
+prob('alberta, canada') = 0.99
+prob('e-mail to:') = 0.99
+
+Here from the XP2002 - CALL FOR PRACTITIONER'S REPORTS ('BOM' is an
+artificial token I made up for "beginning of message", to give something
+for the first word in the message to pair up with):
+
+prob('web site:') = 0.926174
+prob('this announcement') = 0.94359
+prob('receive this') = 0.945813
+prob('forward this') = 0.99
+prob('e-mail to:') = 0.99
+prob('BOM *****') = 0.99
+prob('you receive') = 0.987542
+
+Here from the TOOLS Europe 2000 announcement:
+
+prob('visit the') = 0.96
+prob('you receive') = 0.967805
+prob('accept our') = 0.99
+prob('our apologies') = 0.99
+prob('quality and') = 0.99
+prob('receive more') = 0.99
+prob('asia and') = 0.99
+
+A vanilla f-p showing where bigrams can hurt was a short msg about setting
+up a Python user's group.  Bigrams gave it large penalties for phrases like
+"fully functional" (most often seen in spams for bootleg software, but here
+applied to the proposed user group's web site -- and "web site" is also a
+strong spam indicator!).  OTOH, the poster also said "Aahz rocks".  As a
+bigram, that neither helped nor hurt (that 2-word phrase is unique in the
+corpus); but as an individual word, "Aahz" is a strong non-spam indicator
+on c.l.py (and will probably remain so until he starts spamming <wink>).
+
+It did find one spam hiding in a ham corpus:
+
+"""
+NNTP-Posting-Host: 212.64.45.236
+Newsgroups: comp.lang.python,comp.lang.rexx
+Date: Thu, 21 Oct 1999 10:18:52 -0700
+Message-ID: <67821AB23987D311ADB100A0241979E5396955@news.ykm.com>
+From: znblrn@hetronet.com
+Subject: Rudolph The Rednose Hooters Here
+Lines: 4
+Path: news!uunet!ffx.uu.net!newsfeed.fast.net!howland.erols.net!newsfeed.cwix.com!news.cfw.com!paxfeed.eni.net!DAIPUB.DataAssociatesInc..com
+Xref: news comp.lang.python:74468 comp.lang.rexx:31946
+To: python-list@python.org
+
+THis IS it: The site where they talk about when you are 50 years old.
+
+http://huizen.dds.nl/~jansen20
+"""
+
+there's-no-substitute-for-experiment-except-drugs-ly y'rs  - tim
+
+
+
+Other points:
+
++ Something I didn't do but should have:  keep a detailed log of every
+  experiment run, and of the results you got.  The only clues about dozens
+  of experiments with the current code are in brief "XXX" comment blocks,
+  and a bunch of test results were lost when we dropped the old checkin
+  comments on the way to moving this code to SourceForge.
+
++ Every time you check in an algorithmic change that proved to be a
+  winner, in theory you should also reconsider every previous change.
+  You really can't guess whether, e.g., tokenization changes are all
+  independent of each other, or whether some reinforce others in
+  helpful ways.  In practice there's not enough time to reconsider
+  everything every time, but do make a habit of reconsidering *something*
+  each time you've had a success.  Nothing is sacred except the results
+  in the end, and heresy can pay; every decision remains suspect forever.
+
++ Any sufficiently general scheme with enough free parameters can eventually
+  be trained to recognize any specific dataset exactly.  It's wonderful
+  if other people test your changes against other datasets too.  That's
+  hard to arrange, so at least change your own data periodically.  I'm
+  suspicious that some of the weirder "proven winner" changes I've made
+  are really specific to statistical anomalies in my test data; and as
+  the error rates get closer to 0%, the chance that a winning change helped
+  only a few specific msgs zooms (of course sometimes that's intentional!
+  I haven't been shy about adding changes specifically geared toward
+  squahsing very narrow classes of false positives).
