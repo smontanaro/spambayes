@@ -26,10 +26,15 @@ Tester.py
     instance, and keeps track of right/wrong percentages, and lists
     of false positives and false negatives.
 
+timtoken.py
+    Am implementation of tokenize() that Tim can't seem to help but keep
+    working on <wink>.
+
 timtest.py
-    A concrete test driver and tokenizer that uses Tester and
-    classifier (above).  This assumes "a standard" test data setup
-    (see below).  Could stand massive refactoring.
+    A concrete test driver that uses Tester and classifier (above).  This
+    assumes "a standard" test data setup (see below).  Could stand massive
+    refactoring.  You need to fiddle a line near the top to import a
+    tokenize() function of your choosing.
 
 GBayes.py
     A number of tokenizers and a partial test driver.  This assumes
