@@ -439,9 +439,11 @@ What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
 To our knowledge, the current version of the plug-in should work with
-Windows 95 and above and Outlook 2000 or above. The `troubleshooting guide`_
-for the Outlook plugin contains the most up-to-date help for working around
-known problems.
+Windows 98 and above and Outlook 2000 or above.  You may be able to get the
+plug-in to work with Windows 95 if you install the most recent version of
+Internet Explorer possible, but we are not certain about this.  The
+`troubleshooting guide`_ for the Outlook plugin contains the most
+up-to-date help for working around known problems.
 
 .. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html
 
