@@ -719,9 +719,10 @@ class IMAPMessage(message.SBHeaderMessage):
 
 
 class IMAPFolder(object):
-    def __init__(self, folder_name, imap_server):
+    def __init__(self, folder_name, imap_server, stats):
         self.name = folder_name
         self.imap_server = imap_server
+        self.stats = stats
 
         # Unique names for cached messages - see _generate_id below.
         self.lastBaseMessageName = ''
@@ -837,11 +838,17 @@ class IMAPFolder(object):
                     continue
                 msg.delSBHeaders()
                 classifier.unlearn(msg.tokenize(), not isSpam)
+                if isSpam:
+                    old_class = options["Headers", "header_ham_string"]
+                else:
+                    old_class = options["Headers", "header_spam_string"]
 
                 # Once the message has been untrained, it's training memory
                 # should reflect that on the off chance that for some
                 # reason the training breaks.
                 msg.RememberTrained(None)
+            else:
+                old_class = None
 
             if msg.GetTrained() is None:
                 msg = msg.get_full_message()
@@ -852,6 +859,7 @@ class IMAPFolder(object):
                 classifier.learn(msg.tokenize(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
+                self.stats.RecordTraining(not isSpam, old_class=old_class)
                 if isSpam:
                     move_opt_name = "move_trained_spam_to_folder"
                 else:
@@ -861,7 +869,7 @@ class IMAPFolder(object):
                     for header, value in saved_headers.items():
                         msg[header] = value
                     msg.MoveTo(IMAPFolder(options["imap", move_opt_name],
-                                           self.imap_server))
+                                           self.imap_server, self.stats))
                     msg.Save()
         return num_trained
 
@@ -885,6 +893,7 @@ class IMAPFolder(object):
                 # Add headers and remember classification.
                 msg.delSBHeaders()
                 msg.addSBHeaders(prob, clues)
+                self.stats.RecordClassification(prob)
 
                 cls = msg.GetClassification()
                 if cls == options["Headers", "header_ham_string"]:
@@ -903,12 +912,13 @@ class IMAPFolder(object):
 
 
 class IMAPFilter(object):
-    def __init__(self, classifier):
+    def __init__(self, classifier, stats):
         self.spam_folder = None
         self.unsure_folder = None
         self.ham_folder = None
         self.classifier = classifier
         self.imap_server = None
+        self.stats = stats
 
     def Train(self):
         assert self.imap_server, "Cannot do anything without IMAP server."
@@ -931,7 +941,7 @@ class IMAPFilter(object):
                 if options['globals', 'verbose']:
                     print "   Training %s folder %s" % \
                           (["ham", "spam"][is_spam], fol)
-                folder = IMAPFolder(fol, self.imap_server)
+                folder = IMAPFolder(fol, self.imap_server, self.stats)
                 num_trained = folder.Train(self.classifier, is_spam)
                 total_trained += num_trained
                 if options['globals', 'verbose']:
@@ -948,14 +958,15 @@ class IMAPFilter(object):
         assert self.imap_server, "Cannot do anything without IMAP server."
         if not self.spam_folder:
             self.spam_folder = IMAPFolder(options["imap", "spam_folder"],
-                                          self.imap_server)
+                                          self.imap_server, self.stats)
         if not self.unsure_folder:
             self.unsure_folder = IMAPFolder(options["imap",
                                                     "unsure_folder"],
-                                            self.imap_server)
+                                            self.imap_server, self.stats)
         ham_folder_name = options["imap", "ham_folder"]
         if ham_folder_name and not self.ham_folder:
-            self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server)
+            self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server,
+                                         self.stats)
 
         if options["globals", "verbose"]:
             t = time.time()
@@ -991,7 +1002,7 @@ class IMAPFilter(object):
                 print "Cannot select %s, skipping." % (filter_folder,)
                 continue
 
-            folder = IMAPFolder(filter_folder, self.imap_server)
+            folder = IMAPFolder(filter_folder, self.imap_server, self.stats)
             subcount = folder.Filter(self.classifier, self.spam_folder,
                                      self.unsure_folder, self.ham_folder)
             for key in count.keys():
@@ -1089,7 +1100,10 @@ def run(force_UI=False):
                 port = 143
         servers_data.append((server, port, username, password))
 
-    imap_filter = IMAPFilter(classifier)
+    # Load stats manager.
+    stats = Stats.Stats(options, message_db)
+    
+    imap_filter = IMAPFilter(classifier, stats)
 
     # Web interface.  We have changed the rules about this many times.
     # With 1.0.x, the rule is that the interface is served if we are
@@ -1111,9 +1125,6 @@ def run(force_UI=False):
             else:
                 imaps.append(IMAPSession(server, port, imapDebug, doExpunge))
 
-        # Load stats manager.
-        stats = Stats.Stats(options, message_db)
-        
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imaps, pwds,
                                               IMAPSession, stats=stats))
