@@ -527,11 +527,11 @@ class OptionsClass(object):
                 option = opt
                 if not self._options.has_key((section, option)):
                     if option.startswith('x-'):
-                        # try setting option without the x- prefix
+                        # try setting option without the X- prefix
                         option = option[2:]
                         if self._options.has_key((section, option)):
                             self.convert_and_set(section, option, value)
-                        # not an error if an x- option is missing
+                        # not an error if an X- option is missing
                     else:
                         option = 'x-'+option
                         # going the other way, if the option has been

@@ -136,12 +136,12 @@ defaults = {
      triggers a skip.""",
      INTEGER, RESTORE),
 
-    ("X-generate_time_buckets", "Generate time buckets", False,
+    ("x-generate_time_buckets", "Generate time buckets", False,
      """(DEPRECATED) Generate tokens which resemble the posting time
      in 10-minute buckets:  'time:'  hour  ':'  minute//10""",
      BOOLEAN, RESTORE),
 
-    ("X-extract_dow", "Extract day-of-week", False,
+    ("x-extract_dow", "Extract day-of-week", False,
      """(DEPRECATED) Extract day of the week tokens from the Date: header.""",
      BOOLEAN, RESTORE),
 
