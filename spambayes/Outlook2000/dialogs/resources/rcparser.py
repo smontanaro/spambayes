@@ -258,7 +258,10 @@ class RCParser:
                 if self.token in win32con.__dict__:
                     value = getattr(win32con,self.token)
                 else:
-                    value = getattr(commctrl,self.token)
+                    if self.token in commctrl.__dict__:
+                        value = getattr(commctrl,self.token)
+                    else:
+                        value = 0
                 if Not:
                     list.append("NOT "+self.token)
                     self.debug("styles add Not",self.token, value)
