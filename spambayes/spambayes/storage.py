@@ -184,7 +184,7 @@ class DBDictClassifier(classifier.Classifier):
         # changed_words could mess us up a little.  Possibly a little
         # lock while we copy and reset self.changed_words would be appropriate.
         # For now, just do it the naive way.
-        for key, flag in self.changed_words.items():
+        for key, flag in self.changed_words.iteritems():
             if flag is WORD_CHANGED:
                 val = self.wordinfo[key]
                 self.db[key] = val.__getstate__()
