@@ -308,7 +308,7 @@ class IMAPFolder(object):
                 msg.Save()
             
 class IMAPFilter(object):
-    def __init__(self, classifier, debug):
+    def __init__(self, classifier):
         self.spam_folder = IMAPFolder(options.imap_spam_folder)
         self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
 
@@ -420,7 +420,7 @@ if __name__ == '__main__':
     imap = IMAPSession(options.imap_server, options.imap_port, \
                        imapDebug)
 
-    imap_filter = IMAPFilter(classifier, imapDebug)
+    imap_filter = IMAPFilter(classifier)
 
     while True:
         imap.login(options.imap_username, pwd)
