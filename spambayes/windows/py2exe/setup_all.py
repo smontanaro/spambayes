@@ -37,7 +37,8 @@ py2exe_options = Options(
     packages = "spambayes.resources,encodings",
     excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
     includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
-    dll_excludes = ["dapi.dll", "mapi32.dll"]
+    dll_excludes = ["dapi.dll", "mapi32.dll"],
+    lib_dir = "lib",
 )
 
 # These must be the same IDs as in the dialogs.  We really should just extract
@@ -46,12 +47,15 @@ outlook_bmp_resources = [
     ( 125, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sbwizlogo.bmp")),
     ( 127, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\folders.bmp")),
     (1062, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp")),
+    # and these are currently hard-coded in addin.py
+    (6000, os.path.join(sb_top_dir, r"Outlook2000\images\recover_ham.bmp")),
+    (6001, os.path.join(sb_top_dir, r"Outlook2000\images\delete_as_spam.bmp")),
 ]
 
 # These are just objects passed to py2exe
 outlook_addin = Options(
     modules = ["addin"],
-    dest_base = "spambayes_addin",
+    dest_base = "outlook/spambayes_addin",
     bitmap_resources = outlook_bmp_resources,
     create_exe = False,
 )
@@ -61,20 +65,29 @@ outlook_addin = Options(
 #)
 outlook_dump_props = Options(
     script = os.path.join(sb_top_dir, r"Outlook2000\sandbox\dump_props.py"),
-    dest_base = "outlook_dump_props",
+    dest_base = "outlook/outlook_dump_props",
 )
 
 service = Options(
+    dest_base = "proxy/pop3proxy_service",
     modules = ["pop3proxy_service"]
 )
 sb_server = Options(
+    dest_base = "proxy/sb_server",
     script = os.path.join(sb_top_dir, "scripts", "sb_server.py")
 )
 pop3proxy_tray = Options(
+    dest_base = "proxy/pop3proxy_tray",
     script = os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py"),
     icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
+
+outlook_doc_files = [
+    ["outlook", [os.path.join(sb_top_dir, r"Outlook2000\about.html")]],
+    ["outlook/docs", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\*.html"))],
+    ["outlook/docs/images", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\images\*.jpg"))],
+]
 
 # Default and only distutils command is "py2exe" - save adding it to the
 # command line every single time.
@@ -91,4 +104,6 @@ setup(name="SpamBayes",
       console=[sb_server, outlook_dump_props],
       # The taskbar
       windows=[pop3proxy_tray],
+      # and the misc data files
+      data_files = outlook_doc_files,
 )
