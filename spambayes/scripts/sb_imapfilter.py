@@ -81,7 +81,6 @@ import os
 import re
 import time
 import sys
-import hmac
 import getopt
 import types
 import thread
@@ -194,22 +193,12 @@ class IMAPSession(BaseIMAP):
         self.sock.setblocking(True)
         return "".join(buffer)
 
-    def authenticate_cram_md5(self, username, pwd):
-        """Authenticate (login) with CRAM-MD5.
-
-        See RFC 2195 and SpamBayes patch #1169939
-        """
-        def cram_md5(response):
-            return " ".join([username,
-                             hmac.HMAC(pwd, response).hexdigest()])
-        self.authenticate('CRAM-MD5', cram_md5)
-
     def login(self, username, pwd):
         """Log in to the IMAP server, catching invalid username/password."""
         assert self.connected, "Must be connected before logging in."
         try:
             if 'AUTH=CRAM-MD5' in self.capabilities:
-                self.authenticate_cram_md5(username, pwd)
+                self.login_cram_md5(username, pwd)
             else:
                 BaseIMAP.login(self, username, pwd)  # superclass login
         except BaseIMAP.error, e:
@@ -585,10 +574,13 @@ class IMAPMessage(message.SBHeaderMessage):
         # Basically the same as the parent class's except that we handle
         # the case where the data was unparsable, so we haven't done any
         # filtering, and we are not actually a proper email.Message object.
+        # We also don't mangle the from line; the server must take care of
+        # this.
         if self.invalid:
             return self._force_CRLF(self.invalid_content)
         else:
-            return message.SBHeaderMessage.as_string(self, unixfrom)
+            return message.SBHeaderMessage.as_string(self, unixfrom,
+                                                     mangle_from_=False)
 
     recent_re = re.compile(r"\\Recent ?| ?\\Recent")
     def Save(self):
