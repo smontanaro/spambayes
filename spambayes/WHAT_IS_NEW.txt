@@ -1,5 +1,5 @@
 This file covers the major changes between each release.  For more details,
-the reader is referred to the changelog (changelog.txt in the main directory
+the reader is referred to the changelog (CHANGELOG.TXT in the main directory
 of the archive), or for extreme details, to the check-ins archive (see
 <http://mail.python.org/pipermail/spambayes-checkins>)
                                                                    
@@ -7,7 +7,8 @@ Changes are broken into sections, so that it's easier for you to find the
 changes that are relevant to you.
 
 Any actions necessary to move to this release from the previous release are
-noted in the "Transition" section.
+noted in the "Transition" section.  You should also read the "Incompatible
+changes" section.
 
 New in Alpha Release 9
 ======================
@@ -54,7 +55,7 @@ should hopefully make things clearer when discussing the various versions.
    MySQL or PostgrepSQL should be used for the database ("mysql::" and
    "pgsql::") has been removed.  These are now set like any other database
    type, using the persistent_use_database option (these cannot be set via
-   the command line).
+   the command line, apart from with the generic -o option).
    
 There should be no other incompatible changes (from 1.0a7) in this release.
 
@@ -93,6 +94,10 @@ Outlook Plugin
  o Add Spam field to unsure and empty folders.
  o Fix things so that the plug-in should better appear in the "COM Addins"
    list when running the binary version.
+ o Add a warning when the Spam/Unsure folder cannot be found, with a
+   suggestion about how this might have happened, and what to do about it.
+ o Fix log message that indicated that timer delay values are in milliseconds
+   (they are in seconds).
 
 POP3 Proxy / SMTP Proxy
 -----------------------
@@ -147,6 +152,8 @@ IMAP Filter
  o If sb_imapfilter.py is run without any switches, just serve the web
    interface (but don't launch a browser).
  o Ignore errors that occur when parsing a message.
+ o Under certain circumstances, the fitler would add two identical
+   SpamBayes ID headers; this is no longer the case.
 
 sb_filter
 ---------
@@ -189,7 +196,11 @@ Tokenizer
 
 General
 -------
+ o sb_mboxtrain.py now preserves modtimes in Maildir and MH mailboxes.
+ o loosecksum.py now allows multiple mailboxes on the command line.
  o Option names are always case insensitive, no matter what.
+ o All scripts can use a new "-o" option, to set artibrary global options
+   from the command line (instead of via a configuration file).
  o Non-absolute file/path options are relative to the last configuration
    file loaded, not the current working directory, as previously.
  o Moved the option loading code to a function.
@@ -211,6 +222,8 @@ General
    messages in your training database which contain interesting tokens.
  o New script: hammer.py: Hammers the core SpamBayes code, repeatedly
    training and classifying using faked-up messages.
+ o New script: findbest.py, to find the next 'best' unsure message to train
+   on.
  o Previous releases have included the sb_pop3dnd.py script (once named
    sb_overkill.py).  With this release, this script should be fully
    usable.  It provides the same POP3 proxy as sb_server, but also
@@ -239,7 +252,7 @@ Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
 818871, 833439, 803798, 787676, 860410, 856628, 859215, 856141, 842984,
-872044, 805852, 874784
+872044, 805852, 874784, 824628, 890645, 870799, 881427
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -260,7 +273,7 @@ Patches integrated
 ===================
 The following patches tracked via the Sourceforge system were integrated
 for this release.
-842464, 831388, 809008, 831388
+842464, 831388, 809008, 831388, 857595, 857597, 861656
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:
@@ -346,3 +359,8 @@ The following experimental options have been added in this release:
 
   o [Tokenizer] x-pick_apart_urls
     Pick out some semantic bits from URLs.
+
+  o [Tokenizer] x-fancy_url_recognition
+    Recognize 'abbreviated' URLs of the form www.xyz.com or ftp.xyz.com as
+    http://www.xyz.com and ftp://ftp.xyz.com, respectively.  This gets rid
+    of some fairly common "skip:w NNN" tokens.

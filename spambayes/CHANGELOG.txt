@@ -1,9 +1,22 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
-Alpha Release 8
+Alpha Release 9
 ===============
+Tony Meyer        05/02/2004  Make all the scripts consistent in their command line setting of database type/name.  -d is dbm, -p is pickle.  Also setup things nicer for mysql and pgsql.
+Tony Meyer        05/02/2004  If the allowed values for an option is a tuple of values, then the type is correct if the value is one of those types. 
+Tony Meyer        05/02/2004  Outlook: If the special folders can't be found, then report this to the user.
+Tony Meyer        05/02/2004  ProxyUI: Do the save one line earlier, which might mean that if the user has closed the browser, a db error is avoided.
+Tony Meyer        05/02/2004  imapfilter has been adding two mailid headers, so stop that.
+Tony Meyer        05/02/2004  Fix [ 890645 ] imapfilter: "ValueError: year out of range"
+Skip Montanaro    30/01/2004  Recognize "abbreviated" URLs of the form www.xyz.com or ftp.xyz.com as http://www.xyz.com and ftp://ftp.xyz.com, respectively.  This gets rid of some fairly common "skip:w NNN" tokens. Enabled by the new tokenizer option, x-fancy_url_recognition.
 Skip Montanaro    29/01/2004  sb_mboxtrain.py: preserve modtimes in Maildir & MH mailboxes
+Tony Meyer        27/01/2004  Fix [ 870799 ] imap trying to fetch invalid message UID
+Tony Meyer        27/01/2004  Fix [ 881427 ] sb_mboxtrain.py requires -d or -D
+Tony Meyer        27/01/2004  Add options to ImapUI that the ProxyUI has, and also belong there.
+Kenny Pitt        22/01/2004  Outlook: Fix confusing error log message.  Timer delay values are configured in seconds, not milliseconds.
 Skip Montanaro    21/01/2004  added findbest.py to contrib/
+Skip Montanaro    15/01/2004  loosecksum.py: allow multiple mailboxes on the command line, not just a single message on stdin or a file containing one message
+Skip Montanaro    15/01/2004  Add -o option to allow users to set arbitrary global options from the command line to dbexpimp, imapfilter, mboxtrain, notesfilter, pop3dnd, server, upload, xmlrpcserver.
 Tony Meyer        13/01/2004  Fix [ 874784 ] Error in onReview code
 Skip Montanaro    13/01/2004  UserInterface: Split digest auth info properly.  Simple split-on-comma fails if the uri contains commas.
 Barry A. Warsaw   13/01/2004  imapfilter: Catch and ignore MessageParseErrors when parsing the data['RFC822'] text.
@@ -16,9 +29,9 @@ Tony Meyer        11/01/2004  mkgraph.py: Add a docstring.
 Tony Meyer        11/01/2004  mkgraph.py: Add -f command line arg to pass a filename rather than reading from stdin (which is still the default)
 Tony Meyer        11/01/2004  mkgraph.py: Add a training_is_ham line to the error graph which shows the percentage of training data that is ham (i.e. shows the imbalance).
 Tony Meyer        11/01/2004  mkgraph.py: Modify the outputing so that it can be in different formats for those of us without plotmtv.  The -c command line option outputs all the lines in the same set of rows, rather than in their own set as is the default.  The -s arg specifies the separator for this sort of output (defaults to a comma, so that csv files are output).
-Tony Meyer        11/01/2003  incremental.py: Add a docstring and the ability to print it with -h or --help to incremental.py
-Tony Meyer        11/01/2003  regimes.py: Add a docstring that outlines the various regimes in hopefully easy to understand terms. Print this out if regimes.py is executed.
-Tony Meyer        11/01/2003  regimes.py: Add a new regime - balanced_corrected.
+Tony Meyer        11/01/2004  incremental.py: Add a docstring and the ability to print it with -h or --help to incremental.py
+Tony Meyer        11/01/2004  regimes.py: Add a docstring that outlines the various regimes in hopefully easy to understand terms. Print this out if regimes.py is executed.
+Tony Meyer        11/01/2004  regimes.py: Add a new regime - balanced_corrected.
 Tony Meyer        08/01/2004  Fix [ 805852 ] need python-dev package on Debian
 Skip Montanaro    08/01/2004  table.py: space the table out a little more.
 Skip Montanaro    07/01/2004  mkreversemap.py: New script which generates a pickle file mapping features to mailbox files and message-id's.  Use with extractmessages.py.
@@ -163,6 +176,10 @@ Tony Meyer        20/09/2003  Consolidate some of the many message classes - in 
 Tony Meyer        20/09/2003  Improve the 'Find Message' query on the front page of the web UI.
 Tony Meyer        20/09/2003  Add an advanced word query to the web UI.
 Tony Meyer        20/09/2003  Make the review messages page on the web UI more customizable.
+
+Alpha Release 8
+===============
+There is no Alpha Release 8.
 
 Alpha Release 7
 ===============
