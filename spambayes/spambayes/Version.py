@@ -73,9 +73,9 @@ versions = {
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "IMAP Filter" : {
-            "Version":          0.3,
+            "Version":          0.4,
             "Description":      "SpamBayes IMAP Filter",
-            "Date":             "April 2004",
+            "Date":             "May 2004",
             "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
         },
         "IMAP Server" : {
