@@ -1477,6 +1477,20 @@ list asking for help - with any many details as possible, including what
 you have already tried.
 
 
+When viewing the sb_server review page, my computer becomes unresponsive.
+-------------------------------------------------------------------------
+
+Are you using ZoneAlarm?  There is a known issue with version 5.x of
+ZoneAlarm (specificially its TrueVector service) that causes problems with
+the SpamBayes review page.  We're told that the ZoneAlarm technical support
+people recommend a clean uninstall of ZoneAlarm and reverting to version
+4.5.594.000 of ZoneAlarm, which works fine with SpamBayes.
+
+We're also told that ZoneAlarm are aware of the issue with their 5.x
+release and were working on it, but that it might be the next release before
+they have it solved. 
+
+
 Development
 ===========
 
