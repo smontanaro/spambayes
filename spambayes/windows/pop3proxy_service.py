@@ -20,7 +20,17 @@ import sys, os
 # We are in the 'spambayes\win32' directory.  We
 # need the parent on sys.path, so 'spambayes.spambayes' is a package,
 # and 'pop3proxy' is a module
-sb_dir = os.path.dirname(os.path.dirname(__file__))
+try:
+    # module imported by service manager, or 2.3 (in which __main__
+    # exists, *and* sys.argv[0] is always already absolute)
+    this_filename=__file__
+except NameError:
+    # Python 2.3 __main__
+    # patch up sys.argv, as our cwd will confuse service registration code
+    sys.argv[0] = os.path.abspath(sys.argv[0])
+    this_filename = sys.argv[0]
+
+sb_dir = os.path.dirname(os.path.dirname(this_filename))
 
 sys.path.insert(0, sb_dir)
 # and change directory here, so pop3proxy uses the default
