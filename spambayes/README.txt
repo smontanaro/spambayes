@@ -128,6 +128,11 @@ You should be able to create a mail folder called "Spam" and set up a
 filtering rule that puts emails with an "X-Spambayes-Classification: spam"
 header into that folder.
 
+Note that if you set your mail client to delete the mail without
+downloading the whole message (like Outlook Express's "delete from server"
+rule) that you may not get accurate results - the classification will
+be based on the headers only, not the body.  This is not recommended.
+
 
 IMAP Filter
 -----------
