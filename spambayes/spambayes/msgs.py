@@ -45,26 +45,13 @@ class Msg(object):
 class MsgStream(object):
     __slots__ = 'tag', 'directories', 'keep'
 
-    def __init__(self, tag, directories, keep=None, use=None):
+    def __init__(self, tag, directories, keep=None):
         self.tag = tag
         self.directories = directories
         self.keep = keep
-        self.use = use
 
     def __str__(self):
         return self.tag
-
-    def __len__(self):
-        """Number of messages in the stream, which is the number
-        of files in the directory."""
-        files = []
-        for directory in self.directories:
-            files.extend(os.listdir(directory))
-        if self.keep is not None:
-            del files[self.keep:]
-        elif self.use is not None:
-            files = files[self.use[0]:self.use[1]]
-        return len(files)
 
     def produce(self):
         if self.keep is None:
@@ -79,10 +66,7 @@ class MsgStream(object):
             all = os.listdir(directory)
             random.seed(hash(max(all)) ^ SEED) # reproducible across calls
             random.shuffle(all)
-            if self.use is None:
-                del all[self.keep:]
-            else:
-                all = all[self.use[0]:self.use[1]]
+            del all[self.keep:]
             all.sort()  # seems to speed access on Win98!
             for fname in all:
                 yield Msg(directory, fname)
