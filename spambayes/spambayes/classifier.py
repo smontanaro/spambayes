@@ -56,6 +56,12 @@ import pickle
 import urllib2
 from email import message_from_string
 
+try:
+    enumerate
+except NameError:
+    def enumerate(seq):
+        return zip(range(len(seq)), seq)
+
 DOMAIN_AND_PORT_RE = re.compile(r"([^:/\\]+)(:([\d]+))?")
 HTTP_ERROR_RE = re.compile(r"HTTP Error ([\d]+)")
 URL_KEY_RE = re.compile(r"[\W]")
