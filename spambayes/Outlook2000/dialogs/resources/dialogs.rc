@@ -229,9 +229,9 @@ EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "Configuration cancelled",IDC_STATIC,20,4,247,14
-    LTEXT           "SpamBayes has not been configured, and will be disabled until you configure it manually",
-                    IDC_STATIC,20,57,247,16
-    LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,113,
+    LTEXT           "The main SpamBayes options will now be displayed.  You must define your folders and enable SpamBayes before it will begin filtering mail.",
+                    IDC_STATIC,20,29,247,16
+    LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,139,
                     148,9
 END
 
@@ -284,6 +284,47 @@ BEGIN
                     IDC_STATIC,20,68,249,30
     LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,104,
                     148,9
+END
+
+IDD_WIZARD_TRAINING_IS_IMPORTANT DIALOGEX 0, 0, 284, 162
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x0
+BEGIN
+    LTEXT           "SpamBayes will not be effective until it is trained",
+                    IDC_STATIC,11,8,191,14
+    PUSHBUTTON      "About...",IDC_STATIC,214,140,60,15
+    LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no builtin rules, so must have some training information before it will be effective",
+                    IDC_STATIC,11,21,263,30
+    LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Delete as Spam' and 'Recover from Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
+                    IDC_STATIC,22,61,252,29
+    LTEXT           "This option will close the wizard, and provide instructions how to sort your mail.  You will then be able to configure SpamBayes and have it be immediately effective at filtering your mail",
+                    IDC_STATIC,22,106,252,27
+    LTEXT           "For more information on training, click the About button.",
+                    IDC_STATIC,11,143,187,12
+    CONTROL         "I want to continue without training, and let SpamBayes learn as it goes",
+                    IDC_BUT_UNTRAINED,"Button",BS_AUTORADIOBUTTON | WS_GROUP,
+                    11,50,263,11
+    CONTROL         "I will pre-sort some good and spam messages, and configure SpamBayes later",
+                    IDC_BUT_TRAIN,"Button",BS_AUTORADIOBUTTON,11,92,263,11
+END
+
+IDD_WIZARD_FINISHED_TRAIN_LATER DIALOGEX 0, 0, 284, 162
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x0
+BEGIN
+    LTEXT           "Configuration suspended",IDC_STATIC,20,4,247,14
+    LTEXT           "To perform initial training, you should create a folder that contains only examples of good messages, and another that contains only examples of spam.",
+                    IDC_STATIC,20,17,247,27
+    LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,145,
+                    148,9
+    LTEXT           "For examples of good messages, you may like to use your Inbox - however, it is important you remove all spam from this folder before you commence training.  If you have too much spam in your Inbox, you may like to create a temporary folder and copy some examples to it.",
+                    IDC_STATIC,20,46,247,35
+    LTEXT           "For examples of spam messages, you may like to look through your Deleted Items folder, and your Inbox.  However, you will not be able to specify the Deleted Items folder as examples of spam, so you will need to move them to a folder you create.",
+                    IDC_STATIC,20,82,247,35
+    LTEXT           "When you are finished, open the SpamBayes Manager via the SpamBayes toobar, and re-start the Configuration Wizard.",
+                    IDC_STATIC,20,121,245,17
 END
 
 
@@ -384,6 +425,20 @@ BEGIN
         VERTGUIDE, 20
         BOTTOMMARGIN, 161
     END
+
+    IDD_WIZARD_TRAINING_IS_IMPORTANT, DIALOG
+    BEGIN
+        VERTGUIDE, 11
+        VERTGUIDE, 22
+        VERTGUIDE, 274
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FINISHED_TRAIN_LATER, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -429,8 +484,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,6,174,97,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
                     IDC_FILTER_STATUS,6,148,242,19,SS_SUNKEN
-    PUSHBUTTON      "Reset Configuration...",IDC_BUTTON2,6,190,84,15
-    PUSHBUTTON      "Configuration Wizard...",IDC_BUTTON1,164,190,84,15
+    PUSHBUTTON      "Reset Configuration...",IDC_BUT_RESET,6,190,84,15
+    PUSHBUTTON      "Configuration Wizard...",IDC_BUT_WIZARD,164,190,84,15
     LTEXT           "Filtering Status",IDC_STATIC,6,138,222,8
     CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
                     SS_REALSIZEIMAGE,0,2,275,52

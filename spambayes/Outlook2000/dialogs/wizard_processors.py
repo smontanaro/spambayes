@@ -175,14 +175,19 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
         print "GetNextPage with current", index, id
         if id == 'IDD_WIZARD_WELCOME':
             # Welcome page
-            if config.wizard.preparation == 0:
-                return "IDD_WIZARD_FOLDERS_WATCH"
+            if config.wizard.preparation == 0: # unprepared
+                return "IDD_WIZARD_TRAINING_IS_IMPORTANT"
             elif config.wizard.preparation == 1: # pre-prepared.
                 return "IDD_WIZARD_FOLDERS_TRAIN"
             elif config.wizard.preparation == 2: # configure manually
                 return "IDD_WIZARD_FINISHED_UNCONFIGURED"
             else:
                 assert 0, "oops"
+        elif id == 'IDD_WIZARD_TRAINING_IS_IMPORTANT':
+            if config.wizard.will_train_later:
+                # user wants to pre-sort and configure later.
+                return 'IDD_WIZARD_FINISHED_TRAIN_LATER'
+            return 'IDD_WIZARD_FOLDERS_WATCH'
         elif id == 'IDD_WIZARD_FOLDERS_TRAIN':
             return 'IDD_WIZARD_TRAIN'
         elif id == 'IDD_WIZARD_TRAIN':

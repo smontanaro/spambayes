@@ -6,7 +6,7 @@ from processors import *
 from opt_processors import *
 import wizard_processors as wiz
 
-from dialogs import ShowDialog, MakePropertyPage
+from dialogs import ShowDialog, MakePropertyPage, ShowWizard
 
 try:
     enumerate
@@ -230,7 +230,7 @@ class DialogCommand(ButtonProcessor):
         ButtonProcessor.__init__(self, window, control_ids)
     def OnClicked(self, id):
         parent = self.window.hwnd
-        # Thos form and the other form may "share" options, or at least
+        # This form and the other form may "share" options, or at least
         # depend on others.  So we must save the current form back to the
         # options object, display the new dialog, then reload the current
         # form from the options object/
@@ -241,6 +241,7 @@ class DialogCommand(ButtonProcessor):
     def GetPopupHelpText(self, id):
         dd = self.window.manager.dialog_parser.dialogs[self.idd]
         return "Displays the %s dialog" % dd.caption
+
 class HiddenDialogCommand(DialogCommand):
     def __init__(self, window, control_ids, idd):
         DialogCommand.__init__(self, window, control_ids, idd)
@@ -255,6 +256,29 @@ class HiddenDialogCommand(DialogCommand):
     def GetPopupHelpText(self, id):
         return "Nothing to see here."
 
+class ShowWizardCommand(DialogCommand):
+    def OnClicked(self, id):
+        import win32con
+        existing = self.window
+        manager = self.window.manager
+        # Kill the main dialog - but first have to find it!
+        dlg = self.window.hwnd
+        while dlg:
+            style = win32api.GetWindowLong(dlg, win32con.GWL_STYLE)
+            if not style & win32con.WS_CHILD:
+                break
+            dlg = win32gui.GetParent(dlg)
+        else:
+            assert 0, "no parent!"
+
+        try:
+            parent = win32gui.GetParent(dlg)
+        except win32gui.error:
+            parent = 0 # no parent
+        win32gui.EndDialog(dlg, win32con.IDOK)
+        # And show the wizard.
+        ShowWizard(parent, manager, self.idd, use_existing_config = True)
+    
 def WizardFinish(mgr, window):
     print "Wizard Done!"
 
@@ -332,6 +356,7 @@ dialog_map = {
         (DialogCommand,           "IDC_BUT_FILTER_DEFINE", "IDD_FILTER"),
         (DialogCommand,           "IDC_BUT_TRAIN_NOW", "IDD_TRAINING"),
         (DialogCommand,           "IDC_ADVANCED_BTN", "IDD_ADVANCED"),
+        (ShowWizardCommand,       "IDC_BUT_WIZARD", "IDD_WIZARD"),
         ),
     "IDD_FILTER_NOW" : (
         (BoolButtonProcessor,     "IDC_BUT_UNREAD",    "Filter_Now.only_unread"),
@@ -406,8 +431,9 @@ dialog_map = {
         (wiz.ConfigureWizardProcessor, "IDC_FORWARD_BTN IDC_BACK_BTN IDC_PAGE_PLACEHOLDER",
          """IDD_WIZARD_WELCOME IDD_WIZARD_FOLDERS_WATCH IDD_WIZARD_FOLDERS_REST
          IDD_WIZARD_FOLDERS_TRAIN IDD_WIZARD_TRAIN
+         IDD_WIZARD_TRAINING_IS_IMPORTANT
          IDD_WIZARD_FINISHED_UNCONFIGURED IDD_WIZARD_FINISHED_UNTRAINED
-         IDD_WIZARD_FINISHED_TRAINED
+         IDD_WIZARD_FINISHED_TRAINED IDD_WIZARD_FINISHED_TRAIN_LATER
          """,
          WizardFinish),
         ),
@@ -415,6 +441,9 @@ dialog_map = {
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
         (RadioButtonProcessor,    "IDC_BUT_PREPARATION", "Wizard.preparation"),
         ),
+    "IDD_WIZARD_TRAINING_IS_IMPORTANT" : (
+        (BoolButtonProcessor,     "IDC_BUT_TRAIN IDC_BUT_UNTRAINED",    "Wizard.will_train_later"),
+    ),
     "IDD_WIZARD_FOLDERS_REST": (
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
                                       "Filter.spam_folder_id", "Wizard.spam_folder_name",
@@ -444,5 +473,7 @@ dialog_map = {
     "IDD_WIZARD_FINISHED_UNTRAINED": (
     ),
     "IDD_WIZARD_FINISHED_TRAINED": (
+    ),
+    "IDD_WIZARD_FINISHED_TRAIN_LATER" : (
     ),
 }
