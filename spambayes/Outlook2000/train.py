@@ -6,6 +6,8 @@
 import traceback
 from win32com.mapi import mapi
 
+# Note our Message Database uses PR_SEARCH_KEY, *not* PR_ENTRYID, as the
+# latter changes after a Move operation - see msgstore.py
 def been_trained_as_ham(msg, mgr):
     spam = mgr.message_db.get(msg.searchkey)
     # spam is None
