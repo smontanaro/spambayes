@@ -46,7 +46,6 @@ def distribute(dir):
     # sort+group.py was run first.
     files = [(os.path.basename(f), f) for f in files]
     files.sort()
-    files = [t[-1] for t in files]
 
     # Make sure all the desired Set directories exist, and a reservoir
     # directory.  "trash" is left holding a list of the excess Set
@@ -69,8 +68,8 @@ def distribute(dir):
     cgroups = 0
     cmess = 0
     cset = 1
-    for f in files:
-        newgroup = (f.split('-'))[0]
+    for basename, f in files:
+        newgroup = basename.split('-')[0]
         if newgroup != oldgroup:
             oldgroup = newgroup
             cgroups = cgroups + 1
@@ -78,11 +77,9 @@ def distribute(dir):
         cmess = cmess + 1
         if ((ngroups is not None and cgroups > ngroups) or
             (nmess is not None and cmess > (nmess * nsets))):
-            newname = os.path.join(dir, "reservoir",
-                                   os.path.basename(f))
+            newname = os.path.join(dir, "reservoir", basename)
         else:
-            newname = os.path.join(dir, "Set%d" % cset,
-                                   os.path.basename(f))
+            newname = os.path.join(dir, "Set%d" % cset, basename)
             cset = (cset % nsets) + 1
         sys.stdout.write("%-78s\r" % ("Moving %s to %s" % (f, newname)))
         sys.stdout.flush()
