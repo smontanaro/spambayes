@@ -9,8 +9,8 @@ The original filter design owed much to isbg by Roger Binns
 Usage:
     sb_imapfilter [options]
 
-	note: option values with spaces in them must be enclosed
-	      in double quotes
+        note: option values with spaces in them must be enclosed
+              in double quotes
 
         options:
             -d  dbname  : pickled training database filename
@@ -30,7 +30,7 @@ Examples:
 
     Classify inbox, with dbm database
         sb_imapfilter -c -D bayes.db
-        
+
     Train Spam and Ham, then classify inbox, with dbm database
         sb_imapfilter -t -c -D bayes.db
 
@@ -52,7 +52,7 @@ Warnings:
       your mailer automatically purges/expunges (i.e. permanently deletes)
       mail flagged as such, *or* if you set the imap_expunge option to
       True, then this mail will be irretrievably lost.
-    
+
 To Do:
     o IMAPMessage and IMAPFolder currently carry out very simple checks
       of responses received from IMAP commands, but if the response is not
@@ -180,7 +180,7 @@ def _extract_fetch_data(response):
 
 class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
-    
+
     def __init__(self, server, port, debug=0, do_expunge=False):
         try:
             BaseIMAP.__init__(self, server, port)
@@ -211,7 +211,7 @@ class IMAPSession(BaseIMAP):
             else:
                 raise
         self.logged_in = True
-    
+
     def logout(self):
         # sign off
         if self.do_expunge:
@@ -229,7 +229,7 @@ class IMAPSession(BaseIMAP):
                         self.select(fol)
                         self.expunge()
         BaseIMAP.logout(self)  # superclass logout
-        
+
     def SelectFolder(self, folder):
         '''A method to point ensuing imap operations at a target folder'''
         if self.current_folder != folder:
@@ -586,7 +586,7 @@ class IMAPFolder(object):
                     msg.MoveTo(IMAPFolder(options["imap",
                                                   move_opt_name]))
                     msg.Save()
-        return num_trained                
+        return num_trained
 
     def Filter(self, classifier, spamfolder, unsurefolder):
         count = {}
@@ -620,11 +620,11 @@ class IMAPFilter(object):
         self.spam_folder = IMAPFolder(options["imap", "spam_folder"])
         self.unsure_folder = IMAPFolder(options["imap", "unsure_folder"])
         self.classifier = classifier
-        
+
     def Train(self):
         if options["globals", "verbose"]:
             t = time.time()
-            
+
         total_ham_trained = 0
         total_spam_trained = 0
 
@@ -656,7 +656,7 @@ class IMAPFilter(object):
 
         if total_ham_trained or total_spam_trained:
             self.classifier.store()
-        
+
         if options["globals", "verbose"]:
             print "Training took %s seconds, %s messages were trained" \
                   % (time.time() - t, total_ham_trained + total_spam_trained)
@@ -672,7 +672,7 @@ class IMAPFilter(object):
         # Select the spam folder and unsure folder to make sure they exist
         imap.SelectFolder(self.spam_folder.name)
         imap.SelectFolder(self.unsure_folder.name)
-            
+
         for filter_folder in options["imap", "filter_folders"]:
             # Select the folder to make sure it exists
             imap.SelectFolder(filter_folder)
@@ -681,14 +681,14 @@ class IMAPFilter(object):
                           self.unsure_folder)
             for key in count.keys():
                 count[key] += subcount.get(key, 0)
- 
+
         if options["globals", "verbose"]:
             if count is not None:
                 print "\nClassified %s ham, %s spam, and %s unsure." % \
                       (count["ham"], count["spam"], count["unsure"])
             print "Classifying took", time.time() - t, "seconds."
 
- 
+
 def run():
     global imap
     try:
@@ -750,14 +750,14 @@ or training will be performed.
 """
 
     bdbname = os.path.expanduser(bdbname)
-    
+
     if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),
 
     classifier = storage.open_storage(bdbname, useDBM)
 
     if options["globals", "verbose"]:
-        print "Done."            
+        print "Done."
 
     if options["imap", "server"]:
         # The options class is ahead of us here:
@@ -816,7 +816,7 @@ or training will be performed.
                 imap_filter.Filter()
 
             imap.logout()
-            
+
             if sleepTime:
                 time.sleep(sleepTime)
             else:

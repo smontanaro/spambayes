@@ -107,25 +107,25 @@ class PDOGenerator(Skeleton, Sidebar, Banner):
     <a href="%(rootdir)s/">
     <img alt="" border="0"
          src="%(rootdir)s/pics/%(banner)s"></a></center>''' % \
-    self.__d 
+    self.__d
 
     def get_corner_bgcolor(self):
         # this may not be 100% correct.  it uses PIL to get the RGB values at
         # the corners of the image and then takes a vote as to the most likely
         # value.  Some images may be `bizarre'.  See .../pics/backgrounds.py
         return [
-             '#3399ff',  '#6699cc',  '#3399ff',  '#0066cc',  '#3399ff', 
-             '#0066cc',  '#0066cc',  '#3399ff',  '#3399ff',  '#3399ff', 
-             '#3399ff',  '#6699cc',  '#3399ff',  '#3399ff',  '#ffffff', 
-             '#6699cc',  '#0066cc',  '#3399ff',  '#0066cc',  '#3399ff', 
-             '#6699cc',  '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff', 
-             '#6699cc',  '#3399ff',  '#3399ff',  '#6699cc',  '#6699cc', 
-             '#0066cc',  '#6699cc',  '#0066cc',  '#6699cc',  '#0066cc', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#0066cc',  '#bbd6f1', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff',  '#0066cc', 
-             '#0066cc',  '#0066cc',  '#6699cc',  '#6699cc',  '#3399ff', 
-             '#3399ff',  '#6699cc',  '#0066cc',  '#0066cc',  '#6699cc', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#6699cc',  '#3399ff', 
+             '#3399ff',  '#6699cc',  '#3399ff',  '#0066cc',  '#3399ff',
+             '#0066cc',  '#0066cc',  '#3399ff',  '#3399ff',  '#3399ff',
+             '#3399ff',  '#6699cc',  '#3399ff',  '#3399ff',  '#ffffff',
+             '#6699cc',  '#0066cc',  '#3399ff',  '#0066cc',  '#3399ff',
+             '#6699cc',  '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff',
+             '#6699cc',  '#3399ff',  '#3399ff',  '#6699cc',  '#6699cc',
+             '#0066cc',  '#6699cc',  '#0066cc',  '#6699cc',  '#0066cc',
+             '#0066cc',  '#6699cc',  '#3399ff',  '#0066cc',  '#bbd6f1',
+             '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff',  '#0066cc',
+             '#0066cc',  '#0066cc',  '#6699cc',  '#6699cc',  '#3399ff',
+             '#3399ff',  '#6699cc',  '#0066cc',  '#0066cc',  '#6699cc',
+             '#0066cc',  '#6699cc',  '#3399ff',  '#6699cc',  '#3399ff',
              '#d6ebff',  '#6699cc',  '#3399ff',  '#0066cc',
              ][self.__whichbanner]
 

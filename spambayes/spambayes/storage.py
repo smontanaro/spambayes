@@ -237,7 +237,7 @@ class DBDictClassifier(classifier.Classifier):
         # Update the global state, then do the actual save.
         self._write_state_key()
         self.db.sync()
-        
+
     def _write_state_key(self):
         self.db[self.statekey] = (classifier.PICKLE_VERSION,
                                   self.nspam, self.nham)
@@ -247,7 +247,7 @@ class DBDictClassifier(classifier.Classifier):
         database is in a consistent state at this point by writing the state
         key."""
         self._write_state_key()
-    
+
     def _wordinfoget(self, word):
         if isinstance(word, unicode):
             word = word.encode("utf-8")
@@ -339,7 +339,7 @@ class SQLClassifier(classifier.Classifier):
     def commit(self, c):
         '''Commit the current transaction - may commit at db or cursor'''
         raise NotImplementedError, "must be implemented in subclass"
-        
+
     def create_bayes(self):
         '''Create a new bayes table'''
         c = self.cursor()
@@ -450,7 +450,7 @@ class PGClassifier(SQLClassifier):
         '''Load state from database'''
 
         import psycopg
-        
+
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
@@ -462,7 +462,7 @@ class PGClassifier(SQLClassifier):
         except psycopg.ProgrammingError:
             self.db.rollback()
             self.create_bayes()
-        
+
         if self._has_key(self.statekey):
             row = self._get_row(self.statekey)
             self.nspam = row["nspam"]
@@ -484,7 +484,7 @@ class mySQLClassifier(SQLClassifier):
 
     It is assumed that the database already exists, and that the mySQL
     server is currently running.'''
- 
+
     def __init__(self, data_source_name):
         self.table_definition = ("create table bayes ("
                                  "  word varchar(255) not null default '',"
@@ -521,7 +521,7 @@ class mySQLClassifier(SQLClassifier):
         '''Load state from database'''
 
         import MySQLdb
-        
+
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
@@ -534,7 +534,7 @@ class mySQLClassifier(SQLClassifier):
         except MySQLdb.ProgrammingError:
             self.db.rollback()
             self.create_bayes()
-        
+
         if self._has_key(self.statekey):
             row = self._get_row(self.statekey)
             self.nspam = int(row[1])

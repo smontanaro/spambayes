@@ -101,7 +101,7 @@ def main():
         except ValueError, details:
             print details
             sys.exit(1)
-    
+
         FindDupeProps(driver, folder, args[0], dupe_dict)
     DumpDupes(dupe_dict)
 

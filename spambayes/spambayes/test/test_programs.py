@@ -131,7 +131,7 @@ def is_any_sb_server_running():
         return False
     except sb_server.AlreadyRunningException:
         return True
-        
+
 class TestServer(unittest.TestCase):
     def setUp(self):
         self.failUnless(not is_any_sb_server_running(),
@@ -241,6 +241,6 @@ if sys.platform.startswith("win"):
                 self.fail("Gave up waiting for service to stop")
             self.failUnless(not is_any_sb_server_running(),
                             "Should be no platform mutex held after stopping")
-    
+
 if __name__=='__main__':
     sb_test_support.unittest_main()

@@ -503,14 +503,14 @@ class BayesManager:
         except EnvironmentError:
             # Can't make the directory.
             return self.application_directory
-            
+
     def MigrateDataDirectory(self):
         # A bit of a nod to save people doing a full retrain.
         # Try and locate our files in the old location, and move
         # them to the new one.
         # Note that this is migrating data for very old versions of the
         # plugin (before the first decent binary!).  The next time it is
-        # touched it can die :) 
+        # touched it can die :)
         self._MigrateFile("default_bayes_database.pck")
         self._MigrateFile("default_bayes_database.db")
         self._MigrateFile("default_message_database.pck")
@@ -551,7 +551,7 @@ class BayesManager:
         # on the message OK, but Outlook doesn't see it as a "UserProperty".
         # Using MAPI to set them directly on the folder also has no effect.
         # Later: We have since discovered that Outlook stores user property
-        # information in the 'associated contents' folder - see 
+        # information in the 'associated contents' folder - see
         # msgstore.MAPIMsgStoreFolder.DoesFolderHaveOutlookField() for more
         # details.  We can reverse engineer this well enough to determine
         # if a property exists, but not well enough to actually add a

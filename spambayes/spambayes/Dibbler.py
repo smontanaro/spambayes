@@ -421,7 +421,7 @@ class _HTTPHandler(BrighterAsyncChat):
         headersDict = dict([headersRegex.match(line).groups(2)
                            for line in headers.split('\r\n')
                            if headersRegex.match(line)])
-        
+
         # HTTP Basic/Digest Authentication support.
         serverAuthMode = self._server.requestAuthenticationMode()
         if serverAuthMode != HTTPServer.NO_AUTHENTICATION:
@@ -473,7 +473,7 @@ class _HTTPHandler(BrighterAsyncChat):
                         for dispatcher in contextMap.values():
                             if isinstance(dispatcher, Listener):
                                 dispatcher.close()
-                        
+
                         # Let any existing connections close down first.  This
                         # has happened when all we have left are _HTTPHandlers
                         # (this one plus any others that are using keep-alive;
@@ -481,12 +481,12 @@ class _HTTPHandler(BrighterAsyncChat):
                         # because *we're* the one doing the work).
                         def isProtected(dispatcher):
                             return not isinstance(dispatcher, _HTTPHandler)
-                        
+
                         while len(filter(isProtected, contextMap.values())) > 0:
                             asyncore.poll(timeout=1, map=contextMap)
-                        
+
                         raise SystemExit
-                        
+
                     message = """<h3>500 Server error</h3><pre>%s</pre>"""
                     details = traceback.format_exception(eType, eValue, eTrace)
                     details = '\n'.join(details)
@@ -559,7 +559,7 @@ class _HTTPHandler(BrighterAsyncChat):
         else:
             self.writeError(500, "Inconsistent authentication mode.")
             return
-        
+
         headers = []
         headers.append('HTTP/1.0 401 Unauthorized')
         headers.append('WWW-Authenticate: ' + authString)
@@ -585,7 +585,7 @@ class _HTTPHandler(BrighterAsyncChat):
         return 'Basic realm="' + self._server.getRealm() + '"'
 
     def _getCurrentNonce(self):
-        """Returns the current nonce value. This value is a Base64 encoding 
+        """Returns the current nonce value. This value is a Base64 encoding
         of current time plus 20 minutes. This means the nonce will expire 20
         minutes from now."""
         timeString = time.asctime(time.localtime(time.time() + 20*60))
@@ -612,7 +612,7 @@ class _HTTPHandler(BrighterAsyncChat):
         has logged in successfully, False otherwise."""
         def stripQuotes(s):
             return (s[0] == '"' and s[-1] == '"') and s[1:-1] or s
-        
+
         options  = dict([s.split('=') for s in login.split(", ")])
         userName = stripQuotes(options["username"])
         password = self._server.getPasswordForUser(userName)

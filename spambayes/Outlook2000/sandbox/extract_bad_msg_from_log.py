@@ -20,7 +20,7 @@ def main(argv = None):
             # damn it - stderr in text mode
             msg_str = msg_str.replace("\r\n", "\n")
             sys.stdout.write(msg_str)
-        
+
     inname = sys.argv[1]
 
 if __name__=='__main__':

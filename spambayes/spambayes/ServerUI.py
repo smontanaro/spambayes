@@ -104,7 +104,7 @@ class ServerUserInterface(UserInterface.UserInterface):
         # Most of the work here is done by the parent class, but
         # we have a few extra checks
         errmsg = UserInterface.UserInterface.verifyInput(self, parms)
-        
+
         # check for equal number of pop3servers and ports
         slist = list(parms['pop3proxy_remote_servers'])
         plist = list(parms['pop3proxy_listen_ports'])

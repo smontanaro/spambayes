@@ -21,7 +21,7 @@ class TooltipManager:
     def HideTooltip(self):
         if self.hwnd_tooltip is not None:
             win32gui.SendMessage(self.hwnd_tooltip, commctrl.TTM_TRACKACTIVATE, 0, 0)
-            
+
     def ShowTooltipForControl(self, control_id, text):
         # Note sure this tooltip stuff is quite right!
         # Hide an existing one, so the new one gets created.
@@ -41,7 +41,7 @@ class TooltipManager:
             win32gui.SendMessage(self.hwnd_tooltip,
                                  commctrl.TTM_SETMAXTIPWIDTH,
                                  0, 300)
-        
+
         format = "iiiiiiiiiii"
         tt_size = struct.calcsize(format)
         buffer = array.array("c", text + "\0")
@@ -49,7 +49,7 @@ class TooltipManager:
         uID = control_id
         flags = commctrl.TTF_TRACK | commctrl.TTF_ABSOLUTE
         data = struct.pack(format, tt_size, flags, hwnd_dialog, uID, 0,0,0,0, 0, text_address, 0)
-        
+
         # Add a tool for this control only if we haven't already
         if control_id not in self.tooltip_tools:
             win32gui.SendMessage(self.hwnd_tooltip,
@@ -108,7 +108,7 @@ class Dialog:
         dt_l, dt_t, dt_r, dt_b = win32gui.GetWindowRect(desktop)
         centre_x, centre_y = win32gui.ClientToScreen( desktop, ( (dt_r-dt_l)/2, (dt_b-dt_t)/2) )
         win32gui.MoveWindow(self.hwnd, centre_x-(w/2), centre_y-(h/2), w, h, 0)
-        
+
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         self.hwnd = hwnd
         self.DoInitialPosition()
@@ -159,7 +159,7 @@ class TooltipDialog(Dialog):
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         self.tt.HideTooltip()
-        
+
     def OnHelp(self, hwnd, msg, wparam, lparam):
         format = "iiiiiii"
         buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
@@ -225,13 +225,13 @@ class ProcessorDialog(TooltipDialog):
         tt_text = None
         if cp is not None:
             return cp.GetPopupHelpText(iCtrlId)
-        
+
         print "Can not get command processor for", self._GetIDName(iCtrlId)
         return None
     def OnRButtonUp(self, hwnd, msg, wparam, lparam):
         for cp in self.command_processors.values():
             cp.OnRButtonUp(wparam,lparam)
-            
+
     def OnCommandProcessorMessage(self, hwnd, msg, wparam, lparam):
         for p in self.processor_message_map[msg]:
             p.OnMessage(msg, wparam, lparam)
@@ -264,7 +264,7 @@ class ProcessorDialog(TooltipDialog):
             mb_flags = win32con.MB_ICONEXCLAMATION | win32con.MB_OK
             win32gui.MessageBox(self.hwnd, str(why), "SpamBayes", mb_flags)
             return False
-        
+
     def SaveAllControls(self):
         for p in self.all_processors:
             if not self.ApplyHandlingOptionValueError(p.Done):
@@ -323,4 +323,3 @@ class ProcessorPage(ProcessorDialog):
         self.template[0][2] = self.template[0][2] & ~(win32con.DS_MODALFRAME|win32con.WS_POPUP|win32con.WS_OVERLAPPED|win32con.WS_CAPTION)
         self.template[0][2] = self.template[0][2] | win32con.WS_CHILD
         return win32gui.CreateDialogIndirect(self.hinst, self.template, self.parent, message_map)
-

@@ -699,7 +699,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         errmsg = UserInterface.UserInterface.verifyInput(self, parms, pmap)
 
         if pmap == adv_map:
-          return errmsg
+            return errmsg
 
         # check for equal number of pop3servers and ports
         slist = list(parms['pop3proxy_remote_servers'])

@@ -54,7 +54,7 @@ def ShowDialog(parent, manager, config, idd):
             parent = win32gui.GetActiveWindow()
         except win32gui.error:
             pass
-        
+
     import dlgcore
     dlg = dlgcore.ProcessorDialog(parent, manager, config, idd, commands)
     return dlg.DoModal()
@@ -68,7 +68,7 @@ def ShowWizard(parent, manager, idd = "IDD_WIZARD", use_existing_config = True):
     else:
         print "Cancelling wizard"
         config_wizard.CancelWizardConfig(manager, config)
-    
+
 def MakePropertyPage(parent, manager, config, idd, yoffset=24):
     """Creates a child dialog box to use as property page in a tab control"""
     if manager.dialog_parser is None:
@@ -77,7 +77,7 @@ def MakePropertyPage(parent, manager, config, idd, yoffset=24):
     commands = dialog_map.dialog_map[idd]
     if not parent:
         raise "Parent must be the tab control"
-        
+
     import dlgcore
     dlg = dlgcore.ProcessorPage(parent, manager, config, idd, commands, yoffset)
     return dlg

@@ -52,7 +52,7 @@ class TrainingStatusProcessor(ControlProcessor):
             elif db_ratio < (1/5.0):
                 big = "spam"
                 small = "ham"
-            if big is not None:                
+            if big is not None:
                 db_status = "%s\nWarning: you have much more %s than %s - " \
                             "SpamBayes works best with approximately even " \
                             "numbers of ham and spam." % (db_status, big,
@@ -150,7 +150,7 @@ class FilterStatusProcessor(ControlProcessor):
             unsure_text = "unsure managed in '%s'" % (unsure_name,)
         else:
             unsure_text = "unsure messages untouched"
-            
+
         watch_names = manager.FormatFolderNames(
                         config.watch_folder_ids, config.watch_include_sub)
         filter_status = "Watching '%s'. Spam managed in '%s', %s." \
@@ -164,12 +164,12 @@ class TabProcessor(ControlProcessor):
     def __init__(self, window, control_ids, page_ids):
         ControlProcessor.__init__(self, window, control_ids)
         self.page_ids = page_ids.split()
-        
+
     def Init(self):
         self.pages = {}
         self.currentPage = None
         self.currentPageIndex = -1
-        self.currentPageHwnd = None        
+        self.currentPageHwnd = None
         for index, page_id in enumerate(self.page_ids):
             template = self.window.manager.dialog_parser.dialogs[page_id]
             self.addPage(index, page_id, template[0][0])
@@ -182,7 +182,7 @@ class TabProcessor(ControlProcessor):
                 win32gui.SendMessage(self.GetControl(), commctrl.TCM_SETCURSEL, self.currentPageIndex,0)
                 return False
         return True
-    
+
     def OnNotify(self, nmhdr, wparam, lparam):
         # this does not appear to be in commctrl module
         selChangedCode =  5177342
@@ -202,13 +202,13 @@ class TabProcessor(ControlProcessor):
         self.currentPageHwnd = self.currentPage.CreateWindow()
         self.currentPageIndex = index
         return 0
-        
+
     def addPage(self, item, idName, label):
         format = "iiiiiii"
         lbuf = win32gui.PyMakeBuffer(len(label)+1)
         address,l = win32gui.PyGetBufferAddressAndLen(lbuf)
         win32gui.PySetString(address, label)
-        
+
         buf = struct.pack(format,
             commctrl.TCIF_TEXT, # mask
             0, # state
@@ -300,7 +300,7 @@ class DialogCommand(ButtonProcessor):
         self.window.SaveAllControls()
         ShowDialog(parent, self.window.manager, self.window.config, self.idd)
         self.window.LoadAllControls()
-        
+
     def GetPopupHelpText(self, id):
         dd = self.window.manager.dialog_parser.dialogs[self.idd]
         return "Displays the %s dialog" % dd.caption
@@ -341,7 +341,7 @@ class ShowWizardCommand(DialogCommand):
         win32gui.EndDialog(dlg, win32con.IDOK)
         # And show the wizard.
         ShowWizard(parent, manager, self.idd, use_existing_config = True)
-    
+
 def WizardFinish(mgr, window):
     print "Wizard Done!"
 
@@ -376,7 +376,7 @@ def WizardTrainer(mgr, config, progress):
     mgr.classifier_data = classifier_data # temporary
     try:
         progress.tick()
-    
+
         if rescore:
             # Setup the "filter now" config to what we want.
             now_config = config.filter_now
@@ -389,7 +389,7 @@ def WizardTrainer(mgr, config, progress):
                                      config.training.spam_include_sub
             import filter
             filter.filterer(mgr, config, progress)
-    
+
         bayes = classifier_data.bayes
         progress.set_status("Completed training with %d spam and %d good messages" \
                             % (bayes.nspam, bayes.nham))
@@ -404,7 +404,7 @@ dialog_map = {
     "IDD_MANAGER" : (
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         (TabProcessor,            "IDC_TAB",
-                                  """IDD_GENERAL IDD_FILTER IDD_TRAINING 
+                                  """IDD_GENERAL IDD_FILTER IDD_TRAINING
                                   IDD_ADVANCED"""),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
@@ -447,7 +447,7 @@ dialog_map = {
                                   "Filter.unsure_folder_id"),
         (EditNumberProcessor,     "IDC_EDIT_UNSURE IDC_SLIDER_UNSURE",
                                   "Filter.unsure_threshold"),
-        
+
         (ComboProcessor,          "IDC_ACTION_UNSURE", "Filter.unsure_action"),
         (BoolButtonProcessor,     "IDC_MARK_UNSURE_AS_READ",    "Filter.unsure_mark_as_read"),
         ),
@@ -472,7 +472,7 @@ dialog_map = {
          "not change the message,mark the message as read,mark the message as unread"),
         (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state",
          "not change the message,mark the message as read,mark the message as unread"),
-        
+
     ),
     "IDD_ADVANCED" : (
         (BoolButtonProcessor,   "IDC_BUT_TIMER_ENABLED", "Filter.timer_enabled",
@@ -530,7 +530,7 @@ dialog_map = {
         (wiz.TrainFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
                                     "Training.spam_folder_ids"),
         (BoolButtonProcessor,     "IDC_BUT_RESCORE",    "Training.rescore"),
-        
+
     ),
     "IDD_WIZARD_TRAIN" : (
         (wiz.WizAsyncProcessor,   "IDC_PROGRESS IDC_PROGRESS_TEXT",

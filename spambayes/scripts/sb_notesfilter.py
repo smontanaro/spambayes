@@ -9,7 +9,7 @@ Abstract:
     This module uses Spambayes as a filter against a Lotus Notes mail
     database.  The Notes client must be running when this process is
     executed.
-    
+
     It requires a Notes folder, named as a parameter, with four
     subfolders:
         Spam
@@ -24,7 +24,7 @@ Abstract:
     2. Train Ham from the Train as Ham folder (-t option)
     3. Replicate (-r option)
     4. Classify the inbox (-c option)
-        
+
     Mail that is to be trained as spam should be manually moved to
     that folder by the user. Likewise mail that is to be trained as
     ham.  After training, spam is moved to the Spam folder and ham is
@@ -64,7 +64,7 @@ Abstract:
     regular basis.  This will prevent statistical error accumulation,
     which if allowed to continue, would cause Spambayes to tend to
     classify everything as Spam.
-    
+
     Because there is no programmatic way to determine if a particular
     mail has been previously processed by this classification program,
     it keeps a pickled dictionary of notes mail ids, so that once a
@@ -79,8 +79,8 @@ Abstract:
 Usage:
     sb_notesfilter [options]
 
-	note: option values with spaces in them must be enclosed
-	      in double quotes
+        note: option values with spaces in them must be enclosed
+              in double quotes
 
         options:
             -d  dbname  : pickled training database filename
@@ -107,13 +107,13 @@ Examples:
 
     Replicate and classify inbox
         sb_notesfilter -c -d notesbayes -r mynoteserv -l mail.nsf -f Spambayes
-        
+
     Train Spam and Ham, then classify inbox
         sb_notesfilter -t -c -d notesbayes -l mail.nsf -f Spambayes
-    
-    Replicate, then classify inbox      
+
+    Replicate, then classify inbox
         sb_notesfilter -c -d test7 -l mail.nsf -r nynoteserv -f Spambayes
- 
+
 To Do:
     o Dump/purge notesindex file
     o Create correct folders if they do not exist
@@ -158,18 +158,18 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
         firsttime = 1
     else:
         firsttime = 0
-        
+
     docstomove = []
     numham = 0
     numspam = 0
     numuns = 0
     numdocs = 0
-    
+
     doc = v.GetFirstDocument()
     while doc:
         nid = doc.NOTEID
         if firsttime:
-           notesindex[nid] = 'never classified'
+            notesindex[nid] = 'never classified'
         else:
             if not notesindex.has_key(nid):
 
@@ -181,7 +181,7 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
 
                 # The com interface returns basic data types as tuples
                 # only, thus the subscript on GetItemValue
-                
+
                 try:
                     subj = doc.GetItemValue('Subject')[0]
                 except:
@@ -229,7 +229,7 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
     print "   %s classified as spam" % (numspam)
     print "   %s classified as ham" % (numham)
     print "   %s classified as unsure" % (numuns)
-    
+
 
 def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
@@ -239,7 +239,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
         str = options["Headers", "header_ham_string"]
 
     print "Training %s" % (str)
-    
+
     docstomove = []
     doc = v.GetFirstDocument()
     while doc:
@@ -252,7 +252,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
             body  = doc.GetItemValue('Body')[0]
         except:
             body = 'No Body'
-            
+
         message = "Subject: %s\r\n%s" % (subj, body)
 
         options["Tokenizer", "generate_long_skips"] = False
@@ -269,7 +269,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
                  is_spam:
                 # msg is trained as ham, is to be retrained as spam
                 bayes.unlearn(tokens, False)
-  
+
         bayes.learn(tokens, is_spam)
 
         notesindex[nid] = str
@@ -281,7 +281,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
         doc.PutInFolder(vmoveto.Name)
 
     print "%s documents trained" % (len(docstomove))
-    
+
 
 def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
 
@@ -301,32 +301,32 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
     else:
         notesindex = pickle.load(fp)
         fp.close()
-     
+
     sess = win32com.client.Dispatch("Lotus.NotesSession")
     try:
         sess.initialize()
     except pywintypes.com_error:
         print "Session aborted"
         sys.exit()
-        
+
     db = sess.GetDatabase("",ldbname)
-    
+
     vinbox = db.getView('($Inbox)')
     vspam = db.getView("%s\Spam" % (foldname))
     vham = db.getView("%s\Ham" % (foldname))
     vtrainspam = db.getView("%s\Train as Spam" % (foldname))
     vtrainham = db.getView("%s\Train as Ham" % (foldname))
-    
+
     if doTrain:
         processAndTrain(vtrainspam, vspam, bayes, True, notesindex)
         # for some reason, using inbox as a target here loses the mail
         processAndTrain(vtrainham, vham, bayes, False, notesindex)
-        
+
     if rdbname:
         print "Replicating..."
         db.Replicate(rdbname)
         print "Done"
-        
+
     if doClassify:
         classifyInbox(vinbox, vtrainspam, bayes, ldbname, notesindex)
 
@@ -338,7 +338,7 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
     fp = open("%s.sbindex" % (ldbname), 'wb')
     pickle.dump(notesindex, fp)
     fp.close()
-    
+
 
 if __name__ == '__main__':
 

@@ -332,16 +332,16 @@ def main():
         set = os.path.basename(dir)
         set = int(set[3:]) - 1
         isspam = (dir.find('Spam') >= 0)
- 
+
         msg = msgs.Msg(dir, base)
-        
+
         for j in range(0, nsets):
             if which is not None and j != which:
                 continue
             if group != oldgroup:
                 sys.stderr.write("%-78s\r" % ("%s  : %d" % (base, set)))
                 sys.stderr.flush()
- 
+
                 nham_tested[j].append(tests[j].nham_tested)
                 nham_trained[j].append(tests[j].nham_trained)
                 nham_right[j].append(tests[j].nham_right)
@@ -354,7 +354,7 @@ def main():
                 nspam_unsure[j].append(tests[j].nspam_unsure)
                 # tests[j].reset_test_results()
                 rules[j].group_action(j, tests[j])
- 
+
             if j != set:
                 guess = tests[j].predict([msg], isspam)
                 if isspam:
@@ -366,7 +366,7 @@ def main():
                     tests[j].train(None, [msg])
                 elif todo == 1:
                     tests[j].train([msg], None)
- 
+
         oldgroup = group
 
     sys.stderr.write("\n")

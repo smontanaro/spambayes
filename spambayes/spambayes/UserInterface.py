@@ -129,12 +129,12 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         trustedIPs = options["html_ui", "allow_remote_connections"]
 
         if trustedIPs == "*" or remoteIP == clientSocket.getsockname()[0]:
-           return True
+            return True
 
         trustedIPs = trustedIPs.replace('.', '\.').replace('*', '([01]?\d\d?|2[04]\d|25[0-5])')
         for trusted in trustedIPs.split(','):
-          if re.search("^" + trusted + "$", remoteIP):
-             return True
+            if re.search("^" + trusted + "$", remoteIP):
+                return True
 
         return False
 
@@ -298,7 +298,7 @@ class UserInterface(BaseUserInterface):
             cluesTable += cluesRow % (cgi.escape(word), wordProb,
                                       nham, nspam)
         return cluesTable
-    
+
     def _buildCluesTable(self, message, subject=None, show_tokens=False):
         tokens = list(tokenizer.tokenize(message))
         if show_tokens:
@@ -476,7 +476,7 @@ class UserInterface(BaseUserInterface):
 
         # Attempt to convert the content from a DBX file to a standard mbox
         if file:
-          content = self._convertToMbox(content)
+            content = self._convertToMbox(content)
 
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
@@ -512,7 +512,7 @@ class UserInterface(BaseUserInterface):
     def _convertToMbox(self, content):
         """Check if the given buffer is in a non-mbox format, and convert it
         into mbox format if so.  If it's already an mbox, return it unchanged.
-        
+
         Currently, the only supported non-mbox format is Outlook Express DBX.
         In such a case we use the module oe_mailbox to convert the DBX
         content into a standard mbox file.  Testing if the file is a
@@ -526,12 +526,12 @@ class UserInterface(BaseUserInterface):
             file_info_len = oe_mailbox.dbxFileHeader.FH_FILE_INFO_LENGTH
             fh_entries = oe_mailbox.dbxFileHeader.FH_ENTRIES
             fh_ptr = oe_mailbox.dbxFileHeader.FH_TREE_ROOT_NODE_PTR
-            
+
             info = oe_mailbox.dbxFileInfo(dbxStream,
                                           header.getEntry(file_info_len))
             entries = header.getEntry(fh_entries)
             address = header.getEntry(fh_ptr)
-            
+
             if address and entries:
                 tree = oe_mailbox.dbxTree(dbxStream, address, entries)
                 dbxBuffer = ""
@@ -862,7 +862,7 @@ class UserInterface(BaseUserInterface):
                         value = True
                 if options.multiple_values_allowed(sect, opt) and \
                    value == "":
-                        value = ()
+                    value = ()
                 value = options.convert(sect, opt, value)
             if not options.is_valid(sect, opt, value):
                 errmsg += '<li>\'%s\' is not a value valid for [%s] %s' % \

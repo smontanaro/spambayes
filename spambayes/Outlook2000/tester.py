@@ -166,7 +166,7 @@ class Driver:
         else:
             ms_folder = self.manager.message_store.GetFolder(folder)
             TestFailed("The test message remained in folder '%s'" % ms_folder.GetFQName())
-        
+
     def _CleanTestMessageFromFolder(self, folder):
         subject = TEST_SUBJECT
         num = 0
@@ -252,7 +252,7 @@ def TestSpamFilter(driver):
         if nham != bayes.nham:
             TestFailed("Something caused a new ham message to appear")
         check_words(words, bayes, 0, 0)
-    
+
         # Now move the message back to the inbox - it should get trained.
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
         import train
@@ -307,10 +307,10 @@ def TestSpamFilter(driver):
             store_msg = driver.manager.message_store.GetMessage(spam_msg)
             if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
                 TestFailed("Message was not identified as Spam after moving")
-    
+
             # word infos still be 'spam'
             check_words(words, bayes, 1, 0)
-    
+
             # Now undo the damage we did.
             was_spam = train.untrain_message(store_msg, driver.manager.classifier_data)
             if not was_spam:
@@ -322,19 +322,19 @@ def TestSpamFilter(driver):
         finally:
             if need_untrain:
                 train.untrain_message(store_msg, driver.manager.classifier_data)
-    
+
         # Check all the counts are back where we started.
         if nspam != bayes.nspam:
             TestFailed("Spam count didn't get back to the same")
         if nham != bayes.nham:
             TestFailed("Ham count didn't get back to the same")
         check_words(words, bayes, 0, 0)
-    
+
         if bayes.wordinfo != original_bayes.wordinfo:
             TestFailed("The bayes object's 'wordinfo' did not compare the same at the end of all this!")
         if bayes.probcache != original_bayes.probcache:
             TestFailed("The bayes object's 'probcache' did not compare the same at the end of all this!")
-    
+
         spam_msg.Delete()
     print "Created a Spam message, and saw it get filtered and trained."
 
@@ -440,7 +440,7 @@ def run_filter_tests(manager):
                            "Filter.save_spam_info" : True,
                           },
                           run_tests, manager)
-    
+
     apply_with_new_config(manager,
                           {"Filter.timer_enabled": True,
                            "Filter.save_spam_info" : True,
@@ -451,7 +451,7 @@ def run_filter_tests(manager):
                            "Filter.save_spam_info" : False,
                           },
                           run_tests, manager)
-    
+
     apply_with_new_config(manager,
                           {"Filter.timer_enabled": True,
                            "Filter.save_spam_info" : False,
@@ -475,7 +475,7 @@ def apply_with_new_config(manager, new_config_dict, func, *args):
     finally:
         for (sect_name, opt_name), val in old_config.items():
             manager.options.set(sect_name, opt_name, val)
-    
+
 ###############################################################################
 # "Non-filter" tests are those that don't require us to create messages and
 # see them get filtered.
@@ -546,7 +546,7 @@ def run_invalid_id_tests(manager):
         if names.find("<unknown") < 0:
             raise TestFailed("Couldn't find unknown folder in names '%s'" % names)
     print "Finished 'invalid ID' tests"
-    
+
 ###############################################################################
 # "Failure" tests - execute some tests while provoking the msgstore to simulate
 # various MAPI errors.  Although not complete, it does help exercise our code
@@ -554,7 +554,7 @@ def run_invalid_id_tests(manager):
 def _restore_mapi_failure():
     msgstore.test_suite_failure = None
     msgstore.test_suite_failure_request = None
-    
+
 def _setup_for_mapi_failure(checkpoint, hr):
     assert msgstore.test_suite_running, "msgstore should already know its running"
     assert not msgstore.test_suite_failure, "should already have torn down previous failure"
@@ -611,7 +611,7 @@ def do_failure_tests(manager):
         _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.Save", -2146644781)
         # SetReadState???
         _do_single_failure_spam_test(driver, "MAPIMsgStoreMsg._DoCopyMove", mapi.MAPI_E_TABLE_TOO_BIG)
-       
+
     finally:
         manager.verbose = old_verbose
 
@@ -625,7 +625,7 @@ def run_failure_tests(manager):
                           {"Filter.timer_enabled": False,
                           },
                           do_failure_tests, manager)
-    
+
 def filter_message_with_event(msg, mgr, all_actions=True):
     import filter
     ret = filter._original_filter_message(msg, mgr, all_actions)
@@ -641,7 +641,7 @@ def test(manager):
     if "_original_filter_message" not in filter.__dict__:
         filter._original_filter_message = filter.filter_message
         filter.filter_message = filter_message_with_event
-    
+
     try: # restore the plugin config at exit.
         assert not msgstore.test_suite_running, "already running??"
         msgstore.test_suite_running = True

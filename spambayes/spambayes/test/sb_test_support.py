@@ -28,9 +28,9 @@ def fix_sys_path():
     try:
         import sb_server
     except ImportError:
-        # Scripts are usually in "spambayes/scripts" (for an 
+        # Scripts are usually in "spambayes/scripts" (for an
         # installed SpamBayes, they appear to be in
-        # os.path.join(sys.prefix(), "scripts"), which we may like to 
+        # os.path.join(sys.prefix(), "scripts"), which we may like to
         # leverage - however, these test scripts are not currently
         # installed).
         script_dir = os.path.abspath(

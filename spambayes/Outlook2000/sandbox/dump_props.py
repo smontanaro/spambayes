@@ -139,7 +139,7 @@ def FindAndDumpTableUserProps(driver, table, folder, shorten, get_large_props):
     prop_repr = FormatPropertyValue(tag, val, folder,
                                     shorten, get_large_props)
     print "%-20s: %s" % (prop_name, prop_repr)
-    
+
 def usage(driver, extra = None):
     folder_doc = driver.GetFolderNameDoc()
     if extra:

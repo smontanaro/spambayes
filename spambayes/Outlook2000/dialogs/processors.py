@@ -67,7 +67,7 @@ class ImageProcessor(ControlProcessor):
 
     def GetPopupHelpText(self, cid):
         return None
-    
+
 class ButtonProcessor(ControlProcessor):
     def OnCommand(self, wparam, lparam):
         code = win32api.HIWORD(wparam)
@@ -92,7 +92,7 @@ class CommandButtonProcessor(ButtonProcessor):
         # Bit of a hack - always pass the manager as the first arg.
         args = (self.window,) + self.args
         self.func(*args)
-    
+
     def GetPopupHelpText(self, ctrlid):
         assert ctrlid == self.control_id
         return " ".join(self.func.__doc__.split())

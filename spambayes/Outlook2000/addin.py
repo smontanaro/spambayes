@@ -1443,7 +1443,7 @@ def DllInstall(bInstall, cmdline):
         # must fail.
         _DoRegister(klass, _winreg.HKEY_LOCAL_MACHINE)
         print "Registration (in HKEY_LOCAL_MACHINE) complete."
-    
+
 def DllRegisterServer():
     klass = OutlookAddin
     # *sigh* - we used to *also* register in HKLM, but as above, this makes

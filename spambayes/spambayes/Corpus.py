@@ -150,7 +150,7 @@ class Corpus:
         '''Add a message to the in-memory cache'''
         # This method should probably not be overridden
         key = message.key()
-        
+
         if options["globals", "verbose"]:
             print 'placing %s in corpus cache' % (key)
 

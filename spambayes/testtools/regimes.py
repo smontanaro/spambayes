@@ -108,4 +108,3 @@ class expire4months:
         else:
             self.ham[0].append(msg)
         return actual
-

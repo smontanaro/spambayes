@@ -39,7 +39,7 @@ class LinkFixer:
             url = 'index.html'
         elif url[-1] == '/':
             url = url + 'index.html'
-        
+
         # normalize the path, kind of the way os.path.normpath() does.
         # urlparse ought to have something like this built in...
         scheme, addr, path, params, query, frag = urlparse.urlparse(url)

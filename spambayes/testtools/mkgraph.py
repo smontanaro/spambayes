@@ -71,8 +71,8 @@ def outputset():
         line(nspam_wrong)
         print '% linetype=1 linelabel="spam_unsure" markertype=0 linecolor=9'
         line(nspam_unsure)
-   
-    if report == "error": 
+
+    if report == "error":
         print '$ Data=Curve2d'
         print '% toplabel="%s Error Rates"' % (title)
         print '% ymax=5'
@@ -170,4 +170,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

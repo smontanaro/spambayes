@@ -159,7 +159,7 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
             self.OnFinished(wparam, lparam)
         else:
             raise RuntimeError, "Not one of my messages??"
-    
+
     def OnFinished(self, wparam, lparam):
         self.seen_finished = True
         wasCancelled = wparam
@@ -176,7 +176,7 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
         win32gui.SendMessage(self.GetControl(self.statustext_id),
                                 win32con.WM_SETTEXT,
                                 0, text)
-        
+
     def OnProgressStatus(self, wparam, lparam):
         self.SetStatusText(self.progress_status)
 
@@ -190,7 +190,7 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
 
     def OnProgressWarning(self, wparam, lparam):
         pass
-    
+
     def OnClicked(self, id):
         self.StartProcess()
 
@@ -288,5 +288,5 @@ if __name__=='__main__':
     p.set_max_ticks(2)
     for i in range(2):
         p.tick()
-    
+
     print "Done!"

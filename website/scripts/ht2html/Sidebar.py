@@ -69,7 +69,7 @@ class Sidebar:
                     print '<tr><td %s>&nbsp;' % (self.getSidebarNormalAttrs())
                 else:
                     done_one = 1
-                print '<tr><td %s>'% ( self.getSidebarHeaderAttrs()) 
+                print '<tr><td %s>'% ( self.getSidebarHeaderAttrs())
                 print item
                 print '</font></b></td></tr>'
             else:

@@ -171,7 +171,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
         """Retrieve the flags associated with this message."""
         return self._flags_iter()
 
-    def _flags_iter(self):    
+    def _flags_iter(self):
         if self.deleted:
             yield "\\DELETED"
         if self.answered:
@@ -208,10 +208,10 @@ class IMAPFileMessage(FileCorpus.FileMessage):
 
     def getSubPart(self, part):
         """Retrieve a MIME sub-message
-        
+
         @type part: C{int}
         @param part: The number of the part to retrieve, indexed from 0.
-        
+
         @rtype: Any object implementing C{IMessage}.
         @return: The specified sub-part.
         """
@@ -242,7 +242,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
             self.draft = value
         else:
             print "Tried to set invalid flag", flag, "to", value
-            
+
     def flags(self):
         """Return the message flags."""
         all_flags = []
@@ -272,7 +272,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
     def structure(self, ext=False):
         """Body structure data describes the MIME-IMB
         format of a message and consists of a sequence of mime type, mime
-        subtype, parameters, content id, description, encoding, and size. 
+        subtype, parameters, content id, description, encoding, and size.
         The fields following the size field are variable: if the mime
         type/subtype is message/rfc822, the contained message's envelope
         information, body structure data, and number of lines of text; if
@@ -306,7 +306,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
             return s[0]
         return s
 
-    def body(self):    
+    def body(self):
         rfc822 = self.as_string()
         bodyRE = re.compile(r"\r?\n(\r?\n)(.*)",
                             re.DOTALL + re.MULTILINE)
@@ -332,7 +332,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
 
     def string_contains(self, whole, sub):
         return whole.find(sub) != -1
-        
+
     def matches(self, criteria):
         """Return True iff the messages matches the specified IMAP
         criteria."""
@@ -367,7 +367,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
                          "SENTSINCE" : (self.since, self.get("Date")),
                          "SINCE" : (self.since, self.date),
                          }
-                       
+
         result = True
         test = None
         header = None
@@ -436,7 +436,7 @@ class IMAPMailbox(cred.perspective.Perspective):
     def addListener(self, listener):
         """Add a mailbox change listener."""
         self.listeners.append(listener)
-    
+
     def removeListener(self, listener):
         """Remove a mailbox change listener."""
         self.listeners.remove(listener)
@@ -464,7 +464,7 @@ class SpambayesMailbox(IMAPMailbox):
                 self.unseen_count += 1
             if msg.recent:
                 self.recent_count += 1
-    
+
     def getUIDNext(self, increase=False):
         """Return the likely UID for the next message added to this
         mailbox."""
@@ -495,7 +495,7 @@ class SpambayesMailbox(IMAPMailbox):
     def getUnseenCount(self):
         """Return the number of messages with the 'Unseen' flag."""
         return self.unseen_count
-        
+
     def isWriteable(self):
         """Get the read/write status of the mailbox."""
         return True
@@ -583,7 +583,7 @@ class SpambayesMailbox(IMAPMailbox):
                 if msg.matches(q):
                     matches.append(id)
                     break
-        return matches            
+        return matches
 
     def _messagesIter(self, messages, uid):
         if uid:
@@ -640,7 +640,7 @@ class Trainer(object):
     def modeChanged(self, writeable):
         # We don't care
         pass
-    
+
     def flagsChanged(self, newFlags):
         # We don't care
         pass
@@ -810,7 +810,7 @@ class MyBayesProxy(POP3ProxyBase):
             msg = StringIO.StringIO(messageText)
             date = imaplib.Time2Internaldate(time.time())[1:-1]
             dest_folder.addMessage(msg, (), date)
-            
+
             # We have to return something, because the client is expecting
             # us to.  We return a short message indicating that a message
             # was intercepted.
@@ -898,7 +898,7 @@ def setup():
     serverUI = ServerUserInterface(state, _recreateState)
     httpServer.register(serverUI)
 
-    return app    
+    return app
 
 def run():
     # Read the arguments.

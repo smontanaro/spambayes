@@ -95,7 +95,7 @@ class SpamBayesGenerator(Skeleton, SpamBayesSidebar, Banner):
 <center>
     <a href="http://www.student.virginia.edu/~improv/games/findthespam.html">
     <img alt="" border="0" src="%(rootdir)s/images/logo.png"></a></center>''' % \
-    self.__d 
+    self.__d
 
     def get_corner_bgcolor(self):
         return "#ffffff"

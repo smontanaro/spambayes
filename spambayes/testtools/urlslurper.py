@@ -224,11 +224,11 @@ def setup(proxy={}, filename=None):
     else:
         # Build a new opener without any proxy information.
         opener = urllib2.build_opener(urllib2.HTTPHandler)
-     
+
     # install it
     urllib2.install_opener(opener)
 
-    # read any url cache    
+    # read any url cache
     if os.path.exists(filename):
         f = file(filename, "r")
         global url_dict

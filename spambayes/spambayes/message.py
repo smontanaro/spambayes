@@ -163,7 +163,7 @@ class MessageInfoDB(MessageInfoBase):
         self.mode = mode
         self.load()
 
-    def load(self):        
+    def load(self):
         try:
             self.dbm = dbmstorage.open(self.db_name, self.mode)
             self.db = shelve.Shelf(self.dbm)
@@ -178,7 +178,7 @@ class MessageInfoDB(MessageInfoBase):
     def __del__(self):
         self.close()
 
-    def close(self):        
+    def close(self):
         # Close our underlying database.  Better not assume all databases
         # have close functions!
         def noop(): pass

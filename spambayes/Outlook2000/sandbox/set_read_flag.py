@@ -1,5 +1,5 @@
 from __future__ import generators
-# Set items to read/unread 
+# Set items to read/unread
 
 import pythoncom
 import os, sys

@@ -1,5 +1,5 @@
 # Option Control Processors for our dialog.
-# These are extensions to basic Control Processors that are linked with 
+# These are extensions to basic Control Processors that are linked with
 # SpamBayes options.
 
 # This module is part of the spambayes project, which is Copyright 2003
@@ -127,7 +127,7 @@ class RadioButtonProcessor(OptionControlProcessor):
             i += 1
         else:
             assert 0, "Couldn't find a checked button"
-    
+
 # A "Combo" processor, that loads valid strings from the option.
 class ComboProcessor(OptionControlProcessor):
     def __init__(self, window, control_ids, option,text=None):
@@ -139,7 +139,7 @@ class ComboProcessor(OptionControlProcessor):
         else:
             self.option_to_text = zip(self.option.valid_input(),self.option.valid_input())
             self.text_to_option = dict(self.option_to_text)
-        
+
     def OnCommand(self, wparam, lparam):
         code = win32api.HIWORD(wparam)
         if code == win32con.CBN_SELCHANGE:
@@ -179,7 +179,7 @@ class EditNumberProcessor(OptionControlProcessor):
             return "As you drag this slider, the value to the right will " \
                    "automatically adjust"
         return OptionControlProcessor.GetPopupHelpText(self, id)
-                      
+
     def GetMessages(self):
         return [win32con.WM_HSCROLL]
 
@@ -201,7 +201,7 @@ class EditNumberProcessor(OptionControlProcessor):
             except ValueError:
                 # They are typing - value may be currently invalid
                 pass
-        
+
     def Init(self):
         OptionControlProcessor.Init(self)
         if self.slider_id:
@@ -248,7 +248,7 @@ class EditNumberProcessor(OptionControlProcessor):
         if val < self.min_val or val > self.max_val:
             raise ValueError, "Value must be between %d and %d" % (self.min_val, self.max_val)
         self.SetOptionValue(val)
-    
+
 # Folder IDs, and the "include_sub" option, if applicable.
 class FolderIDProcessor(OptionControlProcessor):
     def __init__(self, window, control_ids,

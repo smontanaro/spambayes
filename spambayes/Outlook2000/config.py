@@ -76,7 +76,7 @@ class FolderIDOption(Option):
         if self.value is None:
             return ""
         return str(self.value)
-    
+
     def multiple_values_allowed(self):
         return type(self.value)==types.ListType
 
@@ -239,7 +239,7 @@ defaults = {
     ("timer_only_receive_folders",
         "Should the timer only be used for 'Inbox' type folders?", True,
         """The point of using a timer is to prevent the SpamBayes filter
-        getting in the way the builtin Outlook rules.  Therefore, is it 
+        getting in the way the builtin Outlook rules.  Therefore, is it
         generally only necessary to use a timer for folders that have new
         items being delivered directly to them.  Folders that are not inbox
         style folders generally are not subject to builtin filtering, so
@@ -385,7 +385,7 @@ if __name__=='__main__':
     if unsure_id != c.filter.unsure_folder_id: raise ValueError, "unsure_id wrong (%r)" % (c.filter.unsure_folder_id,)
     c.filter.unsure_folder_id = None
     if c.filter.unsure_folder_id is not None: raise ValueError, "unsure_id wrong (%r)" % (c.filter.unsure_folder_id,)
-    
+
     options.set("Filter", "filter_now", True)
     print "Filter_now from container is", c.filter.filter_now
     options.set("Filter", "filter_now", False)
@@ -404,4 +404,3 @@ if __name__=='__main__':
     if c.general.data_directory!=v: print "Bad directory!", c.general.data_directory
     options.update_file("delme.cfg")
     print "Created 'delme.cfg'"
-

@@ -37,7 +37,7 @@ def InitWizardConfig(manager, new_config, from_existing):
     manager.wizard_classifier_data = None # this is hacky
     new_config.filter.watch_folder_ids = []
     new_config.filter.watch_include_sub = False
-    
+
     wc = new_config.wizard
     if from_existing:
         ids = copy.copy(manager.config.filter.watch_folder_ids)
@@ -86,7 +86,7 @@ def _CreateFolder(manager, name, comment):
                 "Please restart Outlook and try again" % name
         manager.ReportError(msg)
         return None
-    
+
 def CommitWizardConfig(manager, wc):
     # If the user want to manually configure, then don't do anything
     if wc.wizard.preparation == 2: # manually configure
@@ -149,4 +149,3 @@ def CreateWizardConfig(manager, from_existing):
     cfg = config.OptionsContainer(options)
     InitWizardConfig(manager, cfg, from_existing)
     return cfg
- 

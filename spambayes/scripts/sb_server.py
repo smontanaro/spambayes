@@ -504,14 +504,14 @@ class BayesProxy(POP3ProxyBase):
                 stream = cStringIO.StringIO()
                 traceback.print_exc(None, stream)
                 details = stream.getvalue()
-                
+
                 # Build the header.  This will strip leading whitespace from
                 # the lines, so we add a leading dot to maintain indentation.
                 detailLines = details.strip().split('\n')
                 dottedDetails = '\n.'.join(detailLines)
                 headerName = 'X-Spambayes-Exception'
                 header = Header(dottedDetails, header_name=headerName)
-                
+
                 # Insert the header, converting email.Header's '\n' line
                 # breaks to POP3's '\r\n'.
                 headers, body = re.split(r'\n\r?\n', messageText, 1)
@@ -675,11 +675,11 @@ class State:
         # If we can, prevent multiple servers from running at the same time.
         assert self.platform_mutex is None, "Should not already have the mutex"
         self.platform_mutex = open_platform_mutex()
-    
+
         # Do whatever we've been asked to do...
         self.createWorkers()
         self.prepared = True
-        
+
     def buildServerStrings(self):
         """After the server details have been set up, this creates string
         versions of the details, for display in the Status panel."""
@@ -712,7 +712,7 @@ class State:
             elif db_ratio < (1/5.0):
                 big = "spam"
                 small = "ham"
-            if big is not None:                
+            if big is not None:
                 self.warning = "Warning: you have much more %s than %s - " \
                                "SpamBayes works best with approximately even " \
                                "numbers of ham and spam." % (big, small)
@@ -918,7 +918,7 @@ def run():
             state.servers = [(args[0], 110)]
         elif len(args) == 2:
             state.servers = [(args[0], int(args[1]))]
-        
+
         # Default to listening on port 110 for command-line-specified servers.
         if len(args) > 0 and state.proxyPorts == []:
             state.proxyPorts = [('', 110)]

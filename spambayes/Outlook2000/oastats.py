@@ -73,7 +73,7 @@ if __name__=='__main__':
     s = Stats(Config())
     s.RecordClassification(.2)
     print "\n".join(s.GetStats())
-    
+
     s = Stats(Config())
     s.RecordClassification(.2)
     s.RecordClassification(.1)

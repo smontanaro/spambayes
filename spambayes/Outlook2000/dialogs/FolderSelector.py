@@ -217,7 +217,7 @@ def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
                       0, 0,
                       0, 0)
     return array.array("c", buf), extra
-    
+
 def UnpackTVItem(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
@@ -231,7 +231,7 @@ def UnpackTVItem(buffer):
     if not (item_mask & commctrl.TVIF_PARAM): item_param = None
     if not (item_mask & commctrl.TVIF_SELECTEDIMAGE): item_selimage = None
     if not (item_mask & commctrl.TVIF_STATE): item_state = item_stateMask = None
-    
+
     if item_textptr:
         text = win32gui.PyGetString(item_textptr)
     else:
@@ -447,7 +447,7 @@ class FolderSelector(FolderSelector_Parent):
 
     # Message processing
 #    def GetMessageMap(self):
-    
+
     def OnInitDialog (self, hwnd, msg, wparam, lparam):
         FolderSelector_Parent.OnInitDialog(self, hwnd, msg, wparam, lparam)
         caption = "%s folder" % (self.select_desc_noun,)
@@ -511,7 +511,7 @@ class FolderSelector(FolderSelector_Parent):
         id = win32api.LOWORD(wparam)
         id_name = self._GetIDName(id)
         code = win32api.HIWORD(wparam)
-        
+
         if code == win32con.BN_CLICKED:
             if id in (win32con.IDOK, win32con.IDCANCEL) and self.in_label_edit:
                 cancel = id == win32con.IDCANCEL

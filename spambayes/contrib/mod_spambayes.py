@@ -24,7 +24,7 @@ class SpambayesFilter(BufferAllFilter):
                 print self.serverheaders
                 print "text:", s[0:40], "...", s[-40:]
                 return "not authorized"
-       return s
+    return s
 
 from proxy3_util import *
 

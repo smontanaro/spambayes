@@ -10,7 +10,7 @@ if __name__=='__main__':
         import manager
     except ImportError:
         sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
-    
+
     import manager, win32con
     mgr = manager.GetManager()
     from dialogs import ShowDialog, ShowWizard

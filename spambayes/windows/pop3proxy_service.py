@@ -66,7 +66,7 @@ if not hasattr(sys, "frozen"):
 
     sb_dir = os.path.dirname(os.path.dirname(this_filename))
     sb_scripts_dir = os.path.join(sb_dir,"scripts")
-    
+
     sys.path.insert(0, sb_dir)
     sys.path.insert(-1, sb_scripts_dir)
     # and change directory here, so pop3proxy uses the default
@@ -101,7 +101,7 @@ class Service(win32serviceutil.ServiceFramework):
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         self.event_stopping.set()
-        sb_server.stop()        
+        sb_server.stop()
 
     def SvcDoRun(self):
         import servicemanager
@@ -112,8 +112,8 @@ class Service(win32serviceutil.ServiceFramework):
             msg = "The SpamBayes proxy service could not be started, as "\
                   "another SpamBayes server is already running on this machine"
             servicemanager.LogErrorMsg(msg)
-            errCode = winerror.ERROR_SERVICE_SPECIFIC_ERROR 
-            self.ReportServiceStatus(win32service.SERVICE_STOPPED, 
+            errCode = winerror.ERROR_SERVICE_SPECIFIC_ERROR
+            self.ReportServiceStatus(win32service.SERVICE_STOPPED,
                                      win32ExitCode=errCode, svcExitCode = 1)
             return
         assert not sb_server.state.launchUI, "Service can't launch a UI"
@@ -122,7 +122,7 @@ class Service(win32serviceutil.ServiceFramework):
         thread = threading.Thread(target=self.ServerThread)
         thread.start()
 
-        # Write an event log record - in debug mode we will also 
+        # Write an event log record - in debug mode we will also
         # see this message printed.
         from spambayes.Options import optionsPathname
         extra = " as user '%s', using config file '%s'" \
@@ -153,7 +153,7 @@ class Service(win32serviceutil.ServiceFramework):
                 print "The worker failed to stop - aborting it anyway"
         except KeyboardInterrupt:
             pass
-        
+
         # Write another event log record.
         s = sb_server.state
         status = " after %d sessions (%d ham, %d spam, %d unsure)" % \

@@ -145,7 +145,7 @@ class Option(object):
     def multiple_values_allowed(self):
         '''Multiple values are allowed for this option.'''
         return type(self.value) in MultiContainerTypes
-    
+
     def is_valid(self, value):
         '''Check if this is a valid value for this option.'''
         if self.allowed_values is None:
@@ -192,7 +192,7 @@ class Option(object):
             else:
                 # either no match or too many matches
                 return False
-            
+
     def _split_values(self, value):
         # do the regex mojo here
         if not self.allowed_values:
@@ -469,7 +469,7 @@ class OptionsClass(object):
         shutil.copyfileobj(out, f)
         out.close()
         f.close()
-    
+
     def _add_missing(self, out, written, sect, vi, label=True):
         # add any missing ones, where the value does not equal the default
         for opt in self.options_in_section(sect):
@@ -502,7 +502,7 @@ class OptionsClass(object):
                         args = opt[1:]
                 except TypeError: # opt[0] not a class
                     pass
-                        
+
                 o = klass(*args)
                 self._options[section, o.name] = o
 
@@ -606,7 +606,7 @@ class OptionsClass(object):
             self._options[sect, opt.lower()].set(val)
         else:
             print >> sys.stderr, ("Attempted to set [%s] %s with invalid"
-                                  " value %s (%s)" % 
+                                  " value %s (%s)" %
                                   (sect, opt.lower(), val, type(val)))
 
     def set_from_cmdline(self, arg, stream=None):
@@ -666,7 +666,7 @@ class OptionsClass(object):
                 all.append(sect)
         all.sort()
         return all
-    
+
     def options_in_section(self, section):
         '''Return an alphabetical list of all the options in this section.'''
         all = []
@@ -706,26 +706,26 @@ class OptionsClass(object):
         return output.getvalue()
 
     def display_full(self, section=None, option=None):
-       '''Display options including all information.'''
-       # Given that the Options class is no longer as nice looking
-       # as it once was, this returns all the information, i.e.
-       # the doc, default values, and so on
-       output = StringIO.StringIO()
+        '''Display options including all information.'''
+        # Given that the Options class is no longer as nice looking
+        # as it once was, this returns all the information, i.e.
+        # the doc, default values, and so on
+        output = StringIO.StringIO()
 
-       # when section and option are both specified, this
-       # is nothing more than a call to as_nice_string
-       if section is not None and option is not None:
-           output.write(self._options[section,
-                                      option.lower()].as_nice_string(section))
-           return output.getvalue()
-       
-       all = self._options.keys()
-       all.sort()
-       for sect, opt in all:
-           if section is not None and sect != section:
-               continue
-           output.write(self._options[sect, opt.lower()].as_nice_string(sect))
-       return output.getvalue()
+        # when section and option are both specified, this
+        # is nothing more than a call to as_nice_string
+        if section is not None and option is not None:
+            output.write(self._options[section,
+                                       option.lower()].as_nice_string(section))
+            return output.getvalue()
+
+        all = self._options.keys()
+        all.sort()
+        for sect, opt in all:
+            if section is not None and sect != section:
+                continue
+            output.write(self._options[sect, opt.lower()].as_nice_string(sect))
+        return output.getvalue()
 
 # These are handy references to commonly used regex/tuples defining
 # permitted values. Although the majority of options use one of these,

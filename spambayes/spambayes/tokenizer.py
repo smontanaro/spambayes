@@ -662,10 +662,10 @@ def tokenize_word(word, _len=len, maxword=options["Tokenizer",
     # Make sure this range matches in tokenize().
     if 3 <= n <= maxword:
         yield word
-        
+
     elif n >= 3:
         # A long word.
-        
+
         # Don't want to skip embedded email addresses.
         # An earlier scheme also split up the y in x@y on '.'.  Not splitting
         # improved the f-n rate; the f-p rate didn't care either way.
@@ -815,7 +815,7 @@ def crack_content_xyz(msg):
         # and
         # http://mail.python.org/pipermail/spambayes-dev/2003-September/001177.html
         yield "filename:<bogus>"
-        
+
     if 0:   # disabled; see comment before function
         x = msg.get('content-transfer-encoding')
         if x is not None:
@@ -1173,7 +1173,7 @@ class Tokenizer:
                     yield "x-habeas-swe:invalid"
                 elif valid_habeas == 9:
                     yield "x-habeas-swe:valid"
-                    
+
         # Subject:
         # Don't ignore case in Subject lines; e.g., 'free' versus 'FREE' is
         # especially significant in this context.  Experiment showed a small

@@ -135,7 +135,7 @@ def IsReadOnlyCOMException(exc_val):
     known_failure_codes = -2146644781, -2147164169
     exc_val = NormalizeCOMException(exc_val)
     return exc_val[0] in known_failure_codes
-    
+
 def ReportMAPIError(manager, what, exc_val):
     hr, exc_msg, exc, arg_err = exc_val
     if hr == mapi.MAPI_E_TABLE_TOO_BIG:
@@ -159,7 +159,7 @@ class MAPIMsgStore:
     NotFoundException = NotFoundException
     ReadOnlyException = ReadOnlyException
     ObjectChangedException = ObjectChangedException
-    
+
     def __init__(self, outlook = None):
         self.outlook = outlook
         cwd = os.getcwd() # remember the cwd - mapi changes it under us!
@@ -685,7 +685,7 @@ class MAPIMsgStoreFolder:
             rc = folder.DeleteMessages(real_ids, 0, None, 0)
         except pythoncom.com_error, details:
             raise MsgStoreExceptionFromCOMException(details)
-    
+
     def CreateTemporaryMessage(self, msg_flags = None):
         # Create a message designed to be used temporarily.  It is your
         # responsibility to delete when you are done with it.
@@ -719,7 +719,7 @@ class MAPIMsgStoreMsg:
                           PR_RECEIVED_BY_ENTRYID, # who received it
                           PR_SUBJECT_A,
                           PR_TRANSPORT_MESSAGE_HEADERS_A,
-                          ) 
+                          )
 
     def __init__(self, msgstore, prop_row):
         self.msgstore = msgstore
@@ -1194,7 +1194,7 @@ class MAPIMsgStoreMsg:
             resolve_ids = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
             prop_ids = PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[0])), \
                        PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[1]))
-    
+
             prop_tuples = (prop_ids[0],folder.id[0]), (prop_ids[1],folder.id[1])
             self.mapi_object.SetProps(prop_tuples)
             self.dirty = True

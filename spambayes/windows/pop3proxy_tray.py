@@ -183,7 +183,7 @@ class MainWindow(object):
                                           0, icon_flags)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
-        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, 
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon,
             "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
         self.started = IsServerRunningAnywhere()
@@ -191,7 +191,7 @@ class MainWindow(object):
         if self.use_service and not self.IsServiceAvailable():
             print "Service not availible. Using thread."
             self.use_service = False
-      
+
         # Start up sb_server
         if not self.started:
             self.Start()
@@ -212,12 +212,12 @@ class MainWindow(object):
         else:
             tip = "SpamBayes is not running"
         return tip
-            
+
 
     def UpdateIcon(self):
-        flags = NIF_TIP | NIF_ICON        
+        flags = NIF_TIP | NIF_ICON
         if self.started:
-            hicon = self.hstartedicon 
+            hicon = self.hstartedicon
         else:
             hicon = self.hstoppedicon
         self.tip = self.BuildToolTip()
@@ -276,10 +276,10 @@ class MainWindow(object):
                 dwWaitTime = 1000
             elif dwWaitTime > 10000:
                 dwWaitTime = 10000
-    
+
             Sleep(dwWaitTime);
             ssStatus = QueryServiceStatus(schService)
-     
+
             if ssStatus[5] > dwOldCheckPoint:
                 dwStartTickCount = GetTickCount()
                 dwOldCheckPoint = ssStatus[5]
@@ -301,7 +301,7 @@ class MainWindow(object):
             self.started = False
             CloseServiceHandle(schService)
             return
-        
+
         ControlService(schService, SERVICE_CONTROL_STOP)
 
         ssStatus         = QueryServiceStatus(schService)
@@ -315,10 +315,10 @@ class MainWindow(object):
                 dwWaitTime = 1000
             elif dwWaitTime > 10000:
                 dwWaitTime = 10000
-    
+
             Sleep(dwWaitTime);
             ssStatus = QueryServiceStatus(schService)
-     
+
             if ssStatus[5] > dwOldCheckPoint:
                 dwStartTickCount = GetTickCount()
                 dwOldCheckPoint = ssStatus[5]
@@ -328,7 +328,7 @@ class MainWindow(object):
 
         CloseServiceHandle(schService)
         self.started = False
-        
+
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
         Shell_NotifyIcon(NIM_DELETE, nid)
@@ -400,7 +400,7 @@ class MainWindow(object):
             self.started = False
         DestroyWindow(self.hwnd)
         PostQuitMessage(0)
-        
+
     def _ProxyThread(self):
         self.started = True
         try:
@@ -439,7 +439,7 @@ class MainWindow(object):
             self.StartProxyThread()
         self.started = True
         self.UpdateUIState()
-        
+
     def Stop(self):
         self.CheckCurrentState()
         if not self.started:
@@ -471,7 +471,7 @@ class MainWindow(object):
     def CheckCurrentState(self):
         self.started = IsServerRunningAnywhere()
         self.UpdateUIState()
-        
+
     def UpdateUIState(self):
         if self.started != self.last_started_state:
             self.UpdateIcon()
@@ -490,20 +490,20 @@ class MainWindow(object):
         else:
             self.ShowMessage("SpamBayes is not running.")
 
-    def OpenConfig(self):		
+    def OpenConfig(self):
         if self.started:
             webbrowser.open_new("http://localhost:%d/config" % \
                                 (options["html_ui", "port"],))
         else:
             self.ShowMessage("SpamBayes is not running.")
-            
-    def OpenReview(self):		
+
+    def OpenReview(self):
         if self.started:
             webbrowser.open_new("http://localhost:%d/review" % \
                                 (options["html_ui", "port"],))
         else:
             self.ShowMessage("SpamBayes is not running.")
-            
+
     def CheckVersion(self):
         # Stolen, with few modifications, from addin.py
         from spambayes.Version import get_version_string, \
@@ -537,14 +537,14 @@ class MainWindow(object):
             url = get_version_string(app_name, "Download Page", version_dict=latest)
             # Offer to open up the url
 ##                os.startfile(url)
-      
+
     def ShowMessage(self, msg):
         MessageBox(self.hwnd, msg, "SpamBayes", win32con.MB_OK)
 
 
 def main():
-	w = MainWindow()
-	PumpMessages()
+    w = MainWindow()
+    PumpMessages()
 
 if __name__=='__main__':
-	main()
+    main()

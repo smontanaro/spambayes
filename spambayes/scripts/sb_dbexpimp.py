@@ -10,35 +10,35 @@ Abstract:
     This utility has the primary function of exporting and importing
     a spambayes database into/from a flat file.  This is useful in a number
     of scenarios.
-    
+
     Platform portability of database - flat files can be exported and
     imported across platforms (winduhs and linux, for example)
-    
+
     Database implementation changes - databases can survive database
     implementation upgrades or new database implementations.  For example,
     if a dbm implementation changes between python x.y and python x.y+1...
-    
+
     Database reorganization - an export followed by an import reorgs an
-    existing database, <theoretically> improving performance, at least in 
+    existing database, <theoretically> improving performance, at least in
     some database implementations
-    
+
     Database sharing - it is possible to distribute particular databases
     for research purposes, database sharing purposes, or for new users to
     have a 'seed' database to start with.
-    
+
     Database merging - multiple databases can be merged into one quite easily
     by simply not specifying -n on an import.  This will add the two database
     nham and nspams together (assuming the two databases do not share corpora)
     and for wordinfo conflicts, will add spamcount and hamcount together.
-    
+
     Spambayes software release migration - an export can be executed before
     a release upgrade, as part of the installation script.  Then, after the
     new software is installed, an import can be executed, which will
     effectively preserve existing training.  This eliminates the need for
     retraining every time a release is installed.
-    
+
     Others?  I'm sure I haven't thought of everything...
-    
+
 Usage:
     sb_dbexpimp [options]
 
@@ -60,17 +60,17 @@ Examples:
 
     Export pickled mybayes.db into mybayes.db.export as a csv flat file
         sb_dbexpimp -e -d mybayes.db -f mybayes.db.export
-        
+
     Import mybayes.eb.export into a new DBM mybayes.db
         sb_dbexpimp -i -D mybayes.db -f mybayes.db.export
-       
+
     Export, then import (reorganize) new pickled mybayes.db
         sb_dbexpimp -e -i -n -d mybayes.db -f mybayes.db.export
-        
+
     Convert a bayes database from pickle to DBM
         sb_dbexpimp -e -d abayes.db -f abayes.export
         sb_dbexpimp -i -D abayes.db -f abayes.export
-        
+
     Create a new database (newbayes.db) from two
         databases (abayes.db, bbayes.db)
         sb_dbexpimp -e -d abayes.db -f abayes.export
@@ -96,7 +96,7 @@ try:
 except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
-    
+
 import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno, re
@@ -125,24 +125,24 @@ def runExport(dbFN, useDBM, outFN):
         fp = open(outFN, 'w')
     except IOError, e:
         if e.errno != errno.ENOENT:
-           raise
-       
+            raise
+
     nham = bayes.nham;
     nspam = bayes.nspam;
-    
+
     print "Exporting database %s to file %s" % (dbFN, outFN)
     print "Database has %s ham, %s spam, and %s words" \
             % (nham, nspam, len(words))
-    
+
     fp.write("%s,%s,\n" % (nham, nspam))
-    
+
     for word in words:
         wi = bayes._wordinfoget(word)
         hamcount = wi.hamcount
         spamcount = wi.spamcount
         word = uquote(word)
         fp.write("%s`%s`%s`\n" % (word, hamcount, spamcount))
-        
+
     fp.close()
 
 def runImport(dbFN, useDBM, newDBM, inFN):
@@ -153,19 +153,19 @@ def runImport(dbFN, useDBM, newDBM, inFN):
         except OSError, e:
             if e.errno != 2:     # errno.<WHAT>
                 raise
-                
+
         try:
             os.unlink(dbFN+".dat")
         except OSError, e:
             if e.errno != 2:     # errno.<WHAT>
                 raise
-                
+
         try:
             os.unlink(dbFN+".dir")
         except OSError, e:
             if e.errno != 2:     # errno.<WHAT>
                 raise
-                
+
     if useDBM:
         bayes = spambayes.storage.DBDictClassifier(dbFN)
     else:
@@ -175,31 +175,31 @@ def runImport(dbFN, useDBM, newDBM, inFN):
         fp = open(inFN, 'r')
     except IOError, e:
         if e.errno != errno.ENOENT:
-           raise
-    
+            raise
+
     nline = fp.readline()
     (nham, nspam, junk) = re.split(',', nline)
- 
+
     if newDBM:
         bayes.nham = int(nham)
         bayes.nspam = int(nspam)
     else:
         bayes.nham += int(nham)
         bayes.nspam += int(nspam)
-    
+
     if newDBM:
         impType = "Importing"
     else:
         impType = "Merging"
-  
+
     print "%s database %s using file %s" % (impType, dbFN, inFN)
 
     lines = fp.readlines()
-    
+
     for line in lines:
         (word, hamcount, spamcount, junk) = re.split('`', line)
         word = uunquote(word)
-       
+
         try:
             wi = bayes.wordinfo[word]
         except KeyError:
@@ -207,7 +207,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
         wi.hamcount += int(hamcount)
         wi.spamcount += int(spamcount)
-               
+
         bayes._wordinfoset(word, wi)
 
     fp.close()
@@ -216,13 +216,13 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     print "databases may take a very long time to store."
     bayes.store()
     print "Finished storing database"
-    
+
     if useDBM:
         words = bayes.db.keys()
         words.remove(bayes.statekey)
     else:
         words = bayes.wordinfo.keys()
-        
+
     print "Database has %s ham, %s spam, and %s words" \
            % (bayes.nham, bayes.nspam, len(words))
 

@@ -87,7 +87,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
                     win32gui.EnableWindow(h, False)
                 except:
                     pass
-                        
+
                 self.finish_fn(self.window.manager, self.window)
                 win32gui.EndDialog(self.window.hwnd, win32con.IDOK)
             else:
@@ -102,7 +102,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
             pageNo = self.page_stack.pop()
             print "Back button switching to page", pageNo
             self.switchToPage(pageNo)
-    
+
     def switchToPage(self, index):
         if self.currentPageHwnd is not None:
             if not self.currentPage.SaveAllControls():
@@ -128,7 +128,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
             if pid == next:
                 return index
         assert 0, "No page '%s'" % next
-        
+
     # methods to be overridden.  default implementation is simple sequential
     def getNextPage(self):
         return self.currentPageIndex+1
@@ -167,7 +167,7 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
             # if a folder ID is changed)
             ok = not self.window.config.wizard.need_train
         return ok
-        
+
     def getNextPage(self):
         index = self.currentPageIndex
         id = self.page_ids[index]
@@ -220,9 +220,9 @@ class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
         self.use_fqn = use_fqn
         self.name_joiner = name_joiner
         self.in_setting_name = False
-       
+
         name_sect_name, name_sub_option_name = option_folder_name.split(".")
-        
+
         self.option_folder_name = window.config.get_option(name_sect_name,
                                                             name_sub_option_name)
         if option_override:

@@ -16,7 +16,7 @@ def DumpItemProp(item, prop, outfile):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             propIds = obj.GetIDsFromNames(props, 0)
             prop = mapitags.PROP_TAG( mapitags.PT_UNSPECIFIED, mapitags.PROP_ID(propIds[0]))
-    
+
     hr, data = item.GetProps((prop,), 0)
     prop_tag, prop_val = data[0]
 
@@ -34,17 +34,17 @@ def DumpItemProp(item, prop, outfile):
         prop_val = "".join(chunks)
     elif mapitags.PROP_TYPE(prop_tag)==mapitags.PT_ERROR and \
          prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,'MAPI_E_NOT_ENOUGH_MEMORY']:
-            prop_tag = mapitags.PROP_TAG(mapitags.PT_BINARY, mapitags.PROP_ID(prop_tag))
-            stream = item.OpenProperty(prop_tag,
-                                        pythoncom.IID_IStream,
-                                        0, 0)
-            chunks = []
-            while 1:
-                chunk = stream.Read(4096)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            prop_val = "".join(chunks)
+        prop_tag = mapitags.PROP_TAG(mapitags.PT_BINARY, mapitags.PROP_ID(prop_tag))
+        stream = item.OpenProperty(prop_tag,
+                                    pythoncom.IID_IStream,
+                                    0, 0)
+        chunks = []
+        while 1:
+            chunk = stream.Read(4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        prop_val = "".join(chunks)
     outfile.write(prop_val)
 
 def DumpProp(driver, mapi_folder, subject, prop_tag, outfile):

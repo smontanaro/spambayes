@@ -254,7 +254,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
                     parms[key] = value
         UserInterface.UserInterface.onChangeopts(self, **parms)
         self.parm_ini_map = backup
-        
+
     def _buildFolderBox(self, section, option, available_folders):
         folderTable = self.html.configTable.clone()
         del folderTable.configTextRow1

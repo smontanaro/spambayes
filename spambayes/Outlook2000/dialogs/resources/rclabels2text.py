@@ -36,7 +36,7 @@ def extract(inputFilename = None, outputFilename = None):
                 s = anti_nl.sub("\\g<1>\n\\g<2>",s)
                 out.write(s)
                 out.write("\n\n")
-            
+
     out.close()
     os.startfile(outputFilename);
 

@@ -75,8 +75,8 @@ def main():
     hammie = os.path.expanduser(options["Storage", "persistent_storage_file"])
     use_dbm = options["Storage", "persistent_use_database"]
     if not use_dbm:
-            print "Your storage %s is a: pickle" % (hammie,)
-            return
+        print "Your storage %s is a: pickle" % (hammie,)
+        return
 
     if not os.path.exists(hammie):
         print "Your storage file does not exist yet."

@@ -89,7 +89,7 @@ class ControlDef:
         t = [ct, self.label, self.idNum, (self.x, self.y, self.w, self.h), self.style]
         #print t
         return t
-        
+
 
 class RCParser:
     next_id = 1001
@@ -98,7 +98,7 @@ class RCParser:
     debugEnabled = False;
     token = ""
 
-    def __init__(self):    
+    def __init__(self):
         self.ids = {"IDOK":1, "IDCANCEL":2, "IDC_STATIC": -1}
         self.names = {1:"IDOK", 2:"IDCANCEL", -1:"IDC_STATIC"}
         self.bitmaps = {}
@@ -113,11 +113,11 @@ class RCParser:
         if self.token=="":
             self.token = None
         return self.token
-    
+
     def getCommaToken(self):
         tok = self.getToken()
         assert tok == ",", "Token '%s' should be a comma!" % tok
-    
+
     def loadDialogs(self, rcFileName):
         """
         RCParser.loadDialogs(rcFileName) -> None
@@ -205,11 +205,11 @@ class RCParser:
             self.ids[id_name] = id
             self.names[id] = id_name
         return id
-                
+
     def lang(self):
         while self.token[0:4]=="LANG" or self.token[0:7]=="SUBLANG" or self.token==',':
             self.getToken();
-            
+
     def dialog(self, name):
         dlg = DialogDef(name,self.addId(name))
         assert len(dlg.controls)==0
@@ -245,17 +245,17 @@ class RCParser:
             else:
                 break
         self.dialogs[name] = dlg.createDialogTemplate()
-    
+
     def dialogStyle(self, dlg):
         dlg.style, dlg.styles = self.styles( [], win32con.WS_VISIBLE | win32con.DS_SETFONT)
     def dialogExStyle(self, dlg):
         self.getToken()
         dlg.styleEx, dlg.stylesEx = self.styles( [], 0)
-    
+
     def styles(self, defaults, defaultStyle):
         list = defaults
         style = defaultStyle
-        
+
         if "STYLE"==self.token:
             self.getToken()
         i = 0
@@ -284,9 +284,9 @@ class RCParser:
                     style |= value
             self.getToken()
         self.debug("style is ",style)
-            
+
         return style, list
-    
+
     def dialogCaption(self, dlg):
         if "CAPTION"==self.token:
             self.getToken()

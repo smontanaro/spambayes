@@ -135,7 +135,7 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
     def push(self, data):
         print "pushing", repr(data)
         Dibbler.BrighterAsyncChat.push(self, data)
-        
+
     def recv(self, buffer_size):
         """Asynchat override."""
         try:

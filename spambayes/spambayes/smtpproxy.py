@@ -60,7 +60,7 @@ todo = """
    *all* the ids in a message, rather than stopping after one *might*
    work, but I don't really know.  Richie Hindle suggested something along
    these lines back in September '02.
-   
+
  o Suggestions?
 
 Testing:
@@ -73,17 +73,17 @@ A '*' in the Header column signifies that the smtpproxy can extract
 the id from the headers only.  A '*' in the Body column signifies that
 the smtpproxy can extract the id from the body of the message, if it
 is there.
-                                                        Header	Body
+                                                        Header  Body
 *** Windows 2000 MUAs ***
 Eudora 5.2 Forward                                         *     *
 Eudora 5.2 Redirect                                              *
 Netscape Messenger (4.7) Forward (inline)                  *     *
-Netscape Messenger (4.7) Forward (quoted) Plain      	         *
-Netscape Messenger (4.7) Forward (quoted) HTML      	         *
-Netscape Messenger (4.7) Forward (quoted) Plain & HTML       	 *       
-Netscape Messenger (4.7) Forward (attachment) Plain 	   *     *	 
-Netscape Messenger (4.7) Forward (attachment) HTML  	   *	 *
-Netscape Messenger (4.7) Forward (attachment) Plain & HTML *  	 *
+Netscape Messenger (4.7) Forward (quoted) Plain                  *
+Netscape Messenger (4.7) Forward (quoted) HTML                   *
+Netscape Messenger (4.7) Forward (quoted) Plain & HTML           *
+Netscape Messenger (4.7) Forward (attachment) Plain        *     *
+Netscape Messenger (4.7) Forward (attachment) HTML         *     *
+Netscape Messenger (4.7) Forward (attachment) Plain & HTML *     *
 Outlook Express 6 Forward HTML (Base64)                          *
 Outlook Express 6 Forward HTML (None)                            *
 Outlook Express 6 Forward HTML (QP)                              *
@@ -91,7 +91,7 @@ Outlook Express 6 Forward Plain (Base64)                         *
 Outlook Express 6 Forward Plain (None)                           *
 Outlook Express 6 Forward Plain (QP)                             *
 Outlook Express 6 Forward Plain (uuencoded)                      *
-http://www.endymion.com/products/mailman Forward	             *
+http://www.endymion.com/products/mailman Forward                     *
 M2 (Opera Mailer 7.01) Forward                                   *
 M2 (Opera Mailer 7.01) Redirect                            *     *
 The Bat! 1.62i Forward (RFC Headers not visible)                 *
@@ -262,7 +262,7 @@ class BayesSMTPProxy(SMTPProxyBase):
           information) we are receiving a ham/spam message to train on,
           then do not forward the command on.  Otherwise forward verbatim.
 
-    Any other commands are merely passed on verbatim to the server.          
+    Any other commands are merely passed on verbatim to the server.
     """
 
     def __init__(self, clientSocket, serverName, serverPort, trainer):
@@ -333,7 +333,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         else:
             self.blockData = False
         return "%s:%s" % (command, ' '.join(args))
-        
+
     def onData(self, command, args):
         self.inData = True
         if self.train_as_ham == True or self.train_as_spam == True:
@@ -356,7 +356,7 @@ class SMTPTrainer(object):
         self.classifier = classifier
         self.state = state
         self.imap = imap
-    
+
     def extractSpambayesID(self, data):
         msg = message_from_string(data)
 
@@ -492,7 +492,7 @@ def LoadServerInfo():
         print "smtpproxy:remote_servers & smtpproxy:listen_ports are " + \
               "different lengths!"
         sys.exit()
-    return servers, proxyPorts    
+    return servers, proxyPorts
 
 def CreateProxies(servers, proxyPorts, trainer):
     """Create BayesSMTPProxyListeners for all the given servers."""
