@@ -42,6 +42,7 @@ setup(
            'dbExpImp.py',
            'mboxtrain.py',
            'imapfilter.py',
+           'notesfilter.py',
           ],
         packages = [
            'spambayes',

@@ -8,143 +8,55 @@ probably only interest developers, and one for everything else.
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 3
+New in Alpha Release 4
 ======================
 
 Outlook Plugin
 --------------
- o The Outlook Plugin now works with bsddb[3] databases, and uses them
-   rather than pickles, if available.
- o The Outlook Plugin now stores files in the "correct" windows directory.
-   These will be automatically migrated.
- o Show all tokens in message when showing clues in Outlook plugin.
- o Fix a bug in the Outlook plugin test code.
- o Only create "Spam" field on mail items in Outlook plugin.
- o MAPI exceptions are better handled.
- o Errors when hotmail connector cannot save the message are suppressed.
- o Tokens are listed one per line in Show Clues.
- o Messages can be scored after training.
- o Plugin *may* now work correctly in non-English locales.
- o Databases are saved after any training operation.
- o Handle malformed messages better in the Outlook plugin.
- o In Outlook plugin, create our own toolbar, rather than using the
-   standard one.
- o Use 'wait' cursor when incremental training in Outlook plugin.
- o In Outlook plugin, save config when dialog closes and not at shutdown.
- o Clean up toolbar images.
- o In Outlook plugin, no longer default to the "Inbox".
- o In Outlook plugin, when filtering, saving the spam score is no longer
-   fatal.
- o 2 new [General] options - delete_as_spam_message_state and
-   recover_from_spam_message_state.
- o Prevent "Deleted items", Outbox and Sent Items from appearing 
-   in the folder list.
- o Allow either spam or unsure messages to be marked as read as they are filtered.
- o Significant improvements to the toolbar.
- o Standardised name from "Anti-Spam" to "Spambayes"
- o Significant changes to configuration (moving from a pickle to .ini files).
+ o Display a message for "Delete as Spam" or "Recover from Spam" when
+   SpamBayes is not enabled.
+ o The toolbar is now initialized when "Outlook Today" is the default view.
 
 POP3 Proxy
 ----------
- o The POP3 Proxy can now include the classification in the "To" or
-   "Subject" headers, which allows Outlook Express users to perform
-   filtering on the classification.
- o The POP3 Proxy can add an id (as a header or in the body) to track
-   emails.  This can be used with the SMTP Proxy, or to find a particular
-   message from the web interface.
- o Added include_score option to (optionally) note the score of the message
-   in a header.
- o Added level (thermostat) and evidence headers for pop3proxy.
- o Added pop3proxy_server to allow pop3proxy to run as a Windows service.
- o Improved configuration page for the user interface.
- o A "Show Clues" button next to each message in the "Review" page of the
-   web interface.
- o Messages in the "unknown" cache are expired, just like those in the
-   "ham" and "spam" caches.
- o Messages are expired (if old enough) each time a client connects to the
-   proxy, rather than on the proxy startup.
- o pop3proxy_port, pop3proxy_server_name and pop3proxy_server_port options
-   were removed (these were deprecated in Alpha 2).
- o If a file is removed from the cache (not by the proxy) this no longer
-   causes an exception.
- o Messages received in quick succession (within the same second) may not
-   have been visible in the "review" page; fixed this.
- o Added "Refresh" button to "Review" page.
- o Improved proxying of "STAT" POP3 command so that a guess at the message
-   size is returned.
- o Web interface encourage browsers not to cache the pages.
- o Added an option to display who a message is to in the "Review" page.
- o A new option to correct for a much higher ratio of spam to ham (or
-   vice-versa) is available via the interface page.
+ o Fix a bug where long attachments would be broken.
+ o If an exception occurs parsing a message, recover and append a new
+   'exception' header.
+   (This will be added to other SpamBayes applications by the next
+    release).
+ o Stop including the trailing dot in messages.
+
+IMAP Filter
+-----------
+ o In imapfilter, try to append without flags if appending fails.
+ o Fix the -i switch in imapfilter and an import error.
+ o Don't try and get password from options if -p is specified in imapfilter.
 
 Developer
 ---------
- o Added base message classes for use by all Spambayes applications -
-   currently used by the IMAP filter and POP3 proxy.
- o Major rework of the configuration file loading and format of Options.py.
- o Test code moved out of pop3proxy.py.
- o Web interface code abstracted out of pop3proxy.py.
- o A version information repository for all applications.
+ o Various changes/improvements to storage.py.
+   Note that this includes a fix for a potentially serious bug introduced
+   in a3 which could result in incorrect token counts.
 
 General
 -------
- o A utility to dump the contents of a CDB database.
- o -c and -d options to mailsort.py
- o A basic filter for Lotus Notes.
- o A SMTP Proxy to allow training via forwarding/bouncing messages.
- o Various files to test "incremental training" (or "self training").
- o Option to mkgraph to spit out counts *or* error rates, and n-day
-   averages *or* cumulative.
- o Note when the subject charset is invalid (rather than raising an
-   exception).
- o A filter for IMAP.
- o A script to test the effectiveness of following URLs in messages when
-   insufficient clues are otherwise present.
- o 'Nonsense' HTML tags are stripped rather than replaced with a space
-   (e.g. Wr<!$FS|i|R3$s80sA >inkle Reduc<!$FS|i|R3$s80sA >tion becomes
-    "Wrinkle" and "Reduction" rather than "Wr", "inkle", "Reduc" and
-    "tion").
- o Decode numeric character entities so that
-   yo&#117;r se<!XE>p&#116;ic sys&#116;em becomes "your septic system".
- o <p> and <br> tags are replaced with single blanks.
- o DB classifier keeps a list of "changed words" to prevent saves from
-   updating *all* words.
- o DB classifier no longer caches hapaxes.
- o In muttrc, fix incorrect Spambayes header name.
- o Integrated code for the VM mailer into spambayes.el
- o In hammiefilter,  make untrain mode work.
+ o The web interface (used by pop3proxy and imapfilter) now shows the
+   correct date and time in the footer.
+ o A new stripper to squash yet another way of hiding content in HTML spam,
+   like Ere<frame><noframes>ywl55</noframes></frame>ctions to hide
+   Erections.
 
 
 Transition
 ==========
- o If you are using the Outlook Plugin and a recent bsddb or bsddb3 is
-   available, you will need to do a full retrain.
- o If you had set the environment variable BAYESCUSTOMIZE to point to more
-   than one configuration file, you will need to change the separator
-   character from a space to the path separator for your platform (a
-   semi-colon on windows, a colon on *nix and a newline on Mac OS9)
- o If your old configuration file used the pop3proxy_port,
-   pop3proxy_server_name or pop3proxy_server_port options, these will no
-   longer work.  Copy the values in them and use the web interface to
-   update your configuration file.
- o Your old configuration file more than likely includes deprecated
-   settings.  The old settings will still work for the moment, but you
-   should take the time to update them.  The "convert_config_file.py"
-   script will convert the file for you, without loss of comments, and
-   avoiding whitespace changes where possible.
- o If you are using POP3 proxy, you should use the web interface to set the
-   location of the "message info" database (a full pathname is
-   recommended).
- o If you are using POP3 proxy, it is recommended (but not required) that
-   you do a full retrain to take advantage of the "message info" database.
+Transition between release a3 and a4 should be seemless.  Refer to the a3
+release for information about transitioning between a2 and a4.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-677804, 642740, 685746, 693423, 696995, 696476, 697120, 698852, 700165,
-704921, 707491, 725307, 725616, 725307, 725466, 726255, 728886, 715248,
-733247, 737956, 737955, 706170, 737986, 743515, 749277
+761677, 761670
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:
@@ -153,9 +65,9 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-The following feature requests tracked via the Sourceforge system were
-fixed:
-690928, 703283
+The following feature request tracked via the Sourceforge system was
+added:
+755098
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:

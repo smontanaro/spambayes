@@ -5,9 +5,9 @@
 # Foundation license.
 versions = {
     # Non app specific - changed when "spambayes\*" changes significantly
-    "Version":          0.1,
-    "Description":      "SpamBayes Beta1",
-    "Date":             "May 2003",
+    "Version":          0.2,
+    "Description":      "SpamBayes Beta2",
+    "Date":             "July 2003",
     "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
     # Sub-dict for application specific version strings.
     "Apps": {
