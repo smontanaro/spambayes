@@ -14,7 +14,6 @@ def chi2Q(x2, v, exp=_math.exp):
     return sum
 
 def main():
-    import random
     from Histogram import Hist
     import sys
 
@@ -36,6 +35,8 @@ def main():
             return result
 
     random = WrappedRandom().random
+    #from uni import uni as random
+    #print random
 
     def judge(ps, ln=_math.log):
         H = S = 0.0
@@ -56,7 +57,7 @@ def main():
 
     h = Hist(20, lo=0.0, hi=1.0)
 
-    for i in range(5000):
+    for i in range(50000):
         ps = [random() for j in range(50)]
         p = judge(ps + [bias] * warp)
         h.add(p)
@@ -65,5 +66,25 @@ def main():
     print
     h.display()
 
+def showscore(ps, ln=_math.log):
+    H = S = 0.0
+    for p in ps:
+        S += ln(1.0 - p)
+        H += ln(p)
+
+    n = len(ps)
+    probS = chi2Q(-2*S, 2*n)
+    probH = chi2Q(-2*H, 2*n)
+    print "P(chisq >= %10g | v=%3d) = %10g" % (-2*S, 2*n, probS)
+    print "P(chisq >= %10g | v=%3d) = %10g" % (-2*H, 2*n, probH)
+
+    S = 1.0 - probS
+    H = 1.0 - probH
+    score = S/(S+H)
+    print "spam prob", S
+    print " ham prob", H
+    print "  S/(S+H)", score
+
 if __name__ == '__main__':
+    import random
     main()
