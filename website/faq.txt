@@ -770,6 +770,22 @@ Pop3proxy doesn't work with fetchmail.
 This is a known problem in releases up to and including 1.0a4, fixed in CVS
 on 28th July 2003.  To work around it, use fetchmail's ``fetchall`` option.
 
+My database keeps getting corrupted and I get trackbacks with "dumbdbm" in them.
+--------------------------------------------------------------------------------
+
+'dumbdbm' is the default database system - the one that gets fallen back on
+when nothing else is available.  It is not usually a good choice, and in
+SpamBayes' case, always the wrong one.  Some versions of dumbdbm have a bug
+that will cause database corruption, but you shouldn't be using it anyway,
+as it is very inefficient.  Instead, either use a pickle or install `pybsddb`_
+(bsddb3) and use that instead.  Support for dumbdbm will be dropped in a
+future release.
+
+Note that none of this applies to the Outlook plug-in, which avoids it
+on your behalf.
+
+.. _pybsddb: http://pybsddb.sourceforge.net/
+
 
 Development
 ===========
