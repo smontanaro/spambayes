@@ -967,7 +967,7 @@ def setup():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbd:D:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbd:D:u:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -979,6 +979,8 @@ def run():
             sys.exit()
         elif opt == '-b':
             launchUI = True
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
     print get_version_string("IMAP Server")

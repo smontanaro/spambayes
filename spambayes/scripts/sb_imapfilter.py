@@ -25,6 +25,10 @@ Usage:
             -i debuglvl : a somewhat mysterious imaplib debugging level
             -l minutes  : period of time between filtering operations
             -b          : Launch a web browser showing the user interface.
+            -o section:option:value :
+                          set [section, option] in the options database
+                          to value 
+
 
 Examples:
 
@@ -696,7 +700,7 @@ class IMAPFilter(object):
 def run():
     global imap
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbtcvpl:e:i:d:D:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbtcvpl:e:i:d:D:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -742,6 +746,8 @@ def run():
             imapDebug = int(arg)
         elif opt == '-l':
             sleepTime = int(arg) * 60
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
     print get_version_string("IMAP Filter")

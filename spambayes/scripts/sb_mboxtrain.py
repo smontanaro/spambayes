@@ -37,6 +37,9 @@ Where OPTIONS is one or more of:
         directory, which is always trained (Maildir only)
 
     -r  remove mail which was trained on (Maildir only)
+
+    -o section:option:value
+        set [section, option] in the options database to value
 """
 
 try:
@@ -282,7 +285,7 @@ def main():
     global loud
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:D:g:s:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:D:g:s:o:')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -317,6 +320,8 @@ def main():
         elif opt == "-D":
             usedb = False
             pck = arg
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
     if args:
         usage(2, "Positional arguments not allowed")
 

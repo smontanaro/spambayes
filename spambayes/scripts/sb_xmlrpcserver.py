@@ -13,6 +13,8 @@ Where:
         exists, and saves data to this file at the end.
     -d
         use the DBM store instead of cPickle.
+    -o section:option:value
+        set [section, option] in the options database to value
 
     IP
         IP address to bind (use 0.0.0.0 to listen on all IPs of this machine)
@@ -71,7 +73,7 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdp:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hdp:o:')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -87,6 +89,8 @@ def main():
             dbname = arg
         elif opt == "-d":
             usedb = True
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
 
     if len(args) != 1:
         usage(2, "IP:PORT not specified")

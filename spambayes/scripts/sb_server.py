@@ -25,6 +25,10 @@ header.  Usage:
                       (default 8880; Browse http://localhost:8880/)
             -b      : Launch a web browser showing the user interface.
 
+            -o section:option:value :
+                      set [section, option] in the options database
+                      to value
+
         All command line arguments and switches take their default
         values from the [pop3proxy] and [html_ui] sections of
         bayescustomize.ini.
@@ -881,7 +885,7 @@ def stop():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbpsd:D:l:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbpsd:D:l:u:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -907,6 +911,8 @@ def run():
             state.proxyPorts = [_addressAndPort(arg)]
         elif opt == '-u':
             state.uiPort = int(arg)
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
     print get_version_string("POP3 Proxy")

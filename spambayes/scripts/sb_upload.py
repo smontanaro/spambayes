@@ -5,6 +5,7 @@ Read a message or a mailbox file on standard input, upload it to a
 web browser and write it to standard output.
 
 usage:  %(progname)s [-h] [-n] [-s server] [-p port] [-r N]
+                     [-o section:option:value]
 
 Options:
     -h, --help    - print help and exit
@@ -12,6 +13,7 @@ Options:
     -s, --server= - provide alternate web server (default %(server)s)
     -p, --port=   - provide alternate server port (default %(port)s)
     -r, --prob=   - feed the message to the trainer w/ prob N [0.0...1.0]
+    -o, --option= - set [section, option] in the options database to value
 """
 
 import sys
@@ -95,9 +97,9 @@ def main(argv):
     prob = 1.0
 
     try:
-        opts, args = getopt.getopt(argv, "hns:p:r:",
+        opts, args = getopt.getopt(argv, "hns:p:r:o:",
                                    ["help", "null", "server=", "port=",
-                                    "prob="])
+                                    "prob=", "option="])
     except getopt.error:
         usage(globals(), locals())
         sys.exit(1)
@@ -118,6 +120,8 @@ def main(argv):
                 usage(globals(), locals())
                 sys.exit(1)
             prob = n
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
 
     if args:
         usage(globals(), locals())

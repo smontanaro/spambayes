@@ -102,6 +102,9 @@ Usage:
                           This is useful for automated executions where the
                           statistics output would otherwise be lost when the
                           window closes.
+            -o section:option:value :
+                          set [section, option] in the options database
+                          to value
 
 Examples:
 
@@ -343,7 +346,7 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcpd:D:l:r:f:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcpd:D:l:r:f:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -378,6 +381,8 @@ if __name__ == '__main__':
             doClassify = True
         elif opt == '-p':
             doPrompt = True
+        elif opt == '-o':
+            options.set_from_cmdline(arg, sys.stderr)
 
     if (bdbname and ldbname and sbfname and (doTrain or doClassify)):
         run(bdbname, useDBM, ldbname, rdbname, \
