@@ -202,6 +202,7 @@ def make_cfg(stream):
         _make_cfg_section(stream, appname, versions["Apps"][appname])
 
 def main(args):
+    import sys
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)

@@ -11,7 +11,6 @@ from __future__ import generators
 import os
 import struct
 import mmap
-import sys
 
 def uint32_unpack(buf):
     return struct.unpack('<L', buf)[0]
@@ -51,7 +50,6 @@ class Cdb(object):
 
     def __iter__(self, fn=None):
         len = 2048
-        ret = []
         while len < self.eod:
             klen, vlen = struct.unpack("<LL", self.map[len:len+8])
             len += 8

@@ -91,8 +91,6 @@ import os
 import types
 import math
 import re
-import sys
-import types
 import errno
 import shelve
 import pickle

@@ -115,6 +115,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
             parm_list = list(parm_map)
             parm_list.remove(("imap", "use_ssl"))
             parm_map = tuple(parm_list)
+        else:
+            del IMAP4_SSL
         UserInterface.UserInterface.__init__(self, cls, parm_map, adv_map)
         self.classifier = cls
         self.imap = imap

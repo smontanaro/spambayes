@@ -727,7 +727,7 @@ def runTestServer(readyEvent=None):
 def test():
     """Run a self-test."""
     # Run the calendar server in a separate thread.
-    import re, threading, urllib
+    import threading, urllib
     testServerReady = threading.Event()
     threading.Thread(target=runTestServer, args=(testServerReady,)).start()
     testServerReady.wait()

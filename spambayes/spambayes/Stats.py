@@ -87,8 +87,12 @@ class Stats(object):
         perc_ham = 100.0 * self.cls_ham / self.total
         perc_spam = 100.0 * self.cls_spam / self.total
         perc_unsure = 100.0 * self.cls_unsure / self.total
-        format_dict = dict(perc_spam=perc_spam, perc_ham=perc_ham,
-                           perc_unsure=perc_unsure, num_seen = self.total)
+        format_dict = {
+            'perc_spam': perc_spam,
+            'perc_ham': perc_ham,
+            'perc_unsure': perc_unsure,
+            'num_seen': self.total
+            }
         format_dict.update(self.__dict__)
         push("SpamBayes has processed %(num_seen)d messages - " \
              "%(cls_ham)d (%(perc_ham).0f%%) good, " \

@@ -278,7 +278,7 @@ class dbxIndexedInfo:
 
   def getIndexDataType(self, dbxIndex):
     """Returns the data type of the given index."""
-    return dt_None
+    return DT_NONE
 
   def getValue(self, dbxIndex):
     """Returns a tuple : (index in buffer of the info, length of the info)."""

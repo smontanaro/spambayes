@@ -1010,7 +1010,6 @@ class UserInterface(BaseUserInterface):
         import mimetypes
 
         from email import Encoders
-        from email.Message import Message
         from email.MIMEBase import MIMEBase
         from email.MIMEAudio import MIMEAudio
         from email.MIMEMultipart import MIMEMultipart

@@ -67,7 +67,6 @@ except ImportError:
 import tokenizer
 import UserInterface
 from spambayes.Options import options
-import spambayes.mboxutils
 from email.Iterators import typed_subpart_iterator
 
 global state
@@ -413,7 +412,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Else if search criteria have been specified, show the messages
         # that match those criteria.
         elif params.get('find') is not None:
-            prior = this = next = 0
+            prior = next = 0
             keys = Set()        # so we don't end up with duplicates
             push = keys.add
             try:

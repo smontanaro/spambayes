@@ -87,7 +87,7 @@ from __future__ import generators
 from spambayes import Corpus
 from spambayes import message
 from spambayes import storage
-import sys, os, gzip, fnmatch, getopt, errno, time, stat
+import sys, os, gzip, fnmatch, getopt, time, stat
 from spambayes.Options import options
 
 class FileCorpus(Corpus.Corpus):
@@ -270,7 +270,6 @@ class FileMessage(message.SBHeaderMessage):
     def __repr__(self):
         '''Instance as a representative string'''
 
-        elip = ''
         sub = self.as_string()
 
         if not options["globals", "verbose"]:
@@ -297,7 +296,7 @@ class FileMessage(message.SBHeaderMessage):
         #removed the file out from underneath us
         try:
             stats = os.stat(self.pathname())
-        except OSError, e:
+        except OSError:
             ctime = time.time()
         else:
             ctime = stats[stat.ST_CTIME]
@@ -505,7 +504,7 @@ def cleanupDirectory(dirname):
         if e.errno != 3:     # errno.<WHAT>
             raise
     else:
-        for filename in os.listdir(dirname):
+        for filename in flist:
             fn = os.path.join(dirname, filename)
             os.unlink(fn)
     try:

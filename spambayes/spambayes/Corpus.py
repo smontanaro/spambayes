@@ -91,7 +91,6 @@ except NameError:
 
 import sys           # for output of docstring
 import time
-import re
 from spambayes import tokenizer
 from spambayes.Options import options
 
@@ -189,7 +188,7 @@ class Corpus:
         self.addMessage(msg)
 
     def get(self, key, default=None):
-        if self.msgs.get(key, "") is "":
+        if self.msgs.get(key, "") == "":
             return default
         else:
             return self[key]
