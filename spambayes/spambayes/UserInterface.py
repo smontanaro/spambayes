@@ -987,6 +987,20 @@ class UserInterface(BaseUserInterface):
                     if report.file.value:
                         break
 
+            try:
+                smtp_server = options["smtpproxy", "remote_servers"][0]
+            except IndexError:
+                smtp_server = None
+            if not smtp_server:
+                self.write(self._buildBox("Warning", "status.gif",
+                           "You will be unable to send this message from " \
+                           "this page, as you do not have your SMTP " \
+                           "server's details entered in your configuration. " \
+                           "Please either <a href='config'>enter those " \
+                           "details</a>, or copy the text below into your " \
+                           "regular mail application."))
+                del report.submitrow
+
         self.write(report)
         self._writePostamble()
 
