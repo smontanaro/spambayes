@@ -66,7 +66,7 @@ is released under `the PSA license`_.
 If you really feel that your life would be incomplete without giving 
 something back to the project, you have a few options:
 
-* Donate you time to help improve the project.  This includes many 
+* Donate your time to help improve the project.  This includes many 
   items that do not require much in the way of technical skills.  See
   the `I'm not a programmer but still want to help`_ question for more 
   details.
