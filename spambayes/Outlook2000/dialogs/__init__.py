@@ -31,7 +31,6 @@ def ShowWizard(parent, manager, idd = "IDD_WIZARD", use_existing_config = True):
     if ShowDialog(parent, manager, config, idd) == win32con.IDOK:
         print "Saving wizard changes"
         config_wizard.CommitWizardConfig(manager, config)
-        manager.SaveConfig()
     else:
         print "Cancelling wizard"
         config_wizard.CancelWizardConfig(manager, config)
