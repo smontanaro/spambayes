@@ -189,7 +189,7 @@ class DBStorageManager(BasicStorageManager):
 
 # Our main "bayes manager"
 class BayesManager:
-    def __init__(self, config_base="default", outlook=None, verbose=1):
+    def __init__(self, config_base="default", outlook=None, verbose=0):
         self.reported_error_map = {}
         self.reported_startup_error = False
         self.config = self.options = None
@@ -715,15 +715,12 @@ class BayesManager:
 
 _mgr = None
 
-def GetManager(outlook = None, verbose=1):
+def GetManager(outlook = None):
     global _mgr
     if _mgr is None:
         if outlook is None:
             outlook = win32com.client.Dispatch("Outlook.Application")
-        _mgr = BayesManager(outlook=outlook, verbose=verbose)
-    # If requesting greater verbosity, honour it
-    if verbose > _mgr.verbose:
-        _mgr.verbose = verbose
+        _mgr = BayesManager(outlook=outlook)
     return _mgr
 
 def ShowManager(mgr):
