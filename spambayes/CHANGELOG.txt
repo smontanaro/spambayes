@@ -2,18 +2,26 @@
 
 Alpha Release 8
 ===============
+Tony Meyer        29/12/2003  Web interface: Improve the 'online' help message for the review page, and add messages for the stats and home pages.
 Tim Peters        29/12/2003  Many improvements to the mksets.py testtools script.
 Tim Peters        28/12/2003  Outlook: export.py - the -n option now gives the number of Set subdirectories desired, instead of a number of msgs per Set subdir "to shoot for".
 Tim Peters        28/12/2003  Added a new -t option to rebal.py, may have broken -s and -r options.
 Tim Peters        26/12/2003  Many improvements to the rebal.py testtools script.
 Tim Peters        26/12/2003  Many improvements to the export.py script for Outlook.
 Skip Montanaro    24/12/2003  storage: make state key a manifest constant
+Mark Hammond      23/12/2003  Along with checking Outlook isn't running, check Outlook's mail transport also isn't running, and that an existing sb_server isn't.
+Mark Hammond      23/12/2003  Fix uninstall problem - uninstall should be 100% clean, assuming Outlook isn't running.
 Mark Hammond      23/12/2003  Tray app: Binary version failed to check for most recent version.
 Skip Montanaro    23/12/2003  Sendmail annotates the Received: header with "(may be forged)" if it thinks the sender is forging its identity.  Generate a token for this, if we are mining received headers.
 Tony Meyer        22/12/2003  Move OE specific stuff out from UserInterface.py to oe_mailbox.py.
 Mark Hammond      22/12/2003  Outlook: Default to background filtering being on for new versions.
+Tony Meyer        22/12/2003  Web interface: A beginning at a more userfriendly interface to the testing setup.
+Mark Hammond      22/12/2003  Outlook: When a frozen executable, addin.py becomes a mini-installer EXE for the DLL.
 Mark Hammond      21/12/2003  Outlook: DWhen doing a "batch train" (eg, selecting multiple messages and saying "Delete as" or "Recover from",) the DB was saved in between each and every message.  Now only saved at the end (which was always the intent)
 Mark Hammond      21/12/2003  Outlook: DAs part of checking our configuration is invalid, make sure the user hasn't set us up such that either Spam/Unsure folders isn't also being watched for new messages
+Mark Hammond      20/12/2003  dump_props.py: Add -c option, which writes output to the Windows clipboard.
+Mark Hammond      20/12/2003  Outlook: Include the foldername in many messages, so help track down wierd bugs from user logs.  Say what we are watching a folder for.
+Mark Hammond      20/12/2003  Outlook: Fix [ 860410 ] SpamBayes allows top-level folders to be selected, and also prevent a single-select dialog from closing with no selection
 Skip Montanaro    20/12/2003  Tokenizer: Solved the "backwards breakdown" problem with ip addresses in Received: headers.
 Skip Montanaro    20/12/2003  Tokenizer: Tightened up recognition of hostnames and accepted bracketed or parenthesized ip addresses without requiring a leading space.
 Mark Hammond      19/12/2003  Outlook: Remove handling of E_OBJECT_CHANGED exception, as it simply did not work.
@@ -21,6 +29,7 @@ Mark Hammond      19/12/2003  Fix [ 803798 ] MAPI_E_OBJECT_CHANGED error saving 
 Mark Hammond      19/12/2003  Outlook: Don't record in the training database unless we are successful in the filter - otherwise future attempts to filter will get all screwed up, as it will think it already was
 Mark Hammond      19/12/2003  Outlook: Move some of our init code from OnConnection to OnStartupComplete
 Tony Meyer        18/12/2003  Bring pspam into the modern SpamBayes world.
+Mark Hammond      17/12/2003  Tray app: Better icons and icon loading code.
 Tony Meyer        17/12/2003  Add the basis of a new experimental (and highly debatable) option to 'slurp' URLs.
 Tim Peters        17/12/2003  Implemented the intended "tiling" version of x-use_bigrams.
 Tony Meyer        16/12/2003  Option names are always case insensitive, no matter what.
@@ -30,13 +39,18 @@ Skip Montanaro    16/12/2003  mboxutils: This change generalizes the DirOfTxtFil
 Tony Meyer        15/12/2003  Add a warning as a temporary solution for Python bug #845560.
 Tony Meyer        15/12/2003  Add the missing code for the Habeas headers tokenizing (and deprecate).
 Mark Hammond      15/12/2003  Fix [ 833439 ] default_bayes_customize.ini is confusing.
+Mark Hammond      14/12/2003  Move the option loading code to a function, then call this function as the module loads.
 Tim Peters        14/12/2003  Removed support code for the defunct experimental_ham_spam_imbalance_adjustment option
 Mark Hammond      14/12/2003  Fix [ 856628 ] reload(Options) fails in windows binary
 Mark Hammond      14/12/2003  Fix [ 859215 ] "Restore Defaults" causes assertion error at exit.
 Tony Meyer        14/12/2003  ImapUI: When logging in was done by the UI (to show available folders) we assigned the imap_session object to the wrong name
+Skip Montanaro    10/12/2003  Loosen constraints on HEADER_VALUE regular expression.
+Skip Montanaro    10/12/2003  Add ability for "x-" options (deprecated, or experimental).
 Mark Hammond      10/12/2003  Outlook: Try and add the Spam field to the 'Unsure' folder in the same way we do for the Spam and watch folders.
 Tony Meyer        04/12/2003  Tray app: Change the default (double-click) behaviour of the tray to "review messages" rather than "display information".
 Tony Meyer        04/12/2003  Tray app: use SetDefaultItem (so the default action is in bold in the menu).
+Mark Hammond      03/12/2003  For the unittest scritps avoid sys.path munging.
+Mark Hammond      03/12/2003  Add new test_programs unittest script and support file for unittest scripts.
 Mark Hammond      02/12/2003  sb_server was ignoring command-line options; fix.
 Richie Hindle     27/11/2003  Sjoerd's improved version of patch 831388.
 Neale Pickett     27/11/2003  sb_filter now prints each message only once, not once per argument :)
@@ -51,6 +65,7 @@ Barry A. Warsaw   25/11/2003  sb_xmlrpcserver.py: Make sure that the socket bein
 Barry A. Warsaw   25/11/2003  Change XMLHammie.score() so that the float score is returned directly instead of trying to be wrapped in a Binary object.
 Barry A. Warsaw   25/11/2003  New script: sb_evoscore.py - A shim script between sb_xmlrpcserver.py and Ximian Evolution.
 Skip Montanaro    25/11/2003  Added a makefile to the testtools directory to make using timcv easier.
+Neale Pickett     18/11/2003  Cleanup sb_filter and sb_mboxtrain.
 Richie Hindle     16/11/2003  Patch [ 842464 ] Correct installation instructions from "setup.py install" to "python setup.py install"
 Skip Montanaro    13/11/2003  sb_filter: add -o/--option command line arg that allows user to set any options value from the command line
 Skip Montanaro    13/11/2003  OptionsClass: Add set_from_cmdline()

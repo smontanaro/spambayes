@@ -27,28 +27,119 @@ There should be no other incompatible changes (from 1.0a7) in this release.
 
 Outlook Plugin
 --------------
- o 
+ o Add slightly better statistics.
+ o When installing, along with checking Outlook isn't running, check
+   Outlook's mail transport also isn't running.
+ o Fix uninstall problem - uninstall should be 100% clean, assuming Outlook
+   isn't running.
+ o Default to background filtering being on.
+ o When doing a "batch train" (eg, selecting multiple messages and saying
+   "Delete as" or "Recover from") the database was saved in between each
+   and every message.  Now it is only saved at the end.
+ o Ensure that the Spam and Unsure folders aren't also being watched for
+   new messages.
+ o Include the folder name in many messages, to help track down wierd bugs
+   from user logs, and also say what we are watching a folder for.
+ o Don't allow top-level folders to be selected.
+ o Don't allow a single-select dialog to be closed without a selection.
+ o Add the Spam field to the 'Unsure' folder as is done with the Spam and
+   watched folders.
+ o Improve matters when the default (Outlook message) store is offline.
 
 POP3 Proxy / SMTP Proxy
 -----------------------
- o 
+ o smtpproxy is now only a module, not a script.  Use sb_server instead.
+ o sb_server was ignoring command-line options; fix.
 
 Web Interface
 -------------
- o 
+ o Add the start of a user-friendly interface to the testing tools that are
+   part of SpamBayes (for testing new features against corpora of ham and
+   spam).
+ o Fix a bug in the web interface where the probability would be
+   incorrectly calculated on 'show clues'.
+ o More robust code for parsing score headers - copes with the presence of
+   logarithms.
+ o More robust code for parsing evidence headers.  Copes with ';' and ': '
+   being part of a clue.
+ o Increased the auth-digest login timeout from one minute to twenty.
+ o Improve the 'Find Message' query on the front page of the web UI.
+ o Add an 'advanced' word query (off by default).
+ o Make the review messages page more customizable.
+ o Provide a partially filled-in bug report message (please use it!).
+ o Add basic statistics information.
+ o Add a basic help system.
+ o Add warning information, for example if the user has imbalanced
+   training, or insufficient training.
+ o Fixed an infinite loop when you break the browser connection to
+   sb_server when sb_server is busy training.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
-
- o 
+ o Fix checking for most recent version.
+ o Better icons and icon loading code.
+ o Change the double-click (default) action to "review messages" and
+   display the default in bold.
+ o If a proxy is already running, don't start the service.
 
 IMAP Filter
 -----------
- o 
+ o When a message is marked as deleted, it is now marked as read (seen) as
+   well.
+ o If sb_imapfilter.py is run without any switches, just serve the web
+   interface (but don't launch a browser).
+
+sb_filter
+---------
+ o Print each message once, not once per argument.
+ o Now obeys the notate_to and notate_subject options.
+ o Added -o/--option command line argument, which allows setting any
+   option via the command line.
+ o Expanded the documentation.
+ o Allow multiple types of mailboxes to be processed using mboxutils.getmbox.
+   If any mailbox files are given on the command line, the output is always
+   a Unix-style mailbox containing From_ lines.
+ o If the -n switch was before the -d/-p switch, then the name wouldn't be
+   used; this has been changed so that the -d/-p name is used wherever the
+   -n switch is.
+
+Testing Suite
+-------------
+ o Many improvements to the mksets.py script.
+ o Many improvements to the rebal.py script.
+ o Many improvements to the export.py script (for Outlook).
+ o Added a makefile to the testtools directory to make using timcv.py easier.
+
+Tokenizer
+---------
+ o Sendmail annotates the Received: header with "(may be forged)" if it
+   thinks the sender is forging its identity.  Generate a token for this,
+   if we are mining received headers.
+ o Solved the "backwards breakdown" problem with IP addresses in Received:
+   headers.
+ o Tightened up recognition of hostnames and accepted bracketed or
+   parenthesized IP addresses without requiring a leading space.
+ o Add the missing code for the Habeas headers tokenizing (and deprecated it).
+ o Removed support code for the defunct experimental_ham_spam_imbalance_adjustment
+   option.
 
 General
 -------
- o 
+ o Option names are always case insensitive, no matter what.
+ o Moved the option loading code to a function.
+ o Generalized the DirOfTxtFileMailbox class in mboxutils to assume all
+   non-directory files contain a single message and to recursively descend
+   into subdirectories of the argument directory.
+ o Loosened constraints on HEADER_VALUE regular expression.
+ o Import/Export data as utf-8 with sb_expimp.py.
+ o Fixes to the which_database.py utility script.
+ o Fix bug where if one was using Python 2.2, Windows and bsddb
+   the database would never open correctly.
+ o New script: sb_evoscore.py - A shim script between sb_xmlrpcserver.py
+   and Ximian Evolution.
+ o Fix the pspam scripts, muttrc and spambayes.el so that they work with
+   the current SpamBayes package.
+
 
 Transition
 ==========
@@ -56,14 +147,21 @@ If you are transitioning from a version older than 1.0a7, please also
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
-Other than the changes listed in "Incompatible changes" at the top of
-this document, there are no known transition issues.
+ o To take advantage of improvements in the tokenizing engine at the core
+   of SpamBayes, you may wish to do a full retrain; this is not necessary,
+   however.
+
+ o If you use the scripts in the testtools directory, you should examine
+   how these scripts have changed (some command line switches are altered).
+
+See also the the changes listed in "Incompatible changes" at the top of
+this document.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-
+818871, 833439, 803798, 787676, 860410, 856628, 859215
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -72,20 +170,35 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-No feature requests tracked via the Sourceforge system were added for this
-release.
-
+The following feature requests tracked via the Sourceforge system were
+added for this release:
+827138
 
 Patches integrated
 ===================
-No patches tracked via the Sourceforge system were integrated for this
-release.
-
+The following patches tracked via the Sourceforge system were integrated
+for this release.
+842464, 831388, 809008, 831388
 
 Deprecated Options
 ==================
 
-[add explanation of deprecated options here]
+SpamBayes now has a method of noting options that are deprecated and which
+will not be available in future releases (it is likely that options will
+only be deprecated for one release before being removed).  Deprecated
+options will not be offered in the graphical interfaces (Outlook plugin
+and web interface), and will be listed in the "What's New" file (this
+file) for each release.
+
+Deprecated options have the same name as previously, but now begin with
+"x-" (so "extract_dow" is now "x-extract_dow").  You can continue to use
+the original name (eg "extract_dow") in your configuration file, but will
+receive warnings in your log file or console window.  We recommend that you
+examine this output every time you upgrade SpamBayes to ensure that you are
+not using any newly deprecated options.
+
+Discussion of why any particular option has been deprecated can be found in
+the spambayes-dev archives (at <http://mail.python.org/pipermail/spambayes-dev>).
 
 The following options have been deprecated in this release:
   o [Tokenizer] generate_time_buckets
@@ -96,15 +209,50 @@ The following options have been deprecated in this release:
 New Experimental Options
 ========================
 
-[add explanation of experimental options and a pointer to the testing
-setup here]
+SpamBayes now has a method of noting options that are experimental and
+which may be removed or made permanent in future releases (many experimental
+options will only be experimental for one release before being removed or
+fully integrated).  Experimental options will not be offered in the
+graphical interfaces (Outlook plugin and web interface), and will be
+listed in the "What's New" file (this file) for each release.
+
+Experimental options begin with "x-" (as do deprecated options).  If you
+start using an experimental option and it later becomes permanent you can
+continue to use the "x-" name in your configuration file, but will
+receive warnings in your log file or console window.  We recommend that you
+examine this output every time you upgrade SpamBayes to ensure that you are
+using the correct name for all options.
+
+Discussion of why experimental options and results from using them can be
+found in the spambayes-dev archives (at
+<http://mail.python.org/pipermail/spambayes-dev>).  Ideally, we would like
+users to test these options out on their mail and let us know the results.
+This can be as simple as turning on the option and emailing
+spambayes@python.org with anacdotal results after a period of time, or the
+full testtools scripts can be used.  For details about using these, please
+read the "README-DEVEL.txt" file that comes with the SpamBayes archive.
+
+Experimental options are always turned off by default.
 
 The following experimental options have been added in this release:
-  o [Tokenizer] search_for_habeas_headers
-  o [Tokenizer] reduce_habeas_headers
-  o [Classifier] use_bigrams
-  o [URLRetriever] slurp_urls
-  o [URLRetriever] cache_expiry_days
-  o [URLRetriever] cache_directory
-  o [URLRetriever] only_slurp_base
-  o [URLRetriever] web_prefix
+  o [Tokenizer] x-search_for_habeas_headers
+  o [Tokenizer] x-reduce_habeas_headers
+    These generate tokens based on the Habeas headers (see
+    <http://habeas.com> for more details).
+  
+  o [Classifier] x-use_bigrams
+    By default, SpamBayes uses unigrams tokens that are basically
+    single words (split on whitespace).  This option enables both unigrams
+    and bigrams (pairs of words), but uses a 'tiling' scheme, where only
+    the set of unigrams and bigrams that have the strongest effect on
+    the message are used.
+
+  o [URLRetriever] x-slurp_urls
+  o [URLRetriever] x-cache_expiry_days
+  o [URLRetriever] x-cache_directory
+  o [URLRetriever] x-only_slurp_base
+  o [URLRetriever] x-web_prefix
+    If these are used, if a message is scored as 'unsure', and could use
+    more tokens in it's classification, then text from any URLs in the
+    message is retrieved and used, if it makes a difference to the
+    classification.
