@@ -19,7 +19,7 @@ Usage:
             -c          : classify inbox
             -h          : help
             -v          : verbose mode
-            -e y/n      : sets expunge to the *opposite* of options.imap_expunge
+            -e y/n      : expunge/purge messages on exit (y) or not (n)
             -i debuglvl : a somewhat mysterious imaplib debugging level
             -l minutes  : period of time between filtering operations
 
@@ -78,6 +78,7 @@ import time
 import sys
 import getopt
 import email.Parser
+from email.Utils import parsedate
 
 from spambayes.Options import options
 from spambayes import tokenizer, storage, message
@@ -130,7 +131,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # timestamp from the message itself, but for the moment, we
         # just use the current time.
         try:
-            return self["Date"]
+            return imaplib.Time2Internaldate(time.mktime(parsedate(self["Date"])))
         except KeyError:
             return imaplib.Time2Internaldate(time.time())
 
@@ -149,20 +150,6 @@ class IMAPMessage(message.SBHeaderMessage):
         response = imap.append(self.folder.name, None,
                                time_stamp, self.as_string())
         self._check(response, 'append')
-        # we need to update the uid, as it will have changed
-        # XXX there will be problems here if the message *has not*
-        # XXX changed, as the message to be deleted will be found first
-        # XXX (if they are in the same folder)
-#        response = imap.uid("SEARCH", "(TEXT)", self.as_string())
-#        self._check(response, 'search')
-#        new_id = response[1][0]
-        # XXX This fails at the moment and needs to be resolved,
-        # XXX but it can't be properly checked until the header
-        # XXX adding part of the message class works.
-        # XXX For the moment, having a new empty-string id just
-        # XXX mucks up our message database, not the training or
-        # XXX filtering itself
-        new_id = ""
 
         old_id = self.id
         if self.previous_folder is None:
@@ -173,12 +160,21 @@ class IMAPMessage(message.SBHeaderMessage):
         response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
         self._check(response, 'store')
 
+        # We need to update the uid, as it will have changed
+        # XXX There will be problems here if the message *has not*
+        # XXX changed, as the message to be deleted will be found first
+        # XXX (if they are in the same folder)
+        self.folder.Select(True)
+        #response = imap.uid("SEARCH", "TEXT", self.as_string())
+        #self._check(response, 'search')
+        #new_id = response[1][0]
+        new_id = ""
+
         #XXX This code to delete the old message id from the message
         #XXX info db and manipulate the message id, is a *serious* hack.
         #XXX There's gotta be a better way to do this.
 
         message.msginfoDB._delState(self)
-            
         self.id = new_id
         self.modified()
 
@@ -403,7 +399,7 @@ if __name__ == '__main__':
                 
     imap_filter = IMAPFilter(classifier, imapDebug)
 
-    while 1:
+    while True:
         if doTrain:
             if options.verbose:
                 print "Training"
