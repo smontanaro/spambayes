@@ -77,7 +77,14 @@ def filter_folder(f, mgr, progress):
         if only_unread and not message.unread or \
            only_unseen and message.GetField(mgr.config.field_score_name) is not None:
             continue
-        disposition = filter_message(message, mgr, all_actions)
+        try:
+            disposition = filter_message(message, mgr, all_actions)
+        except:
+            import traceback
+            print "Error filtering message '%s'" % (message,)
+            traceback.print_exc()
+            disposition = "Error"
+
         dispositions[disposition] = dispositions.get(disposition, 0) + 1
 
     return dispositions
