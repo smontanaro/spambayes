@@ -1,51 +1,102 @@
 This file covers the major changes between each release.  For more details,
-the reader is referred to the changelog, or for extreme details, to the
-check-ins archive.
-
+the reader is referred to the changelog (changelog.txt in the main directory
+of the archive), or for extreme details, to the check-ins archive (please see
+<http://mail.python.org/pipermail/spambayes-checkins>)
+                                                                   
 Changes are broken into sections for each application, plus one that will
 probably only interest developers, and one for everything else.
 
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 4
+New in Alpha Release 5
 ======================
 
 Outlook Plugin
 --------------
- o Display a message for "Delete as Spam" or "Recover from Spam" when
-   SpamBayes is not enabled.
- o The toolbar is now initialized when "Outlook Today" is the default view.
+ o Added a diagnostics dialog with functions to make it easier for users to
+   help developers track down and fix bugs.
+ o Added a 'timer' method of determining when to filter mail that should work
+   better with Outlook's rule system.
+ o Added a button on the Advanced tab of the dialog to display the SpamBayes
+   data folder.
+ o Moved "Filter Now" to an item on the drop down menu on the toolbar.
+ o Items that can be filtered and trained include "IPM.Note" (normal messages)
+   and "IPM.Anti-Virus*" (virus alerts by some software).
+ o Changed the default filter action to "move" (instead of "untouched").
+ o Added a Wizard to assist with initial configuration (this will present
+   itself when necessary).
+ o Changed to allow filtering to be enabled, even if no training has been done.
+ o Added a "New Folder" button to the folder selector dialog.
+ o Massive changes to the dialog system (which should fix some problems),
+   including changing the configuration dialog to a tabbed interface.
+ o "Show Clues" now shows the percentage, as well as the raw score.
+ o Added a "Help" menu to the drop down menu, with various information.
+ o Added the ability to check for the latest version via an item on the drop
+   down menu.
+ o Hopefully, the "unread flag" issue is now fixed.
+ o Fixed many problems with working on systems where English is not the
+   default language, or where profile names have non-English characters.
 
-POP3 Proxy
-----------
- o Fix a bug where long attachments would be broken.
- o If an exception occurs parsing a message, recover and append a new
-   'exception' header.
-   (This will be added to other SpamBayes applications by the next
-    release).
- o Stop including the trailing dot in messages.
+POP3 Proxy / SMTP Proxy / POP3 Proxy Service
+--------------------------------------------
+ o Starting and stopping the POP3 Proxy service (for Windows NT, Windows
+   2000 and Windows XP users) has been improved.  Most noticeably, this
+   means that the SMTP Proxy will start (if it is needed) as well.
+ o Improve the "notate to" and "notate subject" options, so that ham and
+   unsure messages can also be (optionally) notated in these fields.
+ o Add the ability to skip caching messages that are over a (user
+   configurable) size, so that you can keep the size of the cache
+   directories smaller, once these messages are correctly classified.
+ o Added the ability to skip caching messages that have a precedence of
+   "bulk" (most mailing list messages), so that you can keep the size
+   of the cache directories (and review list) smaller, once these messages
+   are correctly classified.
+ o Fixed the "ASCII decoding error" problem.
+ o The SMTP proxy tries harder to pass on the command formatted exactly
+   as it was given.  This should make it more reliable.
+ o Add the ability to have the SMTP proxy train on the message sent to it,
+   rather than looking up the id in the cache (which is still possible, and
+   generally the better option).
+ o Removed the ability to add the SpamBayes identification number to the
+   body of messages (it can still be added as a header).
+ o The review messages page now puts unsure messages at the top.
+ o The POP3 proxy should now work with fetchmail.
+ o You can once again specify local addresses as well as ports for the
+   POP3 proxy to listen on (was broken in 1.0a3 and 1.0a4).
 
 IMAP Filter
 -----------
- o In imapfilter, try to append without flags if appending fails.
- o Fix the -i switch in imapfilter and an import error.
- o Don't try and get password from options if -p is specified in imapfilter.
-
-Developer
----------
- o Various changes/improvements to storage.py.
-   Note that this includes a fix for a potentially serious bug introduced
-   in a3 which could result in incorrect token counts.
+ o If you didn't use the -p switch to enter your password
+   interactively, imapfilter would try and get it from the options,
+   but if it wasn't there yet (because you hadn't done the setup yet),
+   it would crash.  This is now fixed.
 
 General
 -------
- o The web interface (used by pop3proxy and imapfilter) now shows the
-   correct date and time in the footer.
- o A new stripper to squash yet another way of hiding content in HTML spam,
-   like Ere<frame><noframes>ywl55</noframes></frame>ctions to hide
-   Erections.
+ o Added the ability to store the SpamBayes database in a mySQL or
+   postreSGL database table (currently supported by hammiefilter and
+   the POP3 proxy).
+ o Removed the ability to use the 'dumbdbm' as the storage method.
+   (See the FAQ for reasons why).
+ o We now allow the '@' and '=' characters in paths.
+ o Added a simple n-way classifier using a cascade of binary SpamBayes
+   classifiers.
+ o Added version information to the web interface.
+ o Fixed the yellow colour of the header boxes in the web interface.
+ o Fixed restoring defaults from the web interface.
+ o Added a missing line break in the status pane on the web interface
+   when there are no proxies configured.
+ o Prevent the "Show clues" links on the web interface's training page
+   from word-wrapping and making all the table rows two lines high.
 
+Developer
+---------
+ o Created a directory for test suites, including a storage.py test.
+ o An empty 'allowed values' now allows an empty string.
+ o Add a get_option method, so an option instance itself can be fetched.
+ o Support fetching the "latest" set of version data from the spambayes
+   web site.
 
 Transition
 ==========
@@ -56,7 +107,10 @@ release for information about transitioning between a2 and a4.
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-761677, 761670
+776808, 795749, 787251, 790051, 743131, 779319, 785389, 786952, 788495,
+790406, 788008, 787296, 788002, 780612, 784323, 784296, 780819, 780801,
+779049, 765912, 777026, 777165, 693387, 690418, 719586, 769346, 761499,
+769346, 773452, 765042, 760062, 768162, 768221
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:
@@ -65,10 +119,20 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-The following feature request tracked via the Sourceforge system was
+The following feature requests tracked via the Sourceforge system were
 added:
-755098
+789916, 698036
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:
 http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498104&aid=
+
+
+Patches integrated
+===================
+The following patches tracked via the Sourceforge system were integrated:
+791254, 790615, 788001, 769981
+
+A url containing the details of these feature requests can be made by
+appending the request number to this url:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498105&aid=
