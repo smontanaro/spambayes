@@ -2,7 +2,12 @@
 
 Release 1.1a1
 =============
-Skip Montanaro	  28/10/2003  Determine dbm format from the file if it already exists
+Tony Meyer        30/10/2003  Implement [ 827138 ] Can't display clues/tokens/source for a trained message
+Richie Hindle     15/10/2003  Increased the auth-digest login timeout from one minute to twenty.
+Neale Pickett     15/10/2003  Modified muttrc and spambayes.el that actually work with what's being shipped :)
+Neale Pickett     15/10/2003  Expanded documentation of sb_filter.py
+Skip Montanaro    15/10/2003  which_database: fix bug in dbhash/bsddb[3] distinction and avoid overriding str
+Skip Montanaro    15/10/2003  which_database: need to call os.path.expanduser() since paths like ~/hammie.db are valid in the options file
 Mark Hammond      10/10/2003  It is no longer necessary to pre-load our default message store, and doing so caused us to fail if this default store was in offline mode.
 Tony Meyer        08/10/2003  When training via the web interface record the training in the messageinfo db.
 Tony Meyer        07/10/2003  Fix [ 818871 ] sb_server.py calls undefined variable
@@ -35,6 +40,7 @@ Tony Meyer        20/09/2003  Make the review messages page on the web UI more c
 
 Alpha Release 7
 ===============
+Skip Montanaro	  28/10/2003  Determine dbm format from the file if it already exists
 Tony Meyer        09/10/2003  An old-style option was left in hammiebulk; fix this.
 Tony Meyer        08/10/2003  If the (stats) db uses a pickle, then use a pickle for the messageinfo db as well.
 Tony Meyer        08/10/2003  Try and close the db when we are no longer using it.
