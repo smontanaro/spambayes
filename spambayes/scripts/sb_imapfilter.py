@@ -337,6 +337,7 @@ class IMAPMessage(message.SBHeaderMessage):
         self.rfc822_key = "BODY[]"
         self.got_substance = False
         self.invalid = False
+        self.could_not_retrieve = False
 
     def setFolder(self, folder):
         self.folder = folder
@@ -376,20 +377,37 @@ class IMAPMessage(message.SBHeaderMessage):
         substance of this message.'''
         if self.got_substance:
             return
-        if not self.uid or not self.id:
-            print "Cannot get substance of message without an id and an UID"
-            return
+        assert(self.id, "Cannot get substance of message without an id")
+        assert(self.uid, "Cannot get substance of message without an UID")
         imap.SelectFolder(self.folder.name)
         try:
-            response = imap.uid("FETCH", self.uid, self.rfc822_command)
-        except IMAP4.error:
-            self.rfc822_command = "RFC822"
-            self.rfc822_key = "RFC822"
-            response = imap.uid("FETCH", self.uid, self.rfc822_command)
-        if response[0] != "OK":
-            self.rfc822_command = "RFC822"
-            self.rfc822_key = "RFC822"
-            response = imap.uid("FETCH", self.uid, self.rfc822_command)
+            try:
+                response = imap.uid("FETCH", self.uid, self.rfc822_command)
+            except IMAP4.error:
+                self.rfc822_command = "RFC822"
+                self.rfc822_key = "RFC822"
+                response = imap.uid("FETCH", self.uid, self.rfc822_command)
+            if response[0] != "OK":
+                self.rfc822_command = "RFC822"
+                self.rfc822_key = "RFC822"
+                response = imap.uid("FETCH", self.uid, self.rfc822_command)
+        except MemoryError:
+            # Really big messages can trigger a MemoryError here.
+            # The problem seems to be line 311 (Python 2.3) of socket.py,
+            # which has "return "".join(buffers)".
+            # We want to handle this gracefully, although we can't really
+            # do what we do later, and rewrite the message, since we can't
+            # load it in the first place.  Maybe an elegant solution would
+            # be to get the message in parts, or just use the first X
+            # characters for classification.  For now, we just carry on,
+            # warning the user and ignoring the message.
+            self.could_not_retrieve = True
+            print >>sys.stderr, "MemoryError with message %s (uid %s)" % \
+                  (self.id, self.uid)
+            # We could print the traceback, too, but don't for the moment.
+            #traceback.print_exc(None, stream)
+            return
+            
         self._check(response, "uid fetch")
         data = _extract_fetch_data(response[1][0])
         # Annoyingly, we can't just pass over the RFC822 message to an
@@ -475,12 +493,9 @@ class IMAPMessage(message.SBHeaderMessage):
         '''Save message to imap server.'''
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
-        if self.folder is None:
-            raise RuntimeError, """Can't save a message that doesn't
-            have a folder."""
-        if not self.id:
-            raise RuntimeError, """Can't save a message that doesn't have
-            an id."""
+        assert(self.folder is not None,
+               "Can't save a message that doesn't have a folder.")
+        assert(self.id, "Can't save a message that doesn't have an id.")
         response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
         data = _extract_fetch_data(response[1][0])
@@ -665,6 +680,13 @@ class IMAPFolder(object):
         '''Train folder as spam/ham'''
         num_trained = 0
         for msg in self:
+            if msg.could_not_retrieve:
+                # Something went wrong, and we couldn't even get
+                # an invalid message, so just skip this one.
+                # Annoyinly, we'll try to do it every time the
+                # script runs, but hopefully the user will notice
+                # the errors and move it soon enough.
+                continue
             if msg.GetTrained() == (not isSpam):
                 msg.get_substance()
                 msg.delSBHeaders()
@@ -701,6 +723,13 @@ class IMAPFolder(object):
         count["spam"] = 0
         count["unsure"] = 0
         for msg in self:
+            if msg.could_not_retrieve:
+                # Something went wrong, and we couldn't even get
+                # an invalid message, so just skip this one.
+                # Annoyinly, we'll try to do it every time the
+                # script runs, but hopefully the user will notice
+                # the errors and move it soon enough.
+                continue
             if msg.GetClassification() is None:
                 msg.get_substance()
                 (prob, clues) = classifier.spamprob(msg.asTokens(),
