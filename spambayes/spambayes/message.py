@@ -86,6 +86,7 @@ import math
 import re
 import errno
 import shelve
+import warnings
 try:
     import cPickle as pickle
 except ImportError:
@@ -289,15 +290,19 @@ class Message(email.Message.Message):
 
         This function does not work (as a result of using private
         methods in a hackish way) in Python 2.4, so is now deprecated.
-        Use *_from_string as described above."""
-        prs = email.Parser.Parser()
-        fp = StringIO.StringIO(payload)
-        # this is kindof a hack, due to the fact that the parser creates a
-        # new message object, and we already have the message object
-        prs._parseheaders(self, fp)
-        # we may want to do some header parsing error handling here
-        # to try to extract important headers regardless of malformations
-        prs._parsebody(self, fp)
+        Use *_from_string as described above.
+
+        More: Python 2.4 has a new email package, and the private functions
+        are gone.  So this won't even work.  We have to do something to
+        get this to work, for the 1.0.x branch, so use a different ugly
+        hack.
+        """
+        warnings.warn("setPayload is deprecated. Use " \
+                      "email.message_from_string(payload, _class=" \
+                      "Message) instead.",
+                      DeprecationWarning, 2)
+        new_me = email.message_from_string(payload, _class=Message)
+        self.__dict__ = new_me.__dict__
 
     def setId(self, id):
         if self.id and self.id != id:
@@ -386,6 +391,15 @@ class Message(email.Message.Message):
 class SBHeaderMessage(Message):
     '''Message class that is cognizant of SpamBayes headers.
     Adds routines to add/remove headers for SpamBayes'''
+    def setPayload(self, payload):
+        """DEPRECATED.
+        """
+        warnings.warn("setPayload is deprecated. Use " \
+                      "email.message_from_string(payload, _class=" \
+                      "SBHeaderMessage) instead.",
+                      DeprecationWarning, 2)
+        new_me = email.message_from_string(payload, _class=SBHeaderMessage)
+        self.__dict__ = new_me.__dict__
 
     def setIdFromPayload(self):
         try:
@@ -485,7 +499,7 @@ class SBHeaderMessage(Message):
             # to an invalid address, and add that.
             address = "%s@spambayes.invalid" % (disposition, )
             try:
-                self.replace_header("To", "%s;%s" % (address, self["To"]))
+                self.replace_header("To", "%s,%s" % (address, self["To"]))
             except KeyError:
                 self["To"] = address
 
@@ -524,11 +538,11 @@ class SBHeaderMessage(Message):
                     # Only remove one, maximum.
                     break
         to = self["To"]
-        ham = "%s@spambayes.invalid;" % \
+        ham = "%s@spambayes.invalid," % \
               (options["Headers", "header_ham_string"],)
-        spam = "%s@spambayes.invalid;" % \
+        spam = "%s@spambayes.invalid," % \
                (options["Headers", "header_spam_string"],)
-        unsure = "%s@spambayes.invalid;" % \
+        unsure = "%s@spambayes.invalid," % \
                  (options["Headers", "header_unsure_string"],)
         if options["Headers", "notate_to"]:
             for disp in (ham, spam, unsure):
