@@ -13,13 +13,29 @@ Where:
 
 If you only want to use some of the messages in each set,
 
+    --HamTrain int
+        The maximum number of msgs to use from each Ham set for training.  
+        The msgs are chosen randomly.  See also the -s option.
+
+    --SpamTrain int
+        The maximum number of msgs to use from each Spam set for training.
+        The msgs are chosen randomly.  See also the -s option.
+
+    --HamTest int
+        The maximum number of msgs to use from each Ham set for testing.  
+        The msgs are chosen randomly.  See also the -s option.
+
+    --SpamTest int
+        The maximum number of msgs to use from each Spam set for testing.
+        The msgs are chosen randomly.  See also the -s option.
+
     --ham-keep int
-        The maximum number of msgs to use from each Ham set.  The msgs are
-        chosen randomly.  See also the -s option.
+        The maximum number of msgs to use from each Ham set for testing
+        and training. The msgs are chosen randomly.  See also the -s option.
 
     --spam-keep int
-        The maximum number of msgs to use from each Spam set.  The msgs are
-        chosen randomly.  See also the -s option.
+        The maximum number of msgs to use from each Spam set for testing
+        and training. The msgs are chosen randomly.  See also the -s option.
 
     -s int
         A seed for the random number generator.  Has no effect unless
@@ -56,15 +72,17 @@ def drive(nsets):
 
     d = TestDriver.Driver()
     # Train it on all sets except the first.
-    d.train(msgs.HamStream("%s-%d" % (hamdirs[1], nsets), hamdirs[1:]),
-            msgs.SpamStream("%s-%d" % (spamdirs[1], nsets), spamdirs[1:]))
+    d.train(msgs.HamStream("%s-%d" % (hamdirs[1], nsets), 
+                            hamdirs[1:], train=1),
+            msgs.SpamStream("%s-%d" % (spamdirs[1], nsets), 
+                            spamdirs[1:], train=1))
 
     # Now run nsets times, predicting pair i against all except pair i.
     for i in range(nsets):
         h = hamdirs[i]
         s = spamdirs[i]
-        hamstream = msgs.HamStream(h, [h])
-        spamstream = msgs.SpamStream(s, [s])
+        hamstream = msgs.HamStream(h, [h], train=0)
+        spamstream = msgs.SpamStream(s, [s], train=0)
 
         if i > 0:
             if options.build_each_classifier_from_scratch:
@@ -79,7 +97,8 @@ def drive(nsets):
                 s2 = spamdirs[:]
                 del s2[i]
 
-                d.train(msgs.HamStream(hname, h2), msgs.SpamStream(sname, s2))
+                d.train(msgs.HamStream(hname, h2, train=1), 
+                        msgs.SpamStream(sname, s2, train=1))
 
             else:
                 # Forget this set.
@@ -100,11 +119,14 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hn:s:',
-                                   ['ham-keep=', 'spam-keep='])
+                                   ['HamTrain=', 'SpamTrain=',
+                                   'HamTest=', 'SpamTest=',
+                                   'ham-keep=', 'spam-keep='])
     except getopt.error, msg:
         usage(1, msg)
 
-    nsets = seed = hamkeep = spamkeep = None
+    nsets = seed = hamtrain = spamtrain = None
+    hamtest = spamtest = hamkeep = spamkeep = None
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
@@ -112,6 +134,14 @@ def main():
             nsets = int(arg)
         elif opt == '-s':
             seed = int(arg)
+        elif opt == '--HamTest':
+            hamtest = int(arg)
+        elif opt == '--SpamTest':
+            spamtest = int(arg)
+        elif opt == '--HamTrain':
+            hamtrain = int(arg)
+        elif opt == '--SpamTrain':
+            spamtrain = int(arg)
         elif opt == '--ham-keep':
             hamkeep = int(arg)
         elif opt == '--spam-keep':
@@ -122,7 +152,10 @@ def main():
     if nsets is None:
         usage(1, "-n is required")
 
-    msgs.setparms(hamkeep, spamkeep, seed)
+    if hamkeep is not None:
+        msgs.setparms(hamkeep, spamkeep, seed=seed)
+    else:
+        msgs.setparms(hamtrain, spamtrain, hamtest, spamtest, seed)
     drive(nsets)
 
 if __name__ == "__main__":

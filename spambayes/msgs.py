@@ -5,8 +5,10 @@ import random
 
 from tokenizer import tokenize
 
-HAMKEEP  = None
-SPAMKEEP = None
+HAMTEST  = None
+SPAMTEST = None
+HAMTRAIN  = None
+SPAMTRAIN = None
 SEED = random.randrange(2000000000)
 
 class Msg(object):
@@ -67,17 +69,35 @@ class MsgStream(object):
         return self.produce()
 
 class HamStream(MsgStream):
-    def __init__(self, tag, directories):
-        MsgStream.__init__(self, tag, directories, HAMKEEP)
+    def __init__(self, tag, directories, train=0):
+        if train:
+            MsgStream.__init__(self, tag, directories, HAMTRAIN)
+        else:
+            MsgStream.__init__(self, tag, directories, HAMTEST)
 
 class SpamStream(MsgStream):
-    def __init__(self, tag, directories):
-        MsgStream.__init__(self, tag, directories, SPAMKEEP)
+    def __init__(self, tag, directories, train=0):
+        if train:
+            MsgStream.__init__(self, tag, directories, SPAMTRAIN)
+        else:
+            MsgStream.__init__(self, tag, directories, SPAMTEST)
 
-def setparms(hamkeep, spamkeep, seed=None):
-    """Set HAMKEEP and SPAMKEEP.  If seed is not None, also set SEED."""
+def setparms(hamtrain, spamtrain, hamtest=None, spamtest=None, seed=None):
+    """Set HAMTEST/TRAIN and SPAMTEST/TRAIN.  
+       If seed is not None, also set SEED.
+       If (ham|spam)test are not set, set to the same as the (ham|spam)train
+       numbers (backwards compat option).
+    """
 
-    global HAMKEEP, SPAMKEEP, SEED
-    HAMKEEP, SPAMKEEP = hamkeep, spamkeep
+    global HAMTEST, SPAMTEST, HAMTRAIN, SPAMTRAIN, SEED
+    HAMTRAIN, SPAMTRAIN = hamtrain, spamtrain
+    if hamtest is None:
+        HAMTEST = HAMTRAIN
+    else:
+        HAMTEST = hamtest
+    if spamtest is None:
+        SPAMTEST = SPAMTRAIN
+    else:
+        SPAMTEST = spamtest
     if seed is not None:
         SEED = seed
