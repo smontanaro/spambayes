@@ -30,11 +30,11 @@ import email
 DB_FILE = os.path.expanduser(DB_FILE)
 
 def import_spambayes():
-    global mboxutils, CdbClassifer, tokenize
+    global mboxutils, CdbClassifier, tokenize
     if not os.environ.has_key('BAYESCUSTOMIZE'):
         os.environ['BAYESCUSTOMIZE'] = os.path.expanduser(CONFIG_FILE)
     from spambayes import mboxutils
-    from spambayes.cdb_classifier import CdbClassifer
+    from spambayes.cdb_classifier import CdbClassifier
     from spambayes.tokenizer import tokenize
 
 
@@ -87,7 +87,7 @@ def train_messages(ham_name, spam_name):
     if not os.path.exists(rc_dir):
         print "Creating", RC_DIR, "directory..."
         os.mkdir(rc_dir)
-    bayes = CdbClassifer()
+    bayes = CdbClassifier()
     print 'Training with ham...'
     train(bayes, ham_name, False)
     print 'Training with spam...'
@@ -123,7 +123,7 @@ def filter_message(hamdir, spamdir):
             del blocks
             msg = email.message_from_string(msgdata)
             del msgdata
-            bayes = CdbClassifer(open(DB_FILE, 'rb'))
+            bayes = CdbClassifier(open(DB_FILE, 'rb'))
             prob = bayes.spamprob(tokenize(msg))
         else:
             prob = 0.0
@@ -138,7 +138,7 @@ def filter_message(hamdir, spamdir):
 
 def print_message_score(msg_name, msg_fp):
     msg = email.message_from_file(msg_fp)
-    bayes = CdbClassifer(open(DB_FILE, 'rb'))
+    bayes = CdbClassifier(open(DB_FILE, 'rb'))
     prob, evidence = bayes.spamprob(tokenize(msg), evidence=True)
     print msg_name, prob
     for word, prob in evidence:

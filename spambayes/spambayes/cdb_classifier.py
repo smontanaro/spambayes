@@ -10,7 +10,7 @@ from spambayes import cdb
 from spambayes.tokenizer import tokenize
 from spambayes.classifier import Classifier
 
-class CdbClassifer(Classifier):
+class CdbClassifier(Classifier):
     def __init__(self, cdbfile=None):
         Classifier.__init__(self)
         if cdbfile is not None:
