@@ -5,10 +5,16 @@
 </head>
 <body>
 <table width="100%" cellspacing="0" cellpadding="0">
-<td width="380"><img src="docs/images/sblogo.jpg"
- title="" alt="Logo" style="width: 380px; height: 77px;"></td>
-<td style="background-image: url(docs/images/span.jpg)">&nbsp</td>
-<td width="78"><image src="docs/images/python.jpg" style="width: 78px; height: 77px"></td>
+  <tbody>
+    <tr>
+      <td width="380"><img src="docs/images/sblogo.jpg" title=""
+ alt="Logo" style="width: 380px; height: 77px;"></td>
+<!-- use background instead of styles to avoid mozilla bug 167262 --> <td
+ background="docs/images/span.jpg">&nbsp;</td>
+      <td width="78"><img src="docs/images/python.jpg"
+ style="width: 78px; height: 77px;"></td>
+    </tr>
+  </tbody>
 </table>
 <h1>SpamBayes Outlook Plugin</h1>
 <p style="font-weight: bold;">A spam filter based on statistical
@@ -25,7 +31,7 @@ If you are having problems with SpamBayes, please see the <a
  href="docs/troubleshooting.html">Troubleshooting Guide</a>.<br>
 <h3>Other links of interest</h3>
 <p>The <a href="http://www.spambayes.org/">main SpamBayes project page</a>.<br>
-The <a href="http://www.spambayes.org/faq.html">online SpamBayes FAQ</a><br>
+The <a href="http://www.spambayes.org/faq.html">online SpamBayes FAQ.</a><br>
 How to <a href="http://www.spambayes.org/donations.html">make a
 donation</a>.<br>
 </p>
@@ -34,9 +40,9 @@ donation</a>.<br>
 <p><span style="font-weight: bold;">Filtering in the background:</span>
 When Outlook is under load, SpamBayes may occasionally miss some
 messages (as Outlook doesn't tell us they appeared).&nbsp; Also, if you
-use builtin Outlook rules, you may find that occasionally they fails to
-filter messages they normally would (as both SpamBayes and the builtin
-rules "fight" over processing the message).&nbsp; Both of these
+use builtin Outlook rules, you may find that occasionally they also<br>
+fail to filter messages (as both SpamBayes and the builtin rules
+"fight" over processing the message).&nbsp; Both of these
 problems can generally be solved by enabling background filtering of
 messages, via the SpamBayes Manager's <span style="font-style: italic;">Advanced</span>
 tab. </p>
