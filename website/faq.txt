@@ -40,12 +40,10 @@ outset if you do) you need to save your incoming email for awhile,
 segregating it into two piles, known spam and known ham (ham is our nickname
 for good mail).  It's best to train on recent email, because your interests
 and the nature of what spam looks like change over time.  Once you've
-collected a fair portion of each (anything is better than nothing, but it
-helps to have a couple hundred of each), you can tell SpamBayes, "Here's my
+collected a fair portion of each, you can tell SpamBayes, "Here's my
 ham and my spam".  It will then process that mail and save information about
 different patterns which appear in ham and spam.  That information is then
-used during the filtering stage.  See the "Command-line training" section
-below for details.
+used during the filtering stage.
 
 When SpamBayes filters your email, it compares each unclassified message
 against the information it saved from training and makes a decision about
@@ -71,17 +69,19 @@ something back to the project, you have a few options:
   the `I'm not a programmer but still want to help`_ question for more 
   details.
 
-* Donate money to the Python Software Foundations.  For more 
+* Donate money to the `Python Software Foundation`_.  For more 
   information, including why you would want to donate to the PSF,
   please see our `donations page`_.
 
-* Investigate some of the commercial programs based on the SpamBayes code.
+* Investigate some of the commercial `programs based on the SpamBayes code`_.
   This should give you some additional benefits like support or greater 
   ease-of-use.
 
 .. _the PSA license: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/LICENSE.txt
 .. _I'm not a programmer but still want to help: #i-m-not-a-programmer-but-want-to-help-out-what-can-i-do
+.. _Python Software Foundation: http://www.python.org/psf/
 .. _donations page: donations.html
+.. _programs based on the SpamBayes code: related.html
 
 What online resources are available?
 ------------------------------------
@@ -102,7 +102,7 @@ There are five mailing lists which support SpamBayes:
    developers.
 
 5. The `SpamBayes bugs list`_ receives copies of all the bug, patch,
-   support requests and feature request reports that are submitted via the
+   support request and feature request reports that are submitted via the
    `sourceforge`_ system.  This is generally only of interest to developers
    (you can use the sourceforge system to monitor any individual bugs that
    you are interested in).
@@ -113,9 +113,9 @@ Google to search for stuff.  For example, searching for
 
 ::
 
-    site:mail.python.org pop3proxy -checkins
+    site:mail.python.org sb_server -checkins
 
-would search for messages which mention pop3proxy but exclude checkin
+would search for messages which mention sb_server but exclude checkin
 messages.
 
 .. _SpamBayes list: http://mail.python.org/mailman/listinfo/spambayes
@@ -129,11 +129,15 @@ messages.
 What do I need to install SpamBayes?
 ------------------------------------
 
-Unless you are using the Outlook plugin, you must have a recent version of
+Unless you want to run from the source code, all you need is the
+SpamBayes installer.  At present, unless you want to use the Outlook
+plug-in, you must run from source.  This will change in the near future.
+
+If you want to run from source, you must have a recent version of
 Python installed on your computer, version 2.2 or later.  (Don't ask about
 backporting it to earlier versions of Python.  It's almost a certainty this
 won't happen.) If you need to install Python on your system, check the
-`Python download page`_ for the version appropriate to your computer You
+`Python download page`_ for the version appropriate to your computer. You
 also need version 2.4.3 or above of the Python "email" package.  If you're
 running Python 2.2.2 or above, then you already have this.  If not, you can
 download it from the `email-SIG`_ and install it.  Unpack the archive,
@@ -157,8 +161,8 @@ There are eight main components to the SpamBayes system:
    a 2% chance that it's ham." This database is created by training - you
    give it messages, tell it whether those messages are ham or spam, and it
    adjusts its probabilities accordingly.  How to train it is covered below.
-   By default it lives in a file called "hammie.db" or (for the Outlook
-   plugin) "default_bayes_database".
+   By default it lives in a file called "hammie.db", "statistics_database.db"
+   or (for the Outlook plugin) "default_bayes_database".
 
 2. The tokenizer/classifier.  This is the core engine of the system.  The
    tokenizer splits emails into tokens (words, roughly speaking), and the
@@ -230,10 +234,10 @@ There are eight main components to the SpamBayes system:
    SMTP proxy, and IMAP filter (see below) and lets you control it through
    the web.  You can upload emails to it for training or classification,
    query the probabilities database ("How many valid emails *really* contain
-   the word Viagra") find particular messages, and most importantly, train
+   the word Viagra?") find particular messages, and most importantly, train
    it on the emails you've received.  When you start using the system,
-   unless you train it using the Hammie script it will classify most things
-   as Unsure, and often make mistakes.  But it keeps copies of all the
+   (unless you train it with an existing collection) it will classify most
+   things as Unsure, and often make mistakes.  But it keeps copies of all the
    emails it's seen, and through the web interface you can train it by going
    through a list of all the emails you've received and checking a Ham/Spam
    box next to each one.  After training on a few messages (say 20 spams and
@@ -242,13 +246,13 @@ There are eight main components to the SpamBayes system:
    to what it thinks, so all you need to do it correct the odd mistake -
    it's very quick and easy.
 
-6. The Outlook plug-in.  For Outlook 2000 and Outlook XP (2002) users (not
+6. The Outlook plug-in.  For Outlook (2000, 2002 (XP), or 2003) users (not
    Outlook Express) this lets you manage the whole thing from within
-   Outlook.  You set up a Ham folder and a Spam folder, and train it simply
-   by dragging messages into those folders.  Alternatively there are buttons
-   to do the same thing.  And it integrates into Outlook's filtering system
-   to make it easy to file all the suspected spam into its own folder, for
-   instance.
+   Outlook.  You tell the plug-in which folders to watch for new mail, and
+   where to put messages it is unsure about, or considers spam, and it takes
+   care of everything else for you.  It also has a nice graphical interface
+   for training, or you can set it up to train any messages you move into
+   particular folders.
 
 7. The filter script.  This does three jobs: command-line training, procmail
    filtering, and XML-RPC.  See below for details of how to use sb_filter for
@@ -352,10 +356,10 @@ also add a "trained" label to the message in question as a visual reminder
 that you've already added the message to your training database.
 
 Users limited to POP3/IMAP communications to the server can use the POP3_ or
-IMAP_ proxies which are part of the SpamBayes source.
+proxy or IMAP_ filter which are part of the SpamBayes source.
 
-.. _POP3: http://spambayes.sf.net/applications.html#sb_server
-.. _IMAP: http://spambayes.sf.net/applications.html#imap
+.. _POP3: applications.html#sb_server
+.. _IMAP: applications.html#imap
 
 
 How do I configure Eudora for use with SpamBayes?
@@ -434,15 +438,10 @@ Outlook Plugin
 What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
-Previous versions of the binary had a number of problems with various
-versions of Outlook/Windows.  However, to our knowledge, the current version
-should work with any combination of Windows/Outlook versions. Please let us
-know if this is not the case.  The `troubleshooting guide`_ for the Outlook
-plugin contains the most up-to-date help for working around known problems.
-A number of people have used the plugin with a beta version of Outlook 2003.
-If you fall into that category, note that you must have applied all the
-technical refreshes released by Microsoft to use the plugin successfully.
-Better yet, upgrade to the final version now that it's available.
+To our knowledge, the current version of the plug-in should work with any
+version of Windows and Outlook 2000 or above. The `troubleshooting guide`_
+for the Outlook plugin contains the most up-to-date help for working around
+known problems.
 
 .. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html
 
@@ -824,7 +823,8 @@ clues.  You should look at the clues that SpamBayes generated, and that
 should give you an idea of the reason for the classification.  Both the
 web interface and the Outlook plug-in let you view the clues that make
 up the message.  If you still can't figure out the reason why, you can
-ask the mailing list for advice.
+ask the mailing list for advice - but make sure you include the spam
+clues/tokens listing in your message!
 
 
 OK, I trained on that message, but it still thinks it's unsure.
@@ -851,12 +851,15 @@ check:
    0.2 and 0.9, respectively, and should be reasonable starting points.
    They should not be close together (say, 0.4 and 0.6).
 
-2. Have you trained on a reasonable number of hams and spams?  You should
+2. It is quite important that you have trained on roughly equal numbers of
+   ham and spam (don't go above a 2::1 ratio, for example).
+
+3. Have you trained on a reasonable number of hams and spams?  You should
    train on 10 to 20 of each to start with just to get a decent base.  After
    that, you should be able to train on just mistakes and messages
    classified as unsure.
 
-3. Check to be sure you haven't made any classification mistakes (trained
+4. Check to be sure you haven't made any classification mistakes (trained
    spams as hams or vice versa).  If so, you could really confuse things and
    should move incorrectly classified messages to their correct locations
    and retrain (which may happen automatically, depending on how you're
@@ -866,7 +869,10 @@ check:
 How do I start from scratch after messing up my training?
 ---------------------------------------------------------
 
-Because training from scratch is a very rare occurrence, and because
+If you're using the Outlook plug-in, you can simply use the "Training"
+tab of the SpamBayes Manager, and tick the "Rebuild entire database" box.
+
+Otherwise, because training from scratch is a very rare occurrence, and as
 deleting all your training information is something you don't want to do by
 accident, there isn't an option for this.  However, you can quite simply do
 this manually.  All the training data is stored in a file, usually called
