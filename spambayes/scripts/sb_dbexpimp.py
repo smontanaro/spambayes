@@ -73,9 +73,9 @@ Examples:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-__author__ = "Tim Stone <tim@fourstonesExpressions.com>"
-
 from __future__ import generators
+
+__author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
 # Python 2.2 compatibility stuff
 try:
