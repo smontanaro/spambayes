@@ -2,6 +2,23 @@
 
 Release 1.1a1
 =============
+Tony Meyer        23/11/2004  message.py: Change MessageInfoBase's methods so that recording & retrieving a message are not private methods and are more clearly named.
+Tony Meyer        23/11/2004  message.py: Change so that the messageinfodb doesn't get created/opened on import, but rather through utility functions like those in spambayes.storage.
+Tony Meyer        23/11/2004  message.py: Remove the asTokens method in favour of the existing tokenize function.
+Tony Meyer        23/11/2004  message.py: Fix the include_evidence header to check for *H* and *S* explicitly rather than any  token starting with *.
+Tony Meyer        22/11/2004  Add new storage types: CBDClassifier, ZODBClassifier, ZEOClassifier
+Tony Meyer        22/11/2004  Add code to allow persistent_storage_name to not be expanded into an absolute path  with certain storage types (e.g. the SQL ones).
+Tony Meyer        22/11/2004  sb_pop3dnd: Play nicer with win32 gui
+Tony Meyer        22/11/2004  sb_pop3dnd: Don't use the deprecated 'strict' kwarg for email messages.
+Tony Meyer        22/11/2004  sb_pop3dnd: Add appropriate state createworkers function & call.
+Tony Meyer        22/11/2004  sb_pop3dnd: Modify to have the prepare/start/stop API that sb_server has.
+Tony Meyer        22/11/2004  sb_filter: Remove the "experimental" marking in the docstring for the training functions.
+Tony Meyer        15/11/2004  Fix a bug in sb_dbexpimp.py where merging into an existing dbm file might lose training data.
+Tony Meyer        15/11/2004  sb_dbexpimp.py: Fail if the csv file doesn't exist that we are trying to import from rather than  keeping going, which made no sense.
+Tony Meyer        15/11/2004  sb_dbexpimp.py: Stop bothering to remove the .dat and .dir files that dumbdbm  create (long time since they were supported), and remove the verbose flag, which  doesn't actually do anything.
+Kenny Pitt        12/11/2004  Add a separate Statistics tab to make room for more detailed statistics.
+Toby Dickenson    11/11/2004  Add a version of sb_bnfilter in C (for speed).
+Tony Meyer        11/11/2004  The installer wasn't offered to install a startup items shortcut, so fix that.  This is a non-ideal patch, but appears to be the only way Inno will work.
 Tony Meyer        09/11/2004  Implement [ 870524 ] Make the message-proxy timeout configurable
 Tony Meyer        09/11/2004  Use email.message_from_string(text, _class) rather than our wrapper functions.
 Tony Meyer        09/11/2004  Implement [ 940547 ] imapfilter interface available when using -l switch
@@ -19,7 +36,7 @@ Tony Meyer        05/11/2004  sb_pop3dnd: use twisted.Application in the new sty
 Tony Meyer        03/11/2004  Add [ 1052816 ] I18N - mostly the patch from Hernan Martinez Foffani
 Tony Meyer        03/11/2004  Fix [ 1022848 ] sb_dbexpimp.py crashes while importing into pickle file
 Tony Meyer        03/11/2004  Fix [ 831864 ] sb_mboxtrain.py: flock vs. lockf
-Tony Meyer        03/11/2004  Fix [ 922063 ] Intermittent sb_filter.py faliure with URL pickle
+Tony Meyer        03/11/2004  Fix [ 922063 ] Intermittent sb_filter.py failure with URL pickle
 Tony Meyer        03/11/2004  Outlook: Also add an "X-Exchange-Delivery-Time" header to the faked up Exchange headers.
 Tony Meyer        02/11/2004  Improve the web interface statistics
 Tony Meyer        29/10/2004  If possible, use the builtin (faster, C-implemented) set class, falling back to sets.Set, then back to our compatsets.Set
@@ -32,6 +49,8 @@ Tony Meyer        20/10/2004  Outlook: Let the statistics have a variable number
 Tony Meyer        18/10/2004  Make msgs.Msg objects pickleable
 Tony Meyer        18/10/2004  Copy Skip's -o command line option (available in all the regular scripts) to timcv.py.
 Tony Meyer        18/10/2004  TestDriver: If show_histograms was False, then the global ham/spam histogram never had the stats computed, but this gets used later, so the script would die with an AtrributeError. Fix that.
+Tony Meyer        15/10/2004  Outlook: Add persistent statistics
+Tony Meyer        13/10/2004  Implement [ 1039057 ] Diffs for IMAP login problems...
 Tony Meyer        13/10/2004  Add Classifier.use_bigrams option to the Advanced options page for sb_server and imapfilter.
 Tony Meyer        13/10/2004  Fix mySQL storage option for the case where the server does not support rollbacks.
 Tony Meyer        07/10/2004  Add patch from Graham Ashton to allow users of sb_upload.py to not just upload, but also train.
@@ -41,7 +60,7 @@ Tony Meyer        01/10/2004  Instead of treating notate_to just like notate_sub
 Tony Meyer        30/09/2004  Implement [ 940643 ] Add ham_folder option
 Tony Meyer        30/09/2004  Fix [ 903905 ] IMAP Configuration Error
 Tony Meyer        29/09/2004  Fix [ 1036601 ] typo on advanced config web page
-Tony Meyer        15/09/2004  sb_upload: Clarify docstring so that it's mroe clear what this script does. The -n / --null command line option didn't actually do anything; change it so that it does.
+Tony Meyer        15/09/2004  sb_upload: Clarify docstring so that it's more clear what this script does. The -n / --null command line option didn't actually do anything; change it so that it does.
 Sjoerd Mullender  20/08/2004  imapfilter: Fix the regular expression to match the Message-ID header by stopping on newline.
 Skip Montanaro    18/08/2004  tte.py: Seems better to try and alternate ham/spam scoring instead of scoring all the hams in a batch and all the spams.
 Kenny Pitt        11/08/2004  First pass at moving help text out of the Python source and into the ui.html file.
@@ -83,7 +102,7 @@ Tony Meyer        09/07/2004  Update test_storage.py test to reflect (current) c
 Tony Meyer        04/07/2004  Add a time stamp to the Outlook plug-in logs.
 Tony Meyer        04/07/2004  Fix [ 933473 ] Unnecessary spam folder hook.
 Neil Schemenauer  30/06/2004  New script, hammie2cdb.py, that converts hammie databases into cdb databases (usable by CdbClassifier).
-Skip Montanaro    29/06/2004  tte.py: Worm around the extremely rare case during verbose most where the message sneaks through without either a message-id or a subject.
+Skip Montanaro    29/06/2004  tte.py: Worm around the extremely rare case during verbose mode where the message sneaks through without either a message-id or a subject.
 Skip Montanaro    26/06/2004  New script, postfixproxy.py, a first cut proxy filter for use with PostFix 2.1's content filter stuff.
 Skip Montanaro    26/06/2004  hammie: Rename filter() to score_and_filter() and return both the spamprob and the modified message.
 Tony Meyer        11/06/2004  Add the "sb_culler.py" script from the SB wiki by Andrew Dalke.
@@ -341,7 +360,7 @@ Tony Meyer        20/09/2003  Make the review messages page on the web UI more c
 
 Alpha Release 8
 ===============
-There is no Alpha Release 8.
+There was no Alpha Release 8.
 
 Alpha Release 7
 ===============
