@@ -17,10 +17,8 @@ website</a> has more details on this package.</p>
 <p>Note that all users who installed version 006 or earlier of the plugin are 
 recommended to upgrade to the 007 release.</p>
 
-<p>The Outlook add-in was developed mostly using Outlook 2000 on Windows
-2000 and Win98SE, in Outlook's Internet Mail Only configuration.  Those
-combinations are the best tested, though further testing has been carried
-out with Exchange Server, and all seems to work.</p>
+<p>The Outlook add-in works with all versions of Windows, and all 
+versions of Outlook 2000 and later - see below for more details.</p>
 
 <p>If you have a problem, the best way to help make progress is to look for
 a similar existing <a
@@ -34,8 +32,8 @@ troubleshooting.html</a> file that is installed with the plugin.  </p>
 <h3>Compatibility</h3>
 
 <p>As far as we know, the latest release of the plugin works with all
-versions of Windows and Outlook (Outlook 2003 should have the latest
-Technical Release installed).  If you have a problem, please follow
+versions of Windows and Outlook 2000 and later (Outlook 2003 should have 
+the latest Technical Release installed).  If you have a problem, please follow
 the bug reporting steps above; we will endeavour to keep this page
 up to date.</p>
 
