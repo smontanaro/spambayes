@@ -398,7 +398,13 @@ class IMAPMessage(message.SBHeaderMessage):
         # copying over all its internals.
         try:
             new_msg = email.Parser.Parser().parsestr(data[self.rfc822_key])
-        except email.Errors.MessageParseError, e:
+        # We use a general 'except' because the email package doesn't
+        # always return email.Errors (it can return a TypeError, for
+        # example) if the email is invalid.  In any case, we want
+        # to keep going, and not crash, because we might leave the
+        # user's mailbox in a bad state if we do.  Better to soldier
+        # on.
+        except:
             # Yikes!  Barry set this to return at this point, which
             # would work ok for training (IIRC, that's all he's
             # using it for), but for filtering, what happens is that
@@ -507,6 +513,11 @@ class IMAPMessage(message.SBHeaderMessage):
             self.previous_folder = None
         response = imap.uid("STORE", self.uid, "+FLAGS.SILENT", "(\\Deleted \\Seen)")
         self._check(response, 'store')
+        # Not all IMAP servers immediately offer the new message
+        # (stupidly), but we need to find it.  Generally a 'no-op' will
+        # allow the server time to handle it, so do that.
+        # See [ 941596 ] sb_imapfilter.py not adding headers / moving messages
+        imap.noop()
 
         # We need to update the uid, as it will have changed.
         # Although we don't use the UID to keep track of messages, we do
