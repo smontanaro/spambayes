@@ -46,6 +46,11 @@ Web Interface
 -------------
  o The pre-filled out bug reports have been simplified somewhat, and
    the readability of the resulting message has been improved.
+ o If a single choice was made for the "Notate To" or "Notate Subject"
+   options, the configuration page would in future present that option
+   with radio buttons instead of checkboxes, meaning that the option
+   could not be turned off, and that adding an extra choice could not be
+   made.  This has been fixed.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------

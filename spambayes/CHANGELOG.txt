@@ -2,6 +2,8 @@
 
 Alpha Release 10 (Beta Release 1?)
 ==================================
+Tony Meyer        23/03/2004  Fix a subtle bug where if one option was selected for notate_to/subject the option would be presented with radio buttons not checkboxes (so only one, and never zero or 2/3 options could be chosen).
+Kenny Pitt        18/03/2004  Outlook: Don't record classification in stats unless all_actions is true so that rescoring messages doesn't skew the statistics counters.
 Skip Montanaro    16/03/2004  Change sb_dbexpimp.py to use csv as interchange format.
 Tony Meyer        16/03/2004  Add [ 797579 ] Disable connections to POP3 and SMTP from remote hosts
 Tony Meyer        16/03/2004  Fix [851785] Pop3proxy stores Ham/Spam/Unsure subject line in message cache
