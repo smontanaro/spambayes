@@ -2,17 +2,16 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<p>Version 1.0.1 of the SpamBayes project is now available.
+<p>Version 1.0.2 of the SpamBayes project is now available.
 <p>This is a bugfix release - it is funtionally identical to 1.0, but includes
 fixes for a number of bugs.  We expect it to prove to be quite stable and
-usable by most people.  As time permits, we will endeavour
-to fix any remaining bugs and eventually a 1.0.2 release will be made.
-However, work has now begin on a 1.1 release, which may include many new
-(possibly even exciting!) features.  Feedback to
+usable by most people; as a result (and since we are hard at work on the
+upcoming 1.1 release) we expect that this will be the last release in the
+1.0.x line. Feedback to
 <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
 
-<p>You may like to view the <a href="https://sourceforge.net/project/shownotes.php?release_id=285346">release notes</a>
-or the <a href="https://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=285346">
+<p>You may like to view the <a href="https://sourceforge.net/project/shownotes.php?release_id=299864">release notes</a>
+or the <a href="https://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=299864">
 files that make up this release</a>.
 
 <h2>Microsoft Windows</h2>
@@ -48,20 +47,20 @@ to the
 public key</a>, which has a key id of F23F732A.</p>
 
 <ul>
-<li><tt>4c13f502d3df01f31faf4ca16cc03bc2</tt>
+<li><tt>cf94b50dfcda2ce4c1cba541217714bf</tt>
 <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.exe?download">spambayes-1.0.1.exe</a>
-(3,019,954 bytes,
+(3,272,826 bytes,
 <a href="sigs/spambayes-1.0.1.exe.asc">sig</a>)
 </li>
-<li><tt>b80d25f90be14c9eaffefa172def674b</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.tar.gz?download">spambayes-1.0.1.tar.gz</a>
-(688,955 bytes,
-<a href="sigs/spambayes-1.0.1.tar.gz.asc">sig</a>)
+<li><tt>f463c6d06549f92f1fc5c0ddc7210696</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.tar.gz?download">spambayes-1.0.2.tar.gz</a>
+(696,499 bytes,
+<a href="sigs/spambayes-1.0.2.tar.gz.asc">sig</a>)
 </li>
-<li><tt>95f2fa43c12163052d9e925c23b0de4d</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.zip?download">spambayes-1.0.1.zip</a>
-(785,670 bytes,
-<a href="sigs/spambayes-1.0.1.zip.asc">sig</a>)
+<li><tt>6d9fda7416b87e354deef8969b8e837f</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.zip?download">spambayes-1.0.2.zip</a>
+(782,208 bytes,
+<a href="sigs/spambayes-1.0.2.zip.asc">sig</a>)
 </li>
 </ul>
 
@@ -79,7 +78,7 @@ this command:</p>
 <p>To verify the authenticity of the download, grab both the file(s) and the
 signature(s) (above) and then run this command:</p>
 
-<pre>% gpg --verify spambayes-1.0.1.exe.asc</pre>
+<pre>% gpg --verify spambayes-1.0.2.exe.asc</pre>
 
 <p>Note that you must use the name of the signature file, and you should
 use the one that's appropriate to the download you're verifying.</p>
