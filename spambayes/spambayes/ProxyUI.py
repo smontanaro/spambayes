@@ -67,7 +67,7 @@ import cgi
 
 import tokenizer
 import UserInterface
-from Options import options
+from spambayes.Options import options
 import spambayes.mboxutils
 from email.Iterators import typed_subpart_iterator
 
@@ -88,8 +88,8 @@ parm_ini_map = (
     ('html_ui',             'http_user_name'),
     ('html_ui',             'http_password'),
     ('Header Options',      None),
-    ('pop3proxy',           'notate_to'),
-    ('pop3proxy',           'notate_subject'),
+    ('Headers',             'notate_to'),
+    ('Headers',             'notate_subject'),
     ('SMTP Proxy Options',  None),
     ('smtpproxy',           'remote_servers'),
     ('smtpproxy',           'listen_ports'),
@@ -99,9 +99,9 @@ parm_ini_map = (
     ('Storage Options',  None),
     ('Storage',             'persistent_storage_file'),
     ('Storage',             'messageinfo_storage_file'),
-    ('pop3proxy',           'cache_messages'),
-    ('pop3proxy',           'no_cache_bulk_ham'),
-    ('pop3proxy',           'no_cache_large_messages'),
+    ('Storage',             'cache_messages'),
+    ('Storage',             'no_cache_bulk_ham'),
+    ('Storage',             'no_cache_large_messages'),
     ('Statistics Options',  None),
     ('Categorization',      'ham_cutoff'),
     ('Categorization',      'spam_cutoff'),
@@ -125,11 +125,11 @@ adv_map = (
     ('Headers',             'clue_mailheader_cutoff'),
     ('Storage Options',     None),
     ('Storage',             'persistent_use_database'),
-    ('pop3proxy',           'cache_expiry_days'),
-    ('pop3proxy',           'cache_use_gzip'),
-    ('pop3proxy',           'ham_cache'),
-    ('pop3proxy',           'spam_cache'),
-    ('pop3proxy',           'unknown_cache'),
+    ('Storage',             'cache_expiry_days'),
+    ('Storage',             'cache_use_gzip'),
+    ('Storage',             'ham_cache'),
+    ('Storage',             'spam_cache'),
+    ('Storage',             'unknown_cache'),
     ('Tokenising Options',  None),
     ('Tokenizer',           'extract_dow'),
     ('Tokenizer',           'generate_time_buckets'),

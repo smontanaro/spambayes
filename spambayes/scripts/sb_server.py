@@ -460,11 +460,11 @@ class BayesProxy(POP3ProxyBase):
                     # "Precedence: list" ham if the options say so.
                     isSuppressedBulkHam = \
                         (cls == options["Headers", "header_ham_string"] and
-                         options["pop3proxy", "no_cache_bulk_ham"] and
+                         options["Storage", "no_cache_bulk_ham"] and
                          msg.get('precedence') in ['bulk', 'list'])
 
                     # Suppress large messages if the options say so.
-                    size_limit = options["pop3proxy",
+                    size_limit = options["Storage",
                                          "no_cache_large_messages"]
                     isTooBig = size_limit > 0 and \
                                len(messageText) > size_limit
@@ -472,7 +472,7 @@ class BayesProxy(POP3ProxyBase):
                     # Cache the message.  Don't pollute the cache with test
                     # messages or suppressed bulk ham.
                     if (not state.isTest and
-                        options["pop3proxy", "cache_messages"] and
+                        options["Storage", "cache_messages"] and
                         not isSuppressedBulkHam and not isTooBig):
                         # Write the message into the Unknown cache.
                         message = state.unknownCorpus.makeMessage(msg.getId())
@@ -585,8 +585,8 @@ class State:
         self.useDB = options["Storage", "persistent_use_database"]
         self.uiPort = options["html_ui", "port"]
         self.launchUI = options["html_ui", "launch_browser"]
-        self.gzipCache = options["pop3proxy", "cache_use_gzip"]
-        self.cacheExpiryDays = options["pop3proxy", "cache_expiry_days"]
+        self.gzipCache = options["Storage", "cache_use_gzip"]
+        self.cacheExpiryDays = options["Storage", "cache_expiry_days"]
         self.runTestServer = False
         self.isTest = False
 
@@ -633,26 +633,26 @@ class State:
 
             # Create/open the Corpuses.  Use small cache sizes to avoid hogging
             # lots of memory.
-            map(ensureDir, [options["pop3proxy", "spam_cache"],
-                            options["pop3proxy", "ham_cache"],
-                            options["pop3proxy", "unknown_cache"]])
+            map(ensureDir, [options["Storage", "spam_cache"],
+                            options["Storage", "ham_cache"],
+                            options["Storage", "unknown_cache"]])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
                 factory = FileMessageFactory()
-            age = options["pop3proxy", "cache_expiry_days"]*24*60*60
+            age = options["Storage", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory,
-                                               options["pop3proxy",
+                                               options["Storage",
                                                        "spam_cache"],
                                                '[0123456789\-]*',
                                                cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory,
-                                              options["pop3proxy",
+                                              options["Storage",
                                                       "ham_cache"],
                                               '[0123456789\-]*',
                                               cacheSize=20)
             self.unknownCorpus = ExpiryFileCorpus(age, factory,
-                                            options["pop3proxy",
+                                            options["Storage",
                                                     "unknown_cache"],
                                             '[0123456789\-]*',
                                                   cacheSize=20)
@@ -765,8 +765,7 @@ def start(state):
 def stop(state):
     # Shutdown as though through the web UI.  This will save the DB, allow
     # any open proxy connections to complete, etc.
-    from urllib2 import urlopen
-    from urllib import urlencode
+    from urllib import urlopen, urlencode
     urlopen('http://localhost:%d/save' % state.uiPort,
             urlencode({'how': 'Save & shutdown'})).read()
 
@@ -809,8 +808,6 @@ def run():
     print get_version_string("POP3 Proxy")
     print "and engine %s.\n" % (get_version_string(),)
 
-    prepare(state=state)
-
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.
         if len(args) == 1:
@@ -822,6 +819,7 @@ def run():
         if len(args) > 0 and state.proxyPorts == []:
             state.proxyPorts = [('', 110)]
 
+        prepare(state=state)
         start(state=state)
 
     else:

@@ -418,16 +418,6 @@ defaults = {
   ),
 
   "Hammie": (
-    ("debug_header", "Add debug header", False,
-     """Enable debugging information in the header.""",
-     BOOLEAN, RESTORE),
-
-    ("debug_header_name", "Debug header name", "X-Spambayes-Debug",
-     """Name of a debugging header for spambayes hackers, showing the
-     strongest clues that have resulted in the classification in the
-     standard header.""",
-     HEADER_NAME, RESTORE),
-
     ("train_on_filter", "Train when filtering", False,
      """Train when filtering?  After filtering a message, hammie can then
      train itself on the judgement (ham or spam).  This can speed things up
@@ -469,6 +459,60 @@ defaults = {
      full pathname, the name will be taken to be relative to the current
      working directory.""",
      FILE_WITH_PATH, DO_NOT_RESTORE),
+
+    ("cache_use_gzip", "Use gzip", False,
+     """Use gzip to compress the cache.""",
+     BOOLEAN, RESTORE),
+
+    ("cache_expiry_days", "Days before cached messages expire", 7,
+     """Messages will be expired from the cache after this many days.
+     After this time, you will no longer be able to train on these messages
+     (note this does not effect the copy of the message that you have in
+     your mail client).""",
+     INTEGER, RESTORE),
+
+    ("spam_cache", "Spam cache directory", "pop3proxy-spam-cache",
+     """Directory that SpamBayes should cache spam in.  If this does
+     not exist, it will be created.""",
+     PATH, DO_NOT_RESTORE),
+
+    ("ham_cache", "Ham cache directory", "pop3proxy-ham-cache",
+     """Directory that SpamBayes should cache ham in.  If this does
+     not exist, it will be created.""",
+     PATH, DO_NOT_RESTORE),
+
+    ("unknown_cache", "Unknown cache directory", "pop3proxy-unknown-cache",
+     """Directory that SpamBayes should cache unclassified messages in.
+     If this does not exist, it will be created.""",
+     PATH, DO_NOT_RESTORE),
+
+    ("cache_messages", "Cache messages", True,
+     """You can disable the pop3proxy caching of messages.  This
+     will make the proxy a bit faster, and make it use less space
+     on your hard drive.  The proxy uses its cache for reviewing
+     and training of messages, so if you disable caching you won't
+     be able to do further training unless you re-enable it.
+     Thus, you should only turn caching off when you are satisfied
+     with the filtering that Spambayes is doing for you.""",
+     BOOLEAN, RESTORE),
+
+    ("no_cache_bulk_ham", "Suppress caching of bulk ham", False,
+     """Where message caching is enabled, this option suppresses caching
+     of messages which are classified as ham and marked as
+     'Precedence: bulk' or 'Precedence: list'.  If you subscribe to a
+     high-volume mailing list then your 'Review messages' page can be
+     overwhelmed with list messages, making training a pain.  Once you've
+     trained Spambayes on enough list traffic, you can use this option
+     to prevent that traffic showing up in 'Review messages'.""",
+     BOOLEAN, RESTORE),
+
+    ("no_cache_large_messages", "Maximum size of cached messages", 0,
+     """Where message caching is enabled, this option suppresses caching
+     of messages which are larger than this value (measured in bytes).
+     If you receive a lot of messages that include large attachments
+     (and are correctly classified), you may not wish to cache these.
+     If you set this to zero (0), then this option will have no effect.""",
+     INTEGER, RESTORE),
   ),
 
   # These options control the various headers that some Spambayes
@@ -587,6 +631,27 @@ defaults = {
      messages, you will need to know the unique id of each message.  This
      option adds this information to a header added to each message.""",
      BOOLEAN, RESTORE),
+
+    ("notate_to", "Notate to", (),
+     """Some email clients (Outlook Express, for example) can only set up
+     filtering rules on a limited set of headers.  These clients cannot
+     test for the existence/value of an arbitrary header and filter mail
+     based on that information.  To accommodate these kind of mail clients,
+     you can add "spam", "ham", or "unsure" to the recipient list.  A
+     filter rule can then use this to see if one of these words (followed
+     by a comma) is in the recipient list, and route the mail to an
+     appropriate folder, or take whatever other action is supported and
+     appropriate for the mail classification.
+
+     As it interferes with replying, you may only wish to do this for
+     spam messages; simply tick the boxes of the classifications take
+     should be identified in this fashion.""",
+     ("ham", "spam", "unsure"), RESTORE),
+
+    ("notate_subject", "Classify in subject: header", (),
+     """This option will add the same information as 'Notate To',
+     but to the start of the mail subject line.""",
+     ("ham", "spam", "unsure"), RESTORE),
   ),
 
   # pop3proxy settings: The only mandatory option is pop3proxy_servers, eg.
@@ -616,85 +681,9 @@ defaults = {
      client to use this port.  If there are multiple servers, you must
      specify the same number of ports as servers, separated by commas.""",
      SERVER, DO_NOT_RESTORE),
-
-    ("cache_use_gzip", "Use gzip", False,
-     """Use gzip to compress the cache.""",
-     BOOLEAN, RESTORE),
-
-    ("cache_expiry_days", "Days before cached messages expire", 7,
-     """Messages will be expired from the cache after this many days.
-     After this time, you will no longer be able to train on these messages
-     (note this does not effect the copy of the message that you have in
-     your mail client).""",
-     INTEGER, RESTORE),
-
-    ("spam_cache", "Spam cache directory", "pop3proxy-spam-cache",
-     """Directory that SpamBayes should cache spam in.  If this does
-     not exist, it will be created.""",
-     PATH, DO_NOT_RESTORE),
-
-    ("ham_cache", "Ham cache directory", "pop3proxy-ham-cache",
-     """Directory that SpamBayes should cache ham in.  If this does
-     not exist, it will be created.""",
-     PATH, DO_NOT_RESTORE),
-
-    ("unknown_cache", "Unknown cache directory", "pop3proxy-unknown-cache",
-     """Directory that SpamBayes should cache unclassified messages in.
-     If this does not exist, it will be created.""",
-     PATH, DO_NOT_RESTORE),
-
-    ("notate_to", "Notate to", (),
-     """Some email clients (Outlook Express, for example) can only set up
-     filtering rules on a limited set of headers.  These clients cannot
-     test for the existence/value of an arbitrary header and filter mail
-     based on that information.  To accommodate these kind of mail clients,
-     you can add "spam", "ham", or "unsure" to the recipient list.  A
-     filter rule can then use this to see if one of these words (followed
-     by a comma) is in the recipient list, and route the mail to an
-     appropriate folder, or take whatever other action is supported and
-     appropriate for the mail classification.
-
-     As it interferes with replying, you may only wish to do this for
-     spam messages; simply tick the boxes of the classifications take
-     should be identified in this fashion.""",
-     ("ham", "spam", "unsure"), RESTORE),
-
-    ("notate_subject", "Classify in subject: header", (),
-     """This option will add the same information as 'Notate To',
-     but to the start of the mail subject line.""",
-     ("ham", "spam", "unsure"), RESTORE),
-
-    ("cache_messages", "Cache messages", True,
-     """You can disable the pop3proxy caching of messages.  This
-     will make the proxy a bit faster, and make it use less space
-     on your hard drive.  The proxy uses its cache for reviewing
-     and training of messages, so if you disable caching you won't
-     be able to do further training unless you re-enable it.
-     Thus, you should only turn caching off when you are satisfied
-     with the filtering that Spambayes is doing for you.""",
-     BOOLEAN, RESTORE),
-
-    ("no_cache_bulk_ham", "Suppress caching of bulk ham", False,
-     """Where message caching is enabled, this option suppresses caching
-     of messages which are classified as ham and marked as
-     'Precedence: bulk' or 'Precedence: list'.  If you subscribe to a
-     high-volume mailing list then your 'Review messages' page can be
-     overwhelmed with list messages, making training a pain.  Once you've
-     trained Spambayes on enough list traffic, you can use this option
-     to prevent that traffic showing up in 'Review messages'.""",
-     BOOLEAN, RESTORE),
-
-    ("no_cache_large_messages", "Maximum size of cached messages", 0,
-     """Where message caching is enabled, this option suppresses caching
-     of messages which are larger than this value (measured in bytes).
-     If you receive a lot of messages that include large attachments
-     (and are correctly classified), you may not wish to cache these.
-     If you set this to zero (0), then this option will have no effect.""",
-     INTEGER, RESTORE),
   ),
 
   "smtpproxy" : (
-
     ("remote_servers", "Remote Servers", (),
      """The Spambayes SMTP proxy intercepts outgoing email - if you
      forward mail to one of the addresses below, it is examined for an id
@@ -902,18 +891,6 @@ defaults = {
     ("port", "IMAP Listen Port", 143,
      """The port to serve the SpamBayes IMAP server on.""",
      PORT, RESTORE),
-
-    ("spam_directory", "Spam directory", "imapserver-spam",
-     """The directory to store spam messages in.""",
-     PATH, DO_NOT_RESTORE),
-    
-    ("ham_directory", "Ham directory", "imapserver-ham",
-     """The directory to store ham messages in.""",
-     PATH, DO_NOT_RESTORE),
-    
-    ("unsure_directory", "Unsure directory", "imapserver-unsure",
-     """The directory to store unsure messages in.""",
-     PATH, DO_NOT_RESTORE),
   ),
  
   "globals" : (
@@ -990,6 +967,18 @@ if not optionsPathname:
                                                'bayescustomize.ini')
                 # Not everyone is unicode aware - keep it a string.
                 optionsPathname = optionsPathname.encode("mbcs")
+                # If the file exists, then load it.
+                if os.path.exists(optionsPathname):
+                    options.merge_file(optionsPathname)
+                else:
+                    # If the file doesn't exist, then let's get the user to
+                    # store their databases here as well, by default, and
+                    # save the file.
+                    db_name = os.path.join(windowsUserDirectory,
+                                           "statistics_database.db").\
+                                           encode("mbcs")
+                    options["Storage", "persistent_storage_file"] = db_name
+                    options.update_file(optionsPathname)
             except os.error:
                 # unable to make the directory - stick to default.
                 pass

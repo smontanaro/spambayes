@@ -320,14 +320,14 @@ class SBHeaderMessage(Message):
         # These are pretty ugly, but no-one has a better idea about how to
         # allow filtering in 'stripped down' mailers like Outlook Express,
         # so for the moment, they stay in.
-        if disposition in options["pop3proxy", "notate_to"]:
+        if disposition in options["Headers", "notate_to"]:
             try:
                 self.replace_header("To", "%s,%s" % (disposition,
                                                      self["To"]))
             except KeyError:
                 self["To"] = disposition
 
-        if disposition in options["pop3proxy", "notate_subject"]:
+        if disposition in options["Headers", "notate_subject"]:
             try:
                 self.replace_header("Subject", "%s,%s" % (disposition,
                                                           self["Subject"]))

@@ -84,7 +84,6 @@ class Hammie:
         All defaults for optional parameters come from the Options file.
 
         Returns the same message with a new disposition header.
-
         """
 
         if header == None:
@@ -94,9 +93,9 @@ class Hammie:
         if ham_cutoff == None:
             ham_cutoff = options["Categorization", "ham_cutoff"]
         if debugheader == None:
-            debugheader = options["Hammie", "debug_header_name"]
+            debugheader = options["Headers", "evidence_header_name"]
         if debug == None:
-            debug = options["Hammie", "debug_header"]
+            debug = options["Headers", "include_evidence"]
         if train == None:
             train = options["Hammie", "train_on_filter"]
 

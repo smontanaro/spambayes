@@ -862,12 +862,12 @@ def setup():
     proxyListeners = []
     app = Application("SpambayesIMAPServer")
 
-    spam_box = SpambayesMailbox("Spam", 0, options["imapserver",
-                                                   "spam_directory"])
-    unsure_box = SpambayesMailbox("Unsure", 1, options["imapserver",
-                                                       "unsure_directory"])
+    spam_box = SpambayesMailbox("Spam", 0, options["Storage",
+                                                   "spam_cache"])
+    unsure_box = SpambayesMailbox("Unsure", 1, options["Storage",
+                                                       "unknown_cache"])
     ham_train_box = SpambayesMailbox("TrainAsHam", 2,
-                                     options["imapserver", "ham_directory"])
+                                     options["Storage", "ham_cache"])
 
     spam_trainer = Trainer(spam_box, True)
     ham_trainer = Trainer(ham_train_box, False)
