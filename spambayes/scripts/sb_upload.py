@@ -11,6 +11,7 @@ ready for you to classify.
 
 usage:  %(progname)s [-h] [-n] [-s server] [-p port] [-r N]
                      [-o section:option:value]
+                     [-t (ham|spam)] [-o section:option:value]
 
 Options:
     -h, --help    - print help and exit
@@ -18,6 +19,7 @@ Options:
     -s, --server= - provide alternate web server (default %(server)s)
     -p, --port=   - provide alternate server port (default %(port)s)
     -r, --prob=   - feed the message to the trainer w/ prob N [0.0...1.0]
+    -t, --train=  - train the message (pass either 'ham' or 'spam')
     -o, --option= - set [section, option] in the options database to value
 """
 
@@ -100,11 +102,12 @@ def main(argv):
     server = "localhost"
     port = options["html_ui", "port"]
     prob = 1.0
+    train_as = None
 
     try:
-        opts, args = getopt.getopt(argv, "hns:p:r:o:",
+        opts, args = getopt.getopt(argv, "hns:p:r:t:o:",
                                    ["help", "null", "server=", "port=",
-                                    "prob=", "option="])
+                                    "prob=", "train=", "option="])
     except getopt.error:
         usage(globals(), locals())
         sys.exit(1)
@@ -125,6 +128,12 @@ def main(argv):
                 usage(globals(), locals())
                 sys.exit(1)
             prob = n
+        elif opt in ("-t", "--train"):
+            arg = arg.capitalize()
+            if arg not in ("Ham", "Spam"):
+                usage(globals(), locals())
+                sys.exit(1)
+            train_as = arg
         elif opt in ('-o', '--option'):
             options.set_from_cmdline(arg, sys.stderr)
 
@@ -137,8 +146,15 @@ def main(argv):
         sys.stdout.write(data)
     if random.random() < prob:
         try:
-            post_multipart("%s:%d"%(server,port), "/upload", [],
-                           [('file', 'message.dat', data)])
+            if train_as is not None:
+                which_text = "Train as %s" % (train_as,)
+                post_multipart("%s:%d" % (server, port), "/train",
+                               [("which", which_text),
+                                ("text", "")],
+                               [("file", "message.dat", data)])
+            else:
+                post_multipart("%s:%d" % (server,port), "/upload", [],
+                               [('file', 'message.dat', data)])
         except:
             # not an error if the server isn't responding
             pass
