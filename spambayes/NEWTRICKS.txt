@@ -19,7 +19,9 @@ results of these ideas.
 - A token indicating the length of a message (rounded to an appropriate
   level.  Also a token indicating the ratio of message length to the
   number of tokens, and a token indicating the number of tokens.
-
+  Also, [817813] add a "not in database" token (I'm not sure about this
+  one, but I can't articulate why).
+  
 - A token indicating the ratio of hapax legomena to previously seen
   tokens in the message.
 
@@ -30,3 +32,7 @@ results of these ideas.
 - Similarly, some letters get replaced by numbers, e.g.: "V1agra" instead of
   "Viagra".  Mapping numbers to suitable letters might help in some
   situations.
+
+- [817813] Add a spelling checker and reasonable sized dictionary and generate
+  a "not in dictionary" token.
+
