@@ -50,6 +50,21 @@ import pywintypes, win32con, winerror
 
 from ntsecuritycon import *
 
+# Messages from pop3proxy will go nowhere when executed as a service
+# Try and detect that print will go nowhere and redirect.
+try:
+    # redirect output somewhere useful when running as a service.
+    import win32api
+    try:
+        win32api.GetConsoleTitle()
+    except win32api.error:
+        # no console - import win32traceutil
+        import win32traceutil
+        print "popproxy service module loading (as user %s)..." \
+                % win32api.GetUserName()
+except ImportError:
+    pass
+
 class Service(win32serviceutil.ServiceFramework):
     _svc_name_ = "pop3proxy"
     _svc_display_name_ = "SpamBayes pop3proxy Service"
