@@ -20,6 +20,7 @@ IDC_BROWSE_HAM = 1002
 IDC_STATIC_SPAM = 1003
 IDC_BROWSE_SPAM = 1004
 IDC_BUT_REBUILD = 1005
+IDC_BUT_RESCORE = 1006
 from AsyncDialog import IDC_START, IDC_PROGRESS, IDC_PROGRESS_TEXT, AsyncDialogBase
 
 
@@ -32,7 +33,7 @@ class TrainingDialog(AsyncDialogBase):
     process_stop_text = "Stop &training"
     dt = [
         # Dialog itself.
-        ["Training", (0, 0, 241, 130), style, None, (8, "MS Sans Serif")],
+        ["Training", (0, 0, 241, 140), style, None, (8, "MS Sans Serif")],
         # Children
         [STATIC,          ham_title,            -1,                   (  7,   6, 131,  11), cs ],
         [STATIC,          "",                   IDC_STATIC_HAM,       (  7,  17, 167,  12), cs | win32con.SS_SUNKEN | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE],
@@ -42,15 +43,20 @@ class TrainingDialog(AsyncDialogBase):
         [STATIC,          "",                   IDC_STATIC_SPAM,      (  7,  47, 167,  12), cs | win32con.SS_SUNKEN | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE],
         [BUTTON,          'Brow&se',            IDC_BROWSE_SPAM,      (184,  47,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
         [BUTTON,          'Rebuild entire database',IDC_BUT_REBUILD,  (  7,  67, 174,  10), cs | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+        [BUTTON,          'Score messages after training',IDC_BUT_RESCORE,(  7,  77, 174,  10), cs | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
 
-        [BUTTON,         process_start_text,    IDC_START,            (  7, 109,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
-        ["msctls_progress32", '',               IDC_PROGRESS,         (  7,  82, 166,  11), cs | win32con.WS_BORDER],
-        [STATIC,          '',                   IDC_PROGRESS_TEXT,    (  7,  98, 227,  10), cs ],
+        [BUTTON,         process_start_text,    IDC_START,            (  7, 119,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
+        ["msctls_progress32", '',               IDC_PROGRESS,         (  7,  92, 166,  11), cs | win32con.WS_BORDER],
+        [STATIC,          '',                   IDC_PROGRESS_TEXT,    (  7, 108, 227,  10), cs ],
 
-        [BUTTON,          'Close',              win32con.IDOK,        (184, 109,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
+        [BUTTON,          'Close',              win32con.IDOK,        (184, 119,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
 
     ]
-    disable_while_running_ids = [IDC_BROWSE_HAM, IDC_BROWSE_SPAM, IDC_BUT_REBUILD, win32con.IDOK]
+    disable_while_running_ids = [IDC_BROWSE_HAM,
+                                 IDC_BROWSE_SPAM,
+                                 IDC_BUT_REBUILD,
+                                 IDC_BUT_RESCORE,
+                                 win32con.IDOK]
 
     def __init__ (self, mgr, trainer):
         self.mgr = mgr
@@ -94,6 +100,10 @@ class TrainingDialog(AsyncDialogBase):
                 name = folder.name
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_SPAM, "; ".join(names))
+        if self.config.rescore:
+            self.GetDlgItem(IDC_BUT_RESCORE).SetCheck(1)
+        else:
+            self.GetDlgItem(IDC_BUT_RESCORE).SetCheck(0)
 
     def OnBrowse(self, id, code):
         if code == win32con.BN_CLICKED:
@@ -113,12 +123,14 @@ class TrainingDialog(AsyncDialogBase):
 
     def StartProcess(self):
         self.rebuild = self.GetDlgItem(IDC_BUT_REBUILD).GetCheck() != 0
+        self.rescore = self.GetDlgItem(IDC_BUT_RESCORE).GetCheck() != 0
+        self.config.rescore = self.rescore
         return AsyncDialogBase.StartProcess(self)
 
     def _DoProcess(self):
         self.mgr.WorkerThreadStarting()
         try:
-            self.trainer(self.mgr, self.progress, self.rebuild)
+            self.trainer(self.mgr, self.progress, self.rebuild, self.rescore)
         finally:
             self.mgr.WorkerThreadEnding()
 
