@@ -50,9 +50,9 @@ case "$TEST" in
     timcv2|cv2)
 	python timcv.py -n $SETS > cv2.txt
 
-        python rates.py run1 run2 > runrates.txt
+        python rates.py cv1 cv2 > runrates.txt
 
-        python cmp.py run1s run2s | tee results.txt
+        python cmp.py cv1s cv2s | tee results.txt
 	;;
     *)
 	echo "Available targets:"
