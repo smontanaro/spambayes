@@ -24,26 +24,37 @@ Author: spambayes
 <h2><a name="glossary">Glossary</a></h2>
 <p>A useful(?) glossary of terminology</p>
 <dl>
-<dt>spam<dd>broadly speaking: any email that's not wanted by the
-    end-user.  More specifically: unsolicited bulk email; email
-    that you do not want and did not ask for, and was sent to
-    a whole bunch of people by automated means at the same time
-    it was sent to you.  This definition deliberately excludes viruses
-    and those stupid jokes sent to you by your Aunt Tillie.
+  <dt>Bayesian<dd>A form of statistical analysis used (in a form) in Paul
+      Graham's initial "Plan for Spam" approach. Now used as a kind of
+      catch-all term for this class of filters, no doubt horrifying
+      statisticians everywhere.
+
+  <dt>corpus<dd> in this context, a body of messages. Usually referring to a
+      training database. (plural is corpora).
+
+  <dt>false negative<dd>a spam that's incorrectly classified as ham.  Also
+      abbreviated as "fn" or "FN".
+
+  <dt>false positive<dd>a ham that's incorrectly classified as spam.  Also
+      abbreviated as "fp" or "FP".
+
+  <dt>ham<dd>the opposite of spam; not necessarily email that you want or
+      that you asked for, just anything that's not unsolicited bulk email.
+
+  <dt>hapax, hapax legomenon <dd>a word or form occurring only once in a 
+      document or corpus. (plural is hapax legomena).
+
+  <dt>spam<dd>broadly speaking: any email that's not wanted by the
+      end-user.  More specifically: unsolicited bulk email; email
+      that you do not want and did not ask for, and was sent to
+      a whole bunch of people by automated means at the same time
+      it was sent to you.  This definition deliberately excludes viruses
+      and those stupid jokes sent to you by your Aunt Tillie.
     
-<dt>ham<dd>the opposite of spam; not necessarily email that you want or
-    that you asked for, just anything that's not unsolicited bulk email.
-<dt>false negative<dd>a spam that's incorrectly classified as ham.
-<dt>false positive<dd>a ham that's incorrectly classified as spam.
-<dt>f-n, FN<dd>(abbrev.) false negative
-<dt>f-p, FP<dd>(abbrev.) false positive
-<dt>corpus<dd> in this context, a body of messages. Usually referring to a
-training database. (plural is corpora).
-<dt>hapax, hapax legomenon <dd>a word or form occurring only once in a 
-document or corpus. (plural is hapax legomena).
-<dt>training<dd>The process of feeding spambayes some sample spam and ham messages, to teach it what to look for.
-<dt>Bayesian<dd>A form of statistical analysis used (in a form) in Paul Graham's
-initial "Plan for Spam" approach. Now used as a kind of catch-all term for 
-this class of filters, no doubt horrifying statisticians everywhere.
+  <dt>training<dd>The process of feeding spambayes some sample spam and ham
+      messages, to teach it what to look for. 
+
+  <dt>unsure<dd>an email message that could not reliably be classified as
+      either ham or spam.
 </dl>
 
