@@ -153,7 +153,7 @@ class MainWindow(object):
             icon_flags = win32con.LR_DEFAULTSIZE
             self.hstartedicon = LoadImage(hexe, 1000, win32con.IMAGE_ICON, 0,
                                           0, icon_flags)
-            self.hstopped = LoadImage(hexe, 1010, win32con.IMAGE_ICON, 0,
+            self.hstoppedicon = LoadImage(hexe, 1010, win32con.IMAGE_ICON, 0,
                                           0, icon_flags)
         else:
             # If we have no icon we fail in all sorts of places - so may as
