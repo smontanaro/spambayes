@@ -33,8 +33,8 @@ Where OPTIONS is one or more of:
     -q
         quiet mode; no output
         
-    -n  train mail residing in "new" directory, in addition to "cur" directory,
-        which is always trained (Maildir only)
+    -n  train mail residing in "new" directory, in addition to "cur"
+        directory, which is always trained (Maildir only)
 
     -r  remove mail which was trained on (Maildir only)
 """
@@ -50,7 +50,7 @@ from spambayes import hammie, mboxutils
 from spambayes.Options import options
 
 program = sys.argv[0]
-TRAINED_HDR = "X-Spambayes-Trained"
+TRAINED_HDR = options["Headers", "trained_header_name"]
 loud = True
 
 def msg_train(h, msg, is_spam, force):
@@ -138,7 +138,6 @@ def mbox_train(h, path, is_spam, force):
 
     import mailbox
     import fcntl
-    import tempfile
 
     # Open and lock the mailbox.  Some systems require it be opened for
     # writes in order to assert an exclusive lock.
@@ -229,9 +228,11 @@ def train(h, path, is_spam, force, trainnew, removetrained):
     elif os.path.isfile(path):
         mbox_train(h, path, is_spam, force)
     elif os.path.isdir(os.path.join(path, "cur")):
-        maildir_train(h, os.path.join(path, "cur"), is_spam, force, removetrained)
+        maildir_train(h, os.path.join(path, "cur"), is_spam, force,
+                      removetrained)
         if trainnew:
-            maildir_train(h, os.path.join(path, "new"), is_spam, force, removetrained)
+            maildir_train(h, os.path.join(path, "new"), is_spam, force,
+                          removetrained)
     elif os.path.isdir(path):
         mhdir_train(h, path, is_spam, force)
     else:
