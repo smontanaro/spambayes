@@ -5,10 +5,12 @@
 <li><a href="applications.html">Applications</a>
 <li><a href="developer.html">Developers</a>
 <li><a href="related.html">Related</a>
-<h3>Platforms</h3>
-<li><a href="windows.html">Windows</a>
-<li><a href="unix.html">Unix/Linux</a>
-<li><a href="mac.html">Mac OS</a>
+<!--
+&lt;h3>Platforms&lt;/h3>
+&lt;li>&lt;a href="windows.html">Windows&lt;/a>
+&lt;li>&lt;a href="unix.html">Unix/Linux&lt;/a>
+&lt;li>&lt;a href="mac.html">Mac OS&lt;/a>
+-->
 <h3>Getting the code</h3>
 <li><a href="download.html">Releases</a>
 <li><a href="download.html#cvs">CVS access</a>
