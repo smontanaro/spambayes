@@ -82,14 +82,12 @@ def drive(nsets):
 
     # Now run nsets times, removing one pair per run.
     for i in range(nsets):
-        h = hamdirs[:]
-        s = spamdirs[:]
-        hexclude = h.pop(i)
-        sexclude = s.pop(i)
-        d.forget(MsgStream(hexclude, [hexclude]),
-                 MsgStream(sexclude, [sexclude]))
-        d.test(MsgStream("Data/Ham/*-Set%d" % (i+1), h),
-               MsgStream("Data/Spam/*-Set%d" % (i+1), s))
+        h = hamdirs[i]
+        s = spamdirs[i]
+        hamstream = MsgStream(h, [h])
+        spamstream = MsgStream(s, [s])
+        d.forget(hamstream, spamstream)
+        d.test(hamstream, spamstream)
         d.finishtest()
     d.alldone()
 
