@@ -537,7 +537,8 @@ class MainWindow(object):
             traceback.print_exc()
             return
 
-        self.ShowMessage("Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num))
+        self.ShowMessage("Current version is %s, latest is %s." % \
+                         (cur_ver_string, latest_ver_string))
         if latest_ver_num > cur_ver_num:
             url = get_version_string(app_name, "Download Page", version_dict=latest)
             # Offer to open up the url
