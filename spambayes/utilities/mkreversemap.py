@@ -22,6 +22,8 @@ import cPickle as pickle
 
 from spambayes.mboxutils import getmbox
 from spambayes.tokenizer import tokenize
+from spambayes.Options import options
+from spambayes.classifier import Classifier
 
 prog = sys.argv[0]
 
@@ -50,6 +52,18 @@ def mapmessages(f, mboxtype, mapdb):
                 msgids.add(msgid)
                 spam[f] = msgids
             mapdb[t] = (ham, spam)
+        if options["Classifier", "x-use_bigrams"]:
+            for t in Classifier()._enhance_wordstream(tokenize(msg)):
+                ham, spam = mapdb.get(t, ({}, {}))
+                if mboxtype == "ham":
+                    msgids = ham.get(f, set())
+                    msgids.add(msgid)
+                    ham[f] = msgids
+                else:
+                    msgids = spam.get(f, set())
+                    msgids.add(msgid)
+                    spam[f] = msgids
+                mapdb[t] = (ham, spam)
     sys.stdout.write("\n")
 
 def main(args):
