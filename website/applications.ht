@@ -8,13 +8,18 @@ Which application is right for you depends on which operating system,
 mail client, and mail delivery system you use.</p>
 
 <h3>Outlook</h3>
-<p>Sean True and Mark Hammond have developed an addin for Outlook (2000 and XP) that
-adds support for the SpamBayes classifier.</p>
+<p>Sean True and Mark Hammond have developed an addin for Outlook (2000
+and above) that adds support for the SpamBayes classifier.</p>
 <h4>Requirements</h4>
 <ul>
 <li>Outlook 2000 or above (<b>not</b> Outlook Express)</li>
 </ul>
-<p>If you are going to use a source code version, you will also need:
+
+<h4>Availability</h4>
+<p>Mark has packaged together <a href="windows.html">an installer for the plugin</a>.
+Go to the <a href="windows.html">Windows page</a> for more.</p>
+<p>Alternatively, to run from source, <a href="download.html">download the
+latest source archive</a>.  Note that you will also need:</p>
 <ul>
 <li>Python 2.2 or later (2.3 recommended)</li>
 <li>Python's <a href="http://starship.python.net/crew/mhammond">win32com</a>
@@ -22,18 +27,13 @@ extensions (win32all-149 or later - currently ActivePython is not suitable)
 </ul>
 For more on this, see the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/README.txt?rev=HEAD&content-type=text/plain">README.txt</a> or 
 <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD&content-type=text/html">about.html</a> file in the spambayes CVS repository's Outlook2000 directory.
-</p>
-
-<h4>Availability</h4>
-<p>Mark has packaged together <a href="windows.html">an installer for the plugin</a>.
-Go to the <a href="windows.html">Windows page</a> for more.</p>
-<p>Alternatively, to run from source, <a href="download.html">download 1.0 release candidate 2.</a></p>
 <p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_filter">sb_filter.py</a></h3>
 <p>sb_filter is a command line tool for marking mail as ham or spam.  The readme
 <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">
-includes a guide to integrating it with your mailer</a> (Unix-only instructions at the moment - additions welcome!). 
+includes a guide to integrating it with your mailer</a> (Unix-only
+instructions at the moment - additions welcome!). 
 Currently it focuses on running sb_filter via procmail. </p>
 
 <h4>Requirements</h4>
@@ -43,7 +43,7 @@ Currently it focuses on running sb_filter via procmail. </p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
+<p><a href="download.html">Download the 1.0 source archive.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_server">sb_server.py</a></h3>
@@ -54,14 +54,15 @@ sb_server can also be used with the sb_upload.py script as a procmail (or simila
 <h4>Requirements</h4>
 <ul>
 <li>Python 2.2 or later (2.3 recommended)</li>
-<li>Should work on windows/unix/whatever... </li>
+<li>Should work on Windows/unix/whatever... </li>
 </ul>
 
 <h4>Availability</h4>
 <p>Windows users can now <a href="windows.html">download an installer</a>
 for a binary version of sb_server, including a tray application to access
 it.</p>
-<p>Alternatively, to run from source, <a href="download.html">download 1.0 release candidate 1.</a></p>
+<p>Alternatively, to run from source, <a href="download.html">download the
+1.0 source archive.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="imap">sb_imapfilter.py</a></h3>
@@ -76,7 +77,7 @@ See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spamb
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
+<p><a href="download.html">Download the 1.0 source archive.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="mboxtrain">sb_mboxtrain.py</a></h3>
@@ -92,7 +93,7 @@ seen previously.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
+<p><a href="download.html">Download the 1.0 source archive.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="notesfilter">sb_notesfilter.py</a></h3>
@@ -110,5 +111,5 @@ caution.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
+<p><a href="download.html">Download the 1.0 source archive.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
