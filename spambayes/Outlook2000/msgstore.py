@@ -325,6 +325,28 @@ class MAPIMsgStore(MsgStore):
         hr, data = mapi_object.GetProps(MAPIMsgStoreMsg.message_init_props,0)
         return MAPIMsgStoreMsg(self, data)
 
+    def YieldReceiveFolders(self, msg_class = "IPM.Note"):
+        # Get the main receive folder for each message store.
+        tab = self.session.GetMsgStoresTable(0)
+        rows = mapi.HrQueryAllRows(tab,
+                                    (PR_ENTRYID,),   # columns to retrieve
+                                    None,            # all rows
+                                    None,            # any sort order is fine
+                                    0)               # any # of results is fine
+        for row in rows:
+            # get first entry, a (property_tag, value) pair, for PR_ENTRYID
+            eid_tag, store_eid = row[0]
+            try:
+                store = self._GetMessageStore(store_eid)
+                folder_eid, ret_class = store.GetReceiveFolder(msg_class, 0)
+                hex_folder_eid = mapi.HexFromBin(folder_eid)
+                hex_store_eid = mapi.HexFromBin(store_eid)
+                yield self.GetFolder((hex_store_eid, hex_folder_eid))
+            except pythoncom.com_error, details:
+                if not IsNotAvailableCOMException(details):
+                    print "ERROR enumerating a receive folder -", details
+                # but we just continue
+
 _MapiTypeMap = {
     type(0.0): PT_DOUBLE,
     type(0): PT_I4,
@@ -395,6 +417,22 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
     def GetID(self):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
 
+    def GetFQName(self):
+        parts = []
+        parent = self
+        while parent is not None:
+            parts.insert(0, parent.name)
+            parent = parent.GetParent()
+        return "/".join(parts)
+
+    def _FolderFromMAPIFolder(self, mapifolder):
+        # Finally get the display name.
+        hr, data = mapifolder.GetProps((PR_ENTRYID, PR_DISPLAY_NAME_A,), 0)
+        eid = self.id[0], data[0][1]
+        name = data[1][1]
+        count = mapifolder.GetContentsTable(0).GetRowCount(0)
+        return MAPIMsgStoreFolder(self.msgstore, eid, name, count)
+
     def GetParent(self):
         # return a folder object with the parent, or None
         folder = self.msgstore._OpenEntry(self.id)
@@ -409,10 +447,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             return None
         parent = self.msgstore._OpenEntry(parent_id)
         # Finally get the display name.
-        hr, data = folder.GetProps((PR_DISPLAY_NAME_A,), 0)
-        name = data[0][1]
-        count = parent.GetContentsTable(0).GetRowCount(0)
-        return MAPIMsgStoreFolder(self.msgstore, parent_id, name, count)
+        return self._FolderFromMAPIFolder(parent)
 
     def OpenEntry(self, iid = None, flags = None):
         return self.msgstore._OpenEntry(self.id, iid, flags)
@@ -489,6 +524,14 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         mapi_store = self.msgstore._GetMessageStore(self.id[0])
         eid, ret_class = mapi_store.GetReceiveFolder(msg_class, 0)
         return mapi_store.CompareEntryIDs(eid, self.id[1])
+
+    def CreateFolder(self, name, comments = None, type = None, flags = None):
+        if type is None: type = mapi.FOLDER_GENERIC
+        if flags is None: flags = 0
+        folder = self.OpenEntry()
+        ret = folder.CreateFolder(type, name, comments, None, flags)
+        return self._FolderFromMAPIFolder(ret)
+
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
     # All the properties we must initialize a message with.
