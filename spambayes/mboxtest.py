@@ -7,7 +7,7 @@ Options:
     -f FMT
         One of unix, mmdf, mh, or qmail.  Specifies mailbox format for
         ham and spam files.  Default is unix.
-        
+
     -n NSETS
         Number of test sets to create for a single mailbox.  Default is 5.
 
@@ -18,16 +18,15 @@ Options:
         Read no more than MSGS messages from mailbox.
 """
 
-from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
-from classifier import GrahamBayes
-from Tester import Test
-from timtest import Driver, Msg
-
 import getopt
 import mailbox
 import random
 from sets import Set
 import sys
+
+from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
+from TestDriver import Driver
+from timtest import Msg
 
 mbox_fmts = {"unix": mailbox.PortableUnixMailbox,
              "mmdf": mailbox.MmdfMailbox,
@@ -128,7 +127,7 @@ def sort(seq):
 
 def main(args):
     global FMT
-    
+
     FMT = "unix"
     NSETS = 5
     SEED = 101
@@ -162,7 +161,7 @@ def main(args):
     for iham in randindices(nham, NSETS):
         for ispam in randindices(nspam, NSETS):
             testsets.append((sort(iham), sort(ispam)))
-            
+
     driver = Driver()
 
     for iham, ispam in testsets:
@@ -176,4 +175,3 @@ def main(args):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-

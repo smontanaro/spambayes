@@ -56,7 +56,7 @@ safe_headers: abuse-reports-to
 mine_received_headers: False
 
 [TestDriver]
-# These control various displays in class Driver (timtest.py).
+# These control various displays in class TestDriver.Driver.
 
 # Number of buckets in histograms.
 nbuckets: 40

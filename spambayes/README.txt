@@ -19,41 +19,58 @@ The code here depends in various ways on the latest Python from CVS
 (a.k.a. Python 2.3a0 :-).
 
 
-Primary Files
-=============
+Primary Core Files
+==================
 Options.py
-    A start at a flexible way to control what the tokenizer and
-    classifier do.  Different people are finding different ways in
-    which their test data is biased, and so fiddle the code to
-    worm around that.  It's become almost impossible to know
-    exactly what someone did when they report results.
+    Uses ConfigParser to allow fiddling various aspects of the classifier,
+    tokenizer, and test drivers.  Create a file named bayescustomize.ini to
+    alter the defaults; all options and their default values can be found
+    in the string "defaults" near the top of Options.py, which is really
+    an .ini file embedded in the module.  Modules wishing to control
+    aspects of their operation merely do
+
+        from Options import options
+
+    near the start, and consult attributes of options.
 
 classifier.py
     An implementation of a Graham-like classifier.
+
+tokenizer.py
+    An implementation of tokenize() that Tim can't seem to help but keep
+    working on <wink>.
 
 Tester.py
     A test-driver class that feeds streams of msgs to a classifier
     instance, and keeps track of right/wrong percentages, and lists
     of false positives and false negatives.
 
+TestDriver.py
+    A higher layer of test helpers, building on Tester above.  It's
+    quite usable as-is for building simple test drivers, and more
+    complicated ones up to NxN test grids.  It's in the process of being
+    extended to allow easy building of N-way cross validation drivers
+    (the trick to that is doing so efficiently).  See also rates.py
+    and cmp.py below.
+
+
+Apps
+====
 hammie.py
-    A spamassassin-like filter which uses tokenizer (below) and
-    classifier (above).  Needs to be made faster, especially for writes.
+    A spamassassin-like filter which uses tokenizer and classifier (above).
+    Needs to be made faster, especially for writes.
 
+
+Concrete Test Drivers
+=====================
 mboxtest.py
-    A concrete test driver like timtest.py (see below), but working
-    with a pair of mailbox files rather than the specialized timtest
-    setup.
-
-tokenizer.py
-    An implementation of tokenize() that Tim can't seem to help but keep
-    working on <wink>.
+    A concrete test driver like timtest.py, but working with a pair of
+    mailbox files rather than the specialized timtest setup.
 
 timtest.py
-    A concrete test driver that uses Tester and classifier (above).  This
-    assumes "a standard" test data setup (see below).  Could stand massive
-    refactoring.  You need to fiddle a line near the top to import a
-    tokenize() function of your choosing.
+    A concrete test driver like mboxtest.py, but working with "a
+    standard" test data setup (see below) rather than the specialized
+    mboxtest setup.
 
 
 Test Utilities
@@ -104,6 +121,12 @@ rebal.py
 
 Standard Test Data Setup
 ========================
+[Caution:  I'm going to switch this to support N-way cross validation,
+ instead of an NxN test grid.  The only effect on the directory structure
+ here is that you'll want more directories with fewer msgs in each
+ (splitting the data at random into 10 pairs should work very well).
+]
+
 Barry gave me mboxes, but the spam corpus I got off the web had one spam
 per file, and it only took two days of extreme pain to realize that one msg
 per file is enormously easier to work with when testing:  you want to split

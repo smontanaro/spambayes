@@ -1,21 +1,34 @@
 class Test:
     # Pass a classifier instance (an instance of GrahamBayes).
     # Loop:
-    #     Optional:
-    #         Train it, via train().
-    #     reset_test_results()
+    #     # Train the classifer with new ham and spam.
+    #     train(ham, spam) # this implies reset_test_results
     #     Loop:
-    #         invoke predict() with (probably new) examples
+    #         Optional:
+    #             # Possibly fiddle the classifier.
+    #             set_classifier()
+    #             # Forget smessages the classifier was trained on.
+    #             untrain(ham, spam) # this implies reset_test_results
+    #         Optional:
+    #             reset_test_results()
+    #         # Predict against (presumably new) examples.
+    #         predict(ham, spam)
     #         Optional:
     #             suck out the results, via instance vrbls and
     #             false_negative_rate(), false_positive_rate(),
     #             false_negatives(), and false_positives()
 
     def __init__(self, classifier):
+        self.set_classifier(classifier, 0, 0)
+        self.reset_test_results()
+
+    # Tell the tester which classifier to use, and how many ham and spam it's
+    # been trained on.
+    def set_classifier(self, classifier, nham, nspam):
         self.classifier = classifier
         # The number of ham and spam instances in the training data.
-        self.nham = self.nspam = 0
-        self.reset_test_results()
+        self.nham = nham
+        self.nspam = nspam
 
     def reset_test_results(self):
         # The number of ham and spam instances tested.
@@ -32,8 +45,9 @@ class Test:
         self.spam_wrong_examples = []   # False negatives:  spam called ham.
 
     # Train the classifier on streams of ham and spam.  Updates probabilities
-    # before returning.
+    # before returning, and resets test results.
     def train(self, hamstream=None, spamstream=None):
+        self.reset_test_results()
         learn = self.classifier.learn
         if hamstream is not None:
             for example in hamstream:
@@ -43,6 +57,21 @@ class Test:
             for example in spamstream:
                 learn(example, True, False)
                 self.nspam += 1
+        self.classifier.update_probabilities()
+
+    # Untrain the classifier on streams of ham and spam.  Updates
+    # probabilities before returning, and resets test results.
+    def untrain(self, hamstream=None, spamstream=None):
+        self.reset_test_results()
+        unlearn = self.classifier.unlearn
+        if hamstream is not None:
+            for example in hamstream:
+                unlearn(example, False, False)
+                self.nham -= 1
+        if spamstream is not None:
+            for example in spamstream:
+                unlearn(example, True, False)
+                self.nspam -= 1
         self.classifier.update_probabilities()
 
     # Run prediction on each sample in stream.  You're swearing that stream
@@ -112,7 +141,6 @@ _easy_test = """
 
     >>> t = Test(GrahamBayes())
     >>> t.train([good1, good2], [bad1])
-    >>> t.reset_test_results()
     >>> t.predict([_Example('goodham', ['a', 'b']),
     ...            _Example('badham', ['d'])
     ...           ], False)
