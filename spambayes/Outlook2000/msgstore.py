@@ -497,6 +497,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                           PR_PARENT_ENTRYID, # folder ID
                           PR_MESSAGE_CLASS_A, # 'IPM.Note' etc
                           PR_RECEIVED_BY_ENTRYID, # who received it
+                          PR_SUBJECT_A,
+                          PR_TRANSPORT_MESSAGE_HEADERS_A,
                           ) 
 
     def __init__(self, msgstore, prop_row):
@@ -510,11 +512,23 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         tag, parent_eid = prop_row[3]
         tag, msgclass = prop_row[4]
         recby_tag, recby = prop_row[5]
+        tag, subject = prop_row[6]
+        headers_tag, headers = prop_row[7]
 
         self.id = store_eid, eid
         self.folder_id = store_eid, parent_eid
         self.msgclass = msgclass
-        self.subject = None
+        self.subject = subject
+        if PROP_TYPE(headers_tag)==PT_STRING8:
+            self.headers = headers
+            has_headers = True
+        else:
+            # headers probably too big for simple property fetch - this is
+            # the case if we got back MAPI_E_NOT_ENOUGH_MEMORY
+            # (but don't bother fetching the header yet)
+            has_headers = PROP_TYPE(headers_tag)==PT_ERROR and \
+                          headers==mapi.MAPI_E_NOT_ENOUGH_MEMORY
+            self.headers = None
         # Search key is the only reliable thing after a move/copy operation
         # only problem is that it can potentially be changed - however, the
         # Outlook client provides no such (easy/obvious) way
@@ -529,10 +543,10 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # has a sensible value: RECEIVED_BY_EMAIL_ADDRESS, RECEIVED_BY_NAME,
         # RECEIVED_BY_ENTRYID PR_TRANSPORT_MESSAGE_HEADERS
         # But MarkH can't find it, and believes and tests that
-        # PR_RECEIVED_BY_ENTRYID is all we need.
-        # This also means we don't need to check the 'unsent' flag - unsent
-        # messages never have the PR_RECEIVED_ properties either.
-        self.was_received = PROP_TYPE(recby_tag) == PT_BINARY
+        # PR_RECEIVED_BY_ENTRYID is all we need (but has since discovered a
+        # couple of messages without any PR_RECEIVED_BY properties - but *with*
+        # PR_TRANSPORT_MESSAGE_HEADERS - *sigh*)
+        self.was_received = PROP_TYPE(recby_tag) == PT_BINARY or has_headers
         self.dirty = False
 
     def __repr__(self):
@@ -557,8 +571,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
 
     def GetSubject(self):
-        if self.subject is None:
-            self.subject = self.GetField(PR_SUBJECT_A,)
         return self.subject
 
     def GetOutlookItem(self):
@@ -588,15 +600,19 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         from spambayes import mboxutils
 
         self._EnsureObject()
-        prop_ids = (PR_TRANSPORT_MESSAGE_HEADERS_A,
-                    PR_BODY_A,
+        if self.headers is None: # they were too large when created!
+            prop_ids = (PR_TRANSPORT_MESSAGE_HEADERS_A,)
+            hr, data = self.mapi_object.GetProps(prop_ids,0)
+            self.headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
+        headers = self.headers
+
+        prop_ids = (PR_BODY_A,
                     MYPR_BODY_HTML_A,
                     PR_HASATTACH)
         hr, data = self.mapi_object.GetProps(prop_ids,0)
-        headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
-        body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
-        html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
-        has_attach = data[3][1]
+        body = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
+        html = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
+        has_attach = data[2][1]
 
         # Some Outlooks deliver a strange notion of headers, including
         # interior MIME armor.  To prevent later errors, try to get rid
