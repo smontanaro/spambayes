@@ -6,7 +6,8 @@
 <body>
 <h1>SpamBayes Outlook Plugin</h1>
 This plugin provides a spam filter based on statistical analysis of
-your personal mail. &nbsp;Unlike other spam detection systems, SpamBayes
+your personal mail. &nbsp;Unlike other spam detection systems,
+SpamBayes
 actually learns what you consider spam, and continually adapts as both
 your regular email and spam patterns change.&nbsp; There are no builtin
 rules, so anything you consider spam will be treated as spam by this
@@ -18,7 +19,8 @@ training.&nbsp; Once this has been completed, you will find the filter
 amazingly effective and making very few errors.<br>
 <br>
 Bear in mind that this is an early version, and there are plenty of
-things to improve, particularly related to the initial configuration and
+things to improve, particularly related to the initial configuration
+and
 training process.&nbsp; Please bear with us, and see the <a
  href="docs/troubleshooting.html">troubleshooting guide</a> should you
 have problems..&nbsp; This is free software, so your help is needed -
@@ -56,7 +58,8 @@ There are three ways in which the system can get things wrong:
   <li>A spam stays in your inbox.&nbsp; This is known as a <span
  style="font-style: italic;">false negative</span>.&nbsp; In this case
 you can either drag the message to the Spam folder or click on the <span
- style="font-style: italic;">Delete as Spam</span> button on the Outlook
+ style="font-style: italic;">Delete as Spam</span> button on the
+Outlook
 toolbar.&nbsp; In both cases, the message will be trained as spam and
 will be moved to the spam folder.</li>
   <li>Any message is moved to the unsure folder.&nbsp; In this case,
@@ -64,9 +67,12 @@ the system is simply unsure about the message, and moves it to the
 possible spam folder for human review.&nbsp; All unsure messages should
 be manually classified; good messages can either be dragged back to the
 inbox, or have the <span style="font-style: italic;">Recover from Spam</span>
-toolbar button clicked, while spam messages can either be dragged to the
-Spam folder or have the <span style="font-style: italic;">Delete as Spam</span>
-toobar button clicked.&nbsp; In all cases, the system will automatically
+toolbar button clicked, while spam messages can either be dragged to
+the
+Spam folder or have the <span style="font-style: italic;">Delete as
+Spam</span>
+toobar button clicked.&nbsp; In all cases, the system will
+automatically
 be trained appropriately.</li>
   <li>A wanted (ham) message is moved to the Spam folder. This is known
 as a <span style="font-style: italic;">false positive</span>.<span
@@ -96,11 +102,13 @@ Configuring the plugin requires the following steps:<br>
       <td style="vertical-align: top;">
       <ol>
         <li>Confirm the plugin is installed:<br>
-Start Outlook, and look at the standard Outlook toolbar.&nbsp; On the
-right-hand side, you should see an Anti-Spam dropdown button.&nbsp; If
-this button appears, then the plugin is correctly installed and ready to
-use.&nbsp; If the button does not appear, please see <a
- href="docs/troubleshooting.html">the troubleshooting guide</a>.</li>
+Start Outlook, select your Inbox, then look at your Outlook
+toolbar.&nbsp; Just below the standard Toolbar, you should see a new
+toolbar with an Anti-Spam
+dropdown button.&nbsp; If this button appears, then the plugin is
+correctly installed and ready to use.&nbsp; If the button does not
+appear, please see <a href="docs/troubleshooting.html">the
+troubleshooting guide</a>.</li>
         <li>Create <span style="font-style: italic;">Spam</span> and <span
  style="font-style: italic;">Usure</span> folders<br>
 Use the normal Outlook functions to create two new folders.&nbsp; These
@@ -169,28 +177,30 @@ Perform the following steps<br>
       <ul>
         <li>While looking at an Outlook table view (like Messages),
 right-click on the line with column headers (From, Subject, To,
-Received, ...).         In the context menu that pops up, click on Field
-Chooser. A box         with title <i>Field Chooser</i> pops up.</li>
+Received, ...). In the context menu that pops up, click on Field
+Chooser. A box with title <i>Field Chooser</i> pops up.</li>
         <li>In the drop-down list at the top of the <span
  style="font-style: italic;">Field Chooser</span> window, select <span
  style="font-style: italic;">User Defined Fields</span></li>
-        <li>Below the drop-down, you         should see a rectangular
-button with a <span style="font-style: italic;">Spam</span> label . This<span
- style="font-style: italic;"></span> should be automatically created for
+        <li>Below the drop-down, you should see a rectangular
+button with a <span style="font-style: italic;">Spam</span> label .
+This<span style="font-style: italic;"></span> should be automatically
+created for
 all folders managed by the system, but if it does not appear, you will
 need to add it yourself. &nbsp;To do this, perform the following steps</li>
         <ul>
-          <li>In the lower left corner of the <i>Field Chooser</i> box,
-click <i>New...</i>.  A box with title <i>New Field</i> pops up. </li>
+          <li>In the lower left corner of the <i>Field Chooser</i>
+box,
+click <i>New...</i>. A box with title <i>New Field</i> pops up. </li>
           <li>In the <i>Name:</i> box, type Spam. </li>
           <li>In the <i>Type:</i> dropdown list, select <i>Percent</i>.
-This is the         third choice in the dropdown list.         Do not
+This is the third choice in the dropdown list. Do not
 select any other format -- it won't work. </li>
           <li>The <i>Format:</i> select the first entry in the list -
 "Rounded".&nbsp; The Field Chooser should now look like the first image
 on the right.<br>
           </li>
-          <li>Click OK in the <i>New Field</i> box.  Now you're back in
+          <li>Click OK in the <i>New Field</i> box. Now you're back in
 the <i>Field Chooser</i> box, with a new <span
  style="font-style: italic;">Spam</span> button shown, as the second
 figure shows.<br>
@@ -198,10 +208,10 @@ figure shows.<br>
         </ul>
         <li>Use your mouse to drag the <span
  style="font-style: italic;">Spam</span> button to the column header
-position where you want to see the Spam column.  You don't have to be
+position where you want to see the Spam column. You don't have to be
 precise here -- you can rearrange or resize the column later just by
 dragging it around. </li>
-        <li>You're done!  Close the <i>Field Chooser</i> box.</li>
+        <li>You're done! Close the <i>Field Chooser</i> box.</li>
       </ul>
       </td>
       <td style="vertical-align: top;"><img
@@ -221,9 +231,9 @@ The Field Chooser after creating the field.<br>
 </ul>
 Outlook's standard Automatic Formatting features can also be taught how
 to access the value of this field; for example, you could tell Outlook
-to display rows with suspected spam messages in green italic.  However,
+to display rows with suspected spam messages in green italic. However,
 for whatever reason, the Outlook Rules Wizard does not allow creating
-rules based on user-defined fields.  That's why this addin supplies its
+rules based on user-defined fields. That's why this addin supplies its
 own filtering rules.<br>
 <h2><a name="Filtering"></a>Configuring the plugin for filtering</h2>
 Once the system is trained an configured, you are ready to enable the
@@ -234,10 +244,11 @@ also configure the folder where you want the certain spam and unsure
 messages to be moved to.<br>
 Once this is done, you simply enable filtering from the main dialog,
 and sit back and wait for spam!&nbsp; See <a href="#Using_the_plugin">using
-the plugin</a> for details further details.<br>
+the plugin</a> for further details.<br>
 <h2><a name="Your_help_is_needed"></a>Your help is needed!</h2>
 <p>This is free software.&nbsp; Please offer any help you are able
-to.&nbsp; In particular, contributions to this documentation are welcome!<br>
+to.&nbsp; In particular, contributions to this documentation are
+welcome!<br>
 <br>
 </p>
 </body>
