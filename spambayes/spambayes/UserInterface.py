@@ -895,116 +895,15 @@ class UserInterface(BaseUserInterface):
         self._writePreamble("Help")
         helppage = self.html.helppage.clone()
         if topic:
-            # Present help specific to a certain page.  We probably want to
-            # load this from a file, rather than fill up UserInterface.py,
-            # but for demonstration purposes, do this for now.
-            # (Note that this, of course, should be in ProxyUI, not here.)
-            if topic == "review":
-                helppage.helpheader = "Review Page Help"
-                helppage.helptext = """<p>When you first start using
-SpamBayes, all your mail will be classified as 'unsure' because SpamBayes
-doesn't have any preconceived ideas about what good or bad mail looks like.
-As soon as you start training the classification will improve, and by the
-time you've classified even 20 messages of each you'll be seeing quite
-reasonable results.</p>
-
-<p>SpamBayes saves a <strong>temporary copy</strong> of all incoming mail
-so that classification can be independant of whatever mail client you are
-using. You need to run through these messages and tell SpamBayes how to
-handle mail like that in the future. This page lists messages that have
-arrived in the last %s days and that have not yet been trained. For each
-message listed, you need to choose to either <strong>discard</strong>
-(don't train on this message), <strong>defer</strong> (leave training on
-this message until later), or train (as either good -
-<strong>ham</strong>), or bad - <strong>spam</strong>). You do this by
-simply clicking in the circle in the appropriate column; if you wish to
-change all the messages to the same action, you can simply click the column
-heading.</p>
-
-<p>You are presented with the subject and sender of each message, but, if
-this isn't enough information for you to make a decision on the message,
-you can also view the message text (this is the raw text, so you can't do
-any damage if the message contains a virus or any other malignant data).
-To do this, simply click on the subject of the message.</p>
-
-<p>Once you have chosen the actions you wish to perform on all the
-displayed messages, click the <em>Train</em> button at the end of the page.
-SpamBayes will then update its database to reflect this data.</p>
-
-<p>Note that the messages are split up into the classification that
-SpamBayes would place the message with current training data (if this is
-correct, you might choose to <em>Discard</em> the message, rather than
-train on it - see the <a href="http://entrian.com/sbwiki">SpamBayes wiki
-</a> for discussion of training techniques).  You can also see the
-<em>Tokens</em> that the message contains (the words in the message,
-plus some additional tokens that SpamBayes generates) and the <em>Clues
-</em> that SpamBayes used in classifying the message (not all tokens are
-used in classification).</p>
-
-<p>So that the page isn't overwhelmingly long, messages waiting for review
-are split by the day they arrived.  You can use the <em>Previous Day</em>
-or <em>Next Day</em> buttons at the top of the page to move between days.
-If mail arrives while the review page is open the new messages will
-<strong>not</strong> be automatically added to the displayed list; to add
-the new message, click the <em>Refresh</em> button at the top of the page.
-</p><hr />""" % (options["Storage", "cache_expiry_days"],)
-            elif topic == "stats":
-                # This does belong with UserInterface.py, but should
-                # still probably be loaded from a file or something to
-                # avoid all this clutter.  Someone come up with the
-                # best solution! (A pickle?  A single text file? A text
-                # file per help page in a directory?)
-                helppage.helpheader = "Statistics Page Help"
-                helppage.helptext = """<p>SpamBayes keeps track of certain
-information about the messages that are classified.  For your interest,
-this page displays statistics about the messages that have been classified
-and trained so far.</p>
-
-<p>Currently the page displays information about the
-number of messages that have been classified as good, bad and unsure, how
-many of these were false negatives or positives, and how many messages
-were classified as unsure (and what their correct classification was).</p>
-
-<p>Note that the data for this page resides in the &quot;message info&quot;
-database that SpamBayes uses, and so only reflects messages since the
-last time this database was created.</p><hr />"""
-            elif topic == "home_proxy":
-                # Also belongs with UserInterface.py, and probably
-                # not with the source!
-                helppage.helpheader = "Home Page Help"
-                helppage.helptext = """<p>This is the main page for the
-SpamBayes web interface.  You are presented with some information about
-the current status of SpamBayes, and can follow links to review messages
-or alter your configuration.</p>
-
-<p>If you have messages stored in a mbox or dbx (Outlook Express) file
-that you wish to 'bulk' train, or if you wish to train on a message
-that you type in, you can do this on this page.  Click the
-&quot;Browse&quot; button (or paste the text in, including headers),
-and then click the <em>Train as Ham</em> or <em>Train as Spam</em>
-button.</p>
-
-<p>Likewise, if you have a message that you wish to classify, you
-can do this.  Either paste the message into the text box, or click
-&quot;Browse&quot; and locate the text file that the message is
-located in.  Click <em>Classify</em>, and you will be taken to a
-page describing the classification of that message.</p>
-
-<p>If you want to find out information about a word in the statistics
-database that forms the heart of SpamBayes, you can use the &quot;Word
-Query&quot; facility.  Enter in the word that you wish to search for
-and click <em>Tell me about this word</em>.  If you enable the advanced
-find query, you can also search using wildcards or regular expressions.</p>
-
-<p>You can also search for a specific message in the cache of temporary
-copies of messages that have been proxied.  You might wish to do this if
-you realise that you have incorrectly trained a message and need to correct
-the training.  You can search the subject, headers, or message body, or
-for the SpamBayes ID (which is in the headers of messages that SpamBayes
-proxies).  Messages that are found will be presented in the standard
-review page.  Note that once messages expire from the cache (after %s
-days), you can no longer find them.</p>
-<hr />""" % (options["Storage", "cache_expiry_days"],)
+            # Present help specific to a certain page.
+            headerelem_name = "helpheader_" + topic
+            textelem_name = "helptext_" + topic
+            try:
+                helppage.helpheader = self.html[headerelem_name]._content
+                helppage.helptext = self.html[textelem_name]._content % \
+                    { "cache_expiry_days": options["Storage", "cache_expiry_days"] }
+            except KeyError:
+                pass
         self.write(helppage)
         self._writePostamble()
 

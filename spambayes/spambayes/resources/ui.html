@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title id="title">Spambayes User Interface</title>
+<title id="title">SpamBayes User Interface</title>
 <meta http-equiv="Cache" content="no-cache" />
 <meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT" />
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate, no-store" />
@@ -44,7 +44,7 @@ a:hover { color: #6040ff }
     <div class='banner'>
     <span id="helmet"><img src='helmet.gif' align='absmiddle'/>&nbsp;</span>
     <span class='header'>
-        <span id="productName">Spambayes Web Interface</span>:
+        <span id="productName">SpamBayes Web Interface</span>:
         <a id="homelink" href='home'>Home</a>
         <span id="pagename">&gt; ui.html</span>
     </span>
@@ -55,9 +55,9 @@ a:hover { color: #6040ff }
 <h4>Introduction</h4>
 
     <p>This file, <code>ui.html</code>, defines the look-and-feel
-    of the user interface of the Spambayes Server.  The various
+    of the user interface of the SpamBayes Server.  The various
     pieces of HTML defined here are extracted and manipulated at
-    runtime to dynamically produce the HTML that the Spambayes
+    runtime to dynamically produce the HTML that the SpamBayes
     Server serves up - this file acts as a palette of HTML
     components.  <code>PyMeldLite</code> is the module that provides
     the HTML-to-object mapping layer that makes all this possible.
@@ -116,14 +116,17 @@ a:hover { color: #6040ff }
 <div id="helppage">
     <table class='sectiontable' cellspacing='0'>
     <tr><td class='sectionheading' colspan='2' id="helpheader">SpamBayes Help</td></tr>
-    <tr><td valign='top' class='sectionbody' width='20'>
+    <tr><td valign='top' class='sectionbody' width='20' rowspan='3'>
             <img id='icon' src='help.gif' width='22' height='32'/>&nbsp;
         </td>
         <td id="helptext" class='sectionbody'>
         Sorry, there isn't any specific help available for that section.
-    </td></tr>
+        </td>
+    </tr>
     <tr>
-        <td valign='top' class='sectionbody' width='20'>&nbsp;</td>
+        <td class="sectionbody"><hr /></td>
+    </tr>
+    <tr>
         <td id="aboutbugreport" class='sectionbody'>
         If you believe you may have found a bug in SpamBayes, or are
         at a loss as to how you can proceed, you can ask the SpamBayes
@@ -141,7 +144,115 @@ a:hover { color: #6040ff }
         a help message</a> for you.  If you choose to email the list without
         using this, please ensure that you have all the pertinent information.
         (Otherwise your response is likely to be "please tell us ...").
-    </td></tr></table>
+        </td>
+    </tr></table>
+</div>
+
+<hr/>
+<p class="uiHtmlHeader">Context-sensitive help page text</p>
+
+<h5 id="helpheader_review">Review Page Help</h5>
+<div id="helptext_review">
+  <p>When you first start using
+  SpamBayes, all your mail will be classified as 'unsure' because SpamBayes
+  doesn't have any preconceived ideas about what good or bad mail looks like.
+  As soon as you start training the classification will improve, and by the
+  time you've classified even 20 messages of each you'll be seeing quite
+  reasonable results.</p>
+  
+  <p>SpamBayes saves a <strong>temporary copy</strong> of all incoming mail
+  so that classification can be independant of whatever mail client you are
+  using. You need to run through these messages and tell SpamBayes how to
+  handle mail like that in the future. This page lists messages that have
+  arrived in the last %(cache_expiry_days)s days and that have not yet been
+  trained. For each message listed, you need to choose to either
+  <strong>discard</strong> (don't train on this message),
+  <strong>defer</strong> (leave training on this message until later), or
+  train (as either good - <strong>ham</strong>, or bad -
+  <strong>spam</strong>). You do this by simply clicking in the circle in
+  the appropriate column; if you wish to change all the messages to the same
+  action, you can simply click the column heading.</p>
+  
+  <p>You are presented with the subject and sender of each message, but, if
+  this isn't enough information for you to make a decision on the message,
+  you can also view the message text (this is the raw text, so you can't do
+  any damage if the message contains a virus or any other malignant data).
+  To do this, simply click on the subject of the message.</p>
+  
+  <p>Once you have chosen the actions you wish to perform on all the
+  displayed messages, click the <em>Train</em> button at the end of the page.
+  SpamBayes will then update its database to reflect this data.</p>
+  
+  <p>Note that the messages are split up into the classification that
+  SpamBayes would place the message with current training data (if this is
+  correct, you might choose to <em>Discard</em> the message, rather than
+  train on it - see the <a href="http://entrian.com/sbwiki">SpamBayes wiki
+  </a> for discussion of training techniques).  You can also see the
+  <em>Tokens</em> that the message contains (the words in the message,
+  plus some additional tokens that SpamBayes generates) and the <em>Clues
+  </em> that SpamBayes used in classifying the message (not all tokens are
+  used in classification).</p>
+  
+  <p>So that the page isn't overwhelmingly long, messages waiting for review
+  are split by the day they arrived.  You can use the <em>Previous Day</em>
+  or <em>Next Day</em> buttons at the top of the page to move between days.
+  If mail arrives while the review page is open the new messages will
+  <strong>not</strong> be automatically added to the displayed list; to add
+  the new message, click the <em>Refresh</em> button at the top of the page.
+  </p>
+</div>
+
+<h5 id="helpheader_stats">Statistics Page Help</h5>
+<div id="helptext_stats">
+  <p>SpamBayes keeps track of certain
+  information about the messages that are classified.  For your interest,
+  this page displays statistics about the messages that have been classified
+  and trained so far.</p>
+  
+  <p>Currently the page displays information about the
+  number of messages that have been classified as good, bad and unsure, how
+  many of these were false negatives or positives, and how many messages
+  were classified as unsure (and what their correct classification was).</p>
+  
+  <p>Note that the data for this page resides in the &quot;message info&quot;
+  database that SpamBayes uses, and so only reflects messages since the
+  last time this database was created.</p>
+</div>
+
+<h5 id="helpheader_home_proxy">Home Page Help</h5>
+<div id="helptext_home_proxy">
+  <p>This is the main page for the
+  SpamBayes web interface.  You are presented with some information about
+  the current status of SpamBayes, and can follow links to review messages
+  or alter your configuration.</p>
+  
+  <p>If you have messages stored in a mbox or dbx (Outlook Express) file
+  that you wish to 'bulk' train, or if you wish to train on a message
+  that you type in, you can do this on this page.  Click the
+  &quot;Browse&quot; button (or paste the text in, including headers),
+  and then click the <em>Train as Ham</em> or <em>Train as Spam</em>
+  button.</p>
+  
+  <p>Likewise, if you have a message that you wish to classify, you
+  can do this.  Either paste the message into the text box, or click
+  &quot;Browse&quot; and locate the text file that the message is
+  located in.  Click <em>Classify</em>, and you will be taken to a
+  page describing the classification of that message.</p>
+  
+  <p>If you want to find out information about a word in the statistics
+  database that forms the heart of SpamBayes, you can use the &quot;Word
+  Query&quot; facility.  Enter in the word that you wish to search for
+  and click <em>Tell me about this word</em>.  If you enable the advanced
+  find query, you can also search using wildcards or regular expressions.</p>
+  
+  <p>You can also search for a specific message in the cache of temporary
+  copies of messages that have been proxied.  You might wish to do this if
+  you realise that you have incorrectly trained a message and need to correct
+  the training.  You can search the subject, headers, or message body, or
+  for the SpamBayes ID (which is in the headers of messages that SpamBayes
+  proxies).  Messages that are found will be presented in the standard
+  review page.  Note that once messages expire from the cache (after
+  %(cache_expiry_days)s days), you can no longer find them.</p>
 </div>
 
 <hr/>
@@ -208,7 +319,7 @@ a:hover { color: #6040ff }
     <td valign='top'>
         <img src='config.gif' width='40' height='40' align='left'/>
         <span id="configurationLink">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your Spambayes<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your SpamBayes<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;system using the
             <a href='config'>Configuration page</a>.
         </span></td>
@@ -224,7 +335,7 @@ a:hover { color: #6040ff }
 <p class="uiHtmlHeader">reviewText</p>
 
     <p id="reviewText">
-    The Spambayes proxy stores all the messages it sees.
+    The SpamBayes proxy stores all the messages it sees.
     You can train the classifier based on those messages
     using the <a href='review'>Review messages</a> page.
     </p>
@@ -317,7 +428,7 @@ a:hover { color: #6040ff }
             </td>
             <td id="linkedHeaderValue" class="viewlink">
                 <a id="text" href="view">
-                    Re: Spambayes and PyMeld rock!  8-)
+                    Re: SpamBayes and PyMeld rock!  8-)
                 </a>
             </td>
         </span>
@@ -501,7 +612,7 @@ a:hover { color: #6040ff }
     <form id="action_page" action="changeopts" method="POST">
 
     <p><span id="introduction">This page allows you to change the options that control how
-    Spambayes processes your email.</span>  Your options are stored in
+    SpamBayes processes your email.</span>  Your options are stored in
     <b><span id='optionsPathname'>/example/pathname</span></b>.</p>
 
     <span id="configFormContent">
@@ -596,7 +707,7 @@ a:hover { color: #6040ff }
 <tr>
     <td class='banner'>
         <span id="version">Version 0.00</span><br />
-        <a id='footerHome' href='home'>Spambayes Web Interface</a>,
+        <a id='footerHome' href='home'>SpamBayes Web Interface</a>,
         <span id="timestamp">Mon Dec 30 14:04:32 2002</span>.
         <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
     <td class='banner' style="align:top">
@@ -612,3 +723,4 @@ a:hover { color: #6040ff }
 
 </body>
 </html>
+
