@@ -161,6 +161,10 @@ carefully.  Good luck!
         but "FREE" is a much better clue than "free". Why do you
         force everything into lower case?</a>
       </li>
+      <li>
+	<a href="#bounce">Why don't you provide the ability to bounce spam
+	back to the sender?</a> 
+      </li>
     </ol>
   </li>
 </ol>
@@ -954,6 +958,18 @@ carefully.  Good luck!
         positive rate, and a small reduction in the false negative rate, so
         that's what we do. There is one exception: we keep case in subject
         lines, because testing showed an improvement if we did that.
+      </p>
+    </li>
+
+    <li>
+      <span class="faq-header"><a name="bounce">Why don't you provide the
+      ability to bounce spam back to the sender?</a></span>
+
+      <p>
+	Most spammers these days don&#39;t accept incoming email, or
+	(worse) forge the From and sender addresses, it&#39;s unlikely
+	that it would do any good, and may well do some innocent much
+	harm.
       </p>
     </li>
   </ol>
