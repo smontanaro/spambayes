@@ -1042,8 +1042,8 @@ class Tokenizer:
             # Remove HTML/XML tags.
             if (part.get_content_type() == "text/plain" or
                     not options.retain_pure_html_tags):
-                text = html_re.sub(' ', text)
                 text = stylesheet_re.sub(' ', text)
+                text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.
             for w in text.split():
