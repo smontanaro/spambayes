@@ -410,7 +410,7 @@ class BayesProxy(POP3ProxyBase):
                 match = re.search('^(\d+)\s+(\d+)', line)
                 if match:
                     number = int(match.group(1))
-                    size = int(match.group(2)) + len(HEADER_EXAMPLE)
+                    size = int(match.group(2)) + HEADER_SIZE_FUDGE_FACTOR
                     line = "%d %d" % (number, size)
                 outputLines.append(line)
             return '\r\n'.join(outputLines)
@@ -418,7 +418,7 @@ class BayesProxy(POP3ProxyBase):
             # Single line.
             match = re.search('^\+OK\s+(\d+)(.*)\r\n', response)
             if match:
-                size = int(match.group(1)) + len(HEADER_EXAMPLE)
+                size = int(match.group(1)) + HEADER_SIZE_FUDGE_FACTOR
                 return "+OK %d%s\r\n" % (size, match.group(2))
             else:
                 return response
