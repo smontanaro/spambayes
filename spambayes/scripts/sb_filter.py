@@ -52,6 +52,12 @@ import sys
 import getopt
 from spambayes import hammie, Options, mboxutils
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
 # See Options.py for explanations of these properties
 program = sys.argv[0]
 
@@ -147,6 +153,7 @@ def main():
     actions = []
     opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGS',
                                ['help', 'examples'])
+    create_newdb = False
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
@@ -171,8 +178,11 @@ def main():
         elif opt == '-S':
             actions.append(h.untrain_spam)
         elif opt == "-n":
-            h.newdb()
-            sys.exit(0)
+            create_newdb = True
+
+    if create_newdb:
+        h.newdb()
+        sys.exit(0)
 
     if actions == []:
         actions = [h.filter]
