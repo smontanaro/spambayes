@@ -30,7 +30,7 @@ Tester.py
     of false positives and false negatives.
 
 hammie.py
-    A spamassassin-like filter which uses timtoken (below) and
+    A spamassassin-like filter which uses tokenizer (below) and
     classifier (above).  Needs to be made faster, especially for writes.
 
 mboxtest.py
@@ -47,10 +47,6 @@ timtest.py
     assumes "a standard" test data setup (see below).  Could stand massive
     refactoring.  You need to fiddle a line near the top to import a
     tokenize() function of your choosing.
-
-unheader.py
-    A script to remove unwanted headers from an mbox file.  This is mostly
-    useful to delete headers which incorrectly might bias the results.
 
 GBayes.py
     A number of tokenizers and a partial test driver.  This assumes
@@ -72,13 +68,13 @@ cmp.py
 
 Test Data Utilities
 ===================
-rebal.py
-    Evens out the number of messages in "standard" test data folders (see
-    below).
-
 cleanarch
     A script to repair mbox archives by finding "From" lines that
     should have been escaped, and escaping them.
+
+unheader.py
+    A script to remove unwanted headers from an mbox file.  This is mostly
+    useful to delete headers which incorrectly might bias the results.
 
 mboxcount.py
     Count the number of messages (both parseable and unparseable) in
@@ -88,6 +84,10 @@ split.py
 splitn.py
     Split an mbox into random pieces in various ways.  Tim recommends
     using "the standard" test data set up instead (see below).
+
+rebal.py
+    Evens out the number of messages in "standard" test data folders (see
+    below).
 
 
 Standard Test Data Setup
