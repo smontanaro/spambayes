@@ -26,6 +26,14 @@ or even most cases.</p>
 <p>There's a bunch of documentation on things that have already been tried
 available as links from the <a href="docs.html">documentation</a> page.
 
+<h3>So what needs to be done</h3>
+<p>Currently (early November) work is now being focussed on finding 
+additional things that are beneficial to the tokenizer. The combining
+scheme is now pretty solid and pretty amazing. The other big body of
+work at the moment is producing something that's useful to end-users -
+actually building the applications and the code so that Tim's sister
+&lt;wink&gt; can use the system.</p>
+
 <h2>Collecting training data</h2>
 <p>One of the tricky problems is collecting a set of data that's 
 "good enough". There's a few collections of spam out on the net - note
