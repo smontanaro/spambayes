@@ -43,15 +43,14 @@ class IterOOBTree(OOBTree):
 
 class WordInfo(Persistent):
 
-    def __init__(self, atime, spamprob=options.unknown_word_prob):
-        self.atime = atime
-        self.spamcount = self.hamcount = self.killcount = 0
-        self.spamprob = spamprob
+    def __init__(self):
+        self.spamcount = self.hamcount = 0
 
     def __repr__(self):
-        return "WordInfo%r" % repr((self.atime, self.spamcount,
-                                    self.hamcount, self.killcount,
-                                    self.spamprob))
+        return "WordInfo(%r, %r)" % (self.spamcount, self.hamcount)
+
+class PMetaInfo(classifier.MetaInfo, Persistent):
+    pass
 
 class PBayes(classifier.Bayes, Persistent):
 
@@ -60,6 +59,7 @@ class PBayes(classifier.Bayes, Persistent):
     def __init__(self):
         classifier.Bayes.__init__(self)
         self.wordinfo = IterOOBTree()
+        self.meta = PMetaInfo()
 
     # XXX what about the getstate and setstate defined in base class
 
@@ -87,8 +87,8 @@ class Profile(Persistent):
         """Update classifier from current folder contents."""
         changed1 = self._update(self.hams, False)
         changed2 = self._update(self.spams, True)
-        if changed1 or changed2:
-            self.classifier.update_probabilities()
+##        if changed1 or changed2:
+##            self.classifier.update_probabilities()
         get_transaction().commit()
         log("updated probabilities")
 
@@ -110,12 +110,12 @@ class Profile(Persistent):
             # after update_probabilities is called in update().
             # Otherwise some new entries will cause scoring to fail.
             for msg in added.keys():
-                self.classifier.learn(tokenize(msg), is_spam, False)
+                self.classifier.learn(tokenize(msg), is_spam)
             del added
             get_transaction().commit(1)
             log("learned")
             for msg in removed.keys():
-                self.classifier.unlearn(tokenize(msg), is_spam, False)
+                self.classifier.unlearn(tokenize(msg), is_spam)
             if removed:
                 log("unlearned")
             del removed
