@@ -1071,7 +1071,7 @@ class UserInterface(Dibbler.HTTPPlugin):
         state.buildServerStrings()
         state.createWorkers()
 
-        # Close the exsiting listeners and create new ones.  This won't
+        # Close the existing listeners and create new ones.  This won't
         # affect any running proxies - once a listener has created a proxy,
         # that proxy is then independent of it.
         for proxy in proxyListeners:
