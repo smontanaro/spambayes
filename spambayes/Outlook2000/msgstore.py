@@ -208,7 +208,7 @@ class MAPIMsgStore(MsgStore):
         # Return a single message given either the ID, or an Outlook
         # message representing the object.
         if hasattr(message_id, "EntryID"):
-            # A CDO object
+            # An Outlook object
             message_id = mapi.BinFromHex(message_id.Parent.StoreID), \
                          mapi.BinFromHex(message_id.EntryID)
         else:
