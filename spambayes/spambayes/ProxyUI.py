@@ -224,6 +224,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
         and likewise the start of the next page."""
         # Fetch all the message keys
         allKeys = state.unknownCorpus.keys()
+        # We have to sort here to split into days.
+        # Later on, we also sort the messages that will be on the page
+        # (by whatever column we wish).
+        allKeys.sort()
 
         # The default start timestamp is derived from the most recent message,
         # or the system time if there are no messages (not that it gets used).
