@@ -466,15 +466,23 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             msg = corp[k]
                             msg.load()
                             if params.has_key('subject'):
-                                if self._contains(msg['Subject'], key, ic):
+                                subj = str(msg['Subject'])
+                                if self._contains(subj, key, ic):
                                     push((k, corp))
                             if params.has_key('body'):
+                                # For [ 906581 ] Assertion failed in search
+                                # subject.  Can the headers be a non-string?
                                 msg_body = msg.as_string()
                                 msg_body = msg_body[msg_body.index('\r\n\r\n'):]
                                 if self._contains(msg_body, key, ic):
                                     push((k, corp))
                             if params.has_key('headers'):
                                 for nm, val in msg.items():
+                                    # For [ 906581 ] Assertion failed in
+                                    # search subject.  Can the headers be
+                                    # a non-string?
+                                    nm = str(nm)
+                                    val = str(val)
                                     if self._contains(nm, key, ic) or \
                                        self._contains(val, key, ic):
                                         push((k, corp))
