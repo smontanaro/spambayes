@@ -196,15 +196,32 @@ def ProcessMessage(msgstore_message, manager):
         # If enabled, re-train as Ham
         # otherwise just ignore.
         if manager.config.training.train_recovered_spam:
-            subject = msgstore_message.GetSubject()
             import train
-            print "Training on message '%s' - " % subject,
-            if train.train_message(msgstore_message, False, manager, rescore = True):
-                print "trained as good"
+            if train.been_trained_as_spam(msgstore_message, manager):
+                need_train = True
             else:
-                print "already was trained as good"
-            assert train.been_trained_as_ham(msgstore_message, manager)
-            manager.SaveBayesPostIncrementalTrain()
+                prop = msgstore_message.GetField(manager.config.general.field_score_name)
+                # We may not have been able to save the score - re-score now
+                if prop is None:
+                    prop = manager.score(msgstore_message)
+                # If it was not previously classified as either 'Spam' or
+                # 'Unsure', then this event is unlikely to be the user
+                # re-classifying (and in fact it may simply be the Outlook
+                # rules moving the item.
+                need_train = manager.config.filter.unsure_threshold < prop * 100
+
+            subject = msgstore_message.subject
+            if need_train:
+                print "Training on message '%s' - " % subject,
+                if train.train_message(msgstore_message, False, manager, rescore = True):
+                    print "trained as good"
+                else:
+                    print "already was trained as good"
+                assert train.been_trained_as_ham(msgstore_message, manager)
+                manager.SaveBayesPostIncrementalTrain()
+            else:
+                manager.LogDebug(1, "Message '%s' was previously been seen, but " \
+                                 "did not need to be trained as ham" % subject)
         return
     if manager.config.filter.enabled:
         import filter
@@ -547,7 +564,7 @@ def Tester(manager):
     except:
         traceback.print_exc()
         print "Tests FAILED.  Sorry about that.  If I were you, I would do a full re-train ASAP"
-        print "Please delete any test messages from your Spam, Unsure or Inbox folders first."
+        print "Please delete any test messages from your Spam, Unsure or Inbox/Watch folders first."
 
 # The "Delete As Spam" and "Recover Spam" button
 # The event from Outlook's explorer that our folder has changed.
