@@ -142,7 +142,7 @@ def main():
     spam = []
     unknown = []
     reverse = 0
-    untrain = 0
+    untrain_mode = 0
     do_filter = False
     usedb = None
     mode = 'r'
@@ -166,7 +166,7 @@ def main():
         elif opt == '-u':
             unknown.append(arg)
         elif opt == '-U':
-            untrain = 1
+            untrain_mode = 1
         elif opt == '-r':
             reverse = 1
     if args:
@@ -179,7 +179,7 @@ def main():
 
     h = hammie.open(pck, usedb, mode)
 
-    if not untrain:
+    if not untrain_mode:
         for g in good:
             print "Training ham (%s):" % g
             train(h, g, False)
