@@ -314,9 +314,12 @@ class RCParser:
                 control.label = self.token
                 self.getCommaToken()
                 self.getToken()
+            # msvc seems to occasionally replace "IDC_STATIC" with -1
             if self.token=='-':
-                raise RuntimeError, \
-                      "Negative literal in rc script - don't know what to do"
+                if self.getToken() != '1':
+                    raise RuntimeError, \
+                          "Negative literal in rc script (other than -1) - don't know what to do"
+                self.token = "IDC_STATIC"
             control.id = self.token
             control.idNum = self.addId(control.id)
             self.getCommaToken()
