@@ -455,6 +455,7 @@ class SMTPTrainer(object):
             targetCorpus = self.state.hamCorpus
         targetCorpus.takeMessage(id, sourceCorpus)
         self.classifier.store()
+        return True
 
     def train_message_on_imap_server(self, id, isSpam):
         if self.imap is None:
@@ -472,6 +473,8 @@ class SMTPTrainer(object):
             msg.delSBHeaders()
             self.classifier.learn(msg.asTokens(), isSpam)
             msg.RememberTrained(isSpam)
+        self.classifier.store()
+        return True
 
 def LoadServerInfo():
     # Load the proxy settings
