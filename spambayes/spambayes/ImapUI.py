@@ -199,7 +199,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
                     port = 993
                 else:
                     port = 143
-            imap = self.imap_session_class(server, port)
+            self.imap = self.imap_session_class(server, port)
         if self.imap is None:
             content = self._buildBox("Error", None,
                                      """Must specify server details first.""")
