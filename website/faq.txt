@@ -921,6 +921,30 @@ not keep using it - this will cause errors.  You need to either retrain
 from scratch, or use the dbExpImp script to convert it to a pickle.
 
 
+How can I access the web interface from a different machine than the one it is running on?
+------------------------------------------------------------------------------------------
+
+By default, the web interface rejects browser access unless the browser is
+running on the same machine as the interface - if it was open to anyone,
+then people who came across your machine would be able to change your
+settings and possibly read your mail.  In some cases, however, you might
+want to open access up - if you use more than one machine to process mail,
+for example.
+
+In releases up to and including 1.0a4, you need to edit the
+bayescustomize.ini script (the configuration page on the website tells you
+where this is located).  In the ``[html_ui]`` section (create one if there
+isn't one already), add the line: ``allow_remote_connections:True``.  If
+you can, you might want to firewall outside access to port 8880, to stop
+unauthorised users from messing with the web interface.
+
+In versions after 1.0a4, you can specify IP addresses or ranges that you
+want to be allowed access (two or three machines, for example).  You can
+also do this via the web configuration, without having to alter the
+configuration file manually.  The option you are after is called
+``Allowed remote connections``.
+
+
 Known Problems & Workarounds
 ============================
 
