@@ -821,7 +821,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # reset the dirty flag.  Only current caller is filter.py
         # There are also some issues with the "unread flag" that fiddling this
         # save code may fix.
-        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
+        # It seems that *not* specifying mapi.MAPI_DEFERRED_ERRORS solves alot
+        # of said problems though!  So we don't!
+        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE)
         self.dirty = False
 
     def _DoCopyMove(self, folder, isMove):
