@@ -560,15 +560,6 @@ class ButtonDeleteAsEventBase:
         self.manager = self.explorer = None
 
 class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
-    def Init(self, manager, explorer):
-        ButtonDeleteAsEventBase.Init(self, manager, explorer)
-        image = "delete_as_spam.bmp"
-        self.Caption = "Delete As Spam"
-        self.TooltipText = \
-                        "Move the selected message to the Spam folder,\n" \
-                        "and train the system that this is Spam."
-        SetButtonImage(self, image, manager)
-
     def OnClick(self, button, cancel):
         msgstore = self.manager.message_store
         msgstore_messages = self.explorer.GetSelectedMessages(True)
@@ -622,17 +613,6 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         win32ui.DoWaitCursor(0)
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
-    def Init(self, manager, explorer):
-        ButtonDeleteAsEventBase.Init(self, manager, explorer)
-        image = "recover_ham.bmp"
-        self.Caption = "Recover from Spam"
-        self.TooltipText = \
-                "Recovers the selected item back to the folder\n" \
-                "it was filtered from (or to the Inbox if this\n" \
-                "folder is not known), and trains the system that\n" \
-                "this is a good message\n"
-        SetButtonImage(self, image, manager)
-
     def OnClick(self, button, cancel):
         msgstore = self.manager.message_store
         msgstore_messages = self.explorer.GetSelectedMessages(True)
@@ -723,19 +703,33 @@ class ExplorerWithEvents:
         manager = self.manager
         activeExplorer = self
         assert self.toolbar is None, "Should not yet have a toolbar"
-        # Add our "Delete as ..." and "Recover as" buttons
+
+        # Add our "Delete as ..." and "Recover from" buttons
+        tt_text = "Move the selected message to the Spam folder,\n" \
+                  "and train the system that this is Spam."
         self.but_delete_as = self._AddControl(
                         None,
                         constants.msoControlButton,
                         ButtonDeleteAsSpamEvent, (self.manager, self),
+                        Caption="Delete As Spam",
+                        TooltipText = tt_text,
                         BeginGroup = False,
-                        Tag = "SpamBayesCommand.DeleteAsSpam")
-        # And again for "Recover as"
+                        Tag = "SpamBayesCommand.DeleteAsSpam",
+                        image = "delete_as_spam.bmp")
+        # And again for "Recover from"
+        tt_text = \
+                "Recovers the selected item back to the folder\n" \
+                "it was filtered from (or to the Inbox if this\n" \
+                "folder is not known), and trains the system that\n" \
+                "this is a good message\n"
         self.but_recover_as = self._AddControl(
                         None,
                         constants.msoControlButton,
                         ButtonRecoverFromSpamEvent, (self.manager, self),
-                        Tag = "SpamBayesCommand.RecoverFromSpam")
+                        Caption="Recover from Spam",
+                        TooltipText = tt_text,
+                        Tag = "SpamBayesCommand.RecoverFromSpam",
+                        image = "recover_ham.bmp")
 
         # The main tool-bar dropdown with all our entries.
         # Add a pop-up menu to the toolbar
@@ -806,6 +800,11 @@ class ExplorerWithEvents:
         # locate our toolbar, creating if necessary.  Our items get added to
         # that.
         assert item_attrs.has_key('Tag'), "Need a 'Tag' attribute!"
+        image_fname = None
+        if 'image' in item_attrs:
+            image_fname = item_attrs['image']
+            del item_attrs['image']
+
         tag = item_attrs["Tag"]
         item = self.CommandBars.FindControl(
                         Type = control_type,
@@ -851,6 +850,15 @@ class ExplorerWithEvents:
                 # eg, bug [ 755738 ] Latest CVS outllok doesn't work
                 print "FAILED to add the toolbar item '%s' - %s" % (tag,e)
                 return
+            if image_fname:
+                # Eeek - only available in derived class.
+                assert control_type == constants.msoControlButton
+                but = CastTo(item, "_CommandBarButton")
+                SetButtonImage(but, image_fname, self.manager)
+            # Set the extra attributes passed in.
+            for attr, val in item_attrs.items():
+                setattr(item, attr, val)
+
         # Hook events for the item, but only if we haven't already in some
         # other explorer instance.
         if events_class is not None and tag not in self.explorers_collection.button_event_map:
@@ -859,9 +867,6 @@ class ExplorerWithEvents:
             # We must remember the item itself, else the events get disconnected
             # as the item destructs.
             self.explorers_collection.button_event_map[tag] = item
-        # Set the extra attributes passed in.
-        for attr, val in item_attrs.items():
-            setattr(item, attr, val)
         return item
 
     def GetSelectedMessages(self, allow_multi = True, explorer = None):
