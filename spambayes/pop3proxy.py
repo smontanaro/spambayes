@@ -584,15 +584,18 @@ class State:
             self.spamCorpus = ExpiryFileCorpus(age, factory,
                                                options["pop3proxy",
                                                        "spam_cache"],
-                                               '[0123456789]*', cacheSize=20)
+                                               '[0123456789\-]*',
+                                               cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory,
                                               options["pop3proxy",
                                                       "ham_cache"],
-                                              '[0123456789]*', cacheSize=20)
+                                              '[0123456789\-]*',
+                                              cacheSize=20)
             self.unknownCorpus = ExpiryFileCorpus(age, factory,
                                             options["pop3proxy",
                                                     "unknown_cache"],
-                                            '[0123456789]*', cacheSize=20)
+                                            '[0123456789\-]*',
+                                                  cacheSize=20)
 
             # Given that (hopefully) users will get to the stage
             # where they do not need to do any more regular training to
