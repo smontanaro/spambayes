@@ -640,8 +640,30 @@ html_re = re.compile(r"""
     >
 """, re.VERBOSE | re.DOTALL)
 
-received_host_re = re.compile(r'from (\S+)\s')
-received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
+# Trailing letter serves to reject "hostnames" which are really ip
+# addresses.  Some spammers forge their apparent ip addresses, so you get
+# Received: headers which look like:
+#   Received: from 199.249.165.175 ([218.5.93.116])
+#       by manatee.mojam.com (8.12.1-20030917/8.12.1) with SMTP id
+#       hBIERsqI018090
+#       for <itinerary@musi-cal.com>; Thu, 18 Dec 2003 08:28:11 -0600
+# "199.249.165.175" is who the spamhaus said it was.  That's really the
+# ip address of the receiving host (manatee.mojam.com), which correctly
+# identified the sender's ip address as 218.5.93.116.
+#
+# Similarly, the more complex character set instead of just \S serves to
+# reject Received: headers where the message bounces from one user to
+# another on the local machine:
+#   Received: (from itin@localhost)
+#       by manatee.mojam.com (8.12.1-20030917/8.12.1/Submit) id hBIEQFxF018044
+#       for skip@manatee.mojam.com; Thu, 18 Dec 2003 08:26:15 -0600
+received_host_re = re.compile(r'from ([a-zA-Z0-9._-]+[a-zA-Z])[)\s]')
+# 99% of the time, the receiving host places the sender's ip address in
+# square brackets as it should, but every once in awhile it turns up in
+# parens.  Yahoo seems to be guilty of this minor infraction:
+#   Received: from unknown (66.218.66.218)
+#       by m19.grp.scd.yahoo.com with QMQP; 19 Dec 2003 04:06:53 -0000
+received_ip_re = re.compile(r'[[(]((\d{1,3}\.?){4})[])]')
 
 message_id_re = re.compile(r'\s*<[^@]+@([^>]+)>\s*')
 
