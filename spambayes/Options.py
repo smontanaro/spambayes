@@ -138,10 +138,6 @@ max_spamprob: 0.99
 unknown_spamprob: 0.5
 
 max_discriminators: 16
-
-# Speculative change to allow giving probabilities more weight the more
-# messages went into computing them.
-adjust_probs_by_evidence_mass: False
 """
 
 int_cracker = ('getint', None)

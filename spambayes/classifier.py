@@ -546,7 +546,6 @@ class GrahamBayes(object):
 
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
-        fiddle = options.adjust_probs_by_evidence_mass
         for word,record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
             hamcount = min(HAMBIAS * record.hamcount, nham)
@@ -559,23 +558,6 @@ class GrahamBayes(object):
                 prob = MIN_SPAMPROB
             elif prob > MAX_SPAMPROB:
                 prob = MAX_SPAMPROB
-
-            if fiddle:
-                # Suppose two clues have spamprob 0.99.  Which one is better?
-                # One reasonable guess is that it's the one derived from the
-                # most data.  This code fiddles non-0.5 probabilities by
-                # shrinking their distance to 0.5, but shrinking less the
-                # more evidence went into computing them.  Note that if this
-                # proves to work, it should allow getting rid of the
-                # "cancelling evidence" complications in spamprob()
-                # (two probs exactly the same distance from 0.5 are far
-                # less common after this transformation; instead, spamprob()
-                # will pick up on the clues with the most evidence backing
-                # them up).
-                dist = prob - 0.5
-                sum = hamcount + spamcount
-                dist *= sum / (sum + 0.1)
-                prob = 0.5 + dist
 
             if record.spamprob != prob:
                 record.spamprob = prob
