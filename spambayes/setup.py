@@ -37,8 +37,10 @@ setup(
            'hammiesrv.py',
            'hammiefilter.py',
            'pop3proxy.py',
+           'smtpproxy.py',
            'proxytee.py',
            'dbExpImp.py',
+           'mboxtrain.py',
           ],
         packages = [
            'spambayes',
