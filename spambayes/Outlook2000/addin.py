@@ -612,7 +612,7 @@ def Tester(manager):
         print "Tests FAILED.  Sorry about that.  If I were you, I would do a full re-train ASAP"
         print "Please delete any test messages from your Spam, Unsure or Inbox/Watch folders first."
 
-# The "Delete As Spam" and "Recover Spam" button
+# The "Spam" and "Not Spam" buttons
 # The event from Outlook's explorer that our folder has changed.
 class ButtonDeleteAsEventBase:
     def Init(self, manager, explorer):
@@ -635,7 +635,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
                 "You must configure and enable SpamBayes before you can " \
-                "delete as spam")
+                "mark messages as spam")
             return
         SetWaitCursor(1)
         # Delete this item as spam.
@@ -694,7 +694,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
                 "You must configure and enable SpamBayes before you can " \
-                "recover spam")
+                "mark messages as not spam")
             return
         SetWaitCursor(1)
         # Get the inbox as the default place to restore to
@@ -741,7 +741,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                 msgstore_message.MoveToReportingError(self.manager, restore_folder)
             except msgstore.NotFoundException:
                 # Message moved under us - ignore.
-                self.manager.LogDebug(1, "Recover from spam had message moved from underneath us - ignored")
+                self.manager.LogDebug(1, "'Not Spam' had message moved from underneath us - ignored")
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
@@ -791,19 +791,19 @@ class ExplorerWithEvents:
         manager = self.manager
         assert self.toolbar is None, "Should not yet have a toolbar"
 
-        # Add our "Delete as ..." and "Recover from" buttons
+        # Add our "Spam" and "Not Spam" buttons
         tt_text = "Move the selected message to the Spam folder,\n" \
                   "and train the system that this is Spam."
         self.but_delete_as = self._AddControl(
                         None,
                         constants.msoControlButton,
                         ButtonDeleteAsSpamEvent, (self.manager, self),
-                        Caption="Delete As Spam",
+                        Caption="Spam",
                         TooltipText = tt_text,
                         BeginGroup = False,
                         Tag = "SpamBayesCommand.DeleteAsSpam",
                         image = "delete_as_spam.bmp")
-        # And again for "Recover from"
+        # And again for "Not Spam"
         tt_text = \
                 "Recovers the selected item back to the folder\n" \
                 "it was filtered from (or to the Inbox if this\n" \
@@ -813,7 +813,7 @@ class ExplorerWithEvents:
                         None,
                         constants.msoControlButton,
                         ButtonRecoverFromSpamEvent, (self.manager, self),
-                        Caption="Recover from Spam",
+                        Caption="Not Spam",
                         TooltipText = tt_text,
                         Tag = "SpamBayesCommand.RecoverFromSpam",
                         image = "recover_ham.bmp")

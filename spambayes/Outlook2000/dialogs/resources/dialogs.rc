@@ -183,7 +183,7 @@ BEGIN
     LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes is now configured and ready to start learning about your Spam",
                     IDC_STATIC,20,22,247,16
-    LTEXT           "As SpamBayes has not been trained, all new mail will arrive in your Unsure folder.  As each message arrives, you should use the 'Delete as Spam' or 'Recover from Spam' toolbar buttons as appropriate.",
+    LTEXT           "As SpamBayes has not been trained, all new mail will arrive in your Unsure folder.  As each message arrives, you should use the 'Spam' or 'Not Spam' toolbar buttons as appropriate.",
                     IDC_STATIC,20,42,247,27
     LTEXT           "If you wish to speed up the training process, you can move all the existing Spam from your Inbox to the new Spam folder, then select 'Training' from the SpamBayes manager.",
                     IDC_STATIC,20,83,247,31
@@ -288,7 +288,7 @@ BEGIN
     LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes has been successfully trained and configured.  You should find the system is immediately effective at filtering spam.",
                     IDC_TRAINING_STATUS,20,35,247,26
-    LTEXT           "Even though SpamBayes has been trained, it does continue to learn - please ensure you regularly check your Unsure folder, and use the 'Delete as Spam' or 'Recover from Spam' buttons as appropriate.",
+    LTEXT           "Even though SpamBayes has been trained, it does continue to learn - please ensure you regularly check your Unsure folder, and use the 'Spam' or 'Not Spam' buttons as appropriate.",
                     IDC_STATIC,20,68,249,30
     LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,104,
                     148,9
@@ -304,7 +304,7 @@ BEGIN
     PUSHBUTTON      "About Training...",IDC_BUT_ABOUT,209,140,65,15
     LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no built-in rules, so must have some training information before it will be effective.",
                     IDC_STATIC,11,21,263,30
-    LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Delete as Spam' and 'Recover from Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
+    LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Spam' and 'Not Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
                     IDC_STATIC,22,61,252,29
     LTEXT           "This option will close the wizard, and provide instructions how to sort your mail.  You will then be able to configure SpamBayes and have it be immediately effective at filtering your mail",
                     IDC_STATIC,22,106,252,27
@@ -538,14 +538,14 @@ BEGIN
     CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox.",
                     IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,127,204,18
-    LTEXT           "Clicking Recover From Spam should",IDC_STATIC,10,148,
+    LTEXT           "Clicking 'Not Spam' should",IDC_STATIC,10,148,
                     115,10
     COMBOBOX        IDC_RECOVER_RS,127,145,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Train that a message is spam when it is moved to the spam folder.",
                     IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,163,204,16
-    LTEXT           "Clicking Delete as Spam should",IDC_STATIC,10,183,104,
+    LTEXT           "Clicking 'Spam' should",IDC_STATIC,10,183,104,
                     10
     COMBOBOX        IDC_DEL_SPAM_RS,127,180,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP

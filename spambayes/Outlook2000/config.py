@@ -96,11 +96,11 @@ defaults = {
         """""",
         PATH, DO_NOT_RESTORE),
     ("delete_as_spam_message_state", "How the 'read' flag on a message is modified", "None",
-        """When the 'Delete as Spam' function is used, the message 'read' flag can
+        """When the 'Spam' function is used, the message 'read' flag can
            also be set.""",
            MSG_READ_STATE, RESTORE),
     ("recover_from_spam_message_state", "How the 'read' flag on a message is modified", "None",
-        """When the 'Recover from Spam' function is used, the message 'read' flag can
+        """When the 'Not Spam' function is used, the message 'read' flag can
            also be set.""",
            MSG_READ_STATE, RESTORE),
     ("verbose", "Changes the verbosity of the debug output from the program", 0,
