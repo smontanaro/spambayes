@@ -33,9 +33,6 @@ if options.use_chi_squared_combining:
     from chi2 import chi2Q
     LN2 = math.log(2)
 
-if options.use_z_combining:
-    from chi2 import normP, normIP
-
 # The maximum number of extreme words to look at in a msg, where "extreme"
 # means with spamprob farthest away from 0.5.
 MAX_DISCRIMINATORS = options.max_discriminators # 150
@@ -85,38 +82,11 @@ class Bayes(object):
     __slots__ = ('wordinfo',  # map word to WordInfo record
                  'nspam',     # number of spam messages learn() has seen
                  'nham',      # number of non-spam messages learn() has seen
-
-                 # The rest is unique to the central-limit code.
-                 # n is the # of data points in the population.
-                 # sum is the sum of the probabilities, and is a long scaled
-                 # by 2**64.
-                 # sumsq is the sum of the squares of the probabilities, and
-                 # is a long scaled by 2**128.
-                 # mean is the mean probability of the population, as an
-                 # unscaled float.
-                 # var is the variance of the population, as unscaled float.
-                 # There's one set of these for the spam population, and
-                 # another for the ham population.
-                 # XXX If this code survives, clean it up.
-                 'spamn',
-                 'spamsum',
-                 'spamsumsq',
-                 'spammean',
-                 'spamvar',
-
-                 'hamn',
-                 'hamsum',
-                 'hamsumsq',
-                 'hammean',
-                 'hamvar',
                 )
 
     def __init__(self):
         self.wordinfo = {}
         self.nspam = self.nham = 0
-        self.spamn = self.hamn = 0
-        self.spamsum = self.spamsumsq = 0
-        self.hamsum = self.hamsumsq = 0
 
     def __getstate__(self):
         return PICKLE_VERSION, self.wordinfo, self.nspam, self.nham
@@ -126,7 +96,7 @@ class Bayes(object):
             raise ValueError("Can't unpickle -- version %s unknown" % t[0])
         self.wordinfo, self.nspam, self.nham = t[1:]
 
-    def spamprob(self, wordstream, evidence=False):
+    def gary_spamprob(self, wordstream, evidence=False):
         """Return best-guess probability that wordstream is spam.
 
         wordstream is an iterable object producing words.
@@ -179,8 +149,12 @@ class Bayes(object):
             P = 1.0 - P**n * 2.0**(Pexp * n)
             Q = 1.0 - Q**n * 2.0**(Qexp * n)
 
-            prob = (P-Q)/(P+Q)  # in -1 .. 1
-            prob = 0.5 + prob/2 # shift to 0 .. 1
+            # (P-Q)/(P+Q) is in -1 .. 1; scaling into 0 .. 1 gives
+            # ((P-Q)/(P+Q)+1)/2 =
+            # ((P-Q+P-Q)/(P+Q)/2 =
+            # (2*P/(P+Q)/2 =
+            # P/(P+Q)
+            prob = P/(P+Q)
         else:
             prob = 0.5
 
@@ -190,6 +164,8 @@ class Bayes(object):
             return prob, clues
         else:
             return prob
+
+    spamprob = gary_spamprob    # may be replaced later
 
     def learn(self, wordstream, is_spam, update_probabilities=True):
         """Teach the classifier by example.
@@ -355,9 +331,6 @@ class Bayes(object):
                         record.hamcount -= 1
                 if record.hamcount == 0 == record.spamcount:
                     del self.wordinfo[word]
-
-    def compute_population_stats(self, msgstream, is_spam):
-        pass
 
     def _getclues(self, wordstream):
         mindist = options.robinson_minimum_prob_strength
@@ -543,261 +516,3 @@ class Bayes(object):
 
     if options.use_chi_squared_combining:
         spamprob = chi2_spamprob
-
-    def z_spamprob(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import sqrt
-
-        clues = self._getclues(wordstream)
-        zsum = 0.0
-        for prob, word, record in clues:
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
-            zsum += normIP(prob)
-
-        n = len(clues)
-        if n:
-            # We've added n zscores from a unit normal distribution.  By the
-            # central limit theorem, their mean is normally distributed with
-            # mean 0 and sdev 1/sqrt(n).  So the zscore of zsum/n is
-            # (zsum/n - 0)/(1/sqrt(n)) = zsum/n/(1/sqrt(n)) = zsum/sqrt(n).
-            prob = normP(zsum / sqrt(n))
-        else:
-            prob = 0.5
-
-        if evidence:
-            clues = [(w, p) for p, w, r in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            clues.insert(0, ('*zsum*', zsum))
-            clues.insert(0, ('*n*', n))
-            clues.insert(0, ('*zscore*', zsum / sqrt(n or 1)))
-            return prob, clues
-        else:
-            return prob
-
-    if options.use_z_combining:
-        spamprob = z_spamprob
-
-    def _add_popstats(self, sum, sumsq, n, is_spam):
-        from math import ldexp
-
-        if is_spam:
-            sum += self.spamsum
-            sumsq += self.spamsumsq
-            n += self.spamn
-            self.spamsum, self.spamsumsq, self.spamn = sum, sumsq, n
-        else:
-            sum += self.hamsum
-            sumsq += self.hamsumsq
-            n += self.hamn
-            self.hamsum, self.hamsumsq, self.hamn = sum, sumsq, n
-
-        mean = ldexp(sum, -64) / n
-        var = sumsq * n - sum**2
-        var = ldexp(var, -128) / n**2
-
-        if is_spam:
-            self.spammean, self.spamvar = mean, var
-        else:
-            self.hammean, self.hamvar = mean, var
-
-    def central_limit_compute_population_stats(self, msgstream, is_spam):
-        from math import ldexp
-
-        sum = sumsq = 0
-        seen = {}
-        for msg in msgstream:
-            for prob, word, record in self._getclues(msg):
-                if word in seen:
-                    continue
-                seen[word] = 1
-                prob = long(ldexp(prob, 64))
-                sum += prob
-                sumsq += prob * prob
-
-        self._add_popstats(sum, sumsq, len(seen), is_spam)
-
-    if options.use_central_limit:
-        compute_population_stats = central_limit_compute_population_stats
-
-    def central_limit_spamprob(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import sqrt
-
-        clues = self._getclues(wordstream)
-        sum = 0.0
-        for prob, word, record in clues:
-            sum += prob
-            if record is not None:
-                record.killcount += 1
-        n = len(clues)
-        if n == 0:
-            return 0.5
-        mean = sum / n
-
-        # If this sample is drawn from the spam population, its mean is
-        # distributed around spammean with variance spamvar/n.  Likewise
-        # for if it's drawn from the ham population.  Compute a normalized
-        # z-score (how many stddevs is it away from the population mean?)
-        # against both populations, and then it's ham or spam depending
-        # on which population it matches better.
-        zham = (mean - self.hammean) / sqrt(self.hamvar / n)
-        zspam = (mean - self.spammean) / sqrt(self.spamvar / n)
-        delta = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
-
-        azham, azspam = abs(zham), abs(zspam)
-        if azham < azspam:
-            ratio = azspam / max(azham, 1e-10) # guard against 0 division
-        else:
-            ratio = azham / max(azspam, 1e-10) # guard against 0 division
-        certain = ratio > options.zscore_ratio_cutoff
-
-        if certain:
-            score = delta > 0.0 and 1.0 or 0.0
-        else:
-            score = delta > 0.0 and 0.51 or 0.49
-
-        if evidence:
-            clues = [(word, prob) for prob, word, record in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            extra = [('*zham*', zham),
-                     ('*zspam*', zspam),
-                     ('*hmean*', mean),
-                     ('*smean*', mean),
-                     ('*n*', n),
-                    ]
-            clues[0:0] = extra
-            return score, clues
-        else:
-            return score
-
-    if options.use_central_limit:
-        spamprob = central_limit_spamprob
-
-    def central_limit_compute_population_stats2(self, msgstream, is_spam):
-        from math import ldexp, log
-
-        sum = sumsq = 0
-        seen = {}
-        for msg in msgstream:
-            for prob, word, record in self._getclues(msg):
-                if word in seen:
-                    continue
-                seen[word] = 1
-                if is_spam:
-                    prob = log(prob)
-                else:
-                    prob = log(1.0 - prob)
-                prob = long(ldexp(prob, 64))
-                sum += prob
-                sumsq += prob * prob
-
-        self._add_popstats(sum, sumsq, len(seen), is_spam)
-
-    if options.use_central_limit2:
-        compute_population_stats = central_limit_compute_population_stats2
-
-    def central_limit_spamprob2(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import sqrt, log
-
-        clues = self._getclues(wordstream)
-        hsum = ssum = 0.0
-        for prob, word, record in clues:
-            ssum += log(prob)
-            hsum += log(1.0 - prob)
-            if record is not None:
-                record.killcount += 1
-        n = len(clues)
-        if n == 0:
-            return 0.5
-        hmean = hsum / n
-        smean = ssum / n
-
-        # If this sample is drawn from the spam population, its mean is
-        # distributed around spammean with variance spamvar/n.  Likewise
-        # for if it's drawn from the ham population.  Compute a normalized
-        # z-score (how many stddevs is it away from the population mean?)
-        # against both populations, and then it's ham or spam depending
-        # on which population it matches better.
-        zham = (hmean - self.hammean) / sqrt(self.hamvar / n)
-        zspam = (smean - self.spammean) / sqrt(self.spamvar / n)
-        delta = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
-
-        azham, azspam = abs(zham), abs(zspam)
-        if azham < azspam:
-            ratio = azspam / max(azham, 1e-10) # guard against 0 division
-        else:
-            ratio = azham / max(azspam, 1e-10) # guard against 0 division
-        certain = ratio > options.zscore_ratio_cutoff
-
-        if certain:
-            score = delta > 0.0 and 1.0 or 0.0
-        else:
-            score = delta > 0.0 and 0.51 or 0.49
-
-        if evidence:
-            clues = [(word, prob) for prob, word, record in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            extra = [('*zham*', zham),
-                     ('*zspam*', zspam),
-                     ('*hmean*', hmean),
-                     ('*smean*', smean),
-                     ('*n*', n),
-                    ]
-            clues[0:0] = extra
-            return score, clues
-        else:
-            return score
-
-    if options.use_central_limit2 or options.use_central_limit3:
-        spamprob = central_limit_spamprob2
-
-    def central_limit_compute_population_stats3(self, msgstream, is_spam):
-        from math import ldexp, log
-
-        sum = sumsq = n = 0
-        for msg in msgstream:
-            n += 1
-            probsum = 0.0
-            clues = self._getclues(msg)
-            for prob, word, record in clues:
-                if is_spam:
-                    probsum += log(prob)
-                else:
-                    probsum += log(1.0 - prob)
-            mean = long(ldexp(probsum / len(clues), 64))
-            sum += mean
-            sumsq += mean * mean
-
-        self._add_popstats(sum, sumsq, n, is_spam)
-
-    if options.use_central_limit3:
-        compute_population_stats = central_limit_compute_population_stats3

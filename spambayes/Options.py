@@ -198,13 +198,9 @@ ham_directories: Data/Ham/Set%d
 # training each on N-1 sets, and the predicting against the set not trained
 # on.  By default, it does this in a clever way, learning *and* unlearning
 # sets as it goes along, so that it never needs to train on N-1 sets in one
-# gulp after the first time.  However, that can't always be done:  in
-# particular, the central-limit schemes can't unlearn incrementally, and can
-# learn incrementally only via a form of cheating whose bad effects overall
-# aren't yet known.
-# So when desiring to run a central-limit test, set
-# build_each_classifier_from_scratch to true.  This gives correct results,
-# but runs much slower than a CV driver usually runs.
+# gulp after the first time.  Setting this option true forces "one gulp
+# from-scratch" training every time.  There used to be a set of combining
+# schemes that needed this, but now it's just in case you're paranoid <wink>.
 build_each_classifier_from_scratch: False
 
 [Classifier]
@@ -237,18 +233,13 @@ robinson_probability_s: 0.45
 # all corpora.
 robinson_minimum_prob_strength: 0.1
 
-###########################################################################
-# Speculative options for Gary Robinson's central-limit ideas.  These may go
-# away, or a bunch of incompatible stuff above may go away.
-
-# For the default scheme, use "tim-combining" of probabilities.  This has
-# no effect under the central-limit schemes.  Tim-combining is a kind of
-# cross between Paul Graham's and Gary Robinson's combining schemes.  Unlike
-# Paul's, it's never crazy-certain, and compared to Gary's, in Tim's tests it
-# greatly increased the spread between mean ham-scores and spam-scores, while
-# simultaneously decreasing the variance of both.  Tim needed a higher
-# spam_cutoff value for best results, but spam_cutoff is less touchy
-# than under Gary-combining.
+# For the default scheme, use "tim-combining" of probabilities.  Tim-
+# combining is a kind of cross between Paul Graham's and Gary Robinson's
+# combining schemes.  Unlike Paul's, it's never crazy-certain, and compared
+# to Gary's, in Tim's tests it greatly increased the spread between mean
+# ham-scores and spam-scores, while simultaneously decreasing the variance
+# of both.  Tim needed a higher spam_cutoff value for best results, but
+# spam_cutoff is less touchy than under Gary-combining.
 use_tim_combining: False
 
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
@@ -261,41 +252,12 @@ use_tim_combining: False
 # One systematic benefit is that it's immune to "cancellation disease".  One
 # systematic drawback is that it's sensitive to *any* deviation from a
 # uniform distribution, regardless of whether that's actually evidence of
-# ham or spam.  Rob Hooft may have a pragmatic cure for that (combine the
-# final S and H measures via (S-H+1)/2 instead of via S/(S+H)).
+# ham or spam.  Rob Hooft alleviated that by combining the final S and H
+# measures via (S-H+1)/2 instead of via S/(S+H)).
+# In practice, it appears that setting ham_cutoff=0.05, and spam_cutoff=0.95,
+# does well across test sets; while these cutoffs are rarely optimal, they
+# get close to optimal.
 use_chi_squared_combining: False
-
-# z_combining is a scheme Gary has discussed with me offline.  I'll say more
-# if it proves promising.  In initial tests it was even more extreme than
-# chi combining, but not always in a good way -- in particular, it appears
-# as vulnerable to "cancellation disease" as Graham-combining, giving one
-# spam in my corpus a score of 4.1e-14 (chi combining scored it 0.5).
-use_z_combining: False
-
-# Use a central-limit approach for scoring.
-# The number of extremes to use is given by max_discriminators (above).
-# spam_cutoff should almost certainly be exactly 0.5 when using this approach.
-# DO NOT run cross-validation tests when this is enabled!  They'll deliver
-# nonense, or, if you're lucky, will blow up with division by 0 or negative
-# square roots.  An NxN test grid should work fine.
-use_central_limit: False
-
-# Same as use_central_limit, except takes logarithms of probabilities and
-# probability complements (p and 1-p) instead.
-use_central_limit2: False
-use_central_limit3: False
-
-# For now, a central-limit scheme considers its decision "certain" if the
-# ratio of the zscore with larger magnitude to the zscore with smaller
-# magnitude exceeds zscore_ratio_cutoff.  The value here is seat-of-the-
-# pants for use_central_limit2; nothing is known about use_central_limit wrt
-# this.
-# For now, a central-limit scheme delivers just one of 4 scores:
-# 0.00  -- certain it's ham
-# 0.49  -- guesses ham but is unsure
-# 0.51  -- guesses spam but is unsure
-# 1.00  -- certain it's spam
-zscore_ratio_cutoff: 1.9
 """
 
 int_cracker = ('getint', None)
@@ -345,15 +307,8 @@ all_options = {
                    'robinson_probability_x': float_cracker,
                    'robinson_probability_s': float_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
-
-                   'use_central_limit': boolean_cracker,
-                   'use_central_limit2': boolean_cracker,
-                   'use_central_limit3': boolean_cracker,
-                   'zscore_ratio_cutoff': float_cracker,
-
                    'use_tim_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
-                   'use_z_combining': boolean_cracker,
                    },
 }
 

@@ -117,10 +117,6 @@ timcv.py
     Each classifier is trained on N-1 sets, and predicts against the sole
         remaining set (the set not used to train the classifier).
     mboxtest does the same.
-    timcv should not be used for central limit tests (timcv does
-        incremental learning and unlearning, for efficiency; the central
-        limit schemes can't unlearn incrementally, and their incremental
-        learning ability is a cheat whose badness isn't yet known).
     This (or mboxtest) is the preferred way to test when possible:  it
         makes best use of limited data, and interpreting results is
         straightforward.
@@ -139,7 +135,6 @@ timtest.py
     It's harder to interpret the results of timtest (than timcv) correctly,
         because each msg is predicted against N-1 times overall.  So, e.g.,
         one terribly difficult spam or ham can count against you N-1 times.
-    Central limit tests are fine with timtest.
 
 
 Test Utilities
@@ -204,31 +199,13 @@ runtest.sh
 
 Experimental Files
 ==================
-clgen.py
-    A test driver only for use with one of the speculative central-limit
-    schemes.  Its purpose is to generate a binary pickle containing
-    internal information about every prediction made.  This will go
-    away someday.
-
-clpik.py
-    An example analysis program showing how to access the pickles
-    produced by clgen.py, and how to generate potentially interesting
-    histograms from them.
-
-rmspik.py
-    A program that analyzes a clgen-produced pickle, and tells you what
-    would happen if we had used Rob Hooft's "RMS ZScore" scheme for
-    deciding certainty instead.
-    CAUTION:  This doesn't work as intended for plain use_central_limit.
-    The chance() function seems to make an assumption that's true
-    only under use_central_limit2 and use_central_limit3.
-
 cvcost.py
     A program that analyzes the output of timcv.py (the final histograms)
     and optimizes the cost of handling the mail body by defining a "ham"
     zone, a "spam" zone and a "grey" zone. It can be tuned by choosing
     pseudo-realistic costs to handle a fp, a fn and to handle a message
     in the grey zone.
+
 
 Standard Test Data Setup
 ========================
