@@ -31,7 +31,7 @@ class VersionStringProcessor(ControlProcessor):
 
 class TrainingStatusProcessor(ControlProcessor):
     def Init(self):
-        bayes = self.window.manager.bayes
+        bayes = self.window.manager.classifier_data.bayes
         nspam = bayes.nspam
         nham = bayes.nham
         if nspam > 0 and nham > 0:
@@ -170,6 +170,15 @@ class TabProcessor(ControlProcessor):
             template = self.window.manager.dialog_parser.dialogs[page_id]
             self.addPage(index, page_id, template[0][0])
         self.switchToPage(0)
+        print "TabProcessor init"
+    def Done(self):
+        print "TabProcessor Done"
+        if self.currentPageHwnd is not None:
+            if not self.currentPage.SaveAllControls():
+                win32gui.SendMessage(self.GetControl(), commctrl.TCM_SETCURSEL, self.currentPageIndex,0)
+                return False
+        return True
+    
     def OnNotify(self, nmhdr, wparam, lparam):
         # this does not appear to be in commctrl module
         selChangedCode =  5177342
@@ -247,7 +256,52 @@ class HiddenDialogCommand(DialogCommand):
         return "Nothing to see here."
 
 def WizardFinish(mgr, window):
+    wiz_cd = mgr.wizard_classifier_data
+    mgr.wizard_classifier_data = None
+    mgr.classifier_data.Adopt(wiz_cd)
     print "Done!"
+    
+def WizardTrainer(mgr, progress):
+    import os, manager, train
+    bayes_base = os.path.join(mgr.data_directory, "$sbwiz$default_bayes_database")
+    mdb_base = os.path.join(mgr.data_directory, "$sbwiz$default_message_database")
+    # determine which db manager to use, and create it.
+    ManagerClass = manager.GetStorageManagerClass()
+    db_manager = ManagerClass(bayes_base, mdb_base)
+    classifier_data = manager.ClassifierData(db_manager, mgr)
+    classifier_data.InitNew()
+
+    rescore = mgr.config.training.rescore
+
+    if rescore:
+        stages = ("Training", .3), ("Saving", .1), ("Scoring", .6)
+    else:
+        stages = ("Training", .9), ("Saving", .1)
+    progress.set_stages(stages)
+
+    train.real_trainer(classifier_data, mgr.config, mgr.message_store, progress)
+
+    orig_classifier_data = mgr.classifier_data
+    mgr.classifier_data = classifier_data # temporary
+    try:
+        progress.tick()
+    
+        if rescore:
+            # Setup the "filter now" config to what we want.
+            config = mgr.config.filter_now
+            config.only_unread = False
+            config.only_unseen = False
+            config.action_all = False
+            config.folder_ids = mgr.config.training.ham_folder_ids + mgr.config.training.spam_folder_ids
+            config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
+            import filter
+            filter.filterer(mgr, progress)
+    
+        bayes = classifier_data.bayes
+        progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
+    finally:
+        mgr.wizard_classifier_data = classifier_data
+        mgr.classifier_data = orig_classifier_data
 
 from async_processor import AsyncCommandProcessor
 import filter, train
@@ -318,7 +372,7 @@ dialog_map = {
         (BoolButtonProcessor,     "IDC_BUT_REBUILD",    "Training.rebuild"),
         (AsyncCommandProcessor,   "IDC_START IDC_PROGRESS IDC_PROGRESS_TEXT",
                                   train.trainer, "Start Training", "Stop",
-                                  "IDOK IDCANCEL IDC_TAB IDC_BROWSE_HAM IDC_BROWSE_SPAM " \
+                                  "IDOK IDCANCEL IDC_BROWSE_HAM IDC_BROWSE_SPAM " \
                                   "IDC_BUT_REBUILD IDC_BUT_RESCORE"),
     ),
     "IDD_ADVANCED" : (
@@ -343,6 +397,7 @@ dialog_map = {
          """IDD_WIZARD_WELCOME IDD_WIZARD_FOLDERS_WATCH IDD_WIZARD_FOLDERS_REST
          IDD_WIZARD_FOLDERS_TRAIN IDD_WIZARD_TRAIN
          IDD_WIZARD_FINISHED_UNCONFIGURED IDD_WIZARD_FINISHED_UNTRAINED
+         IDD_WIZARD_FINISHED_TRAINED
          """,
          WizardFinish),
         ),
@@ -352,25 +407,31 @@ dialog_map = {
         ),
     "IDD_WIZARD_FOLDERS_REST": (
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
-                                      "Wizard.spam_folder_id", "Wizard.spam_folder_name"),
+                                      "Filter.spam_folder_id", "Wizard.spam_folder_name"),
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_UNSURE IDC_BROWSE_UNSURE",
-                                      "Wizard.unsure_folder_id", "Wizard.unsure_folder_name"),
+                                      "Filter.unsure_folder_id", "Wizard.unsure_folder_name"),
     ),
     "IDD_WIZARD_FOLDERS_WATCH": (
         (wiz.WatchFolderIDProcessor,"IDC_FOLDER_WATCH IDC_BROWSE_WATCH",
-                                    "Wizard.watch_folder_ids"),
+                                    "Filter.watch_folder_ids"),
     ),
     "IDD_WIZARD_FOLDERS_TRAIN": (
-        (FolderIDProcessor,"IDC_FOLDER_HAM IDC_BROWSE_HAM",
-                                    "Wizard.train_ham_ids"),
-        (FolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
-                                    "Wizard.train_spam_ids"),
+        (wiz.TrainFolderIDProcessor,"IDC_FOLDER_HAM IDC_BROWSE_HAM",
+                                    "Training.ham_folder_ids"),
+        (wiz.TrainFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
+                                    "Training.spam_folder_ids"),
+        (BoolButtonProcessor,     "IDC_BUT_RESCORE",    "Training.rescore"),
         
     ),
-    "IDD_WIZARD_TRAIN" : {
-    },
+    "IDD_WIZARD_TRAIN" : (
+        (wiz.WizAsyncProcessor,   "IDC_PROGRESS IDC_PROGRESS_TEXT",
+                                  WizardTrainer, "", "",
+                                  ""),
+    ),
     "IDD_WIZARD_FINISHED_UNCONFIGURED": (
     ),
     "IDD_WIZARD_FINISHED_UNTRAINED": (
+    ),
+    "IDD_WIZARD_FINISHED_TRAINED": (
     ),
 }

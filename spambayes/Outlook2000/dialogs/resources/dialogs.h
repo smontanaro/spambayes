@@ -21,6 +21,8 @@
 #define IDD_WIZARD_FINISHED_UNCONFIGURED 119
 #define IDD_WIZARD_FOLDERS_TRAIN        120
 #define IDD_WIZARD_TRAIN                121
+#define IDD_WIZARD_FINISHED_UNCONFIGURED1 122
+#define IDD_WIZARD_FINISHED_TRAINED     122
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -102,7 +104,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1084
+#define _APS_NEXT_CONTROL_VALUE         1086
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

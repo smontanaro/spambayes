@@ -21,6 +21,5 @@ if __name__=='__main__':
         # not sure where this should go yet.
         import config_wizard
         mgr.options, mgr.config = config_wizard.CreateWizardConfig(mgr)
-        print "Watch ids2 are", mgr.config.wizard.watch_folder_ids
 
     ShowDialog(0, mgr, idd)

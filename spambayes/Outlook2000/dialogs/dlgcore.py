@@ -247,8 +247,7 @@ class ProcessorDialog(TooltipDialog):
 
     def ApplyHandlingOptionValueError(self, func, *args):
         try:
-            func(*args)
-            return True
+            return func(*args)
         except ValueError, why:
             mb_flags = win32con.MB_ICONEXCLAMATION | win32con.MB_OK
             win32gui.MessageBox(self.hwnd, str(why), "SpamBayes", mb_flags)
@@ -264,7 +263,6 @@ class ProcessorDialog(TooltipDialog):
     def OnClose(self, hwnd, msg, wparam, lparam):
         if TooltipDialog.OnClose(self, hwnd, msg, wparam, lparam):
             return 1
-        #print "OnClose"
         if not self.SaveAllControls():
             return 1
         win32gui.EndDialog(hwnd, 0)

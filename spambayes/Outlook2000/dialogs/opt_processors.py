@@ -32,6 +32,7 @@ class OptionControlProcessor(processors.ControlProcessor):
 
     def Done(self):
         self.UpdateValue_FromControl()
+        return True
 
     def NotifyOptionChanged(self, option = None):
         if option is None:

@@ -2,6 +2,7 @@
 from dlgutils import *
 import win32gui, win32api, win32con, commctrl
 import win32process
+import time
 
 import processors
 
@@ -116,6 +117,29 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
         win32gui.ShowWindow(self.GetControl(self.statusbar_id), win32con.SW_HIDE)
         self.SetStatusText("")
 
+    def Done(self):
+        if self.running:
+            msg = "You must let the running process finish, or stop it\r\n" \
+                  "yourself, before closing this window"
+            win32gui.MessageBox(self.window.hwnd, msg, "SpamBayes",
+                                win32con.MB_OK | win32con.MB_ICONEXCLAMATION)
+        return not self.running
+        # Here is an alternative to stop the process and wait for it to finish
+        # But auto-stopping on a tab-switch isn't really what we want.  If we
+        # were *really* clever, we could allow it to continue - but we aren't.
+        #if self.running:
+        #    self.progress.request_stop()
+        #    for i in xrange(500): # 5 seconds
+        #        win32gui.PumpWaitingMessages(0,-1)
+        #        if i % 50 == 0:
+        #            print "Still waiting for async process to finish..."
+        #        time.sleep(0.01)
+        #        if not self.running:
+        #            break
+        #    else:
+        #        print "XXX - eeek - gave up waiting for async process to stop"
+        #return True
+
     def GetMessages(self):
         return [MYWM_SETSTATUS, MYWM_SETWARNING, MYWM_SETERROR, MYWM_FINISHED]
 
@@ -140,8 +164,9 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
         wasCancelled = wparam
         self.SetEnabledStates(True)
 
-        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
-                             0, self.process_start_text)
+        if self.process_start_text:
+            win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
+                                 0, self.process_start_text)
         win32gui.ShowWindow(self.GetControl(self.statusbar_id), win32con.SW_HIDE)
         if wasCancelled:
             self.SetStatusText("Cancelled")
@@ -178,9 +203,10 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
             # Now screw around with the control states, restored when
             # the thread terminates.
             self.SetEnabledStates(False)
-            win32gui.SendMessage(self.GetControl(),
-                                 win32con.WM_SETTEXT,
-                                 0, self.process_stop_text)
+            if self.process_stop_text:
+                win32gui.SendMessage(self.GetControl(),
+                                     win32con.WM_SETTEXT,
+                                     0, self.process_stop_text)
             win32gui.SendMessage(self.GetControl(self.statustext_id),
                                  win32con.WM_SETTEXT, 0, "")
             win32gui.ShowWindow(self.GetControl(self.statusbar_id),
@@ -198,7 +224,11 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
                     win32process.SetThreadPriority(win32api.GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL)
                     self.func( self.window.manager, progress)
                 finally:
-                    win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())
+                    try:
+                        win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())
+                    except win32api.error:
+                        # Bad window handle - already down.
+                        pass
                     self.running = False
                     self.progress = None
 
@@ -206,7 +236,6 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
             import threading
             t = threading.Thread(target=thread_target, args =(self.window.hwnd, progress))
             t.start()
-
 
 if __name__=='__main__':
     # Test my "multi-stage" code

@@ -160,7 +160,7 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "Welcome to the SpamBayes configuration wizard",
                     IDC_STATIC,20,4,191,14
-    PUSHBUTTON      "About...",IDC_STATIC,213,109,60,15
+    PUSHBUTTON      "About...",IDC_STATIC,216,107,60,15
     LTEXT           "This wizard will help you configure the SpamBayes Outlook addin.  ",
                     IDC_STATIC,20,20,191,18
     CONTROL         "I haven't prepared for SpamBayes at all",
@@ -173,7 +173,7 @@ BEGIN
                     IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP,20,88,
                     187,14
     LTEXT           "If you would like more information about training and configuring SpamBayes, click the About button",
-                    IDC_STATIC,20,107,153,26
+                    IDC_STATIC,20,107,185,20
     LTEXT           "If you cancel the wizard, you can access it again via the SpamBayes Manager, available from the SpamBayes toolbar",
                     IDC_STATIC,20,140,232,17
 END
@@ -247,20 +247,23 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "Browse...",IDC_BROWSE_HAM,208,83,60,15
+    PUSHBUTTON      "Browse...",IDC_BROWSE_HAM,208,49,60,15
     LTEXT           "Training",IDC_STATIC,20,4,247,10
-    LTEXT           "SpamBayes will perform initial training on a set of good messages, and a set of known Spam, or unwanted messages.",
-                    IDC_STATIC,20,20,247,19
-    LTEXT           "Please select the folders with the relevant messages",
-                    IDC_STATIC,20,44,243,16
-    EDITTEXT        IDC_FOLDER_HAM,20,83,179,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Please select the folders with the pre-sorted good messages and the folders with the pre-sorted spam messages.",
+                    IDC_STATIC,20,16,243,16
+    EDITTEXT        IDC_FOLDER_HAM,20,49,179,14,ES_AUTOHSCROLL | ES_READONLY
     LTEXT           "Examples of Spam, or unwanted messages can be found in",
-                    IDC_STATIC,20,104,198,12
-    EDITTEXT        IDC_FOLDER_CERTAIN,20,116,177,14,ES_AUTOHSCROLL | 
+                    IDC_STATIC,20,71,198,8
+    EDITTEXT        IDC_FOLDER_CERTAIN,20,81,177,14,ES_AUTOHSCROLL | 
                     ES_READONLY
     LTEXT           "Examples of good messages can be found in",IDC_STATIC,
-                    20,71,153,12
-    PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM,208,116,60,15
+                    20,38,153,8
+    PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM,208,81,60,15
+    LTEXT           "If you have not pre-sorted your messages, please select the Back button, then indicate you have not prepared for SpamBayes",
+                    IDC_STATIC,20,138,243,16
+    CONTROL         "Score messages when training is complete",
+                    IDC_BUT_RESCORE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,
+                    108,163,16
 END
 
 IDD_WIZARD_TRAIN DIALOGEX 0, 0, 284, 162
@@ -271,9 +274,21 @@ BEGIN
     LTEXT           "Training",-1,20,4,247,14
     LTEXT           "SpamBayes is training on your good and spam messages",
                     -1,20,22,247,16
-    CONTROL         "",IDC_PROGRESS,"msctls_progress32",WS_BORDER,20,45,166,
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",WS_BORDER,20,45,255,
                     11
-    LTEXT           "(progress text)",IDC_PROGRESS_TEXT,20,61,227,10
+    LTEXT           "(progress text)",IDC_PROGRESS_TEXT,20,61,257,10
+END
+
+IDD_WIZARD_FINISHED_TRAINED DIALOGEX 0, 0, 284, 162
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x0
+BEGIN
+    LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
+    LTEXT           "SpamBayes has been successfully trained and configured.  You should find Spam is immediately effective in filtering spam.",
+                    IDC_STATIC,20,42,247,25
+    LTEXT           "Even though SpamBayes has been trained, it does continue to learn - please ensure you regularly check your Unsure folder, and use the 'Delete as Spam' or 'Recover from Spam' buttons as appropriate.",
+                    IDC_STATIC,20,68,249,30
 END
 
 
@@ -359,11 +374,17 @@ BEGIN
         VERTGUIDE, 20
         VERTGUIDE, 268
         BOTTOMMARGIN, 161
-        HORZGUIDE, 83
-        HORZGUIDE, 116
+        HORZGUIDE, 49
+        HORZGUIDE, 81
     END
 
     IDD_WIZARD_TRAIN, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FINISHED_TRAINED, DIALOG
     BEGIN
         VERTGUIDE, 20
         BOTTOMMARGIN, 161
@@ -448,7 +469,7 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,67,174,10
     CONTROL         "Score &messages after training",IDC_BUT_RESCORE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,77,174,10
-    PUSHBUTTON      "&Train Now",IDC_START,7,119,50,14
+    PUSHBUTTON      "&Train Now",IDC_START,7,119,50,14,BS_NOTIFY
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
                     92,166,11
     LTEXT           "",IDC_PROGRESS_TEXT,7,108,227,10

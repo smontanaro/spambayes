@@ -19,7 +19,7 @@ class ControlProcessor:
     def Init(self):
         pass
     def Done(self):
-        pass
+        return True
     def GetControl(self, control_id = None):
         control_id = control_id or self.control_id
         try:

@@ -15,6 +15,9 @@ except NameError:   # enumerate new in 2.3
 
 import processors
 import opt_processors
+import async_processor
+
+import timer
 
 # An "abstract" wizard class.  Not technically abstract - this version
 # supports sequential stepping through all the pages.  It is expected
@@ -30,6 +33,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         self.currentPageHwnd = None
         self.finish_fn = finish_fn
         self.page_placeholder_id = self.other_ids[1]
+        self.timer_id = None
 
     def Init(self):
         processors.ButtonProcessor.Init(self)
@@ -40,13 +44,39 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         self.page_stack = []
         self.switchToPage(0)
 
+    def Done(self):
+        if self.timer_id is not None:
+            timer.kill_timer(self.timer_id)
+            self.timer_id = None
+        return processors.ButtonProcessor.Done(self)
+
     def changeControls(self):
         win32gui.EnableWindow(self.back_btn_hwnd,self.currentPageIndex!=0)
+        if self.window.manager.config.wizard.can_go_next:
+            win32gui.EnableWindow(self.forward_btn_hwnd,1)
+            if self.timer_id is not None:
+                timer.kill_timer(self.timer_id)
+                self.timer_id = None
+        else:
+            win32gui.EnableWindow(self.forward_btn_hwnd,0)
+            if self.timer_id is None:
+                self.timer_id = timer.set_timer(500, self.OnCheckForwardTimer)
+
         index = 0
         if self.atFinish():
             index = 1
         win32gui.SetWindowText(self.forward_btn_hwnd, self.forward_captions[index])
-        
+
+    # No obvious way to communicate the state of what the "Forward" button
+    # should be.  brute-force - check a config boolean on a timer.
+    def OnCheckForwardTimer(self, event, time):
+        print "Timer fired"
+        if self.window.manager.config.wizard.can_go_next:
+            timer.kill_timer(self.timer_id)
+            self.timer_id = None
+            win32gui.EnableWindow(self.forward_btn_hwnd,1)
+        # else timer just continues on.
+            
     def OnClicked(self, id):
         if id == self.control_id:
             if self.atFinish():
@@ -149,15 +179,17 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
             else:
                 assert 0, "oops"
         elif id == 'IDD_WIZARD_FOLDERS_TRAIN':
+            self.window.manager.config.wizard.can_go_next = False
+            return 'IDD_WIZARD_TRAIN'
+        elif id == 'IDD_WIZARD_TRAIN':
             return 'IDD_WIZARD_FOLDERS_WATCH'
         elif id == 'IDD_WIZARD_FOLDERS_WATCH':
             return 'IDD_WIZARD_FOLDERS_REST'
         elif id == 'IDD_WIZARD_FOLDERS_REST':
             if config.wizard.preparation==1:
-                return 'IDD_WIZARD_TRAIN'
-            return 'IDD_WIZARD_FINISHED_UNTRAINED'
-        elif id == 'IDD_WIZARD_TRAIN':
-            print "Need really finished page"
+                return 'IDD_WIZARD_FINISHED_TRAINED'
+            else:
+                return 'IDD_WIZARD_FINISHED_UNTRAINED'
 
 class WatchFolderIDProcessor(opt_processors.FolderIDProcessor):
     def __init__(self, window, control_ids,
@@ -222,3 +254,26 @@ class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
                 self.in_setting_name = True
                 opt_processors.FolderIDProcessor.UpdateControl_FromValue(self)
                 self.in_setting_name = False
+
+class TrainFolderIDProcessor(opt_processors.FolderIDProcessor):
+    def SetOptionValue(self, value, option = None):
+        self.window.manager.config.wizard.need_train = True
+        return opt_processors.FolderIDProcessor.SetOptionValue(self, value, option)
+
+class WizAsyncProcessor(async_processor.AsyncCommandProcessor):
+    def __init__(self, window, control_ids, func, start_text, stop_text, disable_ids):
+        control_ids = [None] + control_ids
+        async_processor.AsyncCommandProcessor.__init__(self, window, control_ids, func, start_text, stop_text, disable_ids)
+    def Init(self):
+        async_processor.AsyncCommandProcessor.Init(self)
+        if self.window.manager.config.wizard.need_train:
+            self.StartProcess()
+        else:
+            self.window.manager.config.wizard.can_go_next = True
+            self.SetStatusText("Training has already been completed")
+    def OnFinished(self, wparam, lparam):
+        wasCancelled = wparam
+        if not wasCancelled:
+            self.window.manager.config.wizard.can_go_next = True
+            self.window.manager.config.wizard.need_train = False
+        return async_processor.AsyncCommandProcessor.OnFinished(self, wparam, lparam)
