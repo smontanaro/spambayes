@@ -840,9 +840,12 @@ class UserInterface(Dibbler.HTTPPlugin):
                 text = '(this message only has an HTML body)\n' + text
             except StopIteration:
                 text = '(this message has no text body)'
-        text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
-        text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
-        text = text.strip()
+        if type(text) == type([]):  # gotta be a 'right' way to do this
+            text = "(this message is a digest of %s messages)" % (len(text))
+        else:
+            text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
+            text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
+            text = text.strip()
 
         class _MessageInfo:
             pass
