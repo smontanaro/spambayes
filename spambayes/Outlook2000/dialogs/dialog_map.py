@@ -4,6 +4,7 @@
 
 from processors import *
 from opt_processors import *
+import wizard_processors as wiz
 
 from dialogs import ShowDialog, MakePropertyPage
 
@@ -247,71 +248,6 @@ class HiddenDialogCommand(DialogCommand):
 
 def WizardFinish(mgr, window):
     print "Done!"
-    
-class WizardButtonProcessor(ButtonProcessor):
-    def __init__(self, window, control_ids, pages, finish_fn):
-        ButtonProcessor.__init__(self, window,control_ids)
-        self.back_btn_id = self.other_ids[0]
-        self.page_ids = pages.split()
-        self.currentPage = None
-        self.currentPageIndex = -1
-        self.currentPageHwnd = None
-        self.finish_fn = finish_fn
-        self.page_placeholder_id = self.other_ids[1]
-        
-    def Init(self):
-        ButtonProcessor.Init(self)
-        self.back_btn_hwnd = self.GetControl(self.back_btn_id)
-        self.forward_btn_hwnd = self.GetControl()
-        self.forward_captions = win32gui.GetWindowText(self.forward_btn_hwnd).split(",")
-        self.page_placeholder_hwnd = self.GetControl(self.page_placeholder_id)
-        self.switchToPage(0)
-    def atFinish(self):
-        return self.currentPageIndex==len(self.page_ids)-1
-            
-    def changeControls(self):
-        win32gui.EnableWindow(self.back_btn_hwnd,self.currentPageIndex!=0)
-        index = 0
-        if self.atFinish():
-            index = 1
-        win32gui.SetWindowText(self.forward_btn_hwnd, self.forward_captions[index])
-        
-    def OnClicked(self, id):
-        if id == self.control_id:
-            if self.atFinish():
-                if not self.currentPage.SaveAllControls():
-                    return
-                #finish
-                win32gui.EnableWindow(self.forward_btn_hwnd, False)
-                win32gui.EnableWindow(self.back_btn_hwnd, False)
-                try:
-                    #optional
-                    h = GetControl(self.window.manager.dialog_parser.ids["IDCANCEL"])
-                    win32gui.EnableWindow(h, False)
-                except:
-                    pass
-                        
-                self.finish_fn(self.window.manager, self.window)
-                win32gui.SendMessage(self.window.hwnd, win32con.WM_CLOSE, 0, 0)
-            else:
-                #forward
-                self.switchToPage(self.currentPageIndex+1)
-        elif id == self.back_btn_id:
-            #backward
-            self.switchToPage(self.currentPageIndex-1)
-    
-    def switchToPage(self, index):
-        if self.currentPageHwnd is not None:
-            if not self.currentPage.SaveAllControls():
-                return 1
-            win32gui.DestroyWindow(self.currentPageHwnd)
-        #template = self.window.manager.dialog_parser.dialogs[self.page_ids[index]]
-        self.currentPage = MakePropertyPage(self.page_placeholder_hwnd, self.window.manager, self.page_ids[index],3)
-        self.currentPageHwnd = self.currentPage.CreateWindow()
-        self.currentPageIndex = index
-        self.changeControls()
-        return 0
-        
 
 from async_processor import AsyncCommandProcessor
 import filter, train
@@ -400,9 +336,27 @@ dialog_map = {
         (IntProcessor,   "IDC_VERBOSE_LOG",  "General.verbose"),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         ),
+    # All the wizards
     "IDD_WIZARD": (
         (CloseButtonProcessor,  "IDCANCEL"),
-        (WizardButtonProcessor, "IDC_FORWARD_BTN IDC_BACK_BTN IDC_PAGE_PLACEHOLDER",
-         "IDD_GENERAL IDD_FILTER IDD_ADVANCED", WizardFinish),
-        )
+        (wiz.ConfigureWizardProcessor, "IDC_FORWARD_BTN IDC_BACK_BTN IDC_PAGE_PLACEHOLDER",
+         """IDD_WIZARD_WELCOME IDD_WIZARD_FOLDERS_WATCH IDD_WIZARD_FOLDERS_REST
+         IDD_WIZARD_FINISHED_UNCONFIGURED IDD_WIZARD_FINISHED_UNTRAINED
+         """,
+         WizardFinish),
+        ),
+    "IDD_WIZARD_WELCOME": (
+        (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
+        (RadioButtonProcessor,    "IDC_BUT_PREPARATION", "Wizard.preparation"),
+        ),
+    "IDD_WIZARD_FOLDERS_REST": (
+        ),
+    "IDD_WIZARD_FOLDERS_WATCH": (
+        (wiz.WatchFolderIDProcessor,"IDC_FOLDER_WATCH IDC_BROWSE_WATCH",
+                                    "Wizard.watch_folder_ids"),
+        ),
+    "IDD_WIZARD_FINISHED_UNCONFIGURED": (
+        ),
+    "IDD_WIZARD_FINISHED_UNTRAINED": (
+        ),
 }

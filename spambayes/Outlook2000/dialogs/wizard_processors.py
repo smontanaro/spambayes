@@ -134,3 +134,7 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
             return 'IDD_WIZARD_FOLDERS_REST'
         elif id == 'IDD_WIZARD_FOLDERS_REST':
             return 'IDD_WIZARD_FINISHED_UNTRAINED'
+
+class WatchFolderIDProcessor(opt_processors.FolderIDProcessor):
+    # todo - default to the "inbox" folder
+    pass
