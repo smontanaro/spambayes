@@ -16,15 +16,15 @@ def filter_message(msg, mgr, all_actions=True):
     if prob_perc >= config.spam_threshold:
         disposition = "Yes"
         attr_prefix = "spam"
-        msg.c = "spam"
+        msg.c = mgr.bayes_options["Headers", "header_spam_string"]
     elif prob_perc >= config.unsure_threshold:
         disposition = "Unsure"
         attr_prefix = "unsure"
-        msg.c = "unsure"
+        msg.c = mgr.bayes_options["Headers", "header_unsure_string"]
     else:
         disposition = "No"
         attr_prefix = "ham"
-        msg.c = "ham"
+        msg.c = mgr.bayes_options["Headers", "header_ham_string"]
 
     ms = mgr.message_store
     try:

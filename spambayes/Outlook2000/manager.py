@@ -454,16 +454,13 @@ class BayesManager:
         except:
             self.ReportFatalStartupError("Failed to load bayes database")
             self.classifier_data.InitNew()
-        s_thres = self.config.filter.spam_threshold
-        u_thres = self.config.filter.unsure_threshold
-        fp_cost = bayes_options["TestDriver", "best_cutoff_fp_weight"]
-        fn_cost = bayes_options["TestDriver", "best_cutoff_fn_weight"]
-        unsure_cost = bayes_options["TestDriver",
-                                    "best_cutoff_unsure_weight"]
-        mdb = self.classifier_data.message_db
-        self.stats = bayes_stats.Stats(s_thres, u_thres, mdb, "ham",
-                                       "unsure", "spam", fp_cost, fn_cost,
-                                       unsure_cost)
+        self.bayes_options = bayes_options
+        bayes_options["Categorization", "spam_cutoff"] = \
+                                        self.config.filter.spam_threshold
+        bayes_options["Categorization", "ham_cutoff"] = \
+                                        self.config.filter.unsure_threshold
+        self.stats = bayes_stats.Stats(bayes_options,
+                                       self.classifier_data.message_db)
 
     # Logging - this should be somewhere else.
     def LogDebug(self, level, *args):
@@ -907,6 +904,12 @@ class BayesManager:
         dialogs.ShowDialog(0, self, self.config, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
+        # And update the cutoff values in bayes_options (which the
+        # stats use) to our thresholds.
+        bayes_options["Categorization", "spam_cutoff"] = \
+                                        self.config.filter.spam_threshold
+        bayes_options["Categorization", "ham_cutoff"] = \
+                                        self.config.filter.unsure_threshold
         # And tell the addin that our filters may have changed.
         if self.addin is not None:
             self.addin.FiltersChanged()
