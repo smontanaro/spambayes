@@ -1227,22 +1227,9 @@ class State:
         if options.verbose:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
 
-        # Load up the old proxy settings from Options.py / bayescustomize.ini
-        # and give warnings if they're present.   XXX Remove these soon.
         self.servers = []
         self.proxyPorts = []
-        if options.pop3proxy_port != 110 or \
-           options.pop3proxy_server_name != '' or \
-           options.pop3proxy_server_port != 110:
-            print "\n    pop3proxy_port, pop3proxy_server_name and"
-            print "    pop3proxy_server_port are deprecated!  Please use"
-            print "    pop3proxy_servers and pop3proxy_ports instead.\n"
-            self.servers = [(options.pop3proxy_server_name,
-                             options.pop3proxy_server_port)]
-            self.proxyPorts = [options.pop3proxy_port]
 
-        # Load the new proxy settings - these will override the old ones
-        # if both are present.
         if options.pop3proxy_servers:
             for server in options.pop3proxy_servers.split(','):
                 server = server.strip()
