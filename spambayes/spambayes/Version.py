@@ -137,11 +137,15 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
             server, port = server.split(':', 1)
         else:
             port = 8080
-        username = options["globals", "proxy_username"]
-        password = options["globals", "proxy_password"]
+        if options["globals", "proxy_username"]:
+            user_pass_string = "%s:%s" % \
+                               (options["globals", "proxy_username"],
+                                options["globals", "proxy_password"])
+        else:
+            user_pass_string = ""
         proxy_support = urllib2.ProxyHandler({"http" :
-                                              "http://%s:%s@%s:%d" % \
-                                              (username, password, server,
+                                              "http://%s@%s:%d" % \
+                                              (user_pass_string, server,
                                                port)})
         opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
         urllib2.install_opener(opener)
