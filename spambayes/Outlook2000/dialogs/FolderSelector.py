@@ -340,8 +340,8 @@ class FolderSelector(FolderSelector_Parent):
             # If single-select, the checked state is not used, just the
             # selected state.
             try:
-                h = win32gui.SendMessage(self.list, commctrl.TVM_GETSELECTEDITEM,
-                                         commctrl.TVGN_CARET, h)
+                h = win32gui.SendMessage(self.list, commctrl.TVM_GETNEXTITEM,
+                                         commctrl.TVGN_CARET, 0)
             except win32gui.error:
                 return
             info = self._GetLVItem(h)
