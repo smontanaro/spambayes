@@ -822,6 +822,34 @@ couple other tools, `POPFile <http://popfile.sourceforge.net/>`_ and `CRM114
 <http://crm114.sourceforge.net/>`_.
 
 
+How do I use a pickle for storage?
+----------------------------------
+
+If you don't want to use one of the dbm methods for storage (if you only
+have `dumbdbm <#my-database-keeps-getting-corrupted>`_, for example), or
+one of the SQL methods, you can use a pickle (of a giant in-memory Python
+dict).  A pickle will be relatively small, but slower, compared to using
+of the the dbm storage methods.
+
+To use a pickle, set the option "persistent_use_database" to False in your
+`configuration file <#how-do-i-configure-pop3proxy-imapfilter-etc-without-a-web-browser>`_,
+in the section "Storage" (if you have been using SpamBayes for a while,
+check that you don't have an old version of this option elsewhere in your
+configuration file, in the pop3proxy or hammiefilter sections).  You may
+also wish to change the name of the storage file (to end with "pck", for
+example), but this is not necessary - to do so, change the
+"persistent_storage_file" option (also in the "Storage" section).
+
+If you specify your database on the command line ("pop3proxy.py -d hammie.db",
+for example), then you should use the "-D" switch instead.  Note, however,
+that it is likely that these switches will change in a future release, and
+using the configuration file is a much safer option.
+
+Note that if you have an existing database, which is not a pickle, you can
+not keep using it - this will cause errors.  You need to either retrain
+from scratch, or use the dbExpImp script to convert it to a pickle.
+
+
 Known Problems & Workarounds
 ============================
 
@@ -839,7 +867,8 @@ You may be using the 'dumbdbm' system for your database.
 when nothing else is available.  It is not usually a good choice, and in
 SpamBayes' case, always the wrong one.  Some versions of dumbdbm have a bug
 that will cause database corruption, but you shouldn't be using it anyway,
-as it is very inefficient.  Instead, either use a pickle or install `pybsddb`_
+as it is very inefficient.  Instead, either
+`use a pickle <#how-do-i-use-a-pickle-for-storage>`_ or install `pybsddb`_
 (bsddb3) and use that instead.  If you are not sure which database systems
 you have available, and/or which one you are currently using, there is a
 script in the utilities folder called `which_database.py`_ that will display
