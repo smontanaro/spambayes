@@ -152,39 +152,58 @@ class HammieFilter(object):
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
         self.dbname, self.usedb = storage.database_type([])
+        self.h = None
+
+    def open(self, mode):
+        if self.h is None or self.mode != mode:
+            if self.h is not None:
+                if self.mode != 'r':
+                    self.h.store()
+                self.h.close()
+            self.mode = mode
+            self.h = hammie.open(self.dbname, self.usedb, self.mode)
+
+    def close(self):
+        if self.h is not None:
+            if self.mode != 'r':
+                self.h.store()
+            self.h.close()
+        self.h = None
+
+    __del__ = close
 
     def newdb(self):
-        h = hammie.open(self.dbname, self.usedb, 'n')
-        h.store()
+        self.open('n')
+        self.close()
         print >> sys.stderr, "Created new database in", self.dbname
 
     def filter(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'r')
-        return h.filter(msg)
+        self.open('r')
+        return self.h.filter(msg)
 
     def filter_train(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'c')
-        return h.filter(msg, train=True)
+        self.open('c')
+        return self.h.filter(msg, train=True)
 
     def train_ham(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'c')
-        h.train_ham(msg, True)
-        h.store()
+        self.open('c')
+        self.h.train_ham(msg, True)
+        self.h.store()
 
     def train_spam(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'c')
-        h.train_spam(msg, True)
-        h.store()
+        self.open('c')
+        self.h.train_spam(msg, True)
+        self.h.store()
 
     def untrain_ham(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'c')
-        h.untrain_ham(msg)
-        h.store()
+        self.open('c')
+        self.h.untrain_ham(msg)
+        self.h.store()
 
     def untrain_spam(self, msg):
-        h = hammie.open(self.dbname, self.usedb, 'c')
-        h.untrain_spam(msg)
-        h.store()
+        self.open('c')
+        self.h.untrain_spam(msg)
+        self.h.store()
 
 def main():
     h = HammieFilter()
