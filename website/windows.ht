@@ -28,6 +28,35 @@ troubleshooting.html</a> file that is installed
 with the plugin.
 </p>
 
+<h3>Compatibility</h3>
+
+<p>This table lists combinations of Windows and Outlook versions and how the
+Outlook plugin fares with them.</p>
+
+<p>
+<table border="1">
+<tr>
+<td>&nbsp;</td><td>Win98</td><td>WinMe</td><td>Win2k</td><td>WinXP Pro</td><td>WinXP Home</td>
+</tr>
+<tr>
+<td>Outlook 2000</td>
+    <td>works</td>  <!-- Win98 -->
+    <td>&nbsp;</td> <!-- WinMe -->
+    <td>works</td>  <!-- Win2k -->
+    <td>&nbsp;</td> <!-- WinXP Pro -->
+    <td>&nbsp;</td> <!-- WinXP Home -->
+</tr>
+<tr>
+<td>Outlook 2002 (XP)</td>
+    <td>&nbsp;</td>                 <!-- Win98 -->
+    <td>&nbsp;</td>		    <!-- WinMe -->
+    <td>&nbsp;</td>		    <!-- Win2k -->
+    <td>works w/ installer 002</td> <!-- WinXP Pro -->
+    <td>&nbsp;</td>		    <!-- WinXP Home -->
+</tr>
+</table>
+</p>
+
 <h2>Other Mail Clients</h2>
 
 <p>If you use any other mail client on Windows, you currently need to
