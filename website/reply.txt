@@ -47,8 +47,8 @@ how you get mail from a mail server.
 I'm having trouble installing SpamBayes.  Help!
 -----------------------------------------------
 
-Please ensure that you have the latest version.  As of 2004-06-26, this is
-1.0rc2 for both the source and for the binary installer (for the Outlook
+Please ensure that you have the latest version.  As of 2004-07-09, this is
+1.0 for both the source and for the binary installer (for the Outlook
 plug-in and sb_server). If you are still having trouble, try looking at the
 bug reports that are currently open:
 
