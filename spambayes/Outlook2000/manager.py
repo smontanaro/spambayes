@@ -5,6 +5,7 @@ import os
 import sys
 import errno
 import shutil
+import win32api, win32con
 
 import win32com.client
 import win32com.client.gencache
@@ -25,7 +26,6 @@ except NameError:
 try:
     if hasattr(sys, "frozen"):
         if sys.frozen == "dll":
-            import win32api
             this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
         else:
             # Don't think we will ever run as a .EXE, but...
@@ -208,10 +208,12 @@ class BayesManager:
         dest = os.path.join(self.data_directory, filename)
         if os.path.isfile(src) and not os.path.isfile(dest):
             if do_move:
-                shutil.move(src, dest)
+                # shutil in 2.2 and earlier does not contain 'move'
+                win32api.MoveFileEx(src, dest,
+                                    win32con.MOVEFILE_COPY_ALLOWED)
             else:
                 shutil.copyfile(src, dest)
-        
+
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
         for eid in folder_ids:
