@@ -403,7 +403,7 @@ class IMAPMessage(message.SBHeaderMessage):
             flags = data["FLAGS"]
             # The \Recent flag can be fetched, but cannot be stored
             # We must remove it from the list if it is there.
-            flags = re.sub(r"\\Recent ?|\\ ?Recent", "", flags)
+            flags = re.sub(r"\\Recent ?| ?\\Recent", "", flags)
         else:
             flags = None
 
