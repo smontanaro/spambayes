@@ -47,10 +47,17 @@ USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what cha
 test_suite_running = False
 test_suite_failure_request = None
 test_suite_failure = None
+# Set to the number of times we should fail, or None for all times.
+test_suite_failure_count = None 
 # Sometimes the test suite will request that we simulate MAPI errors.
 def help_test_suite(checkpoint_name):
+    global test_suite_failure_request, test_suite_failure_count
     if test_suite_running and \
        test_suite_failure_request == checkpoint_name:
+        if test_suite_failure_count:
+            test_suite_failure_count -= 1
+            if test_suite_failure_count==0:
+                test_suite_failure_request = None
         raise test_suite_failure[0], test_suite_failure[1]
 
 # Exceptions raised by this module.  Raw MAPI exceptions should never
