@@ -175,8 +175,9 @@ class IMAPMessage(message.SBHeaderMessage):
         # we use that.  Otherwise, we use the current time.
         message_date = self["Date"]
         if message_date is not None:
-            return imaplib.Time2Internaldate(\
-                       time.mktime(parsedate(message_date)))
+            parsed_date = parsedate(message_date)
+            if parsed_date is not None:
+                return imaplib.Time2Internaldate(time.mktime(parsed_date))
         else:
             return imaplib.Time2Internaldate(time.time())
 
@@ -194,12 +195,12 @@ class IMAPMessage(message.SBHeaderMessage):
         # we need to copy the flags as well
         response = imap.uid("FETCH", self.id, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
-        response_pattern = r"[\d]+ \(UID [\w]+ FLAGS (\([\\\w]+\)) "
-        response_pattern += r'INTERNALDATE ["]?([\w\-: ]+)["]?\)'
+        response_pattern = r"[\d]+ \(UID [\w]+ FLAGS (\([\\\w]*\)) "
+        response_pattern += r'INTERNALDATE ["]?([\w\-\+: ]+)["]?\)'
         mo = re.match(response_pattern, response[1][0])
         if mo is None:
             msg_time = self.extractTime()
-            flags = None
+            flags = ""
         else:
             flags = mo.group(1)
             msg_time = mo.group(2)
@@ -226,13 +227,23 @@ class IMAPMessage(message.SBHeaderMessage):
         # doesn't work reliably anyway.  We instead search for a special
         # header that we add for this explicit purpose.
         imap.SelectFolder(self.folder.name, False)
-        response = imap.uid("SEARCH", "HEADER", "X-Spambayes-IMAP-OldID",
+        response = imap.uid("SEARCH", "(HEADER)", "X-Spambayes-IMAP-OldID",
                             old_id)
         self._check(response, 'search')
         new_id = response[1][0]
+        # This works with NetMail, but not with Courier.  Very strange,
+        # and needs more examination.  For the moment, if the search
+        # turns up empty, we make the very big assumption that the new
+        # message is the last one with a recent flag
+        if new_id == "":
+            response = imap.uid("SEARCH", "(RECENT)")
+            new_id = response[1][0]
+            if new_id.find(' ') > -1:
+                ids = new_id.split(' ')
+                new_id = ids[-1]
 
         # now that we know the new id, we need to correct the flags
-        if flags != None:
+        if flags != "":
             response = imap.uid("STORE", new_id, "+FLAGS.SILENT", flags)
             self._check(response, "store flags")
 

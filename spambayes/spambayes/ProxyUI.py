@@ -71,37 +71,34 @@ from email.Iterators import typed_subpart_iterator
 
 global state
 
-# This control dictionary maps http request parameters and template fields
-# to ConfigParser sections and options.  The key matches both the input
-# field that corresponds to a section/option, and also the HTML template
-# variable that is used to display the value of that section/option.
-parm_ini_map = \
-   {'hamcutoff':    ('Categorization',  'ham_cutoff'),
-    'spamcutoff':   ('Categorization',  'spam_cutoff'),
-    'dbname':       ('pop3proxy',       'persistent_storage_file'),
-    'p3servers':    ('pop3proxy',       'servers'),
-    'p3ports':      ('pop3proxy',       'ports'),
-    'p3notateto':   ('pop3proxy',       'notate_to'),
-    'p3notatesub':  ('pop3proxy',       'notate_subject'),
-    'p3cachemsg':   ('pop3proxy',       'cache_messages'),
-    'p3addid':      ('pop3proxy',       'add_mailid_to'),
-    'p3stripid':    ('pop3proxy',       'strip_incoming_mailids'),
-    'p3prob':       ('pop3proxy',       'include_prob'),
-    'p3thermostat': ('pop3proxy',       'include_thermostat'),
-    'p3evidence':   ('pop3proxy',       'include_evidence'),
-    'smtpservers':  ('smtpproxy',       'servers'),
-    'smtpports':    ('smtpproxy',       'ports'),
-    'smtpham':      ('smtpproxy',       'ham_address'),
-    'smtpspam':     ('smtpproxy',       'spam_address'),
-   }
-
-display = ('POP3 Proxy Options', 'p3servers', 'p3ports', 'p3cachemsg',
-           'Header Options', 'p3notateto', 'p3notatesub', 
-           'p3prob', 'p3thermostat', 'p3evidence', 
-           'p3addid', 'p3stripid',
-           'SMTP Proxy Options', 'smtpservers', 'smtpports', 'smtpham',
-           'smtpspam',
-           'Statistics Options', 'dbname', 'hamcutoff', 'spamcutoff')
+# These are the options that will be offered on the configuration page.
+# If the option is None, then the entry is a header and the following
+# options will appear in a new box on the configuration page.
+# These are also used to generate http request parameters and template
+# fields/variables.
+parm_ini_map = (
+    ('POP3 Proxy Options',  None),
+    ('pop3proxy',           'servers'),
+    ('pop3proxy',           'ports'),
+    ('pop3proxy',           'cache_messages'),
+    ('Header Options',      None),
+    ('pop3proxy',           'notate_to'),
+    ('pop3proxy',           'notate_subject'),
+    ('pop3proxy',           'include_prob'),
+    ('pop3proxy',           'include_thermostat'),
+    ('pop3proxy',           'include_evidence'),
+    ('pop3proxy',           'add_mailid_to'),
+    ('pop3proxy',           'strip_incoming_mailids'),
+    ('SMTP Proxy Options',  None),
+    ('smtpproxy',           'servers'),
+    ('smtpproxy',           'ports'),
+    ('smtpproxy',           'ham_address'),
+    ('smtpproxy',           'spam_address'),
+    ('Statistics Options',  None),
+    ('pop3proxy',           'persistent_storage_file'),
+    ('Categorization',      'ham_cutoff'),
+    ('Categorization',      'spam_cutoff'),
+)
 
 
 class ProxyUserInterface(UserInterface.UserInterface):
@@ -110,7 +107,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def __init__(self, proxy_state, state_recreator):
         global state
         UserInterface.UserInterface.__init__(self, proxy_state.bayes,
-                                             parm_ini_map, display)
+                                             parm_ini_map)
         state = proxy_state
         self.state_recreator = state_recreator # ugly
 
@@ -463,3 +460,45 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
         # Recreate the state.
         self.state_recreator()
+
+    def verifyInput(self, parms):
+        '''Check that the given input is valid.'''
+        # Most of the work here is done by the parent class, but
+        # we have a few extra checks
+        errmsg = UserInterface.UserInterface.verifyInput(self, parms)
+        
+        # check for equal number of pop3servers and ports
+        slist = parms['pop3proxy_servers'].split(',')
+        plist = parms['pop3proxy_ports'].split(',')
+        if len(slist) != len(plist):
+            errmsg += '<li>The number of POP3 proxy ports specified ' + \
+                      'must match the number of servers specified</li>\n'
+
+        # check for duplicate ports
+        plist.sort()
+        for p in range(len(plist)-1):
+            try:
+                if plist[p] == plist[p+1]:
+                    errmsg += '<li>All POP3 port numbers must be unique</li>'
+                    break
+            except IndexError:
+                pass
+
+        # check for equal number of smtpservers and ports
+        slist = parms['smtpproxy_servers'].split(',')
+        plist = parms['smtpproxy_ports'].split(',')
+        if len(slist) != len(plist):
+            errmsg += '<li>The number of SMTP proxy ports specified ' + \
+                      'must match the number of servers specified</li>\n'
+
+        # check for duplicate ports
+        plist.sort()
+        for p in range(len(plist)-1):
+            try:
+                if plist[p] == plist[p+1]:
+                    errmsg += '<li>All SMTP port numbers must be unique</li>'
+                    break
+            except IndexError:
+                pass
+
+        return errmsg

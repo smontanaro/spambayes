@@ -2,6 +2,8 @@
 <html>
 <head>
 <title id="title">Spambayes User Interface</title>
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="-1" />
 <style>
 body { font: 90% arial, swiss, helvetica; margin: 0 }
 table { font: 90% arial, swiss, helvetica }
@@ -135,9 +137,11 @@ a:hover { color: #6040ff }
     <td style='width: 6ex'>&nbsp;&nbsp;&nbsp;</td>
     <td valign='top'>
         <img src='config.gif' width='40' height='40' align='left'/>
+        <span id="configurationLink">
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your Spambayes<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;system using the
-            <a href='config'>Configuration page</a>.</td>
+            <a href='config'>Configuration page</a>.
+        </span></td>
     </tr>
     </table>
 
@@ -361,7 +365,7 @@ a:hover { color: #6040ff }
     </span>
 
     <center>
-      <input type="submit" name="how" value="Save"/>
+      <input id="config_submit" type="submit" name="how" value="Save"/>
     </center>
 
     </FORM>

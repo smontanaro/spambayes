@@ -60,46 +60,42 @@ from Options import options, optionsPathname
 
 global classifier
 
-# This control dictionary maps http request parameters and template fields
-# to ConfigParser sections and options.  The key matches both the input
-# field that corresponds to a section/option, and also the HTML template
-# variable that is used to display the value of that section/option.
-parm_map = \
-   {'hamcutoff':    ('Categorization',  'ham_cutoff'),
-    'spamcutoff':   ('Categorization',  'spam_cutoff'),
-    'dbname':       ('pop3proxy',       'persistent_storage_file'),
-    'imapserver':   ('imap',            'server'),
-    'imapport':     ('imap',            'port'),
-    'imapusername': ('imap',            'username'),
-    'imappassword': ('imap',            'password'),
-    'imapssl':      ('imap',            'use_ssl'),
-    'p3notateto':   ('pop3proxy',       'notate_to'),
-    'p3notatesub':  ('pop3proxy',       'notate_subject'),
-    'p3addid':      ('pop3proxy',       'add_mailid_to'),
-    'p3stripid':    ('pop3proxy',       'strip_incoming_mailids'),
-    'p3prob':       ('pop3proxy',       'include_prob'),
-    'p3thermostat': ('pop3proxy',       'include_thermostat'),
-    'p3evidence':   ('pop3proxy',       'include_evidence'),
-   }
-
-display = ('IMAP Options', 'imapserver', 'imapport', 'imapusername',
-           # to display, or not to display; that is the question
-           # if we show this here, it's in plain text for everyone to
-           # see (and worse - if we don't restrict connections to
-           # localhost, it's available for the world to see)
-           # on the other hand, we have to be able to enter it somehow...
-           'imappassword', 'imapssl',
-           'Header Options', 'p3notateto', 'p3notatesub', 
-           'p3prob', 'p3thermostat', 'p3evidence', 
-           'p3addid', 'p3stripid',
-           'Statistics Options', 'dbname', 'hamcutoff', 'spamcutoff')
+# These are the options that will be offered on the configuration page.
+# If the option is None, then the entry is a header and the following
+# options will appear in a new box on the configuration page.
+# These are also used to generate http request parameters and template
+# fields/variables.
+parm_map = (
+    ('IMAP Options',          None),
+    ('imap',                  'server'),
+    ('imap',                  'username'),
+    # to display, or not to display; that is the question!
+    # if we show this here, it's in plain text for everyone to
+    # see (and worse - if we don't restrict connections to
+    # localhost, it's available for the world to see)
+    # on the other hand, we have to be able to enter it somehow...
+    ('imap',                  'password'),
+    ('imap',                  'use_ssl'),
+    ('Header Options',        None),
+    ('pop3proxy',             'notate_to'),
+    ('pop3proxy',             'notate_subject'),
+    ('pop3proxy',             'include_prob'),
+    ('pop3proxy',             'include_thermostat'),
+    ('pop3proxy',             'include_evidence'),
+    ('pop3proxy',             'add_mailid_to'),
+    ('pop3proxy',             'strip_incoming_mailids'),
+    ('Statistics Options',    None),
+    ('pop3proxy',             'persistent_storage_file'),
+    ('Categorization',        'ham_cutoff'),
+    ('Categorization',        'spam_cutoff'),
+)
 
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
 
     def __init__(self, cls, imap):
         global classifier
-        UserInterface.UserInterface.__init__(self, cls, parm_map, display)
+        UserInterface.UserInterface.__init__(self, cls, parm_map)
         classifier = cls
         self.imap = imap
 
@@ -109,6 +105,10 @@ class IMAPUserInterface(UserInterface.UserInterface):
         stateDict.update(classifier.__dict__)
         statusTable = self.html.statusTable.clone()
         del statusTable.proxyDetails
+        # This could be a bit more modular
+        statusTable.configurationLink += """You can also <a href=
+        'filterfolders'>configure folders to filter</a> and <a href=
+        'trainingfolders'>Configure folders to train</a>"""
         content = (self._buildBox('Status and Configuration',
                                   'status.gif', statusTable % stateDict)+
                    self._buildTrainBox() +
@@ -134,25 +134,68 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onSave(self, how):
         self.imap.logout(False) # never expunge from the web ui
         UserInterface.UserInterface.onSave(self, how)
-        
-    def onSelectfolders(self):
+
+    def onFilterfolders(self):
         available_folders = self._folder_list()
         content = self.html.configForm.clone()
         content.configFormContent = ""
         content.introduction = """This page allows you to change which
-        folders the filter works with."""
+        folders are filtered, and where filtered mail ends up."""
+        content.config_submit.value = "Save Filter Folders"
         content.optionsPathname = optionsPathname
 
         for opt in ("unsure_folder", "spam_folder",
-                    "filter_folders", "ham_train_folders",
+                    "filter_folders"):
+            folderBox = self._buildFolderBox("imap", opt, available_folders)
+            content.configFormContent += folderBox
+
+        self._writePreamble("Select Filter Folders")
+        self.write(content)
+        self._writePostamble()
+
+    def onTrainingfolders(self):
+        available_folders = self._folder_list()
+        content = self.html.configForm.clone()
+        content.configFormContent = ""
+        content.introduction = """This page allows you to change which
+        folders contain mail to train Spambayes."""
+        content.config_submit.value = "Save Training Folders"
+        content.optionsPathname = optionsPathname
+
+        for opt in ("ham_train_folders",
                     "spam_train_folders"):
             folderBox = self._buildFolderBox("imap", opt, available_folders)
             content.configFormContent += folderBox
 
-        self._writePreamble("Select Folders")
+        self._writePreamble("Select Training Folders")
         self.write(content)
         self._writePostamble()
 
+    def onChangeopts(self, **parms):
+        backup = self.parm_ini_map
+        print parms
+        if parms["how"] == "Save Training Folders" or \
+           parms["how"] == "Save Filter Folders":
+            del parms["how"]
+            self.parm_ini_map = ()
+            for opt, value in parms.items():
+                del parms[opt]
+                # Under strange circumstances this could break,
+                # so if we can think of a better way to do this,
+                # that would be nice.
+                if opt[-len(value):] == value:
+                    opt = opt[:-len(value)]
+                self.parm_ini_map += ("imap", opt),
+                key = "imap_" + opt
+                if parms.has_key(key):
+                    parms[key] += ',' + value
+                else:
+                    parms[key] = value
+        print self.parm_ini_map
+        print parms
+        UserInterface.UserInterface.onChangeopts(self, **parms)
+        self.parm_ini_map = backup
+        
     def _buildFolderBox(self, section, option, available_folders):
         folderTable = self.html.configTable.clone()
         del folderTable.configTextRow1
@@ -172,7 +215,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
             folderRow.folderBox.value = folder
             folderRow.folderName = folder
             if options.multiple_values_allowed(section, option):
-                folderRow.folderBox.name += ',' + folder
+                folderRow.folderBox.name += folder
             else:
                 folderRow.folderBox.type = "radio"
             current_options = ',' + options[section, option] + ','
@@ -194,10 +237,10 @@ class IMAPUserInterface(UserInterface.UserInterface):
             r = re.compile(r"\(([\w\\ ]*)\) ")
             m = r.search(fol)
             name_attributes = fol[:m.end()-1]
-            folder_delimiter = fol[m.end()+1:m.end()+2]
+            self.folder_delimiter = fol[m.end()+1:m.end()+2]
             # a bit of a hack, but we really need to know if this is
             # the case
-            if folder_delimiter == ',':
+            if self.folder_delimiter == ',':
                 print """WARNING: Your imap server uses commas as the folder
                 delimiter.  This may cause unpredictable errors."""
             folders.append(fol[m.end()+5:-1])
