@@ -36,11 +36,11 @@ class SpamBayesGenerator(Skeleton, SpamBayesSidebar, Banner):
         p.sidebar.append(BLANKCELL)
         # it is important not to have newlines between the img tag and the end
         # end center tags, otherwise layout gets messed up
-        p.sidebar.append(('%(rootdir)s', '''
+        p.sidebar.append(('http://sourceforge.net', '''
 <div align="right">
     <img alt="" border="0"
          src="http://sourceforge.net/sflogo.php?group_id=31674&type=1"></div>
-''' % self.__d))
+'''))
         self.__linkfixer.massage(p.sidebar, self.__d)
         SpamBayesSidebar.__init__(self, p.sidebar)
         #

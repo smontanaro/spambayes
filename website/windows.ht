@@ -6,10 +6,27 @@ Author: spambayes
 
 <h2>Outlook 2000/Outlook XP</h2>
 
-<p>If you are using Outlook 2000 or Outlook XP you should be able to simply
-download and run the <a
+<p>If you are using Outlook 2000 or Outlook XP (<strong>not</strong> Outlook Express)
+you should be able to simply download and run the <a
 href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-002.exe">Outlook
 plug-in installer</a>.  A separate Python installation is not necessary.</p>
+
+<p>The Outlook add-in was developed mostly using Outlook 2000 on Windows 2000
+and Win98SE, in Outlook's Internet Mail Only configuration, and not using
+Exchange Server.  Those combinations are the best tested (further testing
+has been carried out with Exchange Server, and all seems to work, however,
+Exchange is complicated...), and problems with other combinations are known.
+In particular, there are known problems with the installer using Windows98,
+WindowsME, and Outlook XP (see the <a href="applications.html">applications</a>
+page for more).</p>
+<p>If you have a problem, the best way to help make progress is to look for
+a similar existing <a href="http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse">bug
+report</a> and add any useful information you may have,
+or to open a new bug report if your problem seems to be a new one.
+Please be sure to go through the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html"">
+troubleshooting.html</a> file that is installed
+with the plugin.
+</p>
 
 <h2>Other Mail Clients</h2>
 

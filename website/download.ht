@@ -15,7 +15,7 @@ Download version 1.0a2 from the sourceforge <a href="https://sourceforge.net/pro
 </ul>
 <p>Once you've downloaded and unpacked the source archive, do the regular <tt>setup.py build; setup.py install</tt> dance, then:
 <ul>
-<li>if you're running Outlook2000, change to the Outlook2000 directory and run '<tt>addin.py</tt>'. See the 'about.html' file in the Outlook2000 directory for more.
+<li>if you're running Outlook2000, change to the Outlook2000 directory and run '<tt>addin.py</tt>'. See the '<tt>about.html</tt>' file in the Outlook2000 directory for more.
 <li>otherwise, consult the <tt>INTEGRATION.txt</tt> file in the package and choose the method that suits your setup best.
 </ul>
 </p>

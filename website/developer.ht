@@ -5,11 +5,11 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with either Python 2.2.2, Python 2.3 (currently in alpha), 
+<p>This project works with either Python 2.2.2, Python 2.3 (currently in beta), 
 or on the bleeding edge of python code,
 available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
 sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
-likely to do so.  </p>
+likely to do so.</p>
 <p>If you're running Python 2.2 or 2.2.1, you'll need to separately fetch
 the latest <a href="http://mimelib.sf.net">email package</a>. You can get
 this from  
@@ -29,7 +29,7 @@ or even most cases.</p>
 available as links from the <a href="docs.html">documentation</a> page.
 
 <h3>So what needs to be done</h3>
-<p>Currently (April) work is now being focused on improving deployment
+<p>Currently (May) work is now being focused on improving deployment
 of the system (actually building the applications and the code so that
 Tim's sister &lt;wink&gt; can use the system), with the aim of eventually
 putting out a beta (or even full!) release.  There is still a certain

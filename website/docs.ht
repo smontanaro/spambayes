@@ -37,10 +37,10 @@ Author: spambayes
 <dt>false positive<dd>a ham that's incorrectly classified as spam.
 <dt>f-n, FN<dd>(abbrev.) false negative
 <dt>f-p, FP<dd>(abbrev.) false positive
-<dt>corpus<dd>in this context, a body of messages. Usually referring to a
-training database.
+<dt>corpus<dd> in this context, a body of messages. Usually referring to a
+training database. (plural is corpora).
 <dt>hapax, hapax legomenon <dd>a word or form occuring only once in a 
-document or corpus. (plural is hapax legomena)
+document or corpus. (plural is hapax legomena).
 <dt>training<dd>The process of feeding spambayes some sample spam and ham messages, to teach it what to look for.
 <dt>Bayesian<dd>A form of statistical analysis used (in a form) in Paul Graham's
 initial "Plan for Spam" approach. Now used as a kind of catch-all term for 
