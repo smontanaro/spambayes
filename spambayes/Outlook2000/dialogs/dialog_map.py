@@ -74,17 +74,17 @@ class MsSliderProcessor(EditNumberProcessor):
         EditNumberProcessor.__init__(self, window, control_ids, option)
     def InitSlider(self):
         slider = self.GetControl(self.slider_id)
-        win32gui.SendMessage(slider, commctrl.TBM_SETRANGE, 0, MAKELONG(0, 10))
+        win32gui.SendMessage(slider, commctrl.TBM_SETRANGE, 0, MAKELONG(0, 20))
         win32gui.SendMessage(slider, commctrl.TBM_SETLINESIZE, 0, 1)
         win32gui.SendMessage(slider, commctrl.TBM_SETPAGESIZE, 0, 1)
-        win32gui.SendMessage(slider, commctrl.TBM_SETTICFREQ, 1, 0)
+        win32gui.SendMessage(slider, commctrl.TBM_SETTICFREQ, 2, 0)
         self.UpdateSlider_FromEdit()
     def OnMessage(self, msg, wparam, lparam):
         slider = self.GetControl(self.slider_id)
         if slider == lparam:
             slider_pos = win32gui.SendMessage(slider, commctrl.TBM_GETPOS, 0, 0)
-            slider_pos = int(slider_pos)
-            str_val = str(slider_pos)
+            slider_pos = float(slider_pos)
+            str_val = str(slider_pos*.5)
             edit = self.GetControl()
             win32gui.SendMessage(edit, win32con.WM_SETTEXT, 0, str_val)
     def UpdateSlider_FromEdit(self):
@@ -92,13 +92,13 @@ class MsSliderProcessor(EditNumberProcessor):
         try:
             # Get as float so we dont fail should the .0 be there, but
             # then convert to int as the slider only works with ints
-            val = int(float(self.option.get()/1000))
+            val = int(float(self.option.get())/500.0)
         except ValueError:
             return
         win32gui.SendMessage(slider, commctrl.TBM_SETPOS, 1, val)
 
     def UpdateControl_FromValue(self):
-        value = self.option.get()/1000
+        value = float(self.option.get())/1000.0
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0, str(value))
         self.UpdateSlider_FromEdit()
     def UpdateValue_FromControl(self):
@@ -107,10 +107,10 @@ class MsSliderProcessor(EditNumberProcessor):
         nchars = win32gui.SendMessage(self.GetControl(), win32con.WM_GETTEXT,
                                       buf_size, buf)
         str_val = buf[:nchars]
-        val = int(str_val)
-        if val < 0 or val > 10:
+        val = float(str_val)
+        if val < 0.0 or val > 10.0:
             raise ValueError, "Value must be between 0 and 10"
-        self.SetOptionValue(val*1000)
+        self.SetOptionValue(int(val*1000.0))
 
     
 class FilterStatusProcessor(ControlProcessor):
