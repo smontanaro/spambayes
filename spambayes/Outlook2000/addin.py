@@ -519,7 +519,7 @@ class OutlookAddin:
                 num += 1
             # See if perf hurts anyone too much.
             print "Processing %d missed spam in folder '%s' took %gms" \
-                  % (num, folder.name, clock()-start*1000)
+                  % (num, folder.name, (clock()-start)*1000)
 
     def FiltersChanged(self):
         # Create a notification hook for all folders we filter.
