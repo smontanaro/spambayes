@@ -737,16 +737,11 @@ def run():
     print get_version_string("IMAP Filter")
     print "and engine %s.\n" % (get_version_string(),)
 
-    if not (doClassify or doTrain or launchUI):
-        print "-b, -c, or -t operands must be specified."
-        print "Please use the -h operand for help."
-        sys.exit()
-
     if (launchUI and (doClassify or doTrain)):
-        print """
--b option is exclusive with -c and -t options.
+        print """-b option is exclusive with -c and -t options.
 The user interface will be launched, but no classification
-or training will be performed."""
+or training will be performed.
+"""
 
     bdbname = os.path.expanduser(bdbname)
     
@@ -793,7 +788,7 @@ or training will be performed."""
     imap_filter = IMAPFilter(classifier)
 
     # Web interface
-    if launchUI:
+    if not (doClassify or doTrain) or launchUI:
         if server != "":
             imap = IMAPSession(server, port, imapDebug, doExpunge)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
