@@ -7,6 +7,9 @@ Classes:
     DBDictClassifier - Classifier that uses a shelve db
     PGClassifier - Classifier that uses postgres
     mySQLClassifier - Classifier that uses mySQL
+    CBDClassifier - Classifier that uses CDB
+    ZODBClassifier - Classifier that uses ZODB
+    ZEOClassifier - Classifier that uses ZEO
     Trainer - Classifier training observer
     SpamTrainer - Trainer for spam
     HamTrainer - Trainer for ham
@@ -35,14 +38,13 @@ Abstract:
     initialize as the appropriate type of Trainer
 
 To Do:
-    o ZODBClassifier
     o Would Trainer.trainall really want to train with the whole corpus,
         or just a random subset?
     o Suggestions?
 
     '''
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -70,6 +72,7 @@ from spambayes.Options import options, get_pathname_option
 import cPickle as pickle
 import errno
 import shelve
+from spambayes import cdb
 from spambayes import dbmstorage
 
 # Make shelve use binary pickles by default.
@@ -146,7 +149,7 @@ class PickledClassifier(classifier.Classifier):
             fp.close() 
         except IOError, e: 
             if options["globals", "verbose"]: 
-                print 'Failed update: ' + str(e)
+                print >> sys.stderr, 'Failed update: ' + str(e)
             if fp is not None: 
                 os.remove(tmp) 
             raise
@@ -594,6 +597,166 @@ class mySQLClassifier(SQLClassifier):
             return None
 
 
+class CDBClassifier(classifier.Classifier):
+    """A classifier that uses a CDB database.
+
+    A CDB wordinfo database is quite small and fast but is slow to update.
+    It is appropriate if training is done rarely (e.g. monthly or weekly
+    using archived ham and spam).
+    """
+    def __init__(self, db_name):
+        classifier.Classifier.__init__(self)
+        self.db_name = db_name
+        self.statekey = STATE_KEY
+        self.load()
+
+    def _WordInfoFactory(self, counts):
+        # For whatever reason, WordInfo's cannot be created with
+        # constructor ham/spam counts, so we do the work here.
+        # Since we're doing the work, we accept the ham/spam count
+        # in the form of a comma-delimited string, as that's what
+        # we get.
+        ham, spam = counts.split(',')
+        wi = classifier.WordInfo()
+        wi.hamcount = int(ham)
+        wi.spamcount = int(spam)
+        return wi
+
+    def load(self):
+        if os.path.exists(self.db_name):
+            db = open(self.db_name, "rb")
+            data = dict(cdb.Cdb(db))
+            db.close()
+            self.nham, self.nspam = [int(i) for i in \
+                                     data[self.statekey].split(',')]
+            self.wordinfo = dict([(k, self._WordInfoFactory(v)) \
+                                  for k, v in data.iteritems() \
+                                      if k != self.statekey])
+            if options["globals", "verbose"]:
+                print >> sys.stderr, ('%s is an existing CDB,'
+                                      ' with %d ham and %d spam') \
+                                      % (self.db_name, self.nham,
+                                         self.nspam)
+        else:
+            if options["globals", "verbose"]:
+                print >> sys.stderr, self.db_name, 'is a new CDB'
+            self.wordinfo = {}
+            self.nham = 0
+            self.nspam = 0
+
+    def store(self):
+        items = [(self.statekey, "%d,%d" % (self.nham, self.nspam))]
+        for word, wi in self.wordinfo.iteritems():
+            items.append((word, "%d,%d" % (wi.hamcount, wi.spamcount)))
+        db = open(self.db_name, "wb")
+        cdb.cdb_make(db, items)
+        db.close()
+
+    def close(self):
+        # We keep no resources open - nothing to do.
+        pass
+
+
+# If ZODB isn't available, then this class won't be useable, but we
+# still need to be able to import this module.  So we pretend that all
+# is ok.
+try:
+    Persistent
+except NameError:
+    Persistent = object
+class _PersistentClassifier(classifier.Classifier, Persistent):
+    def __init__(self):
+        import ZODB
+        from BTrees.OOBTree import OOBTree
+
+        classifier.Classifier.__init__(self)
+        self.wordinfo = OOBTree()
+
+class ZODBClassifier(object):
+    def __init__(self, db_name):
+        self.statekey = STATE_KEY
+        self.db_name = db_name
+        self.load()
+
+    def __getattr__(self, att):
+        # We pretend that we are a classifier subclass.
+        if hasattr(self.classifier, att):
+            return getattr(self.classifier, att)
+        raise AttributeError("ZODBClassifier object has no attribute '%s'"
+                             % (att,))
+
+    def __setattr__(self, att, value):
+        # For some attributes, we change the classifier instead.
+        if att in ["nham", "nspam"]:
+            setattr(self.classifier, att, value)
+        else:
+            object.__setattr__(self, att, value)
+
+    def create_storage(self):
+        import ZODB
+        from ZODB.FileStorage import FileStorage
+        self.storage = FileStorage(self.db_name)
+
+    def load(self):
+        import ZODB
+        self.create_storage()
+        self.db = ZODB.DB(self.storage)
+        root = self.db.open().root()
+        self.classifier = root.get(self.db_name)
+        if self.classifier is None:
+            # There is no classifier, so create one.
+            if options["globals", "verbose"]:
+                print >> sys.stderr, self.db_name, 'is a new ZODB'
+            self.classifier = root[self.db_name] = _PersistentClassifier()
+            get_transaction().commit()
+        else:
+            # It seems to me that the persistent classifier should store
+            # the nham and nspam values, but that doesn't appear to be the
+            # case, so work around that.  This can be removed once I figure
+            # out the problem.
+            self.nham, self.nspam = self.classifier.wordinfo[self.statekey]
+            if options["globals", "verbose"]:
+                print >> sys.stderr, '%s is an existing ZODB, with %d ' \
+                      'ham and %d spam' % (self.db_name, self.nham,
+                                           self.nspam)
+        
+    def store(self):
+        # It seems to me that the persistent classifier should store
+        # the nham and nspam values, but that doesn't appear to be the
+        # case, so work around that.  This can be removed once I figure
+        # out the problem.
+        self.classifier.wordinfo[self.statekey] = (self.nham, self.nspam)
+        get_transaction().commit()
+
+    def close(self):
+        self.db.close()
+        self.storage.close()
+
+
+class ZEOClassifier(ZODBClassifier):
+    def __init__(self, data_source_name):
+        source_info = data_source_name.split()
+        self.host = "localhost"
+        self.port = None
+        db_name = "SpamBayes"
+        for info in source_info:
+            if info.startswith("host"):
+                self.host = info[5:]
+            elif info.startswith("port"):
+                self.port = int(info[5:])
+            elif info.startswith("dbname"):
+                db_name = info[7:]
+        ZODBClassifier.__init__(self, db_name)
+
+    def create_storage(self):
+        from ZEO.ClientStorage import ClientStorage
+        if self.port:
+            addr = self.host, self.port
+        else:
+            addr = self.host
+        self.storage = ClientStorage(addr)
+
+
 # Flags that the Trainer will recognise.  These should be or'able integer
 # values (i.e. 1, 2, 4, 8, etc.).
 NO_TRAINING_FLAG = 1
@@ -682,12 +845,15 @@ class MutuallyExclusiveError(Exception):
     def __str__(self):
         return "Only one type of database can be specified"
 
-# values are classifier class and True if it accepts a mode
-# arg, False otherwise
-_storage_types = {"dbm" : (DBDictClassifier, True),
-                  "pickle" : (PickledClassifier, False),
-                  "pgsql" : (PGClassifier, False),
-                  "mysql" : (mySQLClassifier, False),
+# values are classifier class, True if it accepts a mode
+# arg, and True if the argument is a pathname
+_storage_types = {"dbm" : (DBDictClassifier, True, True),
+                  "pickle" : (PickledClassifier, False, True),
+                  "pgsql" : (PGClassifier, False, False),
+                  "mysql" : (mySQLClassifier, False, False),
+                  "cdb" : (CDBClassifier, False, True),
+                  "zodb" : (ZODBClassifier, False, True),
+                  "zeo" : (ZEOClassifier, False, False),
                   }
 
 def open_storage(data_source_name, db_type="dbm", mode=None):
@@ -695,12 +861,9 @@ def open_storage(data_source_name, db_type="dbm", mode=None):
 
     By centralizing this code here, all the applications will behave
     the same given the same options.
-
-    db_type must be one of the following strings:
-      dbm, pickle, pgsql, mysql
     """
     try:
-        klass, supports_mode = _storage_types[db_type]
+        klass, supports_mode, unused = _storage_types[db_type]
     except KeyError:
         raise NoSuchClassifierError(db_type)
     try:
@@ -726,7 +889,8 @@ _storage_options = { "-p" : "pickle",
                      "-d" : "dbm",
                      }
 
-def database_type(opts):
+def database_type(opts, default_type=("Storage", "persistent_use_database"),
+                  default_name=("Storage", "persistent_storage_file")):
     """Return the name of the database and the type to use.  The output of
     this function can be used as the db_type parameter for the open_storage
     function, for example:
@@ -751,12 +915,20 @@ def database_type(opts):
             else:
                 raise MutuallyExclusiveError()
     if nm is None and typ is None:
-        typ = options["Storage", "persistent_use_database"]
+        typ = options[default_type]
+        # Backwards compatibility crud.
         if typ is True or typ == "True":
             typ = "dbm"
         elif typ is False or typ == "False":
             typ = "pickle"
-        nm = get_pathname_option("Storage", "persistent_storage_file")
+        try:
+            unused, unused, is_path = _storage_types[typ]
+        except KeyError:
+            raise NoSuchClassifierError(db_type)
+        if is_path:
+            nm = get_pathname_option(*default_name)
+        else:
+            nm = options[default_name]
     return nm, typ
 
 if __name__ == '__main__':

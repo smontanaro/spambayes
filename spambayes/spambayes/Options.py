@@ -517,7 +517,7 @@ defaults = {
      (i.e. changing "True" to "dbm" and "False" to "pickle", or sticking
      with the default.""",
      # True == "dbm", False == "pickle", "True" == "dbm", "False" == "pickle"
-     ("mysql", "pgsql", "dbm", "pickle", "True", "False", True, False), RESTORE),
+     ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle", "True", "False", True, False), RESTORE),
 
     ("persistent_storage_file", "Storage file name", "hammie.db",
      """Spambayes builds a database of information that it gathers
