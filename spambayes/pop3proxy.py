@@ -171,7 +171,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         self.response = ''
         self.set_terminator('\r\n')
         self.command = ''           # The POP3 command being processed...
-        self.args = ''              # ...and its arguments
+        self.args = []              # ...and its arguments
         self.isClosing = False      # Has the server closed the socket?
         self.seenAllHeaders = False # For the current RETR or TOP
         self.startTime = 0          # (ditto)
@@ -253,10 +253,11 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         self.serverSocket.push(self.request + '\r\n')
         if self.request.strip() == '':
             # Someone just hit the Enter key.
-            self.command = self.args = ''
+            self.command = ''
+            self.args = []
         else:
             # A proper command.
-            splitCommand = self.request.strip().split(None, 1)
+            splitCommand = self.request.strip().split()
             self.command = splitCommand[0].upper()
             self.args = splitCommand[1:]
             self.startTime = time.time()
@@ -283,7 +284,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
 
         # Reset.
         self.command = ''
-        self.args = ''
+        self.args = []
         self.isClosing = False
         self.seenAllHeaders = False
 
@@ -395,7 +396,7 @@ class BayesProxy(POP3ProxyBase):
             lines = response.split('\r\n')
             outputLines = [lines[0]]
             for line in lines[1:]:
-                match = re.search('^(\d+)\s+(\d+)', line)
+                match = re.search(r'^(\d+)\s+(\d+)', line)
                 if match:
                     number = int(match.group(1))
                     size = int(match.group(2)) + HEADER_SIZE_FUDGE_FACTOR
@@ -404,10 +405,12 @@ class BayesProxy(POP3ProxyBase):
             return '\r\n'.join(outputLines)
         else:
             # Single line.
-            match = re.search('^\+OK\s+(\d+)(.*)\r\n', response)
+            match = re.search(r'^\+OK\s+(\d+)\s+(\d+)(.*)\r\n', response)
             if match:
-                size = int(match.group(1)) + HEADER_SIZE_FUDGE_FACTOR
-                return "+OK %d%s\r\n" % (size, match.group(2))
+                messageNumber = match.group(1)
+                size = int(match.group(2)) + HEADER_SIZE_FUDGE_FACTOR
+                trailer = match.group(3)
+                return "+OK %s %s%s\r\n" % (messageNumber, size, trailer)
             else:
                 return response
 
@@ -436,7 +439,11 @@ class BayesProxy(POP3ProxyBase):
 
                 msg.addSBHeaders(prob, clues)
 
-                if command == 'RETR':
+                # Check for "RETR" or "TOP N 99999999" - fetchmail without
+                # the 'fetchall' option uses the latter to retrieve messages.
+                if (command == 'RETR' or
+                    (command == 'TOP' and
+                     len(args) == 2 and args[1] == '99999999')):
                     cls = msg.GetClassification()
                     if cls == options["Hammie", "header_ham_string"]:
                         state.numHams += 1
