@@ -119,7 +119,7 @@ class Hammie:
         if train:
             self.train(msg, is_spam, True)
         basic_disp = disp
-        disp += ("; %."+str(options["Headers", "header_score_digits"])+"f") % prob
+        disp += "; %.*f" % (options["Headers", "header_score_digits"], prob)
         if options["Headers", "header_score_logarithm"]:
             if prob<=0.005 and prob>0.0:
                 import math
