@@ -4,6 +4,7 @@
 from __future__ import generators
 
 import email
+import email.Header
 import email.Message
 import email.Errors
 import re
@@ -1053,11 +1054,14 @@ class Tokenizer:
         # especially significant in this context.  Experiment showed a small
         # but real benefit to keeping case intact in this specific context.
         x = msg.get('subject', '')
-        for w in subject_word_re.findall(x):
-            for t in tokenize_word(w):
-                yield 'subject:' + t
-        for w in punctuation_run_re.findall(x):
-            yield 'subject:' + w
+        for x, subjcharset in email.Header.decode_header(x):
+            if subjcharset is not None:
+                yield 'subjectcharset:' + subjcharset
+            for w in subject_word_re.findall(x):
+                for t in tokenize_word(w):
+                    yield 'subject:' + t
+            for w in punctuation_run_re.findall(x):
+                yield 'subject:' + w
 
         # Dang -- I can't use Sender:.  If I do,
         #     'sender:email name:python-list-admin'
