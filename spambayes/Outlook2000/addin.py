@@ -478,16 +478,14 @@ def SetButtonImage(button, fname, manager):
 # A class that manages an "Outlook Explorer" - that is, a top-level window
 # All UI elements are managed here, and there is one instance per explorer.
 class ExplorerWithEvents:
-    def Init(self, manager, explorer_list):
+    def Init(self, manager, explorers_collection):
         self.manager = manager
         self.have_setup_ui = False
-        self.explorer_list = explorer_list
+        self.explorers_collection = explorers_collection
         self.toolbar = None
-        self.buttons = []
 
     def SetupUI(self):
         manager = self.manager
-        self.buttons = []
         activeExplorer = self
         assert self.toolbar is None, "Should not yet have a toolbar"
         # Add our "Delete as ..." and "Recover as" buttons
@@ -514,28 +512,29 @@ class ExplorerWithEvents:
                         TooltipText = "SpamBayes anti-spam filters and functions",
                         Enabled = True,
                         Tag = "SpamBayesCommand.Popup")
-        # Convert from "CommandBarItem" to derived
-        # "CommandBarPopup" Not sure if we should be able to work
-        # this out ourselves, but no introspection I tried seemed
-        # to indicate we can.  VB does it via strongly-typed
-        # declarations.
-        popup = CastTo(popup, "CommandBarPopup")
-        # And add our children.
-        self._AddControl(popup,
-                       constants.msoControlButton,
-                       ButtonEvent, (manager.ShowManager,),
-                       Caption="Anti-Spam Manager...",
-                       TooltipText = "Show the Anti-Spam manager dialog.",
-                       Enabled = True,
-                       Visible=True,
-                       Tag = "SpamBayesCommand.Manager")
-        self._AddControl(popup,
-                       constants.msoControlButton,
-                       ButtonEvent, (ShowClues, self.manager, self),
-                       Caption="Show spam clues for current message",
-                       Enabled=True,
-                       Visible=True,
-                       Tag = "SpamBayesCommand.Clues")
+        if popup is not None: # We may not be able to find/create our button
+            # Convert from "CommandBarItem" to derived
+            # "CommandBarPopup" Not sure if we should be able to work
+            # this out ourselves, but no introspection I tried seemed
+            # to indicate we can.  VB does it via strongly-typed
+            # declarations.
+            popup = CastTo(popup, "CommandBarPopup")
+            # And add our children.
+            self._AddControl(popup,
+                           constants.msoControlButton,
+                           ButtonEvent, (manager.ShowManager,),
+                           Caption="Anti-Spam Manager...",
+                           TooltipText = "Show the Anti-Spam manager dialog.",
+                           Enabled = True,
+                           Visible=True,
+                           Tag = "SpamBayesCommand.Manager")
+            self._AddControl(popup,
+                           constants.msoControlButton,
+                           ButtonEvent, (ShowClues, self.manager, self),
+                           Caption="Show spam clues for current message",
+                           Enabled=True,
+                           Visible=True,
+                           Tag = "SpamBayesCommand.Clues")
         # If we are running from Python sources, enable a few extra items
         if not hasattr(sys, "frozen"):
             self._AddControl(popup,
@@ -565,9 +564,10 @@ class ExplorerWithEvents:
         # locate our toolbar, creating if necessary.  Our items get added to
         # that.
         assert item_attrs.has_key('Tag'), "Need a 'Tag' attribute!"
+        tag = item_attrs["Tag"]
         item = self.CommandBars.FindControl(
                         Type = control_type,
-                        Tag = item_attrs['Tag'])
+                        Tag = tag)
         if item is None:
             if parent is None:
                 # No parent specified - that means top-level - locate the
@@ -587,23 +587,33 @@ class ExplorerWithEvents:
                     else:
                         # for not broken - can't find toolbar.  Create a new one.
                         # Create it as a permanent one (which is default)
+                        if self.explorers_collection.have_created_toolbar:
+                            # Eeek - we have already created a toolbar, but
+                            # now we can't find it.  It is likely this is the
+                            # first time we are being run, and outlook is
+                            # being started with multiple Windows open.
+                            # Hopefully things will get back to normal once
+                            # Outlook is restarted (which testing shows it does)
+                            return
+
                         print "Creating new SpamBayes toolbar to host our buttons"
                         self.toolbar = bars.Add(toolbar_name, constants.msoBarTop, Temporary=False)
+                        self.explorers_collection.have_created_toolbar = True
                     self.toolbar.Visible = True
                 parent = self.toolbar
             # Now add the item itself to the parent.
             item = parent.Controls.Add(Type=control_type, Temporary=False)
-        # Hook events for the item
-        if events_class is not None:
+        # Hook events for the item, but only if we haven't already in some
+        # other explorer instance.
+        if events_class is not None and tag not in self.explorers_collection.button_event_map:
             item = DispatchWithEvents(item, events_class)
             item.Init(*events_init_args)
+            # We must remember the item itself, else the events get disconnected
+            # as the item destructs.
+            self.explorers_collection.button_event_map[tag] = item
         # Set the extra attributes passed in.
         for attr, val in item_attrs.items():
             setattr(item, attr, val)
-        # remember and return the item.
-        # (not remembering causes events to get disconnected as our objects
-        # destruct)
-        self.buttons.append(item)
         return item
 
     def GetSelectedMessages(self, allow_multi = True, explorer = None):
@@ -630,15 +640,17 @@ class ExplorerWithEvents:
 
     # The Outlook event handlers
     def OnActivate(self):
+        #print "OnActivate", self
         # See comments for OnNewExplorer below.
         # *sigh* - OnActivate seems too early too for Outlook 2000,
         # but Outlook 2003 seems to work here, and *not* the folder switch etc
-        # This also appears to solve some issues relating to multi-profiles
-        # on 2000 (where secondary profiles appears to behave closer to 2003)
-        if not self.have_setup_ui:
-            self.SetupUI() 
+        # Outlook 2000 crashes when a second window is created and we use this
+        # event
+        # OnViewSwitch however seems useful, so we ignore this.
+        pass
 
     def OnSelectionChange(self):
+        #print "OnSelChange", self
         # See comments for OnNewExplorer below.
         if not self.have_setup_ui:
             self.SetupUI()
@@ -646,17 +658,14 @@ class ExplorerWithEvents:
             self.OnFolderSwitch()
 
     def OnClose(self):
-        self.explorer_list.remove(self)
-        self.explorer_list = None
-        for button in self.buttons:
-            closer = getattr(button, "Close", None)
-            if closer is not None:
-                closer()
+        #print "OnClose", self
+        self.explorers_collection._DoDeadExplorer(self)
+        self.explorers_collection = None
         self.toolbar = None
-        self.buttons = []
         self.close() # disconnect events.
 
     def OnFolderSwitch(self):
+        #print "OnFolderSwitch", self
         # Yet another worm-around for our event timing woes.  This may
         # be the first event ever seen for this explorer if, eg,
         # "Outlook Today" is the initial Outlook view.
@@ -691,24 +700,42 @@ class ExplorerWithEvents:
                 print "Error finding the MAPI folders for a folder switch event"
                 import traceback
                 traceback.print_exc()
-        self.but_recover_as.Visible = show_recover_as
-        self.but_delete_as.Visible = show_delete_as
+        if self.but_recover_as is not None:
+            self.but_recover_as.Visible = show_recover_as
+        if self.but_delete_as is not None:
+            self.but_delete_as.Visible = show_delete_as
+
+    def OnViewSwitch(self):
+        #print "OnViewSwitch", self
+        if not self.have_setup_ui:
+            self.SetupUI()
 
 # Events from our "Explorers" collection (not an Explorer instance)
 class ExplorersEvent:
     def Init(self, manager):
         self.manager = manager
         self.explorers = []
+        self.have_created_toolbar = False
+        self.button_event_map = {}
 
     def Close(self):
         self.explorers = None
 
-    def _DoNewExplorer(self, explorer, do_activate):
+    def _DoNewExplorer(self, explorer):
         explorer = DispatchWithEvents(explorer, ExplorerWithEvents)
-        explorer.Init(self.manager, self.explorers)
-        if do_activate:
-            explorer.OnActivate()
+        explorer.Init(self.manager, self)
         self.explorers.append(explorer)
+
+    def _DoDeadExplorer(self, explorer):
+        self.explorers.remove(explorer)
+        if len(self.explorers)==0:
+            # No more explorers - disconnect all events.
+            # (not doing this causes shutdown problems)
+            for tag, button in self.button_event_map.items():
+                closer = getattr(button, "Close", None)
+                if closer is not None:
+                    closer()
+            self.button_event_map = {}
 
     def OnNewExplorer(self, explorer):
         # NOTE - Outlook has a bug, as confirmed by many on Usenet, in
@@ -720,7 +747,7 @@ class ExplorersEvent:
         # so we tried OnSelectionChanges, which works OK until there is a
         # view with no items (eg, Outlook Today) - so at the end of the
         # day, we can never assume we have been initialized!
-        self._DoNewExplorer(explorer, False)
+        self._DoNewExplorer(explorer)
 
 # The outlook Plugin COM object itself.
 class OutlookAddin:
@@ -754,15 +781,8 @@ class OutlookAddin:
             print "%s starting (with engine %s)..." % \
                     (get_version_string("Outlook"), get_version_string())
 
-            explorers = application.Explorers
-            # and Explorers events so we know when new explorers spring into life.
-            self.explorers_events = WithEvents(explorers, ExplorersEvent)
-            self.explorers_events.Init(self.manager)
-            # And hook our UI elements to all existing explorers
-            for i in range(explorers.Count):
-                explorer = explorers.Item(i+1)
-                self.explorers_events._DoNewExplorer(explorer, True)
-    
+            self.explorers_events = None # create at OnStartupComplete
+
             if self.manager.config.filter.enabled:
                 # A little "sanity test" to help the user.  If our status is
                 # 'enabled', then it means we have previously managed to
@@ -889,7 +909,16 @@ class OutlookAddin:
     def OnAddInsUpdate(self, custom):
         pass
     def OnStartupComplete(self, custom):
-        pass
+        # Toolbar and other UI stuff must be setup once startup is complete.
+        explorers = self.application.Explorers
+        # and Explorers events so we know when new explorers spring into life.
+        self.explorers_events = WithEvents(explorers, ExplorersEvent)
+        self.explorers_events.Init(self.manager)
+        # And hook our UI elements to all existing explorers
+        for i in range(explorers.Count):
+            explorer = explorers.Item(i+1)
+            self.explorers_events._DoNewExplorer(explorer)
+
     def OnBeginShutdown(self, custom):
         pass
 
