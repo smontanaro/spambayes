@@ -152,7 +152,7 @@ class IMAPMessage(message.Message):
     '''IMAP Message base class.'''
     __implements__ = (IMessage,)
 
-    def __init__(self, date):
+    def __init__(self, date=None):
         message.Message.__init__(self)
         # We want to persist more information than the generic
         # Message class.
@@ -191,6 +191,8 @@ class IMAPMessage(message.Message):
 
     def getInternalDate(self):
         """Retrieve the date internally associated with this message."""
+        assert(self.date is not None,
+               "Must set date to use IMAPMessage instance.")
         return self.date
 
     def getBodyFile(self):
@@ -337,7 +339,7 @@ class DynamicIMAPMessage(IMAPMessage):
         self.func = func
         self.load()
     def load(self):
-        self.setPayload(self.func(body=True, headers=True))
+        self.set_payload(self.func(body=True, headers=True))
 
 
 class IMAPFileMessage(IMAPMessage, FileCorpus.FileMessage):
@@ -467,9 +469,9 @@ class SpambayesMailbox(IMAPMailbox):
 
     def addMessage(self, content, flags=(), date=None):
         """Add the given message to this mailbox."""
-        msg = self.storage.makeMessage(self.getUIDNext(True))
+        msg = self.storage.makeMessage(self.getUIDNext(True),
+                                       content.read())
         msg.date = date
-        msg.setPayload(content.read())
         self.storage.addMessage(msg)
         self.store(MessageSet(long(msg.id), long(msg.id)), flags, 1, True)
         msg.recent = True
@@ -605,8 +607,9 @@ class SpambayesInbox(SpambayesMailbox):
                  'From: "SpamBayes" <no-reply@localhost>\r\n\r\n' \
                  'See <http://spambayes.org>.\r\n'
         date = imaplib.Time2Internaldate(time.time())[1:-1]
-        msg = IMAPMessage(date)
-        msg.setPayload(about)
+        msg = email.message_from_string(about, _class=IMAPMessage,
+                                        strict=False)
+        msg.date = date
         self.addMessage(msg)
         msg = DynamicIMAPMessage(self.buildStatusMessage)
         self.addMessage(msg)
@@ -822,8 +825,7 @@ class MyBayesProxy(POP3ProxyBase):
             ok, messageText = response.split('\n', 1)
 
             try:
-                msg = message.SBHeaderMessage()
-                msg.setPayload(messageText)
+                msg = message.sbheadermessage_from_string(messageText)
                 # Now find the spam disposition and add the header.
                 (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
                                  evidence=True)
