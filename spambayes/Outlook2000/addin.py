@@ -625,7 +625,6 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         inbox_folder = msgstore.GetFolder(
                     app.Session.GetDefaultFolder(constants.olFolderInbox))
         new_msg_state = self.manager.config.general.recover_from_spam_message_state
-        import train
         for msgstore_message in msgstore_messages:
             # Recover where they were moved from
             # During experimenting/playing/debugging, it is possible
@@ -1226,7 +1225,7 @@ class OutlookAddin:
                     print "SpamBayes: Watching for new messages in folder ", name
             else:
                 new_hooks[msgstore_folder.id] = existing
-                exiting.ReInit()
+                existing.ReInit()
         return new_hooks
 
     def OnDisconnection(self, mode, custom):
