@@ -504,7 +504,7 @@ on Windows, so his approach to building the zip file is at the end.
    check the "Keep my preformatted text" checkbox.
  o Now commit spambayes/__init__.py and tag the whole checkout - see the
    existing tag names for the tag name format.
- o Update the website News, Download, Windows and Application sections.
+ o Update the website News, Download and Windows sections.
  o Update reply.txt in the website repository as needed (it specifies the
    latest version).  Then let Tim, Barry, Tony, or Skip know that they need to
    update the autoresponder.
