@@ -739,6 +739,31 @@ would normally.
 .. _`Data Directory`: #can-i-back-up-the-outlook-database-should-i-do-this
 
 
+How can I change the directory that SpamBayes stores my data in?
+----------------------------------------------------------------
+
+Instructions for doing this can be found in the "Configuration Guide".
+(You get to this by doing SpamBayes->Help->About SpamBayes, which opens
+up a browser window, then clicking the "Configuration Guide" link.  The
+appropriate section is headed "Multiple Configuration Files" and is at
+the end of the document).
+
+Basically, you need to create a file "default_configuration.ini", and
+put it either in the directory that SpamBayes was installed into, or in
+the default data directory (the `backup question`_ has instructions for
+finding this directory).
+
+Inside this file, you need to have a section "General", and an option
+"data_directory", which point to the new location that you wish to use.
+
+For example::
+
+  [General]
+  data_directory=c:\spambayes_data
+
+.. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
+
+
 How do I uninstall the plug-in?
 -------------------------------
 
