@@ -489,17 +489,17 @@ FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "SpamBayes Version Here",IDC_VERSION,6,54,242,8
     LTEXT           "SpamBayes requires training before it is effective.  Click on the 'Training' tab, or use the Configuration Wizard to train.",
-                    IDC_STATIC,6,70,242,17
-    LTEXT           "Training database status:",IDC_STATIC,6,97,222,8
-    LTEXT           "123 spam messages; 456 good messages",
-                    IDC_TRAINING_STATUS,6,108,242,19,SS_SUNKEN
+                    IDC_STATIC,6,67,242,17
+    LTEXT           "Training database status:",IDC_STATIC,6,90,222,8
+    LTEXT           "123 spam messages; 456 good messages\r\nLine2\r\nLine3",
+                    IDC_TRAINING_STATUS,6,101,242,27,SS_SUNKEN
     CONTROL         "Enable SpamBayes",IDC_BUT_FILTER_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,6,173,97,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
-                    IDC_FILTER_STATUS,6,147,242,19,SS_SUNKEN
+                    IDC_FILTER_STATUS,6,146,242,19,SS_SUNKEN
     PUSHBUTTON      "Reset Configuration...",IDC_BUT_RESET,6,190,84,15
     PUSHBUTTON      "Configuration Wizard...",IDC_BUT_WIZARD,164,190,84,15
-    LTEXT           "Filter status:",IDC_STATIC,6,136,222,8
+    LTEXT           "Filter status:",IDC_STATIC,6,135,222,8
     CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
                     SS_REALSIZEIMAGE,0,2,275,52
 END
