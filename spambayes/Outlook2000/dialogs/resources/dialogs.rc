@@ -117,11 +117,10 @@ BEGIN
 END
 
 IDD_DIAGNOSTIC DIALOGEX 0, 0, 183, 98
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Diagnostics"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
+FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
     LTEXT           "These advanced options are for diagnostic or debugging purposes only.  You should only change these options if specifically asked to, or you know exactly what they mean.",
                     IDC_STATIC,5,3,174,36
