@@ -60,6 +60,12 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Default database name
 DEFAULTDB = os.path.expanduser(options.hammiefilter_persistent_storage_file)
+# This is a bit of a hack to counter the default for
+# persistent_storage_file changing from ~/.hammiedb to hammie.db
+# This will work unless a user had hammie.db as their value for
+# persistent_storage_file
+if DEFAULTDB == options.default("Storage", "persistent_storage_file"):
+    DEFAULTDB = "~/.hammiedb"
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options.spam_cutoff
