@@ -20,7 +20,7 @@ except NameError:
 #   such as floating point constants loaded from .pyc files.
 # * Our config files also want a consistent locale, so periods and commas
 #   are the same when they are read as when they are written.
-# So, at a few opportune times, we simple set it back.
+# So, at a few opportune times, we simply set it back.
 # We do it here as early as possible, before any imports that may see this
 #
 # See also [725466] Include a proper locale fix in Options.py,
@@ -28,16 +28,6 @@ except NameError:
 # starting July 23 2003.
 import locale
 locale.setlocale(locale.LC_NUMERIC, "C")
-
-if sys.version_info >= (2, 3):
-    # sick off the new hex() warnings!
-    # todo - remove this - win32all has removed all these warnings
-    # (but we will wait some time for people to update)
-    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
-    # Binary builds can avoid our pendingdeprecation too
-    if hasattr(sys, "frozen"):
-        warnings.filterwarnings("ignore", category=DeprecationWarning, append=1)
-
 
 from win32com import universal
 from win32com.server.exception import COMException
@@ -1307,7 +1297,7 @@ class OutlookAddin:
             existing = self.folder_hooks.get(msgstore_folder.id)
             if existing is None or existing.__class__ != HandlerClass:
                 folder = msgstore_folder.GetOutlookItem()
-                name = msgstore_folder.name
+                name = msgstore_folder.GetFQName()
                 try:
                     new_hook = DispatchWithEvents(folder.Items, HandlerClass)
                 except ValueError:
@@ -1328,7 +1318,7 @@ class OutlookAddin:
                         etype, value, tb = sys.exc_info()
                         tb = None # dont want it, and nuke circular ref
                         traceback.print_exception(etype, value, tb)
-                    print "SpamBayes: Watching for new messages in folder ", name
+                    print "SpamBayes: Watching for new messages in folder", name
             else:
                 new_hooks[msgstore_folder.id] = existing
                 existing.ReInit()
