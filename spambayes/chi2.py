@@ -6,7 +6,7 @@ def chi2Q(x2, v, exp=_math.exp, min=min):
     v must be even.
     """
     assert v & 1 == 0
-    # XXX Is x2 is very large, exp(-m) will underflow to 0.
+    # XXX If x2 is very large, exp(-m) will underflow to 0.
     m = x2 / 2.0
     sum = term = exp(-m)
     for i in range(1, v//2):
