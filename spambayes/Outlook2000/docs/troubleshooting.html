@@ -30,8 +30,7 @@ for this session exists, then see if it contains an error.&nbsp; If
 not, then the addin may be operating, but simply not displaying the
 toolbar items.&nbsp; <a href="#NoToolbar">Follow this procedure to
 restore the toolbar</a>.&nbsp; If there is an error in the log file,
-please <a
- href="file:///E:/src/spambayes/Outlook2000/docs/troubleshooting.html#ReportABug">report
+please <a href="#ReportABug">report
 a bug</a>.&nbsp; If no log file for this session exists, continue the
 following steps.</li>
 </ul>
@@ -91,8 +90,9 @@ If it appears the addin has loaded and is working correctly (ie, <a
 but you can not see any toolbar items for the addin, try the
 following:.&nbsp;
 <ul>
-  <li>Make sure that you are displaying the 'Standard' toolbar - select
-View -&gt; Toolbars, and ensure that "Standard" is selected.<br>
+  <li>Make sure that you are displaying the 'SpamBayes' toolbar -
+select
+View -&gt; Toolbars, and ensure that "SpamBayes" is selected.<br>
   </li>
   <li>Try resetting the toolbars:
     <ol>
@@ -103,10 +103,29 @@ the toolbar options dialog</li>
       <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
 select the 'Standard' toolbar,
 and click <span style="font-style: italic;">Reset</span></li>
+      <li>Restart Outlook </li>
     </ol>
   </li>
-  <li>Restart Outlook<br>
-  </li>
+  <li>Try deleting the SpamBayes toolbar</li>
+  <ol>
+    <li>Select <span style="font-style: italic;">View</span>-&gt; <span
+ style="font-style: italic;">Toolbars</span>-&gt; <span
+ style="font-style: italic;">Customize</span> to display
+the toolbar options dialog</li>
+    <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
+select the 'SpamBayes' toolbar,
+and click <span style="font-style: italic;">Delete</span></li>
+    <li><span style="font-style: italic;">Restart Outlook<br>
+      </span></li>
+  </ol>
+</ul>
+If all else fails, you can completely reset the Outlook toolbars by
+removing the file <span style="font-style: italic;">\Documents and
+Settings\{username}\Application Data\Microsoft\Outlook\outcmd.dat</span>.&nbsp;
+Keep a copy of the file in case this does something nasty to your
+system (it didn't to ours, and is documented a few places on the web,
+but we make no guarantees).<br>
+<ul>
 </ul>
 <h2><a name="Messages_fail_to_filter"></a>Messages fail to filter</h2>
 This is when messages arrive, but have no <span
