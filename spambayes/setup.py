@@ -75,6 +75,7 @@ class install_scripts(parent):
 
 scripts=['scripts/sb_client.py',
          'scripts/sb_dbexpimp.py',
+         'scripts/sb_evoscore.py',
          'scripts/sb_filter.py',
          'scripts/sb_imapfilter.py',
          'scripts/sb_mailsort.py',
