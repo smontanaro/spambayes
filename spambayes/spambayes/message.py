@@ -236,13 +236,13 @@ class Message(email.Message.Message):
 
         # non-persistent state includes all of email.Message.Message state
 
-    # This function (and it's hackishness) can be avoided by using the
-    # message_from_string and sbheadermessage_from_string functions
-    # at the end of the module.  i.e. instead of doing this:
+    # This function (and it's hackishness) can be avoided by using
+    # email.message_from_string(text, _class=SBHeaderMessage)
+    # i.e. instead of doing this:
     #   >>> msg = spambayes.message.SBHeaderMessage()
     #   >>> msg.setPayload(substance)
     # you do this:
-    #   >>> msg = sbheadermessage_from_string(substance)
+    #   >>> msg = email.message_from_string(substance, _class=SBHeaderMessage)
     # imapfilter has an example of this in action
     def setPayload(self, payload):
         """DEPRECATED.
@@ -483,13 +483,6 @@ class SBHeaderMessage(Message):
         del self[options['Headers','evidence_header_name']]
         del self[options['Headers','score_header_name']]
         del self[options['Headers','trained_header_name']]
-
-# These perform similar functions to email.message_from_string()
-def message_from_string(s, _class=Message, strict=False):
-    return email.message_from_string(s, _class, strict)
-
-def sbheadermessage_from_string(s, _class=SBHeaderMessage, strict=False):
-    return email.message_from_string(s, _class, strict)
 
 # Utility function to insert an exception header into the given RFC822 text.
 # This is used by both sb_server and sb_imapfilter, so it's handy to have

@@ -603,10 +603,6 @@ class IMAPMessage(message.SBHeaderMessage):
                     new_id = ids[-1]
         self.uid = new_id
 
-# This performs a similar function to email.message_from_string()
-def imapmessage_from_string(s, _class=IMAPMessage, strict=False):
-    return email.message_from_string(s, _class, strict)
-
 
 class IMAPFolder(object):
     def __init__(self, folder_name, imap_server):

@@ -826,7 +826,8 @@ class RedirectingBayesProxy(POP3ProxyBase):
             ok, messageText = response.split('\n', 1)
 
             try:
-                msg = message.sbheadermessage_from_string(messageText)
+                msg = email.message_from_string(messageText,
+                                                _class=message.SBHeaderMessage)
                 # Now find the spam disposition and add the header.
                 (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
                                  evidence=True)

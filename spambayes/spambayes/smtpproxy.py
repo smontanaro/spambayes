@@ -127,10 +127,11 @@ import asynchat
 import getopt
 import sys
 import os
+import email
 
 from spambayes import Dibbler
 from spambayes import storage
-from spambayes.message import sbheadermessage_from_string
+from spambayes import message
 from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
@@ -384,7 +385,7 @@ class SMTPTrainer(object):
         self.imap = imap
 
     def extractSpambayesID(self, data):
-        msg = sbheadermessage_from_string(data)
+        msg = email.message_from_string(data, _class=message.SBHeaderMessage)
 
         # The nicest MUA is one that forwards the header intact.
         id = msg.get(options["Headers", "mailid_header_name"])
@@ -435,7 +436,7 @@ class SMTPTrainer(object):
                 return
             self.train_cached_message(id, isSpam)
         # Otherwise, train on the forwarded/bounced message.
-        msg = sbheadermessage_from_string(msg)
+        msg = email.message_from_string(msg, _class=message.SBHeaderMessage)
         id = msg.setIdFromPayload()
         msg.delSBHeaders()
         if id is None:
