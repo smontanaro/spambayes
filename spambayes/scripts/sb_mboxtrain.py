@@ -50,7 +50,6 @@ from spambayes import hammie, mboxutils
 from spambayes.Options import options
 
 program = sys.argv[0]
-TRAINED_HDR = options["Headers", "trained_header_name"]
 loud = True
 
 def msg_train(h, msg, is_spam, force):
@@ -68,20 +67,20 @@ def msg_train(h, msg, is_spam, force):
         spamtxt = options["Headers", "header_spam_string"]
     else:
         spamtxt = options["Headers", "header_ham_string"]
-    oldtxt = msg.get(TRAINED_HDR)
+    oldtxt = msg.get(options["Headers", "trained_header_name"])
     if force:
         # Train no matter what.
         if oldtxt != None:
-            del msg[TRAINED_HDR]
+            del msg[options["Headers", "trained_header_name"]]
     elif oldtxt == spamtxt:
         # Skip this one, we've already trained with it.
         return False
     elif oldtxt != None:
         # It's been trained, but as something else.  Untrain.
-        del msg[TRAINED_HDR]
+        del msg[options["Headers", "trained_header_name"]]
         h.untrain(msg, not is_spam)
     h.train(msg, is_spam)
-    msg.add_header(TRAINED_HDR, spamtxt)
+    msg.add_header(options["Headers", "trained_header_name"], spamtxt)
 
     return True
 
@@ -177,6 +176,7 @@ def mbox_train(h, path, is_spam, force):
                                  "I tried my best, but your mail "
                                  "may be corrupted.")
             raise
+
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
     if loud:
