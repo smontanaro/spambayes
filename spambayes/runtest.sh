@@ -26,7 +26,20 @@ TEST=${1:-run2}
 RNUM=${REBAL_RNUM:-200}
 
 # Number of sets
-SETS=${REBAL_SETS:-5}
+case ${REBAL_SETS:-undefined} in
+undefined)
+    # count the number of sets
+    i=1
+    while [ -d Data/Ham/Set$i -a -d Data/Spam/Set$i ]; do
+	i=`expr $i + 1`
+    done
+    SETS=`expr $i - 1`
+    ;;
+*)
+    # use the provided value
+    SETS=${REBAL_SETS}
+    ;;
+esac
 
 if [ -n "$REBAL" ]; then
     # Put them all into reservoirs
@@ -56,6 +69,6 @@ case "$TEST" in
 	;;
     *)
 	echo "Available targets:"
-	sed -n 's/^\(  [a-z0-9|]*\))$/\1/p' $0
+	sed -n 's/^\(  *[a-z0-9|]*\))$/\1/p' $0
 	;;
 esac
