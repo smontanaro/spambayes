@@ -438,8 +438,8 @@ Outlook Plugin
 What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
-To our knowledge, the current version of the plug-in should work with any
-version of Windows and Outlook 2000 or above. The `troubleshooting guide`_
+To our knowledge, the current version of the plug-in should work with
+Windows 95 and above and Outlook 2000 or above. The `troubleshooting guide`_
 for the Outlook plugin contains the most up-to-date help for working around
 known problems.
 
