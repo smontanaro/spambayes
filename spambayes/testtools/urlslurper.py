@@ -83,7 +83,7 @@ __credits__ = "Richard Jowsey, all the Spambayes folk."
 
 from __future__ import generators
 
-import urllib2
+import urllib2, socket
 import sys
 import re
 import pickle
@@ -98,13 +98,10 @@ from spambayes.tokenizer import Tokenizer
 from spambayes import storage
 from spambayes.Options import options
 from spambayes.classifier import Classifier, Bayes
-from testtools import timtest
 import spambayes
+import timtest
 
-global cache_filename
 cache_filename = "url.pck"
-
-global proxy_info
 proxy_info = {}
 # Fill in the details here (and uncomment these lines) if you connect via
 # a proxy and don't want to enter the details via the command line.
@@ -115,9 +112,7 @@ proxy_info = {}
 #    'port' : 8080  # 8080 or 80, probably
 #}
 
-global only_slurp_base
 only_slurp_base = False
-global url_dict
 url_dict = {}
 
 def body_tokens(msg):
@@ -132,7 +127,6 @@ class SlurpingClassifier(Classifier):
         Classifier.__init__(self)
 
     def spamprob(self, wordstream, evidence=False, time_limit=None):
-        global url_dict
         start_time = time.time()
         prob, clues = Classifier.spamprob(self, wordstream, True)
         if len(clues) < options["Classifier", "max_discriminators"] and \
@@ -166,7 +160,7 @@ class SlurpingClassifier(Classifier):
                     number_urls += 1
                 else:
                     if options["globals", "verbose"]:
-                        print "Slurping:", url, "..."
+                        print >> sys.stderr, "Slurping:", url, "..."
                     try:
                         f = urllib2.urlopen(url)
                         page = f.read()
@@ -174,10 +168,10 @@ class SlurpingClassifier(Classifier):
                         headers = str(f.headers)
                         page = headers + "\r\n" + page
                         if options["globals", "verbose"]:
-                            print "Slurped."
-                    except IOError:
+                            print >> sys.stderr, "Slurped."
+                    except (IOError, socket.error):
                         url_dict[url] = 0.5
-                        print "Couldn't get", url
+                        print >> sys.stderr, "Couldn't get", url
                     if not url_dict.has_key(url) or url_dict[url] != 0.5:
                         # Create a fake Message object since Tokenizer is
                         # designed to deal with them.
@@ -230,8 +224,7 @@ def setup(proxy={}, filename=None):
         url_dict = pickle.load(f)
         f.close()
 
- 
-if __name__ == "__main__":
+def main():
     import getopt
     from spambayes import msgs
 
@@ -248,16 +241,12 @@ if __name__ == "__main__":
             print >>sys.stderr, __doc__
             sys.exit()
         elif opt == '-u':
-            global proxy_info
             proxy_info["user"] = arg
         elif opt == '-p':
-            global proxy_info
             proxy_info["pass"] = arg
         elif opt == '-a':
-            global proxy_info
             proxy_info["host"] = arg
         elif opt == '-o':
-            global proxy_info
             proxy_info["port"] = int(arg)
         elif opt == '-f':
             global cache_filename
@@ -283,3 +272,6 @@ if __name__ == "__main__":
 
     msgs.setparms(hamkeep, spamkeep, seed=seed)
     timtest.drive(nsets)
+
+if __name__ == "__main__":
+    main()
