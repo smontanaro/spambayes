@@ -190,7 +190,7 @@ class Message(email.Message.Message):
         # convert to appropriate line endings (according to RFC822, that is
         # \r\n *only*).  imaplib *should* take care of this for us (in the
         # append function), but does not, so we do it here
-        return self._force_CRLF(message.SBHeaderMessage.as_string(self))
+        return self._force_CRLF(email.Message.Message.as_string(self))
         
     def modified(self):
         if self.id:    # only persist if key is present
