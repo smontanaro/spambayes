@@ -1,11 +1,11 @@
 ;
-; Inno Setup 3.x setup file for the Spambayes Outlook Addin
+; Inno Setup 4.x setup file for the Spambayes Outlook Addin
 ;
 
 [Setup]
 AppName=Spambayes Outlook Addin
-AppVerName=Spambayes Outlook Addin 0.3
-AppVersion=0.3
+AppVerName=Spambayes Outlook Addin 0.4
+AppVersion=0.4
 DefaultDirName={pf}\Spambayes Outlook Addin
 DefaultGroupName=Spambayes Outlook Addin
 OutputDir=.
@@ -18,4 +18,16 @@ Source: "dist\about.html"; DestDir: "{app}"; Flags: isreadme
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\support"
+
+[Code]
+function InitializeSetup(): Boolean;
+begin
+  Result := true;
+  if not RegKeyExists( HKCU, 'Software\Microsoft\Office\Outlook') then
+    begin
+      MsgBox('Outlook appears to not be installed' + #13 + #13 + 'Please correct this and restart the installation',
+             mbInformation, MB_OK);
+      Result := false;
+    end;
+end;
 
