@@ -157,5 +157,5 @@ setup(name="SpamBayes",
       # and the misc data files
       data_files = outlook_data_files + proxy_data_files + common_data_files,
       options = {"py2exe" : py2exe_options},
-      zipfile = "lib/spambayes.zip",
+      zipfile = "lib/spambayes.modules",
 )
