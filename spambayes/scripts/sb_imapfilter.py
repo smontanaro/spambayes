@@ -204,7 +204,7 @@ class IMAPSession(BaseIMAP):
                 # expunge when we log out (because expunge returns
                 # a list of all the deleted messages which we don't do
                 # anything with).
-                imap.close()
+                self.imap_server.close()
 
             if folder == "":
                 # This is Python bug #845560 - if the empty string is
@@ -235,9 +235,8 @@ class IMAPSession(BaseIMAP):
         for fol in all_folders:
             # Sigh.  Some servers may give us back the folder name as a
             # literal, so we need to crunch this out.
-            if isinstance(fol, ()):
-                r = re.compile(r"{\d+}")
-                m = r.search(fol[0])
+            if isinstance(fol, types.TupleType):
+                m = re.search(r"{\d+}", fol[0])
                 if not m:
                     # Something is wrong here!  Skip this folder.
                     continue
@@ -380,7 +379,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # First, try to select the folder that the message is in.
         try:
             self.imap_server.SelectFolder(self.folder.name)
-        except BadIMAPResponse:
+        except BadIMAPResponseError:
             # Can't select the folder, so getting the substance will not
             # work.
             self.could_not_retrieve = True
@@ -434,7 +433,8 @@ class IMAPMessage(message.SBHeaderMessage):
             # does and have a X-Spambayes-Exception header with the
             # exception data and then the original message.
             self.invalid = True
-            text, details = message.insert_exception_header(data["RFC822"])
+            text, details = message.insert_exception_header(
+                data[self.rfc822_key], self.id)
             self.invalid_content = text
             self.got_substance = True
 
@@ -517,7 +517,7 @@ class IMAPMessage(message.SBHeaderMessage):
                                                self.as_string())
             try:
                 self.imap_server.check_response("", response)
-            except BadIMAPResponse:
+            except BadIMAPResponseError:
                 pass
             else:
                 break
@@ -847,7 +847,7 @@ class IMAPFilter(object):
             sys.exit(-1)
         try:
             self.imap_server.SelectFolder(self.unsure_folder.name)
-        except BadIMAPResponse:
+        except BadIMAPResponseError:
             print "Cannot select spam folder.  Please check configuration."
             sys.exit(-1)
 
@@ -855,7 +855,7 @@ class IMAPFilter(object):
             # Select the folder to make sure it exists.
             try:
                 self.imap_server.SelectFolder(filter_folder)
-            except BadIMAPResponse:
+            except BadIMAPResponseError:
                 print "Cannot select %s, skipping." % (filter_folder,)
                 continue
 
