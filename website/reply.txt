@@ -38,7 +38,7 @@ I'm having trouble installing Spambayes.  Help!
 -----------------------------------------------
 
 Please ensure that you have the latest version.  As of 2003-08-28, this is
-007 for the Outlook plug-in, and 1.0a4 for everything else.  If you are
+008.1 for the Outlook plug-in, and 1.0a6 for everything else.  If you are
 still having trouble, try looking at the bug reports that are currently
 open:
 
