@@ -41,7 +41,7 @@ BEGIN
     LTEXT           "seconds",IDC_STATIC,208,41,28,8
     CONTROL         "",IDC_DELAY2_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
                     TBS_TOP | WS_TABSTOP,16,73,148,22
-    LTEXT           "Delay between new mail check",IDC_STATIC,16,62,101,8
+    LTEXT           "Delay between processing items",IDC_STATIC,16,62,142,8
     EDITTEXT        IDC_DELAY2_TEXT,165,79,40,14,ES_AUTOHSCROLL
     LTEXT           "seconds",IDC_STATIC,207,82,28,8
     CONTROL         "Only for folders that receive new mail",
