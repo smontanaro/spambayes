@@ -473,7 +473,7 @@ class BayesProxy(POP3ProxyBase):
                           _class=spambayes.message.SBHeaderMessage)
                 msg.setId(state.getNewMessageName())
                 # Now find the spam disposition and add the header.
-                (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
+                (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
                                  evidence=True)
 
                 msg.addSBHeaders(prob, clues)
