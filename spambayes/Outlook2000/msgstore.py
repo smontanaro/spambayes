@@ -57,6 +57,9 @@ class MsgStoreMsg:
         # User field is for the user to see - status/internal fields
         # should get their own methods
         raise NotImplementedError
+    def GetSubject(self):
+        # Get the subject - function as it may require a trip to the store!
+        raise NotImplementedError
     def GetField(self, name):
         # Abstractly get a user field name/id to a field value.
         raise NotImplementedError
@@ -291,6 +294,34 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                 yield MAPIMsgStoreMsg(self.msgstore, self,
                                       item_id, row[1][1], row[2][1])
 
+    def GetNewUnscoredMessageGenerator(self, scoreFieldName):
+        folder = self.msgstore._OpenEntry(self.id)
+        table = folder.GetContentsTable(0)
+        # Resolve the field name
+        resolve_props = ( (mapi.PS_PUBLIC_STRINGS, "Spam"), )
+        resolve_ids = folder.GetIDsFromNames(resolve_props, 0)
+        field_id = PROP_TAG( PT_I4, PROP_ID(resolve_ids[0]))
+        # Setup the properties we want to read.
+        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
+        table.SetColumns(prop_ids, 0)
+        # Set up the restriction
+        prop_restriction = (mapi.RES_PROPERTY,   # a property restriction
+                               (mapi.RELOP_EQ,      # check for equality
+                                PR_CONTENT_UNREAD,   # of the unread flag
+                                (PR_CONTENT_UNREAD, True))
+                            )
+        exist_restriction = mapi.RES_EXIST, (field_id,)
+        not_exist_restriction = mapi.RES_NOT, (exist_restriction,)
+        restriction = (mapi.RES_AND, (prop_restriction, not_exist_restriction))
+        table.Restrict(restriction, 0)
+        while 1:
+            rows = table.QueryRows(70, 0)
+            if len(rows) == 0:
+                break
+            for row in rows:
+                item_id = self.id[0], row[0][1] # assume in same store as folder!
+                yield MAPIMsgStoreMsg(self.msgstore, self,
+                                      item_id, row[1][1], row[2][1])
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
     def __init__(self, msgstore, folder, entryid, searchkey, unread):
@@ -298,6 +329,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.msgstore = msgstore
         self.mapi_object = None
         self.id = entryid
+        self.subject = None
         # Search key is the only reliable thing after a move/copy operation
         # only problem is that it can potentially be changed - however, the
         # Outlook client provides no such (easy/obvious) way
@@ -312,7 +344,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             urs = "read"
         else:
             urs = "unread"
-        return "<%s, (%s) id=%s/%s>" % (self.__class__.__name__,
+        return "<%s, '%s' (%s) id=%s/%s>" % (self.__class__.__name__,
+                                     self.GetSubject(),
                                      urs,
                                      mapi.HexFromBin(self.id[0]),
                                      mapi.HexFromBin(self.id[1]))
@@ -328,6 +361,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def GetID(self):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
+
+    def GetSubject(self):
+        if self.subject is None:
+            self.subject = self.GetField(PR_SUBJECT_A,)
+        return self.subject
 
     def GetOutlookItem(self):
         hex_item_id = mapi.HexFromBin(self.id[1])

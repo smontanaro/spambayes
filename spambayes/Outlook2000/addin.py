@@ -123,6 +123,32 @@ except ImportError: # appears in 151 and later.
 
 # Whew - we seem to have all the COM support we need - let's rock!
 
+# Function to filter a message - note it is a msgstore msg, not an
+# outlook one
+def ProcessMessage(msgstore_message, manager):
+    if msgstore_message.GetField(manager.config.field_score_name) is not None:
+        # Already seem this message - user probably moving it back
+        # after incorrect classification.
+        # If enabled, re-train as Ham
+        # otherwise just ignore.
+        if manager.config.training.train_recovered_spam:
+            subject = msgstore_message.GetSubject()
+            import train
+            print "Training on message '%s' - " % subject,
+            if train.train_message(msgstore_message, False, manager, rescore = True):
+                print "trained as good"
+            else:
+                print "already was trained as good"
+            assert train.been_trained_as_ham(msgstore_message, manager)
+        return
+    if manager.config.filter.enabled:
+        import filter
+        disposition = filter.filter_message(msgstore_message, manager)
+        print "Message '%s' had a Spam classification of '%s'" \
+              % (msgstore_message.GetSubject(), disposition)
+    else:
+        print "Spam filtering is disabled - ignoring new message"
+
 # Button/Menu and other UI event handler classes
 class ButtonEvent:
     def Init(self, handler, args = ()):
@@ -156,28 +182,7 @@ class FolderItemsEvent(_BaseItemsEvent):
         #     PR_RECEIVED_BY_ENTRYID
         #     PR_TRANSPORT_MESSAGE_HEADERS
         msgstore_message = self.manager.message_store.GetMessage(item)
-        if msgstore_message.GetField(self.manager.config.field_score_name) is not None:
-            # Already seem this message - user probably moving it back
-            # after incorrect classification.
-            # If enabled, re-train as Ham
-            # otherwise just ignore.
-            if self.manager.config.training.train_recovered_spam:
-                subject = item.Subject.encode("mbcs", "replace")
-                import train
-                print "Training on message '%s' - " % subject,
-                if train.train_message(msgstore_message, False, self.manager, rescore = True):
-                    print "trained as good"
-                else:
-                    print "already was trained as good"
-                assert train.been_trained_as_ham(msgstore_message, self.manager)
-            return
-        if self.manager.config.filter.enabled:
-            import filter
-            disposition = filter.filter_message(msgstore_message, self.manager)
-            print "Message '%s' had a Spam classification of '%s'" \
-                  % (item.Subject.encode("ascii", "replace"), disposition)
-        else:
-            print "Spam filtering is disabled - ignoring new message"
+        ProcessMessage(msgstore_message, self.manager)
 
 # Event fired when item moved into the Spam folder.
 class SpamFolderItemsEvent(_BaseItemsEvent):
@@ -457,7 +462,7 @@ class OutlookAddin:
             # And prime the event handler.
             self.explorer_events.OnFolderSwitch()
 
-            # The main tool-bar dropdown with all out entries.
+            # The main tool-bar dropdown with all our entries.
             # Add a pop-up menu to the toolbar
             popup = toolbar.Controls.Add(
                                 Type=constants.msoControlPopup,
@@ -481,6 +486,13 @@ class OutlookAddin:
                            Enabled=True)
 
         self.FiltersChanged()
+        if self.manager.config.filter.enabled:
+            try:
+                self.ProcessMissedMessages()
+            except:
+                print "Error processing missed messages!"
+                import traceback
+                traceback.print_exc()
 
     def _AddPopup(self, parent, target, target_args, **item_attrs):
         item = parent.Controls.Add(Type=constants.msoControlButton, Temporary=True)
@@ -490,6 +502,24 @@ class OutlookAddin:
         for attr, val in item_attrs.items():
             setattr(item, attr, val)
         self.buttons.append(item)
+
+    def ProcessMissedMessages(self):
+        # This could possibly spawn threads if it was too slow!
+        from time import clock
+        config = self.manager.config.filter
+        manager = self.manager
+        field_name = manager.config.field_score_name
+        for folder in manager.message_store.GetFolderGenerator(
+                                    config.watch_folder_ids,
+                                    config.watch_include_sub):
+            num = 0
+            start = clock()
+            for message in folder.GetNewUnscoredMessageGenerator(field_name):
+                ProcessMessage(message, manager)
+                num += 1
+            # See if perf hurts anyone too much.
+            print "Processing %d missed spam in folder '%s' took %gms" \
+                  % (num, folder.name, clock()-start*1000)
 
     def FiltersChanged(self):
         # Create a notification hook for all folders we filter.
