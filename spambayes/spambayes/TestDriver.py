@@ -205,6 +205,8 @@ class Driver:
         else:
             besthamcut = options["Categorization", "ham_cutoff"]
             bestspamcut = options["Categorization", "spam_cutoff"]
+            self.global_ham_hist.compute_stats()
+            self.global_spam_hist.compute_stats()
         nham = self.global_ham_hist.n
         nspam = self.global_spam_hist.n
         nfp = len(self.falsepos)
