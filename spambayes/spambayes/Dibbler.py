@@ -346,7 +346,7 @@ class _HTTPHandler(BrighterAsyncChat):
 
     # RE to extract option="value" fields from
     # digest auth login field
-    _login_splitter = re.compile('([a-zA-Z])+=(".*?"|.*?),?')
+    _login_splitter = re.compile('([a-zA-Z]+)=(".*?"|.*?),?')
 
     def __init__(self, clientSocket, server, context):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
@@ -630,6 +630,12 @@ class _HTTPHandler(BrighterAsyncChat):
 
         unhashedDigest = ""
         if options.has_key("qop"):
+            # IE 6.0 doesn't give nc back correctly?
+            if not options["nc"]:
+                options["nc"] = "00000001"
+            # Firefox 1.0 doesn't give qop back correctly?
+            if not options["qop"]:
+                options["qop"] = "auth"
             unhashedDigest = "%s:%s:%s:%s:%s:%s" % \
                             (HA1, nonce,
                              stripQuotes(options["nc"]),
