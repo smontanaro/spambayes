@@ -569,12 +569,7 @@ class BayesProxy(POP3ProxyBase):
                 (command == 'TOP' and
                  len(args) == 2 and args[1] == '99999999')):
                 cls = msg.GetClassification()
-                if cls == options["Headers", "header_ham_string"]:
-                    state.numHams += 1
-                elif cls == options["Headers", "header_spam_string"]:
-                    state.numSpams += 1
-                else:
-                    state.numUnsure += 1
+                state.RecordClassification(cls, prob)
 
                 # Suppress caching of "Precedence: bulk" or
                 # "Precedence: list" ham if the options say so.
@@ -929,6 +924,22 @@ class State:
             self.lastBaseMessageName = messageName
             self.uniquifier = 2
         return messageName
+
+    def RecordClassification(self, cls, score):
+        """Record the classification in the session statistics.
+
+        cls should match one of the options["Headers", "header_*_string"]
+        values.
+
+        score is the score the message received.        
+        """
+        if cls == options["Headers", "header_ham_string"]:
+            self.numHams += 1
+        elif cls == options["Headers", "header_spam_string"]:
+            self.numSpams += 1
+        else:
+            self.numUnsure += 1
+        self.stats.RecordClassification(score)
 
 
 # Option-parsing helper functions
