@@ -32,18 +32,8 @@ SpamBayes is a tool used to segregate unwanted mail (spam) from the mail you
 want (ham).  Before SpamBayes can be your spam filter of choice you need to
 train it on representative samples of email you receive.  After it's been
 trained, you use SpamBayes to classify new mail according to its spamminess
-and hamminess qualities.
-
-To train SpamBayes (which you don't need to do if you're going to be using
-the POP3 proxy to classify messages, but you'll get better results from the
-outset if you do) you need to save your incoming email for awhile,
-segregating it into two piles, known spam and known ham (ham is our nickname
-for good mail).  It's best to train on recent email, because your interests
-and the nature of what spam looks like change over time.  Once you've
-collected a fair portion of each, you can tell SpamBayes, "Here's my
-ham and my spam".  It will then process that mail and save information about
-different patterns which appear in ham and spam.  That information is then
-used during the filtering stage.
+and hamminess qualities.  It's best to train on recent email, because your
+interests and the nature of what spam looks like change over time.
 
 When SpamBayes filters your email, it compares each unclassified message
 against the information it saved from training and makes a decision about
@@ -162,8 +152,8 @@ There are eight main components to the SpamBayes system:
    a 2% chance that it's ham." This database is created by training - you
    give it messages, tell it whether those messages are ham or spam, and it
    adjusts its probabilities accordingly.  How to train it is covered below.
-   By default it lives in a file called "hammie.db", "statistics_database.db"
-   or (for the Outlook plugin) "default_bayes_database".
+   By default it lives in a file called "hammie.db", or (for the Outlook
+   plugin) "default_bayes_database".
 
 2. The tokenizer/classifier.  This is the core engine of the system.  The
    tokenizer splits emails into tokens (words, roughly speaking), and the
@@ -546,17 +536,16 @@ If you use the Outlook plugin binary installer there's no need to explicitly
 install Python.
 
 
-Will SpamBayes work with Outlook 2000 connecting to an Exchange 2000 server?
-----------------------------------------------------------------------------
+Will SpamBayes work with Outlook connecting to an Exchange server?
+------------------------------------------------------------------
 
 Yes.
 
 Can mail marked as spam automatically be marked as read?
 --------------------------------------------------------
 
-Yes, in version 008 and above of the plugin.  You can find this on the
-filtering tab of the SpamBayes manager dialog.  However, you should also
-see the `envelope icon question`_.
+Yes.  You can find this on the filtering tab of the SpamBayes manager
+dialog.  However, you should also see the `envelope icon question`_.
 
 .. _`envelope icon question`: #how-can-I-get-rid-of-the-envelope-tray-icon-for-spam
 
@@ -574,11 +563,10 @@ To backup the databases, all you need to do is make a copy of the directory
 that SpamBayes keeps its data in.  If you need to, you can drop the files
 back in to recover from a corrupted database, or for any other reason.
 
-This directory is located in the "Application Data" directory.  If you have
-version 008 of the plug-in, or higher, you can locate this directory by
-using the `Show Data Folder` button on the `Advanced` tab of the main
-`SpamBayes` manager dialog.  If you need to locate it by hand, on Windows
-2000/XP, it will probably be:
+This directory is located in the "Application Data" directory.  You can
+locate this directory by using the `Show Data Folder` button on the
+`Advanced` tab of the main `SpamBayes` manager dialog.  If you need to
+locate it by hand, on Windows 2000/XP, it will probably be:
 
     C:\\Documents and Settings\\[username]\\Application Data\\Spambayes
 
@@ -611,15 +599,11 @@ To activate SpamBayes, you need to tick the "enable filtering" button in
 main SpamBayes dialog.  Note that this button will initially be greyed out;
 you need to have done these things to enable the button:
 
-1. Trained at least 5 ham and 5 spam
+1. Set at least one folder (not your unsure or spam folder) to watch
 
-2. Set at least one folder to watch
+2. Set folders to move spam to, and to move unsures to
 
-3. Set folders to move spam to, and to move unsures to
-
-4. Changed the action to "copy" or "move", rather than "untouched"
-
-5. Ticked the "enable SpamBayes" checkbox on the first tab of the dialog.
+3. Ticked the "enable SpamBayes" checkbox on the first tab of the dialog.
 
 
 How can I get rid of the envelope tray icon for spam?
@@ -763,9 +747,9 @@ appropriate section is headed "Multiple Configuration Files" and is at
 the end of the document).
 
 Basically, you need to create a file "default_configuration.ini", and
-put it either in the directory that SpamBayes was installed into, or in
-the default data directory (the `backup question`_ has instructions for
-finding this directory).
+put it either in the bin directory in the directory that SpamBayes was
+installed into, or in the default data directory (the `backup question`_
+has instructions for finding this directory).
 
 Inside this file, you need to have a section "General", and an option
 "data_directory", which point to the new location that you wish to use.
@@ -830,12 +814,6 @@ deleted on uninstall - although it *will* stop working.  You can delete this
 yourself in Outlook: right-click on the toolbar, choose "Customize", then
 select the SpamBayes toolbar and click "Delete".
 
-With the 008.1 and earlier versions of the plug-in, some entries may be left
-in the registry.  These should be harmless, but if they bother you (and you
-are confident mucking about with the registry, which we do *not* recommend),
-then you can remove those keys yourself.  Newer versions of the installer
-correctly remove these entries.
-
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
 .. _`a bug with the plug-in`: http://sourceforge.net/tracker/index.php?func=detail&aid=675811&group_id=61702&atid=498103
 
@@ -893,22 +871,23 @@ How do I train SpamBayes (web method)?
 
 Follow the "Review messages" link and you'll see a list of the emails that
 the system has seen so far.  Check the appropriate boxes and hit Train.  The
-messages disappear (eventually you'll be able to get back to them, for
-instance to correct any training mistakes) and if you go back to the home
-page you'll see that the "Total emails trained" has increased.
+messages disappear and if you go back to the home page you'll see that the
+"Total emails trained" has increased.
 
 Once you've done this on a few spams and a few hams, you'll find that the
 X-Spambayes-Classification header is getting it right most of the time.  The
-more you train it the more accurate it gets.  There's no need to train it on
-every message you receive, but you should train on a few spams and a few
-hams on a regular basis.  You should also try to train it on about the same
-number of spams as hams.
+more you train it the more accurate it gets, but not that you should try to
+train it on about the same number of spams as hams.  The `SpamBayes wiki`_
+has some `information about training`_ that you may wish to read.
 
 You can train it on lots of messages in one go by either using the sb_filter
 script as explained in the "Command-line training" section, or by giving
 messages to the web interface via the "Train" form on the Home page.  You
 can train on individual messages (which is tedious), using mbox files or
 using Outlook Express dbx files.
+
+.. _`SpamBayes wiki`: http://entrian.com/sbwiki
+.. _`information about training`: http://entrian.com/sbwiki/TrainingIdeas
 
 
 How do I train SpamBayes (forward/bounce method)?
@@ -935,7 +914,7 @@ Given a pair of Unix mailbox format files (each message starts with a line
 which begins with 'From '), one containing nothing but spam and the other
 containing nothing but ham, you can train SpamBayes using a command like::
 
-    sb_mboxtrain.py -g ~/tmp/newham -s ~/tmp/newspam
+    python sb_mboxtrain.py -g ~/tmp/newham -s ~/tmp/newspam
 
 The above command is OS-centric (e.g., UNIX, or Windows command prompt).
 You can also use the web interface for training as detailed above.
@@ -1015,7 +994,7 @@ check:
    They should not be close together (say, 0.4 and 0.6).
 
 2. It is quite important that you have trained on roughly equal numbers of
-   ham and spam (don't go above a 2::1 ratio, for example).
+   ham and spam (don't go above a 4::1 ratio, for example).
 
 3. Have you trained on a reasonable number of hams and spams?  You should
    train on 10 to 20 of each to start with just to get a decent base.  After
@@ -1169,7 +1148,7 @@ Fantastic!  There are four main ways to contribute (including programming):
   report system)
 
 Sadly, not much is done in the way of testing these days.  Hopefully this
-will change, though, and if you're interested it's definately an option.
+will change, though, and if you're interested it's definitely an option.
 Check out the README-DEVEL for information about how to get started.  This is the
 way to go if you have a new idea, too - even if you convince someone else to
 develop it, we'll expect you to put in time to test its effectiveness.
@@ -1212,8 +1191,8 @@ Can SpamBayes be used to perform n-way classification?
 In theory, yes it can, though this has not yet been tried.  There are a
 couple other tools, `POPFile <http://popfile.sourceforge.net/>`_ and `CRM114
 <http://crm114.sourceforge.net/>`_.  A demonstration script which performs
-n-way classification was also recently added to the ``contrib`` directory of
-the SpamBayes CVS repository.
+n-way classification in also in the ``contrib`` directory of the SpamBayes
+source.
 
 
 How do I use a pickle for storage?
@@ -1227,21 +1206,17 @@ of the the dbm storage methods.
 
 To use a pickle, set the option "persistent_use_database" to False in your
 `configuration file <#how-do-i-configure-spambayes>`_,
-in the section "Storage" (if you have been using SpamBayes for a while,
-check that you don't have an old version of this option elsewhere in your
-configuration file, in the pop3proxy or hammiefilter sections).  You may
-also wish to change the name of the storage file (to end with "pck", for
-example), but this is not necessary - to do so, change the
-"persistent_storage_file" option (also in the "Storage" section).
+in the section "Storage".  You may also wish to change the name of the
+storage file (to end with "pck", for example), but this is not necessary
+- to do so, change the "persistent_storage_file" option (also in the
+"Storage" section).
 
 If you specify your database on the command line ("sb_server.py -d hammie.db",
-for example), then you should use the "-D" switch instead.  Note, however,
-that it is likely that these switches will change in a future release, and
-using the configuration file is a much safer option.
+for example), then you should use the "-p" switch instead.
 
 Note that if you have an existing database, which is not a pickle, you can
 not keep using it - this will cause errors.  You need to either retrain
-from scratch, or use the dbExpImp script to convert it to a pickle.
+from scratch, or use the sb_dbexpimp.py script to convert it to a pickle.
 
 
 How can I access the web interface from a different machine than the one it is running on?
@@ -1254,19 +1229,11 @@ settings and possibly read your mail.  In some cases, however, you might
 want to open access up - if you use more than one machine to process mail,
 for example.
 
-In releases up to and including 1.0a4, you need to edit the
-bayescustomize.ini script (the configuration page on the website tells you
-where this is located).  In the ``[html_ui]`` section (create one if there
-isn't one already), add the line: ``allow_remote_connections:True``.  If
-you can, you might want to firewall outside access to port 8880, to stop
-unauthorised users from messing with the web interface.
-
-In versions after 1.0a4, you can specify IP addresses or ranges that you
-want to be allowed access (two or three machines, for example).  You can
-also do this via the web configuration, without having to alter the
-configuration file manually.  The option you are after is called
-``Allowed remote connections``.  In versions after 1.0a5, you can also
-set the interface to use HTTP-AUTH, either Basic or Digest.
+You can specify IP addresses or ranges that you
+want to be allowed access (two or three machines, for example), via the web
+configuration.  The option you are after is called
+``Allowed remote connections``.  You can also set the interface to use
+HTTP-AUTH, either Basic or Digest.
 
 
 I've just installed SpamBayes, but when I run it I get an access denied error.
@@ -1283,43 +1250,33 @@ port that you know is free and available on your machine.
 Known Problems & Workarounds
 ============================
 
-Pop3proxy doesn't work with fetchmail.
---------------------------------------
-
-This is a known problem in releases up to and including 1.0a4, fixed in CVS
-on 28th July 2003.  To work around it, use fetchmail's ``fetchall`` option.
-
 My database keeps getting corrupted.
 ------------------------------------
 
-You may be using the 'dumbdbm' system for your database.
-'dumbdbm' is the default database system - the one that gets fallen back on
-when nothing else is available.  It is not usually a good choice, and in
-SpamBayes' case, always the wrong one.  Some versions of dumbdbm have a bug
-that will cause database corruption, but you shouldn't be using it anyway,
-as it is very inefficient.  Instead, either
-`use a pickle <#how-do-i-use-a-pickle-for-storage>`_ or install `pybsddb`_
-(bsddb3) and use that instead.
+Despite the efforts of the developers, there are still occasional problems
+with database corruption.  Known potential causes include:
+
+1. Accessing the database files from more than one process concurrently.
+
+2. Interupting SpamBayes in the midst of training (through a program or
+machine crash, for example).
+
+If you experience consisent corruption, or can provide a set of steps that
+will consisently cause the database to be corrupted, please email
+the `mailing list`_, describing your situation.
+
+Otherwise, you should simply retrain from scratch.  You may wish to change
+to an alternative database system to try and avoid these problems.
 
 If you are not sure which database systems
 you have available, and/or which one you are currently using, there is a
 script in the utilities folder called `which_database.py`_ that will display
-this information (Windows users should run it from a command prompt).  This
-file is only included in releases after 1.0a4 - if you are using an earlier
-version, you can download it from cvs, or just go by the name(s) of the
-database file(s).  If you have a single file, probably called ``hammie.db``,
-then you are probably not using dumbdbm.  If you have three files (probably
-called ``hammie.db.dir``, ``hammie.db.dat`` and ``hammie.db.bak``), then you
-most likely are using dumbdbm, and should stop.  Note that users of the
-pop3proxy_service can not currently use which_database.py.
+this information (Windows users should run it from a command prompt).  Note
+that users of the pop3proxy_service can not currently use which_database.py.
 
-Support for dumbdbm has been dropped since release 1.0a6.
-                    
-Note that none of this applies to the Outlook plug-in, which avoids it
-on your behalf.
 
 .. _which_database.py: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/utilities/which_database.py?rev=HEAD&content-type=text/plain
-.. _pybsddb: http://pybsddb.sourceforge.net/
+.. _mailing list: mailto:spambayes@python.org
 
 
 I get a "DBRunRecoveryError" message.
@@ -1327,14 +1284,18 @@ I get a "DBRunRecoveryError" message.
 
 If you get a message that looks like:
 DBRunRecoveryError: (-30982, 'DB_RUNRECOVERY: Fatal error, run database
-recovery -- fatal region error detected; run recovery')
-This, sadly, means that your training database is corrupted, and you have
+recovery -- fatal region error detected; run recovery'),
+this, sadly, means that your training database is corrupted, and you have
 no choice but to delete it and train again from scratch.  We don't know what
 causes this to happen, but we are trying to fix it.  If you find it happens
 reliably for you (ie. the problem always comes back after deleting the
 database and retraining), please post a message saying as much to
 spambayes@python.org - no-one has yet found a case where we can reliably
 reproduce the problem, so tracking it down is proving very difficult.
+
+Note that the "database recovery" that you are told to run does not apply.
+This is a message provided by the underlying bsddb database system, and
+cannot be used in this case.
 
 If you don't want to risk it happening again, switch to using the pickle
 storage (web interface: Configuration / Advanced Configuration /
@@ -1356,68 +1317,6 @@ Note, however, that there are two issues with this:
 You may also wish to read the `my database is corrupted`_ FAQ.
 
 .. _my database is corrupted: #my-database-keeps-getting-corrupted
-
-
-The readme says that I can delete the files after doing "setup.py install", but then I can't find pop3proxy_service.py or pop3proxy_tray.py.
---------------------------------------------------------------------------------------------------------------------------------------------
-
-This is a mistake in either the readme or setup.py in the 1.0a6 release.
-It's fixed in the 1.0a7 release, so that pop3proxy_service.py and
-pop3proxy_tray.py will also be installed to the Python scripts directory
-(if you are running Windows).
-
-
-I can't train via the web interface in 1.0a6!
----------------------------------------------
-
-There is a known problem with the 1.0a6 release, which is fixed in 1.0a7.
-Download the newer release from the download page.
-
-To workaround the problem if you're stuck on 1.0a6: you can't use the 
-database after making any changes via the web interface configuration pages.
-To work around this, either restart SpamBayes after using the configuration
-pages, or upgrade to 1.0a7.
-
-The '500' error you receive will end with "Object does not support item
-assignment".  It may also show up on other pages than the review messages
-one, such as looking up a word in the database.
-
-
-sb_imapfilter prints out "Skipping unparseable message", but the message vanishes!
-----------------------------------------------------------------------------------
-
-This is a known problem with the 1.0a9 (0.9) release, and will be fixed in
-the next release.  Unless you have something set to expunge/purge the IMAP
-folder, the original message will still be there, marked as deleted, so you
-can get it back, although malformed messages are most likely to be spam,
-anyway.
-
-If you need a fix for this before the next release, you can get sb_imapfilter.py
-from CVS (revision 1.26), and use it instead of the one included with 1.0a9 (0.9).
-You should also get message.py (revision 1.46), and replace the message.py
-in your Python Lib/site-packages/spambayes folder with it.
-
-Note that in addition to the message disappearing, you'll find a new message
-(almost certainly unsure) which is blank, apart from the SpamBayes headers.
-You may safely delete these messages.  If you are training and come across
-one of these messages, you'll also have the ham/spam count in your database
-increase, without any tokens increasing their count, but that shouldn't have
-any effect, as long as it doesn't happen regularly.
-
-
-The 1.0a9 (0.9) installer is missing the pop3proxy_service file.
-----------------------------------------------------------------
-
-There are two bugs here - one is that the readme_proxy.html file installed
-by the 1.0a9 (0.9) installer talks about a directory that doesn't exist,
-namely {Program Files}/SpamBayes/Proxy.  This should be {Program Files}/SpamBayes/bin,
-but that won't help you, because the executable that you need to install
-the service isn't installed.
-
-This will be fixed in the next release (in the 'bin' directory will be a
-file called "sb_server.exe").  Until then, if you want to install sb_server
-as a service, you will need to do this from source.  You can, of course,
-run sb_server.exe or sb_tray.exe, without having the service installed.
 
 
 Why does the spambayes@python.org mailing list get spam?
@@ -1534,12 +1433,14 @@ a general rule, we've found that with the tokenizer, "stupid beats smart"
 - that is, very specialized tokenizer behavior usually produces worse
 results than a more general approach that just generates tokens and throws
 them at the classifier. See also the file NEWTRICKS.txt in the source
-distribution - we're filing neat ideas here.
+distribution - we're filing neat ideas here, and also check out the `wiki`_.
 
 If you're interested in trying out other people's cool ideas, as well as your
 own, then check out the current experimental options (these start with "x-",
 and are available via the web interface on the Experimental Configuration page)
 and give us some feedback about how they work for you.
+
+.. _wiki: http://entrian.com/sbwiki
 
 
 Are there plans to develop a server-side SpamBayes solution?
