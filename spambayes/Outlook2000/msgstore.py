@@ -655,7 +655,17 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         import email
         text = self._GetMessageText()
         try:
-            msg = email.message_from_string(text)
+            try:
+                msg = email.message_from_string(text)
+            except email.Errors.BoundaryError:
+                # In case this is the
+                #    "No terminating boundary and no trailing empty line"
+                # flavor of BoundaryError, we can supply a trailing empty
+                # line to shut it up.  It's certainly ill-formed MIME, and
+                # probably spam.  We don't care about the exact MIME
+                # structure, just the words it contains, so no harm and
+                # much good in trying to suppress this error.
+                msg = email.message_from_string(text + "\n\n")
         except:
             print "FAILED to create email.message from: ", `text`
             raise
