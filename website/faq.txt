@@ -1397,14 +1397,40 @@ tools like SpamBayes fill.
 If you really need whitelisting, consider implementing rules in your    
 mailer to intercept the messages before they're passed to SpamBayes.    
 
-None of the existing SpamBayes developers have an interest in
-implementing whitelisting - if it's something you feel really strongly
-about, download the source and look into making a patch. If someone
-implements whitelisting, including all the user interface side needed
-to manage it, there's no reason it wouldn't be accepted into the source
-code.
+Open Source software is developed by people scratching their own itches
+(and it can't be otherwise, since nobody is paid to endure things they
+don't want to do). While few, if any, of the SpamBayes developers would
+object to adding whitelist gimmicks, none of the existing developers
+have an interest in implementing them, typically because they'd be a net
+loss for them (and so wouldn't use them).
+
+Developers may have a different view of this than most users - because
+they work on open source software, they know a lot of other open source
+developers, and their email addresses are all over the web.  As a result,
+they get a lot of spam, and especially viruses, claiming to be sent from
+people they know (including direct coworkers, bosses, and the company
+president).  We even get viruses and spam claiming to come from ourselves
+(but don't remember sending them <wink>).  So what SpamBayes does now is
+exactly right for us: the person a thing claims to come from is *a* clue,
+but just one clue, and is tossed in the pot with all the other clues.
+
+If someone contributed code to do it, it would probably get added.  Note
+that there are increasing problems trying to access the address book,
+because every Outlook service pack makes that harder to do (accessing the
+Windows address book is most associated with viruses).
+
+There are three main things that need to be done:
+
+* Determine the list to match against.
+* Design a UI that configures it (even if as simple as a checkbox!).
+* Match the addresses as they come in.
+
+If you are interested in implementing whitelisting, take a look at
+`some comments from Mark`_.
+
 
 .. _related page: related.html
+.. _some comments from Mark: http://mail.python.org/pipermail/spambayes/2004-April/012300.html
 
 
 What do I need to do to update the FAQ?
