@@ -577,18 +577,6 @@ received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
 # "Python-Dev".
 subject_word_re = re.compile(r"[\w\x80-\xff$.%]+")
 
-# Anthony Baxter reported goodness from cracking src params.
-# Finding a src= thingie is complicated if we insist it appear in an
-# img or iframe tag, so this approximates reality with a fast and
-# non-stack-blowing simple regexp.
-src_re = re.compile(r"""
-    \s
-    src=['"]
-    (?!https?:)     # we suck out http thingies via a different gimmick
-    ([^'"]{1,128})  # capture the guts, but don't go wild
-    ['"]
-""", re.VERBOSE)
-
 fname_sep_re = re.compile(r'[/\\:]')
 
 def crack_filename(fname):
@@ -1011,17 +999,6 @@ class Tokenizer:
             text, tokens = crack_urls(text)
             for t in tokens:
                 yield t
-
-            # Anthony Baxter reported goodness from tokenizing src= params.
-            # XXX This made no difference in my tests:  both error rates
-            # XXX across 20 runs were identical before and after.  I suspect
-            # XXX this is because Anthony got most good out of the http
-            # XXX thingies in <img src="http://bozo.bozo.com">, but we
-            # XXX picked those up in the last step (in src params and
-            # XXX everywhere else).  So this code is commented out.
-            ## for fname in src_re.findall(text):
-            ##     for x in crack_filename(fname):
-            ##         yield "src:" + x
 
             # Remove HTML/XML tags.
             if (part.get_content_type() == "text/plain" or
