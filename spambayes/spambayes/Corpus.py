@@ -131,14 +131,11 @@ class Corpus:
             # and so it may very well not be interested in AddMessage events
             # even though right now the only observable events are
             # training related
-            try:
+            if hasattr(obs, "onAddMessage"):
                 obs.onAddMessage(message)
-            except AttributeError:   # ignore if not implemented
-                pass
 
     def removeMessage(self, message):
         '''Remove a Message from this corpus'''
-
         key = message.key()
         if options["globals", "verbose"]:
             print 'removing message %s from corpus' % (key)
@@ -147,15 +144,12 @@ class Corpus:
 
         for obs in self.observers:
             # see comments in event loop in addMessage
-            try:
+            if hasattr(obs, "onRemoveMessage"):
                 obs.onRemoveMessage(message)
-            except AttributeError:
-                pass
 
     def cacheMessage(self, message):
         '''Add a message to the in-memory cache'''
         # This method should probably not be overridden
-
         key = message.key()
 
         if options["globals", "verbose"]:
@@ -189,7 +183,6 @@ class Corpus:
 
     def takeMessage(self, key, fromcorpus):
         '''Move a Message from another corpus to this corpus'''
-
         msg = fromcorpus[key]
         msg.load() # ensure that the substance has been loaded
         fromcorpus.removeMessage(msg)
