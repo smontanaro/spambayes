@@ -2,6 +2,7 @@
 import sys, os
 import warnings
 import traceback
+import _winreg
 
 # *sigh* - this is for the binary installer, and for the sake of one line
 # that is implicit anyway, I gave up
@@ -85,11 +86,13 @@ gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0,
                         bForDemand=True, bValidateFile=bValidateGencache) # Outlook 9
 gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1,
                         bForDemand=True, bValidateFile=bValidateGencache) # Office 9
+# We the "Addin Designer" typelib for its constants
+gencache.EnsureModule('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0,
+                        bForDemand=True, bValidateFile=bValidateGencache)
+# ... and also for its _IDTExtensibility2 vtable interface.
+universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0,
+                             ["_IDTExtensibility2"])
 
-# Register what vtable based interfaces we need to implement.
-# Damn - we should use EnsureModule for the _IDTExtensibility2 typelib, but
-# win32all 155 and earlier don't like us pre-generating :(
-universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
 try:
     from win32com.client import CastTo, WithEvents
 except ImportError:
@@ -964,18 +967,10 @@ class ExplorerWithEvents:
                     else:
                         # for not broken - can't find toolbar.  Create a new one.
                         # Create it as a permanent one (which is default)
-                        if self.explorers_collection.have_created_toolbar:
-                            # Eeek - we have already created a toolbar, but
-                            # now we can't find it.  It is likely this is the
-                            # first time we are being run, and outlook is
-                            # being started with multiple Windows open.
-                            # Hopefully things will get back to normal once
-                            # Outlook is restarted (which testing shows it does)
-                            return
-
                         print "Creating new SpamBayes toolbar to host our buttons"
-                        self.toolbar = bars.Add(toolbar_name, constants.msoBarTop, Temporary=False)
-                        self.explorers_collection.have_created_toolbar = True
+                        self.toolbar = bars.Add(toolbar_name,
+                                                constants.msoBarTop,
+                                                Temporary=False)
                     self.toolbar.Visible = True
                 parent = self.toolbar
             # Now add the item itself to the parent.
@@ -1121,10 +1116,11 @@ class ExplorersEvent:
         assert manager
         self.manager = manager
         self.explorers = []
-        self.have_created_toolbar = False
         self.button_event_map = {}
 
     def Close(self):
+        while self.explorers:
+            self._DoDeadExplorer(self.explorers[0])
         self.explorers = None
 
     def _DoNewExplorer(self, explorer):
@@ -1227,6 +1223,11 @@ class OutlookAddin:
                 # being enabled.  The new Wizard should help, but things can
                 # still screw up.
                 self.manager.LogDebug(0, "*** SpamBayes is NOT enabled, so will not filter incoming mail. ***")
+            if connectMode == constants.ext_cm_AfterStartup:
+                # We are being enabled after startup, which means we don't get
+                # the 'OnStartupComplete()' event - call it manually so we
+                # bootstrap code that can't happen until startup is complete.
+                self.OnStartupComplete(None)
         except:
             print "Error connecting to Outlook!"
             traceback.print_exc()
@@ -1330,8 +1331,9 @@ class OutlookAddin:
             for hook in self.folder_hooks.values():
                 hook.Close()
             self.folder_hooks = None
-        self.application = None
-        self.explorers_events = None
+        if self.explorers_events is not None:
+            self.explorers_events.Close()
+            self.explorers_events = None
         if self.manager is not None:
             # Save database - bsddb databases will generally do nothing here
             # as it will not be dirty, but pickles will.
@@ -1342,6 +1344,27 @@ class OutlookAddin:
             print "\r\n".join(self.manager.stats.GetStats())
             self.manager.Close()
             self.manager = None
+
+        if mode==constants.ext_dm_UserClosed:
+            # The user has de-selected us.  Remove the toolbars we created
+            # (Maybe we can exploit this later to remove toolbars as part
+            # of uninstall?)
+            print "SpamBayes is being manually disabled - deleting toolbar"
+            try:
+                explorers = self.application.Explorers
+                for i in range(explorers.Count):
+                    explorer = explorers.Item(i+1)
+                    try:
+                        toolbar = explorer.CommandBars.Item(toolbar_name)
+                    except pythoncom.com_error:
+                        print "Could not find our toolbar to delete!"
+                    else:
+                        toolbar.Delete()
+            except:
+                print "ERROR deleting toolbar"
+                traceback.print_exc()
+
+        self.application = None
 
         print "Addin terminating: %d COM client and %d COM servers exist." \
               % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
@@ -1372,7 +1395,6 @@ class OutlookAddin:
         pass
 
 def _DoRegister(klass, root):
-    import _winreg
     key = _winreg.CreateKey(root,
                             "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
@@ -1381,25 +1403,51 @@ def _DoRegister(klass, root):
     _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, "SpamBayes anti-spam tool")
     _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, "SpamBayes")
 
-def RegisterAddin(klass):
-    import _winreg
-    # Try and register twice - once in HKLM, and once in HKCU.  This seems
-    # to help roaming profiles, etc.  Once registered, it is both registered
-    # on this machine for the current user (even when they roam, assuming it
-    # has been installed on the remote machine also) and for any user on this
-    # machine.
-    try:
+# Note that Addins can be registered either in HKEY_CURRENT_USER or
+# HKEY_LOCAL_MACHINE.  If the former, then:
+# * Only available for the user that installed the addin.
+# * Appears in the 'COM Addins' list, and can be removed by the user.
+# If HKEY_LOCAL_MACHINE:
+# * Available for every user who uses the machine.  This is useful for site
+#   admins, so it works with "roaming profiles" as users move around.
+# * Does not appear in 'COM Addins', and thus can not be disabled by the user.
+
+# Note that if the addin is registered in both places, it acts as if it is
+# only installed in HKLM - ie, does not appear in the addins list.
+# For this reason, the addin can be registered in HKEY_LOCAL_MACHINE
+# by executing 'regsvr32 /i:hkey_local_machine outlook_addin.dll'
+# (or 'python addin.py hkey_local_machine' for source code users.
+# Note to Binary Builders: You need py2exe dated 8-Dec-03+ for this to work.
+
+# Called when "regsvr32 /i:whatever" is used.  We support 'hkey_local_machine'
+def DllInstall(bInstall, cmdline):
+    klass = OutlookAddin
+    if bInstall and cmdline.lower().find('hkey_local_machine')>=0:
+        # Unregister the old installation, if one exists.
+        DllUnregisterServer()
+        # Don't catch exceptions here - if it fails, the Dll registration
+        # must fail.
         _DoRegister(klass, _winreg.HKEY_LOCAL_MACHINE)
+        print "Registration (in HKEY_LOCAL_MACHINE) complete."
+    
+def DllRegisterServer():
+    klass = OutlookAddin
+    # *sigh* - we used to *also* register in HKLM, but as above, this makes
+    # things work like we are *only* installed in HKLM.  Thus, we explicitly
+    # remove the HKLM registration here (but it can be re-added - see the
+    # notes above.)
+    try:
+        _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE,
+                          "Software\\Microsoft\\Office\\Outlook\\Addins\\" \
+                          + klass._reg_progid_)
     except WindowsError:
-        # But they may not have the rights to install there.
         pass
-    # We don't catch exception registering just for this user though
-    # that is fatal!
     _DoRegister(klass, _winreg.HKEY_CURRENT_USER)
     print "Registration complete."
 
-def UnregisterAddin(klass):
-    import _winreg
+def DllUnregisterServer():
+    klass = OutlookAddin
+    # Try to remove the HKLM version.
     try:
         _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE,
                           "Software\\Microsoft\\Office\\Outlook\\Addins\\" \
@@ -1414,16 +1462,22 @@ def UnregisterAddin(klass):
     except WindowsError:
         pass
 
-def DllRegisterServer():
-    RegisterAddin(OutlookAddin)
-
-def DllUnregisterServer():
-    UnregisterAddin(OutlookAddin)
-
 if __name__ == '__main__':
     import win32com.server.register
     win32com.server.register.UseCommandLine(OutlookAddin)
+    # todo - later win32all versions of  UseCommandLine support
+    # finalize_register and finalize_unregister keyword args, passing the
+    # functions.
+    # (But DllInstall may get support in UseCommandLine later, so let's
+    # wait and see)
     if "--unregister" in sys.argv:
         DllUnregisterServer()
     else:
         DllRegisterServer()
+        # Support 'hkey_local_machine' on the commandline, to work in
+        # the same way as 'regsvr32 /i:hkey_local_machine' does.
+        # regsvr32 calls it after DllRegisterServer, (and our registration
+        # logic relies on that) so we will too.
+        for a in sys.argv[1:]:
+            if a.lower()=='hkey_local_machine':
+                DllInstall(True, 'hkey_local_machine')
