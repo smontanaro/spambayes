@@ -25,6 +25,9 @@ Usage:
             -t          : train contents of spam folder and ham folder
             -c          : classify inbox
             -h          : help
+            -v          : verbose mode
+            -e          : sets expunge to the *opposite* of options.imap_expunge
+            -i debuglvl : a somewhat mysterious imaplib debugging level
 
 Examples:
 
@@ -38,6 +41,14 @@ Examples:
         imapfilter -t -d bayes.db
  
 To Do:
+    o Remove old msg from info database when saveing modified messages
+    o Use DELETE rather than storing //DELETED flag when saving modified messages
+    o Web UI for configuration and setup. # Tony thinks it would be
+        nice if there was a web ui to this for the initial setup (i.e. like
+        pop3proxy), which offered a list of folders to filter/train/etc.  It
+        could then record a uid for the folder rather than a name, and it
+        avoids the problems with different imap servers having different
+        naming styles a list is retrieved via imap.list()
     o Suggestions?
 """
 
@@ -47,13 +58,6 @@ To Do:
 
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "Tim Stone, All the Spambayes folk."
-
-# Tony thinks it would be nice if there was a web ui to
-# this for the initial setup (i.e. like pop3proxy), which offered
-# a list of folders to filter/train/etc.  It could then record a
-# uid for the folder rather than a name, and it avoids the problems
-# with different imap servers having different naming styles
-# a list is retrieved via imap.list()
 
 try:
     True, False
@@ -78,14 +82,11 @@ imap = None
 
 class IMAPMessage(message.SBHeaderMessage):
     # response checking is necessary throughout this class
-    def __init__(self):        
+    def __init__(self, folder, id):        
         message.Message.__init__(self)
-        #XXX When a message object is created, an id and a folder should
-        #XXX immediately be set.  These cannot be passed in on the
-        #XXX constructor, due to the quirky way that email.Parser.Parser
-        #XXX does its thing.
-        self.id = None
-        self.folder = None
+
+        self.id = id
+        self.folder = folder
         self.previous_folder = None
 
     def _check(self, response, command):
@@ -109,7 +110,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # The move just changes where we think we are,
         # and we do an actual move on save (to avoid doing
         # this more than once)
-        if self.previous_folder is None and not self.folder == dest:
+        if self.previous_folder is None:
             self.previous_folder = self.folder
             self.folder = dest
 
@@ -200,14 +201,9 @@ class IMAPFolder(object):
         messageText = response[1][0][1]
         # we return an instance of *our* message class, not the
         # raw rfc822 message
-        #XXX I can't get parsing to work correctly if I pull the guts
-        #XXX out of Parser.parse() and do that in the setPayload method
-        #XXX of the message class.  Why?  I have **NO** idea.
-        #msg = IMAPMessage(self, key)
-        #msg.setPayload(messageText)
-        msg = email.Parser.Parser(_class=IMAPMessage).parsestr(messageText)
-        msg.folder = self
-        msg.setId(key)
+
+        msg = IMAPMessage(self, key)
+        msg.setPayload(messageText)
         
         return msg
 
@@ -252,7 +248,8 @@ class IMAPFilter(object):
     def __init__(self, classifier):
         global imap
         imap = imaplib.IMAP4(options.imap_server, options.imap_port)
-        lgn = imap.login(options.imap_username, options.imap_password)
+
+        self.Login(options.imap_username, options.imap_password)
         
         self.spam_folder = IMAPFolder(options.imap_spam_folder)
         self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
@@ -293,9 +290,20 @@ class IMAPFilter(object):
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
 
-    def Logout(self):
+    def Login(self, uid, pw):
+        try:
+            lgn = imap.login(uid, pw)
+        except imaplib.IMAP4.error, e:
+            if str(e) == "permission denied":
+                print "There was an error logging in to the IMAP server."
+                print "The userid and/or password may be in error."
+                sys.exit()
+            else:
+                raise
+    
+    def Logout(self, expunge):
         # sign off
-        if options.imap_expunge:
+        if expunge:
             imap.expunge()
         imap.logout()
 
@@ -303,7 +311,7 @@ class IMAPFilter(object):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcvd:D:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcvei:d:D:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -312,6 +320,8 @@ if __name__ == '__main__':
     useDBM = options.pop3proxy_persistent_use_database
     doTrain = False
     doClassify = False
+    doExpunge = options.imap_expunge
+    imapDebug = 0
 
     for opt, arg in opts:
         if opt == '-h':
@@ -329,27 +339,31 @@ if __name__ == '__main__':
             doClassify = True
         elif opt == '-v':
             options.verbose = True
+        elif opt == '-e':
+            doExpunge = not doExpunge
+        elif opt == '-i:':
+            imapDebug = int(arg)
 
 
-        bdbname = os.path.expanduser(bdbname)
-        
-        if options.verbose:
-            print "Loading database %s..." % (bdbname),
-        
-        if useDBM:
-            classifier = storage.DBDictClassifier(bdbname)
-        else:
-            classifier = storage.PickledClassifier(bdbname)
+    bdbname = os.path.expanduser(bdbname)
+    
+    if options.verbose:
+        print "Loading database %s..." % (bdbname),
+    
+    if useDBM:
+        classifier = storage.DBDictClassifier(bdbname)
+    else:
+        classifier = storage.PickledClassifier(bdbname)
 
-        if options.verbose:
-            print "Done."            
+    if options.verbose:
+        print "Done."            
                 
     imap_filter = IMAPFilter(classifier)
-#    imap_filter.imap.debug = 10
-#    imap_filter.Login()
+    imap.debug = imapDebug
+
     if doTrain:
         imap_filter.Train()
     if doClassify:
         imap_filter.Filter()
         
-    imap_filter.Logout()
+    imap_filter.Logout(doExpunge)
