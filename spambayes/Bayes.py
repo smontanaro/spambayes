@@ -17,7 +17,7 @@ Abstract:
     more properly be defined in Bayes: classify, which returns
     'spam'|'ham'|'unsure' for a message based on the spamprob against
     the ham_cutoff and spam_cutoff specified in Options.
-    
+
     PickledBayes is a concrete PersistentBayes class that uses a cPickle
     datastore.  This database is relatively small, but slower than other
     databases.
@@ -131,7 +131,7 @@ class PickledBayes(PersistentBayes):
             self.wordinfo = tempbayes.wordinfo
             self.nham = tempbayes.nham
             self.nspam = tempbayes.nspam
-            
+
             if Corpus.Verbose:
                 print '%s is an existing pickle, with %d ham and %d spam' \
                       % (self.db_name, self.nham, self.nspam)
@@ -167,7 +167,7 @@ class PickledBayes(PersistentBayes):
             raise ValueError("Can't unpickle -- version %s unknown" % t[0])
 
         self.wordinfo, self.nspam, self.nham = t[1:]
-        
+
 
 class DBDictBayes(PersistentBayes):
     '''Bayes object persisted in a hammie.DB_Dict'''
@@ -186,39 +186,28 @@ class DBDictBayes(PersistentBayes):
         if Corpus.Verbose:
             print 'Loading state from',self.db_name,'DB_Dict'
 
-        try:
-            wi = DBDict(self.db_name, 'r')
-        except anydbm.error:
-            wi = {}
-        
-        if wi.has_key(self.statekey):
+        self.wordinfo = DBDict(self.db_name, 'c')
+
+        if self.wordinfo.has_key(self.statekey):
+
+            self.nham, self.nspam = self.wordinfo[self.statekey]
             if Corpus.Verbose:
                 print '%s is an existing DBDict, with %d ham and %d spam' \
                       % (self.db_name, self.nham, self.nspam)
-
-            self.nham, self.nspam = wi[self.statekey]
-
-            for word,info in wi:
-                self.wordinfo[word] = info
         else:
             # new dbdict
             if Corpus.Verbose:
                 print self.db_name,'is a new DBDict'
-            self.wordinfo = {}
             self.nham = 0
             self.nspam = 0
 
     def store(self):
         '''Place state into persistent store'''
 
-        wi = DBDict(self.db_name, 'c')
-
         if Corpus.Verbose:
             print 'Persisting',self.db_name,'state in DBDict'
 
-        wi[self.statekey] = (self.nham, self.nspam)
-        for word in self.wordinfo:
-            wi[word] = self.wordinfo[word]
+        self.wordinfo[self.statekey] = (self.nham, self.nspam)
 
 
 class Trainer:
