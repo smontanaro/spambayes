@@ -715,16 +715,22 @@ class Classifier:
                 # Probably Python 2.2.
                 pass
 
-            # Anything that isn't text/html is ignored
-            content_type = f.info().get('content-type')
-            if content_type is None or \
-               not content_type.startswith("text/html"):
-                self.bad_urls["url:non_html"] += (url,)
-                return ["url:non_html"]
+            try:
+                # Anything that isn't text/html is ignored
+                content_type = f.info().get('content-type')
+                if content_type is None or \
+                   not content_type.startswith("text/html"):
+                    self.bad_urls["url:non_html"] += (url,)
+                    return ["url:non_html"]
 
-            page = f.read()
-            headers = str(f.info())
-            f.close()
+                page = f.read()
+                headers = str(f.info())
+                f.close()
+            except socket.error:
+                # This is probably a temporary error, like a timeout.
+                # For now, just bail out.
+                return []
+            
             fake_message_string = headers + "\r\n" + page
 
             # Retrieving the same messages over and over again will tire
