@@ -740,7 +740,6 @@ class State:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
 
         self.servers = []
-        self.proxyPorts = []
         if options["pop3proxy", "remote_servers"]:
             for server in options["pop3proxy", "remote_servers"]:
                 server = server.strip()
@@ -750,9 +749,12 @@ class State:
                     port = '110'
                 self.servers.append((server, int(port)))
 
-        if options["pop3proxy", "listen_ports"]:
-            splitPorts = options["pop3proxy", "listen_ports"]
-            self.proxyPorts = map(_addressAndPort, splitPorts)
+        if not hasattr(self, "proxyPorts"):
+            # Could have already been set via the command line.
+            self.proxyPorts = []
+            if options["pop3proxy", "listen_ports"]:
+                splitPorts = options["pop3proxy", "listen_ports"]
+                self.proxyPorts = map(_addressAndPort, splitPorts)
 
         if len(self.servers) != len(self.proxyPorts):
             print "pop3proxy_servers & pop3proxy_ports are different lengths!"
@@ -1053,7 +1055,7 @@ def run():
         # '-p' and '-d' are handled by the storage.database_type call
         # below, in case you are wondering why they are missing.
         elif opt == '-l':
-            state.proxyPorts = [_addressAndPort(arg)]
+            state.proxyPorts = [_addressAndPort(a) for a in arg.split(',')]
         elif opt == '-u':
             state.uiPort = int(arg)
         elif opt == '-o':
