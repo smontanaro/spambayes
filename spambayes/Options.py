@@ -41,14 +41,6 @@ basic_header_skip: received
     date
     x-.*
 
-# If false, tokenizer.Tokenizer.tokenize_body() strips HTML tags
-# from pure text/html messages.  Set true to retain HTML tags in this
-# case.  On the c.l.py corpus, it helps to set this true because any
-# sign of HTML is so despised on tech lists; however, the advantage
-# of setting it true eventually vanishes even there given enough
-# training data.
-retain_pure_html_tags: False
-
 # If true, the first few characters of application/octet-stream sections
 # are used, undecoded.  What 'few' means is decided by octet_prefix_size.
 check_octets: False
@@ -346,8 +338,7 @@ boolean_cracker = ('getboolean', bool)
 string_cracker = ('get', None)
 
 all_options = {
-    'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
-                  'safe_headers': ('get', lambda s: Set(s.split())),
+    'Tokenizer': {'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'record_header_absence': boolean_cracker,
                   'generate_long_skips': boolean_cracker,

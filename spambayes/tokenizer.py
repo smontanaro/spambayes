@@ -494,12 +494,13 @@ del aliases # Not needed any more
 #
 # Later:  As the amount of training data increased, the effect of retaining
 # HTML tags decreased to insignificance.  options.retain_pure_html_tags
-# was introduced to control this, and it defaults to False.
+# was introduced to control this, and it defaulted to False.  Later, as the
+# algorithm improved, retain_pure_html_tags was removed.
 #
 # Later:  The decision to ignore "redundant" HTML is also dubious, since
 # the text/plain and text/html alternatives may have entirely different
 # content.  options.ignore_redundant_html was introduced to control this,
-# and it defaults to False.  Later:  ignore_redundant_html was removed.
+# and it defaults to False.  Later:  ignore_redundant_html was also removed.
 
 ##############################################################################
 # How big should "a word" be?
@@ -1166,11 +1167,6 @@ class Tokenizer:
     def tokenize_body(self, msg, maxword=options.skip_max_word_size):
         """Generate a stream of tokens from an email Message.
 
-        HTML tags are always stripped from text/plain sections.
-        options.retain_pure_html_tags controls whether HTML tags are
-        also stripped from text/html sections.  Except in special cases,
-        it's recommended to leave that at its default of false.
-
         If options.check_octets is True, the first few undecoded characters
         of application/octet-stream parts of the message body become tokens.
         """
@@ -1227,10 +1223,8 @@ class Tokenizer:
                 yield "virus:%s" % t
 
             # Remove HTML/XML tags.  Also &nbsp;.
-            if (part.get_content_type() == "text/plain" or
-                    not options.retain_pure_html_tags):
-                text = text.replace('&nbsp;', ' ')
-                text = html_re.sub(' ', text)
+            text = text.replace('&nbsp;', ' ')
+            text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.
             for w in text.split():
