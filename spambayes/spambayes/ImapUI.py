@@ -143,6 +143,11 @@ class IMAPUserInterface(UserInterface.UserInterface):
             m = r.search(fol)
             name_attributes = fol[:m.end()-1]
             folder_delimiter = fol[m.end()+1:m.end()+2]
+            # a bit of a hack, but we really need to know if this is
+            # the case
+            if folder_delimiter == ',':
+                print """WARNING: Your imap server uses commas as the folder
+                delimiter.  This may cause unpredictable errors."""
             folders.append(fol[m.end()+5:-1])
         folders.sort()
         return folders

@@ -835,21 +835,48 @@ gdbm, or dumbdbm.  Windows folk should steer clear of dbhash.  Default is
 
 "imap" : (
 ("server", "Server", "",
-"", r"[\w\.\-]+(: [\d]+)?", False, False),
+"""This is the name of the imap server that stores your mail,
+and which the imap filter will connect to - for example: mail.example.com
+or imap.example.com.  If you use more than one server, then things are
+a bit more complicated for you at the moment, sorry.  You will need to have
+multiple instances of the imap filter running, each with a different
+server (and possibly username and password) value.  You can do this if you
+have a different configuration file for each instance, but you'll have to
+do it by hand for the moment.  Please let the mailing list know if you are
+in this situation so that we can consider coming up with a better solution.
+""",
+r"[\w\.\-]+(: [\d]+)?", False, False),
 ("port", "Port", 143,
-"""The default IMAP port is 143, or 993 if using SSL""",
+"""This is the port of the imap server that stores your mail, and which the
+imap filter will connect to.  The default IMAP port is 143, or 993 if using
+SSL, you will probably have one of those values here.  If you are using
+multiple imap servers, please see the comments regarding the server value.
+""",
 r"[\d]+", False, False),
 ("username", "Username", "",
-"", r"[\w]+", False, False),
+"""This is the id that you use to log into your imap server.  If your
+address is funkyguy@example.com, then your username is probably funkyguy.
+If you are using multiple imap servers, or multiple accounts on the same
+server, please see the comments regarding the server value.""",
+r"[\w]+", False, False),
 ("password", "Password", "",
-"", r"[\w]+", False, False),
+"""That is that password that you use to log into your imap server. This
+will be stored in plain text in your configuration file, and if you have
+set the web user interface to allow remote connections, then it will be
+available for the whole world to see in plain text.  If I've just
+freaked you out, don't panic <wink>.  You can leave this blank and use
+the -p command line option to imapfilter.py and you will be prompted for
+your password.""",
+r"[\w]+", False, False),
 ("expunge", "Purge//Expunge", False,
-"""Permanently remove *all* messages flagged with //Deleted on logout""",
+"""Permanently remove *all* messages flagged with //Deleted on logout.
+If you do not know what this means, then please leave this as False.""",
 (False, True), False, True),
 # IMAP seems to allow any character at all in a folder name,
 # but we want to use the comma as a delimiter for lists, so
 # we don't allow this.  If anyone has folders with commas in the
 # names, please let us know and we'll figure out something else.
+# ImapUI.py prints out a warning if this is the case.
 ("filter_folders", "Folders to filter", "INBOX",
 """Comma delimited list of folders to be filtered""",
 r"[^,]+", True, False),

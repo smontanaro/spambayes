@@ -70,6 +70,10 @@ To Do:
     o Mail flagged with /Deleted shouldn't be filtered.
     o The flags should be copied along with the message (especially
       the /Seen flag, but all of them, really).
+    o Should the imap options server and port be combined?  i.e. instead
+      of having server=imap.example.com and port=143, have
+      server=imap.example.com:143?  This would be more consistent with
+      pop3proxy and would get rid of one option at no real cost.
     o Suggestions?
 """
 
@@ -412,7 +416,8 @@ def run():
             sleepTime = int(arg) * 60
 
     if not (doClassify or doTrain or launchUI):
-        print "-b, -c, or -t operands must be specified"
+        print "-b, -c, or -t operands must be specified."
+        print "Please use the -h operand for help."
         sys.exit()
 
     if (launchUI and (doClassify or doTrain)):
