@@ -90,6 +90,12 @@ mine_received_headers: False
 # broken.
 generate_long_skips: True
 
+#
+# Length of words that triggers 'long skips'. Longer than this
+# triggers a skip.
+#
+skip_max_word_size: 12
+
 # Generate tokens which resemble the posting time in 6-minute buckets:
 # int((h*60+m)/10).
 generate_time_buckets: False
@@ -169,7 +175,7 @@ percentiles: 5 25 75 95
 
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
-# and likewise for ham.  The defaults here do not show anything. 
+# and likewise for ham.  The defaults here do not show anything.
 show_spam_lo: 1.0
 show_spam_hi: 0.0
 show_ham_lo: 1.0
@@ -310,6 +316,7 @@ all_options = {
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'generate_long_skips': boolean_cracker,
+                  'skip_max_word_size': int_cracker,
                   'extract_dow': boolean_cracker,
                   'generate_time_buckets': boolean_cracker,
                   'mine_received_headers': boolean_cracker,

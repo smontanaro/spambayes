@@ -588,10 +588,10 @@ def crack_filename(fname):
             for piece in pieces:
                 yield "fname piece:" + piece
 
-def tokenize_word(word, _len=len):
+def tokenize_word(word, _len=len, maxword=options.skip_max_word_size):
     n = _len(word)
     # Make sure this range matches in tokenize().
-    if 3 <= n <= 12:
+    if 3 <= n <= maxword:
         yield word
 
     elif n >= 3:
