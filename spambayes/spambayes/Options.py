@@ -1135,6 +1135,11 @@ class Option(object):
                    return True
                return False
         elif type(self.allowed_values) == type(""):
+            # this is a complete hack - something better needs to
+            # be worked out for sets, but I don't have time just now.
+            import types
+            if type(value) == type(Set()):
+                return True
             if self.multiple and value == "":
                 return True
             vals = self._split_values(value)
@@ -1258,6 +1263,9 @@ class OptionsClass(object):
     def convert(self, sect, opt, value):
         '''Convert option from a string to the appropriate type.'''
         fetcher, converter = all_options[sect][opt]
+        # if it is already the correct type, we're done
+        if type(value) == type(converter("1")):
+            return value
         return converter(value)
 
     def get(self, sect=None, opt=None):
