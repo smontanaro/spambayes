@@ -133,7 +133,7 @@ SINGLE_VALUE = False
 # like a server name that defaults to "", this would be pointless.
 # Again, for ease of reading, we define these here:
 RESTORE = True
-DO_NO_RESTORE = False
+DO_NOT_RESTORE = False
 
 __all__ = ['options']
 
@@ -426,12 +426,12 @@ defaults = {
     ("spam_directories", "Spam directories", "Data/Spam/Set%d",
      """default locations for timcv and timtest - these get the set number
      interpolated.""",
-     VARIABLE_PATH, MULTIPLE_ALLOWED, RESTORE),
+     VARIABLE_PATH, SINGLE_VALUE, RESTORE),
 
     ("ham_directories", "Ham directories", "Data/Ham/Set%d",
      """default locations for timcv and timtest - these get the set number
      interpolated.""",
-     VARIABLE_PATH, MULTIPLE_ALLOWED, RESTORE),
+     VARIABLE_PATH, SINGLE_VALUE, RESTORE),
   ),
 
   "CV Driver": (
@@ -1137,8 +1137,12 @@ class Option(object):
                    return True
                return False
         elif type(self.allowed_values) == type(""):
+            if self.multiple and value == "":
+                return True
             vals = self._split_values(value)
             if len(vals) == 0:
+                return False
+            elif len(vals) > 1 and not self.multiple:
                 return False
             return True
 
