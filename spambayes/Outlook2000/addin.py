@@ -173,6 +173,10 @@ def HaveSeenMessage(msgstore_message, manager):
 # outlook one
 def ProcessMessage(msgstore_message, manager):
     manager.LogDebug(2, "ProcessMessage starting for", msgstore_message)
+    if not msgstore_message.IsFilterCandidate():
+        manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!")
+        return
+
     if HaveSeenMessage(msgstore_message, manager):
         # Already seen this message - user probably moving it back
         # after incorrect classification.
@@ -248,6 +252,9 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         if not self.manager.config.training.train_manual_spam:
             return
         msgstore_message = self.manager.message_store.GetMessage(item)
+        if not msgstore_message.IsFilterCandidate():
+            self.manager.LogDebug(1, "Not training message '%s' - we don't filter ones like that!")
+            return
         if HaveSeenMessage(msgstore_message, self.manager):
             # If the message has ever been previously trained as ham, then
             # we *must* train as spam (well, we must untrain, but re-training
@@ -686,8 +693,8 @@ class ExplorerWithEvents:
         ret = []
         for i in range(sel.Count):
             item = sel.Item(i+1)
-            if item.Class == constants.olMail:
-                msgstore_message = self.manager.message_store.GetMessage(item)
+            msgstore_message = self.manager.message_store.GetMessage(item)
+            if msgstore_message and msgstore_message.IsFilterCandidate():
                 ret.append(msgstore_message)
 
         if len(ret) == 0:
