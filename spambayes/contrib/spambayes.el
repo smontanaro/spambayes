@@ -1,6 +1,6 @@
-;; spambayes.el -- integrate spambayes into Gnus
+;; spambayes.el -- integrate spambayes into Gnus and VM
 ;; Copyright (C) 2003 Neale Pickett <neale@woozle.org>
-;; Time-stamp: <2003-01-27 13:12:14 neale>
+;; Time-stamp: <2003-06-06 10:07:09 neale>
 
 ;; This is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
@@ -37,6 +37,9 @@
 
 ;; Installation:
 ;;
+;;
+;; GNUS
+;; ----
 ;; To install, just drop this file in your load path, and insert the
 ;; following lines in ~/.gnus:
 ;;
@@ -44,9 +47,40 @@
 ;; (add-hook
 ;;  'gnus-sum-load-hook
 ;;  (lambda nil
-;;    (define-key gnus-summary-mode-map [(B) (s)] 'spambayes-refile-as-spam)
-;;    (define-key gnus-summary-mode-map [(B) (h)] 'spambayes-refile-as-ham)))
+;;    (define-key gnus-summary-mode-map [(B) (s)] 'spambayes-gnus-refile-as-spam)
+;;    (define-key gnus-summary-mode-map [(B) (h)] 'spambayes-gnus-refile-as-ham)))
 ;;
+;;
+;; VM (Courtesy of Prabhu Ramachandran <prabhu@aero.iitm.ernet.in>)
+;; ----
+;; Put the following in ~/.vm:
+;;
+;; (load-library "spambayes")
+;;
+;; This binds "l h" to retrain processable messages as ham and "l s"
+;; to retrain them as spam.
+;; (define-key vm-mode-map "ls" 'spambayes-vm-retrain-as-spam)
+;; (define-key vm-summary-mode-map "ls" 'spambayes-vm-retrain-as-spam)
+;; (define-key vm-mode-map "lh" 'spambayes-vm-retrain-as-ham)
+;; (define-key vm-summary-mode-map "lh" 'spambayes-vm-retrain-as-ham)
+;;
+;; (setq vm-auto-folder-alist
+;;       '(("X-Spambayes-Classification:" ("spam" . "~/vmmail/SPAM"))
+;;         ("X-Spambayes-Classification:" ("unsure" . "~/vmmail/UNSURE"))
+;;         )
+;; )
+;; 
+;; Hitting the 'A' key will refile messages to the SPAM and UNSURE folders.
+;;
+;; The following visible header list might also be useful:
+;; (setq vm-visible-headers
+;;    '("Resent-"
+;;      "From:" "Sender:" "Reply-To:"
+;;      "To:" "Apparently-To:" "Cc:"
+;;      "Subject:"
+;;      "Date:"
+;;      "X-Spambayes-Classification:"))
+
 
 (defvar spambayes-spam-group "spam"
   "Group name for spam messages")
@@ -54,7 +88,9 @@
 (defvar spambayes-hammiefilter "~/src/spambayes/hammiefilter.py"
   "Path to the hammiefilter program")
 
-(defun spambayes-retrain (is-spam)
+;; Gnus
+
+(defun spambayes-gnus-retrain (is-spam)
   "Retrain on all processable articles, or the one under the cursor.
 
 This will replace the buffer contents with command output.  You can then
@@ -88,15 +124,43 @@ false if you want to retrain as ham.
 	(let ((n (gnus-summary-article-number)))
 	  (do-exec n group is-spam))))))
 
-(defun spambayes-refile-as-spam ()
+(defun spambayes-gnus-refile-as-spam ()
   "Retrain and refilter all process-marked messages as spam, then respool them"
   (interactive)
   (spambayes-retrain 't)
   (gnus-summary-respool-article nil (gnus-group-method gnus-newsgroup-name)))
 
-(defun spambayes-refile-as-ham ()
+(defun spambayes-gnus-refile-as-ham ()
   "Retrain and refilter all process-marked messages as ham, then respool them"
   (interactive)
   (spambayes-retrain nil)
   (gnus-summary-respool-article nil (gnus-group-method gnus-newsgroup-name)))
 
+
+;;; VM
+
+(defun spambayes-vm-retrain (is-spam)
+  "Retrain on all processable articles, or the one under the cursor.
+
+is-spam is a boolean--true if you want to retrain the message as spam,
+false if you want to retrain as ham.
+"
+  (interactive)
+  (message (concat "Retraining" (if is-spam " as SPAM" " as HAM") " ..."))
+  (vm-pipe-message-to-command 
+   (concat spambayes-hammiefilter (if is-spam " -s" " -g") " -f") nil)
+  (message (concat "Done retraining messages" 
+                   (if is-spam " as SPAM" " as HAM") ".") )
+)
+
+(defun spambayes-vm-retrain-as-spam ()
+  "Retrain and refilter messages as spam"
+  (interactive)
+  (spambayes-vm-retrain 't)
+)
+
+(defun spambayes-vm-retrain-as-ham ()
+  "Retrain and refilter messages as ham"
+  (interactive)
+  (spambayes-vm-retrain nil)
+)

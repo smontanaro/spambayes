@@ -332,33 +332,13 @@ allows you to isolate spam from your good mail and tuck away messages it was
 unsure about so you can scan them more closely.
 
 
-X/Emacs+VM
-----------
+VM and Gnus
+-----------
 
-Emacs and XEmacs both come with VM, one of a choice of several Emacs-based
-mail packages.  Emacs is extensible using Emacs Lisp or Pymacs.  This
-extensibility allows you to easily segregate your incoming mail for training
-purposes.  Here's one such example.  If you place the following code in your
-~/.vm file:
+VM and Gnus are mail readers distributed with Emacs and XEmacs.  The
+spambayes.el file in the contrib directory contains code and
+instructions for VM and Gnus integration.
 
-    (defun copy-to-spam ()
-      (interactive)
-      (vm-save-message (expand-file-name "~/tmp/newspam"))
-      (vm-undelete-message 1))
-
-    (defun copy-to-nonspam ()
-      (interactive)
-      (vm-save-message (expand-file-name "~/tmp/newham"))
-      (vm-undelete-message 1))
-
-    (define-key vm-mode-map "ls" 'copy-to-spam)
-    (define-key vm-summary-mode-map "ls" 'copy-to-spam)
-    (define-key vm-mode-map "lh" 'copy-to-nonspam)
-    (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
-
-'ls' will save a copy of the current message to ~/tmp/newspam and 'lh' will
-save a copy of the current message to ~/tmp/newham.  You can then use those
-files later as arguments to hammie.py for training.
 
 
 Things to watch out for
