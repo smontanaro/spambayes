@@ -342,7 +342,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                     h.text.href = "view?key=%s&corpus=%s" % (key, label)
                 else:
                     h = self.html.reviewRow.headerValue.clone()
-                h.text = cgi.escape(text)
+                h.text = text
                 row.optionalHeadersValues += h
 
             # Apart from any message headers, we may also wish to display
@@ -360,7 +360,12 @@ class ProxyUserInterface(UserInterface.UserInterface):
             else:
                 del row.received_
 
-            subj = messageInfo.subjectHeader
+            # Many characters can't go in the URL or they cause problems
+            # (&, ;, ?, etc).  So we use the hex values for them all.
+            subj_list = []
+            for c in messageInfo.subjectHeader:
+                subj_list.append("%%%s" % (hex(ord(c))[2:],))
+            subj = "".join(subj_list)
             row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
             row.tokens.href="showclues?key=%s&subject=%s&tokens=1" % (key, subj)
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
