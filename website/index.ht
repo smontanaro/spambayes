@@ -105,13 +105,28 @@ excited by the bleeding edge - these are detailed on the
 part of the source download.
 </p>
 
-<h2>Mailing list</h2>
-<p>There are currently two mailing lists of interest:</p>
+<h2>Mailing lists</h2>
+<p>There are currently four mailing lists of interest:</p>
 <ul>
 <li>
-The discussion list <a href="http://mail.python.org/mailman-21/listinfo/spambayes">spambayes</a> (there's a search interface on the <a href="docs.html">documentation</a> page.)
+The 
+<a href="http://mail.python.org/mailman-21/listinfo/spambayes-announce">spambayes-announce</a> 
+list - a very low volume mailing list announcing new releases &c.
+</li>
+<li>
+The 
+<a 
+href="http://mail.python.org/mailman-21/listinfo/spambayes">spambayes</a>
+user list. General discussions and user queries go here. (This was also the developer list until late May, 2003).
+</li>
+<li>
+The spambayes developers list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-dev">spambayes-dev</a>. This list is for discussion of
+spambayes development. Please don't use this for user questions ("how do I
+make SB work with Outlook version X"), use the "spambayes" list for that.
+</li>
 <li>
 CVS commit messages go to the list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-checkins">spambayes-checkins</a>.
+</li>
 </ul>
 
 
