@@ -103,6 +103,7 @@ def windowsfy(fn):
         return fn
 
 ratio = "ham:spam: "
+rat2  = "          "
 fptot = "fp total: "
 fpper = "fp %:     "
 fntot = "fn total: "
@@ -123,7 +124,14 @@ for filename in sys.argv[1:]:
     filename = windowsfy(filename)
     (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
      hamdevall, spamdevall) = suck(file(filename))
-    ratio += "%8s"   % ("%d:%d" % (htest, stest))
+    if len(ratio) > len(rat2):
+        ratio += "        "
+        ratio = ratio[0:(len(rat2) + 8)]
+        rat2  += " %7s" % ("%d:%d" % (htest, stest))
+    else:
+        rat2  += "        "
+        rat2  = rat2[0:(len(ratio) + 8)]
+        ratio += " %7s" % ("%d:%d" % (htest, stest))
     fptot += "%8d"   % fp
     fpper += "%8.2f" % fpp
     fntot += "%8d"   % fn
@@ -141,6 +149,8 @@ for filename in sys.argv[1:]:
     kval  += "%8.2f" % k
 
 print ratio
+if ":"[0] in rat2:
+    print rat2
 print fptot
 print fpper
 print fntot
