@@ -139,45 +139,55 @@ class Driver:
         # Remember the "unsure" folder.
         folder = mgr.message_store.GetFolder(mgr.config.filter.unsure_folder_id)
         self.folder_unsure = folder.GetOutlookItem()
-        # The "watch" folder is a folder we can stick stuff into to have them
-        # filtered - just use the first one nominated.
-        self.folder_watch = self.folder_watch_2 = None
+        # And the drafts folder where new messages are created.
+        self.folder_drafts = mgr.outlook.Session.GetDefaultFolder(constants.olFolderDrafts)
+
+    def GetWatchFolderGenerator(self):
+        mgr = self.manager
         gen = mgr.message_store.GetFolderGenerator(
                                 mgr.config.filter.watch_folder_ids,
                                 mgr.config.filter.watch_include_sub)
-        try:
-            self.folder_watch = gen.next().GetOutlookItem()
-            self.folder_watch_2 = gen.next().GetOutlookItem()
-        except StopIteration:
-            pass
-        if self.folder_watch is None:
-            raise RuntimeError, "Can't test without at least one folder to watch"
-        # And the drafts folder where new messages are created.
-        self.folder_drafts = mgr.outlook.Session.GetDefaultFolder(constants.olFolderDrafts)
+        for f in gen:
+            yield f, f.GetOutlookItem()
 
     def FindTestMessage(self, folder):
         subject = TEST_SUBJECT
         items = folder.Items
         return items.Find("[Subject] = '%s'" % (subject,))
 
+    def CheckMessageFilteredFrom(self, folder):
+        # For hotmail accounts, the message may take a little time to actually
+        # be removed from the original folder (ie, it appears in the "dest"
+        # folder before it vanished.
+        for i in range(5):
+            if self.FindTestMessage(folder) is None:
+                break
+            sleep(.5)
+        else:
+            TestFailed("The test message remained in folder %r" % folder.Name)
+        
     def _CleanTestMessageFromFolder(self, folder):
         subject = TEST_SUBJECT
         num = 0
-        while True:
+        # imap/hotmail etc only soft delete, and I see no way to differentiate
+        # force the user to purge them manually
+        for i in range(50):
             msg = self.FindTestMessage(folder)
             if msg is None:
                 break
             msg.Delete()
-            num += 1
+        else:
+            raise TestFailed("Old test messages appear to still exist.  These may" \
+                             "be 'soft-deleted' - you will need to purge them manually")
         if num:
             print "Cleaned %d test messages from folder '%s'" % (num, folder.Name)
 
     def CleanAllTestMessages(self):
-        subject = TEST_SUBJECT
         self._CleanTestMessageFromFolder(self.folder_spam)
         self._CleanTestMessageFromFolder(self.folder_unsure)
-        self._CleanTestMessageFromFolder(self.folder_watch)
         self._CleanTestMessageFromFolder(self.folder_drafts)
+        for msf, of in self.GetWatchFolderGenerator():
+            self._CleanTestMessageFromFolder(of)
 
     def CreateTestMessageInFolder(self, spam_status, folder):
         msg, words = self.CreateTestMessage(spam_status)
@@ -222,107 +232,109 @@ def TestSpamFilter(driver):
     nspam = bayes.nspam
     nham = bayes.nham
     original_bayes = copy.copy(driver.manager.classifier_data.bayes)
-    # Create a spam message in the Inbox - it should get immediately filtered
-    msg, words = driver.CreateTestMessageInFolder(SPAM, driver.folder_watch)
-    # sleep to ensure filtering.
-    WaitForFilters()
-    # It should no longer be in the Inbox.
-    if driver.FindTestMessage(driver.folder_watch) is not None:
-        TestFailed("The test message appeared to not be filtered")
-    # It should be in the "sure is spam" folder.
-    spam_msg = driver.FindTestMessage(driver.folder_spam)
-    if spam_msg is None:
-        TestFailed("The test message vanished from the Inbox, but didn't appear in Spam")
-    # Check that none of the above caused training.
-    if nspam != bayes.nspam:
-        TestFailed("Something caused a new spam message to appear")
-    if nham != bayes.nham:
-        TestFailed("Something caused a new ham message to appear")
-    check_words(words, bayes, 0, 0)
-
-    # Now move the message back to the inbox - it should get trained.
-    store_msg = driver.manager.message_store.GetMessage(spam_msg)
-    import train
-    if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
-        TestFailed("This new spam message should not have been trained as ham yet")
-    if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
-        TestFailed("This new spam message should not have been trained as spam yet")
-    spam_msg.Move(driver.folder_watch)
-    WaitForFilters()
-    spam_msg = driver.FindTestMessage(driver.folder_watch)
-    if spam_msg is None:
-        TestFailed("The message appears to have been filtered out of the watch folder")
-    store_msg = driver.manager.message_store.GetMessage(spam_msg)
-    need_untrain = True
-    try:
-        if nspam != bayes.nspam:
-            TestFailed("There were not the same number of spam messages after a re-train")
-        if nham+1 != bayes.nham:
-            TestFailed("There was not one more ham messages after a re-train")
-        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
-            TestFailed("This new spam message should not have been trained as spam yet")
-        if not train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
-            TestFailed("This new spam message should have been trained as ham now")
-        # word infos should have one extra ham
-        check_words(words, bayes, 0, 1)
-        # Now move it back to the Spam folder.
-        # This should see the message un-trained as ham, and re-trained as Spam
-        spam_msg.Move(driver.folder_spam)
+    # for each watch folder, create a spam message, and do the training thang
+    for msf_watch, folder_watch in driver.GetWatchFolderGenerator():
+        print "Performing Spam test on watch folder '%s'..." % msf_watch.GetFQName()
+        # Create a spam message in the Inbox - it should get immediately filtered
+        msg, words = driver.CreateTestMessageInFolder(SPAM, folder_watch)
+        # sleep to ensure filtering.
         WaitForFilters()
+        # It should no longer be in the Inbox.
+        driver.CheckMessageFilteredFrom(folder_watch)
+        # It should be in the "sure is spam" folder.
         spam_msg = driver.FindTestMessage(driver.folder_spam)
         if spam_msg is None:
-            TestFailed("Could not find the message in the Spam folder")
-        store_msg = driver.manager.message_store.GetMessage(spam_msg)
-        if nspam +1 != bayes.nspam:
-            TestFailed("There should be one more spam now")
+            TestFailed("The test message vanished from the Inbox, but didn't appear in Spam")
+        # Check that none of the above caused training.
+        if nspam != bayes.nspam:
+            TestFailed("Something caused a new spam message to appear")
         if nham != bayes.nham:
-            TestFailed("There should be the same number of hams again")
-        if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
-            TestFailed("This new spam message should have been trained as spam by now")
-        if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
-            TestFailed("This new spam message should have been un-trained as ham")
-        # word infos should have one extra spam, no extra ham
-        check_words(words, bayes, 1, 0)
-        # Move the message to another folder, and make sure we still
-        # identify it correctly as having been trained.
-        # Move to the "unsure" folder, just cos we know about it, and
-        # we know that no special watching of this folder exists.
-        spam_msg.Move(driver.folder_unsure)
-        spam_msg = driver.FindTestMessage(driver.folder_unsure)
-        if spam_msg is None:
-            TestFailed("Could not find the message in the Unsure folder")
+            TestFailed("Something caused a new ham message to appear")
+        check_words(words, bayes, 0, 0)
+    
+        # Now move the message back to the inbox - it should get trained.
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
-        if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
-            TestFailed("Message was not identified as Spam after moving")
-
-        # word infos still be 'spam'
-        check_words(words, bayes, 1, 0)
-
-        # Now undo the damage we did.
-        was_spam = train.untrain_message(store_msg, driver.manager.classifier_data)
-        if not was_spam:
-            TestFailed("Untraining this message did not indicate it was spam")
-        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data) or \
-           train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
-            TestFailed("Untraining this message kept it has ham/spam")
-        need_untrain = False
-    finally:
-        if need_untrain:
-            train.untrain_message(store_msg, driver.manager.classifier_data)
-
-    # Check all the counts are back where we started.
-    if nspam != bayes.nspam:
-        TestFailed("Spam count didn't get back to the same")
-    if nham != bayes.nham:
-        TestFailed("Ham count didn't get back to the same")
-    check_words(words, bayes, 0, 0)
-
-    if bayes.wordinfo != original_bayes.wordinfo:
-        TestFailed("The bayes object's 'wordinfo' did not compare the same at the end of all this!")
-    if bayes.probcache != original_bayes.probcache:
-        TestFailed("The bayes object's 'probcache' did not compare the same at the end of all this!")
-
-    spam_msg.Delete()
+        import train
+        if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+            TestFailed("This new spam message should not have been trained as ham yet")
+        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+            TestFailed("This new spam message should not have been trained as spam yet")
+        spam_msg.Move(folder_watch)
+        WaitForFilters()
+        spam_msg = driver.FindTestMessage(folder_watch)
+        if spam_msg is None:
+            TestFailed("The message appears to have been filtered out of the watch folder")
+        store_msg = driver.manager.message_store.GetMessage(spam_msg)
+        need_untrain = True
+        try:
+            if nspam != bayes.nspam:
+                TestFailed("There were not the same number of spam messages after a re-train")
+            if nham+1 != bayes.nham:
+                TestFailed("There was not one more ham messages after a re-train")
+            if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+                TestFailed("This new spam message should not have been trained as spam yet")
+            if not train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+                TestFailed("This new spam message should have been trained as ham now")
+            # word infos should have one extra ham
+            check_words(words, bayes, 0, 1)
+            # Now move it back to the Spam folder.
+            # This should see the message un-trained as ham, and re-trained as Spam
+            spam_msg.Move(driver.folder_spam)
+            WaitForFilters()
+            spam_msg = driver.FindTestMessage(driver.folder_spam)
+            if spam_msg is None:
+                TestFailed("Could not find the message in the Spam folder")
+            store_msg = driver.manager.message_store.GetMessage(spam_msg)
+            if nspam +1 != bayes.nspam:
+                TestFailed("There should be one more spam now")
+            if nham != bayes.nham:
+                TestFailed("There should be the same number of hams again")
+            if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+                TestFailed("This new spam message should have been trained as spam by now")
+            if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+                TestFailed("This new spam message should have been un-trained as ham")
+            # word infos should have one extra spam, no extra ham
+            check_words(words, bayes, 1, 0)
+            # Move the message to another folder, and make sure we still
+            # identify it correctly as having been trained.
+            # Move to the "unsure" folder, just cos we know about it, and
+            # we know that no special watching of this folder exists.
+            spam_msg.Move(driver.folder_unsure)
+            spam_msg = driver.FindTestMessage(driver.folder_unsure)
+            if spam_msg is None:
+                TestFailed("Could not find the message in the Unsure folder")
+            store_msg = driver.manager.message_store.GetMessage(spam_msg)
+            if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
+                TestFailed("Message was not identified as Spam after moving")
+    
+            # word infos still be 'spam'
+            check_words(words, bayes, 1, 0)
+    
+            # Now undo the damage we did.
+            was_spam = train.untrain_message(store_msg, driver.manager.classifier_data)
+            if not was_spam:
+                TestFailed("Untraining this message did not indicate it was spam")
+            if train.been_trained_as_spam(store_msg, driver.manager.classifier_data) or \
+               train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
+                TestFailed("Untraining this message kept it has ham/spam")
+            need_untrain = False
+        finally:
+            if need_untrain:
+                train.untrain_message(store_msg, driver.manager.classifier_data)
+    
+        # Check all the counts are back where we started.
+        if nspam != bayes.nspam:
+            TestFailed("Spam count didn't get back to the same")
+        if nham != bayes.nham:
+            TestFailed("Ham count didn't get back to the same")
+        check_words(words, bayes, 0, 0)
+    
+        if bayes.wordinfo != original_bayes.wordinfo:
+            TestFailed("The bayes object's 'wordinfo' did not compare the same at the end of all this!")
+        if bayes.probcache != original_bayes.probcache:
+            TestFailed("The bayes object's 'probcache' did not compare the same at the end of all this!")
+    
+        spam_msg.Delete()
     print "Created a Spam message, and saw it get filtered and trained."
 
 def _DoTestHamTrain(driver, folder1, folder2):
@@ -339,8 +351,7 @@ def _DoTestHamTrain(driver, folder1, folder2):
     # sleep to ensure filtering.
     WaitForFilters()
     # It should still be in the Inbox.
-    if driver.FindTestMessage(folder1) is None:
-        TestFailed("The test ham message appeared to have been filtered!")
+    driver.CheckMessageFilteredFrom(folder1)
 
     # Manually move it to folder2
     msg.Move(folder2)
@@ -380,17 +391,18 @@ def TestHamFilter(driver):
 
 def TestUnsureFilter(driver):
     # Create a spam message in the Inbox - it should get immediately filtered
-    msg, words = driver.CreateTestMessageInFolder(UNSURE, driver.folder_watch)
-    # sleep to ensure filtering.
-    WaitForFilters()
-    # It should no longer be in the Inbox.
-    if driver.FindTestMessage(driver.folder_watch) is not None:
-        TestFailed("The test unsure message appeared to not be filtered")
-    # It should be in the "unsure" folder.
-    spam_msg = driver.FindTestMessage(driver.folder_unsure)
-    if spam_msg is None:
-        TestFailed("The test message vanished from the Inbox, but didn't appear in Unsure")
-    spam_msg.Delete()
+    for msf_watch, folder_watch in driver.GetWatchFolderGenerator():
+        print "Performing Spam test on watch folder '%s'..." % msf_watch.GetFQName()
+        msg, words = driver.CreateTestMessageInFolder(UNSURE, folder_watch)
+        # sleep to ensure filtering.
+        WaitForFilters()
+        # It should no longer be in the Inbox.
+        driver.CheckMessageFilteredFrom(folder_watch)
+        # It should be in the "unsure" folder.
+        spam_msg = driver.FindTestMessage(driver.folder_unsure)
+        if spam_msg is None:
+            TestFailed("The test message vanished from the Inbox, but didn't appear in Unsure")
+        spam_msg.Delete()
     print "Created an unsure message, and saw it get filtered"
 
 def run_tests(manager):
@@ -548,25 +560,26 @@ def _do_single_failure_test(driver, is_ham, checkpoint, hr):
     print "-> Testing MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
                                               checkpoint)
     # message moved after we have ID, but before opening.
-    folder = driver.folder_watch
-    if is_ham:
-        msg, words = driver.CreateTestMessageInFolder(HAM, folder)
-    else:
-        msg, words = driver.CreateTestMessageInFolder(SPAM, folder)
-    try:
-        _setup_for_mapi_failure(checkpoint, hr)
+    for msf, folder in driver.GetWatchFolderGenerator():
+        print "Testing in folder '%s'" % msf.GetFQName()
+        if is_ham:
+            msg, words = driver.CreateTestMessageInFolder(HAM, folder)
+        else:
+            msg, words = driver.CreateTestMessageInFolder(SPAM, folder)
         try:
-            # sleep to ensure filtering.
-            WaitForFilters()
+            _setup_for_mapi_failure(checkpoint, hr)
+            try:
+                # sleep to ensure filtering.
+                WaitForFilters()
+            finally:
+                _restore_mapi_failure()
+            if driver.FindTestMessage(folder) is None:
+                TestFailed("We appear to have filtered a message even though we forced 'not found' failure")
         finally:
-            _restore_mapi_failure()
-        if driver.FindTestMessage(folder) is None:
-            TestFailed("We appear to have filtered a message even though we forced 'not found' failure")
-    finally:
-        print "<- Finished MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
-                                                   checkpoint)
-        if msg is not None:
-            msg.Delete()
+            if msg is not None:
+                msg.Delete()
+    print "<- Finished MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
+                                                 checkpoint)
 
 def do_failure_tests(manager):
     # We setup msgstore to fail for us, then try a few tests.  The idea is to
@@ -619,11 +632,11 @@ def test(manager):
         msgstore.test_suite_running = True
         assert not manager.test_suite_running, "already running??"
         manager.test_suite_running = True
-        run_nonfilter_tests(manager)
-        # filtering tests take alot of time - do them last.
         run_filter_tests(manager)
         run_failure_tests(manager)
         run_invalid_id_tests(manager)
+        # non-filter tests take alot of time - do them last.
+        run_nonfilter_tests(manager)
         print "*" * 20
         print "Test suite finished without error!"
         print "*" * 20
