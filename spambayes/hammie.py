@@ -58,7 +58,7 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 DISPHEADER = options.hammie_header_name
 
 # Default database name
-DEFAULTDB = options.persistant_storage_file
+DEFAULTDB = options.persistent_storage_file
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options.spam_cutoff
@@ -68,7 +68,7 @@ HAM_THRESHOLD = options.ham_cutoff
 SHOWCLUE = options.clue_mailheader_cutoff
 
 # Use a database? If False, use a pickle
-USEDB = options.persistant_use_database
+USEDB = options.persistent_use_database
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)

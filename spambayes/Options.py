@@ -284,7 +284,7 @@ use_chi_squared_combining: True
 hammie_header_name: X-Hammie-Disposition
 
 # The default database path used by hammie
-persistant_storage_file: hammie.db
+persistent_storage_file: hammie.db
 
 # The range of clues that are added to the "hammie" header in the E-mail
 # All clues that have their probability smaller than this number, or larger
@@ -297,7 +297,7 @@ clue_mailheader_cutoff: 0.5
 # hammie can use either a database (quick to score one message) or a pickle
 # (quick to train on huge amounts of messages). Set this to True to use a
 # database by default.
-persistant_use_database: False
+persistent_use_database: False
 """
 
 int_cracker = ('getint', None)
@@ -354,9 +354,9 @@ all_options = {
                    'use_chi_squared_combining': boolean_cracker,
                    },
     'Hammie': {'hammie_header_name': string_cracker,
-               'persistant_storage_file': string_cracker,
+               'persistent_storage_file': string_cracker,
                'clue_mailheader_cutoff': float_cracker,
-               'persistant_use_database': boolean_cracker,
+               'persistent_use_database': boolean_cracker,
                },
 
 }
