@@ -32,6 +32,8 @@ import re
 import time
 import binascii
 
+from spambayes.mboxutils import getmbox
+
 def flatten(obj):
     # I do not know how to use the email package very well - all I want here
     # is the body of obj expressed as a string - there is probably a better
@@ -45,8 +47,8 @@ def flatten(obj):
         return "\n".join([flatten(b) for b in obj])
     raise TypeError, ("unrecognized body type: %s" % type(obj))
 
-def generate_checksum(f):
-    data = flatten(email.Parser.Parser().parse(f))
+def generate_checksum(msg):
+    data = flatten(msg)
 
     # modelled after Justin Mason's fuzzy checksummer for SpamAssassin.
     # Message body is cleaned, then broken into lines.  The list of lines is
@@ -86,11 +88,13 @@ def main(args):
     for opt, arg in opts:
         pass
     if not args:
-        inf = sys.stdin
+        mboxes = [getmbox("-")]
     else:
-        inf = file(args[0])
+        mboxes = [getmbox(a) for a in args]
 
-    print generate_checksum(inf)
+    for mbox in mboxes:
+        for msg in mbox:
+            print generate_checksum(msg)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
