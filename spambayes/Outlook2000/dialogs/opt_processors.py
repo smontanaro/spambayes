@@ -45,6 +45,13 @@ class OptionControlProcessor(processors.ControlProcessor):
               (option.display_name(), option.name, value)
         option.set(value)
         self.NotifyOptionChanged(option)
+    def GetOptionValue(self, option = None):
+        if option is None:
+            option = self.option
+        ret = option.get()
+        print "Got option '%s' (%s) -> %s" % \
+              (option.display_name(), option.name, ret)
+        return ret
 
     # Only sub-classes know how to update their controls from the value.
     def UpdateControl_FromValue(self):
@@ -61,7 +68,7 @@ class BoolButtonProcessor(OptionControlProcessor):
         if code == win32con.BN_CLICKED:
             self.UpdateValue_FromControl()
     def UpdateControl_FromValue(self):
-        value = self.option.get()
+        value = self.GetOptionValue()
         win32gui.SendMessage(self.GetControl(), win32con.BM_SETCHECK, value)
         for other in self.other_ids:
             win32gui.SendMessage(self.GetControl(other), win32con.BM_SETCHECK, not value)
@@ -76,7 +83,7 @@ class RadioButtonProcessor(OptionControlProcessor):
         if code == win32con.BN_CLICKED:
             self.UpdateValue_FromControl()
     def UpdateControl_FromValue(self):
-        value = self.option.get()
+        value = self.GetOptionValue()
         i = 0
         first = chwnd = self.GetControl()
         while chwnd:
@@ -126,7 +133,7 @@ class ComboProcessor(OptionControlProcessor):
         # First load the combo options.
         combo = self.GetControl()
         index = sel_index = 0
-        value = self.option.get()
+        value = self.GetOptionValue()
         for opt,text in self.option_to_text:
             win32gui.SendMessage(combo, win32con.CB_ADDSTRING, 0, text)
             if value.startswith(opt):
@@ -190,7 +197,8 @@ class EditNumberProcessor(OptionControlProcessor):
         win32gui.SendMessage(slider, commctrl.TBM_SETTICFREQ, 10, 0)
 
     def UpdateControl_FromValue(self):
-        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0, str(self.option.get()))
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0,
+                             str(self.GetOptionValue()))
         self.UpdateSlider_FromEdit()
 
     def UpdateSlider_FromEdit(self):
@@ -198,7 +206,7 @@ class EditNumberProcessor(OptionControlProcessor):
         try:
             # Get as float so we dont fail should the .0 be there, but
             # then convert to int as the slider only works with ints
-            val = int(float(self.option.get()))
+            val = int(float(self.GetOptionValue()))
         except ValueError:
             return
         win32gui.SendMessage(slider, commctrl.TBM_SETPOS, 1, val)
@@ -216,8 +224,12 @@ class EditNumberProcessor(OptionControlProcessor):
     
 # Folder IDs, and the "include_sub" option, if applicable.
 class FolderIDProcessor(OptionControlProcessor):
-    def __init__(self, window, control_ids, option, option_include_sub = None):
+    def __init__(self, window, control_ids,
+                 option, option_include_sub = None,
+                 use_fqn = False, name_joiner = "; "):
         self.button_id = control_ids[1]
+        self.use_fqn = use_fqn
+        self.name_joiner = name_joiner
 
         if option_include_sub:
             incl_sub_sect_name, incl_sub_option_name = \
@@ -229,34 +241,39 @@ class FolderIDProcessor(OptionControlProcessor):
             self.option_include_sub = None
         OptionControlProcessor.__init__(self, window, control_ids, option)
 
-    def OnCommand(self, wparam, lparam):
+    def DoBrowse(self):
         mgr = self.window.manager
+        is_multi = self.option.multiple_values_allowed()
+        if is_multi:
+            ids = self.GetOptionValue()
+        else:
+            ids = [self.GetOptionValue()]
+        from dialogs import FolderSelector
+        if self.option_include_sub:
+            cb_state = self.option_include_sub.get()
+        else:
+            cb_state = None # don't show it.
+        d = FolderSelector.FolderSelector(self.window.hwnd,
+                                            mgr,
+                                            ids,
+                                            single_select=not is_multi,
+                                            checkbox_state=cb_state)
+        if d.DoModal() == win32con.IDOK:
+            ids, include_sub = d.GetSelectedIDs()
+            if is_multi:
+                self.SetOptionValue(ids)
+            else:
+                self.SetOptionValue(ids[0])
+            if self.option_include_sub:
+                self.SetOptionValue(include_sub, self.option_include_sub)
+            self.UpdateControl_FromValue()
+            return True
+        return False
+
+    def OnCommand(self, wparam, lparam):
         id = win32api.LOWORD(wparam)
         if id == self.button_id:
-            is_multi = self.option.multiple_values_allowed()
-            if is_multi:
-                ids = self.option.get()
-            else:
-                ids = [self.option.get()]
-            from dialogs import FolderSelector
-            if self.option_include_sub:
-                cb_state = self.option_include_sub.get()
-            else:
-                cb_state = None # don't show it.
-            d = FolderSelector.FolderSelector(self.window.hwnd,
-                                              mgr,
-                                              ids,
-                                              single_select=not is_multi,
-                                              checkbox_state=cb_state)
-            if d.DoModal() == win32con.IDOK:
-                ids, include_sub = d.GetSelectedIDs()
-                if is_multi:
-                    self.SetOptionValue(ids)
-                else:
-                    self.SetOptionValue(ids[0])
-                if self.option_include_sub:
-                    self.SetOptionValue(include_sub, self.option_include_sub)
-                self.UpdateControl_FromValue()
+            self.DoBrowse()
 
     def GetPopupHelpText(self, idFrom):
         if idFrom == self.button_id:
@@ -267,9 +284,9 @@ class FolderIDProcessor(OptionControlProcessor):
         # Set the static to folder names
         mgr = self.window.manager
         if self.option.multiple_values_allowed():
-            ids = self.option.get()
+            ids = self.GetOptionValue()
         else:
-            ids = [self.option.get()]
+            ids = [self.GetOptionValue()]
         names = []
         for eid in ids:
             if eid is not None:
@@ -277,9 +294,12 @@ class FolderIDProcessor(OptionControlProcessor):
                 if folder is None:
                     name = "<unknown folder>"
                 else:
-                    name = folder.name
+                    if self.use_fqn:
+                        name = folder.GetFQName()
+                    else:
+                        name = folder.name
                 names.append(name)
-        win32gui.SetWindowText(self.GetControl(), "; ".join(names))
+        win32gui.SetWindowText(self.GetControl(), self.name_joiner.join(names))
 
     def UpdateValue_FromControl(self):
         pass
