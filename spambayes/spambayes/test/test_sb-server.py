@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""Test the pop3proxy is working correctly.
+"""Test the POP3 proxy is working correctly.
 
 When using the -z command line option, carries out a test that the
 POP3 proxy can be connected to, that incoming mail is classified,
@@ -82,25 +82,26 @@ import operator
 import re
 import getopt
 
-# a bit of a hack to help those without spambayes on their
-# Python path - stolen from timtest.py
+# We need to import sb_server, but it may not be on the PYTHONPATH.
+# Hack around this, so that if we are running in a cvs-like setup
+# everything still works.
 import sys
 import os
 sys.path.insert(-1, os.getcwd())
-sys.path.insert(-1, os.path.dirname(os.getcwd()))
+sys.path.insert(-1, os.path.join(os.getcwd(), "scripts"))
 
 from spambayes import Dibbler
 from spambayes import tokenizer
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
-from pop3proxy import BayesProxyListener
-from pop3proxy import state, _recreateState
+from sb_server import BayesProxyListener
+from sb_server import state, _recreateState
 from spambayes.Options import options
 
 # HEADER_EXAMPLE is the longest possible header - the length of this one
 # is added to the size of each message.
 HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % \
-                 options["Hammie", "header_name"]
+                 options["Headers", "classification_header_name"]
 
 class TestListener(Dibbler.Listener):
     """Listener for TestPOP3Server.  Works on port 8110, to co-exist
@@ -299,7 +300,7 @@ def test():
         proxy.send("retr %d\r\n" % i)
         while response.find('\n.\r\n') == -1:
             response = response + proxy.recv(1000)
-        assert response.find(options["Hammie", "header_name"]) >= 0
+        assert response.find(options["Headers", "classification_header_name"]) >= 0
 
     # Smoke-test the HTML UI.
     httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
