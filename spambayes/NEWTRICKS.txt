@@ -10,3 +10,12 @@ results of these ideas.
   [tim] It replaces those with a question mark, because chr(n) raises
   an exception for n > 255, and the "except" clause returns '?' then.
   Is that a problem?  Probably not, for Americans and Europeans.
+
+- The ratio of upper-case to lower-case characters in an entire message.
+  (I'm not sure how expensive it would be to calculate this).  A lot
+  of the Nigerian scam spams I get are predominately upper-case, and
+  none of my ham.
+
+- A token indicating the length of a message (rounded to an appropriate
+  level.  Also a token indicating the ratio of message length to the
+  number of tokens, and a token indicating the number of tokens.
