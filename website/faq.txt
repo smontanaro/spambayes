@@ -383,7 +383,7 @@ How do I configure Eudora for use with SpamBayes?
 -------------------------------------------------
 
 Note: The following instructions have been verified using Eudora 5.1
-under Windows. If anyone is using Eudora under Max OS please let us
+under Windows. If anyone is using Eudora under Mac OS X please let us
 know if the configuration is the same as Windows.
 
 Eudora does not allow configuring the server port through the
@@ -445,6 +445,51 @@ setting directory, e.g.::
 14. If there are any problems, close Eudora, copy eudoraok.ini to eudora.ini
     and restart Eudora. This will restore Eudora's original configuration
     until the problem can be resolved.
+
+
+How do I set up Eudora Filters to distribute mail to separate mailboxes?
+------------------------------------------------------------------------
+
+Note: the following instructions have been verified using Eudora 6.0.2,
+Sponsored mode under Windows, and Eudora 6.1, Sponsorede mode under Mac OS
+X.
+
+1. Open Eudora
+
+2. Create the desired mailboxes for distributing sorted incoming mail,
+   for example, "IN" for ham, "UNSURE" for unsure and "SPAM" for spam
+   (or directly to "TRASH" if you don't care to check up on SpamBayes'
+   work).
+
+3. Select TOOLS, FILTERS.  (On Mac OS X, select Filters from the Window
+   menu in the toolbar.)
+
+4. Click NEW
+
+5. In "Match" area, check "Incoming"
+
+6. In "Header" box, type in: "X-Spambayes-Classification:"
+
+7. In following drop-down box, select "is"
+
+8. In box immediately following, type "ham" ("spam", "unsure")
+
+9. In next drop-down box, select "ignore".  As a result, you may ignore
+   what is in the next level Header - action - text boxes.
+
+10. In "Action" area, top drop-down box, select "Transfer to"
+
+11. In target area immediately to the right, click, and select desired 
+    target mailbox to match choice in 8.  (On Mac OS X, you will be prompted
+    to select a mailbox from the Transfer menu in the toolbar.)
+
+12. Repeat steps 4 through 11 for the other two mailboxes, substituting
+    "spam" or "unsure" for "ham" in step 8.
+
+13. Right click highlighted "Filters" box below (not the "filters" tab)
+    and  select "close"; answer "yes" to "Save changes to filters?"  (Not
+    required on Mac OS X.  Just close the dialog.  You will be prompted to
+    save the filters you've created.)
 
 
 Will SpamBayes work with Yahoo! Mail?
