@@ -761,6 +761,16 @@ help you create a good training set:
   the classifier.
 
 
+Known Problems & Workarounds
+============================
+
+Pop3proxy doesn't work with fetchmail.
+--------------------------------------
+
+This is a known problem.  To work around it, use fetchmail's ``fetchall``
+option.
+
+
 Development
 ===========
 
