@@ -26,7 +26,6 @@ Where:
 
 import sys
 import os
-import stat
 import getopt
 import mailbox
 import email
@@ -166,7 +165,7 @@ def train(bayes, msgs, is_spam):
         except email.Errors.MessageParseError:
             return ''
 
-    if stat.S_ISDIR(os.stat(msgs)[stat.ST_MODE]):
+    if os.path.isdir(msgs):
         mbox = mailbox.MHMailbox(msgs, _factory)
     else:
         fp = open(msgs)
