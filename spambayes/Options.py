@@ -64,4 +64,4 @@ class OptionsClass(object):
 
 
 options = OptionsClass()
-options.mergefiles(['bayes.ini'])
+options.mergefiles(['bayes.ini', 'bayescustomize.ini'])

@@ -291,5 +291,4 @@ if __name__ == "__main__":
     if nsets is None:
         usage(1, "-n is required")
 
-    options.mergefiles(['bayescustomize.ini'])
     drive(nsets)
