@@ -1635,7 +1635,7 @@ def run():
     state.createWorkers()
 
     if launchSMTPProxy:
-        from smtproxy import LoadServerInfo, CreateProxies
+        from smtpproxy import LoadServerInfo, CreateProxies
         servers, proxyPorts = LoadServerInfo()
         CreateProxies(servers, proxyPorts, state)
         LoadServerInfo()
