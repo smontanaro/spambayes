@@ -94,7 +94,7 @@ class Stats:
 # Module level function so we can report errors creating the manager
 def ReportError(message, title = None):
     import traceback
-    print "ERROR:", message
+    print "ERROR:", repr(message)
     traceback.print_exc()
     if title is None:
         title = "SpamBayes Anti-Spam plugin"
@@ -266,13 +266,13 @@ class BayesManager:
         else:
             # We have reported the error, but for the sake of the log, we
             # still want it logged there.
-            print "ERROR:", message
+            print "ERROR:", repr(message)
             traceback.print_exc()
 
     def ReportErrorOnce(self, msg, title = None, key = None):
         if key is None: key = msg
         # Always print the message and traceback.
-        print "ERROR:", msg
+        print "ERROR:", repr(msg)
         traceback.print_exc()
         if key in self.reported_error_map:
             print "(this error has already been reported - not displaying it again)"
