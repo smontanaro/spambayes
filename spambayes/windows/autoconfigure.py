@@ -2,10 +2,14 @@
 
 """Automatically set up the user's mail client and SpamBayes.
 
+Example usage:
+    >>> configure("mailer name")
+Where "mailer name" is any of the names below.
+
 Currently works with:
  o Eudora (POP3/SMTP only)
  o Mozilla Mail (POP3/SMTP only)
- o Opera Mail (M2) (POP3/SMTP only)
+ o M2 (Opera Mail) (POP3/SMTP only)
  o Outlook Express (POP3/SMTP only)
  o PocoMail (POP3/SMTP only)
 
@@ -20,8 +24,6 @@ To do:
    user 'tmeyer' and the user 'tonym', two proxies will be created, but
    only one is necessary.  We should check the existing proxies before
    adding a new one.
- o Figure out Outlook Express's pop3uidl.dbx file and how to hook into it
-   (use the oe_mailbox.py module)
  o Other mail clients?  Other platforms?
  o This won't work all that well if multiple mail clients are used (they
    will end up trying to use the same ports).  In such a case, we really
@@ -30,7 +32,12 @@ To do:
  o We currently don't make any moves to protect the original file, so if
    something does wrong, it's corrupted.  We also write into the file,
    rather than a temporary one and then copy across.  This should all be
-   fixed.
+   fixed.  Richie's suggestion is for the script to create a clone of an
+   existing account with the new settings.  Then people could test the
+   cloned account, and if they're happy with it they can either delete
+   their old account or delete the new one and run the script again in
+   "modify" rather than "clone" mode.  This sounds like a good idea,
+   although a lot of work...
  o Suggestions?
 """
 
@@ -62,7 +69,7 @@ import shutil
 import StringIO
 import ConfigParser
 
-# Allow for those without SpamBayes on the PYTHONPATH
+# Allow for those without SpamBayes on their PYTHONPATH
 sys.path.insert(-1, os.getcwd())
 sys.path.insert(-1, os.path.dirname(os.getcwd()))
 
@@ -113,7 +120,7 @@ def configure_eudora(config_location):
         if sect.startswith("Persona-") or sect == "Settings":
             if c.get(sect, "UsesIMAP") == "0":
                 # Eudora stores the POP3 server name in two places.
-                # Why?  Who knows?  We do the popaccount one
+                # Why?  Who cares.  We do the popaccount one
                 # separately, because it also has the username.
                 p = c.get(sect, "popaccount")
                 c.set(sect, "popaccount", "%s@localhost" % \
@@ -412,7 +419,7 @@ def configure_m2(config_location):
     # If someone can describe the best all-purpose rule, I'll pop it in
     # here.
 
-def configure_outlook_express():
+def configure_outlook_express(unused):
     """Configure OE to use the SpamBayes POP3 and SMTP proxies, and
     configure SpamBayes to proxy the servers that OE was connecting to."""
     # OE stores its configuration in the registry, not a file.
@@ -545,7 +552,7 @@ def configure_pegasus_mail(config_location):
     rules_file.write(rule)
     rules_file.close()
 
-def configure_pocomail():
+def configure_pocomail(unused):
      import win32api
      import win32con
  
@@ -656,6 +663,53 @@ def configure_pocomail():
              f.close()
 
 
+def find_config_location(mailer):
+    """Attempt to find the location of the config file for
+    the given mailer, to pass to the configure_* scripts
+    above."""
+    import win32api
+    from win32com.shell import shell, shellcon
+    if mailer in ["Outlook Express", "PocoMail"]:
+        # Outlook Express and PocoMail can be configured without a
+        # config location, because it's all in the registry
+        return ""
+    windowsUserDirectory = shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0)
+    potential_locations = {"Eudora" : ("Qualcomm%(sep)sEudora",),
+                           "Mozilla" : ("Mozilla%(sep)sProfiles%(sep)s%(user)s",
+                                        "Mozilla%(sep)sProfiles%(sep)sdefault",),
+                           "M2" : ("Opera%(sep)sOpera7",),
+                           }
+    # We try with the username that the user uses [that's a lot of 'use'!]
+    # for Windows, even though that might not be the same as their profile
+    # names for mailers.  We can get smarter later.
+    username = win32api.GetUserName()
+    loc_dict = {"sep" : os.sep,
+                "user" : username}
+    for loc in potential_locations[mailer]:
+        loc = loc % loc_dict
+        loc = os.path.join(windowsUserDirectory, loc)
+        if os.path.exists(loc):
+            return loc
+    return None
+
+
+def configure(mailer):
+    """Automatically configure the specified mailer and SpamBayes.
+    Return True if successful, False otherwise.
+    """
+    loc = find_config_location(mailer)
+    if loc is None:
+        return False
+    funcs = {"Eudora" : configure_eudora,
+             "Mozilla" : configure_mozilla,
+             "M2" : configure_m2,
+             "Outlook Express" : configure_outlook_express,
+             "PocoMail" : configure_pocomail,
+             }
+    funcs[mailer](loc)
+    return True
+
+
 if __name__ == "__main__":
     pmail_ini_dir = "C:\\Program Files\\PMAIL\\MAIL\\ADMIN"
     #configure_eudora(eudora_ini_dir)
@@ -664,4 +718,5 @@ if __name__ == "__main__":
     #configure_outlook_express()
     #configure_pocomail()
     #configure_pegasus_mail(pmail_ini_dir)
-    pass
+    for mailer in ["Eudora", "Mozilla", "M2", "Outlook Express", "PocoMail"]:
+        print find_config_location(mailer)
