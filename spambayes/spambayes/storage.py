@@ -65,7 +65,7 @@ except NameError:
 import sys
 import types
 from spambayes import classifier
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 import cPickle as pickle
 import errno
 import shelve
@@ -637,6 +637,10 @@ class NoSuchClassifierError(Exception):
     def __str__(self):
         return repr(self.invalid_name)
 
+class MutuallyExclusiveError(Exception):
+    def __str__(self):
+        return "Only one type of database can be specified"
+
 # values are classifier class and True if it accepts a mode
 # arg, False otherwise
 _storage_types = {"dbm" : (DBDictClassifier, True),
@@ -645,28 +649,19 @@ _storage_types = {"dbm" : (DBDictClassifier, True),
                   "mysql" : (mySQLClassifier, False),
                   }
 
-def open_storage(data_source_name, useDB=True, mode=None):
+def open_storage(data_source_name, db_type="dbm", mode=None):
     """Return a storage object appropriate to the given parameters.
 
     By centralizing this code here, all the applications will behave
     the same given the same options.
 
-    If useDB is false, a pickle will be used, otherwise if the data
-    source name includes "::", whatever is before that determines
-    the type of database.  If the source name doesn't include "::",
-    then a DBDictClassifier is used."""
-    if useDB:
-        if data_source_name.find('::') != -1:
-            db_type, rest = data_source_name.split('::', 1)
-            if _storage_types.has_key(db_type.lower()):
-                klass, supports_mode = _storage_types[db_type.lower()]
-                data_source_name = rest
-            else:
-                raise NoSuchClassifierError(db_type)
-        else:
-            klass, supports_mode = _storage_types["dbm"]
-    else:
-        klass, supports_mode = _storage_types["pickle"]
+    db_type must be one of the following strings:
+      dbm, pickle, pgsql, mysql
+    """
+    try:
+        klass, supports_mode = _storage_types[db_type]
+    except KeyError:
+        raise NoSuchClassifierError(db_type)
     try:
         if supports_mode and mode is not None:
             return klass(data_source_name, mode)
@@ -682,6 +677,46 @@ def open_storage(data_source_name, useDB=True, mode=None):
                   "such as bsddb (see http://sf.net/projects/pybsddb)."
             sys.exit()
 
+# The different database types that are available.
+# The key should be the command-line switch that is used to select this
+# type, and the value should be the name of the type (which
+# must be a valid key for the _storage_types dictionary).
+_storage_options = { "-p" : "pickle",
+                     "-d" : "dbm",
+                     }
+
+def database_type(opts):
+    """Return the name of the database and the type to use.  The output of
+    this function can be used as the db_type parameter for the open_storage
+    function, for example:
+
+        [standard getopts code]
+        db_name, db_type = database_types(opts)
+        storage = open_storage(db_name, db_type)
+
+    The selection is made based on the options passed, or, if the
+    appropriate options are not present, the options in the global
+    options object.
+
+    Currently supports:
+       -p  :  pickle
+       -d  :  dbm
+    """
+    nm, typ = None, None
+    for opt, arg in opts:
+        if _storage_options.has_key(opt):
+            if nm is None and typ is None:
+                nm, typ = arg, _storage_options[opt]
+            else:
+                raise MutuallyExclusiveError()
+    if nm is None and typ is None:
+        typ = options["Storage", "persistent_use_database"]
+        if typ is True or typ == "True":
+            typ = "dbm"
+        elif typ is False or typ == "False":
+            typ = "pickle"
+        nm = get_pathname_option("Storage", "persistent_storage_file")
+    return nm, typ
 
 if __name__ == '__main__':
     print >> sys.stderr, __doc__

@@ -542,11 +542,17 @@ defaults = {
   # value for each of these options in a configuration file that gets
   # loaded by the appropriate application only.
   "Storage" : (
-    ("persistent_use_database", "Use database for storage", True,
+    ("persistent_use_database", "Use database for storage", "dbm",
      """SpamBayes can use either a database (quick to score one message)
-     or a pickle (quick to train on huge amounts of messages). Set this to
-     use a database by default.""",
-     BOOLEAN, RESTORE),
+     or a pickle (quick to train on huge amounts of messages). There is
+     also (currently experimental) the ability to use a mySQL or
+     PostgrepSQL database.  For historical reasons, if you set this to
+     "True" you are selecting "dbm" and if you set this to "False" you
+     are selecting "pickle".  We recommend explicitly selecting the type,
+     (i.e. changing "True" to "dbm" and "False" to "pickle", or sticking
+     with the default.""",
+     # True == "dbm", False == "pickle", "True" == "dbm", "False" == "pickle"
+     ("mysql", "pgsql", "dbm", "pickle", "True", "False", True, False), RESTORE),
 
     ("persistent_storage_file", "Storage file name", "hammie.db",
      """Spambayes builds a database of information that it gathers

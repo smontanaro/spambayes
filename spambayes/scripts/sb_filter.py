@@ -23,7 +23,7 @@ Options can one or more of:
         show some usage examples and exit
     -d DBFILE
         use database in DBFILE
-    -D PICKLEFILE
+    -p PICKLEFILE
         use pickle (instead of database) in PICKLEFILE
     -n
         create a new database
@@ -77,7 +77,7 @@ Output is always to standard output as a Unix-style mailbox.
 import os
 import sys
 import getopt
-from spambayes import hammie, Options, mboxutils
+from spambayes import hammie, Options, mboxutils, storage
 from spambayes.Version import get_version_string
 
 try:
@@ -151,9 +151,7 @@ class HammieFilter(object):
                                     "~/.hammiedb"
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
-        self.dbname = Options.get_pathname_option("Storage",
-                                                  "persistent_storage_file")
-        self.usedb = options["Storage", "persistent_use_database"]
+        self.dbname, self.usedb = storage.database_type([])
 
     def newdb(self):
         h = hammie.open(self.dbname, self.usedb, 'n')
@@ -191,7 +189,7 @@ class HammieFilter(object):
 def main():
     h = HammieFilter()
     actions = []
-    opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGSo:',
+    opts, args = getopt.getopt(sys.argv[1:], 'hxd:p:nfgstGSo:',
                                ['help', 'examples', 'option='])
     create_newdb = False
     for opt, arg in opts:
@@ -201,12 +199,6 @@ def main():
             examples()
         elif opt in ('-o', '--option'):
             Options.options.set_from_cmdline(arg, sys.stderr)
-        elif opt == '-d':
-            h.usedb = True
-            h.dbname = arg
-        elif opt == '-D':
-            h.usedb = False
-            h.dbname = arg
         elif opt == '-f':
             actions.append(h.filter)
         elif opt == '-g':
@@ -221,6 +213,7 @@ def main():
             actions.append(h.untrain_spam)
         elif opt == "-n":
             create_newdb = True
+    h.dbname, h.usedb = storage.database_type(opts)
 
     if create_newdb:
         h.newdb()

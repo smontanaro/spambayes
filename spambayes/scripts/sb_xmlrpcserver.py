@@ -9,10 +9,10 @@ Where:
     -h
         show usage and exit
     -p FILE
-        use file as the persistent store.  loads data from this file if it
-        exists, and saves data to this file at the end.
-    -d
-        use the DBM store instead of cPickle.
+        use pickle FILE as the persistent store.  loads data from this file
+        if it exists, and saves data to this file at the end.
+    -d FILE
+        use DBM store FILE as the persistent store.
     -o section:option:value
         set [section, option] in the options database to value
 
@@ -30,7 +30,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 
 from spambayes import hammie, Options
-from spambayes.storage import open_storage
+from spambayes import storage
 
 try:
     True, False
@@ -73,24 +73,18 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdp:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hd:p:o:')
     except getopt.error, msg:
         usage(2, msg)
 
     options = Options.options
 
-    dbname = Options.get_pathname_option("Storage",
-                                         "persistent_storage_file")
-    usedb = options["Storage", "persistent_use_database"]
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
-        elif opt == '-p':
-            dbname = arg
-        elif opt == "-d":
-            usedb = True
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
+    dbname, usedb = storage.database_type(opts)
 
     if len(args) != 1:
         usage(2, "IP:PORT not specified")
@@ -98,7 +92,7 @@ def main():
     ip, port = args[0].split(":")
     port = int(port)
 
-    bayes = open_storage(dbname, usedb)
+    bayes = storage.open_storage(dbname, usedb)
     h = XMLHammie(bayes)
 
     server = ReusableSimpleXMLRPCServer(

@@ -83,8 +83,8 @@ Usage:
               in double quotes
 
         options:
-            -d  dbname  : pickled training database filename
-            -D  dbname  : dbm training database filename
+            -p  dbname  : pickled training database filename
+            -d  dbname  : dbm training database filename
             -l  dbname  : database filename of local mail replica
                             e.g. localmail.nsf
             -r  server  : server address of the server mail database
@@ -98,7 +98,7 @@ Usage:
             -t          : train contents of Train as Spam and Train as Ham
             -c          : classify inbox
             -h          : help
-            -p          : prompt "Press Enter to end" before ending
+            -P          : prompt "Press Enter to end" before ending
                           This is useful for automated executions where the
                           statistics output would otherwise be lost when the
                           window closes.
@@ -121,10 +121,10 @@ To Do:
     o Dump/purge notesindex file
     o Create correct folders if they do not exist
     o Options for some of this stuff?
-    o pop3proxy style training/configuration interface?
+    o sb_server style training/configuration interface?
     o parameter to retrain?
     o Suggestions?
-    '''
+'''
 
 # This module is part of the spambayes project, which is Copyright 2002
 # The Python Software Foundation and is covered by the Python Software
@@ -287,11 +287,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
 
 def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
-
-    if useDBM:
-        bayes = storage.DBDictClassifier(bdbname)
-    else:
-        bayes = storage.PickledClassifier(bdbname)
+    bayes = storage.open_database(bdbname, useDBM)
 
     try:
         fp = open("%s.sbindex" % (ldbname), 'rb')
@@ -346,12 +342,11 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcpd:D:l:r:f:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcPd:p:l:r:f:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    bdbname = None  # bayes database name
     ldbname = None  # local notes database name
     rdbname = None  # remote notes database location
     sbfname = None  # spambayes folder name
@@ -363,12 +358,6 @@ if __name__ == '__main__':
         if opt == '-h':
             print >>sys.stderr, __doc__
             sys.exit()
-        elif opt == '-d':
-            useDBM = False
-            bdbname = arg
-        elif opt == '-D':
-            useDBM = True
-            bdbname = arg
         elif opt == '-l':
             ldbname = arg
         elif opt == '-r':
@@ -379,10 +368,11 @@ if __name__ == '__main__':
             doTrain = True
         elif opt == '-c':
             doClassify = True
-        elif opt == '-p':
+        elif opt == '-P':
             doPrompt = True
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
+    bdbname, useDBM = storage.database_type(opts)
 
     if (bdbname and ldbname and sbfname and (doTrain or doClassify)):
         run(bdbname, useDBM, ldbname, rdbname, \

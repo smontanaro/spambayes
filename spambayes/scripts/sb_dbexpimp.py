@@ -47,8 +47,8 @@ Usage:
             -i     : import
             -v     : verbose mode (some additional diagnostic messages)
             -f: FN : flat file to export to or import from
-            -d: FN : name of pickled database file to use
-            -D: FN : name of dbm database file to use
+            -p: FN : name of pickled database file to use
+            -f: FN : name of dbm database file to use
             -m     : merge import into an existing database file.  This is
                      meaningful only for import. If omitted, a new database
                      file will be created.  If specified, the imported
@@ -62,20 +62,20 @@ Usage:
 Examples:
 
     Export pickled mybayes.db into mybayes.db.export as a csv flat file
-        sb_dbexpimp -e -d mybayes.db -f mybayes.db.export
+        sb_dbexpimp -e -p mybayes.db -f mybayes.db.export
 
-    Import mybayes.eb.export into a new DBM mybayes.db
-        sb_dbexpimp -i -D mybayes.db -f mybayes.db.export
+    Import mybayes.db.export into a new DBM mybayes.db
+        sb_dbexpimp -i -d mybayes.db -f mybayes.db.export
 
     Export, then import (reorganize) new pickled mybayes.db
-        sb_dbexpimp -e -i -n -d mybayes.db -f mybayes.db.export
+        sb_dbexpimp -e -i -n -p mybayes.db -f mybayes.db.export
 
     Convert a bayes database from pickle to DBM
-        sb_dbexpimp -e -d abayes.db -f abayes.export
-        sb_dbexpimp -i -D abayes.db -f abayes.export
+        sb_dbexpimp -e -p abayes.db -f abayes.export
+        sb_dbexpimp -i -d abayes.db -f abayes.export
 
-    Create a new database (newbayes.db) from two
-        databases (abayes.db, bbayes.db)
+    Create a new DBM database (newbayes.db) from two
+        DBM databases (abayes.db, bbayes.db)
         sb_dbexpimp -e -d abayes.db -f abayes.export
         sb_dbexpimp -e -d bbayes.db -f bbayes.export
         sb_dbexpimp -i -d newbayes.db -f abayes.export
@@ -115,13 +115,11 @@ def uunquote(s):
     return unicode(urllib.unquote(s), 'utf-8')
 
 def runExport(dbFN, useDBM, outFN):
-
-    if useDBM:
-        bayes = spambayes.storage.DBDictClassifier(dbFN)
+    bayes = spambayes.storage.open_storage(dbFN, useDBM)
+    if useDBM == "dbm":
         words = bayes.db.keys()
         words.remove(bayes.statekey)
     else:
-        bayes = spambayes.storage.PickledClassifier(dbFN)
         words = bayes.wordinfo.keys()
 
     try:
@@ -169,10 +167,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
             if e.errno != 2:     # errno.<WHAT>
                 raise
 
-    if useDBM:
-        bayes = spambayes.storage.DBDictClassifier(dbFN)
-    else:
-        bayes = spambayes.storage.PickledClassifier(dbFN)
+    bayes = spambayes.storage.open_storage(dbFN, useDBM)
 
     try:
         fp = open(inFN, 'r')
@@ -215,7 +210,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
     fp.close()
 
-    print "Storing database, please be patient.  Even moderately large"
+    print "Storing database, please be patient.  Even moderately sized"
     print "databases may take a very long time to store."
     bayes.store()
     print "Finished storing database"
@@ -235,12 +230,11 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:D:f:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:p:f:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    usePickle = False
     useDBM = False
     newDBM = True
     dbFN = None
@@ -252,12 +246,6 @@ if __name__ == '__main__':
         if opt == '-h':
             print >>sys.stderr, __doc__
             sys.exit()
-        elif opt == '-d':
-            useDBM = False
-            dbFN = arg
-        elif opt == '-D':
-            useDBM = True
-            dbFN = arg
         elif opt == '-f':
             flatFN = arg
         elif opt == '-e':
@@ -270,6 +258,7 @@ if __name__ == '__main__':
             options["globals", "verbose"] = True
         elif opt in ('-o', '--option'):
             options.set_from_cmdline(arg, sys.stderr)
+    dbFN, useDBM = spambayes.storage.database_type(opts)
 
     if (dbFN and flatFN):
         if exp:

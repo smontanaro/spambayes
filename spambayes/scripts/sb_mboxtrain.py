@@ -16,8 +16,8 @@ Where OPTIONS is one or more of:
         use the DBM store.  A DBM file is larger than the pickle and
         creating it is slower, but loading it is much faster,
         especially for large word databases.  Recommended for use with
-        s_filter or any procmail-based filter.
-    -D DBNAME
+        sb_filter or any procmail-based filter.
+    -p DBNAME
         use the pickle store.  A pickle is smaller and faster to create,
         but much slower to load.  Recommended for use with sb_server and
         sb_xmlrpcserver.
@@ -50,7 +50,7 @@ except NameError:
 
 import sys, os, getopt, email
 import shutil
-from spambayes import hammie
+from spambayes import hammie, storage
 from spambayes.Options import options, get_pathname_option
 
 program = sys.argv[0]
@@ -289,15 +289,13 @@ def main():
     global loud
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:D:g:s:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:p:g:s:o:')
     except getopt.error, msg:
         usage(2, msg)
 
     if not opts:
         usage(2, "No options given")
 
-    pck = None
-    usedb = None
     force = False
     trainnew = False
     removetrained = False
@@ -318,14 +316,9 @@ def main():
             spam.append(arg)
         elif opt == "-r":
             removetrained = True
-        elif opt == "-d":
-            usedb = True
-            pck = arg
-        elif opt == "-D":
-            usedb = False
-            pck = arg
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
+    pck, usedb = storage.database_type(opts)
     if args:
         usage(2, "Positional arguments not allowed")
 

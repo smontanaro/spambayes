@@ -5,19 +5,17 @@
 Where:
     -h
         show usage and exit
-    -d
+    -d FILE
         use the DBM store.  A DBM file is larger than the pickle and
         creating it is slower, but loading it is much faster,
         especially for large word databases.  Recommended for use with
         hammiefilter or any procmail-based filter.
-    -D
-        use the pickle store.  A pickle is smaller and faster to create,
-        but much slower to load.  Recommended for use with pop3proxy and
-        hammiesrv.
+        Default filename: %(DEFAULTDB)s
     -p FILE
-        use file as the persistent store.  loads data from this file if it
-        exists, and saves data to this file at the end.
-        Default: %(DEFAULTDB)s
+        use the pickle store.  A pickle is smaller and faster to create,
+        but much slower to load.  Recommended for use with sb_server and
+        sb_xmlrpcserver.
+        Default filename: %(DEFAULTDB)s
     -U
         Untrain instead of train.  The interpretation of -g and -s remains
         the same.
@@ -52,7 +50,7 @@ import os
 import getopt
 
 from spambayes.Options import options, get_pathname_option
-from spambayes import classifier, mboxutils, hammie, Corpus
+from spambayes import classifier, mboxutils, hammie, Corpus, storage
 
 Corpus.Verbose = True
 
@@ -144,7 +142,7 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdDUfg:s:p:u:r')
+        opts, args = getopt.getopt(sys.argv[1:], 'hd:Ufg:s:p:u:r')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -169,12 +167,6 @@ def main():
         elif opt == '-s':
             spam.append(arg)
             mode = 'c'
-        elif opt == '-p':
-            pck = arg
-        elif opt == "-d":
-            usedb = True
-        elif opt == "-D":
-            usedb = False
         elif opt == "-f":
             do_filter = True
         elif opt == '-u':
@@ -183,6 +175,7 @@ def main():
             untrain_mode = 1
         elif opt == '-r':
             reverse = 1
+    pck, usedb = storage.database_type(opts)
     if args:
         usage(2, "Positional arguments not allowed")
 

@@ -244,6 +244,10 @@ class Option(object):
         if svt == type(value):
             # already the correct type
             return value
+        if type(self.allowed_values) == types.TupleType and \
+           value in self.allowed_values:
+            # already correct type
+            return value
         if self.is_boolean():
             if str(value) == "True" or value == 1:
                 return True
@@ -511,8 +515,6 @@ class OptionsClass(object):
             self.merge_file(f)
 
     def convert_and_set(self, section, option, value):
-        if self.multiple_values_allowed(section, option):
-            value = self.convert(section, option, value)
         value = self.convert(section, option, value)
         self.set(section, option, value)
 

@@ -9,8 +9,18 @@ changes that are relevant to you.
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 8
+New in Alpha Release 9
 ======================
+
+------------------------------------
+** What happened to Alpha Release 8?
+------------------------------------
+
+There was no Alpha Release 8!  Apart from 8 being a very dangerous number
+<wink>, we wanted to match the version numbers of the binary releases, as
+this time that includes more than just the Outlook plug-in, and we are
+going to attempt to release source and binary roughly simultaneously.  This
+should hopefully make things clearer when discussing the various versions.
 
 --------------------------
 ** Incompatible changes **
@@ -29,6 +39,23 @@ New in Alpha Release 8
    upgrading, your database is suddenly empty, then you need to fix your
    configuration so that it points to the correct place.
 
+ o Specifying the database name and type is now consistent across all
+   scripts.  Use "-p FILE" for a pickle, and "-d FILE" for a dbm.  We
+   still recommend setting these in a configuration file, rather than
+   via the command line, so that if they change you remain unaffected.
+
+ o The -p option for sb_imapfilter.py (to specify the password manually)
+   is now -P (-p is universally used to signal that a pickle is to be used).
+
+ o The -p option for sb_notesfilter.py (to prompt before ending) is now
+   -P (-p is universally used to signal that a pickle is to be used).
+
+ o The experimental (and probably unused) format for specifying that
+   MySQL or PostgrepSQL should be used for the database ("mysql::" and
+   "pgsql::") has been removed.  These are now set like any other database
+   type, using the persistent_use_database option (these cannot be set via
+   the command line).
+   
 There should be no other incompatible changes (from 1.0a7) in this release.
 
 

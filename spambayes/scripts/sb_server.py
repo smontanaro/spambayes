@@ -19,7 +19,7 @@ header.  Usage:
         options:
             -h      : Displays this help message.
             -d FILE : use the named DBM database file
-            -D FILE : the the named Pickle database file
+            -p FILE : the the named Pickle database file
             -l port : proxy listens on this port number (default 110)
             -u port : User interface listens on this port number
                       (default 8880; Browse http://localhost:8880/)
@@ -639,7 +639,6 @@ class State:
             sys.exit()
 
         # Load up the other settings from Option.py / bayescustomize.ini
-        self.useDB = options["Storage", "persistent_use_database"]
         self.uiPort = options["html_ui", "port"]
         self.launchUI = options["html_ui", "launch_browser"]
         self.gzipCache = options["Storage", "cache_use_gzip"]
@@ -725,13 +724,12 @@ class State:
         the Corpuses, the Trainers and so on."""
         print "Loading database...",
         if self.isTest:
-            self.useDB = True
-            options["Storage", "persistent_storage_file"] = \
-                        '_pop3proxy_test.pickle'   # This is never saved.
-        filename = get_pathname_option("Storage", "persistent_storage_file")
-        filename = os.path.expanduser(filename)
-        self.bayes = storage.open_storage(filename, self.useDB)
-
+            self.useDB = "pickle"
+            self.DBName = '_pop3proxy_test.pickle'   # This is never saved.
+        if not hasattr(self, "DBName"):
+            self.DBName, self.useDB = storage.database_type([])
+        self.bayes = storage.open_storage(self.DBName, self.useDB)
+        
         self.buildStatusStrings()
 
         # Don't set up the caches and training objects when running the self-test,
@@ -883,9 +881,10 @@ def stop():
 # ===================================================================
 
 def run():
+    global state
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbpsd:D:l:u:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbpsd:p:l:u:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -897,22 +896,14 @@ def run():
             sys.exit()
         elif opt == '-b':
             state.launchUI = True
-        elif opt == '-d':   # dbm file
-            state.useDB = True
-            options["Storage", "persistent_storage_file"] = arg
-        elif opt == '-D':   # pickle file
-            state.useDB = False
-            options["Storage", "persistent_storage_file"] = arg
-        elif opt == '-p':   # dead option
-            print >>sys.stderr, "-p option is no longer supported, use -D\n"
-            print >>sys.stderr, __doc__
-            sys.exit()
         elif opt == '-l':
             state.proxyPorts = [_addressAndPort(arg)]
         elif opt == '-u':
             state.uiPort = int(arg)
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
+
+    state.DBName, state.useDB = storage.database_type(opts)
 
     # Let the user know what they are using...
     print get_version_string("POP3 Proxy")

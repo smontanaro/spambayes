@@ -13,16 +13,17 @@ Usage:
               in double quotes
 
         options:
-            -d  dbname  : pickled training database filename
-            -D  dbname  : dbm training database filename
+            -p  dbname  : pickled training database filename
+            -d  dbname  : dbm training database filename
             -t          : train contents of spam folder and ham folder
             -c          : classify inbox
             -h          : help
             -v          : verbose mode
-            -p          : security option to prompt for imap password,
+            -P          : security option to prompt for imap password,
                           rather than look in options["imap", "password"]
             -e y/n      : expunge/purge messages on exit (y) or not (n)
             -i debuglvl : a somewhat mysterious imaplib debugging level
+                          (4 is a good level, and suitable for bug reports)
             -l minutes  : period of time between filtering operations
             -b          : Launch a web browser showing the user interface.
             -o section:option:value :
@@ -33,13 +34,13 @@ Usage:
 Examples:
 
     Classify inbox, with dbm database
-        sb_imapfilter -c -D bayes.db
+        sb_imapfilter -c -d bayes.db
 
     Train Spam and Ham, then classify inbox, with dbm database
-        sb_imapfilter -t -c -D bayes.db
+        sb_imapfilter -t -c -d bayes.db
 
     Train Spam and Ham only, with pickled database
-        sb_imapfilter -t -d bayes.db
+        sb_imapfilter -t -p bayes.db
 
 Warnings:
     o This is alpha software!  The filter is currently being developed and
@@ -56,13 +57,15 @@ Warnings:
       your mailer automatically purges/expunges (i.e. permanently deletes)
       mail flagged as such, *or* if you set the imap_expunge option to
       True, then this mail will be irretrievably lost.
+"""
 
+todo = """
 To Do:
     o IMAPMessage and IMAPFolder currently carry out very simple checks
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
-    o IMAP over SSL is untested.
+    o IMAP over SSL is relatively untested.
     o Develop a test script, like spambayes/test/test_pop3proxy.py that
       runs through some tests (perhaps with a *real* imap server, rather
       than a dummy one).  This would make it easier to carry out the tests
@@ -727,13 +730,11 @@ class IMAPFilter(object):
 def run():
     global imap
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbtcvpl:e:i:d:D:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    bdbname = get_pathname_option("Storage", "persistent_storage_file")
-    useDBM = options["Storage", "persistent_use_database"]
     doTrain = False
     doClassify = False
     doExpunge = options["imap", "expunge"]
@@ -748,17 +749,11 @@ def run():
         if opt == '-h':
             print >>sys.stderr, __doc__
             sys.exit()
-        elif opt == '-d':
-            useDBM = False
-            bdbname = arg
-        elif opt == '-D':
-            useDBM = True
-            bdbname = arg
         elif opt == "-b":
             launchUI = True
         elif opt == '-t':
             doTrain = True
-        elif opt == '-p':
+        elif opt == '-P':
             promptForPass = True
         elif opt == '-c':
             doClassify = True
@@ -775,6 +770,7 @@ def run():
             sleepTime = int(arg) * 60
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
+    bdbname, useDBM = storage.database_type(opts)
 
     # Let the user know what they are using...
     print get_version_string("IMAP Filter")
@@ -785,8 +781,6 @@ def run():
 The user interface will be launched, but no classification
 or training will be performed.
 """
-
-    bdbname = os.path.expanduser(bdbname)
 
     if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),
