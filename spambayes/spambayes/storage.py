@@ -62,7 +62,8 @@ except NameError:
     def bool(val):
         return not not val
 
-import sys, types
+import sys
+import types
 from spambayes import classifier
 from spambayes.Options import options
 import cPickle as pickle
@@ -677,5 +678,4 @@ def open_storage(data_source_name, useDB=True, mode=None):
 
 
 if __name__ == '__main__':
-    import sys
     print >> sys.stderr, __doc__
