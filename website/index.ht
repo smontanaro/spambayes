@@ -9,12 +9,13 @@ Author: SpamBayes
 <a href="http://www.infoworld.com/article/03/05/16/20TCspam_1.html?s=tc">
 InfoWorld article</a>, and
 <a href="http://weblog.infoworld.com/udell/2003/05/08.html">Jon Udell's blog</a>.</p>
+
 <h2>What is SpamBayes?</h2>
 <p>
 The SpamBayes 
 project is working on developing a <a href="docs.html#glossary">Bayesian</a> 
 anti-spam filter, initially based on the work of 
-<a href="http://www.paulgraham.com/spam.html">Paul Graham.</a> 
+<a href="http://www.paulgraham.com/spam.html">Paul Graham.</a>
 
 The major difference between this and other, similar projects 
 is the emphasis on testing newer approaches to scoring messages.
@@ -25,6 +26,48 @@ yielded a more useful response.
 
 This is documented on the <a href="background.html">background</a> page.
 </p>
+
+<p> SpamBayes is not a single application.  The core code is a message
+classifier, however there are several applications available as part of the
+SpamBayes project which use the classifier in specific contexts.  For the
+most part, the current crop of applications all operate on the client side
+of things, however, a number of people have experimented with using
+SpamBayes on mail servers to classify incoming mail for multiple users.  The
+table below outlines the main applications which are part of the SpamBayes
+distribution.</p>
+
+<table border="1" cellspacing="0" cellpadding="2">
+<tr>
+<th>Application</th>
+<th>Description</th>
+</tr>
+
+<tr>
+<th>Outlook Plugin</th>
+<td>A plugin for Microsoft Outlook which tightly integrates classification
+and training into the Outlook interface</td>
+</tr>
+
+<tr>
+<th>Pop3proxy</th>
+<td>A mail filter which sits between the user's POP3 server(s) and the
+user's mail client and presents a web-based training interface</td>
+</tr>
+
+<tr>
+<th>Imapfilter</th>
+<td>A mail filter similar to pop3proxy but which talks the IMAP
+protocol</td>
+</tr>
+
+<tr>
+<th>Hammiefilter</th>
+<td>A simple mail filter suitable for embedding in a procmail
+environment</td>
+</tr>
+
+</table>
+
 
 <h2>That's great, but what's SpamBayes?</h2>
 <h3>(the non-technical hand-waving answer)</h3>
