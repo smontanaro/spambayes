@@ -30,7 +30,6 @@ MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
 MYPR_MESSAGE_ID_A = 0x1035001E # more magic (message id field used for Exchange)
 MYPR_VERSION_ID = 0x7E8FFFFD # magic that I think tells us the Outlook version
-MYPR_ORGANISATION_A = 0x1037001E # I think this is the organisation magic
 
 CLEAR_READ_FLAG = 0x00000004
 CLEAR_RN_PENDING = 0x00000020
@@ -990,7 +989,6 @@ class MAPIMsgStoreMsg:
         prop_ids = PR_SUBJECT_A, PR_SENDER_NAME_A, PR_DISPLAY_TO_A, \
                    PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME, \
                    MYPR_MESSAGE_ID_A, PR_IMPORTANCE, PR_CLIENT_SUBMIT_TIME, \
-                   MYPR_ORGANISATION_A,
 #       This property gives a 'The parameter is incorrect' error, for some
 #       reason, as does, 0x7E8EFFE2, which I think is the 'pretty' version
 #       number.  Until that's figured out, we'll have to not get this.
@@ -1006,8 +1004,7 @@ class MAPIMsgStoreMsg:
             ("Message-ID", 5, True, None),
             ("Importance", 6, False, self._format_importance),
             ("Date", 7, False, self._format_time),
-            ("Organization", 8, True, None),
-#            ("X-Mailer", 9, False, self._format_version),
+#            ("X-Mailer", 8, False, self._format_version),
             ):
             if potentially_large:
                 value = self._GetPotentiallyLargeStringProp(prop_ids[index],
