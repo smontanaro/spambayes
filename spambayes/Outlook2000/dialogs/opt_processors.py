@@ -13,13 +13,15 @@ from dlgutils import *
 
 import processors
 
+verbose = 0 # set to 1 to see option values fetched and set.
+
 # A ControlProcessor that is linked up with options.  These get a bit smarter.
 class OptionControlProcessor(processors.ControlProcessor):
     def __init__(self, window, control_ids, option):
         processors.ControlProcessor.__init__(self, window, control_ids)
         if option:
             sect_name, option_name = option.split(".")
-            self.option = window.options.get_option(sect_name, option_name)
+            self.option = window.config.get_option(sect_name, option_name)
         else:
             self.option = None
 
@@ -42,16 +44,18 @@ class OptionControlProcessor(processors.ControlProcessor):
     def SetOptionValue(self, value, option = None):
         if option is None:
             option = self.option
-        print "Setting option '%s' (%s) -> %s" % \
-              (option.display_name(), option.name, value)
+        if verbose:
+            print "Setting option '%s' (%s) -> %s" % \
+                  (option.display_name(), option.name, value)
         option.set(value)
         self.NotifyOptionChanged(option)
     def GetOptionValue(self, option = None):
         if option is None:
             option = self.option
         ret = option.get()
-        print "Got option '%s' (%s) -> %s" % \
-              (option.display_name(), option.name, ret)
+        if verbose:
+            print "Got option '%s' (%s) -> %s" % \
+                  (option.display_name(), option.name, ret)
         return ret
 
     # Only sub-classes know how to update their controls from the value.
@@ -88,7 +92,6 @@ class RadioButtonProcessor(OptionControlProcessor):
         i = 0
         first = chwnd = self.GetControl()
         while chwnd:
-            print "have control", chwnd, i, value
             if i==value:
                 win32gui.SendMessage(chwnd, win32con.BM_SETCHECK, 1)
                 break
@@ -119,7 +122,6 @@ class ComboProcessor(OptionControlProcessor):
         OptionControlProcessor.__init__(self, window, control_ids, option)
         if text:
             temp = text.split(",")
-            print temp
             self.option_to_text = zip(self.option.valid_input(), temp)
             self.text_to_option = dict(zip(temp, self.option.valid_input()))
         else:
@@ -236,7 +238,7 @@ class FolderIDProcessor(OptionControlProcessor):
             incl_sub_sect_name, incl_sub_option_name = \
                                 option_include_sub.split(".")
             self.option_include_sub = \
-                            window.options.get_option(incl_sub_sect_name,
+                            window.config.get_option(incl_sub_sect_name,
                                                       incl_sub_option_name)
         else:
             self.option_include_sub = None
