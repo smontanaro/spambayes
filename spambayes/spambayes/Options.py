@@ -421,7 +421,7 @@ imap_port: 143
 imap_username:
 imap_password:
 imap_expunge: False
-imap_inbox: inbox
+imap_filter_folders: INBOX
 imap_unsure_folder:
 imap_spam_folder:
 # comma delimited list of folders that will be examined for messages
@@ -552,7 +552,7 @@ all_options = {
              'imap_port' : int_cracker,
              'imap_username' : string_cracker,
              'imap_password' : string_cracker,
-             'imap_inbox' : string_cracker,
+             'imap_filter_folders' : string_cracker,
              'imap_unsure_folder' : string_cracker,
              'imap_spam_folder' : string_cracker,
              'imap_ham_train_folders' : string_cracker,
