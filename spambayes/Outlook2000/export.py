@@ -124,7 +124,7 @@ Export the folders defined in the Outlook Plugin to a test directory.
 The directory structure is as defined in the parent README.txt file,
 in the "Standard Test Data Setup" section.
 
-If 'directory' is not specified, '..\\Data' is assumed.
+If 'directory' is not specified, '..\\testtools\Data' is assumed.
 
 If 'directory' exists, it will be recursively deleted before
 the export (but you will be asked to confirm unless -q is given).""" \

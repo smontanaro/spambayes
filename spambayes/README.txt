@@ -31,14 +31,19 @@ Primary Core Files
 Options.py
     Uses ConfigParser to allow fiddling various aspects of the classifier,
     tokenizer, and test drivers.  Create a file named bayescustomize.ini to
-    alter the defaults; all options and their default values can be found
-    in the string "defaults" near the top of Options.py, which is really
-    an .ini file embedded in the module.  Modules wishing to control
-    aspects of their operation merely do
+    alter the defaults.  Modules wishing to control aspects of their
+    operation merely do
 
         from Options import options
 
-    near the start, and consult attributes of options.
+    near the start, and consult attributes of options.  To see what options
+    are available, import Options.py and do
+
+        print Options.options.display_full()
+
+    This will print out a detailed description of each option, the allowed
+    values, and so on.  (You can pass in a section or section and option
+    name to display_full if you don't want the whole list).
 
     As an alternative to bayescustomize.ini, you can set the environment
     variable BAYESCUSTOMIZE to a list of one or more .ini files, these will
@@ -113,12 +118,19 @@ hammiesrv.py
 hammiecli.py
     A client for hammiesrv.
 
+imapfilter.py
+    A spam-classifying and training application for use with IMAP servers.
+    You can specify folders that contain mail to train as ham/spam, and
+    folders that contain mail to classify, and the filter will do so.
+    Note that this is currently in very early development and not
+    recommended for production use.
+
 
 Test Driver Core
 ================
 Tester.py
     A test-driver class that feeds streams of msgs to a classifier
-    instance, and keeps track of right/wrong percentages, and lists
+    instance, and keeps track of right/wrong percentages and lists
     of false positives and false negatives.
 
 TestDriver.py

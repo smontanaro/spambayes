@@ -96,6 +96,15 @@ def usage(code, msg=''):
 class HammieFilter(object):
     def __init__(self):
         options = Options.options
+        # This is a bit of a hack to counter the default for
+        # persistent_storage_file changing from ~/.hammiedb to hammie.db
+        # This will work unless a user:
+        #   * had hammie.db as their value for persistent_storage_file, and
+        #   * their config file was loaded by Options.py.
+        if options["hammiefilter", "persistent_storage_file"] == \
+           options.default("Storage", "persistent_storage_file"):
+            options["hammiefilter", "persistent_storage_file"] = \
+                                    "~/.hammiedb"
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
         self.dbname = options["hammiefilter", "persistent_storage_file"]

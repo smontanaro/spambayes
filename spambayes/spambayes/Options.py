@@ -33,12 +33,6 @@ To Do:
    email addresses, and so forth.
  o str(Option) should really call Option.unconvert since this is what
    it does.  Try putting that in and running all the tests.
- o Each Option object has a delimiter attribute - this separates out
-   values when the Object can have multiple values and is in string
-   form.  At the moment the only place this is set is in unconvert()
-   where it is set to the first valid character out of a list.  It
-   would be nice if convert() set the delimiter (if it wasn't already)
-   so that Options would keep the one they start with.
  o [See also the __issues__ string.]
  o Suggestions?
 
@@ -97,6 +91,57 @@ except NameError:
     def bool(val):
         return not not val
 
+# Backwards compatibility stuff - this will be removed at some point
+# This table allows easy conversion from the (old_section, old_option)
+# names to the (new_section, new_option) names.
+conversion_table = {("Hammie", "clue_mailheader_cutoff"):
+                        ("Headers", "clue_mailheader_cutoff"),
+                    ("Hammie", "header_score_digits"):
+                        ("Headers", "header_score_digits"),
+                    ("Hammie", "header_score_logarithm"):
+                        ("Headers", "header_score_logarithm"),
+                    ("Hammie", "header_name"):
+                        ("Headers", "classification_header_name"),
+                    ("Hammie", "header_ham_string"):
+                        ("Headers", "header_ham_string"),
+                    ("Hammie", "header_spam_string"):
+                        ("Headers", "header_spam_string"),
+                    ("Hammie", "header_unsure_string"):
+                        ("Headers", "header_unsure_string"),
+                    ("Hammie", "trained_header"):
+                        ("Headers", "trained_header_name"),
+                    ("pop3proxy", "evidence_header_name"):
+                        ("Headers", "evidence_header_name"),
+                    ("pop3proxy", "mailid_header_name"):
+                        ("Headers", "mailid_header_name"),
+                    ("pop3proxy", "prob_header_name"):
+                        ("Headers", "score_header_name"),
+                    ("pop3proxy", "thermostat_header_name"):
+                        ("Headers", "thermostat_header_name"),
+                    ("pop3proxy", "include_evidence"):
+                        ("Headers", "include_evidence"),
+                    ("pop3proxy", "include_prob"):
+                        ("Headers", "include_score"),
+                    ("pop3proxy", "include_thermostat"):
+                        ("Headers", "include_thermostat"),
+                    ("pop3proxy", "ports"):
+                        ("pop3proxy", "listen_ports"),
+                    ("pop3proxy", "servers"):
+                        ("pop3proxy", "remote_servers"),
+                    ("smtpproxy", "ports"):
+                        ("smtpproxy", "listen_ports"),
+                    ("smtpproxy", "servers"):
+                        ("smtpproxy", "remote_servers"),
+                    ("hammiefilter", "persistent_storage_file"):
+                        ("Storage", "persistent_storage_file"),
+                    ("hammiefilter", "persistent_use_database"):
+                        ("Storage", "persistent_use_database"),
+                    ("pop3proxy", "persistent_storage_file"):
+                        ("Storage", "persistent_storage_file"),
+                    ("pop3proxy", "persistent_use_database"):
+                        ("Storage", "persistent_use_database"),
+}
+
 # These are handy references to commonly used regex/tuples defining
 # permitted values. Although the majority of options use one of these,
 # you may use any regex or tuple you wish.
@@ -105,7 +150,7 @@ HEADER_VALUE = r"[\w\.\-\*]+"
 INTEGER = r"[\d]+"              # actually, a *positive* integer
 REAL = r"[\d]+[\.]?[\d]*"       # likewise, a *positive* real
 BOOLEAN = (False, True)
-SERVER = r"[\w\.\-]+(:[\d]+)?"  # in the form server:port
+SERVER = r"([\w\.\-]+(:[\d]+)?)"  # in the form server:port
 PORT = r"[\d]+"
 EMAIL_ADDRESS = r"[\w\-\.]+@[\w\-\.]+"
 PATH = r"[\w\.\-~:\\/\*]+"
@@ -328,7 +373,8 @@ defaults = {
      INTEGER, RESTORE),
 
     ("show_histograms", "Show histograms", True,
-     "",BOOLEAN, RESTORE),
+     """""",
+     BOOLEAN, RESTORE),
 
     ("compute_best_cutoffs_from_histograms", "Compute best cutoffs from histograms", True,
      """After the display of a ham+spam histogram pair, you can get a
@@ -530,11 +576,58 @@ defaults = {
   ),
  
   "Hammie": (
+    ("debug_header", "Add debug header", False,
+     """Enable debugging information in the header.""",
+     BOOLEAN, RESTORE),
+ 
+    ("debug_header_name", "Debug header name", "X-Spambayes-Debug",
+     """Name of a debugging header for spambayes hackers, showing the
+     strongest clues that have resulted in the classification in the
+     standard header.""",
+     HEADER_NAME, RESTORE),
+ 
+    ("train_on_filter", "Train when filtering", False,
+     """Train when filtering?  After filtering a message, hammie can then
+     train itself on the judgement (ham or spam).  This can speed things up
+     with a procmail-based solution.  If you do enable this, please make
+     sure to retrain any mistakes.  Otherwise, your word database will
+     slowly become useless.""",
+     BOOLEAN, RESTORE),
+  ),
+
+  # These options control where Spambayes data will be stored, and in
+  # what form.  They are used by many Spambayes applications (including
+  # pop3proxy, smtpproxy, imapfilter and hammie), and mean that data
+  # (such as the message database) is shared between the applications.
+  # If this is not the desired behaviour, you must have a different
+  # value for each of these options in a configuration file that gets
+  # loaded by the appropriate application only.
+  "Storage" : (
+    ("persistent_use_database", "", True,
+     """hammiefilter can use either a database (quick to score one message)
+     or a pickle (quick to train on huge amounts of messages). Set this to
+     True to use a database by default.""",
+     BOOLEAN, RESTORE),
+
+    ("persistent_storage_file", "Storage file name", "hammie.db",
+     """Spambayes builds a database of information that it gathers
+     from incoming emails and from you, the user, to get better and
+     better at classifying your email.  This option specifies the
+     name of the database file.  If you don't give a full pathname,
+     the name will be taken to be relative to the current working
+     directory.""",
+     FILE_WITH_PATH, DO_NOT_RESTORE),
+  ),
+
+  # These options control the various headers that some Spambayes
+  # applications add to incoming mail, including imapfilter, pop3proxy,
+  # and hammie.
+  "Headers" : (
     # The name of the header that hammie, pop3proxy, and any other spambayes
     # software, adds to emails in filter mode.  This will definately contain
     # the "classification" of the mail, and may also (i.e. with hammie)
     # contain the score
-    ("header_name", "Classification header name", "X-Spambayes-Classification",
+    ("classification_header_name", "Classification header name", "X-Spambayes-Classification",
      """Spambayes classifies each message by inserting a new header into
      the message.  This header can then be used by your email client
      (provided your client supports filtering) to move spam into a
@@ -577,25 +670,46 @@ defaults = {
      "number of zeros" or "number of nines" next to the score value).""",
      BOOLEAN, RESTORE),
 
-    ("debug_header", "Add debug header", False,
-     """Enable debugging information in the header.""",
-     BOOLEAN, RESTORE),
- 
-    ("debug_header_name", "Debug header name", "X-Spambayes-Debug",
-     """Name of a debugging header for spambayes hackers, showing the
-     strongest clues that have resulted in the classification in the
-     standard header.""",
-     HEADER_NAME, RESTORE),
- 
-    ("train_on_filter", "Train when filtering", False,
-     """Train when filtering?  After filtering a message, hammie can then
-     train itself on the judgement (ham or spam).  This can speed things up
-     with a procmail-based solution.  If you do enable this, please make
-     sure to retrain any mistakes.  Otherwise, your word database will
-     slowly become useless.""",
+    ("include_score", "Add probability (score) header", False,
+     """You can have Spambayes insert a header with the calculated spam
+     probability into each mail.  If you can view headers with your
+     mailer, then you can see this information, which can be interesting
+     and even instructive if you're a serious Spambayes junkie.""",
      BOOLEAN, RESTORE),
 
-    ("trained_header", "Trained header name", "X-Spambayes-Trained",
+    ("score_header_name", "Probability (score) header name", "X-Spambayes-Spam-Probability",
+     """""",
+     HEADER_NAME, RESTORE),
+
+    ("include_thermostat", "Add level header", False,
+     """You can have spambayes insert a header with the calculated spam
+     probability, expressed as a number of '*'s, into each mail (the more
+     '*'s, the higher the probability it is spam). If your mailer
+     supports it, you can use this information to fine tune your
+     classification of ham/spam, ignoring the classification given.""",
+     BOOLEAN, RESTORE),
+
+    ("thermostat_header_name", "Level header name", "X-Spambayes-Level",
+     """""",
+     HEADER_NAME, RESTORE),
+
+    ("include_evidence", "Add evidence header", False,
+     """You can have spambayes insert a header into mail, with the
+     evidence that it used to classify that message (a collection of
+     words with ham and spam probabilities).  If you can view headers
+     with your mailer, then this may give you some insight as to why
+     a particular message was scored in a particular way.""",
+     BOOLEAN, RESTORE),
+
+    ("evidence_header_name", "Evidence header name", "X-Spambayes-Evidence",
+     """""",
+     HEADER_NAME, RESTORE),
+
+    ("mailid_header_name", "Spambayes id header name", "X-Spambayes-MailId",
+     """""",
+     HEADER_NAME, RESTORE),
+
+    ("trained_header_name", "Trained header name", "X-Spambayes-Trained",
      """When training on a message, the name of the header to add with how
      it was trained""",
      HEADER_NAME, RESTORE),
@@ -610,18 +724,6 @@ defaults = {
      REAL, RESTORE),
   ),
 
-  "hammiefilter" : (
-    ("persistent_use_database", "", True,
-     """hammiefilter can use either a database (quick to score one message)
-     or a pickle (quick to train on huge amounts of messages). Set this to
-     True to use a database by default.""",
-     BOOLEAN, RESTORE),
-
-    ("persistent_storage_file", "", "~/.hammiedb",
-     """""",
-     FILE_WITH_PATH, DO_NOT_RESTORE),
-  ),
-
   # pop3proxy settings - pop3proxy also respects the options in the Hammie
   # section, with the exception of the extra header details at the moment.
   # The only mandatory option is pop3proxy_servers, eg.
@@ -629,7 +731,7 @@ defaults = {
   # is optional.  If you specify more than one server in pop3proxy_servers,
   # you must specify the same number of ports in pop3proxy_ports.
   "pop3proxy" : (
-    ("servers", "Servers", (),
+    ("remote_servers", "Servers", (),
      """The Spambayes POP3 proxy intercepts incoming email and classifies
      it before sending it on to your email client.  You need to specify
      which POP3 server(s) you wish it to intercept - a POP3 server
@@ -643,7 +745,7 @@ defaults = {
      Spambayes.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("ports", "Ports", (),
+    ("listen_ports", "Ports", (),
      """Each POP3 server that is being monitored must be assigned to a
      'port' in the Spambayes POP3 proxy.  This port must be different for
      each monitored server, and there must be a port for
@@ -672,19 +774,6 @@ defaults = {
      """""",
      PATH, DO_NOT_RESTORE),
 
-    ("persistent_use_database", "", True,
-     """""",
-     BOOLEAN, RESTORE),
-
-    ("persistent_storage_file", "Storage file name", "hammie.db",
-     """Spambayes builds a database of information that it gathers
-     from incoming emails and from you, the user, to get better and
-     better at classifying your email.  This option specifies the
-     name of the database file.  If you don't give a full pathname,
-     the name will be taken to be relative to the current working
-     directory.""",
-     FILE_WITH_PATH, DO_NOT_RESTORE),
-
     ("notate_to", "Notate to", False,
      """Some email clients (Outlook Express, for example) can only
      set up filtering rules on a limited set of headers.  These
@@ -703,41 +792,6 @@ defaults = {
      """This option will add the same information as 'Notate To',
      but to the start of the mail subject line.""",
      BOOLEAN, RESTORE),
-
-    ("include_prob", "Add probability header", False,
-     """You can have spambayes insert a header with the calculated spam
-     probability into each mail.  If you can view headers with your
-     mailer, then you can see this information, which can be interesting
-     and even instructive if you're a serious spambayes junkie.""",
-     BOOLEAN, RESTORE),
-
-    ("prob_header_name", "Probability header name", "X-Spambayes-Spam-Probability",
-     """""",
-     HEADER_NAME, RESTORE),
-
-    ("include_thermostat", "Add level header", False,
-     """You can have spambayes insert a header with the calculated spam
-     probability, expressed as a number of '*'s, into each mail (the more
-     '*'s, the higher the probability it is spam). If your mailer
-     supports it, you can use this information to fine tune your
-     classification of ham/spam, ignoring the classification given.""",
-     BOOLEAN, RESTORE),
-
-    ("thermostat_header_name", "Level header name", "X-Spambayes-Level",
-     """""",
-     HEADER_NAME, RESTORE),
-
-    ("include_evidence", "Add evidence header", False,
-     """You can have spambayes insert a header into mail, with the
-     evidence that it used to classify that message (a collection of
-     words with ham and spam probabilities).  If you can view headers
-     with your mailer, then this may give you some insight as to why
-     a particular message was scored in a particular way.""",
-     BOOLEAN, RESTORE),
-
-    ("evidence_header_name", "Evidence header name", "X-Spambayes-Evidence",
-     """""",
-     HEADER_NAME, RESTORE),
 
     ("cache_messages", "Cache messages", True,
      """You can disable the pop3proxy caching of messages.  This
@@ -761,10 +815,6 @@ defaults = {
      the safest option is to use both.""",
      ("header", "body"), True),
 
-    ("mailid_header_name", "Spambayes id header name", "X-Spambayes-MailId",
-     """""",
-     HEADER_NAME, RESTORE),
-
     ("strip_incoming_mailids", "Strip incoming spambayes ids", False,
      """If you receive messages from other spambayes users, you might
      find that incoming mail (generally replies) already has an id,
@@ -778,7 +828,7 @@ defaults = {
 
   "smtpproxy" : (
 
-    ("servers", "Servers", (),
+    ("remote_servers", "Servers", (),
      """The Spambayes SMTP proxy intercepts outgoing email - if you
      forward mail to one of the addresses below, it is examined for an id
      and the message corresponding to that id is trained as ham/spam.  All
@@ -794,7 +844,7 @@ defaults = {
      Spambayes.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("ports", "Ports", (),
+    ("listen_ports", "Ports", (),
      """Each SMTP server that is being monitored must be assigned to a
      'port' in the Spambayes SMTP proxy.  This port must be different for
      each monitored server, and there must be a port for
@@ -930,18 +980,22 @@ defaults = {
      IMAP_FOLDER, DO_NOT_RESTORE),
 
     ("unsure_folder", "Folder for unsure messages", "",
-     """""", IMAP_FOLDER, DO_NOT_RESTORE),
+     """""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
     
     ("spam_folder", "Folder for suspected spam", "",
-     """""", IMAP_FOLDER, DO_NOT_RESTORE),
+     """""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
 
     ("ham_train_folders", "Folders with mail to be trained as ham", (),
      """Comma delimited list of folders that will be examined for messages
-     to train as ham.""", IMAP_FOLDER, DO_NOT_RESTORE),
+     to train as ham.""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
 
     ("spam_train_folders", "Folders with mail to be trained as spam", (),
      """Comma delimited list of folders that will be examined for messages
-     to train as spam.""", IMAP_FOLDER, DO_NOT_RESTORE),
+     to train as spam.""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
   ),
 }
 
@@ -1038,7 +1092,6 @@ class Option(object):
             
     def _split_values(self, value):
         # do the regex mojo here
-        # XXX use re.findall?
         try:
             r = re.compile(self.allowed_values)
         except:
@@ -1052,6 +1105,9 @@ class Option(object):
             if m is None:
                 break
             vals += (m.group(),)
+            delimiter = s[i:i + m.start()]
+            if self.delimiter is None and delimiter != "":
+                self.delimiter = delimiter
             i += m.end()
         return vals
 
@@ -1149,7 +1205,7 @@ class Option(object):
             # to specifiy a valid delimiter for all options that
             # can have multiple values.  Note that we have None at
             # the end so that this will crash and die if none of
-            # the separators works <wink>
+            # the separators works <wink>.
             if self.delimiter is None:
                 if type(self.allowed_values) == types.TupleType:
                     self.delimiter = ' '
@@ -1174,7 +1230,7 @@ class Option(object):
                 else:
                     v = str(v)
                 strval += v + self.delimiter
-            strval = strval[:-1] # trailing seperator
+            strval = strval[:-len(self.delimiter)] # trailing seperator
         else:
             # Otherwise, we just hope str() will do the job
             strval = str(self.value)
@@ -1300,8 +1356,10 @@ class OptionsClass(object):
             # save a backup of the old file
             shutil.copyfile(filename, filename + ".bak")
         # copy the new file across
-        shutil.copyfile(out.name, filename)
+        f = file(filename)
+        shutil.copyfileobj(out, f)
         out.close()
+        f.close()
     
     def _add_missing(self, out, written, sect, vi, label=True):
         # add any missing ones, where the value does not equal the default
@@ -1336,9 +1394,8 @@ class OptionsClass(object):
         # A (really ugly) bit of backwards compatability
         # *** This will vanish soon, so do not make use of it in
         #     new code ***
+        setattr(options, option, value)
         old_name = section[0:1].lower() + section[1:] + "_" + option
-        setattr(options, old_name, value)
-        old_name = option
         setattr(options, old_name, value)
                 
     def merge_files(self, file_list):
@@ -1355,14 +1412,23 @@ class OptionsClass(object):
                 # backward compatibility guff
                 if opt[:len(sect) + 1].lower() == sect.lower() + '_':
                     opt = opt[len(sect)+1:]
+                if conversion_table.has_key((sect, opt)):
+                    section, option = conversion_table[sect, opt]
+                else:
+                    section = sect
+                    option = opt
                 # end of backward compatibility guff
-                if not self._options.has_key((sect, opt)):
+                if not self._options.has_key((section, option)):
                     print "Invalid option %s in section %s in file %s" % \
                           (opt, sect, filename)
                 else:
-                    if self.multiple_values_allowed(sect, opt):
-                        value = self.convert(sect, opt, value)
-                    self.set(sect, opt, self.convert(sect, opt, value))
+                    if self.multiple_values_allowed(section, option):
+                        value = self.convert(section, option, value)
+                    self.set(section, option, self.convert(section, option,
+                                                           value))
+                    # backward compatibility guff
+                    self._oldset(sect, opt, value)
+                    # end of backward compatibility guff
 
     # not strictly necessary, but convenient shortcuts to self._options
     def display_name(self, sect, opt):
@@ -1399,19 +1465,19 @@ class OptionsClass(object):
         '''Convert value from the appropriate type to a string.'''
         return self._options[sect, opt].unconvert()
 
-    def get(self, sect=None, opt=None):
+    def get(self, sect, opt):
         '''Get an option.'''
-        if sect is None or opt is None:
-            return None
+        if conversion_table.has_key((sect, opt)):
+            sect, opt = conversion_table[sect, opt]
         return self._options[sect, opt].get()
 
     def __getitem__(self, key):
         return self.get(key[0], key[1])
 
-    def set(self, sect=None, opt=None, val=None):
+    def set(self, sect, opt, val=None):
         '''Set an option.'''
-        if sect is None or opt is None:
-            raise KeyError
+        if conversion_table.has_key((sect, opt)):
+            sect, opt = conversion_table[sect, opt]
         if self.is_valid(sect, opt, val):
             self._options[sect, opt].set(val)
             # backwards compatibility stuff
