@@ -1188,23 +1188,26 @@ days), you can no longer find them.</p>
     def _wrap(self, text, width=70):
         """Wrap the text into lines no bigger than the specified width."""
         try:
-            from textwrap import wrap
+            from textwrap import fill
         except ImportError:
             pass
         else:
-            return '\n'.join(wrap(text, width))
+            return "\n".join([fill(paragraph, width) \
+                              for paragraph in text.split('\n')])
         # No textwrap module, so do the same stuff (more-or-less) ourselves.
-        wordsep_re = re.compile(r'(\s+|'                  # any whitespace
-                                r'-*\w{2,}-(?=\w{2,})|'   # hyphenated words
-                                r'(?<=\S)-{2,}(?=\w))')   # em-dash
-        if len(text) <= width:
-            return [text]
-        chunks = wordsep_re.split(text)
-        chunks = filter(None, chunks)
-        return '\n'.join(self._wrap_chunks(chunks, width))
+        def fill(text, width):
+            if len(text) <= width:
+                return text
+            wordsep_re = re.compile(r'(-*\w{2,}-(?=\w{2,})|'   # hyphenated words
+                                    r'(?<=\S)-{2,}(?=\w))')    # em-dash
+            chunks = wordsep_re.split(text)
+            chunks = filter(None, chunks)
+            return '\n'.join(self._wrap_chunks(chunks, width))
+        return "\n".join([fill(paragraph, width) \
+                          for paragraph in text.split('\n')])
 
     def _wrap_chunks(self, chunks, width):
-        """Stolen from textwrap; see that module in Python > 2.3 for
+        """Stolen from textwrap; see that module in Python >= 2.3 for
         details."""
         lines = []
         while chunks:
