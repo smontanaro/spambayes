@@ -103,11 +103,11 @@ class Driver:
     def forget(self, ham, spam):
         import copy
 
-        print "Forgetting", ham, "&", spam, "...",
+        print "    forgetting", ham, "&", spam, "...",
         c = self.classifier
         nham, nspam = c.nham, c.nspam
         c = copy.deepcopy(c)
-        t.set_classifier(c)
+        self.tester.set_classifier(c)
 
         self.tester.untrain(ham, spam)
         print nham - c.nham, "hams &", nspam - c.nspam, "spams"

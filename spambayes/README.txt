@@ -72,6 +72,11 @@ timtest.py
     standard" test data setup (see below) rather than the specialized
     mboxtest setup.
 
+timcv.py
+    A first stab at an N-fold cross-validating test driver.  Assumes
+    "a standard" data directory setup (see below).
+    Subject to arbitrary change.
+
 
 Test Utilities
 ==============

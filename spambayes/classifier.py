@@ -622,3 +622,5 @@ class GrahamBayes(object):
                 else:
                     if record.hamcount > 0:
                         record.hamcount -= 1
+                if record.hamcount == 0 == record.spamcount:
+                    del self.wordinfo[word]
