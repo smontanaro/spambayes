@@ -283,6 +283,10 @@ class Hammie:
         """
 
         msg = mboxutils.get_message(msg)
+        try:
+            del msg[header]
+        except KeyError:
+            pass
         prob, clues = self._scoremsg(msg, True)
         if prob < ham_cutoff:
             disp = options.header_ham_string

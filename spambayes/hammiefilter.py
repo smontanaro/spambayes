@@ -30,15 +30,18 @@ If neither -g nor -s is given, stdin will be scored: the same message,
 with a new header containing the score, will be send to stdout.
 """
 
+import os
 import sys
 import getopt
 import hammie
-from Options import options
+import Options
+import StringIO
 
 # See Options.py for explanations of these properties
-DBNAME = options.persistent_storage_file
-USEDB = options.persistent_use_database
 program = sys.argv[0]
+
+# Options
+options = Options.options
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -48,13 +51,24 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
+def jar_pickle(h):
+    if not options.persistent_use_database:
+        import pickle
+        fp = open(options.persistent_storage_file, 'wb')
+        pickle.dump(h.bayes, fp, 1)
+        fp.close()
+    
+
 def hammie_open(mode):
-    b = hammie.createbayes(DBNAME, USEDB, mode)
+    b = hammie.createbayes(options.persistent_storage_file,
+                           options.persistent_use_database,
+                           mode)
     return hammie.Hammie(b)
 
 def newdb():
-    hammie_open('n')
-    print "Created new database in", DBNAME
+    h = hammie_open('n')
+    jar_pickle(h)
+    print "Created new database in", options.persistent_storage_file
 
 def filter():
     h = hammie_open('r')
@@ -66,13 +80,14 @@ def train_ham():
     msg = sys.stdin.read()
     h.train_ham(msg)
     h.update_probabilities()
+    jar_pickle(h)    
 
 def train_spam():
     h = hammie_open('w')
     msg = sys.stdin.read()
     h.train_spam(msg)
     h.update_probabilities()
-
+    jar_pickle(h)    
 
 def main():
     action = filter
@@ -86,6 +101,16 @@ def main():
             action = train_spam
         elif opt == "-n":
             action = newdb
+
+    # hammiefilter overrides
+    config_overrides = """[Hammie]
+persistent_storage_file = %s
+persistent_use_database = True
+""" % os.path.expanduser('~/.hammiedb')
+    options.mergefilelike(StringIO.StringIO(config_overrides))
+    options.mergefiles(['/etc/hammierc',
+                        os.path.expanduser('~/.hammierc')])
+
     action()
 
 if __name__ == "__main__":
