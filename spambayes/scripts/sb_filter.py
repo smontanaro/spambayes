@@ -159,7 +159,6 @@ class HammieFilter(object):
             if self.h is not None:
                 if self.mode != 'r':
                     self.h.store()
-                self.h.close()
             self.mode = mode
             self.h = hammie.open(self.dbname, self.usedb, self.mode)
 
@@ -167,7 +166,6 @@ class HammieFilter(object):
         if self.h is not None:
             if self.mode != 'r':
                 self.h.store()
-            self.h.close()
         self.h = None
 
     __del__ = close
