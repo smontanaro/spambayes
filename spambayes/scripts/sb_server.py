@@ -713,7 +713,6 @@ def _createProxies(servers, proxyPorts):
 
 def _recreateState():
     global state
-    state = State()
 
     # Close the existing listeners and create new ones.  This won't
     # affect any running proxies - once a listener has created a proxy,
@@ -726,6 +725,8 @@ def _recreateState():
     # try to reopen it without closing it first.
     state.bayes.store()
     state.bayes.close()
+
+    state = State()
 
     prepare(state)
     _createProxies(state.servers, state.proxyPorts)
