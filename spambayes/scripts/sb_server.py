@@ -115,7 +115,7 @@ from spambayes import Dibbler
 from spambayes import storage
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
-from spambayes.Options import options, get_pathname_option
+from spambayes.Options import options, get_pathname_option, _
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
 from spambayes.Version import get_current_version
@@ -760,38 +760,39 @@ class State:
             db_ratio = nham/float(nspam)
             big = small = None
             if db_ratio > 5.0:
-                big = "ham"
-                small = "spam"
+                self.warning = _("Warning: you have much more ham than " \
+                                 "spam - SpamBayes works best with " \
+                                 "approximately even numbers of ham and " \
+                                 "spam.")
             elif db_ratio < (1/5.0):
-                big = "spam"
-                small = "ham"
-            if big is not None:
-                self.warning = "Warning: you have much more %s than %s - " \
-                               "SpamBayes works best with approximately even " \
-                               "numbers of ham and spam." % (big, small)
+                self.warning = _("Warning: you have much more spam than " \
+                                 "ham - SpamBayes works best with " \
+                                 "approximately even numbers of ham and " \
+                                 "spam.")
             else:
                 self.warning = ""
         elif nspam > 0 or nham > 0:
-            self.warning = "Database only has %d good and %d spam - you should " \
-                           "consider performing additional training." % (nham, nspam)
+            self.warning = _("Database only has %d good and %d spam - " \
+                             "you should consider performing additional " \
+                             "training.") % (nham, nspam)
         else:
-            self.warning = "Database has no training information.  SpamBayes " \
-                           "will classify all messages as 'unsure', " \
-                           "ready for you to train."
+            self.warning = _("Database has no training information.  " \
+                             "SpamBayes will classify all messages as " \
+                             "'unsure', ready for you to train.")
         # Add an additional warning message if the user's thresholds are
         # truly odd.
         spam_cut = options["Categorization", "spam_cutoff"]
         ham_cut = options["Categorization", "ham_cutoff"]
         if spam_cut < 0.5:
-            self.warning += "<br/>Warning: we do not recommend setting " \
-                            "the spam threshold less than 0.5."
+            self.warning += _("<br/>Warning: we do not recommend " \
+                              "setting the spam threshold less than 0.5.")
         if ham_cut > 0.5:
-            self.warning += "<br/>Warning: we do not recommend setting " \
-                            "the ham threshold greater than 0.5."
+            self.warning += _("<br/>Warning: we do not recommend " \
+                              "setting the ham threshold greater than 0.5.")
         if ham_cut > spam_cut:
-            self.warning += "<br/>Warning: your ham threshold is " \
-                            "<b>higher</b> than your spam threshold. " \
-                            "Results are unpredictable."
+            self.warning += _("<br/>Warning: your ham threshold is " \
+                              "<b>higher</b> than your spam threshold. " \
+                              "Results are unpredictable.")
 
     def createWorkers(self):
         """Using the options that were initialised in __init__ and then
@@ -954,7 +955,7 @@ def stop():
     # any open proxy connections to complete, etc.
     from urllib import urlopen, urlencode
     urlopen('http://localhost:%d/save' % state.uiPort,
-            urlencode({'how': 'Save & shutdown'})).read()
+            urlencode({'how': _('Save & shutdown')})).read()
 
 
 # ===================================================================

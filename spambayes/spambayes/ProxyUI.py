@@ -73,7 +73,7 @@ except NameError:
 
 import tokenizer
 import UserInterface
-from spambayes.Options import options
+from spambayes.Options import options, _
 from email.Iterators import typed_subpart_iterator
 
 global state
@@ -110,51 +110,51 @@ parm_ini_map = (
 # Like the above, but hese are the options that will be offered on the
 # advanced configuration page.
 adv_map = (
-    ('Statistics Options',  None),
-    ('Classifier',          'max_discriminators'),
-    ('Classifier',          'minimum_prob_strength'),
-    ('Classifier',          'unknown_word_prob'),
-    ('Classifier',          'unknown_word_strength'),
-    ('Classifier',          'use_bigrams'),
-    ('Header Options',      None),
-    ('Headers',             'include_score'),
-    ('Headers',             'header_score_digits'),
-    ('Headers',             'header_score_logarithm'),
-    ('Headers',             'include_thermostat'),
-    ('Headers',             'include_evidence'),
-    ('Headers',             'clue_mailheader_cutoff'),
-    ('Storage Options',     None),
-    ('Storage',             'persistent_use_database'),
-    ('Storage',             'cache_expiry_days'),
-    ('Storage',             'cache_use_gzip'),
-    ('Storage',             'ham_cache'),
-    ('Storage',             'spam_cache'),
-    ('Storage',             'unknown_cache'),
-    ('Tokenising Options',  None),
-    ('Tokenizer',           'mine_received_headers'),
-    ('Tokenizer',           'replace_nonascii_chars'),
-    ('Tokenizer',           'summarize_email_prefixes'),
-    ('Tokenizer',           'summarize_email_suffixes'),
-    ('Training Options',    None),
-    ('Hammie',              'train_on_filter'),
-    ('Interface Options',   None),
-    ('html_ui',             'display_headers'),
-    ('html_ui',             'display_received_time'),
-    ('html_ui',             'display_score'),
-    ('html_ui',             'display_adv_find'),
-    ('html_ui',             'default_ham_action'),
-    ('html_ui',             'default_spam_action'),
-    ('html_ui',             'default_unsure_action'),
-    ('html_ui',             'ham_discard_level'),
-    ('html_ui',             'spam_discard_level'),
-    ('html_ui',             'allow_remote_connections'),
-    ('html_ui',             'http_authentication'),
-    ('html_ui',             'http_user_name'),
-    ('html_ui',             'http_password'),
-    ('pop3proxy',           'allow_remote_connections'),
-    ('smtpproxy',           'allow_remote_connections'),
-    ('POP3 Proxy Options',  None),
-    ('pop3proxy',           'retrieval_timeout'),
+    (_('Statistics Options'), None),
+    ('Classifier',            'max_discriminators'),
+    ('Classifier',            'minimum_prob_strength'),
+    ('Classifier',            'unknown_word_prob'),
+    ('Classifier',            'unknown_word_strength'),
+    ('Classifier',            'use_bigrams'),
+    (_('Header Options'),     None),
+    ('Headers',               'include_score'),
+    ('Headers',               'header_score_digits'),
+    ('Headers',               'header_score_logarithm'),
+    ('Headers',               'include_thermostat'),
+    ('Headers',               'include_evidence'),
+    ('Headers',               'clue_mailheader_cutoff'),
+    (_('Storage Options'),    None),
+    ('Storage',               'persistent_use_database'),
+    ('Storage',               'cache_expiry_days'),
+    ('Storage',               'cache_use_gzip'),
+    ('Storage',               'ham_cache'),
+    ('Storage',               'spam_cache'),
+    ('Storage',               'unknown_cache'),
+    (_('Tokenising Options'), None),
+    ('Tokenizer',             'mine_received_headers'),
+    ('Tokenizer',             'replace_nonascii_chars'),
+    ('Tokenizer',             'summarize_email_prefixes'),
+    ('Tokenizer',             'summarize_email_suffixes'),
+    (_('Training Options'),   None),
+    ('Hammie',                'train_on_filter'),
+    (_('Interface Options'),  None),
+    ('html_ui',               'display_headers'),
+    ('html_ui',               'display_received_time'),
+    ('html_ui',               'display_score'),
+    ('html_ui',               'display_adv_find'),
+    ('html_ui',               'default_ham_action'),
+    ('html_ui',               'default_spam_action'),
+    ('html_ui',               'default_unsure_action'),
+    ('html_ui',               'ham_discard_level'),
+    ('html_ui',               'spam_discard_level'),
+    ('html_ui',               'allow_remote_connections'),
+    ('html_ui',               'http_authentication'),
+    ('html_ui',               'http_user_name'),
+    ('html_ui',               'http_password'),
+    ('pop3proxy',             'allow_remote_connections'),
+    ('smtpproxy',             'allow_remote_connections'),
+    (_('POP3 Proxy Options'), None),
+    ('pop3proxy',             'retrieval_timeout'),
 )
 
 class ProxyUserInterface(UserInterface.UserInterface):
@@ -182,22 +182,22 @@ class ProxyUserInterface(UserInterface.UserInterface):
         stateDict.update(state.bayes.__dict__)
         statusTable = self.html.statusTable.clone()
         if not state.servers:
-            statusTable.proxyDetails = "No POP3 proxies running.<br/>"
-        findBox = self._buildBox('Word query', 'query.gif',
+            statusTable.proxyDetails = _("No POP3 proxies running.<br/>")
+        findBox = self._buildBox(_('Word query'), 'query.gif',
                                  self.html.wordQuery)
         if not options["html_ui", "display_adv_find"]:
             del findBox.advanced
-        content = (self._buildBox('Status and Configuration',
+        content = (self._buildBox(_('Status and Configuration'),
                                   'status.gif', statusTable % stateDict)+
-                   self._buildBox('Train on proxied messages',
+                   self._buildBox(_('Train on proxied messages'),
                                   'train.gif', self.html.reviewText) +
                    self._buildTrainBox() +
                    self._buildClassifyBox() +
                    findBox +
-                   self._buildBox('Find message', 'query.gif',
+                   self._buildBox(_('Find message'), 'query.gif',
                                   self.html.findMessage)
                    )
-        self._writePreamble("Home")
+        self._writePreamble(_("Home"))
         self.write(content)
         self._writePostamble(help_topic="home_proxy")
 
@@ -214,7 +214,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             state.unknownCorpus.addMessage(message)
 
         # Return a link Home.
-        self.write("<p>OK. Return <a href='home'>Home</a>.</p>")
+        self.write(_("<p>OK. Return <a href='home'>Home</a>.</p>"))
 
     def _keyToTimestamp(self, key):
         """Given a message key (as seen in a Corpus), returns the timestamp
@@ -309,14 +309,14 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 score = messageInfo.score
             except ValueError:
                 score = None
-            if label == 'Spam':
+            if label == _('Spam'):
                 if score is not None \
                    and score > options["html_ui", "spam_discard_level"]:
                     r_att = getattr(row, 'discard')
                 else:
                     r_att = getattr(row, options["html_ui",
                                            "default_spam_action"])
-            elif label == 'Ham':
+            elif label == _('Ham'):
                 if score is not None \
                    and score < options["html_ui", "ham_discard_level"]:
                     r_att = getattr(row, 'discard')
@@ -374,15 +374,15 @@ class ProxyUserInterface(UserInterface.UserInterface):
         id = ''
         numTrained = 0
         numDeferred = 0
-        if params.get('go') != 'Refresh':
+        if params.get('go') != _('Refresh'):
             for key, value in params.items():
                 if key.startswith('classify:'):
                     id = key.split(':')[2]
-                    if value == 'spam':
+                    if value == _('spam'):
                         targetCorpus = state.spamCorpus
-                    elif value == 'ham':
+                    elif value == _('ham'):
                         targetCorpus = state.hamCorpus
-                    elif value == 'discard':
+                    elif value == _('discard'):
                         targetCorpus = None
                         try:
                             state.unknownCorpus.removeMessage(\
@@ -407,7 +407,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                 targetCorpus.takeMessage(id, sourceCorpus,
                                                          fromCache=True)
                                 if numTrained == 0:
-                                    self.write("<p><b>Training... ")
+                                    self.write(_("<p><b>Training... "))
                                     self.flush()
                                 numTrained += 1
                             except KeyError:
@@ -416,10 +416,12 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Report on any training, and save the database if there was any.
         if numTrained > 0:
             plural = ''
-            if numTrained != 1:
-                plural = 's'
+            if numTrained == 1:
+                response = "Trained on one message. "
+            else:
+                response = "Trained on %d messages. " % (numTrained,)
             self._doSave()
-            self.write("Trained on %d message%s. " % (numTrained, plural))
+            self.write(response)
             self.write("<br>&nbsp;")
 
         title = ""
@@ -441,9 +443,9 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 start = next
 
         # Else if they've hit Previous or Next, display that page.
-        elif params.get('go') == 'Next day':
+        elif params.get('go') == _('Next day'):
             start = self._keyToTimestamp(params['next'])
-        elif params.get('go') == 'Previous day':
+        elif params.get('go') == _('Previous day'):
             start = self._keyToTimestamp(params['prior'])
 
         # Else if an id has been specified, just show that message
@@ -465,7 +467,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             error = False
             if key == "":
                 error = True
-                page = "<p>You must enter a search string.</p>"
+                page = _("<p>You must enter a search string.</p>")
             else:
                 if len(keys) < max_results and \
                    params.has_key('id'):
@@ -479,7 +481,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                    params.has_key('headers'):
                     # This is an expensive operation, so let the user know
                     # that something is happening.
-                    self.write('<p>Searching...</p>')
+                    self.write(_('<p>Searching...</p>'))
                     for corp in [state.unknownCorpus, state.hamCorpus,
                                    state.spamCorpus]:
                         for k in corp.keys():
@@ -509,15 +511,19 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                        self._contains(val, key, ic):
                                         push((k, corp))
                 if len(keys):
-                    title = "Found message%s" % (['','s'][len(keys)>1],)
+                    if len(keys) == 1:
+                        title = _("Found message")
+                    else:                      
+                        title = _("Found messages")
                     keys = list(keys)
                 else:
-                    page = "<p>Could not find any matching messages. " \
-                           "Maybe they expired?</p>"
-                    title = "Did not find message"
+                    page = _("<p>Could not find any matching messages. " \
+                             "Maybe they expired?</p>")
+                    title = _("Did not find message")
                     box = self._buildBox(title, 'status.gif', page)
                     self.write(box)
-                    self.write(self._buildBox('Find message', 'query.gif',
+                    self.write(self._buildBox(_('Find message'),
+                                              'query.gif',
                                               self.html.findMessage))
                     self._writePostamble()
                     return
@@ -615,13 +621,13 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
             page.table += self.html.trainRow
             if title == "":
-                title = "Untrained messages received on %s" % date
+                title = _("Untrained messages received on %s") % date
             box = self._buildBox(title, None, page)  # No icon, to save space.
         else:
-            page = "<p>There are no untrained messages to display. "
-            page += "Return <a href='home'>Home</a>, or "
-            page += "<a href='review'>check again</a>.</p>"
-            title = "No untrained messages"
+            page = _("<p>There are no untrained messages to display. " \
+                     "Return <a href='home'>Home</a>, or " \
+                     "<a href='review'>check again</a>.</p>")
+            title = _("No untrained messages")
             box = self._buildBox(title, 'status.gif', page)
 
         self.write(box)
@@ -638,7 +644,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
     def onView(self, key, corpus):
         """View a message - linked from the Review page."""
-        self._writePreamble("View message", parent=('review', 'Review'))
+        self._writePreamble(_("View message"),
+                            parent=('review', _('Review')))
         sourceCorpus = None
         message = None
         if state.unknownCorpus.get(key) is not None:
@@ -652,13 +659,14 @@ class ProxyUserInterface(UserInterface.UserInterface):
         if message is not None:
             self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
         else:
-            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
+            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") % key)
         self._writePostamble()
 
     def onShowclues(self, key, subject, tokens='0'):
         """Show clues for a message - linked from the Review page."""
         tokens = bool(int(tokens)) # needs the int, as bool('0') is True
-        self._writePreamble("Message clues", parent=('review', 'Review'))
+        self._writePreamble(_("Message clues"),
+                            parent=('review', _('Review')))
         sourceCorpus = None
         message = None
         if state.unknownCorpus.get(key) is not None:
@@ -675,7 +683,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             del results.classifyAnother
             self.write(results)
         else:
-            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
+            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") % key)
         self._writePostamble()
 
     def _makeMessageInfo(self, message):
@@ -720,13 +728,13 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 text, unused = tokenizer.crack_html_style(text)
                 text, unused = tokenizer.crack_html_comment(text)
                 text = tokenizer.html_re.sub(' ', text)
-                text = '(this message only has an HTML body)\n' + text
+                text = _('(this message only has an HTML body)\n') + text
             except StopIteration:
-                text = '(this message has no text body)'
+                text = _('(this message has no text body)')
         if type(text) == type([]):  # gotta be a 'right' way to do this
-            text = "(this message is a digest of %s messages)" % (len(text))
+            text = _("(this message is a digest of %s messages)") % (len(text))
         elif text is None:
-            text = "(this message has no body)"
+            text = _("(this message has no body)")
         else:
             text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
             text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
@@ -769,15 +777,15 @@ class ProxyUserInterface(UserInterface.UserInterface):
         slist = list(parms['pop3proxy_remote_servers'])
         plist = list(parms['pop3proxy_listen_ports'])
         if len(slist) != len(plist):
-            errmsg += '<li>The number of POP3 proxy ports specified ' + \
-                      'must match the number of servers specified</li>\n'
+            errmsg += _('<li>The number of POP3 proxy ports specified ' \
+                        'must match the number of servers specified</li>\n')
 
         # check for duplicate ports
         plist.sort()
         for p in range(len(plist)-1):
             try:
                 if plist[p] == plist[p+1]:
-                    errmsg += '<li>All POP3 port numbers must be unique</li>'
+                    errmsg += _('<li>All POP3 port numbers must be unique</li>')
                     break
             except IndexError:
                 pass
@@ -786,15 +794,15 @@ class ProxyUserInterface(UserInterface.UserInterface):
         slist = list(parms['smtpproxy_remote_servers'])
         plist = list(parms['smtpproxy_listen_ports'])
         if len(slist) != len(plist):
-            errmsg += '<li>The number of SMTP proxy ports specified ' + \
-                      'must match the number of servers specified</li>\n'
+            errmsg += _('<li>The number of SMTP proxy ports specified ' \
+                        'must match the number of servers specified</li>\n')
 
         # check for duplicate ports
         plist.sort()
         for p in range(len(plist)-1):
             try:
                 if plist[p] == plist[p+1]:
-                    errmsg += '<li>All SMTP port numbers must be unique</li>'
+                    errmsg += _('<li>All SMTP port numbers must be unique</li>')
                     break
             except IndexError:
                 pass

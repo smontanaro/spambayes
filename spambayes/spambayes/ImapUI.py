@@ -46,7 +46,7 @@ import cgi
 import types
 
 import UserInterface
-from spambayes.Options import options, optionsPathname
+from spambayes.Options import options, optionsPathname, _
 
 # These are the options that will be offered on the configuration page.
 # If the option is None, then the entry is a header and the following
@@ -54,7 +54,7 @@ from spambayes.Options import options, optionsPathname
 # These are also used to generate http request parameters and template
 # fields/variables.
 parm_map = (
-    ('IMAP Options',          None),
+    (_('IMAP Options'),       None),
     ('imap',                  'server'),
     ('imap',                  'username'),
     # to display, or not to display; that is the question!
@@ -64,13 +64,13 @@ parm_map = (
     # on the other hand, we have to be able to enter it somehow...
     ('imap',                  'password'),
     ('imap',                  'use_ssl'),
-    ('Header Options',        None),
+    (_('Header Options'),     None),
     ('Headers',               'notate_to'),
     ('Headers',               'notate_subject'),
-    ('Storage Options',       None),
+    (_('Storage Options'),    None),
     ('Storage',               'persistent_storage_file'),
     ('Storage',               'messageinfo_storage_file'),
-    ('Statistics Options',    None),
+    (_('Statistics Options'), None),
     ('Categorization',        'ham_cutoff'),
     ('Categorization',        'spam_cutoff'),
 )
@@ -78,33 +78,33 @@ parm_map = (
 # Like the above, but hese are the options that will be offered on the
 # advanced configuration page.
 adv_map = (
-    ('Statistics Options',  None),
-    ('Classifier',          'max_discriminators'),
-    ('Classifier',          'minimum_prob_strength'),
-    ('Classifier',          'unknown_word_prob'),
-    ('Classifier',          'unknown_word_strength'),
-    ('Classifier',          'use_bigrams'),
-    ('Header Options',      None),
-    ('Headers',             'include_score'),
-    ('Headers',             'header_score_digits'),
-    ('Headers',             'header_score_logarithm'),
-    ('Headers',             'include_thermostat'),
-    ('Headers',             'include_evidence'),
-    ('Headers',             'clue_mailheader_cutoff'),
-    ('Storage Options',     None),
-    ('Storage',             'persistent_use_database'),
-    ('Tokenising Options',  None),
-    ('Tokenizer',           'mine_received_headers'),
-    ('Tokenizer',           'replace_nonascii_chars'),
-    ('Tokenizer',           'summarize_email_prefixes'),
-    ('Tokenizer',           'summarize_email_suffixes'),
-    ('Tokenizer',           'x-pick_apart_urls'),
-    ('Interface Options',   None),
-    ('html_ui',             'display_adv_find'),
-    ('html_ui',             'allow_remote_connections'),
-    ('html_ui',             'http_authentication'),
-    ('html_ui',             'http_user_name'),
-    ('html_ui',             'http_password'),
+    (_('Statistics Options'), None),
+    ('Classifier',            'max_discriminators'),
+    ('Classifier',            'minimum_prob_strength'),
+    ('Classifier',            'unknown_word_prob'),
+    ('Classifier',            'unknown_word_strength'),
+    ('Classifier',            'use_bigrams'),
+    (_('Header Options'),     None),
+    ('Headers',               'include_score'),
+    ('Headers',               'header_score_digits'),
+    ('Headers',               'header_score_logarithm'),
+    ('Headers',               'include_thermostat'),
+    ('Headers',               'include_evidence'),
+    ('Headers',               'clue_mailheader_cutoff'),
+    (_('Storage Options'),    None),
+    ('Storage',               'persistent_use_database'),
+    (_('Tokenising Options'), None),
+    ('Tokenizer',             'mine_received_headers'),
+    ('Tokenizer',             'replace_nonascii_chars'),
+    ('Tokenizer',             'summarize_email_prefixes'),
+    ('Tokenizer',             'summarize_email_suffixes'),
+    ('Tokenizer',             'x-pick_apart_urls'),
+    (_('Interface Options'),  None),
+    ('html_ui',               'display_adv_find'),
+    ('html_ui',               'allow_remote_connections'),
+    ('html_ui',               'http_authentication'),
+    ('html_ui',               'http_user_name'),
+    ('html_ui',               'http_password'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):
@@ -138,21 +138,22 @@ class IMAPUserInterface(UserInterface.UserInterface):
         statusTable = self.html.statusTable.clone()
         del statusTable.proxyDetails
         # This could be a bit more modular
-        statusTable.configurationLink += """<br />&nbsp;&nbsp;&nbsp;&nbsp;
-        &nbsp;You can also <a href='filterfolders'>configure folders to
-        filter</a><br />and <a
-        href='trainingfolders'>Configure folders to train</a>"""
-        findBox = self._buildBox('Word query', 'query.gif',
+        statusTable.configurationLink += "<br />&nbsp;&nbsp;&nbsp;&nbsp;" \
+            "&nbsp;" + _("You can also <a href='filterfolders'>configure" \
+                         " folders to filter</a><br />and " \
+                         "<a href='trainingfolders'>Configure folders to" \
+                         " train</a>")
+        findBox = self._buildBox(_('Word query'), 'query.gif',
                                  self.html.wordQuery)
         if not options["html_ui", "display_adv_find"]:
             del findBox.advanced
-        content = (self._buildBox('Status and Configuration',
+        content = (self._buildBox(_('Status and Configuration'),
                                   'status.gif', statusTable % stateDict)+
                    self._buildTrainBox() +
                    self._buildClassifyBox() +
                    findBox
                    )
-        self._writePreamble("Home")
+        self._writePreamble(_("Home"))
         self.write(content)
         self._writePostamble()
 
@@ -172,15 +173,16 @@ class IMAPUserInterface(UserInterface.UserInterface):
         UserInterface.UserInterface.onSave(self, how)
 
     def onFilterfolders(self):
-        self._writePreamble("Select Filter Folders")
+        self._writePreamble(_("Select Filter Folders"))
         self._login_to_imap()
         if self.imap_logged_in:
             available_folders = self.imap.folder_list()
             content = self.html.configForm.clone()
             content.configFormContent = ""
-            content.introduction = """This page allows you to change which
-            folders are filtered, and where filtered mail ends up."""
-            content.config_submit.value = "Save Filter Folders"
+            content.introduction = _("This page allows you to change " \
+                                     "which folders are filtered, and " \
+                                     "where filtered mail ends up.")
+            content.config_submit.value = _("Save Filter Folders")
             content.optionsPathname = optionsPathname
 
             for opt in ("unsure_folder", "spam_folder",
@@ -207,14 +209,14 @@ class IMAPUserInterface(UserInterface.UserInterface):
             self.imap = self.imap_session_class(server, port)
             if not self.imap.connected:
               # Failed to connect.
-              content = self._buildBox("Error", None,
-                                       "Please check server/port details.")
+              content = self._buildBox(_("Error"), None,
+                                       _("Please check server/port details."))
               self.write(content)
               self._writePostamble()
               return
         if self.imap is None:
-            content = self._buildBox("Error", None,
-                                     """Must specify server details first.""")
+            content = self._buildBox(_("Error"), None,
+                                     _("Must specify server details first."))
             self.write(content)
             self._writePostamble()
             return
@@ -222,8 +224,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
         if isinstance(username, types.TupleType):
             username = username[0]
         if not username:
-            content = self._buildBox("Error", None,
-                                     """Must specify username first.""")
+            content = self._buildBox(_("Error"), None,
+                                     _("Must specify username first."))
             self.write(content)
             self._writePostamble()
             return
@@ -232,8 +234,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
             if isinstance(self.imap_pwd, types.TupleType):
                 self.imap_pwd = self.imap_pwd[0]
         if not self.imap_pwd:
-            content = self._buildBox("Error", None,
-                                     """Must specify password first.""")
+            content = self._buildBox(_("Error"), None,
+                                     _("Must specify password first."))
             self.write(content)
             self._writePostamble()
             return
@@ -241,15 +243,16 @@ class IMAPUserInterface(UserInterface.UserInterface):
         self.imap_logged_in = True
 
     def onTrainingfolders(self):
-        self._writePreamble("Select Training Folders")
+        self._writePreamble(_("Select Training Folders"))
         self._login_to_imap()
         if self.imap_logged_in:
             available_folders = self.imap.folder_list()
             content = self.html.configForm.clone()
             content.configFormContent = ""
-            content.introduction = """This page allows you to change which
-            folders contain mail to train Spambayes."""
-            content.config_submit.value = "Save Training Folders"
+            content.introduction = _("This page allows you to change " \
+                                     "which folders contain mail to " \
+                                     "train Spambayes.")
+            content.config_submit.value = _("Save Training Folders")
             content.optionsPathname = optionsPathname
 
             for opt in ("ham_train_folders",
@@ -262,8 +265,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
 
     def onChangeopts(self, **parms):
         backup = self.parm_ini_map
-        if parms["how"] == "Save Training Folders" or \
-           parms["how"] == "Save Filter Folders":
+        if parms["how"] == _("Save Training Folders") or \
+           parms["how"] == _("Save Filter Folders"):
             del parms["how"]
             self.parm_ini_map = ()
             for opt, value in parms.items():
