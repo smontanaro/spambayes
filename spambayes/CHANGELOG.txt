@@ -3,6 +3,7 @@
 Alpha Release 8
 ===============
 Skip Montanaro    29/01/2004  sb_mboxtrain.py: preserve modtimes in Maildir & MH mailboxes
+Skip Montanaro    21/01/2004  added findbest.py to contrib/
 Tony Meyer        13/01/2004  Fix [ 874784 ] Error in onReview code
 Skip Montanaro    13/01/2004  UserInterface: Split digest auth info properly.  Simple split-on-comma fails if the uri contains commas.
 Barry A. Warsaw   13/01/2004  imapfilter: Catch and ignore MessageParseErrors when parsing the data['RFC822'] text.
