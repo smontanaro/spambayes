@@ -16,3 +16,4 @@ RCS
 CVS
 Makefile*
 *.new
+Version.cfg
