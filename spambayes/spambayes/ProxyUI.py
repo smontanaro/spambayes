@@ -194,8 +194,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         messages = self._convertUploadToMessageList(file)
         for m in messages:
             messageName = state.getNewMessageName()
-            message = state.unknownCorpus.makeMessage(messageName)
-            message.setPayload(m)
+            message = state.unknownCorpus.makeMessage(messageName, m)
             state.unknownCorpus.addMessage(message)
 
         # Return a link Home.
