@@ -8,6 +8,8 @@ interpolation over the links using a dictionary.
 """
 
 import sys
+import urlparse
+import posixpath # use posix semantics for urls
 from types import StringType
 
 SLASH = '/'
@@ -37,13 +39,13 @@ class LinkFixer:
             url = 'index.html'
         elif url[-1] == '/':
             url = url + 'index.html'
-        absurl = SLASH.join([self.__rootdir, self.__relthis, url])
+        
         # normalize the path, kind of the way os.path.normpath() does.
-        # urlparse ought to have something like this...
-        # hrm - MarkH thinks this is broken, so it has been replaced
-        # with normpath - what is the problem with normpath?
-        import posixpath # use posix semantics for urls
-        absurl = posixpath.normpath(absurl)
+        # urlparse ought to have something like this built in...
+        scheme, addr, path, params, query, frag = urlparse.urlparse(url)
+        abspath = SLASH.join([self.__rootdir, self.__relthis, path])
+        path = posixpath.normpath(abspath)
+        absurl = urlparse.urlunparse((scheme, addr, path, params, query, frag))
         self.msg('absurl= %s', absurl)
         return absurl
 
