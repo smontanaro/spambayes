@@ -81,14 +81,10 @@ import socket
 import operator
 import re
 import getopt
+import sys, os
 
-# We need to import sb_server, but it may not be on the PYTHONPATH.
-# Hack around this, so that if we are running in a cvs-like setup
-# everything still works.
-import sys
-import os
-sys.path.insert(-1, os.getcwd())
-sys.path.insert(-1, os.path.join(os.getcwd(), "scripts"))
+import sb_test_support
+sb_test_support.fix_sys_path()
 
 from spambayes import Dibbler
 from spambayes import tokenizer
