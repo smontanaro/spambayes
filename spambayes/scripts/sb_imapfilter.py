@@ -102,10 +102,16 @@ import time
 import sys
 import getopt
 import types
+import traceback
 import email
 import email.Parser
 from getpass import getpass
+from email.Header import Header
 from email.Utils import parsedate
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 from spambayes.Options import options, get_pathname_option
 from spambayes import tokenizer, storage, message, Dibbler
@@ -322,8 +328,9 @@ class IMAPMessage(message.SBHeaderMessage):
         message.Message.__init__(self)
         self.folder = None
         self.previous_folder = None
-        self.rfc822_command = "RFC822.PEEK"
+        self.rfc822_command = "BODY.PEEK[]"
         self.got_substance = False
+        self.invalid = False
 
     def setFolder(self, folder):
         self.folder = folder
@@ -367,10 +374,6 @@ class IMAPMessage(message.SBHeaderMessage):
             print "Cannot get substance of message without an id and an UID"
             return
         imap.SelectFolder(self.folder.name)
-        # We really want to use RFC822.PEEK here, as that doesn't affect
-        # the status of the message.  Unfortunately, it appears that not
-        # all IMAP servers support this, even though it is in RFC1730
-        # Actually, it's not: we should be using BODY.PEEK
         try:
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         except IMAP4.error:
@@ -388,17 +391,52 @@ class IMAPMessage(message.SBHeaderMessage):
         try:
             new_msg = email.Parser.Parser().parsestr(data["RFC822"])
         except email.Errors.MessageParseError, e:
-            print 'Skipping unparseable message: %s' % e
-            return
-        self._headers = new_msg._headers
-        self._unixfrom = new_msg._unixfrom
-        self._payload = new_msg._payload
-        self._charset = new_msg._charset
-        self.preamble = new_msg.preamble
-        self.epilogue = new_msg.epilogue
-        self._default_type = new_msg._default_type
-        if not self.has_key(options["Headers", "mailid_header_name"]):
-            self[options["Headers", "mailid_header_name"]] = self.id
+            # Yikes!  Barry set this to return at this point, which
+            # would work ok for training (IIRC, that's all he's
+            # using it for), but for filtering, what happens is that
+            # the message ends up blank, but ok, so the original is
+            # flagged to be deleted, and a new (almost certainly
+            # unsure) message, *with only the spambayes headers* is
+            # created.  The nice solution is still to do what sb_server
+            # does and have a X-Spambayes-Exception header with the
+            # exception data and then the original message.
+            self.invalid = True
+
+            # This is nicked from sb_server - thanks Richie!
+            stream = StringIO.StringIO()
+            traceback.print_exc(None, stream)
+            details = stream.getvalue()
+
+            # Build the header.  This will strip leading whitespace from
+            # the lines, so we add a leading dot to maintain indentation.
+            detailLines = details.strip().split('\n')
+            dottedDetails = '\n.'.join(detailLines)
+            headerName = 'X-Spambayes-Exception'
+            header = Header(dottedDetails, header_name=headerName)
+
+            # Insert the header, converting email.Header's '\n' line
+            # breaks to IMAP4's '\r\n'.
+            # (Also insert the id header, otherwise we'll keep doing
+            # this message over and over again).
+            headers, body = re.split(r'\n\r?\n', data["RFC822"], 1)
+            header = re.sub(r'\r?\n', '\r\n', str(header))
+            headers += "\n%s: %s\r\n%s: %s\r\n\r\n" % \
+                       (headerName, header,
+                        options["Headers", "mailid_header_name"], self.id)
+            self.invalid_content = headers + body
+
+            # Print the exception and a traceback.
+            print >>sys.stderr, details
+        else:
+            self._headers = new_msg._headers
+            self._unixfrom = new_msg._unixfrom
+            self._payload = new_msg._payload
+            self._charset = new_msg._charset
+            self.preamble = new_msg.preamble
+            self.epilogue = new_msg.epilogue
+            self._default_type = new_msg._default_type
+            if not self.has_key(options["Headers", "mailid_header_name"]):
+                self[options["Headers", "mailid_header_name"]] = self.id
         self.got_substance = True
         if options["globals", "verbose"]:
             sys.stdout.write(chr(8) + "*")
@@ -409,6 +447,15 @@ class IMAPMessage(message.SBHeaderMessage):
         if self.previous_folder is None:
             self.previous_folder = self.folder
         self.folder = dest
+
+    def as_string(self, unixfrom=False):
+        # Basically the same as the parent class's except that we handle
+        # the case where the data was unparsable, so we haven't done any
+        # filtering, and we are not actually a proper email.Message object.
+        if self.invalid:
+            return self._force_CRLF(self.invalid_content)
+        else:
+            return message.SBHeaderMessage.as_string(self, unixfrom)
 
     def Save(self):
         '''Save message to imap server.'''
@@ -696,7 +743,7 @@ class IMAPFilter(object):
             self.classifier.store()
 
         if options["globals", "verbose"]:
-            print "Training took %s seconds, %s messages were trained" \
+            print "Training took %.4f seconds, %s messages were trained" \
                   % (time.time() - t, total_ham_trained + total_spam_trained)
 
     def Filter(self):
@@ -724,7 +771,7 @@ class IMAPFilter(object):
             if count is not None:
                 print "\nClassified %s ham, %s spam, and %s unsure." % \
                       (count["ham"], count["spam"], count["unsure"])
-            print "Classifying took", time.time() - t, "seconds."
+            print "Classifying took %.4f seconds." % (time.time() - t,)
 
 
 def run():
