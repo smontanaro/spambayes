@@ -69,7 +69,6 @@ New features:
 Code quality:
 
  o Cope with the email client timing out and closing the connection.
- o Lose the trailing dot from cached messages.
 
 
 Info:
