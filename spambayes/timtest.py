@@ -594,6 +594,26 @@ def tokenize(string):
     if msg.get('organization', None) is None:
         yield "bool:noorg"
 
+    # XXX Following is a great idea due to Anthony Baxter.  I can't use it
+    # XXX on my test data because the header lines are so different between
+    # XXX my ham and spam that it makes a large improvement for bogus
+    # XXX reasons.  So it's commented out.  But it's clearly a good thing
+    # XXX to do on "normal" data, and subsumes the Organization trick above
+    # XXX in a much more general way, yet at comparable cost.
+    ### X-UIDL:
+    ### Anthony Baxter's idea.  This has spamprob 0.99!  The value is clearly
+    ### irrelevant, just the presence or absence matters.  However, it's
+    ### extremely rare in my spam sets, so doesn't have much value.
+    ###
+    ### As also suggested by Anthony, we can capture all such header oddities
+    ### just by generating tags for the count of how many times each header
+    ### field appears.
+    ##x2n = {}
+    ##for x in msg.keys():
+    ##    x2n[x] = x2n.get(x, 0) + 1
+    ##for x in x2n.items():
+    ##    yield "header:%s:%d" % x
+
     # Find, decode (base64, qp), and tokenize the textual parts of the body.
     for part in textparts(msg):
         # Decode, or take it as-is if decoding fails.
