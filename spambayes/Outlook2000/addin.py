@@ -401,8 +401,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         # then it should be trained as such.
         self.manager.LogDebug(2, "OnItemAdd event for SPAM folder", self,
                               "with item", item.Subject.encode("mbcs", "ignore"))
-        if not self.manager.config.training.train_manual_spam:
-            return
+        assert(not self.manager.config.training.train_manual_spam,
+               "The folder shouldn't be hooked if this is False")
         # XXX - Theoretically we could get "not found" exception here,
         # but we have never guarded for it, and never seen it.  If it does
         # happen life will go on, so for now we continue to ignore it.
@@ -1204,6 +1204,10 @@ class OutlookAddin:
             print "on Windows %d.%d.%d (%s)" % \
                   (major, minor, spack, ver_str)
             print "using Python", sys.version
+            from time import localtime
+            ltime = localtime()
+            print "Log created %s-%s-%s" % \
+                  (ltime[0], ltime[1], ltime[2])
 
             self.explorers_events = None # create at OnStartupComplete
 
@@ -1330,7 +1334,8 @@ class OutlookAddin:
                                    "filtering")
             )
         # For spam manually moved
-        if config.spam_folder_id:
+        if config.spam_folder_id and \
+           self.manager.config.training.train_manual_spam:
             new_hooks.update(
                 self._HookFolderEvents([config.spam_folder_id],
                                        False,
