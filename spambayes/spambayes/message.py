@@ -122,22 +122,22 @@ class MessageInfoDB:
             self.dbm = self.db = None
 
     def store(self):
-        if self.db:
+        if self.db is not None:
             self.db.sync()
 
     def _getState(self, msg):
-        if self.db:
+        if self.db is not None:
             try:
                 (msg.c, msg.t) = self.db[msg.getId()]
             except KeyError:
                 pass
 
     def _setState(self, msg):
-        if self.db:
+        if self.db is not None:
             self.db[msg.getId()] = (msg.c, msg.t)
 
     def _delState(self, msg):
-        if self.db:
+        if self.db is not None:
             del self.db[msg.getId()]
 
 # This should come from a Mark Hammond idea of a master db
@@ -272,8 +272,8 @@ class SBHeaderMessage(Message):
         return self.id
 
     def addSBHeaders(self, prob, clues):
-        '''Add hammie header, and remember message's classification.  Also,
-        add optional headers if needed.'''
+        """Add hammie header, and remember message's classification.  Also,
+        add optional headers if needed."""
 
         if prob < options['Categorization','ham_cutoff']:
             disposition = options['Headers','header_ham_string']
