@@ -919,7 +919,7 @@ defaults = {
      gdbm, or dumbdbm.  Windows folk should steer clear of dbhash.  Default
      is "best", which will pick the best DBM type available on your
      platform.""",
-     ("best", "bd3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
+     ("best", "db3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
   ),
 }
 
