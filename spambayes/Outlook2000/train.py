@@ -33,23 +33,22 @@ def train_message(msg, is_spam, mgr, rescore=False):
     # If re-classified AND rescore = True, then a new score will
     # be written to the message (so the user can see some effects)
     from tokenizer import tokenize
-    stream = msg.GetEmailPackageObject()
-    tokens = tokenize(stream)
-    # Handle we may have already been trained.
+
     was_spam = mgr.message_db.get(msg.searchkey)
-    if was_spam is None:
-        # never previously trained.
-        pass
-    elif was_spam == is_spam:
-        # Already in DB - do nothing (full retrain will wipe msg db)
-        # leave now.
-        return False
-    else:
-        mgr.bayes.unlearn(tokens, was_spam, False)
-    # OK - setup the new data.
-    mgr.bayes.learn(tokens, is_spam, False)
+    if was_spam == is_spam:
+        return False    # already correctly classified
+
+    # Brand new (was_spam is None), or incorrectly classified.
+    stream = msg.GetEmailPackageObject()
+    if was_spam is not None:
+        # The classification has changed; unlearn the old classification.
+        mgr.bayes.unlearn(tokenize(stream), was_spam, False)
+
+    # Learn the correct classification.
+    mgr.bayes.learn(tokenize(stream), is_spam, False)
     mgr.message_db[msg.searchkey] = is_spam
     mgr.bayes_dirty = True
+
     # Simplest way to rescore is to re-filter with all_actions = False
     if rescore:
         import filter
@@ -58,7 +57,7 @@ def train_message(msg, is_spam, mgr, rescore=False):
 
     return True
 
-def train_folder( f, isspam, mgr, progress):
+def train_folder(f, isspam, mgr, progress):
     num = num_added = 0
     for message in f.GetMessageGenerator():
         if progress.stop_requested():
