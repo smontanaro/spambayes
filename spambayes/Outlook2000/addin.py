@@ -12,7 +12,7 @@ from win32com.server.exception import COMException
 from win32com.client import gencache, DispatchWithEvents, Dispatch
 import win32api
 import pythoncom
-from win32com.client import constants
+from win32com.client import constants, getevents
 import win32ui
 
 import win32gui, win32con, win32clipboard # for button images!
