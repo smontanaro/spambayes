@@ -689,7 +689,11 @@ def run(launchBrowser=False, context=_defaultContext):
     or raises a `SystemExit` exception."""
 
     if launchBrowser:
-        webbrowser.open_new("http://localhost:%d/" % context._HTTPPort)
+        try:
+            url = "http://localhost:%d/" % context._HTTPPort
+            webbrowser.open_new(url)
+        except webbrowser.Error, e:
+            print "\n%s.\nPlease point your web browser at %s." % (e, url)
     asyncore.loop(map=context._map)
 
 
