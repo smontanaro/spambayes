@@ -36,10 +36,10 @@ versions = {
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
-            "Version":          0.81,
-            "BinaryVersion":    0.81,
+            "Version":          0.85,
+            "BinaryVersion":    0.85,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "September 9, 2003",
+            "Date":             "December 2003",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
             "Full Description Binary":
                                 "%(Description)s, Binary version %(BinaryVersion)s (%(Date)s)",
@@ -50,9 +50,9 @@ versions = {
         },
         "POP3 Proxy" : {
             "Version":          0.3,
-            "BinaryVersion":    0.1,
+            "BinaryVersion":    0.2,
             "Description":      "SpamBayes POP3 Proxy Beta3",
-            "Date":             "September 2003",
+            "Date":             "December 2003",
             "InterfaceVersion":            0.03,
             "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha3",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
