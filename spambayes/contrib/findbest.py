@@ -7,8 +7,8 @@ Find the next "best" unsure message to train on.
 
 Given a number of unsure messages and a desire to keep your training
 database small, the question naturally arises, "Which message should I add
-to my database next?".  A common approach might be to sort the unsures by
-their SpamBayes scores and train on the one which scores lowest.  That is a
+to my database next?".  A common approach is to sort the unsures by their
+SpamBayes scores and train on the one which scores lowest.  This is a
 reasonable approach, but there is no guarantee the lowest scoring unsure is
 in any way related to the other unsure messages.
 
@@ -57,6 +57,10 @@ for and written to these files in this order:
     * $HOME/tmp/best.pck
 
     * $HOME/best.pck
+
+[To do?  Someone might consider the reverse operation.  Given a pile of ham
+and spam, which message can be removed with the least impact?  What pile of
+mail should that removal be tested against?]
 
 '''
 
