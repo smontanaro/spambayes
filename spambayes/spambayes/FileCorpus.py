@@ -218,29 +218,19 @@ class FileMessage(message.SBHeaderMessage):
 
         pn = self.pathname()
 
+        fp = gzip.open(pn, 'rb')
         try:
-            fp = gzip.open(pn, 'rb')
+            self.setPayload(fp.read())
         except IOError, e:
-            if e.errno != errno.ENOENT:
-                raise
-        else:
-            try:
-                self.setPayload(fp.read())
-            except IOError, e:
-                if str(e) == 'Not a gzipped file':
-                    # We've probably got both gzipped messages and
-                    # non-gzipped messages, and need to work with both.
-                    fp.close()
-                    try:
-                        fp = open(self.pathname(), 'rb')
-                    except IOError, e:
-                        if e.errno != errno.ENOENT:
-                            raise
-                    else:
-                        self.setPayload(fp.read())
-                        fp.close()
-            else:
+            if str(e) == 'Not a gzipped file':
+                # We've probably got both gzipped messages and
+                # non-gzipped messages, and need to work with both.
                 fp.close()
+                fp = open(self.pathname(), 'rb')
+                self.setPayload(fp.read())
+                fp.close()
+        else:
+            fp.close()
         self.loaded = True
 
     def store(self):
@@ -259,11 +249,15 @@ class FileMessage(message.SBHeaderMessage):
 
     def remove(self):
         '''Message hara-kiri'''
-
         if options["globals", "verbose"]:
             print 'physically deleting file',self.pathname()
-
-        os.unlink(self.pathname())
+        try:
+            os.unlink(self.pathname())
+        except OSError:
+            # The file probably isn't there anymore.  Maybe a virus
+            # protection program got there first?
+            if options["globals", "verbose"]:
+                print 'file', self.pathname(), 'can not be deleted'
 
     def name(self):
         '''A unique name for the message'''

@@ -488,6 +488,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             options["Headers", "header_ham_string"]: [],
                             options["Headers", "header_spam_string"]: [],
                             }
+        invalid_keys = []
         for key in keys:
             if isinstance(key, types.TupleType):
                 key, sourceCorpus = key
@@ -496,7 +497,14 @@ class ProxyUserInterface(UserInterface.UserInterface):
             # Parse the message, get the judgement header and build a message
             # info object for each message.
             message = sourceCorpus[key]
-            message.load()
+            try:
+                message.load()
+            except IOError:
+                # Someone has taken this file away from us.  It was
+                # probably a virus protection program, so that's ok.
+                # Don't list it in the review, though.
+                invalid_keys.append(key)
+                continue
             judgement = message[options["Headers",
                                         "classification_header_name"]]
             if judgement is None:
@@ -505,6 +513,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 judgement = judgement.split(';')[0].strip()
             messageInfo = self._makeMessageInfo(message)
             keyedMessageInfo[judgement].append((key, messageInfo))
+        for key in invalid_keys:
+            keys.remove(key)
 
         # Present the list of messages in their groups in reverse order of
         # appearance, by default, or according to the specified sort order.
