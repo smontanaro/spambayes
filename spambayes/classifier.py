@@ -29,6 +29,8 @@ from sets import Set
 from Options import options
 if options.use_chi_squared_combining:
     from chi2 import chi2Q
+if options.use_z_combining:
+    from chi2 import normP, normIP
 
 # The maximum number of extreme words to look at in a msg, where "extreme"
 # means with spamprob farthest away from 0.5.
@@ -488,6 +490,46 @@ class Bayes(object):
 
     if options.use_chi_squared_combining:
         spamprob = chi2_spamprob
+
+    def z_spamprob(self, wordstream, evidence=False):
+        """Return best-guess probability that wordstream is spam.
+
+        wordstream is an iterable object producing words.
+        The return value is a float in [0.0, 1.0].
+
+        If optional arg evidence is True, the return value is a pair
+            probability, evidence
+        where evidence is a list of (word, probability) pairs.
+        """
+
+        from math import sqrt
+
+        clues = self._getclues(wordstream)
+        zsum = 0.0
+        for prob, word, record in clues:
+            if record is not None:  # else wordinfo doesn't know about it
+                record.killcount += 1
+            zsum += normIP(prob)
+
+        n = len(clues)
+        if n:
+            # We've added n zscores from a unit normal distribution.  By the
+            # central limit theorem, their mean is normally distributed with
+            # mean 0 and sdev 1/sqrt(n).  So the zscore of zsum/n is
+            # (zsum/n - 0)/(1/sqrt(n)) = zsum/n/(1/sqrt(n)) = zsum/sqrt(n).
+            prob = normP(zsum / sqrt(n))
+        else:
+            prob = 0.5
+
+        if evidence:
+            clues = [(w, p) for p, w, r in clues]
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            return prob, clues
+        else:
+            return prob
+
+    if options.use_z_combining:
+        spamprob = z_spamprob
 
     def _add_popstats(self, sum, sumsq, n, is_spam):
         from math import ldexp

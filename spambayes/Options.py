@@ -230,7 +230,26 @@ robinson_minimum_prob_strength: 0.1
 # than under Gary-combining.
 use_tim_combining: False
 
+# For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
+# follows the chi-squared distribution with 2*n degrees of freedom.  That's
+# the "provably most-sensitive" test Gary's original scheme was monotonic
+# with.  Getting closer to the theoretical basis appears to give an excellent
+# combining method, usually very extreme in its judgment, yet finding a tiny
+# (in # of msgs, spread across a huge range of scores) middle ground where
+# lots of the mistakes live.  This is the best method so far on Tim's data.
+# One systematic benefit is that it's immune to "cancellation disease".  One
+# systematic drawback is that it's sensitive to *any* deviation from a
+# uniform distribution, regardless of whether that's actually evidence of
+# ham or spam.  Rob Hooft may have a pragmatic cure for that (combine the
+# final S and H measures via (S-H+1)/2 instead of via S/(S+H)).
 use_chi_squared_combining: False
+
+# z_combining is a scheme Gary has discussed with me offline.  I'll say more
+# if it proves promising.  In initial tests it was even more extreme than
+# chi combining, but not always in a good way -- in particular, it appears
+# as vulnerable to "cancellation disease" as Graham-combining, giving one
+# spam in my corpus a score of 4.1e-14 (chi combining scored it 0.5).
+use_z_combining: False
 
 # Use a central-limit approach for scoring.
 # The number of extremes to use is given by max_discriminators (above).
@@ -309,6 +328,7 @@ all_options = {
 
                    'use_tim_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
+                   'use_z_combining': boolean_cracker,
                    },
 }
 
