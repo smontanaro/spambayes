@@ -2,6 +2,7 @@
 
 Final Release 1
 ===============
+Mark Hammond      04/05/2004  Fix [ 918157 ] "Could not watch the specified folders". msgstore.IsReceiveFolder() would fail on an exchange server.
 Tony Meyer        03/05/2004  Temporary fix for [ 941596 ] sb_imapfilter.py not adding headers / moving messages
 Tony Meyer        03/05/2004  imapfilter: catch any exceptions, not just email.Errors
 Tony Meyer        03/05/2004  NotesFilter: Incorrect (old?) function name for opening a storage object.

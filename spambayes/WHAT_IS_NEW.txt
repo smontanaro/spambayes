@@ -53,7 +53,7 @@ read the notes in the previous release notes (accessible from
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-    940155, 941596
+    940155, 941596, 918157
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
