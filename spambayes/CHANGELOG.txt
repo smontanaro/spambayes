@@ -3,8 +3,8 @@ Alpha Release 3
 Mark Hammond	03/02/03	Change train.py to be able to work with a bsddb database.
 Mark Hammond	03/02/03	If a new bsddb or bsddb3 module is available use this instead of a pickle in the Outlook plugin.
 Mark Hammond	03/02/03	Add tick-marks to the filter dialog.
-Mark Hammond	03/02/03	Fix SF#677804.
-Mark Hammond	04/02/03	Fix SF#642740.
+Mark Hammond	03/02/03	Fix SF#677804 ('Untouched fitler command error').
+Mark Hammond	04/02/03	Fix SF#642740 ('"Recover from Spam" wrong folder').
 Mark Hammond	07/02/03	Fix some errors using bsddb3 in Outlook plugin.
 Tim Stone	08/02/03	Ensure that nham and nspam are instances of integer in dbExpImp.py
 Tim Stone	08/02/03	Ensure that nham and nspam becoming strings doesn't break classification.
@@ -12,7 +12,7 @@ Tim Stone	08/02/03	Added ability to put classification in subject or to headers 
 Tim Stone	10/02/03	Changed BAYESCUSTOMIZE environment varaible parsing from a split to a regex to fix filenames with embedded spaces.
 Mark Hammond	12/02/03	Check for correct exception when removing file in Outlook addin.
 Mark Hammond	12/02/03	Check for bsddb3 before bsddb (previously bsddb3 would never be found).
-Mark Hammond	13/02/03	SF#685746.
+Mark Hammond	13/02/03	Add SF#685746 ('Outlook plugin folder list sorted alphabetically').
 Mark Hammond	13/02/03	Handle exceptions when opening folders in Outlook plugin better.
 Skip Montanaro	13/02/03	Split BAYESCUSTOMIZE environment variable using os.pathsep.
 Neil Schemenauer	16/02/03	Add -c and -d options to mailsort.py.
@@ -25,7 +25,7 @@ Mark Hammond	26/02/03	Fix bug in dbmstorage.py for Python 2.2, which tried bsddb
 Tony Meyer	27/02/03	Add options to add an id (as a header or in the body), strip such ids from incoming mail, find a message via the id, train messages by forwarding/bouncing to smtpproxy.
 Tony Meyer	27/02/03	First check in of smtpproxy.
 T. Alexander Popiel	27/02/03	Added various files relating to incremental training (or "self training") regimes.
-Tim Stone	27/02/03	Fix SF#693423.
+Tim Stone	27/02/03	Fix SF#693423 ('email message generates error in pop3proxy.py').
 T. Alexander Popiel	28/02/03	Put all regimes into regmies.py.  Define fpfnunsure and fnunsure regimes.
 T. Alexander Popiel	28/02/03	Fix name conflict between regimes list and regimes source file in incremental.py
 T. Alexander Popiel	28/02/03	Reduce the amount of progress output in incremental.py
@@ -35,7 +35,7 @@ Tony Meyer	01/03/03	Expose options for adding an id to incoming mail in pop3prox
 Tony Meyer	01/03/03	Expose options for using smtpproxy.
 Tony Meyer	02/03/03	Added support to smtpproxy for extracting an id in a Mozilla style forwarded message (HTML table).
 Mark Hammond	03/03/03	Fix manager.py calling shutil.move (does not exist pre Python 2.3).
-Mark Hammond	03/03/03	Fix SF#696995.
+Mark Hammond	03/03/03	Fix SF#696995 ('Invalid HTML comments are not ignored').
 Skip Montanaro	03/03/03	Note when subject charset is invalid (rather than raising an exception).
 Mark Hammond	04/03/03	Fix a Outlook plugin bug that could cause incorrect word scores to be used/saved when a bsddb database is used.
 Mark Hammond	04/03/03	Remove unused 'wordcache' instance variable in storage.py.
@@ -44,17 +44,17 @@ Mark Hammond	04/03/03	Fix a bug in the Outlook plugin test code that used *all* 
 Mark Hammond	04/03/03	Only remember source folder when filtering, not just scoring in Outlook plugin.
 Mark Hammond	04/03/03	Only attempt to create "Spam" field on a mail item in Outlook plugin.
 Mark Hammond	04/03/03	If no items are found in Outlook plugin don't attempt to recurse folders.
-Mark Hammond	04/03/03	Fix SF#696476
-Mark Hammond	04/03/03	Fix SF#697120.
+Mark Hammond	04/03/03	Fix SF#696476 ('Manual filtering in outlook fails').
+Mark Hammond	04/03/03	Fix SF#697120 ('Manual filtering in Outlook (still) fails').
 Jeremy Hylton	04/03/03	Band-aid decode_header() in pop3proxy.py
-Tim Stone	06/03/03	Added SF#690928.
+Tim Stone	06/03/03	Added SF#690928 ('turn off saving messages in popproxy').
 Skip Montanaro	06/03/03	Catch extra exception in header parse errors.
-Tim Stone	06/03/03	Fix SF#698852.
+Tim Stone	06/03/03	Fix SF#698852 ("can't classify messages").
 Mark Hammond	07/03/03	Handle MAPI exceptions better in Outlook plugin.
 Mark Hammond	07/03/03	Centralise detection of "not found" exceptions in Outlook plugin.
 Mark Hammond	07/03/03	Supress errors in outlook plugin when hotmail connector can't save the message.
 T. Alexander Popiel	07/03/03	Added another regime to regimes.py.
-Tim Stone	08/03/03	Fix SF#700165
+Tim Stone	08/03/03	Fix SF#700165 ('MoveFileEx doesn't exist on Win98').
 Tim Peters	08/03/03	List unique tokens one per line in Outlook plugin's ShowClues.
 Mark Hammond	09/03/03	Correct "data" directory location in export.py.
 Tony Meyer	09/03/03	Added pop3proxy include_prob option to (optionally) note the score/prob in the classification header.
@@ -70,15 +70,15 @@ Tony Meyer	13/03/03	Revert Options.py to ConfigParser from UpdatableConfigParser
 Mark Hammond	16/03/03	Allow messages to be scored after training in Outlook plugin.
 Mark Hammond	16/03/03	Fix bug in Outlook plugin where filter operation report was reporting incorrect total.
 Mark Hammond	17/03/03	Warn, but ignore errors walking the folder tree in Outlook plugin.
-Tony Meyer	17/03/03	Fix SF#704921.
+Mark Hammond	17/03/03	Fix SF#704921 ('"Train now" (outlook) fails ').
 Mark Hammond	17/03/03	Prevent a single error filtering a message from stopping the whole filter process in Outlook plugin.
 Mark Hammond	18/03/03	Ensure all buttons are greyed during filter process in Outlook plugin.
 Mark Hammond	18/03/03	When running Outlook plugin from a binary redirect output to a log.
 Mark Hammond	18/03/03	Version 002 of the binary.
 Mark Hammond	20/03/03	Ensure database is saved before testing outlook plugin.
 Mark Hammond	20/03/03	Fix error in testing outlook plugin (getting wrong end of sorted list).
-Tim Stone	20/03/03	Added SF#703283.
-Mark Hammond	23/03/03	Fix SF#707491.
+Tim Stone	20/03/03	Added SF#703283 ('mboxtrain only trains on cur in maildir').
+Mark Hammond	23/03/03	Fix SF#707491 ('Pop3 proxy service code for Windows doesn't work...').
 Tim Stone	28/03/03	Unicode print error fix in notesfilter.
 Tony Meyer	03/04/03	Expire messages from the unknown pop3proxy cache as well as ham/spam caches.
 Tony Meyer	03/04/03	Kick off expiry check each time a client connects to the proxy rather than on startup, for those who have the proxy stable!
@@ -144,16 +144,16 @@ Tim Stone	20/04/03	Removed unnecessary imports/comments in pop3proxy.
 Tim Stone	20/04/03	Changed pop3proxy's STAT handling to return a guess at new message size.
 Tim Stone	21/04/03	Cosmetic changes to the web configuration page.
 Skip Montanaro	21/04/03	Fix crlf regex in message.py
-Tony Meyer	21/04/03	Fix SF#725307
+Tony Meyer	21/04/03	Fix SF#725307 ('Outlook plugin won't load (anymore)').
 Tim Stone	21/04/03	Rewrote is_valid method in Options.py
 Tony Meyer	22/04/03	Fixed is_valid method for sets.
 Tim Stone	22/04/03	Added extra verbose output in IMAP Filter.
 Tim Stone	22/04/03	Corrected counting error in IMAP Filter.
-Skip Montanaro	22/04/03	Fix SF#725616
+Tony Meyer	22/04/03	Fix SF#725616 ('Options.py mergefiles crashes (+ fix)').
 Tony Meyer	22/04/03	Improved processing of fetch response in IMAP filter.
-Tony Meyer	24/04/03	Fix SF#725307
-Tony Meyer	24/04/03	Fix SF#725466
-Tony Meyer	24/04/03	Fix SF#726255
+Tony Meyer	24/04/03	Fix SF#725307 ("Outlook plugin won't load (anymore)").
+Tony Meyer	24/04/03	Fix SF#725466 ('Include a proper locale fix in Options.py').
+Tony Meyer	24/04/03	Fix SF#726255 ('Problem if bayescustomize.ini not there').
 Tony Meyer	24/04/03	Moved the crlf fixing from generic message class to IMAP filter.
 Tony Meyer	24/04/03	Major rewrite of Options.py
 Tony Meyer	24/04/03	Changed options with muliple values to tuples.
@@ -175,7 +175,7 @@ Tony Meyer	27/04/03	Fix hammiefilter calling mergefiles instead of merge_files.
 Tony Meyer	28/04/03	Stop using IMAP uids as our ids.
 Tony Meyer	28/04/03	Fix SelectFolder bug in IMAP Filter.
 Tim Stone	28/04/03	Create IMAP session object for each login.
-Tony Meyer	28/04/03	Fix for SF#728886.
+Tony Meyer	28/04/03	Fix for SF#728886 ('In the pop3 UI not able to pass more than 1 server').
 Tony Meyer	28/04/03	Fix for incorrect is_boolean code in Options.py
 Tony Meyer	28/04/03	IMAP Filter now only retrieves RFC822 headers when iterating, not whole message.
 Tim Stone	28/04/03	Moved crlf replacement from IMAP to generic message class.
@@ -193,7 +193,7 @@ Tony Meyer	02/05/03	Update configuration file reading so that writing uses same 
 Tony Meyer	02/05/03	Fix temp file problem with web interface on linux.
 Tony Meyer	03/05/03	Removed OptionConfig.py
 Mark Hammond	03/05/03	Correct usage doc with respect to default directory.
-Mark Hammond	03/05/03	Fix SF#715248
+Mark Hammond	03/05/03	Fix SF#715248 ('Pickle classifier should save to a temp file first').
 Mark Hammond	03/05/03	Formalised error reporting in Outlook plugin.
 Mark Hammond	03/05/03	Created special handling for "startup errors" in Outlook plugin
 Mark Hammond	03/05/03	Allow test suite to work with bsddb3 or bsddb.
@@ -204,19 +204,19 @@ Tony Meyer	04/05/03	Fix bug stopping some messages loading into pop3proxy cache.
 Tony Meyer	06/05/03	Added getattr backwards compatibility for renamed options.
 Tony Meyer	06/05/03	IMAP Filter now deletes existing spambayes headers before training.
 Tony Meyer	06/05/03	Added "Storage":"messageinfo_storage_file" option.
-Tony Meyer	06/05/03	Fix for SF#733247.
+Tony Meyer	06/05/03	Fix for SF#733247 ('crash when using merged-in options').
 Tony Meyer	11/05/03	Fixed KeyError bug in message.py.
 Tony Meyer	11/05/03	Added SSL support to imapfilter (untested).
 Tony Meyer	13/05/03	Added refresh button to review messages page in pop3proxy ui.
 Tony Meyer	13/05/03	Added "check again" link on 'no more untrained messages page' in pop3proxy ui.
 Tony Meyer	13/05/03	Added "html_ui":"display_to" option.
 Mark Hammond	14/05/03	Various changes to urlslurper.py
-Mark Hammond	14/05/03	Fix SF#737956
-Mark Hammond	14/05/03	Fix SF#737955
+Mark Hammond	14/05/03	Fix SF#737956 ('No hourglass when building folder lists').
+Mark Hammond	14/05/03	Fix SF#737955 ('Transient connection error disables plugin').
 Tony Meyer	14/05/03	Added missing import to UserInterface.py
 Tony Meyer	14/05/03	Increased efforts to stop browsers caching the interface pages.
 Mark Hammond	15/05/03	The training dialog now shows a correct progress bar for the *complete* operation - training *and* scoring
-Mark Hammond	15/05/03	Fix SF#706170
+Mark Hammond	15/05/03	Fix SF#706170 ('Execute test suite fails in Outlook').
 Mark Hammond	15/05/03	Save bsddb databases after a training operation (should prevent Outlook ever saving at shutdown).
 Mark Hammond	15/05/03	Print how long each save takes (so people can complain).
 Mark Hammond	15/05/03	Keep and print some stats about how many items SpamBayes saw.
@@ -229,5 +229,17 @@ Tony Meyer	21/05/03	Remove the "account for string nham/nspam" code in classifie
 Tony Meyer	25/05/03	Expose experimental ham/spam imbalance option to pop3proxy/imapfilter users
 Tim Peters	25/05/03	Restore __slots__ declaration to WordInfo object in classifier.py
 Tim Peters	25/05/03	PickledClassifier.load():  use getstate/setstate to copy the state. 
-Tony Meyer	26/05/03	Fix SF#737986
+Tony Meyer	26/05/03	Fix SF#737986 ('Message.as_string() fails.').
 Tony Meyer	26/05/03	Restore notate_to and notate_subject functionality to pop3proxy.
+Mark Hammond    29/05/03    DB classifier keeps a list of "changed words" to prevent saves from updating *all* words.
+Mark Hammond    29/05/03    DB classifier doesn't cache hapaxes.
+Mark Hammond    03/06/03    Handle malformed messages better in the Outlook plugin.
+Mark Hammond    03/06/03    In Outlook plugin, create our own toolbar, rather than using the standard one.
+Mark Hammond    03/06/03    Fix an Outlook plugin error that would try to save the database when classifying.
+Mark Hammond    03/06/03    Make Outlook plugin log refer to "Spambayes" rather than "SpamAddin"
+Mark Hammond    03/06/03    Use 'wait' cursor when incremental training in Outlook plugin.
+Mark Hammond    03/06/03    In Outlook plugin, save config when dialog closes and not at shutdown.
+Mark Hammond    03/06/03    Clean up toolbar images.
+Mark Hammond    04/06/03    In Outlook plugin, no longer default to the "Inbox" (see also SF#741797 ('Does not filter incoming mail')).
+Mark Hammond    04/06/03    In Outlook plugin, when filtering, saving the spam score is no longer fatal.
+Tony Meyer  04/06/03    In muttrc, fix incorrect Spambayes header name.

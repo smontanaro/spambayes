@@ -26,6 +26,13 @@ Outlook Plugin
  o Messages can be scored after training.
  o Plugin *may* now work correctly in non-English locales.
  o Databases are saved after any training operation.
+ o Handle malformed messages better in the Outlook plugin.
+ o In Outlook plugin, create our own toolbar, rather than using the standard one.
+ o Use 'wait' cursor when incremental training in Outlook plugin.
+ o In Outlook plugin, save config when dialog closes and not at shutdown.
+ o Clean up toolbar images.
+ o In Outlook plugin, no longer default to the "Inbox".
+ o In Outlook plugin, when filtering, saving the spam score is no longer fatal.
 
 POP3 Proxy
 ----------
@@ -89,6 +96,9 @@ General
  o Decode numeric character entities so that
    yo&#117;r se<!XE>p&#116;ic sys&#116;em becomes "your septic system".
  o <p> and <br> tags are replaced with single blanks.
+ o DB classifier keeps a list of "changed words" to prevent saves from updating *all* words.
+ o DB classifier no longer caches hapaxes.
+ o In muttrc, fix incorrect Spambayes header name.
 
 
 Transition
