@@ -983,15 +983,16 @@ class Tokenizer:
                         for tok in breakdown(m.group(1).lower()):
                             yield 'received:' + tok
 
-        if options.mine_message_ids:
-            msgid = msg.get("message-id", "")
-            m = message_id_re.match(msgid)
-            if not m:
-                # might be weird instead of invalid but who cares?
-                yield 'message-id:invalid'
-            else:
-                # looks okay, return the hostname only
-                yield 'message-id:@%s' % m.group(1)
+        # Message-Id:  This seems to be a small win and should no
+        # adversely affect a mixed source corpus so it's always enabled.
+        msgid = msg.get("message-id", "")
+        m = message_id_re.match(msgid)
+        if m:
+            # looks okay, return the hostname
+            yield 'message-id:@%s' % m.group(1)
+        else:
+            # might be weird instead of invalid but who cares?
+            yield 'message-id:invalid'
 
         # As suggested by Anthony Baxter, merely counting the number of
         # header lines, and in a case-sensitive way, has real value.
