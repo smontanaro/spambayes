@@ -4,42 +4,80 @@ Author: spambayes
 
 <h2>Related Websites</h2>
 <ul>
-<li>Gary Robinson has a well-organized <a href="http://wecanstopspam.org/jsp/Wiki?StartingPoints">Spam Wiki</a>.
+<li>Gary Robinson has a well-organized
+<a href="http://wecanstopspam.org/jsp/Wiki?StartingPoints">Spam Wiki</a>.
+</li>
 </ul>
 
 <h2>OpenSource or free "Bayesian" filters</h2>
 <ul>
-<li><a href="http://popfile.sf.net">POPFile</a>, a pop3 proxy written in Perl with a Naive Bayes classifier.
-<li><a href="http://www.vargonsoft.com/Outclass/">Outclass</a> is an Outlook plugin for POPFile
-<li>Gary Arnold's <a href="http://www.garyarnold.com/projects.php#bayespam">bayespam</a>, a perl qmail filter.
-<li>As of version 1.3, Mozilla Mail now supports Graham-style Bayesian filtering, see <a href="http://www.mozilla.org/mailnews/spam.html">the documentation </a> on the mozilla website. 
-<li>Eric Raymond's <a href="http://bogofilter.sf.net/">bogofilter</a>, a C code bayesian filter.
-<li><a href="http://www.ai.mit.edu/~jrennie/ifile/">ifile</a>, a Naive Bayes classification system.
-<li><a href="http://sourceforge.net/projects/pasp">PASP</a>, the Python Anti-Spam Proxy - a POP3 proxy for filtering email. Also uses Bayesian-ish classification.
-<li><a href="http://pauillac.inria.fr/~xleroy/software.html">spamoracle</a>, a Paul Graham based spam filter written in OCaml, designed for use with procmail.
-<li><a href="http://spamassassin.org/">Spam Assassin</a> now includes "Bayesian" style scoring in it's suite of approaches to spam-hunting.
-<li><a href="http://www.fourmilab.ch/annoyance-filter/">Annoyance Filter</a> is a C++ package using Graham's algorithm. It's written using Literate Programming techniques.
-<li><a href="http://sourceforge.net/projects/bspam/">BSpam</a> is another implementation of Graham in perl.
+<li><a href="http://popfile.sf.net">POPFile</a>, a pop3 proxy written in
+Perl with a Naive Bayes classifier.</li>
+<li><a href="http://www.vargonsoft.com/Outclass/">Outclass</a> is an
+Outlook plugin for POPFile</li>
+<li>Gary Arnold's <a href="http://www.garyarnold.com/projects.php#bayespam">
+bayespam</a>, a perl qmail filter.</li>
+<li>As of version 1.3, Mozilla Mail now supports Graham-style Bayesian
+filtering, see <a href="http://www.mozilla.org/mailnews/spam.html">the
+documentation</a> on the mozilla website.</li>
+<li>Eric Raymond's <a href="http://bogofilter.sf.net/">bogofilter</a>, a C
+code bayesian filter.</li>
+<li><a href="http://www.ai.mit.edu/~jrennie/ifile/">ifile</a>, a Naive
+Bayes classification system.</li>
+<li><a href="http://sourceforge.net/projects/pasp">PASP</a>, the Python
+Anti-Spam Proxy - a POP3 proxy for filtering email. Also uses Bayesian-ish
+classification.</li>
+<li><a href="http://pauillac.inria.fr/~xleroy/software.html">spamoracle</a>,
+a Paul Graham based spam filter written in OCaml, designed for use with
+procmail.</li>
+<li><a href="http://spamassassin.org/">Spam Assassin</a> now includes
+"Bayesian" style scoring in it's suite of approaches to spam-hunting.</li>
+<li><a href="http://www.fourmilab.ch/annoyance-filter/">Annoyance Filter</a>
+is a C++ package using Graham's algorithm. It's written using Literate
+Programming techniques.</li>
+<li><a href="http://sourceforge.net/projects/bspam/">BSpam</a> is another
+implementation of Graham in perl.</li>
 
 </ul>
 
-<h2>Commercial products based on SpamBayes</h2>
-<p>Some developers like the SpamBayes project enough to invest in building other projects on top of it. Please contact us if you would like to be listed here. A listing here does not mean that the SpamBayes team endorses the project. Commercial projects offer the same success in filtering mail, but in exchange for your money, strive to be more user-friendly, offer more in the way of support, or additional features that enhance the functions of the core SpamBayes code base.</p>
+<h2>Products based on SpamBayes</h2>
+<p>Some developers like the SpamBayes project enough to invest in building
+other projects on top of it. Please contact us if you would like to be
+listed here. A listing here does not mean that the SpamBayes team endorses
+the project. Commercial projects offer the same success in filtering mail,
+but in exchange for your money, strive to be more user-friendly, offer more
+in the way of support, or additional features that enhance the functions of
+the core SpamBayes code base.</p>
 <ul>
-<li><a href="http://www.inboxer.com/0sb.html">InBoxer is a SpamBayes based Outlook plugin.</a> Development is headed by Sean True, who wrote the first integration of Outlook and SpamBayes. Sean's team has taken Mark Hammond's complete re-implementation and turned it into a commercial product. InBoxer focuses on ease of use and installation, and adds whitelist/blacklist, default spam clues statistics, an enhanced installer, and additional documentation.</li>
-<br>
+<li><a href="http://www.inboxer.com/0sb.html">InBoxer is a SpamBayes based
+Outlook plugin.</a> Development is headed by Sean True, who wrote the first
+integration of Outlook and SpamBayes. Sean's team has taken Mark Hammond's
+complete re-implementation and turned it into a commercial product. InBoxer
+focuses on ease of use and installation, and adds whitelist/blacklist,
+default spam clues statistics, a enhanced installer, and additional
+documentation.</li>
+<li><a href="http://www.freenet.org.nz/python/mtaproxy">mtaproxy</a> is
+a free tool designed to punish SMTP connections that connect to your MTA
+and deliver mail that SpamBayes classifies as spam; it also does a RBL
+check (before the content analysis). Messages are then made available in
+the normal SpamBayes web interface for training.  The 'punishment' takes
+the form of slowing down the SMTP connection.</li>
 </ul>
 
 <h2>Other Commercial Products using "Bayesian" style filtering</h2>
 <ul>
-<li><a href="http://www.spambully.com/">Spam Bully</a> is a commercial spam filter that claims to use bayesian techniques.
-<li><a href="http://Death2Spam.net/">Death2Spam</a> is a hosted service offering Bayesian-style filtering (written in Java). Richard Jowsey writes: 
+<li><a href="http://www.spambully.com/">Spam Bully</a> is a commercial
+spam filter that claims to use bayesian techniques.</li>
+<li><a href="http://Death2Spam.net/">Death2Spam</a> is a hosted service
+offering Bayesian-style filtering (written in Java). Richard Jowsey writes: 
 "D2S is based on a combination of Paul Graham's and Gary Robinson's theory 
 and techniques. It has many similarities to the tokenizer & classifier 
 logic used in SpamBayes (I'm not a great Python devotee, but the code is 
 quite legible), and POPFile. And, after much experimentation and testing, 
 I've considerably elaborated some of the statistical and probability math 
-in there."
+in there."</li>
 </ul>
 
-<p><i>(got more? email <a href="mailto:anthony@interlink.com.au">anthony@interlink.com.au</a> and I'll add links, or correct descriptions.)</i>
+<p><i>(got more? email <a href="mailto:anthony@interlink.com.au">
+anthony@interlink.com.au</a> and I'll add links, or correct descriptions.)
+</i></p>
