@@ -968,7 +968,7 @@ class Tokenizer:
                     yield prefix + t
 
         # To:
-        # Cc: 
+        # Cc:
         # Count the number of addresses in each of the recipient headers.
         for field in ('to', 'cc'):
             count = 0
