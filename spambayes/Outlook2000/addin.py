@@ -1196,34 +1196,6 @@ class OutlookAddin:
 
             self.explorers_events = None # create at OnStartupComplete
 
-            if self.manager.never_configured:
-                import dialogs
-                dialogs.ShowWizard(0, self.manager)
-
-            if self.manager.config.filter.enabled:
-                # A little "sanity test" to help the user.  If our status is
-                # 'enabled', then it means we have previously managed to
-                # convince the manager dialog to enable.  If for some reason,
-                # we no folder definitions but are 'enabled', then it is likely
-                # something got hosed and the user doesn't know.
-                if not self.manager.config.filter.spam_folder_id or \
-                   not self.manager.config.filter.watch_folder_ids:
-                    msg = "It appears there was an error loading your configuration\r\n\r\n" \
-                          "Please re-configure SpamBayes via the SpamBayes dropdown"
-                    self.manager.ReportError(msg)
-                # But continue on regardless.
-                self.FiltersChanged()
-                try:
-                    self.ProcessMissedMessages()
-                except:
-                    print "Error processing missed messages!"
-                    traceback.print_exc()
-            else:
-                # We should include this fact in the log, as I suspect a
-                # a number of "it doesn't work" bugs are simply related to not
-                # being enabled.  The new Wizard should help, but things can
-                # still screw up.
-                self.manager.LogDebug(0, "*** SpamBayes is NOT enabled, so will not filter incoming mail. ***")
             if connectMode == constants.ext_cm_AfterStartup:
                 # We are being enabled after startup, which means we don't get
                 # the 'OnStartupComplete()' event - call it manually so we
@@ -1235,6 +1207,54 @@ class OutlookAddin:
             manager.ReportError(
                 "There was an error initializing the SpamBayes addin\r\n\r\n"
                 "Please re-start Outlook and try again.")
+
+    def OnStartupComplete(self, custom):
+        # Setup all our filters and hooks.  We used to do this in OnConnection,
+        # but a number of 'strange' bugs were reported which I suspect would
+        # go away if done during this later event - and this later place
+        # does seem more "correct" than the initial OnConnection event.
+        if self.manager.never_configured:
+            import dialogs
+            dialogs.ShowWizard(0, self.manager)
+        if self.manager.config.filter.enabled:
+            # A little "sanity test" to help the user.  If our status is
+            # 'enabled', then it means we have previously managed to
+            # convince the manager dialog to enable.  If for some reason,
+            # we no folder definitions but are 'enabled', then it is likely
+            # something got hosed and the user doesn't know.
+            # Note that we could display the config wizard here, but this
+            # has rarely been reported in the wild since the very early
+            # days, so could possibly die.
+            if not self.manager.config.filter.spam_folder_id or \
+               not self.manager.config.filter.watch_folder_ids:
+                msg = "It appears there was an error loading your configuration\r\n\r\n" \
+                      "Please re-configure SpamBayes via the SpamBayes dropdown"
+                self.manager.ReportError(msg)
+            # But continue on regardless.
+            self.FiltersChanged()
+            try:
+                self.ProcessMissedMessages()
+            except:
+                print "Error processing missed messages!"
+                traceback.print_exc()
+        else:
+            # We should include this fact in the log, as I suspect a
+            # a number of "it doesn't work" bugs are simply related to not
+            # being enabled.  The new Wizard should help, but things can
+            # still screw up.
+            self.manager.LogDebug(0, "*** SpamBayes is NOT enabled, so will " \
+                                     "not filter incoming mail. ***")
+        # Toolbar and other UI stuff must be setup once startup is complete.
+        explorers = self.application.Explorers
+        if self.manager is not None: # If we successfully started up.
+            # and Explorers events so we know when new explorers spring into life.
+            self.explorers_events = WithEvents(explorers, ExplorersEvent)
+            self.explorers_events.Init(self.manager)
+            # And hook our UI elements to all existing explorers
+            for i in range(explorers.Count):
+                explorer = explorers.Item(i+1)
+                explorer = self.explorers_events._DoNewExplorer(explorer)
+                explorer.OnFolderSwitch()
 
     def ProcessMissedMessages(self):
         from time import clock
@@ -1420,18 +1440,6 @@ class OutlookAddin:
 
     def OnAddInsUpdate(self, custom):
         pass
-    def OnStartupComplete(self, custom):
-        # Toolbar and other UI stuff must be setup once startup is complete.
-        explorers = self.application.Explorers
-        if self.manager is not None: # If we successfully started up.
-            # and Explorers events so we know when new explorers spring into life.
-            self.explorers_events = WithEvents(explorers, ExplorersEvent)
-            self.explorers_events.Init(self.manager)
-            # And hook our UI elements to all existing explorers
-            for i in range(explorers.Count):
-                explorer = explorers.Item(i+1)
-                explorer = self.explorers_events._DoNewExplorer(explorer)
-                explorer.OnFolderSwitch()
 
     def OnBeginShutdown(self, custom):
         pass
