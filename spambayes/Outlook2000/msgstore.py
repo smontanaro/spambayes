@@ -94,6 +94,15 @@ MYPR_BODY_HTML_W = 0x1013001f # ditto
 
 USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
 
+def IsNotFoundCOMException(exc_val):
+    hr, msg, exc, arg_err = exc_val
+    return hr in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]
+
+def GetCOMExceptionString(exc_val):
+    hr, msg, exc, arg_err = exc_val
+    err_string = mapiutil.GetScodeString(hr)
+    return "Exception 0x%x (%s): %s" % (hr, err_string, msg)
+
 class MAPIMsgStore(MsgStore):
     def __init__(self, outlook = None):
         self.outlook = outlook
@@ -207,13 +216,12 @@ class MAPIMsgStore(MsgStore):
             try:
                 folder = self._OpenEntry(folder_id)
                 table = folder.GetContentsTable(0)
-            except pythoncom.com_error, (hr, msg, exc, arg_err):
+            except pythoncom.com_error, details:
                 # We will ignore *all* such errors for the time
                 # being, but warn for results we don't know about.
-                if hr not in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]:
+                if not IsNotFoundCOMException(details):
                     print "WARNING: Unexpected MAPI error opening folder"
-                    print "Error:", mapiutil.GetScodeString(hr)
-                    print "Exception Message:", msg
+                    print GetCOMExceptionString(details)
                 continue
             rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
             yield MAPIMsgStoreFolder(self, folder_id, props[0][1],
@@ -224,22 +232,31 @@ class MAPIMsgStore(MsgStore):
 
     def GetFolder(self, folder_id):
         # Return a single folder given the ID.
-        if hasattr(folder_id, "EntryID"):
-            # An Outlook object
-            folder_id = mapi.BinFromHex(folder_id.StoreID), \
-                         mapi.BinFromHex(folder_id.EntryID)
-        else:
+        try:
+            sid = mapi.BinFromHex(folder_id.StoreID)
+            eid = mapi.BinFromHex(folder_id.EntryID)
+            folder_id = sid, eid
+        except AttributeError:
+            # No 'EntryID'/'StoreID' properties - a 'normal' ID
             folder_id = self.NormalizeID(folder_id)
+        except pythoncom.com_error, details:
+            if IsNotFoundCOMException(details):
+                print "Unable to open folder '%r'" \
+                      "- the folder was not found" % folder_id
+            else:
+                print "Unexpected MAPI error opening folder"
+                print GetCOMExceptionString(details)
+            return None
+        # Also catch COM exceptions opening the folder and table.
         try:
             folder = self._OpenEntry(folder_id)
             table = folder.GetContentsTable(0)
-        except pythoncom.com_error, (hr, msg, exc, arg_err):
+        except pythoncom.com_error, details:
             # We will ignore *all* such errors for the time
             # being, but warn for results we don't know about.
-            if hr not in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]:
+            if not IsNotFoundCOMException(details):
                 print "WARNING: Unexpected MAPI error opening folder"
-                print "Error:", mapiutil.GetScodeString(hr)
-                print "Exception Message:", msg
+                print GetCOMExceptionString(details)
             return None
         # Ensure we have a long-term ID.
         rc, props = folder.GetProps( (PR_ENTRYID, PR_DISPLAY_NAME_A), 0)
@@ -250,12 +267,21 @@ class MAPIMsgStore(MsgStore):
     def GetMessage(self, message_id):
         # Return a single message given either the ID, or an Outlook
         # message representing the object.
-        if hasattr(message_id, "EntryID"):
-            # An Outlook object
-            message_id = mapi.BinFromHex(message_id.Parent.StoreID), \
-                         mapi.BinFromHex(message_id.EntryID)
-        else:
+        try:
+            eid = mapi.BinFromHex(message_id.EntryID)
+            sid = mapi.BinFromHex(message_id.Parent.StoreID)
+            message_id = sid, eid
+        except AttributeError:
+            # No 'EntryID'/'StoreID' properties - a 'normal' ID
             message_id = self.NormalizeID(message_id)
+        except pythoncom.com_error, details:
+            if IsNotFoundCOMException(details):
+                print "Unable to open message '%r'" \
+                      "- the message was not found" % message_id
+            else:
+                print "Unexpected MAPI error opening message"
+                print GetCOMExceptionString(details)
+            return None
         prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
         mapi_object = self._OpenEntry(message_id)
         hr, data = mapi_object.GetProps(prop_ids,0)
@@ -681,7 +707,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"
-        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
+        try:
+            self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
+        except pythoncom.com_error, details:
+            # hotmail gives this error - not sure what code, but
+            # we don't want to mask other errors.
+            if details[0] != -2147164169: # 0x8004dff7
+                raise
         self.dirty = False
 
     def _DoCopyMove(self, folder, isMove):
