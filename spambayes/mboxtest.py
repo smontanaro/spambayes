@@ -16,9 +16,6 @@ Options:
 
     -m MSGS
         Read no more than MSGS messages from mailbox.
-
-    -l LIMIT
-        Print no more than LIMIT characters of a message in test output.
 """
 
 from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
@@ -136,8 +133,7 @@ def main(args):
     NSETS = 5
     SEED = 101
     MAXMSGS = None
-    CHARLIMIT = 1000
-    opts, args = getopt.getopt(args, "f:n:s:l:m:")
+    opts, args = getopt.getopt(args, "f:n:s:m:")
     for k, v in opts:
         if k == '-f':
             FMT = v
@@ -145,8 +141,6 @@ def main(args):
             NSETS = int(v)
         if k == '-s':
             SEED = int(v)
-        if k == '-l':
-            CHARLIMIT = int(v)
         if k == '-m':
             MAXMSGS = int(v)
 
@@ -176,7 +170,7 @@ def main(args):
         for ihtest, istest in testsets:
             if (iham, ispam) == (ihtest, istest):
                 continue
-            driver.test(mbox(ham, ihtest), mbox(spam, istest), CHARLIMIT)
+            driver.test(mbox(ham, ihtest), mbox(spam, istest))
         driver.finishtest()
     driver.alldone()
 

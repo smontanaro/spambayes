@@ -80,15 +80,15 @@ def printhist(tag, ham, spam):
     print "Spam distribution for", tag
     spam.display()
 
-def printmsg(msg, prob, clues, charlimit=None):
+def printmsg(msg, prob, clues):
     print msg.tag
     print "prob =", prob
     for clue in clues:
         print "prob(%r) = %g" % clue
     print
     guts = str(msg)
-    if charlimit is not None:
-        guts = guts[:charlimit]
+    if options.show_charlimit > 0:
+        guts = guts[:options.show_charlimit]
     print guts
 
 class Msg(object):
@@ -184,7 +184,7 @@ class Driver:
         if options.show_histograms:
             printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
 
-    def test(self, ham, spam, charlimit=None):
+    def test(self, ham, spam):
         c = self.classifier
         t = self.tester
         local_ham_hist = Hist(options.nbuckets)
@@ -197,7 +197,7 @@ class Driver:
                 print
                 print "Ham with prob =", prob
                 prob, clues = c.spamprob(msg, True)
-                printmsg(msg, prob, clues, charlimit)
+                printmsg(msg, prob, clues)
 
         def new_spam(msg, prob, lo=options.show_spam_lo,
                                 hi=options.show_spam_hi):
@@ -206,7 +206,7 @@ class Driver:
                 print
                 print "Spam with prob =", prob
                 prob, clues = c.spamprob(msg, True)
-                printmsg(msg, prob, clues, charlimit)
+                printmsg(msg, prob, clues)
 
         t.reset_test_results()
         print "    testing against", ham, "&", spam, "...",
@@ -225,7 +225,7 @@ class Driver:
         for e in newfpos:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
-            printmsg(e, prob, clues, charlimit)
+            printmsg(e, prob, clues)
 
         newfneg = Set(t.false_negatives()) - self.falseneg
         self.falseneg |= newfneg

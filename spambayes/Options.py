@@ -74,6 +74,10 @@ show_false_positives: True
 show_false_negatives: False
 show_best_discriminators: True
 
+# The maximum # of characters to display for a msg displayed due to the
+# show_xyz options above.
+show_charlimit: 3000
+
 # If save_trained_pickles is true, Driver.train() saves a binary pickle
 # of the classifier after training.  The file basename is given by
 # pickle_basename, the extension is .pik, and increasing integers are
@@ -108,6 +112,7 @@ all_options = {
                    'show_best_discriminators': boolean_cracker,
                    'save_trained_pickles': boolean_cracker,
                    'pickle_basename': string_cracker,
+                   'show_charlimit': int_cracker,
                   },
 }
 

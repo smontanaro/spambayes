@@ -612,7 +612,24 @@ def tokenize_word(word, _len=len):
         elif has_highbit_char(word):
             for i in xrange(n-4):
                 yield "5g:" + word[i : i+5]
-
+        """
+        # If there are any high-bit chars, tokenize it as byte 3-grams.
+        # XXX This really won't work for high-bit languages -- the scoring
+        # XXX scheme throws almost everything away, and one bad phrase can
+        # XXX generate enough bad 3-grams to dominate the final score.
+        # XXX This also increases the database size substantially.
+        elif has_highbit_char(word):
+            counthi = 0
+            ch1 = ch2 = ''
+            for ch in word:
+                if ord(ch) >= 128:
+                    counthi += 1
+                yield "3g:%s" % (ch1 + ch2 + ch)
+                ch1 = ch2
+                ch2 = ch
+            ratio = round(counthi * 20.0 / len(word)) * 5
+            yield "8bit%%:%d" % ratio
+        """
         else:
             # It's a long string of "normal" chars.  Ignore it.
             # For example, it may be an embedded URL (which we already
