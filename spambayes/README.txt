@@ -118,6 +118,10 @@ cmp.py
     (etc), the change in total # of unique false positives and negatives,
     and the change in average f-p and f-n rates.
 
+fpfn.py
+    Given one or more TestDriver output files, prints list of false
+    positive and false negative filenames, one per line.
+
 
 Test Data Utilities
 ===================
