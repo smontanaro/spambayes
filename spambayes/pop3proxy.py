@@ -471,8 +471,7 @@ class BayesProxy(POP3ProxyBase):
                 # code in onServerLine.
                 headers = []
                 for name, value in msg.items():
-                    enc = Header(value, header_name=name, continuation_ws='\t')
-                    header = "%s: %s" % (name, str(enc))
+                    header = "%s: %s" % (name, value)
                     headers.append(re.sub(r'\r?\n', '\r\n', header))
                 body = re.split(r'\n\r?\n', messageText, 1)[1]
                 messageText = "\r\n".join(headers) + "\r\n\r\n" + body
