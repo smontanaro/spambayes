@@ -19,6 +19,8 @@ Usage:
             -c          : classify inbox
             -h          : help
             -v          : verbose mode
+            -p          : security option to prompt for imap password,
+                          rather than look in options.imap_password
             -e y/n      : expunge/purge messages on exit (y) or not (n)
             -i debuglvl : a somewhat mysterious imaplib debugging level
             -l minutes  : period of time between filtering operations
@@ -77,6 +79,7 @@ import re
 import time
 import sys
 import getopt
+from getpass import getpass
 import email.Parser
 from email.Utils import parsedate
 
@@ -84,6 +87,7 @@ from spambayes.Options import options
 from spambayes import tokenizer, storage, message
 
 # global IMAPlib object
+global imap
 imap = None
 
 # global rfc822 fetch command
@@ -97,23 +101,50 @@ rfc822_command = "(RFC822.PEEK)"
 # are interested in the response.  Things would be much
 # nicer if we cached this information somewhere.
 # XXX If we wanted to be nice and tidy, this really belongs
-# XXX in an IMAPUtilities class, or something like that.
-current_folder = None
-current_folder_readonly = None
-def Select(folder, readOnly=True, force=False):
-    global current_folder
-    global current_folder_readonly
-    if current_folder != folder or current_folder_readonly != readOnly or force:
-        response = imap.select(folder, readOnly)
-        if response[0] != "OK":
-            print "Invalid response to %s:\n%s" % (command, response)
-            sys.exit(-1)
-        current_folder = folder
-        current_folder_readonly = readOnly
-        return response
+# XXX in an IMAPUtilities class, or something like that,
+# XXX or something like this:
+
+class IMAPSession(imaplib.IMAP4):
+    '''A class extending the IMAP4 class, with a few optimizations'''
+    
+    def __init__(self, server, port, debug):
+        imaplib.Debug = debug  # this is a global in the imaplib module
+        imaplib.IMAP4.__init__(self, server, port)
+        self.current_folder = None
+        self.current_folder_readonly = None
+
+    def login(self, uid, pw):
+        try:
+            imaplib.IMAP4.login(self, uid, pw)  # superclass login
+        except imaplib.IMAP4.error, e:
+            if str(e) == "permission denied":
+                print "There was an error logging in to the IMAP server."
+                print "The userid and/or password may be incorrect."
+                sys.exit()
+            else:
+                raise
+    
+    def logout(self, expunge):
+        # sign off
+        if expunge:
+            self.expunge()
+        imaplib.IMAP4.logout(self)  # superclass logout
+        
+    def SelectFolder(self, folder, readOnly=True, force=False):
+        '''A method to point ensuing imap operations at a target folder'''
+        
+        if self.current_folder != folder or \
+           self.current_folder_readonly != readOnly or force:
+            response = self.select(folder, readOnly)
+            if response[0] != "OK":
+                print "Invalid response to %s:\n%s" % (command, response)
+                sys.exit(-1)
+            self.current_folder = folder
+            self.current_folder_readonly = readOnly
+            return response
 
 class IMAPMessage(message.SBHeaderMessage):
-    def __init__(self, folder, id):        
+    def __init__(self, folder, id):
         message.Message.__init__(self)
 
         self.id = id
@@ -127,16 +158,16 @@ class IMAPMessage(message.SBHeaderMessage):
 
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
-        # a timestamp for the message.  Ideally, this would be the
-        # timestamp from the message itself, but for the moment, we
-        # just use the current time.
+        # a timestamp for the message.  If the message has a date header
+        # we use that.  Otherwise, we use the current time.
         try:
-            return imaplib.Time2Internaldate(time.mktime(parsedate(self["Date"])))
+            return imaplib.Time2Internaldate(\
+                       time.mktime(parsedate(self["Date"])))
         except KeyError:
             return imaplib.Time2Internaldate(time.time())
 
     def MoveTo(self, dest):
-        # The move just changes where we think we are,
+        # This move operation just changes where we think we are,
         # and we do an actual move on save (to avoid doing
         # this more than once)
         if self.previous_folder is None:
@@ -147,15 +178,17 @@ class IMAPMessage(message.SBHeaderMessage):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
         time_stamp = self.extractTime()
+        msgstr = re.sub('([^\r])\n', r'\1\r\n', self.as_string())
+        
         response = imap.append(self.folder.name, None,
-                               time_stamp, self.as_string())
+                               time_stamp, msgstr)
         self._check(response, 'append')
 
         old_id = self.id
         if self.previous_folder is None:
-            self.folder.Select(False)
+            imap.SelectFolder(self.folder.name, False)
         else:
-            self.previous_folder.Select(False)
+            imap.SelectFolder(self.previous_folder.name, False)
             self.previous_folder = None
         response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
         self._check(response, 'store')
@@ -164,7 +197,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # XXX There will be problems here if the message *has not*
         # XXX changed, as the message to be deleted will be found first
         # XXX (if they are in the same folder)
-        self.folder.Select(True)
+        imap.SelectFolder(self.folder.name, True)
         #response = imap.uid("SEARCH", "TEXT", self.as_string())
         #self._check(response, 'search')
         #new_id = response[1][0]
@@ -183,6 +216,10 @@ class IMAPFolder(object):
     def __init__(self, folder_name, readOnly=True):
         self.name = folder_name
 
+    def __cmp__(self, obj):
+        '''Two folders are equal if their names are equal'''
+        return cmp(self.name, obj.name)
+
     def _check(self, response, command):
         if response[0] != "OK":
             print "Invalid response to %s:\n%s" % (command, response)
@@ -199,7 +236,7 @@ class IMAPFolder(object):
     def keys(self):
         '''Returns uids for all the messages in the folder'''
         # request message range
-        response = Select(self.name, True, True)
+        response = imap.SelectFolder(self.name, True, True)
         total_messages = response[1][0]
         if total_messages == '0':
             return []
@@ -215,7 +252,7 @@ class IMAPFolder(object):
     def __getitem__(self, key):
         '''Return message matching the given uid'''
         global rfc822_command
-        Select(self.name, True)
+        imap.SelectFolder(self.name, True)
         # We really want to use RFC822.PEEK here, as that doesn't effect
         # the status of the message.  Unfortunately, it appears that not
         # all IMAP servers support this, even though it is in RFC1730
@@ -232,10 +269,7 @@ class IMAPFolder(object):
         msg.setPayload(messageText)
         
         return msg
-
-    def Select(self, readOnly):
-        return Select(self.name, readOnly)
-
+   
     def Train(self, classifier, isSpam):
         '''Train folder as spam/ham'''
         num_trained = 0
@@ -248,7 +282,7 @@ class IMAPFolder(object):
                 # tokenizer is not yet perfect)
                 msg.RememberTrained(None)
 
-            if msg.GetTrained() is not None:
+            if msg.GetTrained() is None:
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
@@ -275,12 +309,6 @@ class IMAPFolder(object):
             
 class IMAPFilter(object):
     def __init__(self, classifier, debug):
-        global imap
-        imap = imaplib.IMAP4(options.imap_server, options.imap_port)
-        imap.debug = imapDebug
-
-        self.Login(options.imap_username, options.imap_password)
-        
         self.spam_folder = IMAPFolder(options.imap_spam_folder)
         self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
 
@@ -319,29 +347,13 @@ class IMAPFilter(object):
  
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
-
-    def Login(self, uid, pw):
-        try:
-            lgn = imap.login(uid, pw)
-        except imaplib.IMAP4.error, e:
-            if str(e) == "permission denied":
-                print "There was an error logging in to the IMAP server."
-                print "The userid and/or password may be incorrect."
-                sys.exit()
-            else:
-                raise
-    
-    def Logout(self, expunge):
-        # sign off
-        if expunge:
-            imap.expunge()
-        imap.logout()
+            
 
  
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcvl:e:i:d:D:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcvpl:e:i:d:D:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -353,6 +365,7 @@ if __name__ == '__main__':
     doExpunge = options.imap_expunge
     imapDebug = 0
     sleepTime = 0
+    promptForPass = 0
 
     for opt, arg in opts:
         if opt == '-h':
@@ -366,6 +379,8 @@ if __name__ == '__main__':
             bdbname = arg
         elif opt == '-t':
             doTrain = True
+        elif opt == '-p':
+            promptForPass = 1
         elif opt == '-c':
             doClassify = True
         elif opt == '-v':
@@ -384,6 +399,16 @@ if __name__ == '__main__':
         print "-c and/or -t operands must be specified"
         sys.exit()
 
+    imap = IMAPSession(options.imap_server, options.imap_port, \
+                       imapDebug)
+
+    if promptForPass:
+        pwd = getpass()
+    else:
+        pwd = options.imap_password
+
+    imap.login(options.imap_username, pwd)
+    
     bdbname = os.path.expanduser(bdbname)
     
     if options.verbose:
@@ -414,4 +439,4 @@ if __name__ == '__main__':
         else:
             break
         
-    imap_filter.Logout(doExpunge)
+    imap.logout(doExpunge)
