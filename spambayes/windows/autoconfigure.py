@@ -6,6 +6,7 @@ Currently works with:
  o Eudora (POP3/SMTP only)
  o Mozilla Mail (POP3/SMTP only)
  o Opera Mail (M2) (POP3/SMTP only)
+ o Outlook Express (POP3/SMTP only)
 
 To do:
  o Establish which mail client(s) are to be setup.
@@ -46,9 +47,10 @@ except NameError:
     True, False = 1, 0
 
 ## Tested with:
-## o Eudora 5.2 on Windows XP
-## o Mozilla 1.3 on Windows XP
-## o Opera 7.11 on Windows XP
+##  o Eudora 5.2 on Windows XP
+##  o Mozilla 1.3 on Windows XP
+##  o Opera 7.11 on Windows XP
+##  o Outlook Express 6 on Windows XP
 
 import re
 import os
@@ -397,13 +399,83 @@ def configure_m2(config_location):
     # If someone can describe the best all-purpose rule, I'll pop it in
     # here.
 
-def configure_outlook_express(config_location):
-    dbx_filename = os.path.join(config_location, "pop3uidl.dbx")
+def configure_outlook_express(key):
+    """Configure OE to use the SpamBayes POP3 and SMTP proxies, and
+    configure SpamBayes to proxy the servers that OE was connecting to."""
+    # OE stores its configuration in the registry, not a file.
+
+    key = key + "\\Software\\Microsoft\\Internet Account Manager\\Accounts"
+    
+    import win32api
+    import win32con
+
+    translate = {("POP3 Server", "POP3 Port") : "pop3proxy",
+                 ("SMTP Server", "SMTP Port") : "smtpproxy",
+                 }
+
+    pop_proxy = pop_proxy_port
+    smtp_proxy = smtp_proxy_port
+
+    reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, key)
+    account_index = 0
+    while True:
+        # Loop through all the accounts
+        config = {}
+        try:
+            subkey_name = "%s\\%s" % \
+                          (key, win32api.RegEnumKey(reg, account_index))
+        except win32api.error:
+            break
+        account_index += 1
+        index = 0
+        subkey = win32api.RegOpenKeyEx(win32con.HKEY_USERS, subkey_name, 0,
+                                       win32con.KEY_READ | win32con.KEY_SET_VALUE)
+        while True:
+            # Loop through all the keys
+            try:
+                raw = win32api.RegEnumValue(subkey, index)
+            except win32api.error:
+                break
+            config[raw[0]] = (raw[1], raw[2])
+            index += 1
+
+        # Process this account
+        if config.has_key("POP3 Server"):
+            for (server_key, port_key), sect in translate.items():
+                server = "%s:%s" % (config[server_key][0],
+                                    config[port_key][0])
+                if sect[:4] == "pop3":
+                    pop_proxy = move_to_next_free_port(pop_proxy)
+                    proxy = pop_proxy
+                else:
+                    smtp_proxy = move_to_next_free_port(smtp_proxy)
+                    proxy = smtp_proxy
+                options[sect, "remote_servers"] += (server,)
+                options[sect, "listen_ports"] += (proxy,)
+                win32api.RegSetValueEx(subkey, server_key, 0,
+                                       win32con.REG_SZ, "127.0.0.1")
+                win32api.RegSetValueEx(subkey, port_key, 0,
+                                       win32con.REG_SZ, str(proxy))
+                if options["globals", "verbose"]:
+                    print "[%s] Proxy %s on localhost:%s" % \
+                          (config["Account Name"][0], server, proxy)
+        elif config.has_key("IMAP Server"):
+            # Setup imapfilter instead.
+            pass
+
+    options.update_file(optionsPathname)
+
+    # Outlook Express rules are done in much the same way.  Should one
+    # be set up to work with notate_to or notate_subject?  (and set that
+    # option, obviously)
 
 
 if __name__ == "__main__":
+    # XXX This is my OE key = "S-1-5-21-95318837-410984162-318601546-13224"
+    # XXX but I presume it's different for everyone?  I'll have to check on
+    # XXX another machine.
     #configure_eudora(eudora_ini_dir)
     #configure_mozilla(mozilla_ini_dir)
     #configure_m2(m2_ini_dir)
-    #configure_outlook_express(oe_ini_dir)
+    configure_outlook_express()
     pass
