@@ -1,8 +1,51 @@
-(Next Release)
-==============
+Alpha Release 5
+===============
+Richie Hindle  29/08/2003  Fix the yellow colour of the header boxes in the web interface in strict browers (i.e. not IE ;)
+Tony Meyer     28/08/2003  smtproxy: try a bit harder to proxy the exact command if we aren't going anything with it, and try to match it more closely even if we are.
+Mark Hammond   27/08/2003  Outlook: all menu sub-items are now temporary.
+Mark Hammond   27/08/2003  Fix [ 776808 ] Expanding toolbar crashes outlook
+Mark Hammond   27/08/2003  Outlook: ensure we only try and use tree items listed as valid by the mask.
+Mark Hammond   27/08/2003  Fix [ 795749 ] "Score after training" doesn't in CVS
+Mark Hammond   27/08/2003  Outlook: add 'View Log' button to the Diagnostics dialog.
+Tony Meyer     26/08/2003  Fix restoring defaults from the web interface.
+Tony Meyer     26/08/2003  Implement [ 791254 ] Advanced configuration panel.
+Tony Meyer     26/08/2003  smtpproxy: don't convert unknown commands to upper case as this mucks about with passwords, which might be case sensitive.
+Richie Hindle  26/08/2003  Fixed [ 787251 ] Problem refreshing message list and [ 790051 ] Can't review messages.
+Richie Hindle  26/08/2003  Added a missing line break in the status pane on the Home page when there are no proxies configured.
 Richie Hindle  26/08/2003  Fix [ 743131 ] Specifying a POP3 server on the pop3proxy command line but no local port number (ie. no -l) now works again, defaulting to local port 110.
+Skip Montanaro 26/08/2003  Change the storage.py print statements to print to stderr, so that using verbose=True is possible using apps that work through stdin.
+Mark Hammond   26/08/2003  Fix [ 779319 ] ntpath Unicode error
+Mark Hammond   26/08/2003  Outlook: default folder names used by the Wizard are now "Junk E-Mail" and "Junk Suspects"
+Mark Hammond   26/08/2003  Outlook: the experimental 'timers' options got upgraded to the 'filter' section.
+Adam Walker    26/08/2003  Outlook: added button on advanced tab to display the spambayes data folder.
+Adam Walker    26/08/2003  Outlook: move Filter Now to a seperate dialog invoked by the drop down menu on the toolbar.
+Tony Meyer     25/08/2003  Fix some old option names.
+Tony Meyer     25/08/2003  Change the notate_to and notate_subject options to notate for spam, unsure, ham, or any combination (including none) thereof.
+Tony Meyer     25/08/2003  Add no_cache_large_messages option.  If messages are bigger than this, don't cache them (to avoid caching messages with massive attachments that are already correctly classified).
+Tony Meyer     25/08/2003  Add an open_storage function to centralise opening storage, which also works with the new SQL classifiers.  Used by pop3proxy and hammiefilter at the moment.
+Tony Meyer     25/08/2003  smtpproxy should now work as previously, but also training on the exact message sent, rather than looking up via id.  Lookup into the imapfilter folders is also possible.
+Mark Hammond   25/08/2003  Fix [ 785389 ] Folders missing in Spambayes manager.
+Mark Hammond   25/08/2003  Fix [ 786952 ] Error when profile name has invalid filename characters.
+Mark Hammond   25/08/2003  Outlook: We now work with "IPM.Note" and "IPM.Anti-Virus*"
+Mark Hammond   25/08/2003  Outlook: Fail when we can't find a default message store.
+Mark Hammond   25/08/2003  Fix "[ 788495 ] Filter fails when folder full"
+Mark Hammond   25/08/2003  Outlook: remove last win32ui dialog.
+Mark Hammond   25/08/2003  Outlook: change default filter action to "move"
+Mark Hammond   25/08/2003  Outlook: don't score if the training was cancelled.
+Mark Hammond   25/08/2003  Outlook: present the wizard when required.
+Mark Hammond   25/08/2003  Outlook: allow filtering to be enabled, even if no training information!
+Tony Meyer     23/08/2003  Add [ 789916 ].  Outlook Express .dbx files can now be used to train, just like mbox files.
+Mark Hammond   23/08/2003  Outlook: we can cancel a train without destroying the DB, and mail that comes in during the training will not use the partial db.
+Mark Hammond   23/08/2003  An empty 'allowed values' now allows an empty string.
+Mark Hammond   23/08/2003  Outlook: add a "New Folder" button to the folder selector dialog.
+Mark Hammond   20/08/2003  Outlook: add wizard dialogs.
+Tony Meyer     19/08/2003  Implement [ 790615 ] Allowed remote connections management, which addresses [ 698036 ] pop3proxy security
 Tony Meyer     19/08/2003  Allow @ and = in paths.
+Adam Walker    19/08/2003  Outlook: add a Wizard framework.
+Adam Walker    19/08/2003  Outlook: add a diagnostic dialog.
+Adam Walker    18/08/2003  Fix [ 790406 ] Allow the timers to be set in half second increments.
 Mark Hammond   18/08/2003  Improve the starting/stopping of the pop3proxy service
+Adam Walker    18/08/2003  Outlook: change the manager dialog to a tabbed interface, and add a logo to it.
 Tony Meyer     18/08/2003  Allow the pop3proxy_service to start smtpproxy as well
 Tony Meyer     18/08/2003  Add version information to the web interface, as requested in [ spambayes-Bugs-790051 ] Can't review messages if probability header is turned on
 Tony Meyer     16/08/2003  which_database.py: Make the script a little smarter about checking if bsddb[3] is available.
@@ -14,26 +57,61 @@ Tony Meyer     13/08/2003  If you didn't use the -p switch to enter your passwor
 Skip Montanaro 13/08/2003  Add a simple n-way classifier using a cascade of binary SpamBayes classifiers
 Tony Meyer     12/08/2003  Web interface: At some point (before the 1.0a4 release) selecting both "header" and "body" stopped working.  This fixes that.
 Tony Meyer     12/08/2003  Have the review messages page put the unsure messages at the top, because they are the most important to take action on
+Mark Hammond   11/08/2003  Outlook: SpamClues shows the percentage as well as the raw score.
+Adam Walker    09/08/2003  Outlook: Added website links to the help menu.
+Adam Walker    09/08/2003  Use the Tahoma font in the Outlook dialogs.
+Mark Hammond   09/08/2003  Fix [ 780612 ] Outlook incorrectly trains on moves messages.
+Mark Hammond   08/08/2003  Fix bug [ 784323 ] Plug-in will not intialize/watch in offline mode
 Tony Meyer     07/08/2003  Add a mySQLClassifier class
 Skip Montanaro 07/08/2003  Add a postgreSQL classifier class, and a base SQLClassifier class
 Tony Meyer     07/08/2003  Remove dumbdbm from the config options
 Skip Montanaro 07/08/2003  Remove dumbdbm from the possible dbm storage options
 Tony Meyer     07/08/2003  Fix [ 784296 ] imapfilter broken with Python 2.3
+Adam Walker    06/08/2003  Outlook: move the html menu options to a Help sub-menu.
+Mark Hammond   06/08/2003  Fix [ 780819 ] Images pasted to clipboard each startup
 Mark Hammond   04/08/2003  Add a get_option method, so an option instance itself can be fetched.
-Mark Hammond   29/07/2003  Version.py: Indicate the generated output is generated :)  Make work for Python 2.2, but don't trust its config parser for remote data.
+Mark Hammond   04/08/2003  Outlook: new data driven dialogs loaded from Windows .rc scripts.
+Mark Hammond   04/08/2003  Outlook: add a resource script parser, by Adam Walker.
+Mark Hammond   01/08/2003  Outlook: fix [ 780801 ] IMAP Still Failing - GetField() returns None on MAPI error
+Mark Hammond   30/07/2003  Outlook: avoid passing a float to C functions that take an int (the slider pos)
+Mark Hammond   29/07/2003  Fix [ 779049 ] email.Errors.HeaderParseError: Continuation line seen ...
+Mark Hammond   29/07/2003  Outlook: change the way we detect 'unsent' items - this way catches both unsent items, and copies of sent items.
+Mark Hammond   29/07/2003  Outlook: add ability to check for the latest version.
+Mark Hammond   29/07/2003  Version.py: indicate the generated output is generated :)  Make work for Python 2.2, but don't trust its config parser for remote data.
 Mark Hammond   29/07/2003  Support fetching the "latest" set of version data from the spambayes web site.
 Richie Hindle  28/07/2003  Made the pop3proxy work with fetchmail.
+Mark Hammond   28/07/2003  Outlook: Add a new experimental 'timer'.
+Mark Hammond   26/07/2003  Outlook: Log the binary version in the binary.
+Mark Hammond   25/07/2003  Fix locale issues in Outlook - fixes [ 765912 ] AssertionError: Proportions must add to 1.0 ...
 Tim Peters     25/07/2003  Fix SF bug 777026: Possible cause for db corruption in DBDictClassifier.
 Mark Hammond   25/07/2003  Created a directory & readme for test suites, including a storage.py test.
 Tony Meyer     25/07/2003  [ 777165 ] Typo in Options.py causes bogus warning on reading config
+Mark Hammond   23/07/2003  Outlook: fix a bug in how attachment properties were fetched - if the body was "large", we attempted to get the "large property" from the mail object itself, rather than the attachment.
+Mark Hammond   23/07/2003  Outlook: fix a problem where multipart/signed messages could still screw us.
+Mark Hammond   23/07/2003  Fix [ 693387 ] user-composed messages are filtered.
+Mark Hammond   23/07/2003  Outlook: Check the message flag for the "unsent" bit.
 Richie Hindle  22/07/2003  You can once again specify local addresses as well as ports for the pop3proxy to listen on (was broken in 1.0a3 and 1.0a4).
+Mark Hammond   21/07/2003  Outlook: Paul Moore reports that not specifying USER_DEFERRED_ERRORS solves his "unread flag" issue - and we certainly don't need that flag here, so out it goes.
+Mark Hammond   21/07/2003  Outlook: While we are printing versions, Python gets a go.
+Mark Hammond   21/07/2003  Fix 690418: Non mail items filtered by Outlook
+Mark Hammond   21/07/2003  Fix 719586: Cannot View Spam Cues for Undeliverable Reports
+Mark Hammond   21/07/2003  Outlook: Add IsFilterCandidate() method to a message object to determine if this is a message we should try and filter.
+Mark Hammond   21/07/2003  Outlook: Rationalize code that creates a message object.
+Mark Hammond   21/07/2003  Outlook: Ignore errors when enumerating stores.
+Mark Hammond   21/07/2003  Outlook: Work better with a unicode data directory.
+Mark Hammond   21/07/2003  Outlook: Add a new filter option - "save_spam_info", default=True.
+Mark Hammond   20/07/2003  Fix [ 769346 ] Problems after deleting certain spam folder as implemented in [ 769981 ] Outlook plugin: allow user to change spam and unsure.
 Mark Hammond   20/07/2003  pop3proxy_service: log exceptions if the server thread dies unexpectedly.
 Mark Hammond   20/07/2003  Fix [ 761499 ] pop3proxy_service doesn't stop when shutdown from browser.
 Mark Hammond   20/07/2003  Fix [ 769346 ] Problems after deleting certain spam folder as implemented in [ 769981 ] Outlook plugin: allow user to change spam and unsure.
 Mark Hammond   19/07/2003  pop3proxy_service: Redirect output to win32traceutil (for want of a better place)
 Richie Hindle  19/07/2003  pop3proxy: Print a traceback as well as adding an X-Spambayes-Exception header when there's an exception raised while processing a message.
+Tony Meyer     18/07/2003  Fix [ 773452 ] Unable to use fractional number as spam_threshold.
 Richie Hindle  18/07/2003  pop3proxy:  "ASCII decoding error" problem fixed.
 Skip Montanaro 15/07/2003  dbmstorage: trivial hack to give dumbdbm a sync() method (which Shelve will call) and hopefully reduce database corruption
+Mark Hammond   09/07/2003  Outlook: Include the Windows version in the log.
+Mark Hammond   09/07/2003  Outlook: Use the passed field name rather than hardcoded "Spam".
+Mark Hammond   09/07/2003  Fix 765042: IMAP mail fails to filter
 Tony Meyer     09/07/2003  Allow $ in pathnames, which fixes [ 768162 ] UNC path for data_directory?
 Tony Meyer     09/07/2003  mboxtrain: Use /tmp/ as the temp directory, not /cur/tmp or /new/tmp.  Fixes [ 768221 ] v1.0a4 dies when training on Maildir
 Mark Hammond   08/07/2003  Fix [ 760062 ] Traceback untraining a single message - typo in assert.
