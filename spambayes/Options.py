@@ -297,6 +297,20 @@ use_gary_combining: False
 # (original c.l.p data, his own email, and newer general python.org traffic).
 use_chi_squared_combining: True
 
+# If the # of ham and spam in training data are out of balance, the
+# spamprob guesses can get stronger in the direction of the category with
+# more training msgs.  In one sense this must be so, since the more data
+# we have of one flavor, the more we know about that flavor.  But that
+# allows the accidental appearance of a strong word of that flavor in a msg
+# of the other flavor much more power than an accident in the other
+# direction.  Enable experimental_ham_spam_imbalance_adjustment if you have
+# more ham than spam training data (or more spam than ham), and the
+# Bayesian probability adjustment won't 'believe' raw counts more than
+# min(# ham trained on, # spam trained on) justifies.  I *expect* this
+# option will go away (and become the default), but people *with* strong
+# imbalance need to test it first.
+experimental_ham_spam_imbalance_adjustment: False
+
 [Hammie]
 # The name of the header that hammie adds to an E-mail in filter mode
 # It contains the "classification" of the mail, plus the score.
@@ -409,7 +423,8 @@ all_options = {
                    'minimum_prob_strength': float_cracker,
                    'use_gary_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
-                   },
+                   'experimental_ham_spam_imbalance_adjustment': boolean_cracker,
+                  },
     'Hammie': {'hammie_header_name': string_cracker,
                'persistent_storage_file': string_cracker,
                'clue_mailheader_cutoff': float_cracker,
