@@ -13,6 +13,8 @@ from __future__ import generators
 from win32com.client import constants
 from time import sleep
 import copy
+import rfc822
+import cStringIO
 
 HAM="ham"
 SPAM="spam"
@@ -422,6 +424,7 @@ def run_nonfilter_tests(manager):
                     # ipm.note messages we don't want to filter should be
                     # reported.
                     num_looked += 1
+                    if num_looked % 500 == 0: print " (scanned", num_looked, "messages...)"
                     if not message.IsFilterCandidate() and \
                         message.msgclass.lower().startswith("ipm.note"):
                         if num_found == 0:
@@ -433,7 +436,11 @@ def run_nonfilter_tests(manager):
                     headers, body, html_body = message._GetMessageTextParts()
                     if not headers: num_without_headers += 1
                     if not body: num_without_body += 1
-                    if not html_body: num_without_html_body += 1
+                    # for HTML, we only check multi-part
+                    temp_obj = rfc822.Message(cStringIO.StringIO(headers+"\n\n"))
+                    content_type = temp_obj.get("content-type", '')
+                    if content_type.lower().startswith("multipart"):
+                        if not html_body: num_without_html_body += 1
 
         print "Checked %d items, %d non-filterable items found" % (num_looked, num_found)
         print "of these items, %d had no headers, %d had no text body and %d had no HTML" % \
