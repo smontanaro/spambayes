@@ -21,6 +21,7 @@ These currently include:
   onSave - save the database and possibly shutdown
   onConfig - present the appropriate configuration page
   onAdvancedconfig - present the appropriate advanced configuration page
+  onExperimentalconfig - present the experimental options configuration page
   onHelp - present the help page
   onStats - present statistics information
   onBugreport - help the user fill out a bug report
@@ -91,6 +92,19 @@ from Options import options, optionsPathname, defaults, OptionsClass
 
 IMAGES = ('helmet', 'status', 'config', 'help',
           'message', 'train', 'classify', 'query')
+
+experimental_ini_map = (
+    ('Experimental Options', None),
+)
+
+# Dynamically add any current experimental options.
+# (Don't add deprecated options, or, more specifically, any
+# options whose description starts with (DEPRECATED)).
+for opt in options.options(True):
+    sect, opt = opt[1:].split(']', 1)
+    if opt[:2].lower() == "x-" and \
+       not options.doc(sect, opt).lower().startswith("(deprecated)"):
+        experimental_ini_map += ((sect, opt),)
 
 class UserInterfaceServer(Dibbler.HTTPServer):
     """Implements the web server component via a Dibbler plugin."""
@@ -585,6 +599,18 @@ class UserInterface(BaseUserInterface):
         or restores the defaults."""
         pass
 
+    def onExperimentalconfig(self):
+        html = self._buildConfigPage(experimental_ini_map)
+        html.title = 'Home &gt; Experimental Configuration'
+        html.pagename = '&gt; Experimental Configuration'
+        html.adv_button.name.value = "Back to basic configuration"
+        html.adv_button.action = "config"
+        html.config_submit.value = "Save experimental options"
+        html.restore.value = "Restore experimental options defaults (all off)"
+        del html.exp_button
+        self.writeOKHeaders('text/html')
+        self.write(html)
+
     def onAdvancedconfig(self):
         html = self._buildConfigPage(self.advanced_options_map)
         html.title = 'Home &gt; Advanced Configuration'
@@ -593,6 +619,7 @@ class UserInterface(BaseUserInterface):
         html.adv_button.action = "config"
         html.config_submit.value = "Save advanced options"
         html.restore.value = "Restore advanced options defaults"
+        del html.exp_button
         self.writeOKHeaders('text/html')
         self.write(html)
 
@@ -734,6 +761,8 @@ class UserInterface(BaseUserInterface):
         if parms.has_key("how"):
             if parms["how"] == "Save advanced options":
                 pmap = self.advanced_options_map
+            elif parms["how"] == "Save experimental options":
+                pmap = experimental_ini_map
             del parms["how"]
         html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"

@@ -127,7 +127,6 @@ adv_map = (
     ('Tokenizer',           'replace_nonascii_chars'),
     ('Tokenizer',           'summarize_email_prefixes'),
     ('Tokenizer',           'summarize_email_suffixes'),
-    ('Tokenizer',           'x-pick_apart_urls'),
     ('Training Options',    None),
     ('Hammie',              'train_on_filter'),
     ('Interface Options',   None),
@@ -718,7 +717,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # we have a few extra checks
         errmsg = UserInterface.UserInterface.verifyInput(self, parms, pmap)
 
-        if pmap == adv_map:
+        if pmap != parm_ini_map:
             return errmsg
 
         # check for equal number of pop3servers and ports

@@ -184,6 +184,9 @@ class Option(object):
                 # a real number and an integer is passed in, it will fail.
                 # (So pass 1. instead of 1, for example)
                 return False
+            if value == "":
+                # A blank string is always ok.
+                return True
             avals = self._split_values(value)
             # in this case, allowed_values must be a regex, and
             # _split_values must match once and only once
