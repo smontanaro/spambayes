@@ -493,7 +493,9 @@ defaults = {
      train itself on the judgement (ham or spam).  This can speed things up
      with a procmail-based solution.  If you do enable this, please make
      sure to retrain any mistakes.  Otherwise, your word database will
-     slowly become useless.""",
+     slowly become useless.  Note that this option is only used by
+     sb_filter, and will have no effect on sb_server's POP3 proxy, or
+     the IMAP filter.""",
      BOOLEAN, RESTORE),
   ),
 
