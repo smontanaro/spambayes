@@ -46,7 +46,7 @@ DATA=$(wildcard Data/Ham/* Data/Spam/*)
 
 all : $(BASE)-$(TRIAL).txt
 
-$(BASE)-$(TRIAL).txt : $(BASE)s.txt $(TRIAL)s.txt
+$(BASE)-$(TRIAL).txt : $(TRIAL)s.txt $(BASE)s.txt
 	$(CMP) $(BASE)s.txt $(TRIAL)s.txt > $(BASE)-$(TRIAL).txt
 
 $(BASE)s.txt : $(BASE).txt
