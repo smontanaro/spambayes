@@ -69,6 +69,9 @@ msgs.py
     Some simple classes to wrap raw msgs, and to produce streams of
     msgs.  The test drivers use these.
 
+chi2.py
+    A collection of statistics functions.
+
 
 Apps
 ====
@@ -223,7 +226,7 @@ rmspik.py
 cvcost.py
     A program that analyzes the output of timcv.py (the final histograms)
     and optimizes the cost of handling the mail body by defining a "ham"
-    zone, a "spam" zone and a "grey" zone. It can be tuned by choosing 
+    zone, a "spam" zone and a "grey" zone. It can be tuned by choosing
     pseudo-realistic costs to handle a fp, a fn and to handle a message
     in the grey zone.
 
