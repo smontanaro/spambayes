@@ -30,6 +30,11 @@ labyrinth of Outlook preference dialogs.)  If this happens and you have
 the Python exception that caused the failure (via the tracing mentioned 
 above) please send it to Mark.
 
+To unregister the addin, execute "addin.py --unregister", then optionally
+remove the source files.  Note that as for the binary version, there is a
+bug that the toolbar items will remain after an uninstall - see the 
+troubleshooting guide for information on how to restore it.
+
 Filtering
 --------
 When running from Outlook, you can enable filtering for all mail that arrives 
