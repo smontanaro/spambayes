@@ -547,7 +547,8 @@ html_re = re.compile(r"""
     >
 """, re.VERBOSE)
 
-ip_re = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
+received_host_re = re.compile(r'from (\S+)\s')
+received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
 
 # I'm usually just splitting on whitespace, but for subject lines I want to
 # break things like "Python/Perl comparison?" up.  OTOH, I don't want to
@@ -707,6 +708,15 @@ def crack_content_xyz(msg):
         if x is not None:
             yield 'content-transfer-encoding:' + x.lower()
 
+def breakdown_host(host):
+    parts = host.split('.')
+    for i in range(1, len(parts) + 1):
+        yield '.'.join(parts[-i:])
+
+def breakdown_ipaddr(ipaddr):
+    parts = ipaddr.split('.')
+    for i in range(1, 5):
+        yield '.'.join(parts[:i])
 
 class Tokenizer:
 
@@ -804,11 +814,12 @@ class Tokenizer:
         # XXX Tim's mixed-source corpora.
         if 0:
             for header in msg.get_all("received", ()):
-                for ip in ip_re.findall(header):
-                    parts = ip.split(".")
-                    for n in range(1, 5):
-                        yield 'received:' + '.'.join(parts[:n])
-
+                for pat, breakdown in [(received_host_re, breakdown_host),
+                                       (received_ip_re, breakdown_ipaddr)]:
+                    m = pat.search(header)
+                    if m:
+                        for tok in breakdown(m.group(1).lower()):
+                            yield 'received:' + tok
 
         # XXX Following is a great idea due to Anthony Baxter.  I can't use it
         # XXX on my test data because the header lines are so different between
