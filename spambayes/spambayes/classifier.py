@@ -266,7 +266,7 @@ class Classifier:
         True, you're telling the classifier this message is definitely spam,
         else that it's definitely not spam.
         """
-        if options["Classifier", "x-use_bigrams"]:
+        if options["Classifier", "use_bigrams"]:
             wordstream = self._enhance_wordstream(wordstream)
         if options["URLRetriever", "x-slurp_urls"]:
             wordstream = self._add_slurped(wordstream)
@@ -277,7 +277,7 @@ class Classifier:
 
         Pass the same arguments you passed to learn().
         """
-        if options["Classifier", "x-use_bigrams"]:
+        if options["Classifier", "use_bigrams"]:
             wordstream = self._enhance_wordstream(wordstream)
         if options["URLRetriever", "x-slurp_urls"]:
             wordstream = self._add_slurped(wordstream)
@@ -429,7 +429,7 @@ class Classifier:
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
 
-        if options["Classifier", "x-use_bigrams"]:
+        if options["Classifier", "use_bigrams"]:
             # This scheme mixes single tokens with pairs of adjacent tokens.
             # wordstream is "tiled" into non-overlapping unigrams and
             # bigrams.  Non-overlap is important to prevent a single original
@@ -533,8 +533,8 @@ class Classifier:
         which could be "word" in a subject, or a bigram of "subject:" and
         "word").
 
-        If the experimental "Classifier":"x-use_bigrams" option is
-        removed, this function can be removed, too.
+        If the "Classifier":"use_bigrams" option is removed, this function
+        can be removed, too.
         """
 
         last = None

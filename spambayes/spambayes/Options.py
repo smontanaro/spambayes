@@ -458,8 +458,8 @@ defaults = {
      general python.org traffic).""",
      BOOLEAN, RESTORE),
 
-    ("x-use_bigrams", "Use mixed uni/bi-grams scheme", False,
-     """(EXPERIMENTAL) Generate both unigrams (words) and bigrams (pairs of
+    ("use_bigrams", "Use mixed uni/bi-grams scheme", False,
+     """Generate both unigrams (words) and bigrams (pairs of
      words). However, extending an idea originally from Gary Robinson, the
      message is 'tiled' into non-overlapping unigrams and bigrams,
      approximating the strongest outcome over all possible tilings.
