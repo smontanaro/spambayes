@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""message.py - Core Spambayes classes.
+"""Stats.py - Spambayes statistics class.
 
 Classes:
     Stats - provides statistical information about previous activity.
@@ -63,11 +63,11 @@ class Stats(object):
             if m.c == 's':
                 self.cls_spam += 1
                 if m.t == 0:
-                    self.fn += 1
+                    self.fp += 1
             elif m.c == 'h':
                 self.cls_ham += 1
                 if m.t == 1:
-                    self.fp += 1
+                    self.fn += 1
             elif m.c == 'u':
                 self.cls_unsure += 1
                 if m.t == 0:
@@ -94,17 +94,32 @@ class Stats(object):
             'num_seen': self.total
             }
         format_dict.update(self.__dict__)
-        push("SpamBayes has processed %(num_seen)d messages - " \
+        # Figure out plurals
+        for num, key in [(self.total, "sp1"), (self.trn_ham, "sp2"),
+                         (self.trn_spam, "sp3"),
+                         (self.trn_unsure_ham, "sp4"),
+                         (self.fp, "sp5"), (self.fn, "sp6")]:
+            if num == 1:
+                format_dict[key] = ''
+            else:
+                format_dict[key] = 's'
+        for num, key in [(self.fp, "wp1"), (self.fn, "wp2")]:
+            if num == 1:
+                format_dict[key] = 'was a'
+            else:
+                format_dict[key] = 'were'
+            
+        push("SpamBayes has processed %(num_seen)d message%(sp1)s - " \
              "%(cls_ham)d (%(perc_ham).0f%%) good, " \
              "%(cls_spam)d (%(perc_spam).0f%%) spam " \
              "and %(cls_unsure)d (%(perc_unsure)d%%) unsure." % format_dict)
-        push("%(trn_ham)d message(s) were manually " \
-             "classified as good (with %(fp)d " \
-             "being false positives)." % format_dict)
-        push("%(trn_spam)d message(s) were manually " \
-             "classified as spam (with %(fn)d " \
-             "being false negatives)." % format_dict)
-        push("%(trn_unsure_ham)d unsure message(s) were manually " \
+        push("%(trn_ham)d message%(sp2)s were manually " \
+             "classified as good (%(fp)d %(wp1)s false positive%(sp5)s)." \
+             % format_dict)
+        push("%(trn_spam)d message%(sp3)s were manually " \
+             "classified as spam (%(fn)d %(wp2)s false negative%(sp6)s)." \
+             % format_dict)
+        push("%(trn_unsure_ham)d unsure message%(sp4)s were manually " \
              "identified as good, and %(trn_unsure_spam)d as spam." \
              % format_dict)
         return chunks
