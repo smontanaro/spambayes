@@ -9,8 +9,7 @@
 ##
 ## Just set up your messages as detailed in README.txt; put them all in
 ## the reservoir directories, and this script will take care of the
-## rest.  Paste the output (also in results.txt) to the mailing list for
-## good karma.
+## rest.  Paste the output to the mailing list for good karma.
 ##
 ## Neale Pickett <neale@woozle.org>
 ##
@@ -21,7 +20,7 @@ if [ "$1" = "-r" ]; then
 fi
 
 # Which test to run
-TEST=${1:-robinson1}
+TEST=${1:-run2}
 
 # Number of messages per rebalanced set
 RNUM=${REBAL_RNUM:-200}
@@ -39,11 +38,17 @@ if [ -n "$REBAL" ]; then
 fi
 
 case "$TEST" in
-    run1)
-	python timcv.py -n $SETS > run1.txt
+    test1)
+	python timtest.py -n $SETS > test1.txt
 	;;
-    run2|useold)
-	python timcv.py -n $SETS > run2.txt
+    test2)
+	python timtest.py -n $SETS > test2.txt
+	;;
+    timcv1|cv1)
+	python timcv.py -n $SETS > cv1.txt
+	;;
+    timcv2|cv2)
+	python timcv.py -n $SETS > cv2.txt
 
         python rates.py run1 run2 > runrates.txt
 
@@ -51,6 +56,6 @@ case "$TEST" in
 	;;
     *)
 	echo "Available targets:"
-	sed -n 's/^\(  [a-z|]*\))$/\1/p' $0
+	sed -n 's/^\(  [a-z0-9|]*\))$/\1/p' $0
 	;;
 esac
