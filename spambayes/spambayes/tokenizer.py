@@ -1026,6 +1026,24 @@ def find_html_virus_clues(text):
     for bingo in virus_re.findall(text):
         yield bingo
 
+
+
+numeric_entity_re = re.compile(r'&#(\d+);')
+def numeric_entity_replacer(m):
+    try:
+        return chr(int(m.group(1)))
+    except:
+        return '?'
+
+
+breaking_entity_re = re.compile(r"""
+    &nbsp;
+|   < (?: p
+      |   br
+      )
+    >
+""", re.VERBOSE)
+
 class Tokenizer:
 
     date_hms_re = re.compile(r' (?P<hour>[0-9][0-9])'
@@ -1353,6 +1371,10 @@ class Tokenizer:
                 yield 'control: payload is None'
                 continue
 
+            # Replace numeric character entities (like &#97; for the letter
+            # 'a').
+            text = numeric_entity_re.sub(numeric_entity_replacer, text)
+
             # Normalize case.
             text = text.lower()
 
@@ -1373,13 +1395,16 @@ class Tokenizer:
                 for t in tokens:
                     yield t
 
-            # Remove HTML/XML tags.  Also &nbsp;.
-            text = text.replace('&nbsp;', ' ')
+            # Remove HTML/XML tags.  Also &nbsp;.  <br> and <p> tags should
+            # create a space too.
+            text = breaking_entity_re.sub(' ', text)
             # It's important to eliminate HTML tags rather than, e.g.,
             # replace them with a blank (as this code used to do), else
             # simple tricks like
             #    Wr<!$FS|i|R3$s80sA >inkle Reduc<!$FS|i|R3$s80sA >tion
-            # can be used to disguise words.
+            # can be used to disguise words.  <br> and <p> were special-
+            # cased just above (because browsers break text on those,
+            # they can't be used to hide words effectively).
             text = html_re.sub('', text)
 
             # Tokenize everything in the body.
