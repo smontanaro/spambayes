@@ -82,5 +82,5 @@ sb_server, including a tray application.</p>
 install a recent version of <a href="http://www.python.org/">Python</a> and
 the <a
 href="http://sourceforge.net/project/showfiles.php?group_id=61702">SpamBayes
-source</a><sup><font size="-2">1</font></sup>, then setup the <a
+source</a>, then setup the <a
 href="applications.html#imap">IMAP filter</a>) for your mail server.
