@@ -14,15 +14,9 @@ from spambayes.message import MessageInfoPickle, Message
 
 class StatsTest(unittest.TestCase):
     def setUp(self):
-        self.s_cut = options["Categorization", "spam_cutoff"]
-        self.h_cut = options["Categorization", "ham_cutoff"]
-        self.h_string = options["Headers", "header_ham_string"]
-        self.u_string = options["Headers", "header_unsure_string"]
-        self.s_string = options["Headers", "header_spam_string"]
         self.messageinfo_db_name = "__unittest.pik"
         self.messageinfo_db = MessageInfoPickle(self.messageinfo_db_name)
-        self.s = Stats(self.s_cut, self.h_cut, self.messageinfo_db,
-                       self.h_string, self.u_string, self.s_string)
+        self.s = Stats(options, self.messageinfo_db)
 
     def tearDown(self):
         if os.path.exists(self.messageinfo_db_name):
@@ -42,8 +36,7 @@ class StatsTest(unittest.TestCase):
         # Check that it was stored, too.
         self.messageinfo_db.close()
         self.messageinfo_db = MessageInfoPickle(self.messageinfo_db_name)
-        self.s = Stats(self.s_cut, self.h_cut, self.messageinfo_db,
-                       self.h_string, self.u_string, self.s_string)
+        self.s = Stats(options, self.messageinfo_db)
         self.assertEqual(now, self.s.from_date)
 
     def test_no_messages(self):
@@ -234,6 +227,16 @@ class StatsTest(unittest.TestCase):
                          (data["num_spam_correct"] +
                           data["num_unsure_trained_spam"]) /
                          data["total_spam"])
+        self.assertEqual(new_data["total_cost"],
+                         data["num_trained_ham_fp"] *
+                         options["TestDriver", "best_cutoff_fp_weight"] + \
+                         data["num_trained_spam_fn"] *
+                         options["TestDriver", "best_cutoff_fn_weight"] + \
+                         data["num_unsure"] *
+                         options["TestDriver", "best_cutoff_unsure_weight"])
+        self.assertEqual(new_data["cost_savings"], data["num_spam"] *
+                         options["TestDriver", "best_cutoff_fn_weight"] -
+                         data["total_cost"])
 
     def test_AddPercentStrings(self):
         for i in xrange(10):
@@ -292,7 +295,8 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(s[8], "Manually classified as good:\t0")
         self.assertEqual(s[9], "Manually classified as spam:\t0")
         self.assertEqual(s[10], "")
-        if self.h_cut <= score < self.s_cut:
+        if options["Categorization", "ham_cutoff"] <= score < \
+           options["Categorization", "spam_cutoff"]:
             self.assertEqual(s[11], "Unsures trained as good:\t0 (0.0% of unsures)")
             self.assertEqual(s[12], "Unsures trained as spam:\t0 (0.0% of unsures)")
             self.assertEqual(s[13], "Unsures not trained:\t\t1 (100.0% of unsures)")
@@ -371,7 +375,10 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(s[16], "")
         self.assertEqual(s[17], "Spam correctly identified:\t33.3% (+ 33.3% unsure)")
         self.assertEqual(s[18], "Good incorrectly identified:\t33.3% (+ 33.3% unsure)")
-        self.assertEqual(len(s), 19)
+        self.assertEqual(s[19], "")
+        self.assertEqual(s[20], "Total cost of spam:\t$11.60")
+        self.assertEqual(s[21], "SpamBayes savings:\t$-9.60")
+        self.assertEqual(len(s), 22)
 
     def test_get_all_stats(self):
         s = self._stuff_with_data()
@@ -394,9 +401,18 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(s[16], "")
         self.assertEqual(s[17], "Spam correctly identified:\t40.0% (+ 20.0% unsure)")
         self.assertEqual(s[18], "Good incorrectly identified:\t33.3% (+ 16.7% unsure)")
-        self.assertEqual(len(s), 19)
+        self.assertEqual(s[19], "")
+        self.assertEqual(s[20], "Total cost of spam:\t$23.40")
+        self.assertEqual(s[21], "SpamBayes savings:\t$-19.40")
+        self.assertEqual(len(s), 22)
 
     def _stuff_with_data(self, use_html=False):
+        self._stuff_with_session_data()
+        self._stuff_with_persistent_data()
+        self.s.CalculatePersistentStats()
+        return self.s.GetStats(use_html=use_html)
+
+    def _stuff_with_session_data(self):
         # Record some session data.
         self.s.RecordClassification(0.0)
         self.s.RecordClassification(0.2)
@@ -410,6 +426,7 @@ class StatsTest(unittest.TestCase):
         self.s.RecordTraining(False, 0.1)
         self.s.RecordTraining(False, 1.0)
 
+    def _stuff_with_persistent_data(self):
         # Put data into the totals.
         msg = Message('0', self.messageinfo_db)
         msg.RememberTrained(True)
@@ -435,8 +452,6 @@ class StatsTest(unittest.TestCase):
         msg.RememberClassification(options['Headers','header_unsure_string'])
         msg = Message('8', self.messageinfo_db)
         msg.RememberClassification(options['Headers','header_unsure_string'])
-        self.s.CalculatePersistentStats()
-        return self.s.GetStats(use_html=use_html)
 
     def test_with_html(self):
         s = self._stuff_with_data(True)
@@ -448,6 +463,43 @@ class StatsTest(unittest.TestCase):
         for line in s:
             self.assert_('&nbsp;' not in line)
 
+    def test_from_date_empty(self):
+        # Put persistent data in, but no session data.
+        self._stuff_with_persistent_data()
+        # Wait for a bit to make sure the time is later.
+        time.sleep(0.1)
+        # Set the date to now.
+        self.s.ResetTotal(permanently=True)
+        # Recalculate.
+        self.s.CalculatePersistentStats()
+        # Check.
+        self.assertEqual(self.s.GetStats(), ["Messages classified: 0"])
+
+    def test_from_specified_date(self):
+        # Put persistent data in, but no session data.
+        self._stuff_with_persistent_data()
+        # Wait for a bit to make sure the time is later.
+        time.sleep(0.1)
+        # Set the date to now.
+        self.s.from_date = time.time()
+        # Wait for a bit to make sure the time is later.
+        time.sleep(0.1)
+        # Put more data in.
+        msg = Message('0', self.messageinfo_db)
+        msg.RememberTrained(True)
+        msg.RememberClassification(options['Headers','header_spam_string'])
+        msg = Message('7', self.messageinfo_db)
+        msg.RememberTrained(False)
+        msg.RememberClassification(options['Headers','header_spam_string'])
+        msg = Message('2', self.messageinfo_db)
+        msg.RememberTrained(True)
+        msg.RememberClassification(options['Headers','header_ham_string'])
+        # Recalculate.
+        self.s.CalculatePersistentStats()
+        # Check that there are the right number of messages (assume that
+        # the rest is right - if not it should be caught by other tests).
+        self.assertEqual(self.s.GetStats()[0], "Messages classified: 3")
+        
 
 def suite():
     suite = unittest.TestSuite()
