@@ -19,6 +19,8 @@
 #define IDD_WIZARD_FOLDERS_REST         117
 #define IDD_WIZARD_FOLDERS_WATCH        118
 #define IDD_WIZARD_FINISHED_UNCONFIGURED 119
+#define IDD_WIZARD_FOLDERS_TRAIN        120
+#define IDD_WIZARD_TRAIN                121
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -92,6 +94,7 @@
 #define IDC_EDIT2                       1080
 #define IDC_EDIT3                       1081
 #define IDC_BUT_PREPARATION             1081
+#define IDC_FOLDER_HAM                  1083
 
 // Next default values for new objects
 // 
@@ -99,7 +102,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1083
+#define _APS_NEXT_CONTROL_VALUE         1084
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
