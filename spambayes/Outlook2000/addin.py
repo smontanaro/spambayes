@@ -13,6 +13,8 @@ except NameError:
 
 if sys.version_info >= (2, 3):
     # sick off the new hex() warnings!
+    # todo - remove this - win32all has removed all these warnings
+    # (but we will wait some time for people to update)
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
 
 from win32com import universal
@@ -732,6 +734,7 @@ class ExplorersEvent:
         explorer = DispatchWithEvents(explorer, ExplorerWithEvents)
         explorer.Init(self.manager, self)
         self.explorers.append(explorer)
+        return explorer
 
     def _DoDeadExplorer(self, explorer):
         self.explorers.remove(explorer)
@@ -925,7 +928,8 @@ class OutlookAddin:
             # And hook our UI elements to all existing explorers
             for i in range(explorers.Count):
                 explorer = explorers.Item(i+1)
-                self.explorers_events._DoNewExplorer(explorer)
+                explorer = self.explorers_events._DoNewExplorer(explorer)
+                explorer.OnFolderSwitch()
 
     def OnBeginShutdown(self, custom):
         pass
