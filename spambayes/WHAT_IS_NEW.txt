@@ -10,8 +10,8 @@ Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.  You should also read the "Incompatible
 changes" section.
 
-New in Alpha (Beta?) Release 10 (1?)
-====================================
+New in Beta Release 1
+=====================
 
 --------------------------
 ** Incompatible changes **
@@ -51,6 +51,14 @@ Web Interface
    with radio buttons instead of checkboxes, meaning that the option
    could not be turned off, and that adding an extra choice could not be
    made.  This has been fixed.
+ o Messages stored in the cache directories are 'expired' after a certain
+   number of days, to save space.  This occurs when launching sb_server
+   and when executing a POP3 USER command (for those that have very long
+   running instances of sb_server).  When a message was due to expire on
+   the USER command check (rather than on launch), sb_server would
+   incorrectly attempt to (un)train the message, resulting in a loss of
+   training data or a "can't find this file" error, depending on whether
+   the message was in memory.  This is now fixed.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
