@@ -723,6 +723,9 @@ def crack_content_xyz(msg):
 
     for x in msg.get_charsets(None):
         if x is not None:
+            if isinstance(x, tuple):
+                assert len(x) == 3
+                x = x[2]
             yield 'charset:' + x.lower()
 
     x = msg.get('content-disposition')
