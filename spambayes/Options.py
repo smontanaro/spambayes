@@ -300,4 +300,3 @@ if alternate:
     options.mergefiles(alternate.split())
 else:
     options.mergefiles(['bayescustomize.ini'])
-

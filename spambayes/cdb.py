@@ -18,7 +18,7 @@ def uint32_unpack(buf):
 
 def uint32_pack(n):
     return struct.pack('<L', n)
-    
+
 CDB_HASHSTART = 5381
 
 def cdb_hash(buf):
@@ -137,7 +137,7 @@ class Cdb(object):
                         dpos = pos + 8 + len(key)
                         return self.read(dlen, dpos)
         raise KeyError
-                        
+
     def __getitem__(self, key):
         self.findstart()
         return self.findnext(key)
@@ -191,7 +191,7 @@ def cdb_make(outfile, items):
     outfile.flush()
     outfile.seek(0)
     outfile.write(final)
-    
+
 
 def test():
     #db = Cdb(open("t"))

@@ -24,7 +24,7 @@ def suck(f):
     fps = []
     hamdev = []
     spamdev = []
-    
+
     get = f.readline
     while 1:
         line = get()
@@ -67,16 +67,16 @@ def suck(f):
     return fps, fns, fptot, fntot, fpmean, fnmean, hamdev, spamdev,hamdevall,spamdevall
 
 def tag(p1, p2):
-        if p1 == p2:
-            t = "tied          "
+    if p1 == p2:
+        t = "tied          "
+    else:
+        t = p1 < p2 and "lost " or "won  "
+        if p1:
+            p = (p2 - p1) * 100.0 / p1
+            t += " %+7.2f%%" % p
         else:
-            t = p1 < p2 and "lost " or "won  "
-            if p1:
-                p = (p2 - p1) * 100.0 / p1
-                t += " %+7.2f%%" % p
-            else:
-                t += " +(was 0)"
-        return t
+            t += " +(was 0)"
+    return t
 
 def mtag(m1,m2):
     mean1,dev1 = m1
@@ -88,7 +88,7 @@ def mtag(m1,m2):
             mean1,mean2,mp,
             dev1,dev2,dp
         )
-    
+
 def dump(p1s, p2s):
     alltags = ""
     for p1, p2 in zip(p1s, p2s):

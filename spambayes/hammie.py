@@ -76,7 +76,7 @@ class DBDict:
     countme
 
     """
-    
+
     def __init__(self, dbname, iterskip=()):
         self.hash = anydbm.open(dbname, 'c')
         self.iterskip = iterskip
@@ -131,7 +131,7 @@ class DBDict:
     def itervalues(self):
         return self.__iter__(lambda k: k[1])
 
-    
+
 class PersistentGrahamBayes(classifier.GrahamBayes):
     """A persistent GrahamBayes classifier
 

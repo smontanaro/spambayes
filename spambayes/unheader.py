@@ -28,30 +28,30 @@ class Parser(email.Parser.Parser):
 
 def deSA(msg):
     if msg['X-Spam-Status']:
-	if msg['X-Spam-Status'].startswith('Yes'):
-	    pct = msg['X-Spam-Prev-Content-Type']
-	    if pct:
-		msg['Content-Type'] = pct
+        if msg['X-Spam-Status'].startswith('Yes'):
+            pct = msg['X-Spam-Prev-Content-Type']
+            if pct:
+                msg['Content-Type'] = pct
 
-	    pcte = msg['X-Spam-Prev-Content-Transfer-Encoding']
-	    if pcte:
-		msg['Content-Transfer-Encoding'] = pcte
+            pcte = msg['X-Spam-Prev-Content-Transfer-Encoding']
+            if pcte:
+                msg['Content-Transfer-Encoding'] = pcte
 
-	    subj = re.sub(r'\*\*\*\*\*SPAM\*\*\*\*\* ', '', msg['Subject'])
+            subj = re.sub(r'\*\*\*\*\*SPAM\*\*\*\*\* ', '', msg['Subject'])
             if subj != msg["Subject"]:
                 msg.replace_header("Subject", subj)
 
-	    body = msg.get_payload()
-	    newbody = []
-	    at_start = 1
-	    for line in body.splitlines():
-		if at_start and line.startswith('SPAM: '):
-		    continue
-		elif at_start:
-		    at_start = 0
-		else:
-		    newbody.append(line)
-	    msg.set_payload("\n".join(newbody))
+            body = msg.get_payload()
+            newbody = []
+            at_start = 1
+            for line in body.splitlines():
+                if at_start and line.startswith('SPAM: '):
+                    continue
+                elif at_start:
+                    at_start = 0
+                else:
+                    newbody.append(line)
+            msg.set_payload("\n".join(newbody))
     unheader(msg, "X-Spam-")
 
 def process_mailbox(f, dosa=1, pats=None):

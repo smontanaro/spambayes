@@ -11,7 +11,7 @@ hopes that at least one copy reaches its desitination.
 Before calculating the checksum, this script does the following:
 
     * delete the message header
-    
+
     * delete HTML tags which generally contain URLs
 
     * delete anything which looks like an email address or URL
@@ -98,4 +98,3 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-

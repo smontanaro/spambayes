@@ -11,7 +11,7 @@ header.  Usage:
         <port>   is the port number of your real POP3 server, which
                  defaults to 110.
 
-        options (the same as hammie):   
+        options (the same as hammie):
             -p FILE : use the named data file
             -d      : the file is a DBM file rather than a pickle
 
@@ -45,7 +45,7 @@ class Listener(asyncore.dispatcher):
     """Listens for incoming socket connections and spins off
     dispatchers created by a factory callable.
     """
-    
+
     def __init__(self, port, factory, factoryArgs=(),
                  socketMap=asyncore.socket_map):
         asyncore.dispatcher.__init__(self, map=socketMap)
@@ -80,7 +80,7 @@ class POP3ProxyBase(asynchat.async_chat):
     special command 'KILL' kills it (passing a 'QUIT' command to the
     server).
     """
-    
+
     def __init__(self, clientSocket, serverName, serverPort):
         asynchat.async_chat.__init__(self, clientSocket)
         self.request = ''
@@ -89,18 +89,18 @@ class POP3ProxyBase(asynchat.async_chat):
         serverSocket.connect((serverName, serverPort))
         self.serverFile = serverSocket.makefile()
         self.push(self.serverFile.readline())
-    
+
     def handle_connect(self):
         """Suppress the asyncore "unhandled connect event" warning."""
         pass
-    
+
     def onTransaction(self, command, args, response):
         """Overide this.  Takes the raw request and the response, and
         returns the (possibly processed) response to pass back to the
         email client.
         """
         raise NotImplementedError
-    
+
     def isMultiline(self, command, args):
         """Returns True if the given request should get a multiline
         response (assuming the response is positive).
@@ -115,7 +115,7 @@ class POP3ProxyBase(asynchat.async_chat):
         else:
             # Assume that unknown commands will get an error response.
             return False
-    
+
     def readResponse(self, command, args):
         """Reads the POP3 server's response and returns a tuple of
         (response, isClosing, timedOut).  isClosing is True if the
@@ -147,21 +147,21 @@ class POP3ProxyBase(asynchat.async_chat):
             else:
                 # A normal line - append it to the response and carry on.
                 responseLines.append(line)
-            
+
             # Time out after 30 seconds - found_terminator() knows how
             # to deal with this.
             if time.time() > startTime + 30:
                 timedOut = True
                 break
-            
+
             isFirstLine = False
-        
+
         return ''.join(responseLines), isClosing, timedOut
-    
+
     def collect_incoming_data(self, data):
         """Asynchat override."""
         self.request = self.request + data
-    
+
     def found_terminator(self):
         """Asynchat override."""
         # Send the request to the server and read the reply.
@@ -182,13 +182,13 @@ class POP3ProxyBase(asynchat.async_chat):
             command = splitCommand[0].upper()
             args = splitCommand[1:]
         rawResponse, isClosing, timedOut = self.readResponse(command, args)
-        
+
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
         cookedResponse = self.onTransaction(command, args, rawResponse)
         self.push(cookedResponse)
         self.request = ''
-        
+
         # If readResponse() timed out, we still need to read and proxy
         # the rest of the message.
         if timedOut:
@@ -205,13 +205,13 @@ class POP3ProxyBase(asynchat.async_chat):
                 else:
                     # A normal line.
                     self.push(line)
-    
+
         # If readResponse() or the loop above decided that the server
         # has closed its socket, close this one when the response has
         # been sent.
         if isClosing:
             self.close_when_done()
-        
+
     def handle_error(self):
         """Let SystemExit cause an exit."""
         type, v, t = sys.exc_info()
@@ -219,13 +219,13 @@ class POP3ProxyBase(asynchat.async_chat):
             raise
         else:
             asynchat.async_chat.handle_error(self)
-   
+
 
 class BayesProxyListener(Listener):
     """Listens for incoming email client connections and spins off
     BayesProxy objects to serve them.
     """
-    
+
     def __init__(self, serverName, serverPort, proxyPort, bayes):
         proxyArgs = (serverName, serverPort, bayes)
         Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
@@ -234,21 +234,21 @@ class BayesProxyListener(Listener):
 class BayesProxy(POP3ProxyBase):
     """Proxies between an email client and a POP3 server, inserting
     judgement headers.  It acts on the following POP3 commands:
-    
+
      o STAT:
         o Adds the size of all the judgement headers to the maildrop
           size.
-    
+
      o LIST:
         o With no message number: adds the size of an judgement header
           to the message size for each message in the scan listing.
         o With a message number: adds the size of an judgement header
           to the message size.
-    
+
      o RETR:
         o Adds the judgement header based on the raw headers and body
           of the message.
-    
+
      o TOP:
         o Adds the judgement header based on the raw headers and as
           much of the body as the TOP command retrieves.  This can
@@ -267,20 +267,20 @@ class BayesProxy(POP3ProxyBase):
         POP3ProxyBase.__init__(self, clientSocket, serverName, serverPort)
         self.handlers = {'STAT': self.onStat, 'LIST': self.onList,
                          'RETR': self.onRetr, 'TOP': self.onTop}
-    
+
     def send(self, data):
         """Logs the data to the log file."""
         self.logFile.write(data)
         self.logFile.flush()
         return POP3ProxyBase.send(self, data)
-    
+
     def recv(self, size):
         """Logs the data to the log file."""
         data = POP3ProxyBase.recv(self, size)
         self.logFile.write(data)
         self.logFile.flush()
         return data
-    
+
     def onTransaction(self, command, args, response):
         """Takes the raw request and response, and returns the
         (possibly processed) response to pass back to the email client.
@@ -298,7 +298,7 @@ class BayesProxy(POP3ProxyBase):
             return '+OK %d %d%s\r\n' % (count, size, match.group(3))
         else:
             return response
-    
+
     def onList(self, command, args, response):
         """Adds the size of an judgement header to the message
         size(s)."""
@@ -322,7 +322,7 @@ class BayesProxy(POP3ProxyBase):
                 return "+OK %d%s\r\n" % (size, match.group(2))
             else:
                 return response
-    
+
     def onRetr(self, command, args, response):
         """Adds the judgement header based on the raw headers and body
         of the message."""
@@ -331,7 +331,7 @@ class BayesProxy(POP3ProxyBase):
         if re.search(r'\n\r?\n', response):
             # Break off the first line, which will be '+OK'.
             ok, message = response.split('\n', 1)
-            
+
             # Now find the spam disposition and add the header.  The
             # trailing space in "No " ensures consistent lengths - this
             # is required because POP3 commands like 'STAT' and 'LIST'
@@ -411,7 +411,7 @@ Chris
 class TestListener(Listener):
     """Listener for TestPOP3Server.  Works on port 8110, to co-exist
     with real POP3 servers."""
-    
+
     def __init__(self, socketMap=asyncore.socket_map):
         Listener.__init__(self, 8110, TestPOP3Server, socketMap=socketMap)
 
@@ -422,7 +422,7 @@ class TestPOP3Server(asynchat.async_chat):
     without doing anything.  Also understands the 'KILL' command, to
     kill it.  The mail content is the example messages above.
     """
-   
+
     def __init__(self, clientSocket, socketMap=asyncore.socket_map):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
@@ -437,15 +437,15 @@ class TestPOP3Server(asynchat.async_chat):
                          'RETR': self.onRetr}
         self.push("+OK ready\r\n")
         self.request = ''
-   
+
     def handle_connect(self):
         """Suppress the asyncore "unhandled connect event" warning."""
         pass
-    
+
     def collect_incoming_data(self, data):
         """Asynchat override."""
         self.request = self.request + data
-   
+
     def found_terminator(self):
         """Asynchat override."""
         if ' ' in self.request:
@@ -463,7 +463,7 @@ class TestPOP3Server(asynchat.async_chat):
             handler = self.handlers.get(command, self.onUnknown)
             self.push(handler(command, args))
         self.request = ''
-   
+
     def handle_error(self):
         """Let SystemExit cause an exit."""
         type, v, t = sys.exc_info()
@@ -471,13 +471,13 @@ class TestPOP3Server(asynchat.async_chat):
             raise
         else:
             asynchat.async_chat.handle_error(self)
-   
+
     def onStat(self, command, args):
         """POP3 STAT command."""
         maildropSize = reduce(operator.add, map(len, self.maildrop))
         maildropSize += len(self.maildrop) * len(HEADER_EXAMPLE)
         return "+OK %d %d\r\n" % (len(self.maildrop), maildropSize)
-   
+
     def onList(self, command, args):
         """POP3 LIST command, with optional message number argument."""
         if args:
@@ -493,7 +493,7 @@ class TestPOP3Server(asynchat.async_chat):
                 returnLines.append("%d %d" % (messageIndex + 1, size))
             returnLines.append(".")
             return '\r\n'.join(returnLines) + '\r\n'
-   
+
     def onRetr(self, command, args):
         """POP3 RETR command."""
         number = int(args)
@@ -521,7 +521,7 @@ def test():
         TestListener(socketMap=testSocketMap)
         testServerReady.set()
         asyncore.loop(map=testSocketMap)
-    
+
     def runProxy():
         # Name the database in case it ever gets auto-flushed to disk.
         bayes = hammie.createbayes('_pop3proxy.db')
@@ -533,19 +533,19 @@ def test():
     threading.Thread(target=runTestServer).start()
     testServerReady.wait()
     threading.Thread(target=runProxy).start()
-    
+
     # Connect to the proxy.
     proxy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     proxy.connect(('localhost', 8111))
     assert proxy.recv(100) == "+OK ready\r\n"
-    
+
     # Stat the mailbox to get the number of messages.
     proxy.send("stat\r\n")
     response = proxy.recv(100)
     count, totalSize = map(int, response.split()[1:3])
     print "%d messages in test mailbox" % count
     assert count == 2
-    
+
     # Loop through the messages ensuring that they have judgement
     # headers.
     for i in range(1, count+1):
@@ -558,7 +558,7 @@ def test():
         headerEnd = headerOffset + len(HEADER_EXAMPLE)
         header = response[headerOffset:headerEnd].strip()
         print "Message %d: %s" % (i, header)
-    
+
     # Kill the proxy and the test server.
     proxy.sendall("kill\r\n")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -591,25 +591,25 @@ if __name__ == '__main__':
             useDB = True
         elif opt == '-p':
             pickleName = arg
-    
+
     # Do whatever we've been asked to do...
     if not opts and not args:
         print "Running a self-test (use 'pop3proxy -h' for help)"
         test()
         print "Self-test passed."   # ...else it would have asserted.
-    
+
     elif runTestServer:
         print "Running a test POP3 server on port 8110..."
         TestListener()
         asyncore.loop()
-    
+
     elif len(args) == 1:
         # Named POP3 server, default port.
         main(args[0], 110, 110, pickleName, useDB)
-    
+
     elif len(args) == 2:
         # Named POP3 server, named port.
         main(args[0], int(args[1]), 110, pickleName, useDB)
-    
+
     else:
         print >>sys.stderr, __doc__

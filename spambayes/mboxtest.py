@@ -160,13 +160,13 @@ def main(args):
 
         if i > 0:
             driver.untrain(hams, spams)
-            
+
         driver.test(hams, spams)
         driver.finishtest()
 
         if i < NSETS - 1:
             driver.train(hams, spams)
-        
+
         i += 1
     driver.alldone()
 
