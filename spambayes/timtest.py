@@ -102,9 +102,9 @@ def drive():
         trained_ham_hist = Hist(nbuckets)
         trained_spam_hist = Hist(nbuckets)
 
-        #fp = file('w.pik', 'wb')
-        #pickle.dump(c, fp, 1)
-        #fp.close()
+        fp = file('w.pik', 'wb')
+        pickle.dump(c, fp, 1)
+        fp.close()
 
         for sd2, hd2 in SPAMHAMDIRS:
             if (sd2, hd2) == (spamdir, hamdir):

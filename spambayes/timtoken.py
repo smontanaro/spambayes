@@ -432,7 +432,6 @@ def tokenize_word(word, _len=len):
 #        and its type= param
 #    Content-Dispostion
 #        and its filename= param
-#    Content-Transfer-Encoding
 #    all the charsets
 #
 # This has huge benefit for the f-n rate, and virtually none on the f-p rate,
@@ -451,6 +450,68 @@ def tokenize_word(word, _len=len):
 # XXX that this doesn't push more mixed-type msgs into the f-p camp --
 # XXX unlike looking at *all* HTML tags, this is just one spam indicator
 # XXX instead of dozens, so relevant msg content can cancel it out.
+#
+# A bug in this code prevented Content-Transfer-Encoding from getting
+# picked up.  Fixing that bug showed that it didn't helpe, so the corrected
+# code is disabled now (left column without Content-Transfer-Encoding,
+# right column with it);
+#
+# false positive percentages
+#    0.000  0.000  tied
+#    0.000  0.000  tied
+#    0.100  0.100  tied
+#    0.000  0.000  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.100  0.100  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.050  0.050  tied
+#    0.100  0.100  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.025  0.025  tied
+#    0.000  0.025  lost  +(was 0)
+#    0.025  0.025  tied
+#    0.100  0.100  tied
+#
+# won   0 times
+# tied 19 times
+# lost  1 times
+#
+# total unique fp went from 9 to 10
+#
+# false negative percentages
+#    0.364  0.400  lost    +9.89%
+#    0.400  0.364  won     -9.00%
+#    0.400  0.436  lost    +9.00%
+#    0.909  0.872  won     -4.07%
+#    0.836  0.836  tied
+#    0.618  0.618  tied
+#    0.291  0.291  tied
+#    1.018  0.981  won     -3.63%
+#    0.982  0.982  tied
+#    0.727  0.727  tied
+#    0.800  0.800  tied
+#    1.163  1.127  won     -3.10%
+#    0.764  0.836  lost    +9.42%
+#    0.473  0.473  tied
+#    0.473  0.618  lost   +30.66%
+#    0.727  0.763  lost    +4.95%
+#    0.655  0.618  won     -5.65%
+#    0.509  0.473  won     -7.07%
+#    0.545  0.582  lost    +6.79%
+#    0.509  0.509  tied
+#
+# won   6 times
+# tied  8 times
+# lost  6 times
+#
+# total unique fn went from 168 to 169
+
 def crack_content_xyz(msg):
     x = msg.get_type()
     if x is not None:
@@ -474,9 +535,10 @@ def crack_content_xyz(msg):
             for y in x.split('.'):
                 yield 'filename:' + y
 
-    x = msg.get('content-transfer-encoding:')
-    if x is not None:
-        yield 'content-transfer-encoding:' + x.lower()
+    if 0:   # disabled; see comment before function
+        x = msg.get('content-transfer-encoding')
+        if x is not None:
+            yield 'content-transfer-encoding:' + x.lower()
 
 def tokenize(string):
     # Create an email Message object.
@@ -494,7 +556,7 @@ def tokenize(string):
     # XXX job is trivial.  Only some "safe" header lines are included here,
     # XXX where "safe" is specific to my sorry <wink> corpora.
 
-    # Content-{Transfer-Encoding, Type, Disposition} and their params.
+    # Content-{Type, Disposition} and their params, and charsets.
     t = ''
     for x in msg.walk():
         for w in crack_content_xyz(x):
@@ -600,7 +662,7 @@ def tokenize(string):
         if part.get_content_type() == "text/plain":
             text = html_re.sub(' ', text)
 
-        # Tokenize everything.
+        # Tokenize everything in the body.
         for w in text.split():
             n = len(w)
             # Make sure this range matches in tokenize_word().
