@@ -166,9 +166,10 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         """POP3 CAPA command.  This lies about supporting pipelining for
         test purposes - the POP3 proxy *doesn't* support pipelining, and
         we test that it correctly filters out that capability from the
-        proxied capability list."""
+        proxied capability list. Ditto for STLS."""
         lines = ["+OK Capability list follows",
                  "PIPELINING",
+                 "STLS",
                  "TOP",
                  ".",
                  ""]
@@ -282,6 +283,17 @@ def test():
     proxy.send("capa\r\n")
     response = proxy.recv(1000)
     assert response.find("PIPELINING") == -1
+
+    # Verify that the test server claims to support STLS.
+    pop3Server.send("capa\r\n")
+    response = pop3Server.recv(1000)
+    assert response.find("STLS") >= 0
+
+    # Ask for the capabilities via the proxy, and verify that the proxy
+    # is filtering out the PIPELINING capability.
+    proxy.send("capa\r\n")
+    response = proxy.recv(1000)
+    assert response.find("STLS") == -1
 
     # Stat the mailbox to get the number of messages.
     proxy.send("stat\r\n")
