@@ -444,7 +444,7 @@ def ShowClues(mgr, explorer):
     # once the Body property has been set.  Thus, there is no reasonable
     # way to get this as text only.  Next best then is to use HTML, 'cos at
     # least we know how to exploit it!
-    body = ["<h2>Spam Score: %g</h2><br>" % score]
+    body = ["<h2>Spam Score: %d%% (%g)</h2><br>" % (round(score*100), score)]
     push = body.append
     # Format the clues.
     push("<PRE>\n")
