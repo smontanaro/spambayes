@@ -90,8 +90,7 @@ Code quality:
 Info:
 
  o Slightly-wordy index page; intro paragraph for each page.
- o In both stats and training results, report nham and nspam - warn if
-   they're very different (for some value of 'very').
+ o In both stats and training results, report nham and nspam.
  o "Links" section (on homepage?) to project homepage, mailing list,
    etc.
 
@@ -101,7 +100,6 @@ Gimmicks:
  o Classify a web page given a URL.
  o Graphs.  Of something.  Who cares what?
  o NNTP proxy.
- o Zoe...!
 """
 
 import os, sys, re, errno, getopt, time, traceback, socket, cStringIO, email
@@ -145,14 +143,17 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
     can't connect to the real POP3 server and talk to it
     synchronously, because that would block the process."""
 
-    lineCallback = None
-
-    def __init__(self, serverName, serverPort, lineCallback):
+    def __init__(self, serverName, serverPort, lineCallback, ssl=False):
         Dibbler.BrighterAsyncChat.__init__(self)
         self.lineCallback = lineCallback
         self.request = ''
         self.set_terminator('\r\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        # create_socket creates a non-blocking socket.  This is fine for
+        # regular sockets, but not for ssl - if it is non-blocking then the
+        # second ssl connection will fail.
+        if ssl:
+            self.socket.setblocking(1)
         try:
             self.connect((serverName, serverPort))
         except socket.error, e:
@@ -161,6 +162,43 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
             self.lineCallback('-ERR %s\r\n' % error)
             self.lineCallback('')   # "The socket's been closed."
             self.close()
+        else:
+            if ssl:
+                try:
+                    self.ssl_socket = socket.ssl(self.socket)
+                except socket.sslerror, why:
+                    if why[0] == 1: # error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol'
+                        # Probably not SSL after all.
+                        print >>sys.stderr, "Can't use SSL"
+                    else:
+                        raise
+                else:
+                    self.send = self.send_ssl
+                    self.recv = self.recv_ssl
+                self.socket.setblocking(0)
+                print self._fileno
+            
+    def send_ssl(self, data):
+        return self.ssl_socket.write(data)
+
+    def recv_ssl(self, buffer_size):
+        try:
+            data = self.ssl_socket.read(buffer_size)
+            if not data:
+                # a closed connection is indicated by signaling
+                # a read condition, and having recv() return 0.
+                self.handle_close()
+                return ''
+            else:
+                return data
+        except socket.sslerror, why:
+            if why[0] == 6: # 'TLS/SSL connection has been closed'
+                self.handle_close()
+                return ''
+            elif why[0] == 2: # 'The operation did not complete (read)'
+                return ''
+            else:
+                raise
 
     def collect_incoming_data(self, data):
         self.request = self.request + data
@@ -172,6 +210,10 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
     def handle_close(self):
         self.lineCallback('')
         self.close()
+        try:
+            del self.ssl_socket, self.socket
+        except AttributeError:
+            pass
 
 
 class POP3ProxyBase(Dibbler.BrighterAsyncChat):
@@ -187,7 +229,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
     server).
     """
 
-    def __init__(self, clientSocket, serverName, serverPort):
+    def __init__(self, clientSocket, serverName, serverPort, ssl=False):
         Dibbler.BrighterAsyncChat.__init__(self, clientSocket)
         self.request = ''
         self.response = ''
@@ -206,7 +248,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
             return
 
         self.serverSocket = ServerLineReader(serverName, serverPort,
-                                             self.onServerLine)
+                                             self.onServerLine, ssl)
 
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
@@ -344,8 +386,8 @@ class BayesProxyListener(Dibbler.Listener):
     BayesProxy objects to serve them.
     """
 
-    def __init__(self, serverName, serverPort, proxyPort):
-        proxyArgs = (serverName, serverPort)
+    def __init__(self, serverName, serverPort, proxyPort, ssl=False):
+        proxyArgs = (serverName, serverPort, ssl)
         Dibbler.Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
         print 'Listener on port %s is proxying %s:%d' % \
                (_addressPortStr(proxyPort), serverName, serverPort)
@@ -383,8 +425,9 @@ class BayesProxy(POP3ProxyBase):
           expires any old messages in the three caches.
     """
 
-    def __init__(self, clientSocket, serverName, serverPort):
-        POP3ProxyBase.__init__(self, clientSocket, serverName, serverPort)
+    def __init__(self, clientSocket, serverName, serverPort, ssl=False):
+        POP3ProxyBase.__init__(self, clientSocket, serverName, serverPort,
+                               ssl)
         self.handlers = {'STAT': self.onStat, 'LIST': self.onList,
                          'RETR': self.onRetr, 'TOP': self.onTop,
                          'USER': self.onUser}
@@ -896,7 +939,10 @@ proxyListeners = []
 def _createProxies(servers, proxyPorts):
     """Create BayesProxyListeners for all the given servers."""
     for (server, serverPort), proxyPort in zip(servers, proxyPorts):
-        listener = BayesProxyListener(server, serverPort, proxyPort)
+        ssl = options["pop3proxy", "use_ssl"]
+        if ssl == "automatic":
+            ssl = serverPort == 995
+        listener = BayesProxyListener(server, serverPort, proxyPort, ssl)
         proxyListeners.append(listener)
 
 def _recreateState():

@@ -787,6 +787,14 @@ defaults = {
      Note that the shorter this is, the less of long messages will be
      used for classifications (i.e. results may be effected)."""),
      REAL, RESTORE),
+
+    ("use_ssl", "Connect via a secure socket layer", False,
+     """Use SSL to connect to the server. This allows spambayes to connect
+     without sending data in plain text.
+
+     Note that this does not check the server certificate at this point in
+     time.""",
+     (False, True, "automatic"), DO_NOT_RESTORE),
   ),
 
   "smtpproxy" : (
