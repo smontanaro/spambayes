@@ -18,10 +18,16 @@ for fname in glob.glob(PROJECT_ROOT + "/images/*"):
         extras.append( ("images/"+basename(fname), abspath(fname), 'DATA') )
 # docs
 extras.append( ("about.html", join(PROJECT_ROOT, "about.html"), 'DATA') )
+for fname in glob.glob(PROJECT_ROOT + "/docs/*"):
+    if os.path.isfile(fname):
+        extras.append( ("docs/"+basename(fname), abspath(fname), 'DATA') )
+for fname in glob.glob(PROJECT_ROOT + "/docs/images/*"):
+    if os.path.isfile(fname):
+        extras.append( ("docs/images/"+basename(fname), abspath(fname), 'DATA') )
 # config
 extras.append( ("default_bayes_customize.ini", join(PROJECT_ROOT, "default_bayes_customize.ini"), 'DATA') )
 
-excludes = ['timer', 'dde', 'win32help']
+excludes = ['timer', 'dde', 'win32help', 'compatsets']
 
 a = Analysis([INSTALLER_ROOT+'/support/_mountzlib.py',
               INSTALLER_ROOT+'/support/useUnicode.py',
