@@ -82,22 +82,22 @@ def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "qn:")
+        opts, args = getopt.getopt(sys.argv[1:], "hqn:")
     except getopt.error, d:
-        print d
-        print
-        usage()
+        usage(d)
     quiet = 0
     for opt, val in opts:
-        if opt=='-q':
+        if opt == '-h':
+            usage()
+        elif opt == '-q':
             quiet = 1
-        elif opt=='-n':
+        elif opt == '-n':
             FILES_PER_DIRECTORY = int(val)
+        else:
+            assert 0, "internal error on option '%s'" % opt
 
     if len(args) > 1:
-        print "Only one directory name can be specified"
-        print
-        usage()
+        usage("Only one directory name can be specified.")
 
     if len(args)==0:
         directory = os.path.join(os.path.dirname(sys.argv[0]), DEFAULT_DIRECTORY)
@@ -115,10 +115,17 @@ def main():
         raw_input("Press enter to continue, or Ctrl+C to abort.")
     export(directory)
 
-def usage():
-    print """ \
-Usage: %s [-q] [-n min] [directory]
+# Display errormsg (if specified), a blank line, and usage information; then
+# exit with status 1 (usage doesn't return).
+def usage(errormsg=None):
+    if errormsg:
+        print str(errormsg)
+        print
 
+    print """ \
+Usage: %s [-h] [-q] [-n min] [directory]
+
+-h : help - display this msg and stop
 -q : quiet - don't prompt for confirmation.
 -n : Minimum number of files to aim for in each directory, default=%d
 
