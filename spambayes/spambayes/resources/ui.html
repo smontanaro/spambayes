@@ -41,7 +41,7 @@ a:hover { color: #6040ff }
     <div class='banner'>
     <span id="helmet"><img src='helmet.gif' align='absmiddle'/>&nbsp;</span>
     <span class='header'>
-        <span id="productName">Spambayes proxy</span>:
+        <span id="productName">Spambayes Web Interface</span>:
         <a id="homelink" href='home'>Home</a>
         <span id="pagename">&gt; ui.html</span>
     </span>
@@ -117,11 +117,12 @@ a:hover { color: #6040ff }
         <span id="proxyDetails">
         POP3 proxy running on <b><span id="proxyPortsString">1110</span></b>,
         proxying to <b><span id="serversString">example.com</span></b>.
-        </span><br/>
+        <br/>
         Active POP3 conversations:
             <b><span id="activeSessions">0</span></b>.<br/>
         POP3 conversations this session:
             <b><span id="totalSessions">0</span></b>.<br/>
+        </span>
         Emails classified this session:
             <b><span id="numSpams">0</span></b> spam,
             <b><span id="numHams">0</span></b> ham,
@@ -321,22 +322,8 @@ a:hover { color: #6040ff }
         <TD>
             <input type="text" size="26" id="input" name="from_parm_ini_map"/>
         </TD>
-        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-        <TD id='helpCell' rowspan='100' valign='top'>
-            <p>(Help text goes here.)</p>
-        </TD>
-    </TR>
-    <TR id="configRbRow1">
-        <TD align="right" nowrap='1'>
-            <span id="label">Label</span>:&nbsp;
-        </TD>
-        <TD>
-            <input type="radio" id="inputT" value="True" name="from_parm_ini_map"/>True
-            &nbsp;&nbsp;
-            <input type="radio" id="inputF" value="False" name="from_parm_ini_map"/>False
-        </TD>
-        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-        <TD id='helpCell' rowspan='100' valign='top'>
+        <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' valign='top'>
             <p>(Help text goes here.)</p>
         </TD>
     </TR>
@@ -350,8 +337,8 @@ a:hover { color: #6040ff }
                 <span id="val_label">Value Label</span>&nbsp;
             </div>
         </TD>
-        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-        <TD id='helpCell' rowspan='100' valign='top'>
+        <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' valign='top'>
             <p>(Help text goes here.)</p>
         </TD>
     </TR>
@@ -391,7 +378,7 @@ a:hover { color: #6040ff }
 <table width='100%' cellspacing='0'>
 <tr>
     <td class='banner'>
-        <a id='footerHome' href='home'>Spambayes Proxy</a>,
+        <a id='footerHome' href='home'>Spambayes Web Interface</a>,
         <span id="timestamp">Mon Dec 30 14:04:32 2002</span>.
         <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
     <td align='right' class='banner' id="shutdownTableCell">

@@ -28,7 +28,8 @@ header.  Usage:
         bayescustomize.ini.
 
 For safety, and to help debugging, the whole POP3 conversation is
-written out to _pop3proxy.log for each run, if options.verbose is True.
+written out to _pop3proxy.log for each run, if
+options["globals", "verbose"] is True.
 
 To make rebuilding the database easier, uploaded messages are appended
 to _pop3proxyham.mbox and _pop3proxyspam.mbox.
@@ -54,8 +55,7 @@ Web training interface:
 
  o Functional tests.
  o Review already-trained messages, and purge them.
- o Put in a link to view a message (plain text, html, multipart...?)
-   Include a Reply link that launches the registered email client, eg.
+ o Include a Reply link that launches the registered email client, eg.
    mailto:tim@fourstonesExpressions.com?subject=Re:%20pop3proxy&body=Hi%21%0D
  o Keyboard navigation (David Ascher).  But aren't Tab and left/right
    arrow enough?
@@ -81,8 +81,6 @@ New features:
    messages."
  o "Send me a status email every [...] telling how many mails have been
    classified, etc."
- o Remove any existing X-Spambayes-Classification header from incoming
-   emails.
  o Whitelist.
  o Online manual.
  o Links to project homepage, mailing list, etc.
@@ -91,7 +89,6 @@ New features:
 
 Code quality:
 
- o Move the UI into its own module.
  o Cope with the email client timing out and closing the connection.
  o Lose the trailing dot from cached messages.
 
@@ -142,11 +139,12 @@ import mailbox, email.Header
 from thread import start_new_thread
 from email.Iterators import typed_subpart_iterator
 import spambayes
-from spambayes import storage, tokenizer, mboxutils, PyMeldLite, Dibbler
+from spambayes import storage, tokenizer, mboxutils, Dibbler
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
-from spambayes.OptionConfig import OptionsConfigurator
 from spambayes.Options import options
+from spambayes.UserInterface import UserInterfaceServer
+from spambayes.ProxyUI import ProxyUserInterface
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
 if sys.platform == 'darwin':
@@ -162,11 +160,9 @@ if sys.platform == 'darwin':
 
 # HEADER_EXAMPLE is the longest possible header - the length of this one
 # is added to the size of each message.
-HEADER_FORMAT = '%s: %%s\r\n' % options.hammie_header_name
-HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % options.hammie_header_name
+HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % \
+                 options["Hammie", "header_name"]
 
-IMAGES = ('helmet', 'status', 'config',
-          'message', 'train', 'classify', 'query')
 
 class ServerLineReader(Dibbler.BrighterAsyncChat):
     """An async socket that reads lines from a remote server and
@@ -407,7 +403,7 @@ class BayesProxy(POP3ProxyBase):
 
     def send(self, data):
         """Logs the data to the log file."""
-        if options.verbose:
+        if options["globals", "verbose"]:
             state.logFile.write(data)
             state.logFile.flush()
         try:
@@ -421,7 +417,7 @@ class BayesProxy(POP3ProxyBase):
     def recv(self, size):
         """Logs the data to the log file."""
         data = POP3ProxyBase.recv(self, size)
-        if options.verbose:
+        if options["globals", "verbose"]:
             state.logFile.write(data)
             state.logFile.flush()
         return data
@@ -488,65 +484,69 @@ class BayesProxy(POP3ProxyBase):
             (prob, clues) = state.bayes.spamprob\
                             (tokenizer.tokenize(messageText),
                              evidence=True)
-            if prob < options.ham_cutoff:
-                disposition = options.header_ham_string
+            if prob < options["Categorization", "ham_cutoff"]:
+                disposition = options["Hammie", "header_ham_string"]
                 if command == 'RETR':
                     state.numHams += 1
-            elif prob > options.spam_cutoff:
-                disposition = options.header_spam_string
+            elif prob > options["Categorization", "spam_cutoff"]:
+                disposition = options["Hammie", "header_spam_string"]
                 if command == 'RETR':
                     state.numSpams += 1
             else:
-                disposition = options.header_unsure_string
+                disposition = options["Hammie", "header_unsure_string"]
                 if command == 'RETR':
                     state.numUnsure += 1
 
-            if options.pop3proxy_strip_incoming_mailids == True:
-                s = re.compile(options.pop3proxy_mailid_header_name + \
+            if options["pop3proxy", "strip_incoming_mailids"] == True:
+                s = re.compile(options["pop3proxy", "mailid_header_name"] + \
                                ': [\d-]+[\\r]?[\\n]?')
                 messageText = s.sub('', messageText)
 
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             messageName = state.getNewMessageName()
-            headers += '\n%s: %s\r\n' % (options.hammie_header_name,
+            headers += '\n%s: %s\r\n' % (options["Hammie", "header_name"],
                                            disposition)
             if command == 'RETR' and not state.isTest:
-                if options.pop3proxy_add_mailid_to.find("header") != -1:
-                    headers += options.pop3proxy_mailid_header_name \
+                if options["pop3proxy", "add_mailid_to"].find("header") != -1:
+                    headers += options["pop3proxy", "mailid_header_name"] \
                             + ": " + messageName + "\r\n"
-                if options.pop3proxy_add_mailid_to.find("body") != -1:
+                if options["pop3proxy", "add_mailid_to"].find("body") != -1:
                     body = body[:len(body)-3] + \
-                           options.pop3proxy_mailid_header_name + ": " \
-                            + messageName + "\r\n.\r\n"
+                           options["pop3proxy", "mailid_header_name"] + \
+                           ": " + messageName + "\r\n.\r\n"
             else:
-                headers += options.hammie_header_name + "-ID: Test\r\n"
+                headers += options["Hammie", "header_name"] + "-ID: Test\r\n"
 
-            if options.pop3proxy_include_prob:
-                headers += '%s: %s\r\n' % (options.pop3proxy_prob_header_name,
+            if options["pop3proxy", "include_prob"]:
+                headers += '%s: %s\r\n' % (options["pop3proxy",
+                                                   "prob_header_name"],
                                            prob)
-            if options.pop3proxy_include_thermostat:
+            if options["pop3proxy", "include_thermostat"]:
                 thermostat = '**********'
                 headers += '%s: %s\r\n' % \
-                          (options.pop3proxy_thermostat_header_name,
+                          (options["pop3proxy", "thermostat_header_name"],
                            thermostat[int(prob*10):])
-            if options.pop3proxy_include_evidence:
-                headers += options.pop3proxy_evidence_header_name + ": "
+            if options["pop3proxy", "include_evidence"]:
+                headers += options["pop3proxy", "evidence_header_name"] \
+                           + ": "
                 headers += "; ".join(["%r: %.2f" % (word, prob)
                          for word, score in clues
                          if (word[0] == '*' or
-                             score <= options.clue_mailheader_cutoff or
-                             score >= 1.0 - options.clue_mailheader_cutoff)])
+                             score <= options["Hammie",
+                                              "clue_mailheader_cutoff"] or
+                             score >= 1.0 - options["Hammie",
+                                                    "clue_mailheader_cutoff"])])
             headers += "\r\n"
             
-            if options.pop3proxy_notate_to \
-                and disposition == options.header_spam_string:
+            if options["pop3proxy", "notate_to"] \
+                and disposition == options["Hammie", "header_spam_string"]:
                 # add 'spam' as recip only if spam
                 tore = re.compile("^To: ", re.IGNORECASE | re.MULTILINE)
                 headers = re.sub(tore,"To: %s," % (disposition),
                      headers)
                 
-            if options.pop3proxy_notate_subject \
-                and disposition == options.header_spam_string:
+            if options["pop3proxy", "notate_subject"] \
+                and disposition == options["Hammie", "header_spam_string"]:
                 # add 'spam' to subject if spam
                 tore = re.compile("^Subject: ", re.IGNORECASE | re.MULTILINE)
                 headers = re.sub(tore,"Subject: %s " % (disposition),
@@ -556,7 +556,7 @@ class BayesProxy(POP3ProxyBase):
 
             # Cache the message; don't pollute the cache with test messages.
             if command == 'RETR' and not state.isTest \
-                    and options.pop3proxy_cache_messages:
+                    and options["pop3proxy", "cache_messages"]:
                 # Write the message into the Unknown cache.
                 message = state.unknownCorpus.makeMessage(messageName)
                 message.setSubstance(messageText)
@@ -589,630 +589,6 @@ class BayesProxy(POP3ProxyBase):
         return response
 
 
-class UserInterfaceServer(Dibbler.HTTPServer):
-    """Implements the web server component via a Dibbler plugin."""
-
-    def __init__(self, uiPort):
-        Dibbler.HTTPServer.__init__(self, uiPort)
-        print 'User interface url is http://localhost:%d/' % (uiPort)
-
-
-def readUIResources():
-    """Returns ui.html and a dictionary of Gifs.  Used here and by
-    OptionConfig"""
-
-    # Using `exec` is nasty, but I couldn't figure out a way of making
-    # `getattr` or `__import__` work with ResourcePackage.
-    from spambayes.resources import ui_html
-    images = {}
-    for baseName in IMAGES:
-        moduleName = '%s.%s_gif' % ('spambayes.resources', baseName)
-        module = __import__(moduleName, {}, {}, ('spambayes', 'resources'))
-        images[baseName] = module.data
-    return ui_html.data, images
-
-
-class UserInterface(Dibbler.HTTPPlugin):
-    """Serves the HTML user interface of the proxy."""
-
-    def __init__(self):
-        """Load up the necessary resources: ui.html and helmet.gif."""
-        Dibbler.HTTPPlugin.__init__(self)
-        htmlSource, self._images = readUIResources()
-        self.html = PyMeldLite.Meld(htmlSource, readonly=True)
-
-    def onIncomingConnection(self, clientSocket):
-        """Checks the security settings."""
-        return options.html_ui_allow_remote_connections or \
-               clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
-
-    def _writePreamble(self, name, parent=None, showImage=True):
-        """Writes the HTML for the beginning of a page - time-consuming
-        methlets use this and `_writePostamble` to write the page in
-        pieces, including progress messages.  `parent` (if given) should
-        be a pair: `(url, label)`, eg. `('review', 'Review')`."""
-
-        # Take the whole palette and remove the content and the footer,
-        # leaving the header and an empty body.
-        html = self.html.clone()
-        html.mainContent = " "
-        del html.footer
-
-        # Add in the name of the page and remove the link to Home if this
-        # *is* Home.
-        html.title = name
-        if name == 'Home':
-            del html.homelink
-            html.pagename = "Home"
-        elif parent:
-            html.pagename = "> <a href='%s'>%s</a> > %s" % \
-                            (parent[0], parent[1], name)
-        else:
-            html.pagename = "> " + name
-
-        # Remove the helmet image if we're not showing it - this happens on
-        # shutdown because the browser might ask for the image after we've
-        # exited.
-        if not showImage:
-            del html.helmet
-
-        # Strip the closing tags, so we push as far as the start of the main
-        # content.  We'll push the closing tags at the end.
-        self.writeOKHeaders('text/html')
-        self.write(re.sub(r'</div>\s*</body>\s*</html>', '', str(html)))
-
-    def _writePostamble(self):
-        """Writes the end of time-consuming pages - see `_writePreamble`."""
-        footer = self.html.footer.clone()
-        footer.timestamp = time.asctime(time.localtime())
-        self.write("</div>" + self.html.footer)
-        self.write("</body></html>")
-
-    def _trimHeader(self, field, limit, quote=False):
-        """Trims a string, adding an ellipsis if necessary and HTML-quoting
-        on request.  Also pumps it through email.Header.decode_header, which
-        understands charset sections in email headers - I suspect this will
-        only work for Latin character sets, but hey, it works for Francois
-        Granger's name.  8-)"""
-
-        try:
-            sections = email.Header.decode_header(field)
-        except (binascii.Error, email.Errors.HeaderParseError):
-            sections = [(field, None)]
-        field = ' '.join([text for text, unused in sections])
-        if len(field) > limit:
-            field = field[:limit-3] + "..."
-        if quote:
-            field = cgi.escape(field)
-        return field
-
-    def onHome(self):
-        """Serve up the homepage."""
-        stateDict = state.__dict__.copy()
-        stateDict.update(state.bayes.__dict__)
-        statusTable = self.html.statusTable.clone()
-        if not state.servers:
-            statusTable.proxyDetails = "No POP3 proxies running."
-        content = (self._buildBox('Status and Configuration',
-                                  'status.gif', statusTable % stateDict)+
-                   self._buildBox('Train on proxied messages',
-                                  'train.gif', self.html.reviewText) +
-                   self._buildTrainBox() +
-                   self._buildClassifyBox() +
-                   self._buildBox('Word query', 'query.gif',
-                                  self.html.wordQuery) +
-                   self._buildBox('Find message', 'query.gif',
-                                  self.html.findMessage)
-                   )
-        self._writePreamble("Home")
-        self.write(content)
-        self._writePostamble()
-
-    def _doSave(self):
-        """Saves the database."""
-        self.write("<b>Saving... ")
-        self.flush()
-        state.bayes.store()
-        self.write("Done</b>.\n")
-
-    def onSave(self, how):
-        """Command handler for "Save" and "Save & shutdown"."""
-        isShutdown = how.lower().find('shutdown') >= 0
-        self._writePreamble("Save", showImage=(not isShutdown))
-        self._doSave()
-        if isShutdown:
-            self.write("<p>%s</p>" % self.html.shutdownMessage)
-            self.write("</div></body></html>")
-            self.flush()
-            ## Is this still required?: self.shutdown(2)
-            self.close()
-            raise SystemExit
-        self._writePostamble()
-
-    def _convertUploadToMessageList(self, content):
-        """Returns a list of raw messages extracted from uploaded content.
-        You can upload either a single message or an mbox file."""
-        if content.startswith('From '):
-            # Get a list of raw messages from the mbox content.
-            class SimpleMessage:
-                def __init__(self, fp):
-                    self.guts = fp.read()
-            contentFile = StringIO.StringIO(content)
-            mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
-            return map(lambda m: m.guts, mbox)
-        else:
-            # Just the one message.
-            return [content]
-
-    def onUpload(self, file):
-        """Save a message for later training - used by Skip's proxytee.py."""
-        # Convert platform-specific line endings into unix-style.
-        file = file.replace('\r\n', '\n').replace('\r', '\n')
-
-        # Get a message list from the upload and write it into the cache.
-        messages = self._convertUploadToMessageList(file)
-        for m in messages:
-            messageName = state.getNewMessageName()
-            message = state.unknownCorpus.makeMessage(messageName)
-            message.setSubstance(m)
-            state.unknownCorpus.addMessage(message)
-
-        # Return a link Home.
-        self.write("<p>OK. Return <a href='home'>Home</a>.</p>")
-
-    def onTrain(self, file, text, which):
-        """Train on an uploaded or pasted message."""
-        self._writePreamble("Train")
-
-        # Upload or paste?  Spam or ham?
-        content = file or text
-        isSpam = (which == 'Train as Spam')
-
-        # Convert platform-specific line endings into unix-style.
-        content = content.replace('\r\n', '\n').replace('\r', '\n')
-
-        # The upload might be a single message or am mbox file.
-        messages = self._convertUploadToMessageList(content)
-
-        # Append the message(s) to a file, to make it easier to rebuild
-        # the database later.   This is a temporary implementation -
-        # it should keep a Corpus of trained messages.
-        if isSpam:
-            f = open("_pop3proxyspam.mbox", "a")
-        else:
-            f = open("_pop3proxyham.mbox", "a")
-
-        # Train on the uploaded message(s).
-        self.write("<b>Training...</b>\n")
-        self.flush()
-        for message in messages:
-            tokens = tokenizer.tokenize(message)
-            state.bayes.learn(tokens, isSpam)
-            f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
-            f.write(message)
-            f.write("\n\n")
-
-        # Save the database and return a link Home and another training form.
-        f.close()
-        self._doSave()
-        self.write("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
-        self.write(self._buildTrainBox())
-        self._writePostamble()
-
-    def _keyToTimestamp(self, key):
-        """Given a message key (as seen in a Corpus), returns the timestamp
-        for that message.  This is the time that the message was received,
-        not the Date header."""
-        return long(key[:10])
-
-    def _getTimeRange(self, timestamp):
-        """Given a unix timestamp, returns a 3-tuple: the start timestamp
-        of the given day, the end timestamp of the given day, and the
-        formatted date of the given day."""
-        # This probably works on Summertime-shift days; time will tell.  8-)
-        this = time.localtime(timestamp)
-        start = (this[0], this[1], this[2], 0, 0, 0, this[6], this[7], this[8])
-        end = time.localtime(time.mktime(start) + 36*60*60)
-        end = (end[0], end[1], end[2], 0, 0, 0, end[6], end[7], end[8])
-        date = time.strftime("%A, %B %d, %Y", start)
-        return time.mktime(start), time.mktime(end), date
-
-    def _buildReviewKeys(self, timestamp):
-        """Builds an ordered list of untrained message keys, ready for output
-        in the Review list.  Returns a 5-tuple: the keys, the formatted date
-        for the list (eg. "Friday, November 15, 2002"), the start of the prior
-        page or zero if there isn't one, likewise the start of the given page,
-        and likewise the start of the next page."""
-        # Fetch all the message keys and sort them into timestamp order.
-        allKeys = state.unknownCorpus.keys()
-        allKeys.sort()
-
-        # The default start timestamp is derived from the most recent message,
-        # or the system time if there are no messages (not that it gets used).
-        if not timestamp:
-            if allKeys:
-                timestamp = self._keyToTimestamp(allKeys[-1])
-            else:
-                timestamp = time.time()
-        start, end, date = self._getTimeRange(timestamp)
-
-        # Find the subset of the keys within this range.
-        startKeyIndex = bisect.bisect(allKeys, "%d" % long(start))
-        endKeyIndex = bisect.bisect(allKeys, "%d" % long(end))
-        keys = allKeys[startKeyIndex:endKeyIndex]
-        keys.reverse()
-
-        # What timestamps to use for the prior and next days?  If there any
-        # messages before/after this day's range, use the timestamps of those
-        # messages - this will skip empty days.
-        prior = end = 0
-        if startKeyIndex != 0:
-            prior = self._keyToTimestamp(allKeys[startKeyIndex-1])
-        if endKeyIndex != len(allKeys):
-            end = self._keyToTimestamp(allKeys[endKeyIndex])
-
-        # Return the keys and their date.
-        return keys, date, prior, start, end
-
-    def _makeMessageInfo(self, message):
-        """Given an email.Message, return an object with subjectHeader,
-        fromHeader and bodySummary attributes.  These objects are passed into
-        appendMessages by onReview - passing email.Message objects directly
-        uses too much memory."""
-        subjectHeader = message["Subject"] or "(none)"
-        fromHeader = message["From"] or "(none)"
-        try:
-            part = typed_subpart_iterator(message, 'text', 'plain').next()
-            text = part.get_payload()
-        except StopIteration:
-            try:
-                part = typed_subpart_iterator(message, 'text', 'html').next()
-                text = part.get_payload()
-                text, unused = tokenizer.crack_html_style(text)
-                text, unused = tokenizer.crack_html_comment(text)
-                text = tokenizer.html_re.sub(' ', text)
-                text = '(this message only has an HTML body)\n' + text
-            except StopIteration:
-                text = '(this message has no text body)'
-        if type(text) == type([]):  # gotta be a 'right' way to do this
-            text = "(this message is a digest of %s messages)" % (len(text))
-        else:
-            text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
-            text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
-            text = text.strip()
-
-        class _MessageInfo:
-            pass
-        messageInfo = _MessageInfo()
-        messageInfo.subjectHeader = self._trimHeader(subjectHeader, 50, True)
-        messageInfo.fromHeader = self._trimHeader(fromHeader, 40, True)
-        messageInfo.bodySummary = self._trimHeader(text, 200)
-        return messageInfo
-
-    def _appendMessages(self, table, keyedMessageInfo, label):
-        """Appends the rows of a table of messages to 'table'."""
-        stripe = 0
-        for key, messageInfo in keyedMessageInfo:
-            row = self.html.reviewRow.clone()
-            if label == 'Spam':
-                row.spam.checked = 1
-            elif label == 'Ham':
-                row.ham.checked = 1
-            else:
-                row.defer.checked = 1
-            row.subject = messageInfo.subjectHeader
-            row.subject.title = messageInfo.bodySummary
-            row.subject.href="view?key=%s&corpus=%s" % (key, label)
-            row.from_ = messageInfo.fromHeader
-            subj = cgi.escape(messageInfo.subjectHeader)
-            row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
-            setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
-            row = str(row).replace('TYPE', label).replace('KEY', key)
-            table += row
-            stripe = stripe ^ 1
-
-    def onReview(self, **params):
-        """Present a list of message for (re)training."""
-        # Train/discard sumbitted messages.
-        self._writePreamble("Review")
-        id = ''
-        numTrained = 0
-        numDeferred = 0
-        for key, value in params.items():
-            if key.startswith('classify:'):
-                id = key.split(':')[2]
-                if value == 'spam':
-                    targetCorpus = state.spamCorpus
-                elif value == 'ham':
-                    targetCorpus = state.hamCorpus
-                elif value == 'discard':
-                    targetCorpus = None
-                    try:
-                        state.unknownCorpus.removeMessage(state.unknownCorpus[id])
-                    except KeyError:
-                        pass  # Must be a reload.
-                else: # defer
-                    targetCorpus = None
-                    numDeferred += 1
-                if targetCorpus:
-                    sourceCorpus = None
-                    if state.unknownCorpus.get(id) is not None:
-                        sourceCorpus = state.unknownCorpus
-                    elif state.hamCorpus.get(id) is not None:
-                        sourceCorpus = state.hamCorpus
-                    elif state.spamCorpus.get(id) is not None:
-                        sourceCorpus = state.spamCorpus
-                    if sourceCorpus is not None:
-                        try:
-                            targetCorpus.takeMessage(id, sourceCorpus)
-                            if numTrained == 0:
-                                self.write("<p><b>Training... ")
-                                self.flush()
-                            numTrained += 1
-                        except KeyError:
-                            pass  # Must be a reload.
-
-        # Report on any training, and save the database if there was any.
-        if numTrained > 0:
-            plural = ''
-            if numTrained != 1:
-                plural = 's'
-            self.write("Trained on %d message%s. " % (numTrained, plural))
-            self._doSave()
-            self.write("<br>&nbsp;")
-
-        title = ""
-        keys = []
-        sourceCorpus = state.unknownCorpus
-        # If any messages were deferred, show the same page again.
-        if numDeferred > 0:
-            start = self._keyToTimestamp(id)
-
-        # Else after submitting a whole page, display the prior page or the
-        # next one.  Derive the day of the submitted page from the ID of the
-        # last processed message.
-        elif id:
-            start = self._keyToTimestamp(id)
-            unused, unused, prior, unused, next = self._buildReviewKeys(start)
-            if prior:
-                start = prior
-            else:
-                start = next
-
-        # Else if they've hit Previous or Next, display that page.
-        elif params.get('go') == 'Next day':
-            start = self._keyToTimestamp(params['next'])
-        elif params.get('go') == 'Previous day':
-            start = self._keyToTimestamp(params['prior'])
-
-        # Else if an id has been specified, just show that message
-        elif params.get('find') is not None:
-            key = params['find']
-            error = False
-            if key == "":
-                error = True
-                page = "<p>You must enter an id to find.</p>"
-            elif state.unknownCorpus.get(key) == None:
-                # maybe this message has been moved to the spam
-                # or ham corpus
-                if state.hamCorpus.get(key) != None:
-                    sourceCorpus = state.hamCorpus
-                elif state.spamCorpus.get(key) != None:
-                    sourceCorpus = state.spamCorpus
-                else:
-                    error = True
-                    page = "<p>Could not find message with id '"
-                    page += key + "' - maybe it expired.</p>"
-            if error == True:
-                title = "Did not find message"
-                box = self._buildBox(title, 'status.gif', page)
-                self.write(box)
-                self.write(self._buildBox('Find message', 'query.gif',
-                                          self.html.findMessage))
-                self._writePostamble()
-                return
-            keys.append(params['find'])
-            prior = this = next = 0
-            title = "Found message"
-
-        # Else show the most recent day's page, as decided by _buildReviewKeys.
-        else:
-            start = 0
-
-        # Build the lists of messages: spams, hams and unsure.
-        if len(keys) == 0:
-            keys, date, prior, this, next = self._buildReviewKeys(start)
-        keyedMessageInfo = {options.header_spam_string: [],
-                            options.header_ham_string: [],
-                            options.header_unsure_string: []}
-        for key in keys:
-            # Parse the message, get the judgement header and build a message
-            # info object for each message.
-            cachedMessage = sourceCorpus[key]
-            message = mboxutils.get_message(cachedMessage.getSubstance())
-            judgement = message[options.hammie_header_name]
-            if judgement is None:
-                judgement = options.header_unsure_string
-            else:
-                judgement = judgement.split(';')[0].strip()
-            messageInfo = self._makeMessageInfo(message)
-            keyedMessageInfo[judgement].append((key, messageInfo))
-
-        # Present the list of messages in their groups in reverse order of
-        # appearance.
-        if keys:
-            page = self.html.reviewtable.clone()
-            if prior:
-                page.prior.value = prior
-                del page.priorButton.disabled
-            if next:
-                page.next.value = next
-                del page.nextButton.disabled
-            templateRow = page.reviewRow.clone()
-            page.table = ""  # To make way for the real rows.
-            for header, label in ((options.header_spam_string, 'Spam'),
-                                  (options.header_ham_string, 'Ham'),
-                                  (options.header_unsure_string, 'Unsure')):
-                messages = keyedMessageInfo[header]
-                if messages:
-                    subHeader = str(self.html.reviewSubHeader)
-                    subHeader = subHeader.replace('TYPE', label)
-                    page.table += self.html.blankRow
-                    page.table += subHeader
-                    self._appendMessages(page.table, messages, label)
-
-            page.table += self.html.trainRow
-            if title == "":
-                title = "Untrained messages received on %s" % date
-            box = self._buildBox(title, None, page)  # No icon, to save space.
-        else:
-            page = "<p>There are no untrained messages to display. "
-            page += "Return <a href='home'>Home</a>.</p>"
-            title = "No untrained messages"
-            box = self._buildBox(title, 'status.gif', page)
-
-        self.write(box)
-        self._writePostamble()
-
-    def onView(self, key, corpus):
-        """View a message - linked from the Review page."""
-        self._writePreamble("View message", parent=('review', 'Review'))
-        message = state.unknownCorpus.get(key)
-        if message:
-            self.write("<pre>%s</pre>" % cgi.escape(message.getSubstance()))
-        else:
-            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
-        self._writePostamble()
-
-    def _buildCluesTable(self, message, subject=None):
-        cluesTable = self.html.cluesTable.clone()
-        cluesRow = cluesTable.cluesRow.clone()
-        del cluesTable.cluesRow   # Delete dummy row to make way for real ones
-        (probability, clues) = state.bayes.spamprob(tokenizer.tokenize(message),\
-                                                    evidence=True)
-        for word, wordProb in clues:
-            cluesTable += cluesRow % (cgi.escape(word), wordProb)
-
-        results = self.html.classifyResults.clone()
-        results.probability = probability
-        if subject is None:
-            heading = "Clues:"
-        else:
-            heading = "Clues for: " + subject
-        results.cluesBox = self._buildBox(heading, 'status.gif', cluesTable)
-        return results
-
-    def onShowclues(self, key, subject):
-        """Show clues for a message - linked from the Review page."""
-        self._writePreamble("Message clues", parent=('review', 'Review'))
-        message = state.unknownCorpus.get(key).getSubstance()
-        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
-        if message:
-            results = self._buildCluesTable(message, subject)
-            del results.classifyAnother
-            self.write(results)
-        else:
-            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
-        self._writePostamble()
-
-    def onClassify(self, file, text, which):
-        """Classify an uploaded or pasted message."""
-        message = file or text
-        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
-        results = self._buildCluesTable(message)
-        results.classifyAnother = self._buildClassifyBox()
-        self._writePreamble("Classify")
-        self.write(results)
-        self._writePostamble()
-
-    def onWordquery(self, word):
-        if word == "":
-            stats = "You must enter a word."
-        else:
-            word = word.lower()
-            wordinfo = state.bayes._wordinfoget(word)
-            if wordinfo:
-                stats = self.html.wordStats.clone()
-                stats.spamcount = wordinfo.spamcount
-                stats.hamcount = wordinfo.hamcount
-                stats.spamprob = state.bayes.probability(wordinfo)
-            else:
-                stats = "%r does not exist in the database." % cgi.escape(word)
-
-        query = self.html.wordQuery.clone()
-        query.word.value = word
-        statsBox = self._buildBox("Statistics for %r" % cgi.escape(word),
-                                  'status.gif', stats)
-        queryBox = self._buildBox("Word query", 'query.gif', query)
-        self._writePreamble("Word query")
-        self.write(statsBox + queryBox)
-        self._writePostamble()
-
-    def _writeImage(self, image):
-        self.writeOKHeaders('image/gif')
-        self.write(self._images[image])
-
-    # If you are easily offended, look away now...
-    for imageName in IMAGES:
-        exec "def %s(self): self._writeImage('%s')" % \
-             ("on%sGif" % imageName.capitalize(), imageName)
-
-    def _buildBox(self, heading, icon, content):
-        """Builds a yellow-headed HTML box."""
-        box = self.html.headedBox.clone()
-        box.heading = heading
-        if icon:
-            box.icon.src = icon
-        else:
-            del box.iconCell
-        box.boxContent = content
-        return box
-
-    def _buildClassifyBox(self):
-        """Returns a "Classify a message" box.  This is used on both the Home
-        page and the classify results page.  The Classify form is based on the
-        Upload form."""
-
-        form = self.html.upload.clone()
-        del form.or_mbox
-        del form.submit_spam
-        del form.submit_ham
-        form.action = "classify"
-        return self._buildBox("Classify a message", 'classify.gif', form)
-
-    def _buildTrainBox(self):
-        """Returns a "Train on a given message" box.  This is used on both
-        the Home page and the training results page.  The Train form is
-        based on the Upload form."""
-
-        form = self.html.upload.clone()
-        del form.submit_classify
-        return self._buildBox("Train on a given message", 'message.gif', form)
-
-    def reReadOptions(self):
-        """Called by the config page when the user saves some new options, or
-        restores the defaults."""
-        # Reload the options.
-        global state
-        state.bayes.store()
-        reload(spambayes.Options)
-        global options
-        from spambayes.Options import options
-
-        # Recreate the state.
-        state = State()
-        state.buildServerStrings()
-        state.createWorkers()
-
-        # Close the existing listeners and create new ones.  This won't
-        # affect any running proxies - once a listener has created a proxy,
-        # that proxy is then independent of it.
-        for proxy in proxyListeners:
-            proxy.close()
-        del proxyListeners[:]
-        _createProxies(state.servers, state.proxyPorts)
-
-
 # This keeps the global state of the module - the command-line options,
 # statistics like how many mails have been classified, the handle of the
 # log file, the Classifier and FileCorpus objects, and so on.
@@ -1223,14 +599,13 @@ class State:
         and are then overridden by the command-line processing code in the
         __main__ code below."""
         # Open the log file.
-        if options.verbose:
+        if options["globals", "verbose"]:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
 
         self.servers = []
         self.proxyPorts = []
-
-        if options.pop3proxy_servers:
-            for server in options.pop3proxy_servers.split(','):
+        if options["pop3proxy", "servers"]:
+            for server in options["pop3proxy", "servers"].split(','):
                 server = server.strip()
                 if server.find(':') > -1:
                     server, port = server.split(':', 1)
@@ -1238,8 +613,8 @@ class State:
                     port = '110'
                 self.servers.append((server, int(port)))
 
-        if options.pop3proxy_ports:
-            splitPorts = options.pop3proxy_ports.split(',')
+        if options["pop3proxy", "ports"]:
+            splitPorts = options["pop3proxy", "ports"].split(',')
             self.proxyPorts = map(_addressAndPort, splitPorts)
 
         if len(self.servers) != len(self.proxyPorts):
@@ -1247,11 +622,11 @@ class State:
             sys.exit()
 
         # Load up the other settings from Option.py / bayescustomize.ini
-        self.useDB = options.pop3proxy_persistent_use_database
-        self.uiPort = options.html_ui_port
-        self.launchUI = options.html_ui_launch_browser
-        self.gzipCache = options.pop3proxy_cache_use_gzip
-        self.cacheExpiryDays = options.pop3proxy_cache_expiry_days
+        self.useDB = options["pop3proxy", "persistent_use_database"]
+        self.uiPort = options["html_ui", "port"]
+        self.launchUI = options["html_ui", "launch_browser"]
+        self.gzipCache = options["pop3proxy", "cache_use_gzip"]
+        self.cacheExpiryDays = options["pop3proxy", "cache_expiry_days"]
         self.runTestServer = False
         self.isTest = False
 
@@ -1280,9 +655,9 @@ class State:
         print "Loading database...",
         if self.isTest:
             self.useDB = True
-            options.pop3proxy_persistent_storage_file = \
+            options["pop3proxy", "persistent_storage_file"] = \
                         '_pop3proxy_test.pickle'   # This is never saved.
-        filename = options.pop3proxy_persistent_storage_file
+        filename = options["pop3proxy", "persistent_storage_file"]
         filename = os.path.expanduser(filename)
         if self.useDB:
             self.bayes = storage.DBDictClassifier(filename)
@@ -1302,22 +677,25 @@ class State:
 
             # Create/open the Corpuses.  Use small cache sizes to avoid hogging
             # lots of memory.
-            map(ensureDir, [options.pop3proxy_spam_cache,
-                            options.pop3proxy_ham_cache,
-                            options.pop3proxy_unknown_cache])
+            map(ensureDir, [options["pop3proxy", "spam_cache"],
+                            options["pop3proxy", "ham_cache"],
+                            options["pop3proxy", "unknown_cache]"])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
                 factory = FileMessageFactory()
-            age = options.pop3proxy_cache_expiry_days*24*60*60
+            age = options["pop3proxy", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory,
-                                               options.pop3proxy_spam_cache,
+                                               options["pop3proxy",
+                                                       "spam_cache"],
                                                '[0123456789]*', cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory,
-                                              options.pop3proxy_ham_cache,
+                                              options["pop3proxy",
+                                                      "ham_cache"],
                                               '[0123456789]*', cacheSize=20)
             self.unknownCorpus = ExpiryFileCorpus(age, factory,
-                                            options.pop3proxy_unknown_cache,
+                                            options["pop3proxy",
+                                                    "unknown_cache"],
                                             '[0123456789]*', cacheSize=20)
 
             # Given that (hopefully) users will get to the stage
@@ -1374,13 +752,26 @@ def _createProxies(servers, proxyPorts):
         listener = BayesProxyListener(server, serverPort, proxyPort)
         proxyListeners.append(listener)
 
+def _recreateState():
+    state = State()
+    state.buildServerStrings()
+    state.createWorkers()
+
+    # Close the existing listeners and create new ones.  This won't
+    # affect any running proxies - once a listener has created a proxy,
+    # that proxy is then independent of it.
+    for proxy in proxyListeners:
+        proxy.close()
+    del proxyListeners[:]
+    _createProxies(state.servers, state.proxyPorts)
+
 def main(servers, proxyPorts, uiPort, launchUI):
     """Runs the proxy forever or until a 'KILL' command is received or
     someone hits Ctrl+Break."""
     _createProxies(servers, proxyPorts)
     httpServer = UserInterfaceServer(uiPort)
-    proxyUI = UserInterface()
-    httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
+    proxyUI = ProxyUserInterface(state, _recreateState)
+    httpServer.register(proxyUI)
     Dibbler.run(launchBrowser=launchUI)
 
 
@@ -1571,8 +962,8 @@ def test():
     proxyReady = threading.Event()
     def runUIAndProxy():
         httpServer = UserInterfaceServer(8881)
-        proxyUI = UserInterface()
-        httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
+        proxyUI = ProxyUserInterface(state)
+        httpServer.register(proxyUI)
         BayesProxyListener('localhost', 8110, ('', 8111))
         state.bayes.learn(tokenizer.tokenize(spam1), True)
         state.bayes.learn(tokenizer.tokenize(good1), False)
@@ -1618,7 +1009,7 @@ def test():
         proxy.send("retr %d\r\n" % i)
         while response.find('\n.\r\n') == -1:
             response = response + proxy.recv(1000)
-        assert response.find(options.hammie_header_name) >= 0
+        assert response.find(options["Hammie", "header_name"]) >= 0
 
     # Smoke-test the HTML UI.
     httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -1662,10 +1053,10 @@ def run():
             state.launchUI = True
         elif opt == '-d':   # dbm file
             state.useDB = True
-            options.pop3proxy_persistent_storage_file = arg
+            options["pop3proxy", "persistent_storage_file"] = arg
         elif opt == '-D':   # pickle file
             state.useDB = False
-            options.pop3proxy_persistent_storage_file = arg
+            options["pop3proxy", "persistent_storage_file"] = arg
         elif opt == '-p':   # dead option
             print >>sys.stderr, "-p option is no longer supported, use -D\n"
             print >>sys.stderr, __doc__
