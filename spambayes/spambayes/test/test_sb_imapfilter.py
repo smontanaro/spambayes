@@ -14,7 +14,7 @@ sb_test_support.fix_sys_path()
 
 from spambayes import Dibbler
 from spambayes.Options import options
-from spambayes.classifier import Classifer
+from spambayes.classifier import Classifier
 from sb_imapfilter import BadIMAPResponseError
 from spambayes.message import message_from_string
 from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder, IMAPFilter
@@ -88,8 +88,7 @@ IMAP_UIDS = {1 : 101, 2: 102, 3:103, 4:104}
 UNDELETED_IDS = (1,2)
 
 class TestListener(Dibbler.Listener):
-    """Listener for TestIMAP4Server.  Works on port 8143, to co-exist
-    with real IMAP4 servers."""
+    """Listener for TestIMAP4Server."""
     def __init__(self, socketMap=asyncore.socket_map):
         Dibbler.Listener.__init__(self, IMAP_PORT, TestIMAP4Server,
                                   (socketMap,), socketMap=socketMap)
@@ -238,7 +237,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
     def onSearch(self, id, command, args, uid=False):
         args = args.upper()
         results = ()
-        if "UNDELETED" in args:
+        if args.find("UNDELETED") != -1:
             for msg_id in UNDELETED_IDS:
                 if uid:
                     results += (IMAP_UIDS[msg_id],)
@@ -258,7 +257,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
         response = {}
         for msg in msg_nums:
             response[msg] = []
-        if "UID" in msg_parts:
+        if msg_parts.find("UID") != -1:
             if uid:
                 for msg in msg_nums:
                     response[msg].append("FETCH (UID %s)" % (msg,))
@@ -266,7 +265,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                 for msg in msg_nums:
                     response[msg].append("FETCH (UID %s)" %
                                          (IMAP_UIDS[int(msg)]))
-        if "BODY.PEEK[]" in msg_parts:
+        if msg_parts.find("BODY.PEEK[]") != -1:
             for msg in msg_nums:
                 if uid:
                     msg_uid = int(msg)
@@ -275,7 +274,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                 response[msg].append(("FETCH (BODY[] {%s}" %
                                      (len(IMAP_MESSAGES[msg_uid])),
                                      IMAP_MESSAGES[msg_uid]))
-        if "RFC822.HEADER" in msg_parts:
+        if msg_parts.find("RFC822.HEADER") != -1:
             for msg in msg_nums:
                 if uid:
                     msg_uid = int(msg)
@@ -285,7 +284,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                 headers, unused = msg_text.split('\r\n\r\n', 1)
                 response[msg].append(("FETCH (RFC822.HEADER {%s}" %
                                       (len(headers),), headers))
-        if "FLAGS INTERNALDATE" in msg_parts:
+        if msg_parts.find("FLAGS INTERNALDATE") != -1:
             # We make up flags & dates.
             for msg in msg_nums:
                 response[msg].append('FETCH (FLAGS (\Seen \Deleted) '
@@ -513,7 +512,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         # XXX I can't find a message that generates a defect!  Until
         # message 103 is replaced with one that does, this will fail with
         # Python 2.4/email 3.0.
-        has_header = "X-Spambayes-Exception: " in new_msg.as_string()
+        has_header = new_msg.as_string().find("X-Spambayes-Exception: ") != -1
         has_defect = hasattr(new_msg, "defects") and len(new_msg.defects) > 0
         self.assert_(has_header or has_defect)
 
