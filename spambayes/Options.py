@@ -202,6 +202,10 @@ robinson_minimum_prob_strength: 0.0
 # nonense, or, if you're lucky, will blow up with division by 0 or negative
 # square roots.  An NxN test grid should work fine.
 use_central_limit: False
+
+# Same as use_central_limit, except takes logarithms of probabilities and
+# probability complements (p and 1-p) instead.
+use_central_limit2: False
 """
 
 int_cracker = ('getint', None)
@@ -250,6 +254,7 @@ all_options = {
                    'robinson_minimum_prob_strength': float_cracker,
 
                    'use_central_limit': boolean_cracker,
+                   'use_central_limit2': boolean_cracker,
                    },
 }
 

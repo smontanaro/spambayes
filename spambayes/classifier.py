@@ -742,3 +742,97 @@ class GrahamBayes(object):
 
     if options.use_central_limit:
         spamprob = central_limit_spamprob
+
+
+
+
+    def central_limit_compute_population_stats2(self, msgstream, is_spam):
+        from math import ldexp, log
+
+        sum = sumsq = 0
+        seen = {}
+        for msg in msgstream:
+            for prob, word, record in self._getclues(msg):
+                if word in seen:
+                    continue
+                seen[word] = 1
+                if is_spam:
+                    prob = log(prob)
+                else:
+                    prob = log(1.0 - prob)
+                prob = long(ldexp(prob, 64))
+                sum += prob
+                sumsq += prob * prob
+        n = len(seen)
+
+        if is_spam:
+            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
+            spamsum = self.spamsum
+            self.spammean = ldexp(spamsum, -64) / self.spamn
+            spamvar = self.spamsumsq * self.spamn - spamsum**2
+            self.spamvar = ldexp(spamvar, -128) / (self.spamn ** 2)
+            print 'spammean', self.spammean, 'spamvar', self.spamvar
+        else:
+            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
+            hamsum = self.hamsum
+            self.hammean = ldexp(hamsum, -64) / self.hamn
+            hamvar = self.hamsumsq * self.hamn - hamsum**2
+            self.hamvar = ldexp(hamvar, -128) / (self.hamn ** 2)
+            print 'hammean', self.hammean, 'hamvar', self.hamvar
+
+    if options.use_central_limit2:
+        compute_population_stats = central_limit_compute_population_stats2
+
+    def central_limit_spamprob2(self, wordstream, evidence=False):
+        """Return best-guess probability that wordstream is spam.
+
+        wordstream is an iterable object producing words.
+        The return value is a float in [0.0, 1.0].
+
+        If optional arg evidence is True, the return value is a pair
+            probability, evidence
+        where evidence is a list of (word, probability) pairs.
+        """
+
+        from math import sqrt, log
+
+        clues = self._getclues(wordstream)
+        hsum = ssum = 0.0
+        for prob, word, record in clues:
+            ssum += log(prob)
+            hsum += log(1.0 - prob)
+            if record is not None:
+                record.killcount += 1
+        n = len(clues)
+        if n == 0:
+            return 0.5
+        hmean = hsum / n
+        smean = ssum / n
+
+        # If this sample is drawn from the spam population, its mean is
+        # distributed around spammean with variance spamvar/n.  Likewise
+        # for if it's drawn from the ham population.  Compute a normalized
+        # z-score (how many stddevs is it away from the population mean?)
+        # against both populations, and then it's ham or spam depending
+        # on which population it matches better.
+        zham = (hmean - self.hammean) / sqrt(self.hamvar / n)
+        zspam = (smean - self.spammean) / sqrt(self.spamvar / n)
+        stat = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
+
+        # Normalize into [0, 1].  I'm arbitrarily clipping it to fit in
+        # [-20, 20] first.  20 is a massive z-score difference.
+        if stat < -20.0:
+            stat = -20.0
+        elif stat > 20.0:
+            stat = 20.0
+        stat = 0.5 + stat / 40.0
+
+        if evidence:
+            clues = [(word, prob) for prob, word, record in clues]
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            return stat, clues
+        else:
+            return stat
+
+    if options.use_central_limit2:
+        spamprob = central_limit_spamprob2
