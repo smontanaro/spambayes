@@ -71,6 +71,7 @@ def FindTopWords(bayes, num, get_spam):
             if info.spamcount==0:
                 items.append((info.hamcount, word, info))
     items.sort()
+    items.reverse()
     # Throw an error if we don't have enough tokens - otherwise
     # the test itself may fail, which will be more confusing than this.
     if len(items) < num:
@@ -299,6 +300,7 @@ def TestUnsureFilter(driver):
 def test(manager = None):
     # Run the tests - called from our plugin.
     driver = Driver(manager)
+    manager.Save() # necessary after a full retrain
     assert driver.manager.config.filter.enabled, "Filtering must be enabled for these tests"
     assert driver.manager.config.training.train_recovered_spam and \
            driver.manager.config.training.train_manual_spam, "Incremental training must be enabled for these tests"
