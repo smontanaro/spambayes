@@ -455,6 +455,7 @@ class BayesManager:
             self.ReportFatalStartupError("Failed to load bayes database")
             self.classifier_data.InitNew()
         self.bayes_options = bayes_options
+        self.bayes_message = bayes_message
         bayes_options["Categorization", "spam_cutoff"] = \
                                         self.config.filter.spam_threshold \
                                         / 100.0

@@ -16,17 +16,18 @@ def filter_message(msg, mgr, all_actions=True):
     if prob_perc >= config.spam_threshold:
         disposition = "Yes"
         attr_prefix = "spam"
-        msg.c = mgr.bayes_options["Headers", "header_spam_string"][0]
+        if all_actions:
+            msg.c = mgr.bayes_message.PERSISTENT_SPAM_STRING
     elif prob_perc >= config.unsure_threshold:
         disposition = "Unsure"
         attr_prefix = "unsure"
-        msg.c = mgr.bayes_options["Headers", "header_unsure_string"][0]
+        if all_actions:
+            msg.c = mgr.bayes_message.PERSISTENT_UNSURE_STRING
     else:
         disposition = "No"
         attr_prefix = "ham"
-        msg.c = mgr.bayes_options["Headers", "header_ham_string"][0]
-    mgr.classifier_data.message_db.store_msg(msg)
-    mgr.classifier_data.dirty = True
+        if all_actions:
+            msg.c = mgr.bayes_message.PERSISTENT_HAM_STRING
 
     ms = mgr.message_store
     try:
@@ -48,7 +49,6 @@ def filter_message(msg, mgr, all_actions=True):
                         # filter, else the save will fail.
                         if all_actions:
                             msg.RememberMessageCurrentFolder()
-                            mgr.classifier_data.message_db.store_msg(msg)
                         msg.Save()
                         break
                     except ms.ObjectChangedException:
@@ -110,6 +110,8 @@ def filter_message(msg, mgr, all_actions=True):
 
         if all_actions:
             mgr.stats.RecordClassification(prob)
+            mgr.classifier_data.message_db.store_msg(msg)
+            mgr.classifier_data.dirty = True
         return disposition
     except:
         print "Failed filtering message!", msg
