@@ -426,10 +426,11 @@ class Classifier:
         del self.wordinfo[word]
 
     def _enhance_wordstream(self, wordstream):
-        """Add bigrams to the wordstream.  This wraps the last token
-        to the first one, so a small number of odd tokens might get
-        generated from that, but it shouldn't be significant.  Note
-        that these are *token* bigrams, and not *word* bigrams - i.e.
+        """Add bigrams to the wordstream.
+
+        For example, a b c -> a b "a b" c "b c"
+
+        Note that these are *token* bigrams, and not *word* bigrams - i.e.
         'synthetic' tokens get bigram'ed, too.
 
         The bigram token is simply "unigram1 unigram2" - a space should
@@ -437,18 +438,15 @@ class Classifier:
         tokens, apart from 'synthetic' ones.
 
         If the experimental "Classifier":"x-use_bigrams" option is
-        removed, this function can be removed, too."""
-        p = None
-        while True:
-            try:
-                if p:
-                    yield p
-                q = wordstream.next()
-                if p:
-                    yield "%s %s" % (p, q)
-                p = q
-            except StopIteration:
-                break
+        removed, this function can be removed, too.
+        """
+
+        last = None
+        for token in wordstream:
+            yield token
+            if last:
+                yield "%s %s" % (last, token)
+            last = token
 
     def _wordinfokeys(self):
         return self.wordinfo.keys()
