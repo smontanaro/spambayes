@@ -36,7 +36,7 @@ def suck(f):
         if line.startswith('-> <stat> tested'):
             print line,
         if line.find(' items; mean ') != -1:
-            "-> <stat> Ham distribution for this pair: 1000 items; mean 0.05; sample sdev 0.68"
+            # -> <stat> Ham distribution for this pair: 1000 items; mean 0.05; sample sdev 0.68
             # and later "sample " went away
             vals = line.split(';')
             mean = float(vals[1].split()[-1])
@@ -131,8 +131,11 @@ print f1n, '->', f2n
 f1n = windowsfy(f1n)
 f2n = windowsfy(f2n)
 
-fp1, fn1, fptot1, fntot1, fpmean1, fnmean1,hamdev1,spamdev1,hamdevall1,spamdevall1 = suck(file(f1n))
-fp2, fn2, fptot2, fntot2, fpmean2, fnmean2,hamdev2,spamdev2,hamdevall2,spamdevall2 = suck(file(f2n))
+(fp1, fn1, fptot1, fntot1, fpmean1, fnmean1,
+ hamdev1, spamdev1, hamdevall1, spamdevall1) = suck(file(f1n))
+
+(fp2, fn2, fptot2, fntot2, fpmean2, fnmean2,
+ hamdev2, spamdev2, hamdevall2, spamdevall2) = suck(file(f2n))
 
 print
 print "false positive percentages"
@@ -162,4 +165,6 @@ dumpdev([spamdevall1],[spamdevall2])
 print
 diff1 = spamdevall1[0] - hamdevall1[0]
 diff2 = spamdevall2[0] - hamdevall2[0]
-print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,diff2,(diff2-diff1))
+print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,
+                                                        diff2,
+                                                        diff2 - diff1)
