@@ -334,10 +334,9 @@ class UserInterface(BaseUserInterface):
                 # Also display the clues as they were when the message was
                 # classified.
                 clues = []
-                evidence = mo.group(1).strip().split(';')
-                for clue in evidence:
-                    word, prob = clue.strip().split(': ')
-                    clues.append((word.strip("'"), prob))
+                evidence = re.findall(r"'(.+?)': ([^;]+)(?:;|$)", mo.group(1))
+                for word, prob in evidence:
+                    clues.append((word, prob))
                 cluesTable = self._fillCluesTable(clues)
 
                 if subject is None:
