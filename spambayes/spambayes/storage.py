@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+! /usr/bin/env python
 
 '''storage.py - Spambayes database management framework.
 
@@ -38,8 +38,6 @@ Abstract:
     initialize as the appropriate type of Trainer
 
 To Do:
-    o Would Trainer.trainall really want to train with the whole corpus,
-        or just a random subset?
     o Suggestions?
 
     '''
@@ -950,6 +948,17 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
         else:
             nm = options[default_name]
     return nm, typ
+
+def ensureDir(dirname):
+    """Ensure that the given directory exists - in other words, if it
+    does not exist, attempt to create it."""
+    try:
+        os.mkdir(dirname)
+        if options["globals", "verbose"]:
+            print >>sys.stderr, "Creating directory", dirname
+    except OSError, e:
+        if e.errno != errno.EEXIST:
+            raise
 
 if __name__ == '__main__':
     print >> sys.stderr, __doc__
