@@ -12,6 +12,7 @@ from __future__ import generators
 
 from win32com.client import constants
 from time import sleep
+import copy
 
 HAM="ham"
 SPAM="spam"
@@ -65,12 +66,19 @@ def FindTopWords(bayes, num, get_spam):
             continue
         if get_spam:
             if info.hamcount==0:
-                items.append((info.spamcount, word))
+                items.append((info.spamcount, word, info))
         else:
             if info.spamcount==0:
-                items.append((info.hamcount, word))
+                items.append((info.hamcount, word, info))
     items.sort()
-    return [item[1] for item in items]
+    # Throw an error if we don't have enough tokens - otherwise
+    # the test itself may fail, which will be more confusing than this.
+    if len(items) < num:
+        TestFailed("Error: could not find %d words with Spam=%s - only found %d" % (num, get_spam, len(items)))
+    ret = {}
+    for n, word, info in items[:num]:
+        ret[word]=copy.copy(info)
+    return ret
 
 # A little driver/manager for our tests
 class Driver:
@@ -121,25 +129,38 @@ class Driver:
         self._CleanTestMessageFromFolder(self.folder_drafts)
 
     def CreateTestMessageInFolder(self, spam_status, folder):
-        msg = self.CreateTestMessage(spam_status)
+        msg, words = self.CreateTestMessage(spam_status)
         msg.Save() # Put into "Drafts".
         assert self.FindTestMessage(self.folder_drafts) is not None
         # Move it to the specified folder
         msg.Move(folder)
         # And now find it in the specified folder
-        return self.FindTestMessage(folder)
+        return self.FindTestMessage(folder), words
 
     def CreateTestMessage(self, spam_status):
-        words = []
+        words = {}
         if spam_status != SPAM:
-            words.extend(FindTopWords(self.manager.bayes, 50, False))
+            words.update(FindTopWords(self.manager.bayes, 50, False))
         if spam_status != HAM:
-            words.extend(FindTopWords(self.manager.bayes, 50, True))
+            words.update(FindTopWords(self.manager.bayes, 50, True))
         # Create a new blank message with our words
         msg = self.manager.outlook.CreateItem(0)
-        msg.Body = "\n".join(words)
+        msg.Body = "\n".join(words.keys())
         msg.Subject = TEST_SUBJECT
-        return msg
+        return msg, words
+
+def check_words(words, bayes, spam_offset, ham_offset):
+    for word, existing_info in words.items():
+        new_info = bayes._wordinfoget(word)
+        if existing_info.spamcount+spam_offset != new_info.spamcount or \
+           existing_info.hamcount+ham_offset != new_info.hamcount:
+            TestFailed("Word check for '%s failed. "
+                       "old spam/ham=%d/%d, new spam/ham=%d/%d,"
+                       "spam_offset=%d, ham_offset=%d" % \
+                       (word,
+                        existing_info.spamcount, existing_info.hamcount,
+                        new_info.spamcount, new_info.hamcount,
+                        spam_offset, ham_offset))
 
 # The tests themselves.
 # The "spam" test is huge - we do standard filter tests, but
@@ -147,10 +168,9 @@ class Driver:
 def TestSpamFilter(driver):
     nspam = driver.manager.bayes.nspam
     nham = driver.manager.bayes.nham
-    import copy
     original_bayes = copy.copy(driver.manager.bayes)
     # Create a spam message in the Inbox - it should get immediately filtered
-    msg = driver.CreateTestMessageInFolder(SPAM, driver.folder_watch)
+    msg, words = driver.CreateTestMessageInFolder(SPAM, driver.folder_watch)
     # sleep to ensure filtering.
     WaitForFilters()
     # It should no longer be in the Inbox.
@@ -165,6 +185,7 @@ def TestSpamFilter(driver):
         TestFailed("Something caused a new spam message to appear")
     if nham != driver.manager.bayes.nham:
         TestFailed("Something caused a new ham message to appear")
+    check_words(words, driver.manager.bayes, 0, 0)
 
     # Now move the message back to the inbox - it should get trained.
     store_msg = driver.manager.message_store.GetMessage(spam_msg)
@@ -187,6 +208,8 @@ def TestSpamFilter(driver):
             TestFailed("This new spam message should not have been trained as spam yet")
         if not train.been_trained_as_ham(store_msg, driver.manager):
             TestFailed("This new spam message should have been trained as ham now")
+        # word infos should have one extra ham
+        check_words(words, driver.manager.bayes, 0, 1)
         # Now move it back to the Spam folder.
         # This should see the message un-trained as ham, and re-trained as Spam
         spam_msg.Move(driver.folder_spam)
@@ -203,6 +226,8 @@ def TestSpamFilter(driver):
             TestFailed("This new spam message should have been trained as spam by now")
         if train.been_trained_as_ham(store_msg, driver.manager):
             TestFailed("This new spam message should have been un-trained as ham")
+        # word infos should have one extra spam, no extra ham
+        check_words(words, driver.manager.bayes, 1, 0)
         # Move the message to another folder, and make sure we still
         # identify it correctly as having been trained.
         # Move to the "unsure" folder, just cos we know about it, and
@@ -214,6 +239,9 @@ def TestSpamFilter(driver):
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
         if not train.been_trained_as_spam(store_msg, driver.manager):
             TestFailed("Message was not identified as Spam after moving")
+
+        # word infos still be 'spam'
+        check_words(words, driver.manager.bayes, 1, 0)
 
         # Now undo the damage we did.
         was_spam = train.untrain_message(store_msg, driver.manager)
@@ -232,6 +260,7 @@ def TestSpamFilter(driver):
         TestFailed("Spam count didn't get back to the same")
     if nham != driver.manager.bayes.nham:
         TestFailed("Ham count didn't get back to the same")
+    check_words(words, driver.manager.bayes, 0, 0)
 
     if driver.manager.bayes.wordinfo != original_bayes.wordinfo:
         TestFailed("The bayes object's 'wordinfo' did not compare the same at the end of all this!")
@@ -243,7 +272,7 @@ def TestSpamFilter(driver):
 
 def TestHamFilter(driver):
     # Create a spam message in the Inbox - it should get immediately filtered
-    msg = driver.CreateTestMessageInFolder(HAM, driver.folder_watch)
+    msg, words = driver.CreateTestMessageInFolder(HAM, driver.folder_watch)
     # sleep to ensure filtering.
     WaitForFilters()
     # It should still be in the Inbox.
@@ -254,7 +283,7 @@ def TestHamFilter(driver):
 
 def TestUnsureFilter(driver):
     # Create a spam message in the Inbox - it should get immediately filtered
-    msg = driver.CreateTestMessageInFolder(UNSURE, driver.folder_watch)
+    msg, words = driver.CreateTestMessageInFolder(UNSURE, driver.folder_watch)
     # sleep to ensure filtering.
     WaitForFilters()
     # It should no longer be in the Inbox.
