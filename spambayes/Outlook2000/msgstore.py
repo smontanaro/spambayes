@@ -333,6 +333,40 @@ _MapiTypeMap = {
 #    type(1==1): PT_BOOLEAN,
 }
 
+def GetPropFromStream(mapi_object, prop_id):
+    try:
+        stream = mapi_object.OpenProperty(prop_id,
+                                          pythoncom.IID_IStream,
+                                          0, 0)
+        chunks = []
+        while 1:
+            chunk = stream.Read(4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        return "".join(chunks)
+    except pythoncom.com_error, d:
+        print "Error getting property from stream", d
+        return ""
+
+def GetPotentiallyLargeStringProp(mapi_object, prop_id, row):
+    got_tag, got_val = row
+    if PROP_TYPE(got_tag) == PT_ERROR:
+        ret = ""
+        if got_val == mapi.MAPI_E_NOT_FOUND:
+            pass # No property for this message.
+        elif got_val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
+            # Too big for simple properties - get via a stream
+            ret = GetPropFromStream(mapi_object, prop_id)
+        else:
+            tag_name = mapiutil.GetPropTagName(prop_id)
+            err_string = mapiutil.GetScodeString(got_val)
+            print "Warning - failed to get property %s: %s" % (tag_name,
+                                                                err_string)
+    else:
+        ret = got_val
+    return ret
+
 class MAPIMsgStoreFolder(MsgStoreMsg):
     def __init__(self, msgstore, id, name, count):
         self.msgstore = msgstore
@@ -521,39 +555,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return self.msgclass.lower().startswith("ipm.note") and \
                not self.is_unsent
 
-    def _GetPropFromStream(self, prop_id):
-        try:
-            stream = self.mapi_object.OpenProperty(prop_id,
-                                                   pythoncom.IID_IStream,
-                                                   0, 0)
-            chunks = []
-            while 1:
-                chunk = stream.Read(4096)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            return "".join(chunks)
-        except pythoncom.com_error, d:
-            print "Error getting property from stream", d
-            return ""
-
     def _GetPotentiallyLargeStringProp(self, prop_id, row):
-        got_tag, got_val = row
-        if PROP_TYPE(got_tag) == PT_ERROR:
-            ret = ""
-            if got_val == mapi.MAPI_E_NOT_FOUND:
-                pass # No property for this message.
-            elif got_val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
-                # Too big for simple properties - get via a stream
-                ret = self._GetPropFromStream(prop_id)
-            else:
-                tag_name = mapiutil.GetPropTagName(prop_id)
-                err_string = mapiutil.GetScodeString(got_val)
-                print "Warning - failed to get property %s: %s" % (tag_name,
-                                                                   err_string)
-        else:
-            ret = got_val
-        return ret
+        return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
 
     def _GetMessageText(self):
         # This is finally reliable.  The only messages this now fails for
@@ -624,8 +627,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                                                    mapi.MAPI_DEFERRED_ERRORS)
                 prop_ids = (PR_ATTACH_DATA_BIN,)
                 hr, data = attach.GetProps(prop_ids, 0)
-                attach_body = self._GetPotentiallyLargeStringProp(
-                    prop_ids[0], data[0])
+                attach_body = GetPotentiallyLargeStringProp(attach, prop_ids[0], data[0])
                 # What we seem to have here now is a *complete* multi-part
                 # mime message - that Outlook must have re-constituted on
                 # the fly immediately after pulling it apart! - not unlike
@@ -634,9 +636,23 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 # we can stick it back into another one.  Ahhhhh.
                 import email
                 msg = email.message_from_string(attach_body)
-                assert msg.is_multipart()
-                sub = msg.get_payload(0)
-                body = sub.get_payload()
+                assert msg.is_multipart(), "Should be multi-part: %r" % attach_body
+                # reduce down all sub messages, collecting all text/ subtypes.
+                # (we could make a distinction between text and html, but
+                # it is all joined together by this method anyway.)
+                def collect_text_parts(msg):
+                    collected = ''
+                    if msg.is_multipart():
+                        for sub in msg.get_payload():
+                            collected += collect_text_parts(sub)
+                    else:
+                        if msg.get_content_maintype()=='text':
+                            collected += msg.get_payload()
+                        else:
+                            #print "skipping content type", msg.get_content_type()
+                            pass
+                    return collected
+                body = collect_text_parts(msg)
 
         return "%s\n%s\n%s" % (headers, html, body)
 
