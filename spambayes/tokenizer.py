@@ -782,6 +782,8 @@ class Tokenizer:
         # XXX I include them the classifier's job is trivial.  Only
         # XXX some "safe" header lines are included here, where "safe"
         # XXX is specific to my sorry <wink> corpora.
+        # XXX Jeremy Hylton also reported good results from the general
+        # XXX header-mining in mboxtest.MyTokenizer.tokenize_headers.
 
         # Content-{Type, Disposition} and their params, and charsets.
         for x in msg.walk():
@@ -814,22 +816,14 @@ class Tokenizer:
         # normalize case and whitespace.
         # X-Mailer:  This is a pure and significant win for the f-n rate; f-p
         #            rate isn't affected.
-        # User-Agent:  Skipping it, as it made no difference.  Very few spams
-        #              had a User-Agent field, but lots of hams didn't either,
-        #              and the spam probability of User-Agent was very close to
-        #              0.5 (== not a valuable discriminator) across all
-        #              training sets.
         for field in ('x-mailer',):
             prefix = field + ':'
             x = msg.get(field, 'none').lower()
             yield prefix + ' '.join(x.split())
 
         # Received:
-        # Neil Schemenauer reported good results from tokenizing prefixes
-        # of the embedded IP addresses.
-        # XXX This is disabled only because it's "too good" when used on
-        # XXX Tim's mixed-source corpora.
-        if 0:
+        # Neil Schemenauer reports good results from this.
+        if options.mine_received_headers:
             for header in msg.get_all("received", ()):
                 for pat, breakdown in [(received_host_re, breakdown_host),
                                        (received_ip_re, breakdown_ipaddr)]:
@@ -839,7 +833,7 @@ class Tokenizer:
                             yield 'received:' + tok
 
         # As suggested by Anthony Baxter, merely counting the number of
-        # header lines, and in a case-sensitive way, has really value.
+        # header lines, and in a case-sensitive way, has real value.
         # For example, all-caps SUBJECT is a strong spam clue, while
         # X-Complaints-To a strong ham clue.
         x2n = {}

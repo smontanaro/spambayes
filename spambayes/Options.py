@@ -50,6 +50,11 @@ safe_headers: abuse-reports-to
     x-complaints-to
     x-face
 
+# A lot of clues can be gotten from IP addresses and names in Received:
+# headers.  Again this can give spectacular results for bogus reasons
+# if your test corpora are from different sources.  Else set this to true.
+mine_received_headers: False
+
 [TestDriver]
 # These control various displays in class Drive (timtest.py).
 
@@ -78,6 +83,7 @@ all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
+                  'mine_received_headers': boolean_cracker,
                  },
     'TestDriver': {'nbuckets': int_cracker,
                    'show_ham_lo': float_cracker,
