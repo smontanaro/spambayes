@@ -1190,9 +1190,6 @@ class OptionsClass(object):
     def multiple_values_allowed(self, sect, opt):
         '''Multiple values are allowed for this option.'''
         return self._options[sect, opt].multiple_values_allowed()
-    def as_nice_string(self, sect, opt):
-        '''Summarise the option in a user-readable format.'''
-        return self._options[sect, opt].as_nice_string(sect)
 
     def is_boolean(self, sect, opt):
         '''The option is a boolean value. (Support for Python 2.2).'''
@@ -1283,6 +1280,27 @@ class OptionsClass(object):
         if nerrors:
             raise ValueError("errors while parsing .ini file")
 
+    def sections(self):
+        '''Return an alphabetical list of all the sections.'''
+        all = []
+        for sect, opt in self._options.keys():
+            if sect not in all:
+                all.append(sect)
+        all.sort()
+        return all
+
+    def options(self, prepend_section_name=False):
+        '''Return a alphabetical list of all the options, optionally
+        prefixed with [section_name]'''
+        all = []
+        for sect, opt in self._options.keys():
+            if prepend_section_name:
+                all.append('[' + sect + ']' + opt)
+            else:
+                all.append(opt)
+        all.sort()
+        return all
+
     def display(self):
         '''Display options in a config file form.'''
         output = StringIO.StringIO()
@@ -1300,15 +1318,26 @@ class OptionsClass(object):
             self._options[sect, opt].write_config(output)
         return output.getvalue()
 
-    def display_full(self):
+    def display_full(self, section=None, option=None):
        '''Display options including all information.'''
        # Given that the Options class is no longer as nice looking
        # as it once was, this returns all the information, i.e.
        # the doc, default values, and so on
        output = StringIO.StringIO()
-       for sect in self._config.sections():
-           for opt in self._config.options(sect):
-               output.write(self.as_nice_string(sect, opt))
+
+       # when section and option are both specified, this
+       # is nothing more than a call to as_nice_string
+       if section is not None and option is not None:
+           output.write(self._options[section,
+                                      option].as_nice_string(section))
+           return output.getvalue()
+       
+       all = self._options.keys()
+       all.sort()
+       for sect, opt in all:
+           if section is not None and sect != section:
+               continue
+           output.write(self._options[sect, opt].as_nice_string(sect))
        return output.getvalue()
 
 

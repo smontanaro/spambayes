@@ -11,6 +11,18 @@ A: Have you run your tokenizer trick against a set of messages to see if
    Otherwise, you will likely get a message from Tim Peters about
    why you need to test your idea :)
 
+Q: This software is great!  I want to implement it for all my users.
+   Are there plans to develop a server-side spambayes solution?
+A: The problem with a server-side solution is that everyone has a
+   different idea of what is spam - that's the whole strength of the
+   bayesian-style filtering concept.  If you are certain that *all*
+   of your users would agree on what is spam and what is not, then
+   this might work for you, but otherwise you really have to have
+   individual databases for each user.  Either way, you should be
+   able to modify spambayes easily enough to fit into your setup.
+   Please let the list know if you do have success in this area, and
+   we'll update this answer.
+
 Q: I just got a spam, but the system said it was "unsure". Why
    couldn't it tell that it was spam - it's obvious?
 A: It may be obvious to you, but the classifier only works on
@@ -40,14 +52,51 @@ A: Because training from scratch is a very rare occurance, and because
    you what this file is called (and where it is) down towards the
    bottom of the page.
 
-Q: This software is great!  I want to implement it for all my users.
-   Are there plans to develop a server-side spambayes solution?
-A: The problem with a server-side solution is that everyone has a
-   different idea of what is spam - that's the whole strength of the
-   bayesian-style filtering concept.  If you are certain that *all*
-   of your users would agree on what is spam and what is not, then
-   this might work for you, but otherwise you really have to have
-   individual databases for each user.  Either way, you should be
-   able to modify spambayes easily enough to fit into your setup.
-   Please let the list know if you do have success in this area, and
-   we'll update this answer.
+Q: I can't use a web browser, so I can't configure pop3proxy/imapfilter.
+   Also: how do I configure hammiefilter and the other applications that
+   don't have a user interface?
+A: You need to create a configuration file.  This is in the 'standard'
+   ini file format (originally created for Windows 3.1, I believe).  You
+   can find documentation on this format in the Python ConfigParser doc,
+   <http://www.python.org/doc/current/lib/module-ConfigParser.html>, but
+   basically, it's just a text file: lines beginning with # are comments,
+   sections start with a line like "[Section Name]", and options are set
+   out within the appropriate section with lines like "opt = val" or
+   "opt: val" (either is ok).  Whitespace other than line endings is for
+   the most part ignored, so you can make it look like whatever you like.
+   You can see a list of what a configuration file of all the defaults
+   would like like if you execute the following Python commands:
+      >>> from spambayes.Options import options
+      >>> print options.display()
+
+Q: That's great, now I know what the format looks like, but what options
+   do I need to set?
+A: This depends on exactly what you want to do, and which application you
+   are intending to use.  The easiest thing is to execute the following
+   Python commands:
+      >>> from spambayes.Options import options
+      >>> print options.display_full()
+   This will print out a complete list of the options, including a
+   description of the option, and its default value.  You can also look up
+   a single section, if you know its name:
+      >>> print options.display_full("section_name")
+   Or just a single option:
+      >>> print options.display_full("section_name", "option_name")
+   If you want a list of all the sections, you can use this command:
+      >>> print options.sections()
+   If you want a list of all the options, you can use this command:
+      >>> print options.options(prepend_section_name=False)
+
+Q: I've made a configuration file, but spambayes is ignoring it. Now what?
+A: Spambayes looks for your configuration file in three places - if it
+   can't find it, then, obviously, your options will not be loaded.  The
+   first place that Spambayes checks is the environment variable
+   BAYESCUSTOMIZE.  You can set this to the path of your configuration file,
+   wherever it is, and it will be loaded.  You can also specify more than
+   one file, separated by the appropriate path separator for your platform.
+   This is the recommended method of specifying the location of the file,
+   unless you do so via a user interface (as provided by the POP3 proxy,
+   the Outlook plugin, and the IMAP filter). If Spambayes doesn't find
+   anything in the BAYESCUSTOMIZE variable, then it checks the current
+   working directory and your home directory for a bayescustomize.ini or
+   .spambayesrc file (respectively).
