@@ -5,6 +5,4 @@ Install the py2exe\sandbox version, *not* the top-level py2exe version.
 
 Run "setup_all.py"
 
-You should find a dist directly.  pop3proxy*.exe should all work.  
-addin.exe/addin.dll are the Outlook addin and do not work
-(and will be renamed)
+You should find a dist directory.
