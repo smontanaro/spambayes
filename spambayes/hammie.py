@@ -179,7 +179,7 @@ class DirOfTxtFileMailbox:
 
 
 def train(bayes, msgs, is_spam):
-    """Train bayes with a message"""
+    """Train bayes with all messages from a mailbox."""
     def _factory(fp):
         try:
             return email.message_from_file(fp)
@@ -191,8 +191,8 @@ def train(bayes, msgs, is_spam):
         mh = mhlib.MH()
         mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]))
     elif os.path.isdir(msgs):
-        # XXX This is bogus: use an MHMailbox if the pathname contains /Mail/
-        # XXX Should really use '+foo' MH folder styles.  Later.
+        # XXX Bogus: use an MHMailbox if the pathname contains /Mail/,
+        # else a DirOfTxtFileMailbox.
         if msgs.find("/Mail/") >= 0:
             mbox = mailbox.MHMailbox(msgs, _factory)
         else:
