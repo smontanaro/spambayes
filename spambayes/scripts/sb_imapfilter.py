@@ -328,9 +328,11 @@ class IMAPMessage(message.SBHeaderMessage):
         if message_date is not None:
             parsed_date = parsedate(message_date)
             if parsed_date is not None:
-                return Time2Internaldate(time.mktime(parsed_date))
-        else:
-            return Time2Internaldate(time.time())
+                try:
+                    return Time2Internaldate(time.mktime(parsed_date))
+                except OverflowError:
+                    pass
+        return Time2Internaldate(time.time())
 
     def get_substance(self):
         '''Retrieve the RFC822 message from the IMAP server and set as the
