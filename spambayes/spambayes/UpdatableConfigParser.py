@@ -2,7 +2,7 @@
 
 """Configuration file parser with update facility.
 
-Handles configuration files in the exact manner as ConfigParser, but
+Handles configuration files in the same manner as ConfigParser, but
 has the ability to update the configuration files.  Handles multiple
 files, and does not touch whitespace or comment lines.
 
@@ -116,8 +116,8 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
-from ConfigParser import ConfigParser, ParsingError
-from ConfigParser import DEFAULTSECT, NoSectionError, NoOptionError
+from CompatConfigParser import ConfigParser, ParsingError
+from CompatConfigParser import DEFAULTSECT, NoSectionError, NoOptionError
 from os import rename, remove, tempnam
 import types
 
@@ -144,12 +144,9 @@ will not work as it should with add_missing set to True.
 class UpdatableConfigParser(ConfigParser):
     def __init__(self, defaults=None):
         ConfigParser.__init__(self, defaults)
-        self.__data = {}
-        self.__changed_options = {}
-        self.__pruned = {}
-        # override base class
-        self.__sections = self._ConfigParser__sections
-        self._ConfigParser__read = self.__read
+        self._data = {}
+        self._changed_options = {}
+        self._pruned = {}
         # configuration defaults
         self.vi = ": "
         self.lock_vi = False
@@ -159,40 +156,41 @@ class UpdatableConfigParser(ConfigParser):
         # c.f. ConfigParser.remove_option()
         existed = ConfigParser.remove_option(self, section, option)
         if existed:
-            for sect, opt in self.__data.keys():
+            for sect, opt in self._data.keys():
                 if sect == section and opt == option:
-                    del self.__data[(sect, opt)]
-                    self.__pruned[sect] = opt
+                    del self._data[(sect, opt)]
+                    self._pruned[sect] = opt
         return existed
 
     def remove_section(self, section):
         # c.f. ConfigParser.remove_section()
         existed = ConfigParser.remove_section(self, section)
         if existed:
-            for sect, opt in self.__data.keys():
+            for sect, opt in self._data.keys():
                 if sect == section:
-                    del self.__data[(sect, opt)]
-                    self.__pruned[sect] = None
+                    del self._data[(sect, opt)]
+                    self._pruned[sect] = None
         return existed
 
     def set(self, section, option, value):
         # c.f. ConfigParser.set()
+        print "setting", section, option, value
         ConfigParser.set(self, section, option, value)
         if self.record_original_values == False:
-            for file, sect in self.__data.items():
+            for file, sect in self._data.items():
                 if sect == section:
                     sectdict = {}
                     optdict = {}
-                    if self.__changed_options.has_key(file):
-                        sectdict = self.__changed_options[file]
+                    if self._changed_options.has_key(file):
+                        sectdict = self._changed_options[file]
                         if sectdict.has_key(section):
                             optdict = sectdict[section]
                     optdict[option] = value
                     sectdict[section] = optdict
-                    self.__changed_options[file] = sectdict
+                    self._changed_options[file] = sectdict
 
-    def __read(self, fp, fpname):
-        # c.f. ConfigParser.__read()
+    def _read(self, fp, fpname):
+        # c.f. ConfigParser._read()
         cursect = None                            # None, or a dictionary
         optname = None
         lineno = 0
@@ -219,13 +217,13 @@ class UpdatableConfigParser(ConfigParser):
                 mo = self.SECTCRE.match(line)
                 if mo:
                     sectname = mo.group('header')
-                    if sectname in self.__sections:
-                        cursect = self.__sections[sectname]
+                    if sectname in self._sections:
+                        cursect = self._sections[sectname]
                     elif sectname == DEFAULTSECT:
-                        cursect = self.__defaults
+                        cursect = self._defaults
                     else:
                         cursect = {'__name__': sectname}
-                        self.__sections[sectname] = cursect
+                        self._sections[sectname] = cursect
                     # So sections can't start with a continuation line
                     optname = None
                 # no section header in the file?
@@ -251,7 +249,7 @@ class UpdatableConfigParser(ConfigParser):
                         optname = self.optionxform(optname.rstrip())
                         cursect[optname] = optval
                         sectname = cursect['__name__']
-                        self.__updateData(fpname, sectname, optname, optval)
+                        self._updateData(fpname, sectname, optname, optval)
                     else:
                         # a non-fatal parsing error occurred.  set up the
                         # exception but keep going. the exception will be
@@ -264,51 +262,51 @@ class UpdatableConfigParser(ConfigParser):
         if e:
             raise e
 
-    def __updateData(self, filename, sectname, optname, value):
+    def _updateData(self, filename, sectname, optname, value):
         if filename == "<???>":
             return
         if self.record_original_values == True:
-            self.__updateDataIncludingOriginalValue(filename,
+            self._updateDataIncludingOriginalValue(filename,
                                                      sectname,
                                                      optname,
                                                      value)
         else:
-            self.__updateDataNoOriginalValue(filename, sectname,
+            self._updateDataNoOriginalValue(filename, sectname,
                                               optname)
 
-    def __updateDataIncludingOriginalValue(self, filename,
+    def _updateDataIncludingOriginalValue(self, filename,
                                             sectname, optname, value):
-        if self.__data.has_key((sectname, optname)):
-            existing_files, original = self.__data[(sectname, optname)]
+        if self._data.has_key((sectname, optname)):
+            existing_files, original = self._data[(sectname, optname)]
             if filename not in existing_files:
                 existing_files += filename,
-            self.__data[(sectname, optname)] = (existing_files, value)
+            self._data[(sectname, optname)] = (existing_files, value)
         else:
-            self.__data[(sectname, optname)] = ((filename,), value)
+            self._data[(sectname, optname)] = ((filename,), value)
 
-    def __updateDataNoOriginalValue(self, filename, sectname, optname):
-        if self.__data.has_key((sectname, optname)):
-            existing_data = self.__data[(sectname, optname)]
+    def _updateDataNoOriginalValue(self, filename, sectname, optname):
+        if self._data.has_key((sectname, optname)):
+            existing_data = self._data[(sectname, optname)]
             if filename not in existing_files:
                 existing_files += filename,
-            self.__data[(sectname, optname)] = existing_files
+            self._data[(sectname, optname)] = existing_files
         else:
-            self.__data[(sectname, optname)] = (filename,)
+            self._data[(sectname, optname)] = (filename,)
 
     def changed_options(self):
         """Return any options that have changed since reading or updating."""
         if self.record_original_values == False:
-            return self.__changed_options
+            return self._changed_options
         else:            
             files_to_update = {}
-            for sectname, sectdict in self.__sections.items():
+            for sectname, sectdict in self._sections.items():
                 if sectname == '__name__':
                     continue
                 for optname, optvalue in sectdict.items():
                     if optname == '__name__':
                         continue
-                    if self.__data.has_key((sectname, optname)):
-                        source_files, original = self.__data[(sectname, optname)]
+                    if self._data.has_key((sectname, optname)):
+                        source_files, original = self._data[(sectname, optname)]
                         if optvalue != original:
                             for file in source_files:
                                 if files_to_update.has_key(file):
@@ -329,11 +327,11 @@ class UpdatableConfigParser(ConfigParser):
 
     def restore_option(section, option):
         """ restore an option to the value in the source file"""
-        if self.__data.has_key((section, option)):
+        if self._data.has_key((section, option)):
             if self.record_original_values:
-                file, original = self.__data[(section, option)]
+                file, original = self._data[(section, option)]
             else:
-                file = self.__data[(section, option)]
+                file = self._data[(section, option)]
                 c = ConfigParser()
                 c.read(file)
                 if c.has_option(section, option):
@@ -349,14 +347,14 @@ class UpdatableConfigParser(ConfigParser):
         files_to_update = self.changed_options()
         for file, info in files_to_update.items():
             old_cfg = open(file, "r")
-            self.__updateFile(old_cfg, info, prune, add_missing)
+            self._updateFile(old_cfg, info, prune, add_missing)
             old_cfg.close()
 
     def update_file(self, fp, prune=False, add_missing=False):
         """Write any updates to the appropriate file."""
         files_to_update = self.changed_options()
         if files_to_update.has_key(fp.name):
-            self.__updateFile(fp, files_to_update[fp.name],
+            self._updateFile(fp, files_to_update[fp.name],
                               prune, add_missing)
 
     def update_files(self, files, prune=False, add_missing=False):
@@ -365,7 +363,7 @@ class UpdatableConfigParser(ConfigParser):
         for file in files:
             if files_to_update.has_key(file):
                 old_cfg = open(file, "r")
-                self.__updateFile(old_cfg, files_to_update[file],
+                self._updateFile(old_cfg, files_to_update[file],
                                   prune, add_missing)
                 old_cfg.close()
 
@@ -383,7 +381,7 @@ class UpdatableConfigParser(ConfigParser):
                             c.set(sectname, key, str(value))
         c.write(fp)
 
-    def __updateFile(self, old_cfg, info, prune=False, add_missing=False):
+    def _updateFile(self, old_cfg, info, prune=False, add_missing=False):
         temp_name = tempnam()
         new_cfg = open(temp_name, "w")
         current_section = None
@@ -436,15 +434,15 @@ class UpdatableConfigParser(ConfigParser):
                         if self.lock_vi == False:
                             self.vi = vi
                         optname = optname.rstrip().lower()
-                        if self.__pruned.has_key(current_section):
-                            opt = self.__pruned[current_section]
+                        if self._pruned.has_key(current_section):
+                            opt = self._pruned[current_section]
                             if opt is None or opt == optname:
                                 continue
                         if update_section is not None and \
                            update_section.has_key(optname):
                             new_cfg.write(optname + ' ' + vi + ' ' + \
                                           update_section[optname] + '\n')
-                            self.__updateData(old_cfg.name, current_section, \
+                            self._updateData(old_cfg.name, current_section, \
                                                optname, update_section[optname])
                             del update_section[optname]
                         else:
