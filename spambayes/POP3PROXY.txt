@@ -4,38 +4,45 @@
 Cube 
 or a  G4 400, I found it usable but not much. YMMV.
 To handle network connection to <em>localhost</em> it is easier to add a
-host file. If you don't have one already, create one with any text editor.
-<p>It name must be "hosts". It should be located in the "Preference" foder.
-It content should be similar to:
+host file. If you don't have one already, create one with any text editor.</p>
+<p>Its name must be "hosts". It should be located in the "Preference" folder.
+Its content should be similar to:
 <pre>
-localhost CNAME fbgmac.intranet.teleprosoft.com
-fbgmac.intranet.teleprosoft.com A 127.0.0.1
-</pre>
+localhost CNAME yourmac.example.com
+yourmac.example.com A 127.0.0.1
+</pre></p>
 <p>The localhost and 127.0.0.1 values must be exactly like this. If you
 don't 
-know the right value to use for fbgmac.intranet.teleprosoft.com put
-anything looking like this one. It have to be exactly the same for end of
-first line and biggining of second line.
-<p>When this file is created, go to "TCP/IP" control panel. Set user level
+know the right value to use for yourmac.example.com, put
+anything that looks like this. The end of the first line must be the same as
+the beginning of the second line.</p>
+<p>When this file is created, go to the "TCP/IP" control panel. Set the user level
 to Administrator. Click on "Use a host file" and select this file. Save
-your changes.
-<p>On the Mac, you can transform a Python script into a double clickable
-applet. Just Drag & Drop the pop3proxy.py script onto the BuildApplet
-application. You'll get a double clickable pop3proxy application.
-<p>Create or modify the "bayescustomize.ini" file in the Spambayes folder.
-<p> be sur you have these lines:
+your changes.</p>
+<p>On the Mac, you can transform a Python script into a double-clickable
+applet. Just drag & drop the pop3proxy.py script onto the BuildApplet
+application. You'll get a double-clickable pop3proxy application.</p>
+<p>Start pop3proxy and open up a web browser to http://localhost:8880.
+Click on the Configuration link.</p>
+<p>Ensure that the servers line looks like:
 <pre>
-[pop3proxy]
 pop3proxy_servers: pop.videotron.ca:110,mail.ulaval.ca:110
+</pre>
+And that the ports line looks like:
+<pre>
 pop3proxy_ports: 110, 6111
 </pre>
 <h4>Configuring Entourage</h4>
-<p>Go to the Tools menu and choose Accounts.
-<p>Click on New and choose POP.
-<p>Fill in the various fields. For the POP server field, put "localhost".
-<p>For the videotron account, you are done.
-<p>For the ulaval account,  in the "Advance receive option" windows click on
-the "Ignore the default POP port" check box and type in 6111.
+<p>
+<ul>
+<li>Go to the Tools menu and choose Accounts.</li>
+<li>Click on New and choose POP.</li>
+<li>Fill in the various fields. For the POP server field, put "localhost".</li>
+<li>For the videotron account, you are done.</li>
+<li>For the ulaval account,  in the "Advance receive option" windows click on
+the "Ignore the default POP port" check box and type in 6111.</li>
+</ul>
+</p>
 <h4>Filtering with Entourage</h4>
 <p>The rule can be:
 <pre>
@@ -53,15 +60,14 @@ then
     Move message to folder Unsure
 </pre>
 
-
 <h4>Configuring Eudora</h4>
 <p>In Eudora, you will be able to reach only one pop server, since you can
 configure only one port number for POP. But on this server, you can access
-more than one account.
-<p>Go to the Tool menu and choose Personalities.
-<p>Create an new personality with the POP server as "localhost".
-<p>With the proposed "bayescustomize.ini" you will be able to talk onlu to
-the videotron server.
+more than one account.</p>
+<p>Go to the Tool menu and choose Personalities.</p>
+<p>Create an new personality with the POP server as "localhost".</p>
+<p>With the proposed "bayescustomize.ini" you will be able to talk only to
+the videotron server.</p>
 <h4>Filtering with Eudora</h4>
 <p>The rule can be:
 <pre>
