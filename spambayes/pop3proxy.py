@@ -498,6 +498,9 @@ class BayesProxy(POP3ProxyBase):
                 headers += "\n%s: %s\r\n\r\n" % (headerName, header)
                 messageText = headers + body
 
+                # Print the exception and a traceback.
+                traceback.print_exc()
+
             # Restore the +OK and the POP3 .\r\n terminator if there was one.
             retval = ok + "\n" + messageText
             if terminatingDotPresent:
