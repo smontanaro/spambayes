@@ -50,9 +50,9 @@ BEGIN
                     IDC_STATIC,17,115,198,8
     LTEXT           "When a message is recovered from spam, change its read state to",
                     IDC_STATIC,14,139,214,8
-    COMBOBOX        IDC_DEL_SPAM_RS,25,124,97,54,CBS_DROPDOWN | CBS_SORT | 
+    COMBOBOX        IDC_DEL_SPAM_RS,25,124,97,54,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_RECOVER_RS,25,149,97,63,CBS_DROPDOWN | CBS_SORT | 
+    COMBOBOX        IDC_RECOVER_RS,25,149,97,63,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "Log Level",IDC_STATIC,7,174,31,8
     EDITTEXT        IDC_VERBOSE_LOG,45,171,40,14,ES_AUTOHSCROLL
