@@ -7,7 +7,7 @@ ROOT_OFFSET = apps
 # want 'make' to recurse without 'install' and
 # 'make install' to recurse *with* 'install'
 local_install:
-	cd outlook; $(MAKE) $(MAKEFLAGS) install
+	cd outlook; $(MAKE) install
 
 subdirs:
-	cd outlook; $(MAKE) $(MAKEFLAGS)
+	cd outlook; $(MAKE)
