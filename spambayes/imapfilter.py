@@ -28,13 +28,6 @@ __credits__ = "Tim Stone, All the Spambayes folk."
 # with different imap servers having different naming styles
 # a list is retrieved via imap.list()
 
-# IMAPFolder objects get created all over the place, and don't persist
-# at all.  It would probably be good to change this, especially if
-# the filter doesn't run just once
-
-# All the imap responses should be checked - [0] should be "OK"
-# otherwise an error will occur and who knows what will happen
-
 try:
     True, False
 except NameError:
@@ -54,13 +47,17 @@ from spambayes import tokenizer, storage, message
 # global IMAPlib object
 imap = None
 
-class IMAPMessage(message.HeaderMessage):
-    def __init__(self, folder_id, folder_name, message_id):
+class IMAPMessage(message.SBHeaderMessage):
+    # response checking is necessary throughout this class
+    def __init__(self, folder, message_id):
         message.Message.__init__(self)
         self.setId(message_id)
-        self.folder_id = folder_id
-        self.folder_name = folder_name
-        self.previous_folder = None
+        self.folder = folder
+
+    def _check(self, response, command):
+        if response[0] != "OK":
+            print "Invalid response to %s:\n%s" % (command, response)
+            sys.exit(-1)
 
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
@@ -74,13 +71,13 @@ class IMAPMessage(message.HeaderMessage):
         # and we do an actual move on save (to avoid doing
         # this more than once)
         if self.previous_folder is not None:
-            self.previous_folder = self.folder_name
-        self.folder_name = dest
+            self.previous_folder = self.folder
+        self.folder = dest
 
     def Save(self):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
-        response = imap.append(self.folder_name, None,
+        response = imap.append(self.folder.name, None,
                                self.extractTime(), self.get_payload())
         # we need to update the uid, as it will have changed
         # XXX there will be problems here if the message *has not*
@@ -90,12 +87,14 @@ class IMAPMessage(message.HeaderMessage):
         old_id = self.id
         self.id = response[1][0]
         if self.previous_folder is not None:
-            response = imap.select(self.previous_folder, False)
+            response = imap.select(self.previous_folder.name, False)
             self.previous_folder = None
         # this line is raising an error, but WHY?
         #response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
 
+
 class IMAPFolder(object):
+    # response checking is necessary throughout this class
     def __init__(self, folder_name, readOnly=True):
         self.name = folder_name
         # Convert folder name to a uid
@@ -113,7 +112,16 @@ class IMAPFolder(object):
         response = imap.fetch("1:1", self.rfc822_command)
         if response[0] != "OK":
             self.rfc822_command = "(RFC822)"
-        
+
+    def Select(self):
+        imap.select(self.name, False)
+        self._check(folder, 'select')
+
+    def _check(self, response, command):
+        if response[0] != "OK":
+            print "Invalid response to %s:\n%s" % (command, response)
+            sys.exit(-1)
+
     def __iter__(self):
         '''IMAPFolder is iterable'''
         for key in self.keys():
@@ -144,10 +152,10 @@ class IMAPFolder(object):
         messageText = response[1][0][1]
         # we return an instance of *our* message class, not the
         # raw rfc822 message
-        msg = IMAPMessage(self.uid, self.name, key)
+        msg = IMAPMessage(self, key)
         msg.setPayload(messageText)
         return msg
-       
+
     def Train(self, classifier, isSpam):
         '''Train folder as spam/ham'''
         for msg in self:
@@ -163,81 +171,91 @@ class IMAPFolder(object):
                 classifier.learn(msg.asTokens(), isSpam)
                 msg.RememberTrained(isSpam)
 
-    def FilterMessage(self, msg):
-        if msg.GetClassification() == options.header_ham_string:
-            # we leave ham alone
-            pass
-        elif msg.GetClassification() == options.header_spam_string:
-            msg.MoveTo(options.imap_spam_folder)
-        else:
-            msg.MoveTo(options.imap_unsure_folder)
-
-    def Filter(self, classifier):
+    def Filter(self, classifier, spamfolder, unsurefolder):
         for msg in self:
             (prob, clues) = classifier.spamprob(msg.asTokens(), evidence=True)
             # add headers and remember classification
             msg.addSBHeaders(prob, clues)
-            self.FilterMessage(msg)
-            msg.Save()
 
+        if msg.GetClassification() == options.header_ham_string:
+            # we leave ham alone
+            pass
+        elif msg.GetClassification() == options.header_spam_string:
+            msg.MoveTo(spamfolder)
+        else:
+            msg.MoveTo(unsurefolder)
+
+        msg.Save()            
 
 class IMAPFilter(object):
     def __init__(self):
         global imap
         imap = imaplib.IMAP4(options.imap_server, options.imap_port)
         
-        if options.verbose:
-            print "Loading database...",
+        self.spam_folder = IMAPFolder(options.imap_spam_folder)
+        self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
+        
         filename = options.pop3proxy_persistent_storage_file
         filename = os.path.expanduser(filename)
+
+        if options.verbose:
+            print "Loading database %s..." % (filename),
+        
         if options.pop3proxy_persistent_use_database:
             self.classifier = storage.DBDictClassifier(filename)
         else:
             self.classifier = storage.PickledClassifier(filename)
+            
         if options.verbose:
             print "Done."
 
     def Login(self):
-        '''Log in to the IMAP server'''
         lgn = imap.login(options.imap_username, options.imap_password)
 
     def Train(self):
         if options.verbose:
             t = time.time()
+
         if options.imap_ham_train_folders != "":
             ham_training_folders = options.imap_ham_train_folders.split()
             for fol in ham_training_folders:
                 folder = IMAPFolder(fol)
                 folder.Train(self.classifier, False)
+
         if options.imap_spam_train_folders != "":
             spam_training_folders = options.imap_spam_train_folders.split(' ' )
             for fol in spam_training_folders:
                 folder = IMAPFolder(fol)
                 folder.Train(self.classifier, True)
+
         self.classifier.store()
+        
         if options.verbose:
             print "Training took", time.time() - t, "seconds."
 
     def Filter(self):
         if options.verbose:
             t = time.time()
+            
         for filter_folder in options.imap_filter_folders.split():
             folder = IMAPFolder(filter_folder, False)
-            folder.Filter(self.classifier)
+            folder.Filter(self.classifier, self.spam_folder, self.unsure_folder)
+ 
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
 
     def Logout(self):
-        '''Log out of the IMAP server'''
+        # sign off
         if options.imap_expunge:
             imap.expunge()
         imap.logout()
 
+ 
 if __name__ == '__main__':
     options.verbose = True
     imap_filter = IMAPFilter()
 #    imap_filter.imap.debug = 10
     imap_filter.Login()
-    #imap_filter.Train()
+    imap_filter.Train()
     imap_filter.Filter()
     imap_filter.Logout()
