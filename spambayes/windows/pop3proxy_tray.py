@@ -165,9 +165,6 @@ class MainWindow(object):
                        (os.path.dirname(sb_server.__file__),)
         stoppedIconPathName = "%s\\..\\windows\\resources\\sb-stopped.ico" % \
                        (os.path.dirname(sb_server.__file__),)
-        # When 1.0a6 is released, the above line will need to change to:
-##        iconPathName = "%s\\..\\windows\\resources\\sbicon.ico" % \
-##                       (os.path.dirname(sb_server.__file__),)
         if hasattr(sys, "frozen"):
             self.hstartedicon = self.hstoppedicon = None
             hexe = GetModuleHandle(None)
@@ -351,7 +348,7 @@ class MainWindow(object):
             # XXX This should be set as the default (which then means bold
             # XXX text) through the win32 calls, but win32all doesn't
             # XXX include SetDefault(), which it needs to...
-            self.OpenInterface()
+            self.OpenReview()
         elif lparam==win32con.WM_RBUTTONUP:
             # check our state before creating the menu, so it reflects the
             # true "running state", not just what we thought it was last.
@@ -367,6 +364,16 @@ class MainWindow(object):
                     AppendMenu( menu, win32con.MF_SEPARATOR, id, wording)
             pos = GetCursorPos()
             SetForegroundWindow(self.hwnd)
+            # Set the default menu item ("Review messages", currently).
+            # Make sure that the item here matches the behaviour in
+            # DBCLICK above!
+            # This is only available in recent versions of win32all,
+            # so for those that don't have it, they just get a dull
+            # menu.
+            try:
+                SetMenuDefaultItem(menu, 2, 1)
+            except NameError:
+                pass
             TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, pos[0], pos[1], 0,
                            self.hwnd, None)
             PostMessage(self.hwnd, win32con.WM_NULL, 0, 0)
