@@ -275,6 +275,8 @@ class OptionsContainer:
                 self.__dict__[attr] = container
                 return container
         raise AttributeError, "Options has no section '%s'" % attr
+    def __setattr__(self, attr, val):
+        raise AttributeError, "No section [%s]" % attr
 
 def CreateConfig(defaults=defaults):
     options = OptionsClass()
@@ -318,7 +320,21 @@ if __name__=='__main__':
     print "Folders after set are", f
     for i in f:
         print i, type(i)
-    
+
+    try:
+        c.filter.oops = "Foo"
+    except (AttributeError,KeyError): # whatever :)
+        pass
+    else:
+        print "ERROR: I was able to set an invalid sub-property!"
+
+    try:
+        c.oops = "Foo"
+    except (AttributeError,KeyError): # whatever :)
+        pass
+    else:
+        print "ERROR: I was able to set an invalid top-level property!"
+
     # Test single ID folders.
     if c.filter.unsure_folder_id is not None:
         print "It appears we loaded a folder ID - resetting"
