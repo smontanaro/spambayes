@@ -332,7 +332,7 @@ class HTTPServer(Listener):
 
     def getCancelMessage(self):
         """Override: Specify the cancel message for an HTTP Authentication."""
-        return "You must log in."""
+        return "You must log in."
 
 
 class _HTTPHandler(BrighterAsyncChat):
