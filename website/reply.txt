@@ -29,9 +29,10 @@ I'm having trouble installing Spambayes.  Help!
 -----------------------------------------------
 
 There were problems installing the Outlook plug-in on some combinations of
-Windows and Outlook for early versions of the plug-in.  Version 003 seems 
-to install properly with all combinations of Windows and Outlook which have
-been tried so far.
+Windows and Outlook for early versions of the plug-in.  Version 003 seems to
+install properly with all combinations of Windows and Outlook which have
+been tried so far.  As of 2003-07-28, the most recent version is 006.  If
+you are trying to install or run an earlier version, you should upgrade.
 
 More information about Spambayes and Windows can be found at
 
