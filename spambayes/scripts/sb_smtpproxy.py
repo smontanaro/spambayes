@@ -309,14 +309,6 @@ class BayesSMTPProxy(SMTPProxyBase):
         else:
             return address
 
-    def splitTo(self, address):
-        """Return 'address' as undressed (host, fulladdress) tuple.
-        Handy for use with TO: addresses."""
-        start = string.index(address, '<') + 1
-        sep = string.index(address, '@') + 1
-        end = string.index(address, '>')
-        return (address[sep:end], address[start:end],)
-
     def onTransaction(self, command, args):
         handler = self.handlers.get(command.upper(), self.onUnknown)
         return handler(command, args)
@@ -333,7 +325,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         return data
 
     def onRcptTo(self, command, args):
-        toHost, toFull = self.splitTo(args[0])
+        toFull = self.stripAddress(args[0])
         if toFull == options["smtpproxy", "spam_address"]:
             self.train_as_spam = True
             self.train_as_ham = False
