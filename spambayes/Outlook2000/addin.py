@@ -665,7 +665,7 @@ def SetButtonImage(button, fname, manager):
     # whew - http://support.microsoft.com/default.aspx?scid=KB;EN-US;q288771
     # shows how to make a transparent bmp.
     # Also note that the clipboard takes ownership of the handle -
-    # this, we can not simply perform this load once and reuse the image.
+    # thus, we can not simply perform this load once and reuse the image.
     if not os.path.isabs(fname):
         # images relative to the application path
         fname = os.path.join(manager.application_directory,
@@ -818,7 +818,7 @@ class ExplorerWithEvents:
                         Enabled=True,
                         Visible=True,
                         Tag=tag)
-        
+
     def _AddControl(self,
                     parent, # who the control is added to
                     control_type, # type of control to add.
@@ -846,6 +846,18 @@ class ExplorerWithEvents:
         item = self.CommandBars.FindControl(
                         Type = control_type,
                         Tag = tag)
+        # we only create top-level items as permanent, so we keep a little control
+        # over how they are ordered, especially between releases where the
+        # subitems are subject to change.  This will prevent the user
+        # customising the dropdown items, but that is probably OK.
+        # (we could stay permanent and use the 'before' arg, but this
+        # is still pretty useless if the user has customized)
+        temporary = parent is not None
+        if item is not None and temporary:
+            # oops - we used to create them perm, but
+            item.Delete(False)
+            item = None
+
         if item is None:
             if parent is None:
                 # No parent specified - that means top-level - locate the
@@ -881,7 +893,7 @@ class ExplorerWithEvents:
                 parent = self.toolbar
             # Now add the item itself to the parent.
             try:
-                item = parent.Controls.Add(Type=control_type, Temporary=False)
+                item = parent.Controls.Add(Type=control_type, Temporary=temporary)
             except pythoncom.com_error, e:
                 # Toolbars seem to still fail randomly for some users.
                 # eg, bug [ 755738 ] Latest CVS outllok doesn't work
@@ -895,6 +907,9 @@ class ExplorerWithEvents:
             # Set the extra attributes passed in.
             for attr, val in item_attrs.items():
                 setattr(item, attr, val)
+        # didn't previously set this, and it seems to fix alot of problem - so
+        # we set it for every object, even existing ones.
+        item.OnAction = "<!" + OutlookAddin._reg_progid_ + ">"
 
         # Hook events for the item, but only if we haven't already in some
         # other explorer instance.
