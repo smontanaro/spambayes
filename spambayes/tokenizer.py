@@ -7,6 +7,7 @@ import email
 import email.Message
 import email.Errors
 import re
+import math
 from sets import Set
 
 from Options import options
@@ -770,6 +771,9 @@ def breakdown_ipaddr(ipaddr):
     for i in range(1, 5):
         yield '.'.join(parts[:i])
 
+def log2(n, log=math.log, c=math.log(2)):
+    return log(n)/c
+
 uuencode_begin_re = re.compile(r"""
     ^begin \s+
     (\S+) \s+   # capture mode
@@ -962,6 +966,16 @@ class Tokenizer:
             for w in x.split():
                 for t in tokenize_word(w):
                     yield prefix + t
+
+        # To:
+        # Cc: 
+        # Count the number of addresses in each of the recipient headers.
+        for field in ('to', 'cc'):
+            count = 0
+            for addrs in msg.get_all(field, []):
+                count += len(addrs.split(','))
+            if count > 0:
+                yield '%s:2**%d' % (field, round(log2(count)))
 
         # These headers seem to work best if they're not tokenized:  just
         # normalize case and whitespace.
