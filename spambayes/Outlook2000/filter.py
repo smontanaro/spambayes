@@ -142,14 +142,7 @@ def filterer(mgr, config, progress):
     progress.set_status(text)
 
 def main():
-    import manager
-    mgr = manager.GetManager()
-
-    import dialogs.FilterDialog
-    d = dialogs.FilterDialog.FilterArrivalsDialog(mgr, filterer)
-    d.DoModal()
-    mgr.Save()
-    mgr.Close()
+    print "Sorry - we don't do anything here any more"
 
 if __name__ == "__main__":
     main()

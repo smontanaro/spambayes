@@ -186,15 +186,7 @@ def trainer(mgr, config, progress):
     progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
 
 def main():
-    import manager
-    mgr = manager.GetManager()
-
-    import dialogs.TrainingDialog
-    d = dialogs.TrainingDialog.TrainingDialog(mgr, trainer)
-    d.DoModal()
-
-    mgr.Save()
-    mgr.Close()
+    print "Sorry - we don't do anything here any more"
 
 if __name__ == "__main__":
     main()
