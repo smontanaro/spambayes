@@ -253,7 +253,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             # The user wants to use a timer - see if we should only enable
             # the timer for known 'inbox' folders, or for all watched folders.
             is_inbox = self.target.IsReceiveFolder()
-            if not is_inbox and self.manager.config.filer.timer_only_receive_folders:
+            if not is_inbox and self.manager.config.filter.timer_only_receive_folders:
                 use_timer = False
 
         # Don't allow insane values for the timer.
