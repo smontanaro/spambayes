@@ -1419,6 +1419,32 @@ release and were working on it, but that it might be the next release before
 they have it solved. 
 
 
+I get an error message "No filterable messages are selected".
+-------------------------------------------------------------
+
+This applies to the Outlook plug-in only.  SpamBayes only lets you train
+on messages that have been received (these are the only messages that
+should be trained on).  This means that you cannot train on sent messages,
+drafts, notes, calendar items, tasks, and so on.
+
+To check whether a message has been received, SpamBayes checks some of the
+Outlook properties for the message.  Very seldomly, these can result in a
+false classification, where the message has been received, but SpamBayes
+does not believe it has.  The best move here is to simply move the message
+yourself.  If this is a recurring problem, please add comments to the
+`appropriate SourceForge tracker`_.
+
+Note that one cause of this problem is that with some versions of Outlook
+and Outlook Express, moving mail from Outlook Express to Outlook will strip
+the mail of all Internet headers, which means the messages are not able to
+be filtered/trained.  However, this is not a problem with SpamBayes - you
+can either work around the export/import problem, or simply not use those
+messages for training (we do not recommend pre-training in bulk, in any
+case).
+
+.. _appropriate SourceForge tracker: http://sourceforge.net/tracker/index.php?func=detail&aid=854547&group_id=61702&atid=498103
+                                 
+
 Development
 ===========
 
