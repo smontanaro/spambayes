@@ -92,7 +92,7 @@ except ImportError:
     except ImportError:
         # No DB library at all!
         assert not hasattr(sys, "frozen"), \
-               "Don't build binary versions without bsbbd!"
+               "Don't build binary versions without bsddb!"
         use_db = False
 
 # This is a little bit of a hack <wink>.  We are generally in a child
@@ -387,7 +387,7 @@ class BayesManager:
         # default_bayes_customize.ini in the app directory and user data
         # directory (version 0.8 and earlier, we copied the app one to the
         # user dir - that was a mistake - but supporting a version in that
-        # directory wasn't.
+        # directory wasn't).
         bayes_option_filenames = []
         # data dir last so options there win.
         for look_dir in [self.application_directory, self.data_directory]:
