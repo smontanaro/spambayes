@@ -17,6 +17,7 @@ scoremsg.py -- prints the evidence for a single message read from stdin
 update.py -- a script to update training data from folders
 vmspam.ini -- a sample configuration file
 zeo.sh -- a script to start a ZEO server
+zeo.bat -- a script to start a ZEO server on Windows
 
 The code depends on ZODB3, which you can download from
 http://www.zope.org/Products/StandaloneZODB.

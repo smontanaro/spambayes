@@ -9,7 +9,7 @@ from spambayes import classifier
 from spambayes.tokenizer import tokenize
 
 from pspam.folder import Folder
-from pspam.options import options
+from spambayes.Options import options
 
 import os
 
@@ -49,7 +49,9 @@ class WordInfo(Persistent):
     def __repr__(self):
         return "WordInfo(%r, %r)" % (self.spamcount, self.hamcount)
 
-class PMetaInfo(classifier.MetaInfo, Persistent):
+##class PMetaInfo(classifier.MetaInfo, Persistent):
+##    pass
+class PMetaInfo(Persistent):
     pass
 
 class PBayes(classifier.Bayes, Persistent):

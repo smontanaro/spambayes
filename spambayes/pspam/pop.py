@@ -44,9 +44,9 @@ import ZODB
 from ZEO.ClientStorage import ClientStorage
 import zLOG
 
-from tokenizer import tokenize
+from spambayes.tokenizer import tokenize
 import pspam.database
-from pspam.options import options
+from spambayes.Options import options
 
 try:
     True, False
@@ -98,7 +98,7 @@ class POP3RequestHandler(SocketServer.StreamRequestHandler):
             return False
         parts = line.split()
         if parts[0] != "USER":
-            self.wfile.write("-ERR Invalid command; must specify USER first")
+            self.wfile.write("-ERR Invalid command; must specify USER first\n")
             return False
         user = parts[1]
         i = user.rfind("@")
@@ -310,10 +310,11 @@ def main():
     r = conn.root()
     profile = r["profile"]
 
-    log = open("/var/tmp/pop.log", "ab")
+    log = open("pop.log", "ab")
     print >> log, "+PROXY start", time.ctime()
 
-    server = POP3ProxyServer(('', options.proxy_port),
+    server = POP3ProxyServer(('', int(options["pop3proxy",
+                                              "listen_ports"][0])),
                              POP3RequestHandler,
                              profile.classifier,
                              log,

@@ -1026,6 +1026,36 @@ defaults = {
      IMAP_FOLDER, DO_NOT_RESTORE),
   ),
 
+  "ZODB" : (
+    ("zeo_addr", "", "",
+     """""",
+     IMAP_ASTRING, DO_NOT_RESTORE),
+
+    ("event_log_file", "", "",
+     """""",
+     IMAP_ASTRING, RESTORE),
+
+    ("folder_dir", "", "",
+     """""",
+     PATH, DO_NOT_RESTORE),
+
+    ("ham_folders", "", "",
+     """""",
+     PATH, DO_NOT_RESTORE),
+
+    ("spam_folders", "", "",
+     """""",
+     PATH, DO_NOT_RESTORE),
+
+    ("event_log_severity", "", 0,
+     """""",
+     INTEGER, RESTORE),
+
+    ("cache_size", "", 2000,
+     """""",
+     INTEGER, RESTORE),
+  ),
+
   "imapserver" : (
     ("username", "Username", "",
      """The username to use when logging into the SpamBayes IMAP server.""",

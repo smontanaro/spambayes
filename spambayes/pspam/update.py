@@ -7,7 +7,8 @@ from ZEO.ClientStorage import ClientStorage
 
 import pspam.database
 from pspam.profile import Profile
-from pspam.options import options
+
+from spambayes.Options import options
 
 try:
     True, False
@@ -30,17 +31,17 @@ def main(rebuild=False):
     profile = r.get("profile")
     if profile is None or rebuild:
         # if there is no profile, create it
-        profile = r["profile"] = Profile(options.folder_dir)
+        profile = r["profile"] = Profile(options["ZODB", "folder_dir"])
         get_transaction().commit()
 
     # check for new folders of training data
-    for ham in options.ham_folders:
-        p = os.path.join(options.folder_dir, ham)
+    for ham in options["ZODB", "ham_folders"].split(os.pathsep):
+        p = os.path.join(options["ZODB", "folder_dir"], ham)
         if not folder_exists(profile.hams, p):
             profile.add_ham(p)
 
-    for spam in options.spam_folders:
-        p = os.path.join(options.folder_dir, spam)
+    for spam in options["ZODB", "spam_folders"].split(os.pathsep):
+        p = os.path.join(options["ZODB", "folder_dir"], spam)
         if not folder_exists(profile.spams, p):
             profile.add_spam(p)
     get_transaction().commit()

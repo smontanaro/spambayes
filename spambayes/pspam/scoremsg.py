@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 """Score a message provided on stdin and show the evidence."""
 
+import sys
+import email
+
 import ZODB
 from ZEO.ClientStorage import ClientStorage
 
-from tokenizer import tokenize
-
-import email
-import sys
-
-import pspam.options
+import pspam.database
+from spambayes.Options import options
+from spambayes.tokenizer import tokenize
 
 try:
     True, False
@@ -19,12 +19,8 @@ except NameError:
 
 
 def main(fp):
-    cs = ClientStorage("/var/tmp/zeospam")
-    db = ZODB.DB(cs)
+    db = pspam.database.open()
     r = db.open().root()
-
-    # make sure scoring uses the right set of options
-    pspam.options.mergefile("/home/jeremy/src/vmspam/vmspam.ini")
 
     p = r["profile"]
 
