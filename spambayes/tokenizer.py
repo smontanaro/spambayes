@@ -596,6 +596,8 @@ html_re = re.compile(r"""
 received_host_re = re.compile(r'from (\S+)\s')
 received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
 
+message_id_re = re.compile(r'\s*<[^@]+@([^>]+)>\s*')
+
 # I'm usually just splitting on whitespace, but for subject lines I want to
 # break things like "Python/Perl comparison?" up.  OTOH, I don't want to
 # break up the unitized numbers in spammish subject phrases like "Increase
@@ -980,6 +982,16 @@ class Tokenizer:
                     if m:
                         for tok in breakdown(m.group(1).lower()):
                             yield 'received:' + tok
+
+        if options.mine_message_ids:
+            msgid = msg.get("message-id", "")
+            m = message_id_re.match(msgid)
+            if not m:
+                # might be weird instead of invalid but who cares?
+                yield 'message-id:invalid'
+            else:
+                # looks okay, return the hostname only
+                yield 'message-id:@%s' % m.group(1)
 
         # As suggested by Anthony Baxter, merely counting the number of
         # header lines, and in a case-sensitive way, has real value.
