@@ -767,8 +767,8 @@ Known Problems & Workarounds
 Pop3proxy doesn't work with fetchmail.
 --------------------------------------
 
-This is a known problem.  To work around it, use fetchmail's ``fetchall``
-option.
+This is a known problem in releases up to and including 1.0a4, fixed in CVS
+on 28th July 2003.  To work around it, use fetchmail's ``fetchall`` option.
 
 
 Development
