@@ -8,8 +8,6 @@
 Where OPTIONS is one or more of:
     -h
         show usage and exit
-    -s num
-        random number seed
     -n num
         number of sets; default 5
     -g num
@@ -24,7 +22,6 @@ import os
 import os.path
 import glob
 import shutil
-import random
 
 program = sys.argv[0]
 loud = True
@@ -42,14 +39,9 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
-def bybasename(a, b):
-    return cmp(os.path.basename(a).split("-", 2)[0],
-               os.path.basename(b).split("-", 2)[0])
-
 def distribute(dir):
     files = glob.glob(os.path.join(dir, "*", "*"))
-    random.shuffle(files)
-    files.sort(bybasename)
+    files.sort()
 
     trash = glob.glob(os.path.join(dir, "Set*"))
     for set in range(1, nsets + 1):
@@ -103,7 +95,7 @@ def main():
     global nmess
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hs:n:g:m:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:g:m:')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -111,8 +103,6 @@ def main():
         for opt, arg in opts:
             if opt == '-h':
                 usage(0)
-            elif opt == '-s':
-                random.seed(int(arg))
             elif opt == '-n':
                 nsets = int(arg)
             elif opt == '-g':
