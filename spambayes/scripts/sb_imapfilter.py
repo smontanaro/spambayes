@@ -422,7 +422,7 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             imap.SelectFolder(self.previous_folder.name)
             self.previous_folder = None
-        response = imap.uid("STORE", self.uid, "+FLAGS.SILENT", "(\\Deleted)")
+        response = imap.uid("STORE", self.uid, "+FLAGS.SILENT", "(\\Deleted \\Seen)")
         self._check(response, 'store')
 
         # We need to update the uid, as it will have changed.
