@@ -48,9 +48,14 @@ def distribute(dir):
     files.sort()
     files = [t[-1] for t in files]
 
+    # Make sure all the desired Set directories exist, and a reservoir
+    # directory.  "trash" is left holding a list of the excess Set
+    # directories (if nsets is less than the number of Set directories
+    # that already exist).  Those directories will be removed at the
+    # end, after all the messages they contain have been moved elsewhere.
     trash = glob.glob(os.path.join(dir, "Set*"))
-    for set in range(1, nsets + 1):
-        name = os.path.join(dir, "Set%d" % set)
+    for subdir in ["Set%d" % i for i in range(1, nsets+1)] + ["reservoir"]:
+        name = os.path.join(dir, subdir)
         try:
             os.makedirs(name)
         except:
@@ -59,10 +64,6 @@ def distribute(dir):
             trash.remove(name)
         except:
             pass
-    try:
-        os.makedirs(os.path.join(dir, "reservoir"))
-    except:
-        pass
 
     oldgroup = ""
     cgroups = 0
