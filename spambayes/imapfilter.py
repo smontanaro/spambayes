@@ -109,6 +109,7 @@ from spambayes.ImapUI import IMAPUserInterface
 from spambayes.Version import get_version_string
 
 from imaplib import Debug
+from imaplib import error
 from imaplib import Time2Internaldate
 try:
     if options["imap", "use_ssl"]:
@@ -319,7 +320,11 @@ class IMAPMessage(message.SBHeaderMessage):
         # We really want to use RFC822.PEEK here, as that doesn't effect
         # the status of the message.  Unfortunately, it appears that not
         # all IMAP servers support this, even though it is in RFC1730
-        response = imap.uid("FETCH", self.uid, self.rfc822_command)
+        try:
+            response = imap.uid("FETCH", self.uid, self.rfc822_command)
+        except error:
+            self.rfc822_command = "RFC822"
+            response = imap.uid("FETCH", self.uid, self.rfc822_command)
         if response[0] != "OK":
             self.rfc822_command = "RFC822"
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
