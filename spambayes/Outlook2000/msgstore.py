@@ -347,7 +347,8 @@ def GetPropFromStream(mapi_object, prop_id):
             chunks.append(chunk)
         return "".join(chunks)
     except pythoncom.com_error, d:
-        print "Error getting property from stream", d
+        print "Error getting property", mapiutil.GetPropTagName(prop_id), \
+              "from stream:", d
         return ""
 
 def GetPotentiallyLargeStringProp(mapi_object, prop_id, row):
@@ -506,6 +507,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.mapi_object = None
 
         # prop_row is a single mapi property row, with fields as above.
+        # NOTE: We can't trust these properties for "large" values
+        # (ie, strings, PT_BINARY, objects etc.), as they sometimes come
+        # from the IMAPITable (which has a 255 limit on property values)
+        # and sometimes from the object itself (which has no restriction).
+        # This limitation is documented by MAPI.
+        # Thus, we don't trust "PR_TRANSPORT_MESSAGE_HEADERS_A" more than
+        # to ask "does the property exist?"
         tag, eid = prop_row[0] # ID
         tag, store_eid = prop_row[1]
         tag, searchkey = prop_row[2]
@@ -519,16 +527,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.folder_id = store_eid, parent_eid
         self.msgclass = msgclass
         self.subject = subject
-        if PROP_TYPE(headers_tag)==PT_STRING8:
-            self.headers = headers
-            has_headers = True
-        else:
-            # headers probably too big for simple property fetch - this is
-            # the case if we got back MAPI_E_NOT_ENOUGH_MEMORY
-            # (but don't bother fetching the header yet)
-            has_headers = PROP_TYPE(headers_tag)==PT_ERROR and \
-                          headers==mapi.MAPI_E_NOT_ENOUGH_MEMORY
-            self.headers = None
+        has_headers = PROP_TYPE(headers_tag)==PT_STRING8
         # Search key is the only reliable thing after a move/copy operation
         # only problem is that it can potentially be changed - however, the
         # Outlook client provides no such (easy/obvious) way
@@ -600,19 +599,15 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         from spambayes import mboxutils
 
         self._EnsureObject()
-        if self.headers is None: # they were too large when created!
-            prop_ids = (PR_TRANSPORT_MESSAGE_HEADERS_A,)
-            hr, data = self.mapi_object.GetProps(prop_ids,0)
-            self.headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
-        headers = self.headers
-
         prop_ids = (PR_BODY_A,
                     MYPR_BODY_HTML_A,
-                    PR_HASATTACH)
+                    PR_HASATTACH,
+                    PR_TRANSPORT_MESSAGE_HEADERS_A)
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         body = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         html = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         has_attach = data[2][1]
+        headers = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
 
         # Some Outlooks deliver a strange notion of headers, including
         # interior MIME armor.  To prevent later errors, try to get rid
