@@ -4,6 +4,8 @@
 from __future__ import generators
 
 import email
+import email.Message
+import email.Errors
 import re
 from sets import Set
 
