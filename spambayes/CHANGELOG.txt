@@ -2,6 +2,8 @@
 
 Release 1.1a1
 =============
+Tony Meyer        08/10/2003  When training via the web interface record the training in the messageinfo db.
+Tony Meyer        07/10/2003  Fix [ 818871 ] sb_server.py calls undefined variable
 Tony Meyer        06/10/2003  Add Tim's fix for the stats to the web interface stats as well.  i.e. round the percentages, don't truncate them.
 Tony Meyer        06/10/2003  imapfilter: When we mark a message as deleted, mark it as read (seen) as well.
 Richie Hindle     04/10/2003  Fix the help icon to look like the rest.
@@ -32,6 +34,10 @@ Tony Meyer        20/09/2003  Make the review messages page on the web UI more c
 
 Alpha Release 7
 ===============
+Tony Meyer        08/10/2003  If the (stats) db uses a pickle, then use a pickle for the messageinfo db as well.
+Tony Meyer        08/10/2003  Try and close the db when we are no longer using it.
+Tony Meyer        08/10/2003  Ensure that we store the messageinfo database when changes are made.
+Tony Meyer        07/10/2003  Fix [ 818552 ] Exchange 2000 IMAPserver & imaplib.error: APPEND command er
 Tony Meyer        06/10/2003  Trivial fix for imap over ssl being offered when it is available.
 Tony Meyer        03/10/2003  Fix [ 810342 ] sb_smtpproxy does not work with smtplib.SMTP.sendmail()
 Tony Meyer        03/10/2003  Fix [ spambayes-Bugs-816400 ] Crash because of bad date.
@@ -43,7 +49,7 @@ Tony Meyer        29/09/2003  imapfilter: Fix trying to view imap folders before
 Tony Meyer        28/09/2003  Don't use 'pragma: no_cache' to try and stop browsers caching the web interface pages.
 Tony Meyer        26/09/2003  If the user is using Windows, also install pop3proxy_service.py and pop3proxy_tray.py.
 Tony Meyer        24/09/2003  Fix sb_xmlrpcserver to work with the renamed options/scripts.
-Tony Meyer        24/09/2003  Fix [ spambayes-Bugs-809769 ] TypeError when training 1.0a6
+Tony Meyer        24/09/2003  Fix [ 809769 ] TypeError when training 1.0a6
 
 Alpha Release 6
 ===============
