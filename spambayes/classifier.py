@@ -51,9 +51,7 @@ PICKLE_VERSION = 4
 class MetaInfo(object):
     """Information about the corpora.
 
-    Contains nham and nspam, used for calculating probabilities.  Also
-    has a revision, incremented every time nham or nspam is adjusted.
-    Nothing uses this, currently, but it's there if you want it.
+    Contains nham and nspam, used for calculating probabilities.
 
     """
     def __init__(self):
@@ -65,31 +63,13 @@ class MetaInfo(object):
                                     self.revision))
 
     def __getstate__(self):
-        return (PICKLE_VERSION, self._nspam, self._nham)
+        return (PICKLE_VERSION, self.nspam, self.nham)
 
     def __setstate__(self, t):
         if t[0] != PICKLE_VERSION:
             raise ValueError("Can't unpickle -- version %s unknown" % t[0])
-        self._nspam, self._nham = t[1:]
+        self.nspam, self.nham = t[1:]
         self.revision = 0
-
-    def incr_rev(self):
-        self.revision += 1
-
-    def get_nham(self):
-        return self._nham
-    def set_nham(self, val):
-        self._nham = val
-        self.incr_rev()
-    nham = property(get_nham, set_nham)
-
-    def set_nspam(self, val):
-        self._nspam = val
-    def get_nspam(self):
-        return self._nspam
-    nspam = property(get_nspam, set_nspam)
-
-
 
 
 class WordInfo(object):
