@@ -302,7 +302,7 @@ class DynamicIMAPMessage(IMAPMessage):
             self[header] = value.strip()
 
 
-class IM.APFileMessage(IMAPMessage, FileCorpus.FileMessage):
+class IMAPFileMessage(IMAPMessage, FileCorpus.FileMessage):
     '''IMAP Message that persists as a file system artifact.'''
 
     def __init__(self, file_name=None, directory=None, mdb=None):
