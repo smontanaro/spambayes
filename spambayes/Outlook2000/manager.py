@@ -21,6 +21,13 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# Characters valid in a filename.  Used to nuke bad chars from the profile
+# name (which we try and use as a filename).
+# We assume characters > 127 are OK as they may be unicode
+filename_chars = ('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                '0123456789'
+                """$%'-_@~ `!()^#&+,;=[]""")
+
 # Report a message to the user - should only be used for pretty serious errors
 # hence we also print a traceback.
 # Module level function so we can report errors creating the manager
@@ -607,6 +614,10 @@ class BayesManager:
         import locale; locale.setlocale(locale.LC_NUMERIC, "C")
 
         profile_name = self.message_store.GetProfileName()
+        # The profile name may include characters invalid in file names.
+        if profile_name is not None:
+            profile_name = "".join([c for c in profile_name
+                                    if ord(c)>127 or c in filename_chars])
         if profile_name is None:
             # should only happen in source-code versions - older win32alls can't
             # determine this.
