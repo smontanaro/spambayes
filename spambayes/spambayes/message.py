@@ -175,10 +175,7 @@ class Message(email.Message.Message):
 
         Nicked the regex from smtplib.quotedata.
         """
-        #XXX Tim doesn't like this regex.  He will study it to
-        #XXX see if he can learn to like it, or come up with
-        #XXX something he likes better.  - Tim
-        return re.sub(r'(?:\r\n|\n|\r(?!\n))', "\r\n", data)
+        return re.sub(r'(?:\r\n|\n|\r(?!\n))', '\r\n', data)
 
     def as_string(self):
         # The email package stores line endings in the "internal" Python
@@ -275,12 +272,13 @@ class SBHeaderMessage(Message):
                                thermostat[:int(prob*10)]
                                
         if options['pop3proxy','include_evidence']:
-            evd = "; ".join(["%r: %.2f" % (word, score)
-             for word, score in clues
-             if (word[0] == '*' or
-                 score <= options['Hammie','clue_mailheader_cutoff'] or
-                 score >= 1.0 - options['Hammie','clue_mailheader_cutoff'])])
-            self[options['pop3proxy','evidence_header_name']] = evd
+            hco = options['Hammie','clue_mailheader_cutoff']
+            sco = 1 - hco
+            evd = []
+            for word, score in clues:
+                if (word[0] == '*' or score <= hco or score >= sco):
+                    evd.append("%r: %.2f" % (word, score))
+            self[options['pop3proxy','evidence_header_name']] = "; ".join(evd)
         
         if options['pop3proxy','add_mailid_to'].find("header") != -1:
             self[options['pop3proxy','mailid_header_name']] = self.id
