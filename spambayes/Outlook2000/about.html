@@ -132,7 +132,14 @@ to the new Spam folder you just created.&nbsp; Try and get as much Spam
 out of your inbox as possible, as your inbox will form the initial set
 of good messages we train on.&nbsp; Don't worry too much about missing
 one or two spam - the system is likely to find them for you as we
-rescore your existing email.</li>
+rescore your existing email.<br>
+If your Inbox is so full of Spam you don't know where to start, you may
+like to create a temporary folder for the purposes of training your
+good messages.&nbsp; Copy some examples of your good messages to this
+new folder (roughly the same number as Spam you are training on is
+best) and nominate this temporary folder instead of your Inbox.&nbsp;
+Once trained, you can dispose of this folder.<br>
+        </li>
         <li>Configure and Train SpamBayes<br>
 Now we have our folders setup with some initial training data, we can
 configure the plugin.&nbsp; From the <span style="font-style: italic;">SpamBayes</span>
@@ -140,15 +147,15 @@ button on the toolbar select <span style="font-style: italic;">SpamBayes
 Manager...</span>&nbsp; This will display the main dialog, as shown to
 the right.</li>
         <li>Select Train Now, and the training dialog, also shown to
-the right will appear.&nbsp; The Inbox will be the default for good
-messages, so you need to select your new Spam folder as the source of
+the right will appear.&nbsp; You will need to select your Inbox as the
+folder for good messages, and your new Spam folder as the source of
 junk messages.&nbsp; Ensure that <span style="font-style: italic;">Score
 messages after training</span> is selected, so we can see how effective
 our Inbox cleanup was.<br>
         </li>
         <li>Click on the Train Now button, and a progress indicator
-will be displayed as your messages are trained, and another progress
-indicator as they are scored.&nbsp; Close the training window to return
+will be displayed as your messages are trained and scored.&nbsp; When
+finished, close the training window to return
 to the SpamBayes window.</li>
       </ol>
       </td>
@@ -247,7 +254,7 @@ for whatever reason, the Outlook Rules Wizard does not allow creating
 rules based on user-defined fields. That's why this addin supplies its
 own filtering rules.<br>
 <h2><a name="Filtering"></a>Configuring the plugin for filtering</h2>
-Once the system is trained an configured, you are ready to enable the
+Once the system is trained and configured, you are ready to enable the
 filtering capabilities.&nbsp; From the SpamBayes manager, select <span
  style="font-style: italic;">Filters</span>.&nbsp; From this dialog you
 can select all the folders that you wish to watch for spam.&nbsp; You
