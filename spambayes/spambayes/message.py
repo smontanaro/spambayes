@@ -125,9 +125,8 @@ class MessageInfoDB:
     def _delState(self, msg):
         del self.db[msg.getId()]
         
-# this should come from a mark hammond idea of a master db
+# this should come from a Mark Hammond idea of a master db
 msginfoDB = MessageInfoDB("spambayes.messageinfo.db")
-
 
 class Message(email.Message.Message):
     '''An email.Message.Message extended for Spambayes'''
@@ -150,35 +149,13 @@ class Message(email.Message.Message):
         # to try to extract important headers regardless of malformations
         prs._parsebody(self, StringIO(payload))
         
-    def setIdFromPayload(self):
-        try:
-            self.setId(self[options.pop3proxy_mailid_header_name])
-        except KeyError:
-            return None
-
-        return self.id
-
-    def changeId(self, id):
-        # We cannot re-set an id (see below).  However there are
-        # occasionally times when the id for a message will change,
-        # for example, on an IMAP server (or possibly an exchange
-        # server), the server may change the ids that we are using
-        # We enforce that this must be an explicit *change* rather
-        # than simply re-setting, by having this as a separate
-        # function
-        if not self.id:
-            raise ValueError, "MsgID has not been set, cannot be changed"
-        self._setId(id)
-    
     def setId(self, id):
         if self.id:
             raise ValueError, "MsgId has already been set, cannot be changed"
-        self._setId(id)
 
-    def _setId(self, id):    
-        # we should probably enforce type(id) is StringType.
-        # the database will insist upon it, but at that point, it's harder
-        # to diagnose
+        # XXX This isn't really needed since type(None) is not
+        # XXX in types.StringTypes - do we still want it for the
+        # XXX more informative error message?
         if id is None:
             raise ValueError, "MsgId must not be None"
 
@@ -192,25 +169,62 @@ class Message(email.Message.Message):
     def getId(self):
         return self.id
 
-    def copy(self, old_msg):
-        self.setPayload(old_msg.payload())  # this is expensive...
-        self.setClassification(old_msg.getClassification())
-        self.setTraining(old_msg.getTraining())
+    def asTokens(self):
+        # use as_string() here because multipart/digest will return
+        # a list of message objects if get_payload() is used
+        return tokenize(self.as_string())
         
+    def modified(self):
+        if self.id:    # only persist if key is present
+            msginfoDB._setState(self)
+
+    def GetClassification(self):
+        return self.c
+    def GetTrained(self):
+        return self.t
+    def RememberClassification(self, cls):
+        self.c = cls
+        self.modified()
+    def RememberTrained(self, isSpam):
+        self.t = isSpam
+        self.modified()
+         
+    def __repr__(self):
+        return "core.Message%r" % repr(self.__getstate__())
+
+    def __getstate__(self):
+        return (self.id, self.c, self.t)
+
+    def __setstate__(self, t):
+        (self.id, self.c, self.t) = t
+
+# XXX I can't think of a good name.  Someone change
+# XXX HeaderMessage to something better before it gets used
+# XXX all over the place.
+class HeaderMessage(Message):
+    '''Adds routines to add/remove headers for Spambayes'''
+    def __init__(self):
+        Message.__init__(self)
+        
+    def setIdFromPayload(self):
+        try:
+            self.setId(self[options.pop3proxy_mailid_header_name])
+        except KeyError:
+            return None
+
+        return self.id
+
     def addSBHeaders(self, prob, clues):
         '''Add hammie header, and remember message's classification.  Also,
         add optional headers if needed.'''
         
         if prob < options.ham_cutoff:
             disposition = options.header_ham_string
-            self.clsfyAsHam()
         elif prob > options.spam_cutoff:
             disposition = options.header_spam_string
-            self.clsfyAsSpam()
         else:
             disposition = options.header_unsure_string
-            self.clsfyAsUnsure()
-
+        self.RememberClassification(disposition)
         self[options.hammie_header_name] = disposition
         
         if options.pop3proxy_include_prob:
@@ -227,7 +241,6 @@ class Message(email.Message.Message):
                      if (word[0] == '*' or
                          score <= options.clue_mailheader_cutoff or
                          score >= 1.0 - options.clue_mailheader_cutoff)])
-                         
             self[options.pop3proxy_evidence_header_name] = evd
         
         if options.pop3proxy_add_mailid_to.find("header") != -1:
@@ -240,7 +253,6 @@ class Message(email.Message.Message):
 #                   options.pop3proxy_mailid_header_name + ": " \
 #                    + messageName + "\r\n.\r\n"
 
-
     def delSBHeaders(self):
         del self[options.hammie_header_name]
         del self[options.pop3proxy_mailid_header_name]
@@ -248,99 +260,3 @@ class Message(email.Message.Message):
         del self[options.pop3proxy_prob_header_name]
         del self[options.pop3proxy_thermostat_header_name]
         del self[options.pop3proxy_evidence_header_name]
-    
-    def asTokens(self):
-        # use as_string() here because multipart/digest will return
-        # a list of message objects if get_payload() is used
-        return tokenize(self.as_string())
-        
-    def modified(self):
-        if self.id:    # only persist if key is present
-            msginfoDB._setState(self)
-        
-    def isClsfdSpam(self):
-        return self.c == 's'
-        
-    def isClsfdHam(self):
-        return self.c == 'h'
-        
-    def isClsfdUnsure(self):
-        return self.c == 'u'
-        
-    def isClassified(self):
-        return not self.c is None
-        
-    def clsfyAsSpam(self):
-        self.c = 's'
-        self.modified()
-        
-    def clsfyAsHam(self):
-        self.c = 'h'
-        self.modified()
-        
-    def clsfyAsUnsure(self):
-        self.c = 'u'
-        self.modified()
-    
-    def getClassification(self):
-        return self.c
-
-    def setClassification(self, cls):
-        if cls == 's' or cls == 'h' or cls == 'u' or cls is None:
-            self.c = cls
-            self.modified()
-        else:
-            raise ValueError
-        
-    def isTrndSpam(self):
-        return self.t == 's'
-        
-    def isTrndHam(self):
-        return self.t == 'h'
-    
-    def trndAsSpam(self):
-        self.t = 's'
-        self.modified()
-        
-    def trndAsHam(self):
-        self.t = 'h'
-        self.modified()
-        
-    def isTrndAs(self, isSpam):
-        if self.t == 'h' and not isSpam:
-            return True
-        if self.t == 's' and isSpam:
-            return True
-        return False
-
-    def trndAs(self, isSpam):
-        if isSpam:
-            self.t = 's'
-        else:
-            self.t = 'h'
-
-    def notTrained(self):
-        self.t = None
-        self.modified()
-        
-    def isTrained(self):
-        return not self.t is None
-    
-    def getTraining(self):
-        return self.t
-
-    def setTraining(self, trn):
-        if trn == 's' or trn == 'h' or trn is None:
-            self.t = trn
-            self.modified()
-        else:
-            raise ValueError
-         
-    def __repr__(self):
-        return "core.Message%r" % repr(self.__getstate__())
-
-    def __getstate__(self):
-        return (self.id, self.c, self.t)
-
-    def __setstate__(self, t):
-        (self.id, self.c, self.t) = t
