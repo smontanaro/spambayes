@@ -126,7 +126,7 @@ def GetCOMExceptionString(exc_val):
 class MAPIMsgStore(MsgStore):
     def __init__(self, outlook = None):
         self.outlook = outlook
-        cwd = os.getcwd()
+        cwd = os.getcwd() # remember the cwd - mapi changes it under us!
         mapi.MAPIInitialize(None)
         logonFlags = (mapi.MAPI_NO_MAIL |
                       mapi.MAPI_EXTENDED |
@@ -220,27 +220,12 @@ class MAPIMsgStore(MsgStore):
             flags = mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS
         return store.OpenEntry(item_id, iid, flags)
 
-    # Given an ID, normalize it into a (store_id, item_id) binary tuple.
-    # item_id may be:
-    # - Simple hex EID, in wich case default store ID is assumed.
-    # - Tuple of (None, hex_eid), in which case default store assumed.
-    # - Tuple of (hex_store_id, hex_id)
+    # Normalize an "external" hex ID to an internal binary ID.
     def NormalizeID(self, item_id):
-        if type(item_id)==type(()):
-            store_id, item_id = item_id
-            item_id = mapi.BinFromHex(item_id)
-            if store_id is None:
-                # store_id=None was a "backwards compat" hack no longer
-                # need - it can go once we are *sure* we dont need it ;)
-                assert False, "We expect fully qualified IDs"
-                store_id = self.default_store_bin_eid
-            else:
-                store_id = mapi.BinFromHex(store_id)
-            return store_id, item_id
-        # See above - this branch can die (I think ;)
-        assert type(item_id) in [type(''), type(u'')], "What kind of ID is '%r'?" % (item_id,)
-        assert False, "We expect fully qualified IDs"
-        return self.default_store_bin_eid, mapi.BinFromHex(item_id)
+        assert type(item_id)==type(()), \
+               "Item IDs must be a tuple (not a %r)" % item_id
+        store_id, entry_id = item_id
+        return mapi.BinFromHex(store_id), mapi.BinFromHex(entry_id)
 
     def _GetSubFolderIter(self, folder):
         table = folder.GetHierarchyTable(0)
@@ -285,6 +270,7 @@ class MAPIMsgStore(MsgStore):
     def GetFolder(self, folder_id):
         # Return a single folder given the ID.
         try:
+            # See if this is an Outlook folder item
             sid = mapi.BinFromHex(folder_id.StoreID)
             eid = mapi.BinFromHex(folder_id.EntryID)
             folder_id = sid, eid
@@ -492,7 +478,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # only problem is that it can potentially be changed - however, the
         # Outlook client provides no such (easy/obvious) way
         # (ie, someone would need to really want to change it <wink>)
-        # Thus, searchkey is the only reliable long-lived message key.
+        # Thus, searchkey is our long-lived message key.
         self.searchkey = searchkey
         self.is_unsent = flags & MSGFLAG_UNSENT
         self.dirty = False
@@ -556,7 +542,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if PROP_TYPE(got_tag) == PT_ERROR:
             ret = ""
             if got_val == mapi.MAPI_E_NOT_FOUND:
-                pass # No body for this message.
+                pass # No property for this message.
             elif got_val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
                 # Too big for simple properties - get via a stream
                 ret = self._GetPropFromStream(prop_id)
@@ -755,7 +741,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # responsible for the object. If the PR_MAPPING_SIGNATURE
         # property is the same for two objects, assume that these
         # objects use the same name-to-identifier mapping.
-        # [MarkH: Note MAPIUUID object are supported and hashable]
+        # [MarkH: MAPIUID objects are supported and hashable]
 
         # XXX If the SpamProb (Hammie, whatever) property is passed in as an
         # XXX int, Outlook displays the field as all blanks, and sorting on
@@ -818,8 +804,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 print "Requested set to %s but the MAPI field after was %r" % \
                       (is_read, self.GetField(PR_MESSAGE_FLAGS))
 
-    # unsent may also be useful - MSGFLAG_UNSENT bit in PR_MESSAGE_FLAGS .
-
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"
         # There are some known exceptions that can be raised by IMAP and hotmail
@@ -833,7 +817,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.dirty = False
 
     def _DoCopyMove(self, folder, isMove):
-##        self.mapi_object = None # release the COM pointer
         assert not self.dirty, \
                "asking me to move a dirty message - later saves will fail!"
         dest_folder = self.msgstore._OpenEntry(folder.id)
