@@ -1,6 +1,40 @@
 Title: SpamBayes: Frequently Asked Questions
 Author-Email: spambayes@python.org
 Author: spambayes
+
+<!-- ************************************************************
+This really needs to be done differently.  How about a Wiki or a blog?
+************************************************************ -->
+
+<!--
+
+Note to future maintainers: This FAQ has a table of contents listing
+sections and questions and a parallel body which lists the sections and
+questions followed by answers.  Please try and keep the ordering the same
+between the two so the generated numbers align.
+
+To add a new question and answer please do the following:
+
+    * Insert the question at the end of the appropriate section of the table
+      of contents.  Highlight it with an anchor tag whose href attribute
+      references the name you'll give to the question in the body, e.g.: <a
+      href="#blarg">question</a>.  Surround the whole question with a
+      <li>...</li> pair.
+
+    * Insert the question followed by the answer at the end of the
+      appropriate section of the body.  Introduce the q&a with <li>.  The
+      question needs to be surrounded by a named anchor: <a
+      name="blarg">question</a>, where "blarg" is the target of the href.
+      Surround the question and anchor in <span
+      class="faq-header">...</span>.  The answer should be one or more
+      <p>aragraphs.  Any <pre>formatted text should be indented four spaces.
+      Terminate the answer with </li>.
+
+If you feel it's necessary to reorder a section or add a new section, do it
+carefully.  Good luck!
+
+-->
+
 <h1>
   Frequently Asked Questions
 </h1>
