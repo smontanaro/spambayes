@@ -76,17 +76,23 @@ def _BuildFoldersMAPI(manager, folder_spec):
         if ignore:
             continue
         temp_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
-        child_folder = manager.message_store.GetFolder(temp_id)
-        if child_folder is not None:
-            spec = FolderSpec(child_folder.GetID(), name, folder_spec.ignore_eids)
-            # If we have no children at all, indicate
-            # the item is not expandable.
-            table = child_folder.OpenEntry().GetHierarchyTable(0)
-            if table.GetRowCount(0) == 0:
-                spec.children = []
-            else:
-                spec.children = None # Flag as "not yet built"
-            children.append(spec)
+        try:
+            child_folder = manager.message_store.GetFolder(temp_id)
+            if child_folder is not None:
+                spec = FolderSpec(child_folder.GetID(), name, folder_spec.ignore_eids)
+                # If we have no children at all, indicate
+                # the item is not expandable.
+                table = child_folder.OpenEntry().GetHierarchyTable(0)
+                if table.GetRowCount(0) == 0:
+                    spec.children = []
+                else:
+                    spec.children = None # Flag as "not yet built"
+                children.append(spec)
+        except pythoncom.com_error, details
+            # Users have reported failure here - it is not clear if the
+            # entire tree is going to fail, or just this folder
+            print "** Unable to open child folder - ignoring"
+            print details
     win32ui.DoWaitCursor(0)
     return children
 
