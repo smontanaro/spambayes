@@ -303,7 +303,21 @@ difficult to create a plugin for it.
 You can use sb_server and/or sb_imapfilter with Outlook Express.  Because
 Outlook Express does not let you filter on arbitrary headers (like
 X-Spambayes-Classification), sb_server must add the classification to the
-"To:" line, or the "Subject" line.
+"To:" line, or the "Subject" line.  The configuration page has options that
+let you do this.
+
+Once you've set up sb_server, you also need to create rules (like any other
+rules) in Outlook Express, to take the appropriate action on mail based on
+its classification (move spam to a spam folder, for example).  You do this
+by searching the "To:" or "Subject:" line for the classification - since
+you can't set the rule to look only at the start of the line, we recommend
+that you search for (e.g.) "spam," rather than simply "spam", so that you
+don't catch other messages, like ones from the SpamBayes mailing list.
+
+Even this can cause troubles if you get messages with subjects like "I get
+a lot of spam, do you?".  In this case, you probably need to alter the tag
+that SpamBayes uses (to 'SBSpam' or something else), which you can do by
+editing the configuration file to include the header_spam_string option.
 
 sb_server/sb_imapfilter aren't quite as 'transparent' as the Outlook plugin,
 but they're still quite easy to use/setup, and they use the same core, so
