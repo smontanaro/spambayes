@@ -241,8 +241,7 @@ class ProcessorDialog(TooltipDialog):
             return True
         except ValueError, why:
             mb_flags = win32con.MB_ICONEXCLAMATION | win32con.MB_OK
-            win32gui.MessageBox(self.hwnd, str(why),
-                                self.dialog_def.caption, mb_flags)
+            win32gui.MessageBox(self.hwnd, str(why), "SpamBayes", mb_flags)
             return False
         
     def SaveAllControls(self):
