@@ -4,42 +4,6 @@ import email
 import re
 from sets import Set
 
-# Find all the text components of the msg.  There's no point decoding
-# binary blobs (like images).  If a multipart/alternative has both plain
-# text and HTML versions of a msg, ignore the HTML part:  HTML decorations
-# have monster-high spam probabilities, and innocent newbies often post
-# using HTML.
-def textparts(msg):
-    text = Set()
-    redundant_html = Set()
-    for part in msg.walk():
-        if part.get_content_type() == 'multipart/alternative':
-            # Descend this part of the tree, adding any redundant HTML text
-            # part to redundant_html.
-            htmlpart = textpart = None
-            stack = part.get_payload()
-            while stack:
-                subpart = stack.pop()
-                ctype = subpart.get_content_type()
-                if ctype == 'text/plain':
-                    textpart = subpart
-                elif ctype == 'text/html':
-                    htmlpart = subpart
-                elif ctype == 'multipart/related':
-                    stack.extend(subpart.get_payload())
-
-            if textpart is not None:
-                text.add(textpart)
-                if htmlpart is not None:
-                    redundant_html.add(htmlpart)
-            elif htmlpart is not None:
-                text.add(htmlpart)
-
-        elif part.get_content_maintype() == 'text':
-            text.add(part)
-
-    return text - redundant_html
-
 ##############################################################################
 # To fold case or not to fold case?  I didn't want to fold case, because
 # it hides information in English, and I have no idea what .lower() does
@@ -371,6 +335,44 @@ def textparts(msg):
 # worse idea:  f-p and f-n rates both suffered significantly then.  I didn't
 # try testing with lower bound 2.
 
+
+
+# Find all the text components of the msg.  There's no point decoding
+# binary blobs (like images).  If a multipart/alternative has both plain
+# text and HTML versions of a msg, ignore the HTML part:  HTML decorations
+# have monster-high spam probabilities, and innocent newbies often post
+# using HTML.
+def textparts(msg):
+    text = Set()
+    redundant_html = Set()
+    for part in msg.walk():
+        if part.get_content_type() == 'multipart/alternative':
+            # Descend this part of the tree, adding any redundant HTML text
+            # part to redundant_html.
+            htmlpart = textpart = None
+            stack = part.get_payload()
+            while stack:
+                subpart = stack.pop()
+                ctype = subpart.get_content_type()
+                if ctype == 'text/plain':
+                    textpart = subpart
+                elif ctype == 'text/html':
+                    htmlpart = subpart
+                elif ctype == 'multipart/related':
+                    stack.extend(subpart.get_payload())
+
+            if textpart is not None:
+                text.add(textpart)
+                if htmlpart is not None:
+                    redundant_html.add(htmlpart)
+            elif htmlpart is not None:
+                text.add(htmlpart)
+
+        elif part.get_content_maintype() == 'text':
+            text.add(part)
+
+    return text - redundant_html
+
 url_re = re.compile(r"""
     (https? | ftp)  # capture the protocol
     ://             # skip the boilerplate
@@ -391,6 +393,8 @@ html_re = re.compile(r"""
     [^>]{0,128} # search for the end '>', but don't run wild
     >
 """, re.VERBOSE)
+
+ip_re = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
 
 # I'm usually just splitting on whitespace, but for subject lines I want to
 # break things like "Python/Perl comparison?" up.  OTOH, I don't want to
@@ -639,6 +643,19 @@ class Tokenizer:
         # database, the cost is also tiny.
         if msg.get('organization', None) is None:
             yield "bool:noorg"
+
+        # Received:
+        # Neil Schemenauer reported good results from tokenizing prefixes
+        # of the embedded IP addresses.
+        # XXX This is disabled only because it's "too good" when used on
+        # XXX Tim's mixed-source corpora.
+        if 0:
+            for header in msg.get_all("received", ()):
+                for ip in ip_re.findall(header):
+                    parts = ip.split(".")
+                    for n in range(1, 5):
+                        yield 'received:' + '.'.join(parts[:n])
+
 
         # XXX Following is a great idea due to Anthony Baxter.  I can't use it
         # XXX on my test data because the header lines are so different between
