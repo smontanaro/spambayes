@@ -384,6 +384,29 @@ class Bayes(object):
     # A subclass would be cleaner, but experiments will soon enough lead
     # to only one of the alternatives surviving.
 
+    def _add_popstats(self, sum, sumsq, n, is_spam):
+        from math import ldexp
+
+        if is_spam:
+            sum += self.spamsum
+            sumsq += self.spamsumsq
+            n += self.spamn
+            self.spamsum, self.spamsumsq, self.spamn = sum, sumsq, n
+        else:
+            sum += self.hamsum
+            sumsq += self.hamsumsq
+            n += self.hamn
+            self.hamsum, self.hamsumsq, self.hamn = sum, sumsq, n
+
+        mean = ldexp(sum, -64) / n
+        var = sumsq * n - sum**2
+        var = ldexp(var, -128) / n**2
+
+        if is_spam:
+            self.spammean, self.spamvar = mean, var
+        else:
+            self.hammean, self.hamvar = mean, var
+
     def central_limit_compute_population_stats(self, msgstream, is_spam):
         from math import ldexp
 
@@ -397,22 +420,8 @@ class Bayes(object):
                 prob = long(ldexp(prob, 64))
                 sum += prob
                 sumsq += prob * prob
-        n = len(seen)
 
-        if is_spam:
-            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
-            spamsum = self.spamsum
-            self.spammean = ldexp(spamsum, -64) / self.spamn
-            spamvar = self.spamsumsq * self.spamn - spamsum**2
-            self.spamvar = ldexp(spamvar, -128) / (self.spamn ** 2)
-            print 'spammean', self.spammean, 'spamvar', self.spamvar
-        else:
-            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
-            hamsum = self.hamsum
-            self.hammean = ldexp(hamsum, -64) / self.hamn
-            hamvar = self.hamsumsq * self.hamn - hamsum**2
-            self.hamvar = ldexp(hamvar, -128) / (self.hamn ** 2)
-            print 'hammean', self.hammean, 'hamvar', self.hamvar
+        self._add_popstats(sum, sumsq, len(seen), is_spam)
 
     if options.use_central_limit:
         compute_population_stats = central_limit_compute_population_stats
@@ -498,19 +507,7 @@ class Bayes(object):
                 sum += prob
                 sumsq += prob * prob
 
-        n = len(seen)
-        mean = ldexp(sum, -64) / n
-        var = sumsq * n - sum**2
-        var = ldexp(var, -128) / n**2
-
-        if is_spam:
-            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
-            self.spammean, self.spamvar = mean, var
-            print 'spammean', self.spammean, 'spamvar', self.spamvar
-        else:
-            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
-            self.hammean, self.hamvar = mean, var
-            print 'hammean', self.hammean, 'hamvar', self.hamvar
+        self._add_popstats(sum, sumsq, len(seen), is_spam)
 
     if options.use_central_limit2:
         compute_population_stats = central_limit_compute_population_stats2
@@ -597,18 +594,7 @@ class Bayes(object):
             sum += mean
             sumsq += mean * mean
 
-        mean = ldexp(sum, -64) / n
-        var = sumsq * n - sum**2
-        var = ldexp(var, -128) / n**2
-
-        if is_spam:
-            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
-            self.spammean, self.spamvar = mean, var
-            print 'spammean', self.spammean, 'spamvar', self.spamvar
-        else:
-            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
-            self.hammean, self.hamvar = mean, var
-            print 'hammean', self.hammean, 'hamvar', self.hamvar
+        self._add_popstats(sum, sumsq, n, is_spam)
 
     if options.use_central_limit3:
         compute_population_stats = central_limit_compute_population_stats3
