@@ -4,8 +4,8 @@
 
 [Setup]
 AppName=Spambayes Outlook Addin
-AppVerName=Spambayes Outlook Addin 0.4
-AppVersion=0.4
+AppVerName=Spambayes Outlook Addin 0.5
+AppVersion=0.5
 DefaultDirName={pf}\Spambayes Outlook Addin
 DefaultGroupName=Spambayes Outlook Addin
 OutputDir=.
@@ -25,9 +25,13 @@ begin
   Result := true;
   if not RegKeyExists( HKCU, 'Software\Microsoft\Office\Outlook') then
     begin
-      MsgBox('Outlook appears to not be installed' + #13 + #13 + 'Please correct this and restart the installation',
-             mbInformation, MB_OK);
-      Result := false;
+      Result := MsgBox(
+            'Outlook appears to not be installed.' + #13 + #13 +
+            'This addin only works with Microsoft Outlook 2000 and later - it' + #13 +
+            'does not work with Outlook express.' + #13 + #13 +
+            'If you know that Outlook is installed, you may with to continue.' + #13 + #13 +
+            'Continue with installation?',
+            mbConfirmation, MB_YESNO) = idYes;
     end;
 end;
 
