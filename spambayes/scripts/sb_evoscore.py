@@ -91,7 +91,7 @@ def main():
     msg = sys.stdin.read()
     try:
         server = xmlrpclib.ServerProxy(RPCURL)
-        score = server.score(msg)
+        score = server.score(xmlrpclib.Binary(msg))
     except:
         import traceback
         traceback.print_exc()
