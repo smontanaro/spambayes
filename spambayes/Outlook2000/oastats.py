@@ -13,17 +13,25 @@ class Stats:
         if os.path.exists(self.stored_statistics_fn):
             self.Load()
         else:
-            # Reset totals
-            self.totals = {}
-            for stat in ["num_ham", "num_spam", "num_unsure",
-                         "num_deleted_spam", "num_deleted_spam_fn",
-                         "num_recovered_good", "num_recovered_good_fp",]:
-                self.totals[stat] = 0
+            self.ResetTotal()
         self.Reset()
     def Reset(self):
         self.num_ham = self.num_spam = self.num_unsure = 0
         self.num_deleted_spam = self.num_deleted_spam_fn  = 0
         self.num_recovered_good = self.num_recovered_good_fp = 0
+    def ResetTotal(self, permanently=False):
+        self.totals = {}
+        for stat in ["num_ham", "num_spam", "num_unsure",
+                     "num_deleted_spam", "num_deleted_spam_fn",
+                     "num_recovered_good", "num_recovered_good_fp",]:
+            self.totals[stat] = 0
+        if permanently:
+            # Also remove the file.
+            try:
+                os.remove(self.stored_statistics_fn)
+            except OSError:
+                # Maybe we had never saved it.
+                pass
     def Load(self):
         store = open(self.stored_statistics_fn, 'rb')
         self.totals = pickle.load(store)

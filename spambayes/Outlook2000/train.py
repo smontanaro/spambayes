@@ -168,6 +168,12 @@ def trainer(mgr, config, progress):
         assert mgr.classifier_data is not classifier_data
         mgr.classifier_data.Adopt(classifier_data)
         classifier_data = mgr.classifier_data
+        # If we are rebuilding, then we reset the statistics, too.
+        # (But output them to the log for reference).
+        mgr.LogDebug(1, "Session:" + "\r\n".join(mgr.stats.GetStats(False))
+        mgr.LogDebug(1, "Total:" + "\r\n".join(mgr.stats.GetStats())
+        mgr.stats.Reset()
+        mgr.stats.ResetTotal(True)
 
     progress.tick()
 
