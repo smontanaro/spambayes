@@ -557,6 +557,32 @@ received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
 # "Python-Dev".
 subject_word_re = re.compile(r"[\w\x80-\xff$.%]+")
 
+# Anthony Baxter reported goodness from cracking src params.
+# Finding a src= thingie is complicated if we insist it appear in an
+# img or iframe tag, so this approximates reality with a fast and
+# non-stack-blowing simple regexp.
+src_re = re.compile(r"""
+    \s
+    src=['"]
+    (?!https?:)     # we suck out http thingies via a different gimmick
+    ([^'"]{1,128})  # capture the guts, but don't go wild
+    ['"]
+""", re.VERBOSE)
+
+fname_sep_re = re.compile(r'[/\\:]')
+
+def crack_filename(fname):
+    yield "fname:" + fname
+    components = fname_sep_re.split(fname)
+    morethan1 = len(components) > 1
+    for component in components:
+        if morethan1:
+            yield "fname comp:" + component
+        pieces = urlsep_re.split(component)
+        if len(pieces) > 1:
+            for piece in pieces:
+                yield "fname piece:" + piece
+
 def tokenize_word(word, _len=len):
     n = _len(word)
 
@@ -700,9 +726,8 @@ def crack_content_xyz(msg):
 
     fname = msg.get_filename()
     if fname is not None:
-        for x in fname.lower().split('/'):
-            for y in x.split('.'):
-                yield 'filename:' + y
+        for x in crack_filename(fname):
+            yield 'filename:' + x
 
     if 0:   # disabled; see comment before function
         x = msg.get('content-transfer-encoding')
@@ -873,6 +898,17 @@ class Tokenizer:
                     prefix = "%s%s:" % (proto, i < 2 and str(i) or '>1')
                     for chunk in urlsep_re.split(piece):
                         yield prefix + chunk
+
+            # Anthony Baxter reported goodness from tokenizing src= params.
+            # XXX This made no difference in my tests:  both error rates
+            # XXX across 20 runs were identical before and after.  I suspect
+            # XXX this is because Anthony got most good out of the http
+            # XXX thingies in <img src="http://bozo.bozo.com">, but we
+            # XXX picked those up in the last step (in src params and
+            # XXX everywhere else).  So this code is commented out.
+            ## for fname in src_re.findall(text):
+            ##     for x in crack_filename(fname):
+            ##         yield "src:" + x
 
             # Remove HTML/XML tags if it's a plain text message.
             if part.get_content_type() == "text/plain":
