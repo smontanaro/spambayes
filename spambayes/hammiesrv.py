@@ -35,19 +35,33 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 DEFAULTDB = hammie.DEFAULTDB
 
 class XMLHammie(hammie.Hammie):
-    def score(self, msg, **kwargs):
+    def score(self, msg, *extra):
         try:
             msg = msg.data
         except AttributeError:
             pass
-        return hammie.Hammie.score(self, msg, **kwargs)
+        score = hammie.Hammie.score
+        if len(extra) == 0:
+            return score(self, msg)
+        elif len(extra) == 1:
+            return score(self, msg, extra[0])
+        else:
+            raise TypeError("Wrong number of arguments")
 
-    def filter(self, msg, **kwargs):
+    def filter(self, msg, *extra):
         try:
             msg = msg.data
         except AttributeError:
             pass
-        return hammie.Hammie.filter(self, msg, **kwargs)
+        filter = hammie.Hammie.filter
+        if len(extra) == 0:
+            return filter(self, msg)
+        elif len(extra) == 1:
+            return filter(self, msg, extra[0])
+        elif len(extra) == 2:
+            return filter(self, msg, extra[0], extra[1])
+        else:
+            raise TypeError("Wrong number of arguments")
 
 
 class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -71,6 +85,7 @@ class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 # wrap response in a singleton tuple
                 response = (response,)
             except:
+            	traceback.print_exc()
                 # report exception back to server
                 response = xmlrpclib.dumps(
                     xmlrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value))
