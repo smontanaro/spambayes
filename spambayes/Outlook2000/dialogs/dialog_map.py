@@ -34,12 +34,30 @@ class TrainingStatusProcessor(ControlProcessor):
         bayes = self.window.manager.classifier_data.bayes
         nspam = bayes.nspam
         nham = bayes.nham
-        if nspam > 0 and nham > 0:
+        if nspam > 10 and nham > 10:
             db_status = "Database has %d good and %d spam" % (nham, nspam)
+        elif nspam > 0 or nham > 0:
+            db_status = "Database only has %d good and %d spam - you should consider performing additional training" % (nham, nspam)
         else:
             db_status = "Database has no training information"
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                              0, db_status)
+
+class WizardTrainingStatusProcessor(ControlProcessor):
+    def Init(self):
+        bayes = self.window.manager.classifier_data.bayes
+        nspam = bayes.nspam
+        nham = bayes.nham
+        if nspam > 10 and nham > 10:
+            msg = "SpamBayes has been successfully trained and configured.  " \
+                  "You should find the system is immediately effective at " \
+                  "filtering spam."
+        else:
+            msg = "SpamBayes has been successfully trained and configured.  " \
+                  "However, as the number of messages trained is quite small, " \
+                  "SpamBayes may take some time to become truly effective."
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
+                             0, msg)
 
 class IntProcessor(OptionControlProcessor):
     def UpdateControl_FromValue(self):
@@ -132,7 +150,7 @@ class FilterStatusProcessor(ControlProcessor):
                                  0, reason)
             return
         if not manager.config.filter.enabled:
-            status = "Filtering is disabled.  Select 'Enable Filtering' to enable"
+            status = "Filtering is disabled.  Select 'Enable SpamBayes' to enable"
             win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                                  0, status)
             return
@@ -495,6 +513,7 @@ dialog_map = {
     "IDD_WIZARD_FINISHED_UNTRAINED": (
     ),
     "IDD_WIZARD_FINISHED_TRAINED": (
+        (WizardTrainingStatusProcessor, "IDC_TRAINING_STATUS"),
     ),
     "IDD_WIZARD_FINISHED_TRAIN_LATER" : (
     ),
