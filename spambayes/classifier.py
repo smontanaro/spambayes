@@ -398,7 +398,6 @@ class Bayes:
         """
 
         wordinfo = self.wordinfo
-        mincount = float(mincount)
         tonuke = [w for w, r in wordinfo.iteritems() if r.atime < oldesttime]
         for w in tonuke:
             del wordinfo[w]
