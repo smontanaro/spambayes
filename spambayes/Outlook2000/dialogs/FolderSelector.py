@@ -490,9 +490,35 @@ class FolderSelector(FolderSelector_Parent):
                 try:
                     folder = self.manager.message_store.GetFolder(spec.folder_id)
                     parent = folder.GetParent()
-                    valid = parent is not None and parent.GetParent() is not None
+                    try:
+                        # Psts and the main Exchange store have top level
+                        # folders with parents (with empty display names),
+                        # and no grandparents.  Anything below the top
+                        # level *does* have a grandparent.  This means our
+                        # test for "top level folder" can be: does it have
+                        # a parent *and* grandparent.  However, a
+                        # secondary Exchange account doesn't have the
+                        # empty-display-name parent, so the top-level
+                        # doesn't have a parent, and the top selectable
+                        # folder doesn't have a grandparent, and our test
+                        # fails.  Allow for this by checking for the
+                        # "Access denied" exception when getting the
+                        # grandparent, and assuming that this means that
+                        # this is what is happening.  This will only fail
+                        # if we get an 'access denied' error for the
+                        # empty-display-name parent, which should not be
+                        # the case.
+                        grandparent = parent.GetParent()
+                    except self.manager.message_storeMsgStoreException, details:
+                        if "0x80070005" in details:
+                            valid = parent is not None
+                        else:
+                            raise # but only down a couple of lines...
+                    else:
+                        valid = parent is not None and grandparent is not None
                 except self.manager.message_store.MsgStoreException, details:
-                    print "Eeek - couldn't get the folder to check valid"
+                    print "Eeek - couldn't get the folder to check " \
+                          "valid:", details
                     valid = False
                 if not valid:
                     if result_valid: # are we the first invalid?
