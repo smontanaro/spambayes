@@ -155,19 +155,20 @@ defaults = {
      BOOLEAN, RESTORE),
 
     ("x-search_for_habeas_headers", "Search for Habeas Headers", False,
-     """If true, search for the habeas headers (see http://www.habeas.com)
-     If they are present and correct, this should be a strong ham sign, if
-     they are present and incorrect, this should be a strong spam sign.""",
+     """(EXPERIMENTAL) If true, search for the habeas headers (see
+     http://www.habeas.com). If they are present and correct, this should
+     be a strong ham sign, if they are present and incorrect, this should
+     be a strong spam sign.""",
      BOOLEAN, RESTORE),
 
     ("x-reduce_habeas_headers", "Reduce Habeas Header Tokens to Single", False,
-     """If SpamBayes is set to search for the Habeas headers, nine tokens
-     are generated for messages with habeas headers.  This should be fine,
-     since messages with the headers should either be ham, or result in FN
-     so that we can send them to habeas so they can be sued.  However, to
-     reduce the strength of habeas headers, we offer the ability to reduce
-     the nine tokens to one. (This option has no effect if
-     search_for_habeas_headers is False)""",
+     """(EXPERIMENTAL) If SpamBayes is set to search for the Habeas
+     headers, nine tokens are generated for messages with habeas headers.
+     This should be fine, since messages with the headers should either be
+     ham, or result in FN so that we can send them to habeas so they can
+     be sued.  However, to reduce the strength of habeas headers, we offer
+     the ability to reduce the nine tokens to one. (This option has no
+     effect if search_for_habeas_headers is False)""",
      BOOLEAN, RESTORE),
   ),
 
@@ -176,33 +177,33 @@ defaults = {
   # If this capability is removed, the entire section can go.
   "URLRetriever" : (
     ("x-slurp_urls", "Tokenize text content at the end of URLs", False,
-     """If this option is enabled, when a message normally scores in the
-     'unsure' range, and has fewer tokens than the maximum looked at,
-     and contains URLs, then the text at those URLs is obtained and
-     tokenized.  If those tokens result in the message moving to a
+     """(EXPERIMENTAL) If this option is enabled, when a message normally
+     scores in the 'unsure' range, and has fewer tokens than the maximum
+     looked at, and contains URLs, then the text at those URLs is obtained
+     and tokenized.  If those tokens result in the message moving to a
      score outside the 'unsure' range, then they are added to the
      tokens for the message.  This should be particularly effective
      for messages that contain only a single URL and no other text.""",
      BOOLEAN, RESTORE),
     
     ("x-cache_expiry_days", "Number of days to store URLs in cache", 7,
-     """This is the number of days that local cached copies of the text
-     at the URLs will be stored for.""",
+     """(EXPERIMENTAL) This is the number of days that local cached copies
+     of the text at the URLs will be stored for.""",
      INTEGER, RESTORE),
 
     ("x-cache_directory", "URL Cache Directory", "url-cache",
-     """So that SpamBayes doesn't need to retrieve the same URL
-     over and over again, it stores local copies of the text
-     at the end of the URL.  This is the directory that will be
-     used for those copies.""",
+     """(EXPERIMENTAL) So that SpamBayes doesn't need to retrieve the same
+     URL over and over again, it stores local copies of the text at the
+     end of the URL.  This is the directory that will be used for those
+     copies.""",
      PATH, RESTORE),
 
     ("x-only_slurp_base", "Retrieve base url", False,
-     """To try and speed things up, and to avoid following unique URLS, if
-     this option is enabled, SpamBayes will convert the URL to as basic a
-     form it we can.  All directory information is removed and the domain
-     is reduced to the two (or three for those with a country TLD) top-most
-     elements.  For example,
+     """(EXPERIMENTAL) To try and speed things up, and to avoid following
+     unique URLS, if this option is enabled, SpamBayes will convert the URL
+     to as basic a form it we can.  All directory information is removed
+     and the domain is reduced to the two (or three for those with a
+     country TLD) top-most elements.  For example,
          http://www.massey.ac.nz/~tameyer/index.html?you=me
      would become
          http://massey.ac.nz
@@ -223,10 +224,10 @@ defaults = {
      BOOLEAN, RESTORE),
 
     ("x-web_prefix", "Prefix for tokens from web pages", "",
-     """It may be that what is hammy/spammy for you in email isn't from
-     webpages.  You can then set this option (to "web:", for example),
-     and effectively create an independent (sub)database for tokens
-     derived from parsing web pages.""",
+     """(EXPERIMENTAL) It may be that what is hammy/spammy for you in email
+     isn't from webpages.  You can then set this option (to "web:", for
+     example), and effectively create an independent (sub)database for
+     tokens derived from parsing web pages.""",
      r"[\S]+", RESTORE),
   ),
 
@@ -470,27 +471,25 @@ defaults = {
     # strong imbalance need to test it first.\
     # LATER:  this option sucked, creating more problems than it solved.
     # It's deprecated, and the support code has gone away.
-    # XXX The "x-" prefix can't be "X-" instead, else it's considered
-    # XXX an invalid option instead of a deprecated one.  That behavior
-    # XXX doesn't match the OptionsClass comments.
 
     ("x-experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
-     """If your training database has significantly more ham than
-     spam, or vice versa, you may start seeing an increase in incorrect
-     classifications (messages put in the wrong category, not just marked
-     as unsure). If so, this option allows you to compensate for this, at
-     the cost of increasing the number of messages classified as "unsure".
+     """(DEPRECATED) If your training database has significantly more ham
+     than spam, or vice versa, you may start seeing an increase in
+     incorrect classifications (messages put in the wrong category, not
+     just marked as unsure). If so, this option allows you to compensate
+     for this, at the cost of increasing the number of messages classified
+     as "unsure".
 
      Note that the effect is subtle, and you should experiment with both
      settings to choose the option that suits you best. You do not have
      to retrain your database if you change this option.""",
      BOOLEAN, RESTORE),
 
-    ("x-use_bigrams", "(EXPERIMENTAL) Use mixed uni/bi-grams scheme", False,
-     """Generate both unigrams (words) and bigrams (pairs of words).
-     However, extending an idea originally from Gary Robinson, the message
-     is 'tiled' into  non-overlapping unigrams and bigrams, approximating
-     the strongest outcome over all possible tilings.
+    ("x-use_bigrams", "Use mixed uni/bi-grams scheme", False,
+     """(EXPERIMENTAL) Generate both unigrams (words) and bigrams (pairs of
+     words). However, extending an idea originally from Gary Robinson, the
+     message is 'tiled' into non-overlapping unigrams and bigrams,
+     approximating the strongest outcome over all possible tilings.
 
      Note that to really test this option you need to retrain with it on,
      so that your database includes the bigrams - if you subsequently turn
