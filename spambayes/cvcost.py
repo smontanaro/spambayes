@@ -107,7 +107,7 @@ def main(fn):
                 bestspamcut=spamcut
                 bestcost=trial
     sys.stdout.write("\n")
-    print "Optimal cost is $%.1f with grey zone between %.1f and %.1f"%(bestcost,besthamcut,bestspamcut)
+    print "%s: Optimal cost is $%.1f with grey zone between %.1f and %.1f"%(fn,bestcost,besthamcut,bestspamcut)
 
 if __name__=="__main__":
     import getopt
