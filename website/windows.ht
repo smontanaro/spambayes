@@ -42,17 +42,16 @@ Outlook plugin fares with them.</p>
 <tr>
 <td>Outlook 2000</td>
     <td>&nbsp;</td> 		 <!-- Win95 -->
-    <td>works</td>  		 <!-- Win98/98se/Me -->
+    <td rowspan="2">1.0a2 source
+        or CVS works, installer
+        002 fails</td>           <!-- Win98/98se/Me -->
     <td>works</td>  		 <!-- Win2k -->
-    <td>works</td>               <!-- WinXP Pro -->
+    <td rowspan="2">works</td>   <!-- WinXP Pro -->
 </tr>
 <tr>
 <td>Outlook 2002 (XP)<sup><font size="-2"><a href="#1">1</a></font></sup></td>
     <td>&nbsp;</td>                      <!-- Win95 -->
-    <td>1.0a2 source or CVS works,
-        installer 002 fails</td>         <!-- Win98/98se/Me -->
     <td>&nbsp;</td>		         <!-- Win2k -->
-    <td>works</td>                       <!-- WinXP Pro -->
 </tr>
 </table>
 </p>
