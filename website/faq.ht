@@ -1,275 +1,831 @@
 Title: SpamBayes: Frequently Asked Questions
 Author-Email: spambayes@python.org
-Author: spambayes
-
-<h2>Frequently Asked Questions</h2>
+Author: spambayes 
+<h2>
+  Frequently Asked Questions
+</h2>
 <ol>
- <li>Overview</li>
- <ol type = "a">
-  <li><a href="#whatisit">So what is Spambayes?</a></li>
-  <li><a href="#requirements">What do I need to install Spambayes?</a></li>
-  <li><a href="#tenkfoot">Is there a &quot;ten thousand foot view&quot; that shows how this thing works?</a></li>
-  <li><a href="#whereis">Where does all this stuff live?</a></li>
- </ol>
- <li>Compatibility</li>
- <ol type = "a">
-  <li><a href="#outlookversions">What version of Outlook does it work with?</a></li>
-  <li><a href="#outlookexpress">Does Spambayes work with Outlook Express?</a></li>
-  <li><a href="#nopython">Do I have to have python installed to use Spambayes with Outlook?</a></li>
-  <li><a href="#nonoutlook">Forget Outlook, what clients will Spambayes work with in general?</a></li>
-  <li><a href="#exchange">We have Outlook 2000 connecting to an Exchange 2000 server. Will spambayes work for us?</a></li>
- </ol> 
- <li>Using Spambayes</li>
- <ol type = "a">
-  <li><a href="#configs">How do I configure Spambayes?</a></li>
-  <li><a href="#webinterface">How do I train Spambayes (web method)</a></li>
-  <li><a href="#smtptraining">How do I train Spambayes (forward/bounce method)</a></li>
-  <li><a href="#cmdline">How do I train Spambayes (command line method)</a></li>
-  <li><a href="#unsure">I just got a spam, but the system said it was &quot;unsure&quot;. Why couldn't it tell that it was spam - it's obvious?</a></li>
-  <li><a href="#stillunsure">OK, I trained on that message. But I just got <i>another</i> one, and the stupid system still thinks it's unsure. Why did it ignore me???</a></li>
-  <li><a href="#wipetraining">I've mucked up my training and I want to start all over again, but there isn't an option for this anywhere.  What do I do?</a></li>
-  <li><a href="#configfiles">I can't use a web browser, so I can't configure pop3proxy/imapfilter.<br />
-   Also: how do I configure hammiefilter and the other applications that don't have a user interface?</a></li>
-  <li><a href="#optionstoset">That's great, now I know what the format looks like, but what options do I need to set?</a></li>
-  <li><a href="#configlocation">I've made a configuration file, but Spambayes is ignoring it. Now what?</a></li>
-  <li><a href="#shortwords">Why don't short words or long words show up in the clues?</a></li>
-  <li><a href="#whatelse">Is there anything else I should know?</a></li>
- </ol>
- <li>Development</li>
- <ol type = "a">
-  <li><a href="#tokentrick">Hey!  Why don't you implement cool tokenizer trick X?  I think it would really foil those spammers!</a></li>
-  <li><a href="#serverside">This software is great!  I want to implement it for all my users. Are there plans to develop a server-side spambayes solution?</a></li>
-  <li><a href="#ngrams">Forget tokenising words - you should use character n-grams!</a></li>
-  <li><a href="#clues">The clues for my mail are all in lower case, but &quot;FREE&quot; is a much better clue than &quot;free&quot;.  Why do you force everything into lower case?</a></li>
-  </ol>
+  <li>
+    Overview
+  </li>
+  <li style="list-style: none">
+    <ol type="a">
+      <li>
+	<a href="#whatisit">So what is Spambayes?</a>
+      </li>
+      <li>
+	<a href="#requirements">What do I need to install
+	Spambayes?</a>
+      </li>
+      <li>
+	<a href="#tenkfoot">Is there a "ten thousand foot view" that
+	shows how this thing works?</a>
+      </li>
+      <li>
+	<a href="#whereis">Where does all this stuff live?</a>
+      </li>
+    </ol>
+  </li>
+  <li>
+    Compatibility
+  </li>
+  <li style="list-style: none">
+    <ol type="a">
+      <li>
+	<a href="#outlookversions">What version of Outlook does it
+	work with?</a>
+      </li>
+      <li>
+	<a href="#outlookexpress">Does Spambayes work with Outlook
+	Express?</a>
+      </li>
+      <li>
+	<a href="#nopython">Do I have to have python installed to use
+	Spambayes with Outlook?</a>
+      </li>
+      <li>
+	<a href="#nonoutlook">Forget Outlook, what clients will
+	Spambayes work with in general?</a>
+      </li>
+      <li>
+	<a href="#exchange">We have Outlook 2000 connecting to an
+	Exchange 2000 server. Will spambayes work for us?</a>
+      </li>
+    </ol>
+  </li>
+  <li>
+    Using Spambayes
+  </li>
+  <li style="list-style: none">
+    <ol type="a">
+      <li>
+	<a href="#configs">How do I configure Spambayes?</a>
+      </li>
+      <li>
+	<a href="#webinterface">How do I train Spambayes (web
+	method)</a>
+      </li>
+      <li>
+	<a href="#smtptraining">How do I train Spambayes
+	(forward/bounce method)</a>
+      </li>
+      <li>
+	<a href="#cmdline">How do I train Spambayes (command line
+	method)</a>
+      </li>
+      <li>
+	<a href="#unsure">I just got a spam, but the system said it
+	was "unsure". Why couldn't it tell that it was spam - it's
+	obvious?</a>
+      </li>
+      <li>
+	<a href="#stillunsure">OK, I trained on that message. But I
+	just got <i>another</i> one, and the stupid system still
+	thinks it's unsure. Why did it ignore me???</a>
+      </li>
+      <li>
+	<a href="#wipetraining">I've mucked up my training and I want
+	to start all over again, but there isn't an option for this
+	anywhere. What do I do?</a>
+      </li>
+      <li>
+	<a href="#configfiles">I can't use a web browser, so I can't
+	configure pop3proxy/imapfilter.<br>
+	 Also: how do I configure hammiefilter and the other
+	applications that don't have a user interface?</a>
+      </li>
+      <li>
+	<a href="#optionstoset">That's great, now I know what the
+	format looks like, but what options do I need to set?</a>
+      </li>
+      <li>
+	<a href="#configlocation">I've made a configuration file, but
+	Spambayes is ignoring it. Now what?</a>
+      </li>
+      <li>
+	<a href="#shortwords">Why don't short words or long words
+	show up in the clues?</a>
+      </li>
+      <li>
+	<a href="#whatelse">Is there anything else I should know?</a>
+      </li>
+    </ol>
+  </li>
+  <li>
+    Development
+  </li>
+  <li style="list-style: none">
+    <ol type="a">
+      <li>
+	<a href="#tokentrick">Hey! Why don't you implement cool
+	tokenizer trick X? I think it would really foil those
+	spammers!</a>
+      </li>
+      <li>
+	<a href="#serverside">This software is great! I want to
+	implement it for all my users. Are there plans to develop a
+	server-side spambayes solution?</a>
+      </li>
+      <li>
+	<a href="#ngrams">Forget tokenising words - you should use
+	character n-grams!</a>
+      </li>
+      <li>
+	<a href="#clues">The clues for my mail are all in lower case,
+	but "FREE" is a much better clue than "free". Why do you
+	force everything into lower case?</a>
+      </li>
+    </ol>
+  </li>
 </ol>
-
-<p>If you have any suggestions about other questions and answers that should be included here, please mail <a href="mailto:spambayes@python.org?Subject=(from FAQ)">the list</a> with them.</p>
-
-<h3><a name="whatisit">So what is Spambayes?</a></h3>
-<p>Spambayes is a tool used to segregate unwanted mail (spam) from the mail you want (ham).  Before Spambayes can be your spam filter of choice you need to train it on representative samples of email you receive.  After it's been trained, you use Spambayes to classify new mail according to its spamminess and hamminess qualities.</p>
-<p>To train Spambayes (which you don't need to do if you're going to be using the POP3 proxy to classify messages, but you'll get better results from the outset if you do) you need to save your incoming email for awhile, segregating it into two piles, known spam and known ham (ham is our nickname for good mail).  It's best to train on recent email, because your interests and the nature of what spam looks like change over time.  Once you've collected a fair portion of each (anything is better than nothing, but it helps to have a couple hundred of each), you can tell Spambayes, &quot;Here's my ham and my spam&quot;.  It will then process that mail and save information about different patterns which appear in ham and spam.  That information is then used during the filtering stage.  See the &quot;Command-line training&quot; section below for details.</p>
-<p>When Spambayes filters your email, it compares each unclassified message against the information it saved from training and makes a decision about whether it thinks the message qualifies as ham or spam, or if it's unsure about how to classify the message.  It then adds its classification to the message, either by adding a header (X-Spambayes-Classification: spam|ham|unsure), modifying the To: or Subject: headers, or adding a "Spam" field to the message.  Depending on which Spambayes application you are using, it may then filter this message for you, or you can set up your own filters (to file away suspected spam into its own mail folder, for example).</p>
-
-<h3><a name="requirements">What do I need to install Spambayes?</a></h3>
-<p>Unless you are using the Outlook plugin, you must have a recent version of Python installed on your computer, version 2.2 or later.  (Don't ask about backporting it to earlier versions of Python.  It's almost a certainty this won't happen.)  If you need to install Python on your system, check the Python download page for the version appropriate to your computer:
-<pre>
-    http://www.python.org/download/
-</pre>
-You also need version 2.4.3 or above of the Python &quot;email&quot; package.  If
-you're running Python 2.2.2 or above, then you already have this.  If not, you can download
-it from http://mimelib.sf.net and install it - unpack the archive, cd to
-the email-2.4.3 directory and type &quot;python setup.py install&quot; (YMMV on
-different platforms).  This will install it into your Python site-packages
-directory.  You'll also need to move aside the standard &quot;email&quot; library -
-go to your Python &quot;Lib&quot; directory and rename &quot;email&quot; to &quot;email_old&quot;.</p>
-
-<h3><a name="tenkfoot">Is there a &quot;ten thousand foot view&quot; that shows how this thing works?</a></h3>
-<p>There are eight main components to the Spambayes system:
-<ol>
- <li> A database.  Loosely speaking, this is a collection of words and associated spam and ham probabilities.  The database says &quot;If a message contains the word 'Viagra' then there's a 98% chance that it's spam, and a 2% chance that it's ham.&quot;  This database is created by training - you give it messages, tell it whether those messages are ham or spam, and it adjusts its probabilities accordingly.  How to train it is covered below.  By default it lives in a file called &quot;hammie.db&quot; or (for the Outlook plugin) &quot;default_bayes_database&quot;.</li>  
- <li>The tokeniser/classifier.  This is the core engine of the system.  The tokenizer splits emails into tokens (words, roughly speaking), and the classifier looks at those tokens to determine whether the message looks like spam or not.  You don't use the tokeniser/classifier directly - it powers the other parts of the system.</li>
- <li>The POP3 proxy.  This sits between your email client (Eudora, Outlook Express, etc) and your incoming email server, and adds the classification header to emails as you download them.  A typical user's email setup looks like this:
- <pre>
-       +-----------------+                              +-------------+
-       | Outlook Express |      Internet or intranet    |             |
-       |  (or similar)   | <--------------------------> | POP3 server |
-       |                 |                              |             |
-       +-----------------+                              +-------------+
- </pre>
- The POP3 server runs either at your ISP for internet mail, or somewhere on your internal network for corporate mail.  The POP3 proxy sits in the middle and adds the classification header as you retrieve your email:
- <pre>
-       +-----------------+        +------------+        +-------------+
-       | Outlook Express |        | Spambayes  |        |             |
-       |  (or similar)   | <----> | POP3 proxy | <----> | POP3 server |
-       |                 |        |            |        |             |
-       +-----------------+        +------------+        +-------------+
- </pre>
- So where you currently have your email client configured to talk to say, &quot;pop3.my-isp.com&quot;, you instead configure the <i>proxy</i> to talk to &quot;pop3.my-isp.com&quot; and configure your email client to talk to the proxy.  The POP3 proxy can live on your PC, or on the same machine as the POP3 server, or on a different machine entirely, it really doesn't matter.  Say it's living on your PC, you'd configure your email client to talk to &quot;localhost&quot;.  You can configure the proxy to talk to multiple POP3 servers, if you have more than one email account.</li>  
- <li>The SMTP proxy.  This sits between your email client (Eudora, Outlook Express, etc) and your outgoing email server.  Any mail sent to spambayes_spam@localhost or spambayes_ham@localhost is intercepted and trained appropriately.  A typical user's email setup looks like this:
- <pre>
-       +-----------------+                              +-------------+
-       | Outlook Express |      Internet or intranet    |             |
-       |  (or similar)   | <--------------------------> | SMTP server |
-       |                 |                              |             |
-       +-----------------+                              +-------------+
- </pre>
- The SMTP server runs either at your ISP for internet mail, or somewhere on your internal network for corporate mail.  The SMTP proxy sits in the middle and checks for mail to train on as you send your email:
- <pre>
-       +-----------------+        +------------+        +-------------+
-       | Outlook Express |        | Spambayes  |        |             |
-       |  (or similar)   | <----> | SMTP proxy | <----> | SMTP server |
-       |                 |        |            |        |             |
-       +-----------------+        +------------+        +-------------+
- </pre>
- So where you currently have your email client configured to talk to say, &quot;smtp.my-isp.com&quot;, you instead configure the <i>proxy</i> to talk to &quot;smtp.my-isp.com&quot; and configure your email client to talk to the proxy.  The SMTP proxy can live on your PC, or on the same machine as the SMTP server, or on a different machine entirely, it really doesn't matter.  Say it's living on your PC, you'd configure your email client to talk to &quot;localhost&quot;.  You can configure the proxy to talk to multiple SMTP servers, if you have more than one email account.</li>
- <li>The web interface.  This is a server that runs alongside the POP3 proxy, SMTP proxy, and IMAP filter (see below) and lets you control it through the web.  You can upload emails to it for training or classification, query the probabilities database (&quot;How many of my emails really <i>do</i> contain the word Viagra&quot; find particular messages, and most importantly, train it on the emails you've received.  When you start using the system, unless you train it using the Hammie script it will classify most things as Unsure, and often make mistakes.  But it keeps copies of all the emails it's seen, and through the web interface you can train it by going through a list of all the emails you've received and checking a Ham/Spam box next to each one.  After training on a few messages (say 20 spams and 20 hams), you'll find that it's getting it right most of the time.   The web training interface automatically checks the Ham/Spam boxes according to what it thinks, so all you need to do it correct the odd mistake - it's very quick and easy.  </li>
- <li>The Outlook plug-in.  For Outlook 2000 and Outlook XP (2002) users (not Outlook Express) this lets you manage the whole thing from within Outlook.  You set up a Ham folder and a Spam folder, and train it simply by dragging messages into those folders.  Alternatively there are buttons to do the same thing. And it integrates into Outlook's filtering system to make it easy to file all the suspected spam into its own folder, for instance.</li>
- <li> The Hammie script.  This does three jobs: command-line training, procmail filtering, and XML-RPC.  See below for details of how to use Hammie for training, and how to use it as procmail filter.  Hammie can also run as an XML-RPC server, so that a programmer can write code that uses a remote server to classify emails programmatically - see hammiesrv.py.</li>
- <li>The IMAP filter.  This is a cross between the POP3 proxy and the Outlook plugin.  If your mail sits on an IMAP server, you can use the this to filter your mail.  You can designate folders that contain mail to train as ham and folders that contain mail to train as spam, and the filter does this for you.  You can also designate folders to filter, along with a folder for messages Spambayes is unsure about, and a folder for suspected spam. When new mail arrives, the filter will move mail to the appropriate location (ham is left in the original folder).</li>
-</ol>
-
-<h3><a name="whereis">Where does all this stuff live?</a></h3>
-<p>The Hammie script is called hammie.py.  The POP3 proxy lives in pop3proxy.py, and the smtpproxy lives in smtpproxy.py.  The IMAP filter lives in imapfilter.py.  The Outlook plug-in lives in the Outlook2000 subdirectory &mdash; see the README.txt in that directory for more information on that.</p>
-<p> As well as these components, there's also a whole pile of utility scripts, test harnesses and so on &mdash; see README.txt and TESTING.txt in the spambayes distribution for more information.</p>
-
-<h3><a name="tokentrick">Hey!  Why don't you implement cool tokenizer trick 
-   X?  I think it would really foil those spammers!</a></h3>
-<p>Have you run your tokenizer trick against a set of messages to see if it actually works?  Many times what seems like a good idea turns out not to help much, and sometimes even hurts.  If you have a good idea, you've run it against a batch of messages and can prove that it helps, paste the code for your technique and the proof to the mailing list.  If you're not a coder, but are really keen on your idea, post a feature request on the project page, and wait for someone else to code it for you (but make sure you do some testing when it's done).  Otherwise, you will likely get a message from Tim Peters about why you need to test your idea :)  Note that as a general rule, we've found that with the tokenizer, &quot;stupid beats smart&quot; &mdash; that is, very specialised tokenizer behaviour usually produces worse results than a more general approach that just generates tokens and throws them at the classifier.</p>
-
-<h3><a name="serverside">This software is great!  I want to implement it for all my users. Are there plans to develop a server-side spambayes solution?</a></h3>
-<p>The problem with a server-side solution is that everyone has a different idea of what is spam - that's the whole strength of the bayesian-style filtering concept.  If you are certain that <i>all</i> of your users would agree on what is spam and what is not, then this might work for you, but otherwise you really have to have individual databases for each user.  Either way, you should be able to modify spambayes easily enough to fit into your setup.  Please let the list know if you do have success in this area, and we'll update this answer.</p>
-
-<h3><a name="ngrams">Forget tokenising words - you should use character n-grams!</a></h3>
-<p>This was quite carefully tested.  Character 3-grams gave five times as many false positives, and twice as many false negatives as splitting on whitespace (words).  Character 5-grams came fairly close to words with false positives, but the number of false negatives was worse than with 3-grams.  n-grams also creates many more unique tokens, which means much slower operation. In addition, it's much harder to figure out <i>why</i> a message scored as it did with n-grams.  On the other hand, words are easy to understand. There was, however, one area where n-grams were much better: detecting spam in Asian languages.  Since a 'word' in an Asian language message ends up being an entire line, words don't work very well at all. </p>
-
-<h3><a name="shortwords">Why don't short words or long words show up in the clues?</a></h3>
-<p>Words less than 3 characters long are skipped, and words greater than 12 characters long are converted into a special 'long-word' token.  These numbers (3 and 12) were determined by brute force testing, and produced the best overall results (including compared to no upper or lower limits).</p>
-
-<h3><a name="configs">How do I configure Spambayes?</a></h3>
-<p>The system is configured through a file called &quot;bayescustomize.ini&quot;.  In here you can configure the name and type of your database, the POP3 server(s) you want to proxy to, the ports you want the proxy and the web interface to run on, and so on.  You can also control details like how sure you want the system to be that message really is spam before it marks it as such. The default values for all the options, and the documentation for them, all lives in Options.py.</p>
-<p>To change an option, create a bayescustomize.ini and add the option to that - don't edit Options.py.  If you are using the POP3 proxy, SMTP proxy or IMAP filter, you can also change most of the options you will need to access via the web user interface.  You will probably find this at &lt;http://localhost:8880&gt;. To configure the Outlook plugin, you should click on the Anti-Spam button on the toolbar.</p>
-<p>To setup the POP3 and SMTP proxies (optional), run;
-<pre>
-    pop3proxy.py -b
-</pre>
-from the command line.  The web interface should open in your default browser.  You need to click on the &quot;Configuration Link&quot; to go to the setup page.  The minimum you need to do to get started is enter the servers and ports information in the POP3 proxy and SMTP proxy sections.</p>
-<p> The POP3 proxy is then ready for your email client to connect to it on port 110 and the SMTP proxy is ready for connections on port 25.  You now need to configure your email client to talk to the proxies instead of the real email servers.  Change your equivalent of &quot;pop3.my-isp.com&quot; to &quot;localhost&quot; (or to the name of the machine you're running the proxy on) in your email client's setup, and do the same with your equivalent of &quot;smtp.my-isp.com&quot;. Hit &quot;Get new email&quot; and look at the headers of the emails (send yourself an email if you don't have any!) - there should be an X-Spambayes-Classification header there.  It probably says &quot;unsure&quot;, if you haven't done any training yet.  You should be able to create a mail folder called &quot;Suspected spam&quot; and set up a filtering rule that puts emails with an &quot;X-Spambayes-Classification: spam&quot; heading into that folder.  (Eventually we should publish instructions on how to do this in all the popular email clients).</p>
-
-<h3><a name="webinterface">How do I train Spambayes (web method)</a></h3>
-<p>Follow the &quot;Review messages&quot; link and you'll see a list of the emails that the system has seen so far.  Check the appropriate boxes and hit Train.  The messages disappear (eventually you'll be able to get back to them, for instance to correct any training mistakes) and if you go back to the home page you'll see that the &quot;Total emails trained&quot; has increased.</p>
-<p>Once you've done this on a few spams and a few hams, you'll find that the X-Spambayes-Classification header is getting it right most of the time.  The more you train it the more accurate it gets.  There's no need to train it on every message you receive, but you should train on a few spams and a few hams on a regular basis.  You should also try to train it on about the same number of spams as hams.</p>
-<p>You can train it on lots of messages in one go by either using the Hammie script as explained in the &quot;Command-line training&quot; section, or by giving messages to the web interface via the &quot;Train&quot; form on the Home page.  You can train on individual messages (which is tedious) or using mbox files.</p>
-
-<h3><a name="smtptraining">How do I train Spambayes (forward/bounce method)</a></h3>
-<p>Alternatively, when you receive an incorrectly classified message, you can forward it to the SMTP proxy for training.  If the message should have been classified as spam, forward or bounce the message to spambayes_spam@localhost, and if the message should have been classified as ham, forward it to spambayes_ham@localhost.  You can still review the training through the web interface, if you wish to do so.</p>
-<p>Note that you must set (via the web interface) the &quot;add mail id to&quot; option in order to use this.  You can also use this id to find a particular message via the web interface.</p>
-<p>Note that some mail clients (particularly Outlook Express) do not forward all headers when you bounce, forward or redirect mail.  For these clients, you will need to set (via the web interface) the &quot;add mail id to&quot; option to body, which will add a unique id to the body of each message you receive.</p>
-
-<h3><a name="cmdline">How do I train Spambayes (command line method)</a></h3>
-<p>Given a pair of Unix mailbox format files (each message starts with a line which begins with 'From '), one containing nothing but spam and the other containing nothing but ham, you can train Spambayes using a command like:
-<pre>
-    hammie.py -g ~/tmp/newham -s ~/tmp/newspam
-</pre>
-The above command is OS-centric (eg. UNIX, or Windows command prompt).  You can also use the web interface for training as detailed above.</p>
-
-<h3><a name="unsure">I just got a spam, but the system said it was &quot;unsure&quot;.  Why couldn't it tell that it was spam &mdash; it's obvious?</a></h3>
-<p>It may be obvious to you, but the classifier only works on the information it has been given. Maybe this is &quot;new&quot; (you've never seen this particular flavour of spam before), or maybe there aren't enough clues in the message which the system is aware of as strong spam clues.</p>
-
-<h3><a name="stillunsure">OK, I trained on that message. But I just got <i>another</i> one, and the stupid system still thinks it's unsure. Why did it ignore me?</a></h3>
-<p>It didn't, but you may need to train on a few more of this type of message to get it classified as &quot;spam&quot;. The classification algorithm weights its results based on the number of times it has seen a particular clue, so that clues unique to this type of message may need a few more instances to become &quot;convincing&quot;.</p>
-
-<h3><a name="wipetraining">I've mucked up my training and I want to start all over again, but there isn't an option for this anywhere.  What do I do?</a></h3>
-<p>Because training from scratch is a very rare occurance, and because deleting all your training information is something you don't want to do by accident, there isn't an option for this.  However, you can quite simply do this manually.  All the training data is stored in a file, usually called hammie.db, and if you delete (or rename) this, then you will start training from scratch.  If you are using the web interface for the POP3 proxy, the configuration page tells you what this file is called (and where it is) down towards the bottom of the page.</p>
-
-<h3><a name="configfiles">I can't use a web browser, so I can't configure pop3proxy/imapfilter.<br />
-   Also: how do I configure hammiefilter and the other applications that don't have a user interface?</a></h3>
-<p>You need to create a configuration file.  This is in the 'standard' ini file format (originally created for Windows 3.1, I believe).  You can find documentation on this format in the<a href="http://www.python.org/doc/current/lib/module-ConfigParser.html"> Python ConfigParser doc</a>, but basically, it's just a text file: lines beginning with # are comments, sections start with a line like &quot;[Section Name]&quot;, and options are set out within the appropriate section with lines like &quot;opt = val&quot; or &quot;opt: val&quot; (either is ok).  Whitespace other than line endings is for the most part ignored, so you can make it look like whatever you like.  You can see a list of what a configuration file of all the defaults would like like if you execute the following Python commands:<br />
-   <pre>
-      >>> from spambayes.Options import options
-      >>> print options.display()
-   </pre></p>
-
-<h3><a name="optionstoset">That's great, now I know what the format looks
-   like, but what options do I need to set?</a></h3>
-<p>This depends on exactly what you want to do, and which application you
-   are intending to use.  The easiest thing is to execute the following
-   Python commands:<br />
-   <pre>
-      >>> from spambayes.Options import options
-      >>> print options.display_full()
-   </pre>
-   This will print out a complete list of the options, including a
-   description of the option, and its default value.  You can also look up
-   a single section, if you know its name:<br />
-   <pre>
-      >>> print options.display_full(&quot;section_name&quot;)
-   </pre>
-   Or just a single option:<br />
-   <pre>
-      >>> print options.display_full(&quot;section_name&quot;, &quot;option_name&quot;)
-   </pre>
-   If you want a list of all the sections, you can use this command:<br />
-   <pre>
-      >>> print options.sections()
-   </pre>
-   If you want a list of all the options, you can use this command:<br />
-   <pre>
-      >>> print options.options(prepend_section_name=False)
-   </pre></p>
-
-<h3><a name="configlocation">I've made a configuration file, but Spambayes is ignoring it. Now what?</a></h3>
-<p>Spambayes looks for your configuration file in three places - if it can't find it, then, obviously, your options will not be loaded.  The first place that Spambayes checks is the environment variable BAYESCUSTOMIZE.  You can set this to the path of your configuration file, wherever it is, and it will be loaded.  You can also specify more than one file, separated by the appropriate path separator for your platform.  This is the recommended method of specifying the location of the file, unless you do so via a user interface (as provided by the POP3 proxy, the Outlook plugin, and the IMAP filter). If Spambayes doesn't find anything in the BAYESCUSTOMIZE variable, then it checks the current working directory and your home directory for a bayescustomize.ini or .spambayesrc file (respectively).</p>
-
-<h3><a name="outlookversions">What version of Outlook does it work with?</a></h3>
-<p>The most up to date list of known compatible versions of Outlook may be found <a href = "http://spambayes.sourceforge.net/windows.html">here</a>.</p>
-
-<h3><a name="outlookexpress">Does Spambayes work with Outlook Express?</a></h3>
-<p>Outlook Express isn't a version of Outlook, it's a completely separate program (from the same company). Because they give it away for free, OE is a really stripped down program, and it's extremely difficult to create a plugin for it.</p>
-<p>You can use pop3proxy and/or imapfilter with Outlook Express, however you must have either the alpha 3 release,
-or a recent CVS snapshot in order to do so (alpha 2 does not include all the necessary features).  Because Outlook
-Express does not let you filter on arbitary headers (like X-Spambayes-Classification), pop3proxy must add the
-classification to the &quot;To:&quot; line, or the &quot;Subject&quot; line.</p>
-<p>Pop3proxy/imapfilter aren't quite as 'transparent' as the Outlook plugin, but they're still quite easy to use/setup, and they use the same core, so the results will be the same.</p>
-
-<h3><a name="nopython">Do I have to have Python installed to use Spambayes with Outlook?</a></h3>
-<p>You should be able to download the Outlook plugin binary and install that, and that's all you need</p>
-
-<h3><a name="nonoutlook">Forget Outlook, what clients will Spambayes work with in general?</a></h3>
-<p>Spambayes will work with most POP3 or IMAP compatible clients. How you implement depends on your local architecture. Users with access to procmail can just write a recipe that invokes spambayes like this:</p>
 <p>
-<pre>
-     :0fw 
-     | /opt/spambayes/hammiefilter.py
-
-     Followed by a recipe to check the results and take action:
-
-     :0
-     * ^X-Spambayes-Classification: spam 
-     ${MAILDIR}/spam
- </pre>
+  If you have any suggestions about other questions and answers that
+  should be included here, please mail <a href=
+  "mailto:spambayes@python.org?Subject=(from%20FAQ)">the list</a>
+  with them.
 </p>
-<p>Emacs and XEmacs both come with VM, one of a choice of several Emacs-based mail packages.  Emacs is extensible using Emacs Lisp or Pymacs.  This extensibility allows you to easily segregate your incoming mail for training purposes.  Here's one such example.  If you place the following code in your ~/.vm file:
-<pre>
-    (defun copy-to-spam ()
-      (interactive)
-      (vm-save-message (expand-file-name "~/tmp/newspam"))
-      (vm-undelete-message 1))
-
-    (defun copy-to-nonspam ()
-      (interactive)
-      (vm-save-message (expand-file-name "~/tmp/newham"))
-      (vm-undelete-message 1))
-
-    (define-key vm-mode-map "ls" 'copy-to-spam)
-    (define-key vm-summary-mode-map "ls" 'copy-to-spam)
-    (define-key vm-mode-map "lh" 'copy-to-nonspam)
-    (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
-</pre>
-&quot;ls&quot; will save a copy of the current message to ~/tmp/newspam and &quot;lh&quot; will save a copy of the current message to ~/tmp/newham.  You can then use those files later as arguments to hammie.py for training.
+<h3>
+  <a name="whatisit">So what is Spambayes?</a>
+</h3>
+<p>
+  Spambayes is a tool used to segregate unwanted mail (spam) from the
+  mail you want (ham). Before Spambayes can be your spam filter of
+  choice you need to train it on representative samples of email you
+  receive. After it's been trained, you use Spambayes to classify new
+  mail according to its spamminess and hamminess qualities.
 </p>
-<p>Users limited to POP3/IMAP communications to the server can use the <a href = "http://spambayes.sourceforge.net/applications.html#pop3">POP3</a> or <a href = "http://spambayes.sourceforge.net/applications.html#imap">IMAP proxy</a> with the <a href = "https://sourceforge.net/project/showfiles.php?group_id=61702">Spambayes source code</a>.</p>
+<p>
+  To train Spambayes (which you don't need to do if you're going to
+  be using the POP3 proxy to classify messages, but you'll get better
+  results from the outset if you do) you need to save your incoming
+  email for awhile, segregating it into two piles, known spam and
+  known ham (ham is our nickname for good mail). It's best to train
+  on recent email, because your interests and the nature of what spam
+  looks like change over time. Once you've collected a fair portion
+  of each (anything is better than nothing, but it helps to have a
+  couple hundred of each), you can tell Spambayes, "Here's my ham and
+  my spam". It will then process that mail and save information about
+  different patterns which appear in ham and spam. That information
+  is then used during the filtering stage. See the "Command-line
+  training" section below for details.
+</p>
+<p>
+  When Spambayes filters your email, it compares each unclassified
+  message against the information it saved from training and makes a
+  decision about whether it thinks the message qualifies as ham or
+  spam, or if it's unsure about how to classify the message. It then
+  adds its classification to the message, either by adding a header
+  (X-Spambayes-Classification: spam|ham|unsure), modifying the To: or
+  Subject: headers, or adding a "Spam" field to the message.
+  Depending on which Spambayes application you are using, it may then
+  filter this message for you, or you can set up your own filters (to
+  file away suspected spam into its own mail folder, for example).
+</p>
+<h3>
+  <a name="requirements">What do I need to install Spambayes?</a>
+</h3>
+<p>
+  Unless you are using the Outlook plugin, you must have a recent
+  version of Python installed on your computer, version 2.2 or later.
+  (Don't ask about backporting it to earlier versions of Python. It's
+  almost a certainty this won't happen.) If you need to install
+  Python on your system, check the Python download page for the
+  version appropriate to your computer:
+</p>
+<pre>
+http://www.python.org/download/
+</pre>You also need version 2.4.3 or above of the Python "email" package.
+If you're running Python 2.2.2 or above, then you already have this. If
+not, you can download it from http://mimelib.sf.net and install it -
+unpack the archive, cd to the email-2.4.3 directory and type "python
+setup.py install" (YMMV on different platforms). This will install it
+into your Python site-packages directory. You'll also need to move aside
+the standard "email" library - go to your Python "Lib" directory and
+rename "email" to "email_old".<br>
+<br>
 
-<h3><a name="clues">The clues for my mail are all in lower case, but &quot;FREE&quot; is a much better clue than &quot;free&quot;.  Why do you force everything into lower case?</a></h3>
-<p>This was very carefully weighed up.  On the positive side, removing case does hide information (and we're not really sure what it does to non-English languages), but on the negative side, it makes the database a lot bigger, and requires more training.  In the end, testing with case removed resulted in no change in the false positive rate, and a small reduction in the false negative rate, so that's what we do.  There is one exception: we keep case in subject lines, because testing showed an improvement if we did that.</p>
-
-<h3><a name="graybutton">Why is the enable filter button is grayed out in Outlook?</a></h3>
-<p> You need to have done these things to enable that button:</p>
+<h3>
+  <a name="tenkfoot">Is there a "ten thousand foot view" that shows
+  how this thing works?</a>
+</h3>
+<p>
+  There are eight main components to the Spambayes system:
+</p>
 <ol>
- <li>Trained at least 5 ham and 5 spam</li>
- <li>Set at least one folder to watch</li>
- <li>Set folders to move spam to, and to move unsures to</li>
- <li>Changed the action to &quot;copy&quot; or &quot;move&quot;, rather than &quot;untouched&quot;</li>
+  <li>
+    A database. Loosely speaking, this is a collection of words and
+    associated spam and ham probabilities. The database says "If a
+    message contains the word 'Viagra' then there's a 98% chance that
+    it's spam, and a 2% chance that it's ham." This database is
+    created by training - you give it messages, tell it whether those
+    messages are ham or spam, and it adjusts its probabilities
+    accordingly. How to train it is covered below. By default it
+    lives in a file called "hammie.db" or (for the Outlook plugin)
+    "default_bayes_database".
+  </li>
+  <li>
+    The tokeniser/classifier. This is the core engine of the system.
+    The tokenizer splits emails into tokens (words, roughly
+    speaking), and the classifier looks at those tokens to determine
+    whether the message looks like spam or not. You don't use the
+    tokeniser/classifier directly - it powers the other parts of the
+    system.
+  </li>
+  <li>
+    The POP3 proxy. This sits between your email client (Eudora,
+    Outlook Express, etc) and your incoming email server, and adds
+    the classification header to emails as you download them. A
+    typical user's email setup looks like this: 
+    <pre>
+   +-----------------+                              +-------------+
+   | Outlook Express |      Internet or intranet    |             |
+   |  (or similar)   | &lt;--------------------------&gt; | POP3 server |
+   |                 |                              |             |
+   +-----------------+                              +-------------+
+</pre>The POP3 server runs either at your ISP for internet mail, or
+somewhere on your internal network for corporate mail. The POP3 proxy
+sits in the middle and adds the classification header as you retrieve
+your email: 
+    <pre>
+   +-----------------+        +------------+        +-------------+
+   | Outlook Express |        | Spambayes  |        |             |
+   |  (or similar)   | &lt;----&gt; | POP3 proxy | &lt;----&gt; | POP3 server |
+   |                 |        |            |        |             |
+   +-----------------+        +------------+        +-------------+
+</pre>So where you currently have your email client configured to talk to
+say, "pop3.my-isp.com", you instead configure the <i>proxy</i> to talk to
+"pop3.my-isp.com" and configure your email client to talk to the proxy.
+The POP3 proxy can live on your PC, or on the same machine as the POP3
+server, or on a different machine entirely, it really doesn't matter. Say
+it's living on your PC, you'd configure your email client to talk to
+"localhost". You can configure the proxy to talk to multiple POP3
+servers, if you have more than one email account.
+  </li>
+  <li>
+    The SMTP proxy. This sits between your email client (Eudora,
+    Outlook Express, etc) and your outgoing email server. Any mail
+    sent to spambayes_spam@localhost or spambayes_ham@localhost is
+    intercepted and trained appropriately. A typical user's email
+    setup looks like this: 
+    <pre>
+   +-----------------+                              +-------------+
+   | Outlook Express |      Internet or intranet    |             |
+   |  (or similar)   | &lt;--------------------------&gt; | SMTP server |
+   |                 |                              |             |
+   +-----------------+                              +-------------+
+</pre>The SMTP server runs either at your ISP for internet mail, or
+somewhere on your internal network for corporate mail. The SMTP proxy
+sits in the middle and checks for mail to train on as you send your
+email: 
+    <pre>
+   +-----------------+        +------------+        +-------------+
+   | Outlook Express |        | Spambayes  |        |             |
+   |  (or similar)   | &lt;----&gt; | SMTP proxy | &lt;----&gt; | SMTP server |
+   |                 |        |            |        |             |
+   +-----------------+        +------------+        +-------------+
+</pre>So where you currently have your email client configured to talk to
+say, "smtp.my-isp.com", you instead configure the <i>proxy</i> to talk to
+"smtp.my-isp.com" and configure your email client to talk to the proxy.
+The SMTP proxy can live on your PC, or on the same machine as the SMTP
+server, or on a different machine entirely, it really doesn't matter. Say
+it's living on your PC, you'd configure your email client to talk to
+"localhost". You can configure the proxy to talk to multiple SMTP
+servers, if you have more than one email account.
+  </li>
+  <li>
+    The web interface. This is a server that runs alongside the POP3
+    proxy, SMTP proxy, and IMAP filter (see below) and lets you
+    control it through the web. You can upload emails to it for
+    training or classification, query the probabilities database
+    ("How many of my emails really <i>do</i> contain the word Viagra"
+    find particular messages, and most importantly, train it on the
+    emails you've received. When you start using the system, unless
+    you train it using the Hammie script it will classify most things
+    as Unsure, and often make mistakes. But it keeps copies of all
+    the emails it's seen, and through the web interface you can train
+    it by going through a list of all the emails you've received and
+    checking a Ham/Spam box next to each one. After training on a few
+    messages (say 20 spams and 20 hams), you'll find that it's
+    getting it right most of the time. The web training interface
+    automatically checks the Ham/Spam boxes according to what it
+    thinks, so all you need to do it correct the odd mistake - it's
+    very quick and easy.
+  </li>
+  <li>
+    The Outlook plug-in. For Outlook 2000 and Outlook XP (2002) users
+    (not Outlook Express) this lets you manage the whole thing from
+    within Outlook. You set up a Ham folder and a Spam folder, and
+    train it simply by dragging messages into those folders.
+    Alternatively there are buttons to do the same thing. And it
+    integrates into Outlook's filtering system to make it easy to
+    file all the suspected spam into its own folder, for instance.
+  </li>
+  <li>
+    The Hammie script. This does three jobs: command-line training,
+    procmail filtering, and XML-RPC. See below for details of how to
+    use Hammie for training, and how to use it as procmail filter.
+    Hammie can also run as an XML-RPC server, so that a programmer
+    can write code that uses a remote server to classify emails
+    programmatically - see hammiesrv.py.
+  </li>
+  <li>
+    The IMAP filter. This is a cross between the POP3 proxy and the
+    Outlook plugin. If your mail sits on an IMAP server, you can use
+    the this to filter your mail. You can designate folders that
+    contain mail to train as ham and folders that contain mail to
+    train as spam, and the filter does this for you. You can also
+    designate folders to filter, along with a folder for messages
+    Spambayes is unsure about, and a folder for suspected spam. When
+    new mail arrives, the filter will move mail to the appropriate
+    location (ham is left in the original folder).
+  </li>
 </ol>
+<h3>
+  <a name="whereis">Where does all this stuff live?</a>
+</h3>
+<p>
+  The Hammie script is called hammie.py. The POP3 proxy lives in
+  pop3proxy.py, and the smtpproxy lives in smtpproxy.py. The IMAP
+  filter lives in imapfilter.py. The Outlook plug-in lives in the
+  Outlook2000 subdirectory &#8212; see the README.txt in that
+  directory for more information on that.
+</p>
+<p>
+  As well as these components, there's also a whole pile of utility
+  scripts, test harnesses and so on &#8212; see README.txt and
+  TESTING.txt in the spambayes distribution for more information.
+</p>
+<h3>
+  <a name="tokentrick">Hey! Why don't you implement cool tokenizer
+  trick X? I think it would really foil those spammers!</a>
+</h3>
+<p>
+  Have you run your tokenizer trick against a set of messages to see
+  if it actually works? Many times what seems like a good idea turns
+  out not to help much, and sometimes even hurts. If you have a good
+  idea, you've run it against a batch of messages and can prove that
+  it helps, paste the code for your technique and the proof to the
+  mailing list. If you're not a coder, but are really keen on your
+  idea, post a feature request on the project page, and wait for
+  someone else to code it for you (but make sure you do some testing
+  when it's done). Otherwise, you will likely get a message from Tim
+  Peters about why you need to test your idea :) Note that as a
+  general rule, we've found that with the tokenizer, "stupid beats
+  smart" &#8212; that is, very specialised tokenizer behaviour
+  usually produces worse results than a more general approach that
+  just generates tokens and throws them at the classifier.
+</p>
+<h3>
+  <a name="serverside">This software is great! I want to implement it
+  for all my users. Are there plans to develop a server-side
+  spambayes solution?</a>
+</h3>
+<p>
+  The problem with a server-side solution is that everyone has a
+  different idea of what is spam - that's the whole strength of the
+  bayesian-style filtering concept. If you are certain that
+  <i>all</i> of your users would agree on what is spam and what is
+  not, then this might work for you, but otherwise you really have to
+  have individual databases for each user. Either way, you should be
+  able to modify spambayes easily enough to fit into your setup.
+  Please let the list know if you do have success in this area, and
+  we'll update this answer.
+</p>
+<h3>
+  <a name="ngrams">Forget tokenising words - you should use character
+  n-grams!</a>
+</h3>
+<p>
+  This was quite carefully tested. Character 3-grams gave five times
+  as many false positives, and twice as many false negatives as
+  splitting on whitespace (words). Character 5-grams came fairly
+  close to words with false positives, but the number of false
+  negatives was worse than with 3-grams. n-grams also creates many
+  more unique tokens, which means much slower operation. In addition,
+  it's much harder to figure out <i>why</i> a message scored as it
+  did with n-grams. On the other hand, words are easy to understand.
+  There was, however, one area where n-grams were much better:
+  detecting spam in Asian languages. Since a 'word' in an Asian
+  language message ends up being an entire line, words don't work
+  very well at all.
+</p>
+<h3>
+  <a name="shortwords">Why don't short words or long words show up in
+  the clues?</a>
+</h3>
+<p>
+  Words less than 3 characters long are skipped, and words greater
+  than 12 characters long are converted into a special 'long-word'
+  token. These numbers (3 and 12) were determined by brute force
+  testing, and produced the best overall results (including compared
+  to no upper or lower limits).
+</p>
+<h3>
+  <a name="configs">How do I configure Spambayes?</a>
+</h3>
+<p>
+  The system is configured through a file called
+  "bayescustomize.ini". In here you can configure the name and type
+  of your database, the POP3 server(s) you want to proxy to, the
+  ports you want the proxy and the web interface to run on, and so
+  on. You can also control details like how sure you want the system
+  to be that message really is spam before it marks it as such. The
+  default values for all the options, and the documentation for them,
+  all lives in Options.py.
+</p>
+<p>
+  To change an option, create a bayescustomize.ini and add the option
+  to that - don't edit Options.py. If you are using the POP3 proxy,
+  SMTP proxy or IMAP filter, you can also change most of the options
+  you will need to access via the web user interface. You will
+  probably find this at &lt;http://localhost:8880&gt;. To configure
+  the Outlook plugin, you should click on the Anti-Spam button on the
+  toolbar.
+</p>
+<p>
+  To setup the POP3 and SMTP proxies (optional), run;
+</p>
+<pre>
+pop3proxy.py -b
+</pre>from the command line. The web interface should open in your
+default browser. You need to click on the "Configuration Link" to go to
+the setup page. The minimum you need to do to get started is enter the
+servers and ports information in the POP3 proxy and SMTP proxy
+sections.<br>
+<br>
 
-<h3><a name="shortwords">We have Outlook 2000 connecting to an Exchange 2000 server. Will spambayes work for us?</a></h3>
-<p> It should, yes.  There haven't been any problems reported using that combination.</p>
+<p>
+  The POP3 proxy is then ready for your email client to connect to it
+  on port 110 and the SMTP proxy is ready for connections on port 25.
+  You now need to configure your email client to talk to the proxies
+  instead of the real email servers. Change your equivalent of
+  "pop3.my-isp.com" to "localhost" (or to the name of the machine
+  you're running the proxy on) in your email client's setup, and do
+  the same with your equivalent of "smtp.my-isp.com". Hit "Get new
+  email" and look at the headers of the emails (send yourself an
+  email if you don't have any!) - there should be an
+  X-Spambayes-Classification header there. It probably says "unsure",
+  if you haven't done any training yet. You should be able to create
+  a mail folder called "Suspected spam" and set up a filtering rule
+  that puts emails with an "X-Spambayes-Classification: spam" heading
+  into that folder. (Eventually we should publish instructions on how
+  to do this in all the popular email clients).
+</p>
+<h3>
+  <a name="webinterface">How do I train Spambayes (web method)</a>
+</h3>
+<p>
+  Follow the "Review messages" link and you'll see a list of the
+  emails that the system has seen so far. Check the appropriate boxes
+  and hit Train. The messages disappear (eventually you'll be able to
+  get back to them, for instance to correct any training mistakes)
+  and if you go back to the home page you'll see that the "Total
+  emails trained" has increased.
+</p>
+<p>
+  Once you've done this on a few spams and a few hams, you'll find
+  that the X-Spambayes-Classification header is getting it right most
+  of the time. The more you train it the more accurate it gets.
+  There's no need to train it on every message you receive, but you
+  should train on a few spams and a few hams on a regular basis. You
+  should also try to train it on about the same number of spams as
+  hams.
+</p>
+<p>
+  You can train it on lots of messages in one go by either using the
+  Hammie script as explained in the "Command-line training" section,
+  or by giving messages to the web interface via the "Train" form on
+  the Home page. You can train on individual messages (which is
+  tedious) or using mbox files.
+</p>
+<h3>
+  <a name="smtptraining">How do I train Spambayes (forward/bounce
+  method)</a>
+</h3>
+<p>
+  Alternatively, when you receive an incorrectly classified message,
+  you can forward it to the SMTP proxy for training. If the message
+  should have been classified as spam, forward or bounce the message
+  to spambayes_spam@localhost, and if the message should have been
+  classified as ham, forward it to spambayes_ham@localhost. You can
+  still review the training through the web interface, if you wish to
+  do so.
+</p>
+<p>
+  Note that you must set (via the web interface) the "add mail id to"
+  option in order to use this. You can also use this id to find a
+  particular message via the web interface.
+</p>
+<p>
+  Note that some mail clients (particularly Outlook Express) do not
+  forward all headers when you bounce, forward or redirect mail. For
+  these clients, you will need to set (via the web interface) the
+  "add mail id to" option to body, which will add a unique id to the
+  body of each message you receive.
+</p>
+<h3>
+  <a name="cmdline">How do I train Spambayes (command line
+  method)</a>
+</h3>
+<p>
+  Given a pair of Unix mailbox format files (each message starts with
+  a line which begins with 'From '), one containing nothing but spam
+  and the other containing nothing but ham, you can train Spambayes
+  using a command like:
+</p>
+<pre>
+hammie.py -g ~/tmp/newham -s ~/tmp/newspam
+</pre>The above command is OS-centric (eg. UNIX, or Windows command
+prompt). You can also use the web interface for training as detailed
+above.<br>
+<br>
 
-<h3><a name="whatelse">Is there anything else I should know?</a></h3>
-<p>While Spambayes does an excellent job of classifying incoming mail, it is
-only as good as the data on which it was trained.  Here are some tips to
-help you create a good training set:</p>
+<h3>
+  <a name="unsure">I just got a spam, but the system said it was
+  "unsure". Why couldn't it tell that it was spam &#8212; it's
+  obvious?</a>
+</h3>
+<p>
+  It may be obvious to you, but the classifier only works on the
+  information it has been given. Maybe this is "new" (you've never
+  seen this particular flavour of spam before), or maybe there aren't
+  enough clues in the message which the system is aware of as strong
+  spam clues.
+</p>
+<h3>
+  <a name="stillunsure">OK, I trained on that message. But I just got
+  <i>another</i> one, and the stupid system still thinks it's unsure.
+  Why did it ignore me?</a>
+</h3>
+<p>
+  It didn't, but you may need to train on a few more of this type of
+  message to get it classified as "spam". The classification
+  algorithm weights its results based on the number of times it has
+  seen a particular clue, so that clues unique to this type of
+  message may need a few more instances to become "convincing".
+</p>
+<h3>
+  <a name="wipetraining">I've mucked up my training and I want to
+  start all over again, but there isn't an option for this anywhere.
+  What do I do?</a>
+</h3>
+<p>
+  Because training from scratch is a very rare occurance, and because
+  deleting all your training information is something you don't want
+  to do by accident, there isn't an option for this. However, you can
+  quite simply do this manually. All the training data is stored in a
+  file, usually called hammie.db, and if you delete (or rename) this,
+  then you will start training from scratch. If you are using the web
+  interface for the POP3 proxy, the configuration page tells you what
+  this file is called (and where it is) down towards the bottom of
+  the page.
+</p>
+<h3>
+  <a name="configfiles">I can't use a web browser, so I can't
+  configure pop3proxy/imapfilter.<br>
+   Also: how do I configure hammiefilter and the other applications
+  that don't have a user interface?</a>
+</h3>
+<p>
+  You need to create a configuration file. This is in the 'standard'
+  ini file format (originally created for Windows 3.1, I believe).
+  You can find documentation on this format in the <a href=
+  "http://www.python.org/doc/current/lib/module-ConfigParser.html">Python
+  ConfigParser doc</a>, but basically, it's just a text file: lines
+  beginning with # are comments, sections start with a line like
+  "[Section Name]", and options are set out within the appropriate
+  section with lines like "opt = val" or "opt: val" (either is ok).
+  Whitespace other than line endings is for the most part ignored, so
+  you can make it look like whatever you like. You can see a list of
+  what a configuration file of all the defaults would like like if
+  you execute the following Python commands:
+</p>
+<pre>
+  &gt;&gt;&gt; from spambayes.Options import options
+  &gt;&gt;&gt; print options.display()
+</pre><br>
+<br>
+
+<h3>
+  <a name="optionstoset">That's great, now I know what the format
+  looks like, but what options do I need to set?</a>
+</h3>
+<p>
+  This depends on exactly what you want to do, and which application
+  you are intending to use. The easiest thing is to execute the
+  following Python commands:
+</p>
+<pre>
+  &gt;&gt;&gt; from spambayes.Options import options
+  &gt;&gt;&gt; print options.display_full()
+</pre>This will print out a complete list of the options, including a
+description of the option, and its default value. You can also look up a
+single section, if you know its name:<br>
+
+<pre>
+  &gt;&gt;&gt; print options.display_full("section_name")
+</pre>Or just a single option:<br>
+
+<pre>
+  &gt;&gt;&gt; print options.display_full("section_name", "option_name")
+</pre>If you want a list of all the sections, you can use this
+command:<br>
+
+<pre>
+  &gt;&gt;&gt; print options.sections()
+</pre>If you want a list of all the options, you can use this
+command:<br>
+
+<pre>
+  &gt;&gt;&gt; print options.options(prepend_section_name=False)
+</pre><br>
+<br>
+
+<h3>
+  <a name="configlocation">I've made a configuration file, but
+  Spambayes is ignoring it. Now what?</a>
+</h3>
+<p>
+  Spambayes looks for your configuration file in three places - if it
+  can't find it, then, obviously, your options will not be loaded.
+  The first place that Spambayes checks is the environment variable
+  BAYESCUSTOMIZE. You can set this to the path of your configuration
+  file, wherever it is, and it will be loaded. You can also specify
+  more than one file, separated by the appropriate path separator for
+  your platform. This is the recommended method of specifying the
+  location of the file, unless you do so via a user interface (as
+  provided by the POP3 proxy, the Outlook plugin, and the IMAP
+  filter). If Spambayes doesn't find anything in the BAYESCUSTOMIZE
+  variable, then it checks the current working directory and your
+  home directory for a bayescustomize.ini or .spambayesrc file
+  (respectively).
+</p>
+<h3>
+  <a name="outlookversions">What version of Outlook does it work
+  with?</a>
+</h3>
+<p>
+  The most up to date list of known compatible versions of Outlook
+  may be found <a href=
+  "http://spambayes.sourceforge.net/windows.html">here</a>.
+</p>
+<h3>
+  <a name="outlookexpress">Does Spambayes work with Outlook
+  Express?</a>
+</h3>
+<p>
+  Outlook Express isn't a version of Outlook, it's a completely
+  separate program (from the same company). Because they give it away
+  for free, OE is a really stripped down program, and it's extremely
+  difficult to create a plugin for it.
+</p>
+<p>
+  You can use pop3proxy and/or imapfilter with Outlook Express,
+  however you must have either the alpha 3 release, or a recent CVS
+  snapshot in order to do so (alpha 2 does not include all the
+  necessary features). Because Outlook Express does not let you
+  filter on arbitary headers (like X-Spambayes-Classification),
+  pop3proxy must add the classification to the "To:" line, or the
+  "Subject" line.
+</p>
+<p>
+  Pop3proxy/imapfilter aren't quite as 'transparent' as the Outlook
+  plugin, but they're still quite easy to use/setup, and they use the
+  same core, so the results will be the same.
+</p>
+<h3>
+  <a name="nopython">Do I have to have Python installed to use
+  Spambayes with Outlook?</a>
+</h3>
+<p>
+  You should be able to download the Outlook plugin binary and
+  install that, and that's all you need
+</p>
+<h3>
+  <a name="nonoutlook">Forget Outlook, what clients will Spambayes
+  work with in general?</a>
+</h3>
+<p>
+  Spambayes will work with most POP3 or IMAP compatible clients. How
+  you implement depends on your local architecture. Users with access
+  to procmail can just write a recipe that invokes spambayes like
+  this:
+</p>
+<pre>
+ :0fw 
+ | /opt/spambayes/hammiefilter.py
+
+ Followed by a recipe to check the results and take action:
+
+ :0
+ * ^X-Spambayes-Classification: spam 
+ ${MAILDIR}/spam
+</pre><br>
+<br>
+
+<p>
+  Emacs and XEmacs both come with VM, one of a choice of several
+  Emacs-based mail packages. Emacs is extensible using Emacs Lisp or
+  Pymacs. This extensibility allows you to easily segregate your
+  incoming mail for training purposes. Here's one such example. If
+  you place the following code in your ~/.vm file:
+</p>
+<pre>
+(defun copy-to-spam ()
+  (interactive)
+  (vm-save-message (expand-file-name "~/tmp/newspam"))
+  (vm-undelete-message 1))
+
+(defun copy-to-nonspam ()
+  (interactive)
+  (vm-save-message (expand-file-name "~/tmp/newham"))
+  (vm-undelete-message 1))
+
+(define-key vm-mode-map "ls" 'copy-to-spam)
+(define-key vm-summary-mode-map "ls" 'copy-to-spam)
+(define-key vm-mode-map "lh" 'copy-to-nonspam)
+(define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
+</pre>"ls" will save a copy of the current message to ~/tmp/newspam and
+"lh" will save a copy of the current message to ~/tmp/newham. You can
+then use those files later as arguments to hammie.py for training. <br>
+
+<br>
+
+<p>
+  Users limited to POP3/IMAP communications to the server can use the
+  <a href=
+  "http://spambayes.sourceforge.net/applications.html#pop3">POP3</a>
+  or <a href=
+  "http://spambayes.sourceforge.net/applications.html#imap">IMAP
+  proxy</a> with the <a href=
+  "https://sourceforge.net/project/showfiles.php?group_id=61702">Spambayes
+  source code</a>.
+</p>
+<h3>
+  <a name="clues">The clues for my mail are all in lower case, but
+  "FREE" is a much better clue than "free". Why do you force
+  everything into lower case?</a>
+</h3>
+<p>
+  This was very carefully weighed up. On the positive side, removing
+  case does hide information (and we're not really sure what it does
+  to non-English languages), but on the negative side, it makes the
+  database a lot bigger, and requires more training. In the end,
+  testing with case removed resulted in no change in the false
+  positive rate, and a small reduction in the false negative rate, so
+  that's what we do. There is one exception: we keep case in subject
+  lines, because testing showed an improvement if we did that.
+</p>
+<h3>
+  <a name="graybutton">Why is the enable filter button is grayed out
+  in Outlook?</a>
+</h3>
+<p>
+  You need to have done these things to enable that button:
+</p>
+<ol>
+  <li>
+    Trained at least 5 ham and 5 spam
+  </li>
+  <li>
+    Set at least one folder to watch
+  </li>
+  <li>
+    Set folders to move spam to, and to move unsures to
+  </li>
+  <li>
+    Changed the action to "copy" or "move", rather than "untouched"
+  </li>
+</ol>
+<h3>
+  <a name="shortwords">We have Outlook 2000 connecting to an Exchange
+  2000 server. Will spambayes work for us?</a>
+</h3>
+<p>
+  It should, yes. There haven't been any problems reported using that
+  combination.
+</p>
+<h3>
+  <a name="whatelse">Is there anything else I should know?</a>
+</h3>
+<p>
+  While Spambayes does an excellent job of classifying incoming mail,
+  it is only as good as the data on which it was trained. Here are
+  some tips to help you create a good training set:
+</p>
 <ul>
- <li>Don't use old mail.  The characteristics of your email change over time, sometimes subtly, sometimes dramatically, so it's best to use very recent mail to train Spambayes.  If you've abandoned an email address in the past because it was getting spammed heavily, there are probably some clues in mail sent to your old address which would bias Spambayes.  </li>
- <li>Check and recheck your training collections.  While you are manually classifying mail as spam or ham, it's easy to make a mistake and toss a message or ten in the wrong file.  Such miscategorized mail will throw off the classifier.</li>
+  <li>
+    Don't use old mail. The characteristics of your email change over
+    time, sometimes subtly, sometimes dramatically, so it's best to
+    use very recent mail to train Spambayes. If you've abandoned an
+    email address in the past because it was getting spammed heavily,
+    there are probably some clues in mail sent to your old address
+    which would bias Spambayes.
+  </li>
+  <li>
+    Check and recheck your training collections. While you are
+    manually classifying mail as spam or ham, it's easy to make a
+    mistake and toss a message or ten in the wrong file. Such
+    miscategorized mail will throw off the classifier.
+  </li>
 </ul>
