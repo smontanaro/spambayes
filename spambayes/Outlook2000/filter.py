@@ -30,7 +30,7 @@ def filter_folder(f, mgr, progress, filter):
             progress.warning("Failed to get a message: %s" % (str(d),) )
             continue
 
-        prob, clues = hammie.score(text, evidence=1)
+        prob, clues = hammie.score(text, evidence=True)
         did_this_message = False
         for rule in mgr.config.rules:
             if rule.enabled:

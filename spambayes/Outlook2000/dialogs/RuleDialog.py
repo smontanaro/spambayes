@@ -86,7 +86,7 @@ class RuleDialog(dialog.Dialog):
         for s in ["None", "Move", "Copy"]:
             combo.AddString(s)
             if s == rule.action: sel_index = index
-            index+=1
+            index += 1
         combo.SetCurSel(sel_index)
         return dialog.Dialog.OnInitDialog(self)
 

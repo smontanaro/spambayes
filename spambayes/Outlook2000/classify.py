@@ -30,7 +30,7 @@ def classify_folder( f, mgr, config, progress):
             body = message.Text.encode('ascii', 'replace')
             text = headers + body
 
-            prob, clues = hammie.score(text, evidence=1)
+            prob, clues = hammie.score(text, evidence=True)
             added_prop = False
             try:
                 if outlook_ns is not None:

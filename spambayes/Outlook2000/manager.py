@@ -23,7 +23,7 @@ class ManagerError(Exception):
     pass
 
 class BayesManager:
-    def __init__(self, config_base = "default", outlook = None, verbose = 1):
+    def __init__(self, config_base="default", outlook=None, verbose=True):
         self.verbose = verbose
         if not os.path.isabs(config_base):
             config_base = os.path.join( os.path.dirname(this_filename), config_base)
