@@ -319,7 +319,7 @@ def test():
         packet = httpServer.recv(1000)
         if not packet: break
         response += packet
-    assert re.search(r"(?s)<html>.*Spambayes proxy.*</html>", response)
+    assert re.search(r"(?s)<html>.*SpamBayes proxy.*</html>", response)
 
     # Kill the proxy and the test server.
     proxy.sendall("kill\r\n")
