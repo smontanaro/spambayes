@@ -661,8 +661,8 @@ class CDBClassifier(classifier.Classifier):
 # still need to be able to import this module.  So we pretend that all
 # is ok.
 try:
-    Persistent
-except NameError:
+    from persistent import Persistent
+except ImportError:
     Persistent = object
 class _PersistentClassifier(classifier.Classifier, Persistent):
     def __init__(self):
@@ -674,13 +674,13 @@ class _PersistentClassifier(classifier.Classifier, Persistent):
 
 class ZODBClassifier(object):
     def __init__(self, db_name):
-        self.statekey = STATE_KEY
         self.db_name = db_name
+        self.closed = True
         self.load()
 
     def __getattr__(self, att):
         # We pretend that we are a classifier subclass.
-        if hasattr(self.classifier, att):
+        if hasattr(self, "classifier") and hasattr(self.classifier, att):
             return getattr(self.classifier, att)
         raise AttributeError("ZODBClassifier object has no attribute '%s'"
                              % (att,))
@@ -698,39 +698,60 @@ class ZODBClassifier(object):
         self.storage = FileStorage(self.db_name)
 
     def load(self):
+        '''Load state from database'''
         import ZODB
+
+        if options["globals", "verbose"]:
+            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+
+        # If we are not closed, then we need to close first before we
+        # reload.
+        if not self.closed:
+            self.close()
+
         self.create_storage()
         self.db = ZODB.DB(self.storage)
-        root = self.db.open().root()
+        self.conn = self.db.open()
+        root = self.conn.root()
         self.classifier = root.get(self.db_name)
         if self.classifier is None:
             # There is no classifier, so create one.
             if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name, 'is a new ZODB'
             self.classifier = root[self.db_name] = _PersistentClassifier()
-            get_transaction().commit()
         else:
-            # It seems to me that the persistent classifier should store
-            # the nham and nspam values, but that doesn't appear to be the
-            # case, so work around that.  This can be removed once I figure
-            # out the problem.
-            self.nham, self.nspam = self.classifier.wordinfo[self.statekey]
             if options["globals", "verbose"]:
                 print >> sys.stderr, '%s is an existing ZODB, with %d ' \
                       'ham and %d spam' % (self.db_name, self.nham,
                                            self.nspam)
+        self.closed = False
         
     def store(self):
-        # It seems to me that the persistent classifier should store
-        # the nham and nspam values, but that doesn't appear to be the
-        # case, so work around that.  This can be removed once I figure
-        # out the problem.
-        self.classifier.wordinfo[self.statekey] = (self.nham, self.nspam)
-        get_transaction().commit()
+        '''Place state into persistent store'''
+        import ZODB
+        import transaction
+
+        assert self.closed == False, "Can't store a closed database"
+
+        if options["globals", "verbose"]:
+            print >> sys.stderr, 'Persisting', self.db_name, 'state in database'
+
+        transaction.commit()
 
     def close(self):
+        # Ensure that the db is saved before closing.  Alternatively, we
+        # could abort any waiting transaction.  We need to do *something*
+        # with it, though, or it will be still around after the db is
+        # closed and cause problems.  For now, saving seems to make sense
+        # (and we can always add abort methods if they are ever needed).
+        self.store()
+
+        # Do the closing.        
         self.db.close()
         self.storage.close()
+        self.closed = True
+        if options["globals", "verbose"]:
+            print >> sys.stderr, 'Closed', self.db_name, 'database'
 
 
 class ZEOClassifier(ZODBClassifier):
