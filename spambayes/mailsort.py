@@ -16,7 +16,7 @@ SIZE_LIMIT = 5000000 # messages larger are not analyzed
 BLOCK_SIZE = 10000
 RC_DIR = "~/.spambayes"
 DB_FILE = RC_DIR + "/wordprobs.cdb"
-OPTION_FILE = RC_DIR + "/bayescustomize.ini"
+CONFIG_FILE = RC_DIR + "/bayescustomize.ini"
 
 import sys
 import os
@@ -28,12 +28,14 @@ import socket
 import email
 
 DB_FILE = os.path.expanduser(DB_FILE)
-if not os.environ.has_key('BAYESCUSTOMIZE'):
-    os.environ['BAYESCUSTOMIZE'] = os.path.expanduser(OPTION_FILE)
 
-from spambayes import mboxutils
-from spambayes.cdb_classifier import CdbClassifer
-from spambayes.tokenizer import tokenize
+def import_spambayes():
+    global mboxutils, CdbClassifer, tokenize
+    if not os.environ.has_key('BAYESCUSTOMIZE'):
+        os.environ['BAYESCUSTOMIZE'] = os.path.expanduser(CONFIG_FILE)
+    from spambayes import mboxutils
+    from spambayes.cdb_classifier import CdbClassifer
+    from spambayes.tokenizer import tokenize
 
 
 try:
@@ -134,8 +136,8 @@ def filter_message(hamdir, spamdir):
         os.unlink(pathname)
         raise
 
-def print_message_score(msg_name):
-    msg = email.message_from_file(open(msg_name))
+def print_message_score(msg_name, msg_fp):
+    msg = email.message_from_file(msg_fp)
     bayes = CdbClassifer(open(DB_FILE, 'rb'))
     prob, evidence = bayes.spamprob(tokenize(msg), evidence=True)
     print msg_name, prob
@@ -143,27 +145,42 @@ def print_message_score(msg_name):
         print '  ', `word`, prob
 
 def main():
+    global DB_FILE, CONFIG_FILE
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'ts')
+        opts, args = getopt.getopt(sys.argv[1:], 'tsd:c:')
     except getopt.error, msg:
         usage(2, msg)
 
-    if len(opts) > 1:
-        usage(2, 'conflicting options')
+    mode = 'sort'
+    for opt, val in opts:
+        if opt == '-t':
+            mode = 'train'
+        elif opt == '-s':
+            mode = 'score'
+        elif opt == '-d':
+            DB_FILE = val
+        elif opt == '-c':
+            CONFIG_FILE = val
+        else:
+            assert 0, 'invalid option'
 
-    if not opts:
+    import_spambayes()
+
+    if mode == 'sort':
         if len(args) != 2:
             usage(2, 'wrong number of arguments')
         filter_message(args[0], args[1])
-    elif opts[0][0] == '-t':
+    elif mode == 'train':
         if len(args) != 2:
             usage(2, 'wrong number of arguments')
         train_messages(args[0], args[1])
-    elif opts[0][0] == '-s':
-        for msg in args:
-            print_message_score(msg)
-    else:
-        raise RuntimeError # shouldn't get here
+    elif mode == 'score':
+        if args:
+            for msg in args:
+                print_message_score(msg, open(msg))
+        else:
+            print_message_score('<stdin>', sys.stdin)
 
 
 if __name__ == "__main__":
