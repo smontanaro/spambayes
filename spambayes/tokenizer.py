@@ -204,7 +204,97 @@ from sets import Set
 #    lost 16 times
 #
 #    total unique fn went from 292 to 302
-
+#
+# Later:  Here's another tokenization scheme with more promise.
+#
+#     fold case, ignore punctuation, strip a trailing 's' from words (to
+#     stop Guido griping about "hotel" and "hotels" getting scored as
+#     distinct clues <wink>) and save both word bigrams and word unigrams
+#
+# This was the code:
+#
+#     # Tokenize everything in the body.
+#     lastw = ''
+#     for w in word_re.findall(text):
+#         n = len(w)
+#         # Make sure this range matches in tokenize_word().
+#         if 3 <= n <= 12:
+#             if w[-1] == 's':
+#                 w = w[:-1]
+#             yield w
+#             if lastw:
+#                 yield lastw + w
+#             lastw = w + ' '
+#
+#         elif n >= 3:
+#             lastw = ''
+#             for t in tokenize_word(w):
+#                 yield t
+#
+# where
+#
+#     word_re = re.compile(r"[\w$\-\x80-\xff]+")
+#
+# This at least doubled the process size.  It helped the f-n rate
+# significantly, but probably hurt the f-p rate (the f-p rate is too low
+# with only 4000 hams per run to be confident about changes of such small
+# *absolute* magnitude -- 0.025% is a single message in the f-p table):
+#
+# false positive percentages
+#     0.000  0.000  tied
+#     0.000  0.075  lost  +(was 0)
+#     0.050  0.125  lost  +150.00%
+#     0.025  0.000  won   -100.00%
+#     0.075  0.025  won    -66.67%
+#     0.000  0.050  lost  +(was 0)
+#     0.100  0.175  lost   +75.00%
+#     0.050  0.050  tied
+#     0.025  0.050  lost  +100.00%
+#     0.025  0.000  won   -100.00%
+#     0.050  0.125  lost  +150.00%
+#     0.050  0.025  won    -50.00%
+#     0.050  0.050  tied
+#     0.000  0.025  lost  +(was 0)
+#     0.000  0.025  lost  +(was 0)
+#     0.075  0.050  won    -33.33%
+#     0.025  0.050  lost  +100.00%
+#     0.000  0.000  tied
+#     0.025  0.100  lost  +300.00%
+#     0.050  0.150  lost  +200.00%
+#
+# won   5 times
+# tied  4 times
+# lost 11 times
+#
+# total unique fp went from 13 to 21
+#
+# false negative percentages
+#     0.327  0.218  won    -33.33%
+#     0.400  0.218  won    -45.50%
+#     0.327  0.218  won    -33.33%
+#     0.691  0.691  tied
+#     0.545  0.327  won    -40.00%
+#     0.291  0.218  won    -25.09%
+#     0.218  0.291  lost   +33.49%
+#     0.654  0.473  won    -27.68%
+#     0.364  0.327  won    -10.16%
+#     0.291  0.182  won    -37.46%
+#     0.327  0.254  won    -22.32%
+#     0.691  0.509  won    -26.34%
+#     0.582  0.473  won    -18.73%
+#     0.291  0.255  won    -12.37%
+#     0.364  0.218  won    -40.11%
+#     0.436  0.327  won    -25.00%
+#     0.436  0.473  lost    +8.49%
+#     0.218  0.218  tied
+#     0.291  0.255  won    -12.37%
+#     0.254  0.364  lost   +43.31%
+#
+# won  15 times
+# tied  2 times
+# lost  3 times
+#
+# total unique fn went from 106 to 94
 
 ##############################################################################
 # What about HTML?
@@ -312,8 +402,71 @@ from sets import Set
 # msgs increases significantly when stripping tags, so the code here doesn't
 # do that part.  However, even after stripping tags, the rates above show that
 # at least 98% of spams are still correctly identified as spam.
-# XXX So, if another way is found to slash the f-n rate, the decision here
-# XXX not to strip HTML from HTML-only msgs should be revisited.
+#
+# So, if another way is found to slash the f-n rate, the decision here not
+# to strip HTML from HTML-only msgs should be revisited.
+#
+# Later, after the f-n rate got slashed via other means:
+#
+# false positive percentages
+#     0.000  0.000  tied
+#     0.000  0.000  tied
+#     0.050  0.075  lost   +50.00%
+#     0.025  0.025  tied
+#     0.075  0.025  won    -66.67%
+#     0.000  0.000  tied
+#     0.100  0.100  tied
+#     0.050  0.075  lost   +50.00%
+#     0.025  0.025  tied
+#     0.025  0.000  won   -100.00%
+#     0.050  0.075  lost   +50.00%
+#     0.050  0.050  tied
+#     0.050  0.025  won    -50.00%
+#     0.000  0.000  tied
+#     0.000  0.000  tied
+#     0.075  0.075  tied
+#     0.025  0.025  tied
+#     0.000  0.000  tied
+#     0.025  0.025  tied
+#     0.050  0.050  tied
+#
+# won   3 times
+# tied 14 times
+# lost  3 times
+#
+# total unique fp went from 13 to 11
+#
+# false negative percentages
+#     0.327  0.400  lost   +22.32%
+#     0.400  0.400  tied
+#     0.327  0.473  lost   +44.65%
+#     0.691  0.654  won     -5.35%
+#     0.545  0.473  won    -13.21%
+#     0.291  0.364  lost   +25.09%
+#     0.218  0.291  lost   +33.49%
+#     0.654  0.654  tied
+#     0.364  0.473  lost   +29.95%
+#     0.291  0.327  lost   +12.37%
+#     0.327  0.291  won    -11.01%
+#     0.691  0.654  won     -5.35%
+#     0.582  0.655  lost   +12.54%
+#     0.291  0.400  lost   +37.46%
+#     0.364  0.436  lost   +19.78%
+#     0.436  0.582  lost   +33.49%
+#     0.436  0.364  won    -16.51%
+#     0.218  0.291  lost   +33.49%
+#     0.291  0.400  lost   +37.46%
+#     0.254  0.327  lost   +28.74%
+#
+# won   5 times
+# tied  2 times
+# lost 13 times
+#
+# total unique fn went from 106 to 122
+#
+# So HTML decorations are still a significant clue when the ham is composed
+# of c.l.py traffic.  Again, this should be revisited if the f-n rate is
+# slashed again.
 
 ##############################################################################
 # How big should "a word" be?
