@@ -265,8 +265,12 @@ class FolderSelector(FolderSelector_Parent):
     def CompareIDs(self, id1, id2):
         # Compare the eid of the stores, then the objects
         CompareEntryIDs = self.manager.message_store.session.CompareEntryIDs
-        return CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
-               CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
+        try:
+            return CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
+                   CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
+        except pythoncom.com_error:
+            # invalid IDs are never the same
+            return False
 
     def InIDs(self, id, ids):
         for id_check in ids:
@@ -338,7 +342,11 @@ class FolderSelector(FolderSelector_Parent):
     def _DetermineFoldersToExpand(self):
         folders_to_expand = []
         for folder_id in self.selected_ids:
-            folder = self.manager.message_store.GetFolder(folder_id)
+            try:
+                folder = self.manager.message_store.GetFolder(folder_id)
+            except self.manager.message_store.MsgStoreException, details:
+                print "Can't find a folder to expand:", details
+                folder = None
             while folder is not None:
                 parent = folder.GetParent()
                 if parent is not None and \
@@ -635,7 +643,7 @@ def Test():
         import dialogs
         mgr.dialog_parser = dialogs.LoadDialogs()
 
-    ids = []
+    ids = [("0000","0000"),] # invalid ID for testing.
     d=FolderSelector(0, mgr, ids, single_select = False)
     if d.DoModal() != win32con.IDOK:
         print "Cancelled"
