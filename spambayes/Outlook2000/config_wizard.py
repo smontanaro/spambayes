@@ -94,15 +94,28 @@ def CommitWizardConfig(manager, wc):
         assert wc.wizard.unsure_folder_name, "No ID, and no name!!!"
         f = _CreateFolder(manager, wc.wizard.unsure_folder_name, "contains messages SpamBayes is uncertain about")
         manager.config.filter.unsure_folder_id = f.GetID()
+    if wc.training.ham_folder_ids:
+        manager.config.training.ham_folder_ids = wc.training.ham_folder_ids
+    if wc.training.spam_folder_ids:
+        manager.config.training.spam_folder_ids = wc.training.spam_folder_ids
 
     wiz_cd = manager.wizard_classifier_data
     manager.wizard_classifier_data = None
     if wiz_cd:
         manager.classifier_data.Adopt(wiz_cd)
-    manager.config.filter.enabled = True
     if wc.wizard.preparation == 2: # manually configure
         import dialogs
         dialogs.ShowDialog(0, manager, manager.config, "IDD_MANAGER")
+    elif wc.wizard.will_train_later:
+        # User cancelled, but said they will sort their mail for us.
+        # don't save the config - this will force the wizard up next time
+        # outlook is started.
+        pass
+    else:
+        # All done - enable, and save the config
+        manager.config.filter.enabled = True
+        manager.SaveConfig()
+
 
 def CancelWizardConfig(manager, wc):
     if manager.wizard_classifier_data:
