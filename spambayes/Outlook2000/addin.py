@@ -158,7 +158,7 @@ class FolderItemsEvent(_BaseItemsEvent):
                 subject = item.Subject.encode("mbcs", "replace")
                 import train
                 print "Training on message '%s' - " % subject,
-                if train.train_message(msgstore_message, False, self.manager):
+                if train.train_message(msgstore_message, False, self.manager, rescore = True):
                     print "trained as good"
                 else:
                     print "already was trained as good"
@@ -190,7 +190,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                trained_as_good:
                 subject = item.Subject.encode("mbcs", "replace")
                 print "Training on message '%s' - " % subject,
-                if train.train_message(msgstore_message, True, self.manager):
+                if train.train_message(msgstore_message, True, self.manager, rescore = True):
                     print "trained as spam"
                 else:
                     # This shouldn't really happen, but strange shit does
@@ -328,7 +328,7 @@ class ButtonDeleteAsEvent:
             for msgstore_message in msgstore_messages:
                 # Must train before moving, else we lose the message!
                 print "Training on message - ",
-                if train.train_message(msgstore_message, True, self.manager):
+                if train.train_message(msgstore_message, True, self.manager, rescore = True):
                     print "trained as spam"
                 else:
                     print "already was trained as spam"
