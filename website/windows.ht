@@ -126,12 +126,3 @@ source</a><sup><font size="-2">1</font></sup>, then setup the proxy server
 (<a href="applications.html#pop3">POP3</a> or <a
 href="applications.html#imap">IMAP</a>) which corresponds to the way in
 which you transfer mail from your mail server.
-
-<h2>Notes</h2>
-
-<ol>
-  <li> As of this writing, the last release (1.0a2) is getting rather
-  long-in-the-tooth.  You're probably better off either waiting for the next
-  alpha release or downloading the code from the <a
-  href="https://sourceforge.net/cvs/?group_id=61702">CVS repository</a>.</li>
-</ol>
