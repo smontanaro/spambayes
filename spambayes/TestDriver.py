@@ -44,44 +44,72 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
     if ham.n == 0 or spam.n == 0:
         return
 
-    # Figure out "the best" spam cutoff point, meaning the one that minimizes
+    # Figure out "the best" ham & spam cutoff points, meaning the ones that
+    # minimize
+    #    num_fp * fp_weight + num_fn + fn_weight + num_unsure * unsure_weight
     # the total number of misclassified msgs (other definitions are
     # certainly possible!).
 
     # At cutoff 0, everything is called spam, so there are no false negatives,
     # and every ham is a false positive.
     assert ham.nbuckets == spam.nbuckets
-    fpw = options.best_cutoff_fp_weight
-    fp = ham.n
-    fn = 0
-    best_total = fpw * fp + fn
-    bests = [(0, fp, fn)]
-    for i in range(nbuckets):
-        # When moving the cutoff beyond bucket i, the ham in bucket i
-        # are redeemed, and the spam in bucket i become false negatives.
-        fp -= ham.buckets[i]
-        fn += spam.buckets[i]
-        total = fpw * fp + fn
-        if total <= best_total:
-            if total < best_total:
-                best_total = total
-                bests = []
-            bests.append((i+1, fp, fn))
-    assert fp == 0
-    assert fn == spam.n
+    n = ham.nbuckets
+    FPW = options.best_cutoff_fp_weight
+    FNW = options.best_cutoff_fn_weight
+    UNW = options.best_cutoff_unsure_weight
 
-    i, fp, fn = bests.pop(0)
-    print '-> best cutoff for', tag, float(i) / nbuckets
-    print '->     with weighted total %g*%d fp + %d fn = %g' % (
-          fpw, fp, fn, best_total)
-    print '->     fp rate %.3g%%  fn rate %.3g%%' % (
-          fp * 1e2 / ham.n, fn * 1e2 / spam.n)
-    for i, fp, fn in bests:
-        print ('->     matched at %g with %d fp & %d fn; '
-               'fp rate %.3g%%; fn rate %.3g%%' % (
-               float(i) / ham.nbuckets, fp, fn,
-               fp * 1e2 / ham.n, fn * 1e2 / spam.n))
+    # Get running totals:  {h,s}total[i] is # of ham/spam below bucket i
+    htotal = [0] * (n+1)
+    stotal = [0] * (n+1)
+    for i in range(1, n+1):
+        htotal[i] = htotal[i-1] + ham.buckets[i-1]
+        stotal[i] = stotal[i-1] + spam.buckets[i-1]
+    assert htotal[-1] == ham.n
+    assert stotal[-1] == spam.n
 
+    best_cost = 1e200   # infinity
+    bests = []          # best h and s cutoffs
+
+    for h in range(n+1):
+        num_fn = stotal[h]
+        fn_cost = num_fn * FNW
+        for s in xrange(h, n+1):
+            # ham  0:h  correct
+            #      h:s  unsure
+            #      s:   FP
+            # spam 0:h  FN
+            #      h:s  unsure
+            #      s:   correct
+            num_fp = htotal[-1] - htotal[s]
+            num_un = htotal[s] - htotal[h] + stotal[s] - stotal[h]
+            cost = num_fp * FPW + fn_cost + num_un * UNW
+            if cost <= best_cost:
+                if cost < best_cost:
+                    best_cost = cost
+                    bests = []
+                bests.append((h, s))
+
+    print '-> best cost $%.2f' % best_cost
+    print '-> per-fp cost $%.2f; per-fn cost $%.2f; per-unsure cost $%.2f' % (
+          FPW, FNW, UNW)
+
+    if len(bests) > 1:
+        print '-> achieved at', len(bests), 'cutoff pairs'
+        info = [('smallest ham & spam cutoffs', bests[0]),
+                ('largest ham & spam cutoffs', bests[-1])]
+    else:
+        info = [('achieved at ham & spam cutoffs', bests[0])]
+
+    for tag, (h, s) in info:
+        print '-> %s %g & %g' % (tag, float(h)/n, float(s)/n)
+        num_fn = stotal[h]
+        num_fp = htotal[-1] - htotal[s]
+        num_unh = htotal[s] - htotal[h]
+        num_uns = stotal[s] - stotal[h]
+        print '->     fp %d; fn %d; unsure ham %d; unsure spam %d' % (
+              num_fp, num_fn, num_unh, num_uns)
+        print '->     fp rate %.3g%%; fn rate %.3g%%' % (
+              num_fp*1e2 / ham.n, num_fn*1e2 / spam.n)
 
 def printmsg(msg, prob, clues):
     print msg.tag

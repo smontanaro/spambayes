@@ -108,24 +108,33 @@ generate_long_skips: True
 spam_cutoff: 0.560
 
 # Number of buckets in histograms.
-nbuckets: 40
+nbuckets: 200
 show_histograms: True
 
 # After the display of a ham+spam histogram pair, you can get a listing of
-# all the cutoff values (coinciding histogram bucket boundaries) that
+# all the cutoff values (coinciding with histogram bucket boundaries) that
 # minimize
 #
-#      best_cutoff_fp_weight * (# false positives) + (# false negatives)
+#      best_cutoff_fp_weight * (# false positives) +
+#      best_cutoff_fn_weight * (# false negatives) +
+#      best_cutoff_unsure_weight * (# unsure msgs)
 #
-# By default, best_cutoff_fp_weight is 1, and so the cutoffs that miminize
-# the total number of misclassified messages (fp+fn) are shown.  If you hate
-# fp more than fn, set the weight to something larger than 1.  For example,
-# if you're willing to endure 100 false negatives to save 1 false positive,
-# set it to 100.
+# This displays two cutoffs:  hamc and spamc, where
+#
+#     0.0 <= hamc <= spamc <= 1.0
+#
+# The idea is that if something scores < hamc, it's called ham; if
+# something scores >= spamc, it's called spam; and everything else is
+# called "I'm not sure" -- the middle ground.
+#
+# Note that cvcost.py does a similar analysis.
+#
 # Note:  You may wish to increase nbuckets, to give this scheme more cutoff
 # values to analyze.
 compute_best_cutoffs_from_histograms: True
-best_cutoff_fp_weight: 1
+best_cutoff_fp_weight:     10.00
+best_cutoff_fn_weight:      1.00
+best_cutoff_unsure_weight:  0.20
 
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
@@ -313,6 +322,8 @@ all_options = {
                    'ham_directories': string_cracker,
                    'compute_best_cutoffs_from_histograms': boolean_cracker,
                    'best_cutoff_fp_weight': float_cracker,
+                   'best_cutoff_fn_weight': float_cracker,
+                   'best_cutoff_unsure_weight': float_cracker,
                   },
     'CV Driver': {'build_each_classifier_from_scratch': boolean_cracker,
                  },
