@@ -99,8 +99,7 @@ class Dialog:
         }
         return ret
 
-    def OnInitDialog(self, hwnd, msg, wparam, lparam):
-        self.hwnd = hwnd
+    def DoInitialPosition(self):
         # centre the dialog
         desktop = win32gui.GetDesktopWindow()
         l,t,r,b = win32gui.GetWindowRect(self.hwnd)
@@ -108,7 +107,11 @@ class Dialog:
         h = b-t
         dt_l, dt_t, dt_r, dt_b = win32gui.GetWindowRect(desktop)
         centre_x, centre_y = win32gui.ClientToScreen( desktop, ( (dt_r-dt_l)/2, (dt_b-dt_t)/2) )
-        win32gui.MoveWindow(hwnd, centre_x-(w/2), centre_y-(h/2), w, h, 0)
+        win32gui.MoveWindow(self.hwnd, centre_x-(w/2), centre_y-(h/2), w, h, 0)
+        
+    def OnInitDialog(self, hwnd, msg, wparam, lparam):
+        self.hwnd = hwnd
+        self.DoInitialPosition()
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         pass
@@ -208,6 +211,13 @@ class ProcessorDialog(TooltipDialog):
 
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         TooltipDialog.OnInitDialog(self, hwnd, msg, wparam, lparam)
+        if __debug__: # this is just a debugging aid
+            for int_id in self.command_processors:
+                try:
+                    self.GetDlgItem(int_id)
+                except win32gui.error:
+                    print "ERROR: Dialog item %s refers to an invalid control" % \
+                          self._GetIDName(int_id)
         self.LoadAllControls()
 
     def GetPopupHelpText(self, iCtrlId):
@@ -301,11 +311,9 @@ class ProcessorPage(ProcessorDialog):
     def __init__(self, parent, manager, config, idd, option_handlers, yoffset):
         ProcessorDialog.__init__(self, parent, manager, config, idd,option_handlers)
         self.yoffset = yoffset
-    def OnInitDialog(self, hwnd, msg, wparam, lparam):
-        self.hwnd = hwnd
+    def DoInitialPosition(self):
         # The hardcoded values are a bit of a hack.
         win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 1, self.yoffset, 0, 0, win32con.SWP_NOSIZE)
-        self.LoadAllControls()
     def CreateWindow(self):
         # modeless. Pages should have the WS_CHILD window style
         message_map = self.GetMessageMap()
