@@ -30,7 +30,7 @@ def LoadDialogs(rc_name = "dialogs.rc"):
             rc_mtime = stat_data[stat.ST_MTIME]
             rc_size = stat_data[stat.ST_SIZE]
         except OSError:
-            rc_mtime = None
+            rc_mtime = rc_size = None
         if rc_mtime!=mtime or rc_size!=size:
             # Need to generate the dialog.
             print "Generating %s from %s" % (py_name, rc_name)
