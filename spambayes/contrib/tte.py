@@ -76,7 +76,7 @@ def train(store, ham, spam, maxmsgs):
         delta = datetime.datetime.now()-start
         seconds = delta.seconds + delta.microseconds/1000000
 
-        print "\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d, %.3fs" % \
+        print "\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d, %.1fs" % \
               (round, nmsgs, hmisses, smisses, seconds)
 
     nhamleft = 0
