@@ -174,7 +174,7 @@ defaults = {
      """Try to capitalize on mail sent to multiple similar addresses.""",
      BOOLEAN, RESTORE),
 
-    ("summarize_email_suffixes", "Summarise email prefixes", False,
+    ("summarize_email_suffixes", "Summarise email suffixes", False,
      """Try to capitalize on mail sent to multiple similar addresses.""",
      BOOLEAN, RESTORE),
 
