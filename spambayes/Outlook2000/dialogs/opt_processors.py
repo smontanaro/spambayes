@@ -26,7 +26,10 @@ class OptionControlProcessor(processors.ControlProcessor):
             self.option = None
 
     def GetPopupHelpText(self, idFrom):
-        return " ".join(self.option.doc().split())
+        doc = " ".join(self.option.doc().split())
+        if self.option.default_value:
+            doc += " (the default value is %s)" % self.option.default_value
+        return doc
 
     # We override Init, and break it into 2 steps.
     def Init(self):
@@ -155,8 +158,11 @@ class ComboProcessor(OptionControlProcessor):
         self.SetOptionValue(self.text_to_option[text])
 
 class EditNumberProcessor(OptionControlProcessor):
-    def __init__(self, window, control_ids, option):
+    def __init__(self, window, control_ids, option, min_val = 0, max_val = 100, ticks = 100):
         self.slider_id = control_ids and control_ids[1]
+        self.min_val = min_val
+        self.max_val = max_val
+        self.ticks = ticks
         OptionControlProcessor.__init__(self, window, control_ids, option)
 
     def GetPopupHelpText(self, id):
@@ -172,8 +178,9 @@ class EditNumberProcessor(OptionControlProcessor):
         slider = self.GetControl(self.slider_id)
         if slider == lparam:
             slider_pos = win32gui.SendMessage(slider, commctrl.TBM_GETPOS, 0, 0)
-            slider_pos = float(slider_pos)
+            slider_pos = float(slider_pos) * self.max_val / self.ticks
             str_val = str(slider_pos)
+            print "Slider wants to set to", str_val
             edit = self.GetControl()
             win32gui.SendMessage(edit, win32con.WM_SETTEXT, 0, str_val)
 
@@ -194,10 +201,13 @@ class EditNumberProcessor(OptionControlProcessor):
 
     def InitSlider(self):
         slider = self.GetControl(self.slider_id)
-        win32gui.SendMessage(slider, commctrl.TBM_SETRANGE, 0, MAKELONG(0, 100))
+        # xxx - this wont be right if min <> 0 :(
+        assert self.min_val == 0, "sue me"
+        win32gui.SendMessage(slider, commctrl.TBM_SETRANGE, 0, MAKELONG(0, self.ticks))
+        # sigh - these values may not be right
         win32gui.SendMessage(slider, commctrl.TBM_SETLINESIZE, 0, 1)
-        win32gui.SendMessage(slider, commctrl.TBM_SETPAGESIZE, 0, 5)
-        win32gui.SendMessage(slider, commctrl.TBM_SETTICFREQ, 10, 0)
+        win32gui.SendMessage(slider, commctrl.TBM_SETPAGESIZE, 0, self.ticks/20)
+        win32gui.SendMessage(slider, commctrl.TBM_SETTICFREQ, self.ticks/10, 0)
 
     def UpdateControl_FromValue(self):
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0,
@@ -206,10 +216,17 @@ class EditNumberProcessor(OptionControlProcessor):
 
     def UpdateSlider_FromEdit(self):
         slider = self.GetControl(self.slider_id)
+        # done as the user is typing into the edit control, so we must not
+        # complain here about invalid values as it is likely to only be
+        # temporarily invalid until they finish.
         try:
             # Get as float so we dont fail should the .0 be there, but
             # then convert to int as the slider only works with ints
-            val = int(float(self.GetOptionValue()))
+            val = float(self.GetOptionValue())
+            # Convert it to our range.
+            val *= float(self.ticks) / self.max_val
+            print "Edit setting sliter to tick pos", val
+            val = int(val)
         except ValueError:
             return
         win32gui.SendMessage(slider, commctrl.TBM_SETPOS, 1, val)
@@ -221,8 +238,8 @@ class EditNumberProcessor(OptionControlProcessor):
                                       buf_size, buf)
         str_val = buf[:nchars]
         val = float(str_val)
-        if val < 0 or val > 100:
-            raise ValueError, "Value must be between 0 and 100"
+        if val < self.min_val or val > self.max_val:
+            raise ValueError, "Value must be between %d and %d" % (self.min_val, self.max_val)
         self.SetOptionValue(val)
     
 # Folder IDs, and the "include_sub" option, if applicable.
