@@ -104,7 +104,7 @@ class FilterStatusProcessor(ControlProcessor):
                                  0, reason)
             return
         if not manager.config.filter.enabled:
-            status = "Filtering is disabled.  Select 'Enable SpamBayes' to enable"
+            status = "Filtering is disabled.  Select 'Enable SpamBayes' to enable."
             win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                                  0, status)
             return
@@ -121,7 +121,7 @@ class FilterStatusProcessor(ControlProcessor):
             
         watch_names = manager.FormatFolderNames(
                         config.watch_folder_ids, config.watch_include_sub)
-        filter_status = "Watching '%s'. Spam managed in '%s', %s" \
+        filter_status = "Watching '%s'. Spam managed in '%s', %s." \
                                 % (watch_names,
                                    certain_spam_name,
                                    unsure_text)
@@ -205,15 +205,15 @@ def ShowDataFolder(window):
 def ShowLog(window):
     """Opens the log file for the current SpamBayes session
     """
-    import sys, os, win32api
-    if 1 or hasattr(sys, "frozen"):
+    import sys, os, win32api, win32con
+    if hasattr(sys, "frozen"):
         # current log always "spambayes1.log"
         log_name = os.path.join(win32api.GetTempPath(), "spambayes1.log")
         if not os.path.exists(log_name):
             window.manager.ReportError("The log file for this session can not be located")
         else:
             cmd = 'notepad.exe "%s"' % log_name
-            os.system(cmd)
+            win32api.WinExec(cmd, win32con.SW_SHOW)
     else:
         question = "As you are running from source-code, viewing the\n" \
                    "log means executing a Python program.  If you already\n" \
