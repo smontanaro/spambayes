@@ -838,34 +838,23 @@ class Tokenizer:
                         for tok in breakdown(m.group(1).lower()):
                             yield 'received:' + tok
 
-        # XXX Following is a great idea due to Anthony Baxter.  I can't use it
-        # XXX on my test data because the header lines are so different between
-        # XXX my ham and spam that it makes a large improvement for bogus
-        # XXX reasons.  So it's commented out.  But it's clearly a good thing
-        # XXX to do on "normal" data, and subsumes the Organization trick above
-        # XXX in a much more general way, yet at comparable cost.
-
-        # X-UIDL:
-        # Anthony Baxter's idea.  This has spamprob 0.99!  The value
-        # is clearly irrelevant, just the presence or absence matters.
-        # However, it's extremely rare in my spam sets, so doesn't
-        # have much value.
-        #
-        # As also suggested by Anthony, we can capture all such header
-        # oddities just by generating tags for the count of how many
-        # times each header field appears.
-        ##x2n = {}
-        ##for x in msg.keys():
-        ##    x2n[x] = x2n.get(x, 0) + 1
-        ##for x in x2n.items():
-        ##    yield "header:%s:%d" % x
-
-        # Do a "safe" approximation to that for now.
-        safe_headers = options.safe_headers
+        # As suggested by Anthony Baxter, merely counting the number of
+        # header lines, and in a case-sensitive way, has really value.
+        # For example, all-caps SUBJECT is a strong spam clue, while
+        # X-Complaints-To a strong ham clue.
         x2n = {}
-        for x in msg.keys():
-            if x.lower() in safe_headers:
+        if options.count_all_header_lines:
+            for x in msg.keys():
                 x2n[x] = x2n.get(x, 0) + 1
+        else:
+            # Do a "safe" approximation to that.  When spam and ham are
+            # collected from different sources, the count of some header
+            # lines can be a too strong a discriminator for accidental
+            # reasons.
+            safe_headers = options.safe_headers
+            for x in msg.keys():
+                if x.lower() in safe_headers:
+                    x2n[x] = x2n.get(x, 0) + 1
         for x in x2n.items():
             yield "header:%s:%d" % x
 

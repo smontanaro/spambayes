@@ -17,6 +17,7 @@ boolean_cracker = ('getboolean', bool)
 all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
+                  'count_all_header_lines': boolean_cracker,
                  },
     'TestDriver': {'nbuckets': int_cracker,
                    'show_ham_lo': float_cracker,
@@ -27,7 +28,7 @@ all_options = {
                    'show_false_negatives': boolean_cracker,
                    'show_histograms': boolean_cracker,
                    'show_best_discriminators': boolean_cracker,
-                  }
+                  },
 }
 
 def _warn(msg):
