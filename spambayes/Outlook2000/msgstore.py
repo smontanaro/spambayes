@@ -1006,7 +1006,7 @@ class MAPIMsgStoreMsg:
             ("Message-ID", 5, True, None),
             ("Importance", 6, False, self._format_importance),
             ("Date", 7, False, self._format_time),
-            ("Organisation", 8, True, None),
+            ("Organization", 8, True, None),
 #            ("X-Mailer", 9, False, self._format_version),
             ):
             if potentially_large:
@@ -1044,7 +1044,17 @@ class MAPIMsgStoreMsg:
         # Fudge up something that's in the appropriate form.  We don't
         # have enough information available to get an actual working
         # email address.
-        return "%s@invalid (%s)" % (self._address_re.sub('', raw), raw)
+        addresses = raw.split(";")
+        formattedAddresses = []
+        for address in addresses:
+            address = address.strip()
+            if address.find("@") >= 0:
+                formattedAddress = address
+            else:
+                formattedAddress = "\"%s\" <%s>" % \
+                        (address, self._address_re.sub('.', address))
+            formattedAddresses.append(formattedAddress)
+        return "; ".join(formattedAddresses)
 
     def _EnsureObject(self):
         if self.mapi_object is None:
