@@ -2,6 +2,41 @@
 
 Alpha Release 6
 ===============
+Skip Montanaro    19/09/2003  Worm around a possible email pkg bug.
+Skip Montanaro    19/09/2003  hammiebulk & mboxtrain: Minor performance boost when training on lots of mail.
+Skip Montanaro    19/09/2003  Place a threshold on the number of items displayed per section in the review page of the ui.
+Tony Meyer        18/09/2003  Change the Outlook plug-in to use the general default (currently False) for the experimental_ham_spam_imbalance adjustment.
+Tony Meyer        18/09/2003  Change the default for address_headers to include to, cc, reply-to, and sender as per Tim's suggestion.
+Tony Meyer        18/09/2003  Store the user's caches and messageinfo.db file in the app data folder as well (by default), if we have everything else there.
+Tony Meyer        18/09/2003  If we can't find a config file anywhere but the windows app data directory, then load it.
+Tony Meyer        18/09/2003  Use urllib not urllib2 to shut down the proxy.
+Tony Meyer        18/09/2003  Create the server strings for the ui *after* reading in the command line parameters.
+Tony Meyer        18/09/2003  Move notate_to and notate_subject options to the "Headers" section.
+Tony Meyer        18/09/2003  Move all the storage options in the "pop3proxy" section to the "Storage" section.
+Tony Meyer        18/09/2003  Remove the hammie debug options, and use the "Headers" evidence options instead.
+Tony Meyer        17/09/2003  Fix [ spambayes-Bugs-806632 ] sb_server failure when saving config
+Tony Meyer        17/09/2003  Outlook: Add a warning for those with highly (>5 times) imbalanced ham and spam.
+Mark Hammond      17/09/2003  pop3proxy_service: Only munge sys.path in source-code versions, and as the service starts, have it report the username and ini file it is using. In binary builds, write a log to %temp%\SpamBayesServicen.log
+Mark Hammond      17/09/2003  If we are running Windows, have no valid config file specified, and have the win32all extensions available, default to: \Documents and Settings\[user]\Application Data\SpamBayes\Proxy
+Tony Meyer        16/09/2003  Fix [ 795145 ] pop3proxy review page dies with mixed gzip/non messages
+Mark Hammond      15/09/2003  Outlook: Load dialog bitmaps directly from the executable in binary builds.
+Adam Walker       15/09/2003  Updated pop3proxy_tray to support the service.
+Tony Meyer        15/09/2003  Removed the gary_combining option and code.
+Tony Meyer        15/09/2003  Add a (basic) check for version option to the pop3proxy tray app.
+Tim Peters        15/09/2003  Fix SF bug 806238:  urllib2 fails in Outlook new-version chk.
+Tim Peters        15/09/2003  Outlook: ShowClues():  Made the clue report a little prettier, and (I hope) a little easier to follow.
+Tony Meyer        13/09/2003  Fix [ 805351 ] If cc: address is not qualified, proxy fails to send message
+Mark Hammond      12/09/2003  pop3proxy_tray: Use simple logging strategy similar to the Outlook addin - if we have no console, redirect either to win32traceutil (source-code version) or to a %TEMP\SpamBayesServer1.log (yet to be released binary version).
+Mark Hammond      12/09/2003  pop3proxy_tray: When running from binary, don't hack sys.path.  When running from source code, hack sys.path based file path rather than on os.getcwd.
+Mark Hammond      12/09/2003  pop3proxy_tray: When running from binary, load the icon from the executable rather than a .ico file.
+Tim Peters        12/09/2003  Outlook: ShowClues():  Add lines revealing the # ham and spam trained on.
+Tony Meyer        11/09/2003  When running setup.py if the old (named) files exist, offer to delete them.
+Tony Meyer        11/09/2003  Add a unittest to check that we correctly fail when no dbm modules are available.
+Anthony Baxter    11/09/2003  Add a new file: NEWTRICKS.TXT to record ideas that have and haven't been tried.
+Richie Hindle     11/09/2003  Bug 803501: Fix the "No dbm modules available" message to print rather than crash. 
+Skip Montanaro    11/09/2003  Implement a better fix for the storage.py pickle/dbm problems.
+Mark Hammond      10/09/2003  Outlook: use the classifier's (new) store method rather than an Outlook specific one.
+Tony Meyer        10/09/2003  Re-fix storage.py so that hammie works with a pickle or dbm.
 Tony Meyer        09/09/2003  Fix for [ 802545 ] crash when loggin off imapfilter UI
 Tony Meyer        09/09/2003  Fix for [ 802347 ] multiline options saved incorrectly
 Tony Meyer        09/09/2003  Implement half of [ 801699 ] migration from hammie to sb_* scripts (although in a different way)
