@@ -603,8 +603,8 @@ url_re = re.compile(r"""
     # Do a reasonable attempt at detecting the end.  It may or may not
     # be in HTML, may or may not be in quotes, etc.  If it's full of %
     # escapes, cool -- that's a clue too.
-    ([^\s<>'"\x7f-\xff]+)  # capture the guts
-""", re.VERBOSE)
+    ([^\s<>"'\x7f-\xff]+)  # capture the guts
+""", re.VERBOSE)                        # '
 
 urlsep_re = re.compile(r"[;?:@&=+,$.]")
 
