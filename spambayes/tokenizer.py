@@ -756,11 +756,9 @@ class Tokenizer:
         # XXX is specific to my sorry <wink> corpora.
 
         # Content-{Type, Disposition} and their params, and charsets.
-        t = ''
         for x in msg.walk():
             for w in crack_content_xyz(x):
-                yield t + w
-            t = '>'
+                yield w
 
         # Subject:
         # Don't ignore case in Subject lines; e.g., 'free' versus 'FREE' is
