@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-from __future__ import generators
-
 """POP3DND - provides drag'n'drop training ability for POP3 clients.
 
 This application is a twisted cross between a POP3 proxy and an IMAP
 server.  It sits between your mail client and your POP3 server (like any
 other POP3 proxy).  While messages classified as ham are simply passed
 through the proxy, messages that are classified as spam or unsure are
-intercepted and passed to the IMAP server.  The IMAP server offers three
+intercepted and passed to the IMAP server.  The IMAP server offers four
 folders - one where messages classified as spam end up, one for messages
-it is unsure about, and one for training ham.
+it is unsure about, one for training ham, and one for training spam.
 
 In other words, to use this application, setup your mail client to connect
 to localhost, rather than directly to your POP3 server.  Additionally, add
@@ -19,46 +17,19 @@ via the web interface, and you are ready to go.  Good messages will appear
 as per normal, but you will also have two new incoming folders, one for
 spam and one for unsure messages.
 
-To train SpamBayes, use the spam folder, and the 'train_as_ham' folder.
-Any messages in these folders will be trained appropriately.  This means
-that all messages that SpamBayes classifies as spam will also be trained
-as such.  If you receive any 'false positives' (ham classified as spam),
-you *must* copy the message into the 'train_as_ham' folder to correct the
-training.  You may also place any saved spam messages you have into this
-folder.
-
-So that SpamBayes knows about ham as well as spam, you will also need to
-move or copy mail into the 'train_as_ham' folder.  These may come from
-the unsure folder, or from any other mail you have saved.  It is a good
-idea to leave messages in the 'train_as_ham' and 'spam' folders, so that
-you can retrain from scratch if required.  (However, you should always
-clear out your unsure folder, preferably moving or copying the messages
-into the appropriate training folder).
+To train SpamBayes, use the 'train_as_spam' and 'train_as_ham' folders.
+Any messages in these folders will be trained appropriately.
 
 This SpamBayes application is designed to work with Outlook Express, and
 provide the same sort of ease of use as the Outlook plugin.  Although the
-majority of development and testing has been done with Outlook Express and
-Eudora, any mail client that supports both IMAP and POP3 should be able to
-use this application - if the client enables the user to work with an IMAP
-account and POP3 account side-by-side (and move messages between them),
-then it should work equally as well.
-
-This module includes the following classes:
- o IMAPMessage
- o DynamicIMAPMessage
- o IMAPFileMessage
- o IMAPFileMessageFactory
- o IMAPMailbox
- o SpambayesMailbox
- o SpambayesInbox
- o Trainer
- o SpambayesAccount
- o SpambayesIMAPServer
- o OneParameterFactory
- o MyBayesProxy
- o MyBayesProxyListener
- o IMAPState
+majority of development and testing has been done with Outlook Express,
+Eudora and Thunderbird, any mail client that supports both IMAP and POP3
+should be able to use this application - if the client enables the user to
+work with an IMAP account and POP3 account side-by-side (and move messages
+between them), then it should work equally as well.
 """
+
+from __future__ import generators
 
 todo = """
  o The RECENT flag should be unset at some point, but when?  The
@@ -74,16 +45,6 @@ todo = """
  o We cannot currently get part of a message via the BODY calls
    (with the <> operands), or get a part of a MIME message (by
    prepending a number).  This should be added!
- o If the user clicks the 'save and shutdown' button on the web
-   interface, this will only kill the POP3 proxy and web interface
-   threads, and not the IMAP server.  We need to monitor the thread
-   that we kick off, and if it dies, we should die too.  Need to figure
-   out how to do this in twisted.
- o Apparently, twisted.internet.app is deprecated, and we should
-   use twisted.application instead.  Need to figure out what that means!
- o We could have a distinction between messages classified as spam
-   and messages to train as spam.  At the moment we force users into
-   the 'incremental training' system available with the Outlook plug-in.
  o Suggestions?
 """
 
@@ -107,17 +68,23 @@ import md5
 import time
 import errno
 import types
+import email
 import thread
 import getopt
 import imaplib
 import operator
-import StringIO
 import email.Utils
 
+try:
+    import cStringIO as StringIO
+except NameError:
+    import StringIO
+
 from twisted import cred
+import twisted.application.app
 from twisted.internet import defer
 from twisted.internet import reactor
-from twisted.internet.app import Application
+from twisted.internet import win32eventreactor
 from twisted.internet.defer import maybeDeferred
 from twisted.internet.protocol import ServerFactory
 from twisted.protocols.imap4 import IMessage
@@ -128,12 +95,11 @@ from twisted.protocols.imap4 import IMAP4Server, MemoryAccount, IMailbox
 from twisted.protocols.imap4 import IMailboxListener, collapseNestedLists
 
 from spambayes import message
+from spambayes.Stats import Stats
 from spambayes.Options import options
 from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_version_string
-from spambayes.ServerUI import ServerUserInterface
-from spambayes.UserInterface import UserInterfaceServer
 from sb_server import POP3ProxyBase, State, _addressPortStr, _recreateState
 
 def ensureDir(dirname):
@@ -167,7 +133,8 @@ class IMAPMessage(message.Message):
         """Retrieve a group of message headers."""
         headers = {}
         for header, value in self.items():
-            if (header.lower() in names and not negate) or names == ():
+            if (header.upper() in names and not negate) or \
+               (header.upper() not in names and negate) or names == ():
                 headers[header.lower()] = value
         return headers
 
@@ -191,13 +158,13 @@ class IMAPMessage(message.Message):
 
     def getInternalDate(self):
         """Retrieve the date internally associated with this message."""
-        assert(self.date is not None,
-               "Must set date to use IMAPMessage instance.")
+        assert self.date is not None, \
+               "Must set date to use IMAPMessage instance."
         return self.date
 
     def getBodyFile(self):
         """Retrieve a file object containing the body of this message."""
-        # Note only body, not headers!
+        # Note: only body, not headers!
         s = StringIO.StringIO()
         s.write(self.body())
         s.seek(0)
@@ -255,20 +222,7 @@ class IMAPMessage(message.Message):
 
     def flags(self):
         """Return the message flags."""
-        all_flags = []
-        if self.deleted:
-            all_flags.append("\\DELETED")
-        if self.answered:
-            all_flags.append("\\ANSWERED")
-        if self.flagged:
-            all_flags.append("\\FLAGGED")
-        if self.seen:
-            all_flags.append("\\SEEN")
-        if self.draft:
-            all_flags.append("\\DRAFT")
-        if self.draft:
-            all_flags.append("\\RECENT")
-        return all_flags
+        return list(self._flags_iter())
 
     def train(self, classifier, isSpam):
         if self.GetTrained() == (not isSpam):
@@ -339,26 +293,37 @@ class DynamicIMAPMessage(IMAPMessage):
         self.func = func
         self.load()
     def load(self):
-        self.set_payload(self.func(body=True, headers=True))
+        # This only works for simple messages (non multi-part).
+        self.set_payload(self.func(body=True))
+        # This only works for simple headers (no continuations).
+        for headerstr in self.func(headers=True).split('\r\n'):
+            header, value = headerstr.split(':')
+            self[header] = value.strip()
 
 
 class IMAPFileMessage(IMAPMessage, FileCorpus.FileMessage):
     '''IMAP Message that persists as a file system artifact.'''
 
-    def __init__(self, file_name, directory):
+    def __init__(self, file_name=None, directory=None):
         """Constructor(message file name, corpus directory name)."""
         date = imaplib.Time2Internaldate(time.time())[1:-1]
         IMAPMessage.__init__(self, date)
         FileCorpus.FileMessage.__init__(self, file_name, directory)
         self.id = file_name
-        self.directory = directory
 
 
 class IMAPFileMessageFactory(FileCorpus.FileMessageFactory):
     '''MessageFactory for IMAPFileMessage objects'''
-    def create(self, key, directory):
+    def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
-        return IMAPFileMessage(key, directory)
+        if content is None:
+            return IMAPFileMessage(key, directory)
+        msg = email.message_from_string(content, _class=IMAPFileMessage,
+                                        strict=False)
+        msg.id = key
+        msg.file_name = key
+        msg.directory = directory
+        return msg
 
 
 class IMAPMailbox(cred.perspective.Perspective):
@@ -395,8 +360,6 @@ class SpambayesMailbox(IMAPMailbox):
         else:
             self.nextUID = long(self.storage.keys()[-1]) + 1
         # Calculate initial recent and unseen counts
-        # XXX Note that this will always end up with zero counts
-        # XXX until the flags are persisted.
         self.unseen_count = 0
         self.recent_count = 0
         for msg in self.storage:
@@ -415,7 +378,7 @@ class SpambayesMailbox(IMAPMailbox):
 
     def getUID(self, msg):
         """Return the UID of a message in the mailbox."""
-        # Note that IMAP messages are 1-based, our messages are 0-based
+        # Note that IMAP messages are 1-based, our messages are 0-based.
         d = self.storage
         return long(d.keys()[msg - 1])
 
@@ -527,6 +490,8 @@ class SpambayesMailbox(IMAPMailbox):
 
     def _messagesIter(self, messages, uid):
         if uid:
+            if not self.storage.keys():
+                return
             messages.last = long(self.storage.keys()[-1])
         else:
             messages.last = self.getMessageCount()
@@ -590,22 +555,58 @@ class SpambayesInbox(SpambayesMailbox):
         """
         msg = []
         if headers:
-            msg.append("Subject:SpamBayes Status")
-            msg.append('From:"SpamBayes" <no-reply@localhost>')
+            msg.append("Subject: SpamBayes Status")
+            msg.append('From: "SpamBayes" <no-reply@spambayes.invalid>')
             if body:
                 msg.append('\r\n')
         if body:
             state.buildStatusStrings()
-            msg.append(state.warning or "SpamBayes operating correctly.")
+            msg.append("POP3 proxy running on %s, proxying to %s." % \
+                       (state.proxyPortsString, state.serversString))
+            msg.append("Active POP3 conversations: %s." % \
+                       (state.activeSessions,))
+            msg.append("POP3 conversations this session: %s." % \
+                       (state.totalSessions,))
+            msg.append("IMAP server running on %s." % \
+                       (state.serverPortString,))
+            msg.append("Active IMAP4 conversations: %s." % \
+                       (state.activeIMAPSessions,))
+            msg.append("IMAP4 conversations this session: %s." % \
+                       (state.totalIMAPSessions,))
+            msg.append("Emails classified this session: %s spam, %s ham, "
+                       "%s unsure." % (state.numSpams, state.numHams,
+                                       state.numUnsure))
+            msg.append("Total emails trained: Spam: %s Ham: %s" % \
+                       (state.bayes.nspam, state.bayes.nham))
+            msg.append(state.warning or "SpamBayes is operating correctly.\r\n")
+        return "\r\n".join(msg)
+
+    def buildStatisticsMessage(self, body=False, headers=False):
+        """Build a mesasge containing the current statistics.
+
+        If body is True, then return the body; if headers is True
+        return the headers.  If both are true, then return both
+        (and insert a newline between them).
+        """
+        msg = []
+        if headers:
+            msg.append("Subject: SpamBayes Statistics")
+            msg.append('From: "SpamBayes" <no-reply@spambayes.invalid')
+            if body:
+                msg.append('\r\n')
+        if body:
+            s = Stats()
+            s.CalculateStats()
+            msg.extend(s.GetStats(use_html=False))
         return "\r\n".join(msg)
 
     def createMessages(self):
         """Create the special messages that live in this mailbox."""
         state.buildStatusStrings()
-        # This about message could have a bit more content!
-        about = 'Subject: About SpamBayes\r\n' \
-                 'From: "SpamBayes" <no-reply@localhost>\r\n\r\n' \
-                 'See <http://spambayes.org>.\r\n'
+        state.buildServerStrings()
+        about = 'Subject: About SpamBayes / POP3DND\r\n' \
+                 'From: "SpamBayes" <no-reply@spambayes.invalid>\r\n\r\n' \
+                 '%s\r\nSee <http://spambayes.org>.\r\n' % (__doc__,)
         date = imaplib.Time2Internaldate(time.time())[1:-1]
         msg = email.message_from_string(about, _class=IMAPMessage,
                                         strict=False)
@@ -613,10 +614,9 @@ class SpambayesInbox(SpambayesMailbox):
         self.addMessage(msg)
         msg = DynamicIMAPMessage(self.buildStatusMessage)
         self.addMessage(msg)
+        msg = DynamicIMAPMessage(self.buildStatisticsMessage)
+        self.addMessage(msg)
         # XXX Add other messages here, for example
-        # XXX statistics
-        # XXX information from sb_server homepage about number
-        # XXX   of messages classified etc.
         # XXX one with a link to the configuration page
         # XXX   (or maybe even the configuration page itself,
         # XXX    in html!)
@@ -678,11 +678,12 @@ class Trainer(object):
 class SpambayesAccount(MemoryAccount):
     """Account for Spambayes server."""
 
-    def __init__(self, id, ham, spam, unsure, inbox):
+    def __init__(self, id, ham, spam, unsure, train_spam, inbox):
         MemoryAccount.__init__(self, id)
         self.mailboxes = {"SPAM" : spam,
                           "UNSURE" : unsure,
                           "TRAIN_AS_HAM" : ham,
+                          "TRAIN_AS_SPAM" : train_spam,
                           "INBOX" : inbox}
 
     def select(self, name, readwrite=1):
@@ -744,7 +745,7 @@ class OneParameterFactory(ServerFactory):
         return p
 
 
-class MyBayesProxy(POP3ProxyBase):
+class RedirectingBayesProxy(POP3ProxyBase):
     """Proxies between an email client and a POP3 server, redirecting
     mail to the imap server as necessary.  It acts on the following
     POP3 commands:
@@ -758,7 +759,7 @@ class MyBayesProxy(POP3ProxyBase):
     # say whether it's the spam or unsure folder.  It could give
     # information about who the message was from, or what the subject
     # was, if people thought that would be a good idea.
-    intercept_message = 'From: "Spambayes" <no-reply@localhost>\r\n' \
+    intercept_message = 'From: "Spambayes" <no-reply@spambayes.invalid>\r\n' \
                         'Subject: Spambayes Intercept\r\n\r\nA message ' \
                         'was intercepted by Spambayes (it scored %s).\r\n' \
                         '\r\nYou may find it in the Spam or Unsure ' \
@@ -830,6 +831,10 @@ class MyBayesProxy(POP3ProxyBase):
                 (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
                                  evidence=True)
 
+                # Note that the X-SpamBayes-MailID header will be worthless
+                # because we don't know the message id at this point.  It's
+                # not necessary for anything anyway, so just don't set the
+                # [Headers] add_unique_id option.
                 msg.addSBHeaders(prob, clues)
 
                 # Check for "RETR" or "TOP N 99999999" - fetchmail without
@@ -863,17 +868,10 @@ class MyBayesProxy(POP3ProxyBase):
                         # indicating that a message was intercepted.
                         messageText = self.intercept_message % (prob,)
             except:
-                stream = cStringIO.StringIO()
-                traceback.print_exc(None, stream)
-                details = stream.getvalue()
-                detailLines = details.strip().split('\n')
-                dottedDetails = '\n.'.join(detailLines)
-                headerName = 'X-Spambayes-Exception'
-                header = Header(dottedDetails, header_name=headerName)
-                headers, body = re.split(r'\n\r?\n', messageText, 1)
-                header = re.sub(r'\r?\n', '\r\n', str(header))
-                headers += "\n%s: %s\r\n\r\n" % (headerName, header)
-                messageText = headers + body
+                messageText, details = \
+                             message.insert_exception_header(messageText)
+
+                # Print the exception and a traceback.
                 print >>sys.stderr, details
             retval = ok + "\n" + messageText
             if terminatingDotPresent:
@@ -888,14 +886,14 @@ class MyBayesProxy(POP3ProxyBase):
         return response
 
 
-class MyBayesProxyListener(Dibbler.Listener):
+class RedirectingBayesProxyListener(Dibbler.Listener):
     """Listens for incoming email client connections and spins off
-    MyBayesProxy objects to serve them.
+    RedirectingBayesProxy objects to serve them.
     """
-
     def __init__(self, serverName, serverPort, proxyPort, spam, unsure):
         proxyArgs = (serverName, serverPort, spam, unsure)
-        Dibbler.Listener.__init__(self, proxyPort, MyBayesProxy, proxyArgs)
+        Dibbler.Listener.__init__(self, proxyPort, RedirectingBayesProxy,
+                                  proxyArgs)
         print 'Listener on port %s is proxying %s:%d' % \
                (_addressPortStr(proxyPort), serverName, serverPort)
 
@@ -922,81 +920,76 @@ state = IMAPState()
 # ===================================================================
 
 def setup():
-    # Setup state, app, boxes, trainers and account
+    # Setup state, server, boxes, trainers and account.
+    state.imap_port = options["imapserver", "port"]
     state.createWorkers()
     proxyListeners = []
-    app = Application("SpambayesIMAPServer")
 
-    spam_box = SpambayesMailbox("Spam", 0, options["Storage",
-                                                   "spam_cache"])
-    unsure_box = SpambayesMailbox("Unsure", 1, options["Storage",
-                                                       "unknown_cache"])
+    spam_box = SpambayesMailbox("Spam", 0,
+                                options["Storage", "spam_cache"])
+    unsure_box = SpambayesMailbox("Unsure", 1,
+                                  options["Storage", "unknown_cache"])
     ham_train_box = SpambayesMailbox("TrainAsHam", 2,
                                      options["Storage", "ham_cache"])
-    inbox = SpambayesInbox(3)
+    # We don't have a third cache location in the directory, so make one up.
+    spam_train_cache = os.path.join(options["Storage", "ham_cache"], "..",
+                                    "spam_to_train")
+    spam_train_box = SpambayesMailbox("TrainAsSpam", 3, spam_train_cache)
+    inbox = SpambayesInbox(4)
 
-    spam_trainer = Trainer(spam_box, True)
+    spam_trainer = Trainer(spam_train_box, True)
     ham_trainer = Trainer(ham_train_box, False)
-    spam_box.addListener(spam_trainer)
+    spam_train_box.addListener(spam_trainer)
     ham_train_box.addListener(ham_trainer)
 
     user_account = SpambayesAccount(options["imapserver", "username"],
                                     ham_train_box, spam_box, unsure_box,
-                                    inbox)
+                                    spam_train_box, inbox)
 
-    # add IMAP4 server
+    # Add IMAP4 server.
     f = OneParameterFactory()
     f.protocol = SpambayesIMAPServer
     f.parameter = user_account
-    state.imap_port = options["imapserver", "port"]
-    app.listenTCP(state.imap_port, f)
+    reactor.listenTCP(state.imap_port, f)
 
-    # add POP3 proxy
+    # Add POP3 proxy.
     for (server, serverPort), proxyPort in zip(state.servers,
                                                state.proxyPorts):
-        listener = MyBayesProxyListener(server, serverPort, proxyPort,
-                                        spam_box, unsure_box)
+        listener = RedirectingBayesProxyListener(server, serverPort,
+                                                 proxyPort, spam_box,
+                                                 unsure_box)
         proxyListeners.append(listener)
     state.buildServerStrings()
-
-    # add web interface
-    httpServer = UserInterfaceServer(state.uiPort)
-    serverUI = ServerUserInterface(state, _recreateState)
-    httpServer.register(serverUI)
-
-    return app
 
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbd:D:u:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'ho:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    launchUI = False
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
             sys.exit()
-        elif opt == '-b':
-            launchUI = True
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
     print get_version_string("IMAP Server")
     print get_version_string("POP3 Proxy")
-    print "and engine %s," % (get_version_string(),)
+    print get_version_string()
     from twisted.copyright import version as twisted_version
-    print "with twisted version %s.\n" % (twisted_version,)
+    print "Twisted version %s.\n" % (twisted_version,)
 
-    # setup everything
-    app = setup()
+    # Setup everything.
+    setup()
 
-    # kick things off
-    thread.start_new_thread(Dibbler.run, (launchUI,))
-    app.run(save=False)
+    # Kick things off.  The asyncore stuff doesn't play nicely
+    # with twisted (or vice-versa), so put them in separate threads.
+    thread.start_new_thread(Dibbler.run, ())
+    reactor.run()
 
 if __name__ == "__main__":
     run()
