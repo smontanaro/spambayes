@@ -1249,8 +1249,8 @@ If you use sb_server or sb_imapfilter, haven't set anything up, and run it and
 get an error that ends with ``socket.error: (10013, 'Permission denied')``,
 then this probably means that port 8880, which SpamBayes is trying to use to
 present the web interface, is already taken on your machine.  Try using
-``sb_server.py -u 8881 -b`` (or ``sb_imapfilter.py -u 8881 -b``), or another
-port that you know is free and available on your machine.
+``sb_server.py -u 8881 -b`` (or ``sb_imapfilter.py -o html_ui:port:8881 -b``),
+or another port that you know is free and available on your machine.
 
 
 How do I set up SpamBayes and Outlook Express?
