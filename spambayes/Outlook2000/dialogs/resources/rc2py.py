@@ -18,7 +18,7 @@ def convert(inputFilename = None, outputFilename = None):
         outputFilename = "test.py"
     rcp = rcparser.ParseDialogs(inputFilename)
 
-    out = open("test.py", "wt")
+    out = open(outputFilename, "wt")
     out.write("#%s\n" % outputFilename)
     out.write("#This is a generated file. Please edit %s instead.\n" % inputFilename)
     out.write("class FakeParser(object):\n")
