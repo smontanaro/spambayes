@@ -24,10 +24,13 @@ Where:
         X-Spam-Disposition header, and write it to stdout.
 """
 
+from __future__ import generators
+
 import sys
 import os
 import getopt
 import mailbox
+import glob
 import email
 import classifier
 import errno
@@ -157,6 +160,24 @@ class PersistentGrahamBayes(classifier.GrahamBayes):
             self.nham, self.nspam = self.wordinfo[self.statekey]
 
 
+class DirOfTxtFileMailbox:
+
+    """Mailbox directory consisting of .txt files."""
+
+    def __init__(self, dirname, factory):
+        self.names = glob.glob(os.path.join(dirname, "*.txt"))
+        self.factory = factory
+
+    def __iter__(self):
+        for name in self.names:
+            try:
+                f = open(name)
+            except IOError:
+                continue
+            yield self.factory(f)
+            f.close()
+
+
 def train(bayes, msgs, is_spam):
     """Train bayes with a message"""
     def _factory(fp):
@@ -166,7 +187,12 @@ def train(bayes, msgs, is_spam):
             return ''
 
     if os.path.isdir(msgs):
-        mbox = mailbox.MHMailbox(msgs, _factory)
+        # XXX This is bogus: use an MHMailbox if the pathname contains /Mail/
+        # XXX Should really use '+foo' MH folder styles.  Later.
+        if msgs.find("/Mail/") >= 0:
+            mbox = mailbox.MHMailbox(msgs, _factory)
+        else:
+            mbox = DirOfTxtFileMailbox(msgs, _factory)
     else:
         fp = open(msgs)
         mbox = mailbox.PortableUnixMailbox(fp, _factory)
