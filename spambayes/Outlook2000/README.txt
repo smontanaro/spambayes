@@ -1,7 +1,7 @@
 This directory contains tools for using the classifier with Microsoft
-Outlook 2000, courtesy of Sean True and Mark Hammond.  Note that you need 
-Python's win32com extensions (http://starship.python.net/crew/mhammond) and
-you *must* have win32all-149 or later.
+Outlook 2000, 2002, and 2003, courtesy of Sean True and Mark Hammond.  Note
+that you need Python's win32com extensions (http://starship.python.net/crew/mhammond)
+and you *must* have win32all-149 or later.
 
 Note that running "setup.py install" will *not* install the contents of this
 directory into the Python site-packages directory.  You will need to either
