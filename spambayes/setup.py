@@ -59,6 +59,13 @@ class install_scripts(parent):
                     s = os.path.join(self.install_dir, s)
                     try:
                         os.remove(s)
+                        # Also remove .pyc and .pyo, but quietly.
+                        pyc = "%sc" % (s,)
+                        pyo = "%so" % (s,)
+                        if os.path.exists(pyc):
+                            os.remove(pyc)
+                        if os.path.exists(pyo):
+                            os.remove(pyo)
                         print "Removed", s
                     except OSError:
                         pass
