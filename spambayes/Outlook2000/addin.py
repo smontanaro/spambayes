@@ -523,8 +523,8 @@ class ExplorerWithEvents:
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (manager.ShowManager,),
-                           Caption="Anti-Spam Manager...",
-                           TooltipText = "Show the Anti-Spam manager dialog.",
+                           Caption="SpamBayes Manager...",
+                           TooltipText = "Show the SpamBayes manager dialog.",
                            Enabled = True,
                            Visible=True,
                            Tag = "SpamBayesCommand.Manager")
