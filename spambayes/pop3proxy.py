@@ -499,10 +499,18 @@ class BayesProxy(POP3ProxyBase):
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             headers = headers + "\n" + header + "\r\n"
             
-            if options.pop3proxy_notate_to:
-                # add 'spam' as recip
+            if options.pop3proxy_notate_to \
+                and disposition == options.header_spam_string:
+                # add 'spam' as recip only if spam
                 tore = re.compile("^To: ", re.IGNORECASE | re.MULTILINE)
                 headers = re.sub(tore,"To: %s," % (disposition),
+                     headers)
+                
+            if options.pop3proxy_notate_subject \
+                and disposition == options.header_spam_string:
+                # add 'spam' to subject if spam
+                tore = re.compile("^Subject: ", re.IGNORECASE | re.MULTILINE)
+                headers = re.sub(tore,"Subject: %s " % (disposition),
                      headers)
                 
             messageText = headers + body
@@ -978,8 +986,6 @@ class UserInterface(Dibbler.HTTPPlugin):
         """Classify an uploaded or pasted message."""
         message = file or text
         message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
-        tokens = tokenizer.tokenize(message)
-        probability, clues = state.bayes.spamprob(tokens, evidence=True)
 
         cluesTable = self.html.cluesTable.clone()
         cluesRow = cluesTable.cluesRow.clone()
