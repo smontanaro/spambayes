@@ -276,7 +276,7 @@ class OptionsContainer:
                 return container
         raise AttributeError, "Options has no section '%s'" % attr
 
-def CreateConfig():
+def CreateConfig(defaults=defaults):
     options = OptionsClass()
     options.load_defaults(defaults)
     return options
@@ -303,7 +303,7 @@ class ConfigurationRoot(_ConfigurationContainer):
     def __init__(self):
         pass
 # End of old pickle code.
-    
+
 if __name__=='__main__':
     options = CreateConfig()
     options.merge_files(['delme.cfg'])
