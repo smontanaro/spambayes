@@ -71,6 +71,41 @@ class Hist:
         self.stats_uptodate = False
         return self
 
+    def get_lo_hi(self):
+        self.compute_stats()
+        lo, hi = self.lo, self.hi
+        if lo is None:
+            lo = self.min
+        if hi is None:
+            hi = self.max
+        return lo, hi
+
+    def get_bucketwidth(self):
+        lo, hi = self.get_lo_hi()
+        span = float(hi - lo)
+        return span / self.nbuckets
+
+    # Set instance var nbuckets to the # of buckets, and buckets to a list
+    # of nbuckets counts.
+    def fill_buckets(self, nbuckets=None):
+        if nbuckets is None:
+            nbuckets = self.nbuckets
+        if nbuckets <= 0:
+            raise ValueError("nbuckets %g > 0 required" % nbuckets)
+        self.nbuckets = nbuckets
+        self.buckets = buckets = [0] * nbuckets
+
+        # Compute bucket counts.
+        lo, hi = self.get_lo_hi()
+        bucketwidth = self.get_bucketwidth()
+        for x in self.data:
+            i = int((x - lo) / bucketwidth)
+            if i >= nbuckets:
+                i = nbuckets - 1
+            elif i < 0:
+                i = 0
+            buckets[i] += 1
+
     # Print a histogram to stdout.
     # Also sets instance var nbuckets to the # of buckets, and
     # buckts to a list of nbuckets counts, but only if at least one
@@ -86,32 +121,13 @@ class Hist:
         print "-> <stat> min %g; median %g; max %g" % (self.min,
                                                        self.median,
                                                        self.max)
-        if nbuckets is None:
-            nbuckets = self.nbuckets
-        self.nbuckets = nbuckets
-        self.buckets = buckets = [0] * nbuckets
-
-        lo, hi = self.lo, self.hi
-        if lo is None:
-            lo = self.min
-        if hi is None:
-            hi = self.max
+        lo, hi = self.get_lo_hi()
         if lo > hi:
             return
 
-        # Compute bucket counts.
-        span = float(hi - lo)
-        bucketwidth = span / nbuckets
-        for x in self.data:
-            i = int((x - lo) / bucketwidth)
-            if i >= nbuckets:
-                i = nbuckets - 1
-            elif i < 0:
-                i = 0
-            buckets[i] += 1
-
         # hunit is how many items a * represents.  A * is printed for
         # each hunit items, plus any non-zero fraction thereof.
+        self.fill_buckets(nbuckets)
         biggest = max(self.buckets)
         hunit, r = divmod(biggest, WIDTH)
         if r:
@@ -127,6 +143,7 @@ class Hist:
         boundary_digits = max(len(str(int(lo))), len(str(int(hi))))
         format = "%" + str(boundary_digits + 2) + '.1f %' + str(ndigits) + "d"
 
+        bucketwidth = self.get_bucketwidth()
         for i in range(nbuckets):
             n = self.buckets[i]
             print format % (lo + i * bucketwidth, n),

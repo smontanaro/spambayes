@@ -40,8 +40,9 @@ def loadHist(path):
     """Load the histogram pickle object"""
     return pickle.load(file(path))
 
-def outputHist(hist,f=sys.stdout):
+def outputHist(hist, f=sys.stdout):
     """Output the Hist object to file f"""
+    hist.fill_buckets()
     for i in range(len(hist.buckets)):
         n = hist.buckets[i]
         f.write("%.3f %d\n" % ( (100.0 * i) / hist.nbuckets, n))
@@ -66,8 +67,7 @@ def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], '',
-                                   [])
+        opts, args = getopt.getopt(sys.argv[1:], '', [])
     except getopt.error, msg:
         usage(1, msg)
 
