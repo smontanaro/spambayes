@@ -18,6 +18,11 @@ f1n, f2n = sys.argv[1:3]
 #   total f-n,
 #   average f-p rate,
 #   average f-n rate,
+#   list of all ham score deviations,
+#   list of all spam score deviations,
+#   ham score deviation for all runs,
+#   spam score deviations for all runs,
+# )
 # from summary file f.
 def suck(f):
     fns = []
@@ -30,12 +35,14 @@ def suck(f):
         line = get()
         if line.startswith('-> <stat> tested'):
             print line,
-        if line.find('; sdev ') != -1:
+        if line.find(' items; mean ') != -1:
+            "-> <stat> Ham distribution for this pair: 1000 items; mean 0.05; sample sdev 0.68"
+            # and later "sample " went away
             vals = line.split(';')
-            mean = float(vals[1].split(' ')[-1])
-            sdev = float(vals[2].split(' ')[-1])
-            val = (mean,sdev)
-            typ = vals[0].split(' ')[2]
+            mean = float(vals[1].split()[-1])
+            sdev = float(vals[2].split()[-1])
+            val = (mean, sdev)
+            typ = vals[0].split()[2]
             if line.find('for all runs') != -1:
                 if typ == 'Ham':
                     hamdevall = val
