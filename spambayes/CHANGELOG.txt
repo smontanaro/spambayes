@@ -2,6 +2,38 @@
 
 Release 1.1a1
 =============
+Tony Meyer        20/12/2004  Allow Outlook users to select their storage method in exactly the same way as other users can.
+Tony Meyer        20/12/2004  Outlook: add a wrapper for the ZODB (FileStorage) storage class.
+Tony Meyer        20/12/2004  Outlook: Remove some checks that no longer need to be done (that the messageinfo db has the  same length as the tokens db).
+Tony Meyer        17/12/2004  message.py: Spit out a warning if the deprecated function is used.
+Tony Meyer        17/12/2004  message.py: Change the deprecated function to work in Python 2.4.
+Tony Meyer        17/12/2004  sb_imapfilter: Update extract_fetch_data to handle any number of literals/message numbers.
+Kenny Pitt        17/12/2004  Outlook: Improve e-mail address formatting for fake Exchange headers so that it supports multiple addresses, some of which may be real Internet addresses.
+Tony Meyer        16/12/2004  sb_imapfilter: compile re's and do this only once.
+Tony Meyer        16/12/2004  sb_imapfilter: improve handing of extract_fetch_data.
+Tony Meyer        16/12/2004  Outlook: Improve the faked up exchange headers that we generate if there are no Internet headers.
+Kenny Pitt        16/12/2004  Outlook: Include Message-ID in fake Exchange headers.
+Tony Meyer        08/12/2004  Improve test_storage.py and test_message.py.
+Tony Meyer        08/12/2004  Add [ 848365 ] Remove subject annotations from message review page
+Tony Meyer        08/12/2004  Add [ 1036970 ] Allow Outlook plugin to move ham to a designated folder
+Tony Meyer        07/12/2004  Outlook: More detailed statistics in SpamBayes Manager.  These roughly match the updated statistics in the sb_server Web UI.
+Tony Meyer        06/12/2004  Fix the regex that the auth digest used, and handle the auth digest responses tha IE 6.0 and Firefox 1.0 give.
+Tony Meyer        06/12/2004  Fix [ 1078923 ] Unicode support incomplete
+Tony Meyer        06/12/2004  Outlook: Use PR_SENDER_NAME rather than PR_DISPLAY_NAME_A for the faked-up "From" header.
+Kenny Pitt        04/12/2004  Add notification sound support as per patch #858925.
+Tony Meyer        01/12/2004  When doing "setup.py sdist" an MD5 checksum and the size of the created archive(s) is printed to stdout.
+Tony Meyer        29/11/2004  sb_server: Messages that did not have the required \r?\n\r?\n separator would just pass through spambayes unproxied.  Now they are, as best as possible.
+Tony Meyer        29/11/2004  Handle a message that does not have a proper separator in insert_exception_header.
+Tony Meyer        29/11/2004  Change sb_server to use the centralised insert_exception_header code.
+Tony Meyer        29/11/2004  Subject lines are not cgi.escape()d in the web interface, which might cause errors - fixed.
+Tony Meyer        26/11/2004  Outlook: Stop using the deprecated access to the bayes database and use the manager.classifier_data directly.
+Tony Meyer        26/11/2004  Outlook: Switch to using a spambayes.message.MessageInfo database rather than an Outlook specific one.
+Tony Meyer        26/11/2004  Outlook: Save the current folder when doing a "delete as spam", because the message may not be in the folder it was when it was filtered, or it may not have been filtered, but we do really want to recover it to wherever it was last.
+Tony Meyer        26/11/2004  Fix [ 1071319 ] Outlook plug in for IMAP boxes
+Tony Meyer        26/11/2004  message.py: Handle loading an Outlook messageinfo database, and add a __len__ function to the messageinfo databases.
+Tony Meyer        26/11/2004  message.py: The messageinfo db now needs messages to have a GetDBKey function to determine the key to store the message under.  For non-Outlook message classes, this is just the same as getId().
+Tony Meyer        24/11/2004  Moved the cleanarch script to the utilities directory and added '.py' to the filename.
+Tony Meyer        23/11/2004  Improve OE support code, mostly from [ 800671 ] Windows GUI for easy Outlook Express mailboxes training
 Tony Meyer        23/11/2004  message.py: Change MessageInfoBase's methods so that recording & retrieving a message are not private methods and are more clearly named.
 Tony Meyer        23/11/2004  message.py: Change so that the messageinfodb doesn't get created/opened on import, but rather through utility functions like those in spambayes.storage.
 Tony Meyer        23/11/2004  message.py: Remove the asTokens method in favour of the existing tokenize function.
