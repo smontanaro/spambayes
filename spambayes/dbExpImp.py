@@ -89,14 +89,14 @@ To Do:
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
+from __future__ import generators
+
 try:
     True, False
 except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
     
-from __future__ import generators
-
 import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno, re
