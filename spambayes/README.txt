@@ -37,6 +37,13 @@ GBayes.py
     it's been kept up to date.
 
 
+Test Utilities
+==============
+rates.py
+    Scans the output (so far) from timtest.py, and captures summary
+    statistics.
+
+
 Test Data Utilities
 ===================
 rebal.py
