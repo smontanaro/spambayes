@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# At the moment, this requires Python 2.3 from CVS
 
 # A driver for the classifier module.  Currently mostly a wrapper around
 # existing stuff.
@@ -26,8 +27,6 @@ Where:
         X-Spam-Disposition header, and write it to stdout.
 """
 
-from __future__ import generators
-
 import sys
 import os
 import getopt
@@ -39,7 +38,7 @@ import errno
 import anydbm
 import cPickle as pickle
 
-program = sys.argv[0]
+program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
@@ -257,6 +256,7 @@ def score(bayes, msgs):
     print "Total %d spam, %d ham" % (spams, hams)
 
 def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
     if msg:
         print >> sys.stderr, msg
         print >> sys.stderr
@@ -264,13 +264,14 @@ def usage(code, msg=''):
     sys.exit(code)
 
 def main():
+    """Main program; parse options and go."""
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:u:')
     except getopt.error, msg:
-        usage(1, msg)
+        usage(2, msg)
 
     if not opts:
-        usage(0, "No options given")
+        usage(2, "No options given")
 
     pck = "hammie.db"
     good = spam = unknown = None
@@ -291,7 +292,7 @@ def main():
         elif opt == '-u':
             unknown = arg
     if args:
-        usage(1)
+        usage(2, "Positional arguments not allowed")
 
     save = False
 
