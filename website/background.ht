@@ -230,7 +230,7 @@ then test the set.
 <p>There's a lot of background on what's been tried available from
 the mailing list archives. Initially, the discussion started on 
 the <a href="http://mail.python.org/pipermail/python-dev/">python-dev</a> list, but then moved to the 
-<a href="http://mail.python.org/pipermail-21/spambayes/">spambayes</a> list. 
+<a href="http://mail.python.org/pipermail/spambayes/">spambayes</a> list. 
 
 <ul>
 <li>The fun started in <a href="http://mail.python.org/pipermail/python-dev/2002-August/thread.html">August 2002</a>. 
@@ -241,7 +241,7 @@ the <a href="http://mail.python.org/pipermail/python-dev/">python-dev</a> list, 
 <a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28534">thread 3</a>,
 <a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28590">thread 4</a>,
 <a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28620">thread 5</a>.
-<li>The discussions then moved to the spambayes <a href="http://mail.python.org/pipermail-21/spambayes/">mailing list</a>.
+<li>The discussions then moved to the spambayes <a href="http://mail.python.org/pipermail/spambayes/">mailing list</a>.
 </ul>
 
 <h2>CVS commit messages</h2>
