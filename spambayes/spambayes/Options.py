@@ -972,12 +972,25 @@ if not optionsPathname:
                     options.merge_file(optionsPathname)
                 else:
                     # If the file doesn't exist, then let's get the user to
-                    # store their databases here as well, by default, and
-                    # save the file.
+                    # store their databases and caches here as well, by
+                    # default, and save the file.
                     db_name = os.path.join(windowsUserDirectory,
-                                           "statistics_database.db").\
-                                           encode("mbcs")
-                    options["Storage", "persistent_storage_file"] = db_name
+                                           "statistics_database.db")
+                    mi_db = os.path.join(windowsUserDirectory,
+                                           "message_info_database.db")
+                    h_cache = os.path.join(windowsUserDirectory,
+                                           "ham_cache").encode("mbcs")
+                    u_cache = os.path.join(windowsUserDirectory,
+                                           "unknown_cache").encode("mbcs")
+                    s_cache = os.path.join(windowsUserDirectory,
+                                           "spam_cache").encode("mbcs")
+                    options["Storage", "spam_cache"] = s_cache
+                    options["Storage", "ham_cache"] = h_cache
+                    options["Storage", "unknown_cache"] = u_cache
+                    options["Storage", "persistent_storage_file"] = \
+                                       db_name.encode("mbcs")
+                    options["Storage", "messageinfo_storage_file"] = \
+                                       mi_db.encode("mbcs")
                     options.update_file(optionsPathname)
             except os.error:
                 # unable to make the directory - stick to default.
