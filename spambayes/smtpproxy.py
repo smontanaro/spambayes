@@ -291,9 +291,12 @@ class BayesSMTPProxy(SMTPProxyBase):
         Strip the leading & trailing <> from an address.  Handy for
         getting FROM: addresses.
         """
-        start = string.index(address, '<') + 1
-        end = string.index(address, '>')
-        return address[start:end]
+        if '<' in address:
+            start = string.index(address, '<') + 1
+            end = string.index(address, '>')
+            return address[start:end]
+        else:
+            return address
 
     def splitTo(self, address):
         """
