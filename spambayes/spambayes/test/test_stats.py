@@ -461,7 +461,7 @@ class StatsTest(unittest.TestCase):
     def test_without_html(self):
         s = self._stuff_with_data(False)
         for line in s:
-            self.assert_('&nbsp;' not in line)
+            self.assertEqual(line.find('&nbsp;'), -1)
 
     def test_from_date_empty(self):
         # Put persistent data in, but no session data.

@@ -20,6 +20,12 @@ import sb_dbexpimp
 # randomly composed email messages.
 from test_sb_server import good1, spam1
 
+try:
+    __file__
+except NameError:
+    # Python 2.2
+    __file__ = os.path.abspath(sys.argv[0])
+
 TEMP_PICKLE_NAME = os.path.join(os.path.dirname(__file__), "temp.pik")
 TEMP_CSV_NAME = os.path.join(os.path.dirname(__file__), "temp.csv")
 TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
