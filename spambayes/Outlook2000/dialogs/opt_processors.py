@@ -72,6 +72,10 @@ class BoolButtonProcessor(OptionControlProcessor):
 
 # A "Combo" processor, that loads valid strings from the option.
 class ComboProcessor(OptionControlProcessor):
+    def OnCommand(self, wparam, lparam):
+        code = win32api.HIWORD(wparam)
+        if code == win32con.CBN_SELCHANGE:
+            self.UpdateValue_FromControl()
     def UpdateControl_FromValue(self):
         # First load the combo options.
         combo = self.GetControl()
