@@ -72,10 +72,9 @@ class TrainingDialog(AsyncDialogBase):
 
     def UpdateStatus(self):
         # Set some defaults.
-        # If we have no known ham folders, suggest the Inbox.
+        # If we have no known ham folders, suggest the folder we watch
         if len(self.config.ham_folder_ids)==0 and self.mgr.outlook is not None:
-            inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
-            self.config.ham_folder_ids = [(inbox.StoreID, inbox.EntryID)]
+            self.config.ham_folder_ids = self.mgr.config.filter.watch_folder_ids[:]
         # If we have no known spam folders, but do have a spam folder
         # defined in the filters, use it.
         if len(self.config.spam_folder_ids)==0 and self.mgr.config.filter.spam_folder_id:
