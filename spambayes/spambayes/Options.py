@@ -920,6 +920,22 @@ defaults = {
      is "best", which will pick the best DBM type available on your
      platform.""",
      ("best", "db3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
+
+    ("proxy_username", "HTTP Proxy Username", "",
+     """The username to give to the HTTP proxy when required.  If a
+     username is not necessary, simply leave blank.""",
+     r"[\w]+", DO_NOT_RESTORE),
+    ("proxy_password", "HTTP Proxy Password", "",
+     """The password to give to the HTTP proxy when required.  This is
+     stored in clear text in your configuration file, so if that bothers
+     you then don't do this.  You'll need to use a proxy that doesn't need
+     authentication, or do without any SpamBayes HTTP activity.""",
+     r"[\w]+", DO_NOT_RESTORE),
+    ("proxy_server", "HTTP Proxy Server", "",
+     """If a spambayes application needs to use HTTP, it will try to do so
+     through this proxy server.  The port defaults to 8080, or can be
+     entered with the server:port form.""",
+     SERVER, DO_NOT_RESTORE),
   ),
 }
 

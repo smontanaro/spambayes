@@ -118,6 +118,21 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
               "Sorry, but only Python 2.3 can trust remote config files"
 
     import urllib2
+    from spambayes.Options import options
+    server = options["globals", "proxy_server"]
+    if server != "":
+        if ':' in server:
+            server, port = server.split(':', 1)
+        else:
+            port = 8080
+        username = options["globals", "proxy_username"]
+        password = options["globals", "proxy_password"]
+        proxy_support = urllib2.ProxyHandler({"http" :
+                                              "http://%s:%s@%s:%d" % \
+                                              (username, password, server,
+                                               port)})
+        opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+        urllib2.install_opener(opener)
     stream = urllib2.urlopen(url)
     cfg = MySafeConfigParser()
     cfg.readfp(stream)
