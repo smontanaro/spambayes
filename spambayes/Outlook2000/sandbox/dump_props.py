@@ -47,15 +47,12 @@ def _FindItemsWithValue(folder, prop_tag, prop_val):
                    (mapi.FL_SUBSTRING | mapi.FL_IGNORECASE | mapi.FL_LOOSE, # fuzz level
                     prop_tag,   # of the given prop
                     (prop_tag, prop_val))) # with given val
-##    tab.SetColumns((PR_ENTRYID,), 0)
-##    restriction = None
     rows = mapi.HrQueryAllRows(tab,
                                (PR_ENTRYID,),   # columns to retrieve
                                restriction,     # only these rows
                                None,            # any sort order is fine
                                0)               # any # of results is fine
     # get entry IDs
-    print rows
     return [row[0][1] for row in rows]
     
 def _FindFolderEID(name):
