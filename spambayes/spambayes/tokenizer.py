@@ -985,6 +985,22 @@ crack_uuencode = UUencodeStripper().analyze
 
 # Strip and specially tokenize embedded URLish thingies.
 
+url_fancy_re = re.compile(r""" 
+    \b                      # the preceeding character must not be alphanumeric
+    (?: 
+        (?:
+            (https? | ftp)  # capture the protocol
+            ://             # skip the boilerplate
+        )|
+        (?= ftp\.[^\.\s<>"'\x7f-\xff] )|  # allow the protocol to be missing, but only if
+        (?= www\.[^\.\s<>"'\x7f-\xff] )   # the rest of the url starts "www.x" or "ftp.x" 
+    )
+    # Do a reasonable attempt at detecting the end.  It may or may not
+    # be in HTML, may or may not be in quotes, etc.  If it's full of %
+    # escapes, cool -- that's a clue too.
+    ([^\s<>"'\x7f-\xff]+)  # capture the guts
+""", re.VERBOSE)                        # '
+
 url_re = re.compile(r"""
     (https? | ftp)  # capture the protocol
     ://             # skip the boilerplate
@@ -994,16 +1010,28 @@ url_re = re.compile(r"""
     ([^\s<>"'\x7f-\xff]+)  # capture the guts
 """, re.VERBOSE)                        # '
 
+
 urlsep_re = re.compile(r"[;?:@&=+,$.]")
 
 class URLStripper(Stripper):
     def __init__(self):
         # The empty regexp matches anything at once.
-        Stripper.__init__(self, url_re.search, re.compile("").search)
+        if options["Tokenizer", "x-fancy_url_recognition"]:
+            search = url_fancy_re.search
+        else:
+            search = url_re.search
+        Stripper.__init__(self, search, re.compile("").search)
 
     def tokenize(self, m):
         proto, guts = m.groups()
         assert guts
+        if proto is None:
+            if guts.lower().startswith("www"):
+                proto = "http"
+            elif guts.lower().startswith("ftp"):
+                proto = "ftp"
+            else:
+                proto = "unknown"
         tokens = ["proto:" + proto]
         pushclue = tokens.append
 

@@ -150,6 +150,11 @@ defaults = {
      user/password elements.""",
      BOOLEAN, RESTORE),
 
+    ("x-fancy_url_recognition", "Extract URLs without http:// prefix", False,
+     """(EXPERIMENTAL) Recognize 'www.python.org' or ftp.python.org as URLs
+     instead of just long words.""",
+     BOOLEAN, RESTORE),
+
     ("replace_nonascii_chars", "Replace non-ascii characters", False,
      """If true, replace high-bit characters (ord(c) >= 128) and control
      characters with question marks.  This allows non-ASCII character
