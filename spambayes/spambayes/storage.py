@@ -192,11 +192,10 @@ class DBDictClassifier(classifier.Classifier):
                 assert word not in self.wordinfo, \
                        "Should not have a wordinfo for words flagged for delete"
                 # Word may be deleted before it was ever written.
-                # hrmph - working out what exceptions would be reasonable is
-                # a PITA (but anydbm.errors may be useful) - but for now,
-                # just check the key first.
-                if self.db.has_key(key):
+                try:
                     del self.db[key]
+                except KeyError:
+                    pass
             else:
                 raise RuntimeError, "Unknown flag value"
 
