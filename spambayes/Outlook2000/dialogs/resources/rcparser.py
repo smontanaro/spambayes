@@ -183,6 +183,9 @@ class RCParser:
             self.getToken()
             if "BITMAP" == self.token:
                 self.getToken()
+                if self.token=="MOVEABLE":
+                    self.getToken() # PURE
+                    self.getToken() # bmpname
                 bmf = self.token[1:-1] # quotes
                 self.bitmaps[possibleBitmap] = bmf
                 print "BITMAP", possibleBitmap, bmf
@@ -353,3 +356,12 @@ def ParseDialogs(rc_file):
         raise
 
     return rcp
+
+if __name__=='__main__':
+    rc_file = os.path.join(os.path.dirname(__file__), "dialogs.rc")
+    d = ParseDialogs(rc_file)
+    import pprint
+    for id, ddef in d.dialogs.items():
+        print "Dialog %s (%d controls)" % (id, len(ddef))
+        pprint.pprint(ddef)
+        print
