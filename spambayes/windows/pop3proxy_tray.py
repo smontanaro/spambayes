@@ -357,10 +357,16 @@ class MainWindow(object):
 
     def OnExit(self):
         if self.started and not self.use_service:
-            sb_server.stop(sb_server.state)
+            try:
+                sb_server.stop(sb_server.state)
+            except:
+                print "Error stopping proxy at shutdown"
+                traceback.print_exc()
+                print "Shutting down anyway..."
+
             self.started = False
         DestroyWindow(self.hwnd)
-        sys.exit()
+        PostQuitMessage(0)
         
     def StartProxyThread(self):
         args = (sb_server.state,)
