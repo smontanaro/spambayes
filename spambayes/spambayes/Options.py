@@ -1228,6 +1228,21 @@ def load_options():
                     if os.path.exists(optionsPathname):
                         options.merge_file(optionsPathname)
 
+    # Annoyingly, we have a special case.  The notate_to and notate_subject
+    # allowed values have to be set to the same values as the header_x_
+    # options, but this can't be done (AFAIK) dynmaically. If this isn't
+    # the case, then if the header_x_string values are changed, the
+    # notate_ options don't work.  Outlook Express users like both of
+    # these options...so we fix it here.  See also sf #944109.
+    header_strings = (options["Headers", "header_ham_string"],
+                      options["Headers", "header_spam_string"],
+                      options["Headers", "header_unsure_string"])
+    notate_to = options.get_option("Headers", "notate_to")
+    notate_subject = options.get_option("Headers", "notate_subject")
+    notate_to.allowed_values = header_strings
+    notate_subject.allowed_values = header_strings
+
+
 def get_pathname_option(section, option):
     """Return the option relative to the path specified in the
     gloabl optionsPathname, unless it is already an absolute path."""
