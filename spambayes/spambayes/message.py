@@ -397,14 +397,28 @@ class SBHeaderMessage(Message):
         # These are pretty ugly, but no-one has a better idea about how to
         # allow filtering in 'stripped down' mailers like Outlook Express,
         # so for the moment, they stay in.
-        if disposition in options["Headers", "notate_to"]:
+        # options["Headers", "notate_to"] (and notate_subject) can be
+        # either a single string (like "spam") or a tuple (like
+        # ("unsure", "spam")).  In Python 2.3 checking for a string in
+        # something that could be a string or a tuple works fine, but
+        # it dies in Python 2.2, because you can't do 'string in string',
+        # only 'character in string', so we allow for that.
+        if isinstance(options["Headers", "notate_to"], types.StringTypes):
+            notate_to = (options["Headers", "notate_to"],)
+        else:
+            notate_to = options["Headers", "notate_to"]
+        if disposition in notate_to:
             try:
                 self.replace_header("To", "%s,%s" % (disposition,
                                                      self["To"]))
             except KeyError:
                 self["To"] = disposition
 
-        if disposition in options["Headers", "notate_subject"]:
+        if isinstance(options["Headers", "notate_subject"], types.StringTypes):
+            notate_subject = (options["Headers", "notate_subject"],)
+        else:
+            notate_subject = options["Headers", "notate_subject"]
+        if disposition in notate_subject:
             try:
                 self.replace_header("Subject", "%s,%s" % (disposition,
                                                           self["Subject"]))
