@@ -21,6 +21,16 @@ class FolderSpec:
         for c in self.children:
             c.dump(level+1)
 
+# Oh, lord help us.
+# We started with a CDO version - but CDO sucks for lots of reasons I
+# wont even start to mention.
+# So we moved to an Extended MAPI version with is nice and fast - screams
+# along!  Except it doesn't work in all cases with Exchange (which 
+# strikes Mark as extremely strange given that the Extended MAPI Python
+# bindings were developed against an Exchange Server - but Mark doesn't
+# have an Exchange server handy these days, and really doesn't give a
+# rat's arse <wink>
+# So finally we have an Outlook object model version!
 #########################################################################
 ## CDO version of a folder walker.
 #########################################################################
@@ -89,6 +99,21 @@ def BuildFolderTreeMAPI(session):
         root.children.append(spec)
     return root
 
+## <sob> - An Outlook object model version
+def _BuildFolderTreeOutlook(session, parent):
+    children = []
+    for i in range (parent.Folders.Count):
+        folder = parent.Folders [i+1]
+        spec = FolderSpec ((folder.StoreID, folder.EntryID), folder.Name.encode("mbcs", "replace"))
+        if folder.Folders != None:
+            spec.children = _BuildFolderTreeOutlook (session, folder)
+        children.append(spec)
+    return children
+
+def BuildFolderTreeOutlook(session):
+    root = FolderSpec(None, "root")
+    root.children = _BuildFolderTreeOutlook(session, session)
+    return root
 
 #########################################################################
 ## The dialog itself
@@ -140,8 +165,9 @@ class FolderSelector(dialog.Dialog):
             id1 = default_store_id, id1
         if type(id2) != type(()):
             id2 = default_store_id, id2
-        return self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
-               self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
+        return id1 == id2
+#        return self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
+#               self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
 
     def InIDs(self, id, ids):
         for id_check in ids:
@@ -250,12 +276,13 @@ class FolderSelector(dialog.Dialog):
             # Hide "clear all"
             self.GetDlgItem(IDC_BUTTON_CLEARALL).ShowWindow(win32con.SW_HIDE)
 
-        if hasattr(self.mapi, "_oleobj_"): # Dispatch COM object
-            # CDO
-            tree = BuildFolderTreeCDO(self.mapi)
-        else:
-            # Extended MAPI.
-            tree = BuildFolderTreeMAPI(self.mapi)
+        tree = BuildFolderTreeOutlook(self.mapi)
+#        if hasattr(self.mapi, "_oleobj_"): # Dispatch COM object
+#            # CDO
+#            tree = BuildFolderTreeCDO(self.mapi)
+#        else:
+#            # Extended MAPI.
+#            tree = BuildFolderTreeMAPI(self.mapi)            
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # wipe this out while we are alive.
         self._UpdateStatus()
@@ -352,5 +379,13 @@ def TestWithMAPI():
     d.DoModal()
     print d.GetSelectedIDs()
 
+def TestWithOutlook():
+    from win32com.client import Dispatch
+    outlook = Dispatch("Outlook.Application")
+    d=FolderSelector(outlook.Session, None, single_select = False)
+    d.DoModal()
+    print d.GetSelectedIDs()
+
+
 if __name__=='__main__':
-    TestWithMAPI()
+    TestWithOutlook()

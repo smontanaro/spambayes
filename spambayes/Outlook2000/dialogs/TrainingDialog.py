@@ -104,7 +104,8 @@ class TrainingDialog(AsyncDialogBase):
                 l = self.config.ham_folder_ids
                 sub_attr = "ham_include_sub"
             include_sub = getattr(self.config, sub_attr)
-            d = FolderSelector.FolderSelector(self.mgr.message_store.session, l, checkbox_state=include_sub)
+#            d = FolderSelector.FolderSelector(self.mgr.message_store.session, l, checkbox_state=include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.outlook.Session, l, checkbox_state=include_sub)
             if d.DoModal()==win32con.IDOK:
                 l[:], include_sub = d.GetSelectedIDs()[:]
                 setattr(self.config, sub_attr, include_sub)
