@@ -220,7 +220,7 @@ def ProcessMessage(msgstore_message, manager):
                 assert train.been_trained_as_ham(msgstore_message, manager)
                 manager.SaveBayesPostIncrementalTrain()
             else:
-                manager.LogDebug(1, "Message '%s' was previously been seen, but " \
+                manager.LogDebug(1, "Message '%s' was previously seen, but " \
                                  "did not need to be trained as ham" % subject)
         return
     if manager.config.filter.enabled:
