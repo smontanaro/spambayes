@@ -149,8 +149,21 @@ unknown_spamprob: 0.5
 
 max_discriminators: 16
 
-# Use Gary Robinson's scheme for combining probabilities.
+###########################################################################
+# Speculative options for Gary Robinson's ideas.  These may go away, or
+# a bunch of incompatible stuff above may go away.
+
+# Use Gary's scheme for combining probabilities.
+use_robinson_combining: False
+
+# Use Gary's scheme for computing probabilities, along with its "a" and
+# "x" parameters.
 use_robinson_probability: False
+robinson_probability_a: 1.0
+robinson_probability_x: 0.5
+
+# Use Gary's scheme for ranking probabilities.
+use_robinson_ranking: False
 """
 
 int_cracker = ('getint', None)
@@ -188,7 +201,11 @@ all_options = {
                    'max_spamprob': float_cracker,
                    'unknown_spamprob': float_cracker,
                    'max_discriminators': int_cracker,
+                   'use_robinson_combining': boolean_cracker,
                    'use_robinson_probability': boolean_cracker,
+                   'robinson_probability_a': float_cracker,
+                   'robinson_probability_x': float_cracker,
+                   'use_robinson_ranking': boolean_cracker,
                    },
 }
 

@@ -313,53 +313,24 @@ class GrahamBayes(object):
             for x in longer[:tokeep]:
                 heapreplace(nbest, x)
 
-        if options.use_robinson_probability:
-            # This combination method is due to Gary Robinson.
-            # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
-            # In preliminary tests, it did just as well as Graham's scheme,
-            # but creates a definite "middle ground" around 0.5 where false
-            # negatives and false positives can actually found in non-trivial
-            # number.
-            P = Q = 1.0
-            num_clues = 0
-            for distance, prob, word, record in nbest:
-                if prob is None:    # it's one of the dummies nbest started with
-                    continue
-                if record is not None:  # else wordinfo doesn't know about it
-                    record.killcount += 1
-                if evidence:
-                    clues.append((word, prob))
-                num_clues += 1
-                P *= 1.0 - prob
-                Q *= prob
+        prob_product = inverse_prob_product = 1.0
+        for distance, prob, word, record in nbest:
+            if prob is None:    # it's one of the dummies nbest started with
+                continue
+            if record is not None:  # else wordinfo doesn't know about it
+                record.killcount += 1
+            if evidence:
+                clues.append((word, prob))
+            prob_product *= prob
+            inverse_prob_product *= 1.0 - prob
 
-            if num_clues:
-                P = 1.0 - P**(1./num_clues)
-                Q = 1.0 - Q**(1./num_clues)
-                prob = (P-Q)/(P+Q)  # in -1 .. 1
-                prob = 0.5 + prob/2 # shift to 0 .. 1
-            else:
-                prob = 0.5
-        else:
-            prob_product = inverse_prob_product = 1.0
-            for distance, prob, word, record in nbest:
-                if prob is None:    # it's one of the dummies nbest started with
-                    continue
-                if record is not None:  # else wordinfo doesn't know about it
-                    record.killcount += 1
-                if evidence:
-                    clues.append((word, prob))
-                prob_product *= prob
-                inverse_prob_product *= 1.0 - prob
-
-            prob = prob_product / (prob_product + inverse_prob_product)
+        prob = prob_product / (prob_product + inverse_prob_product)
 
         if evidence:
             clues.sort(lambda a, b: cmp(a[1], b[1]))
             return prob, clues
         else:
             return prob
-
 
     def learn(self, wordstream, is_spam, update_probabilities=True):
         """Teach the classifier by example.
@@ -478,3 +449,153 @@ class GrahamBayes(object):
                         record.hamcount -= 1
                 if record.hamcount == 0 == record.spamcount:
                     del self.wordinfo[word]
+
+
+    #************************************************************************
+    # Some options change so much behavior that it's better to write a
+    # different method.
+    # CAUTION:  These end up overwriting methods of the same name above.
+    # A subclass would be cleaner, but experiments will soon enough lead
+    # to only one of the alternatives surviving.
+
+    def robinson_spamprob(self, wordstream, evidence=False):
+        """Return best-guess probability that wordstream is spam.
+
+        wordstream is an iterable object producing words.
+        The return value is a float in [0.0, 1.0].
+
+        If optional arg evidence is True, the return value is a pair
+            probability, evidence
+        where evidence is a list of (word, probability) pairs.
+        """
+
+        from math import frexp
+
+        # A priority queue to remember the MAX_DISCRIMINATORS best
+        # probabilities, where "best" means largest distance from 0.5.
+        # The tuples are (distance, prob, word, wordinfo[word]).
+        nbest = [(-1.0, None, None, None)] * MAX_DISCRIMINATORS
+        smallest_best = -1.0
+
+        wordinfoget = self.wordinfo.get
+        now = time.time()
+        for word in Set(wordstream):
+            record = wordinfoget(word)
+            if record is None:
+                prob = UNKNOWN_SPAMPROB
+            else:
+                record.atime = now
+                prob = record.spamprob
+
+            distance = abs(prob - 0.5)
+            if distance > smallest_best:
+                heapreplace(nbest, (distance, prob, word, record))
+                smallest_best = nbest[0][0]
+
+        # Compute the probability.
+        clues = []
+
+        # This combination method is due to Gary Robinson.
+        # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
+        # In preliminary tests, it did just as well as Graham's scheme,
+        # but creates a definite "middle ground" around 0.5 where false
+        # negatives and false positives can actually found in non-trivial
+        # number.
+
+        # The real P = this P times 2**Pexp.  Likewise for Q.  We're
+        # simulating unbounding dynamic float range by hand.  If this pans
+        # out, *maybe* we should store logarithms in the database instead
+        # and just add them here.
+        P = Q = 1.0
+        Pexp = Qexp = 0
+        num_clues = 0
+        for distance, prob, word, record in nbest:
+            if prob is None:    # it's one of the dummies nbest started with
+                continue
+            if record is not None:  # else wordinfo doesn't know about it
+                record.killcount += 1
+            if evidence:
+                clues.append((word, prob))
+            num_clues += 1
+            P *= 1.0 - prob
+            Q *= prob
+            if P < 1e-200:  # move back into range
+                P, e = frexp(P)
+                Pexp += e
+            if Q < 1e-200:  # move back into range
+                Q, e = frexp(Q)
+                Qexp += e
+
+        P, e = frexp(P)
+        Pexp += e
+        Q, e = frexp(Q)
+        Qexp += e
+
+        if num_clues:
+            #P = 1.0 - P**(1./num_clues)
+            #Q = 1.0 - Q**(1./num_clues)
+            #
+            # (x*2**e)**n = x**n * 2**(e*n)
+            n = 1.0 / num_clues
+            P = 1.0 - P**n * 2.0**(Pexp * n)
+            Q = 1.0 - P**n * 2.0**(Qexp * n)
+
+            prob = (P-Q)/(P+Q)  # in -1 .. 1
+            prob = 0.5 + prob/2 # shift to 0 .. 1
+        else:
+            prob = 0.5
+
+        if evidence:
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            return prob, clues
+        else:
+            return prob
+
+    if options.use_robinson_combining:
+        spamprob = robinson_spamprob
+
+    def robinson_update_probabilities(self):
+        """Update the word probabilities in the spam database.
+
+        This computes a new probability for every word in the database,
+        so can be expensive.  learn() and unlearn() update the probabilities
+        each time by default.  Thay have an optional argument that allows
+        to skip this step when feeding in many messages, and in that case
+        you should call update_probabilities() after feeding the last
+        message and before calling spamprob().
+        """
+
+        nham = float(self.nham or 1)
+        nspam = float(self.nspam or 1)
+        A = options.robinson_probability_a
+        X = options.robinson_probability_x
+        AoverX = A/X
+        for word, record in self.wordinfo.iteritems():
+            # Compute prob(msg is spam | msg contains word).
+            # This is the Graham calculation, but stripped of biases, and
+            # of clamping into 0.01 thru 0.99.
+            hamcount = min(record.hamcount, nham)
+            hamratio = hamcount / nham
+
+            spamcount = min(record.spamcount, nspam)
+            spamratio = spamcount / nspam
+
+            prob = spamratio / (hamratio + spamratio)
+
+            # Now do Robinson's Bayesian adjustment.
+            #
+            #         a + (n * p(w))
+            # f(w) = ---------------
+            #          (a / x) + n
+            n = hamcount + spamratio
+            prob = (A + n * prob) / (AoverX + n)
+
+            if record.spamprob != prob:
+                record.spamprob = prob
+                # The next seemingly pointless line appears to be a hack
+                # to allow a persistent db to realize the record has changed.
+                self.wordinfo[word] = record
+
+
+    if options.use_robinson_probability:
+        update_probabilities = robinson_update_probabilities
