@@ -6,18 +6,25 @@ from manager import GetManager
 FILES_PER_DIRECTORY = 400
 DEFAULT_DIRECTORY = "..\\testtools\\Data"
 
+# Return # of msgs in folder (a MAPIMsgStoreFolder).
+def count_messages(folder):
+    result = 0
+    for msg in folder.GetMessageGenerator():
+        result += 1
+    return result
+
 def BuildBuckets(manager):
     store = manager.message_store
     config = manager.config
+
     num_ham = num_spam = 0
     for folder in store.GetFolderGenerator(config.training.spam_folder_ids,
                                            config.training.spam_include_sub):
-        for msg in folder.GetMessageGenerator():
-            num_spam += 1
+        num_spam += count_messages(folder)
     for folder in store.GetFolderGenerator(config.training.ham_folder_ids,
                                            config.training.ham_include_sub):
-        for msg in folder.GetMessageGenerator():
-            num_ham += 1
+        num_ham += count_messages(folder)
+
     num_buckets = min(num_ham, num_spam)/ FILES_PER_DIRECTORY
     dirs = []
     for i in range(num_buckets):
@@ -53,6 +60,8 @@ def _export_folders(manager, dir, buckets, folder_ids, include_sub):
             num += 1
     return num
 
+# This does all the work.  'directory' is the parent directory for the
+# generated Ham and Spam sub-folders.
 def export(directory):
     print "Loading bayes manager..."
     manager = GetManager()
