@@ -112,6 +112,9 @@ except ImportError:
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
 STATS_START_KEY = "Statistics start date"
+PERSISTENT_HAM_STRING = 'h'
+PERSISTENT_SPAM_STRING = 's'
+PERSISTENT_UNSURE_STRING = 'u'
 
 class MessageInfoBase(object):
     def __init__(self, db_name):
@@ -371,11 +374,11 @@ class Message(email.Message.Message):
             self.message_info_db.store_msg(self)
 
     def GetClassification(self):
-        if self.c == 's':
+        if self.c == PERSISTENT_SPAM_STRING:
             return options['Headers','header_spam_string']
-        elif self.c == 'h':
+        elif self.c == PERSISTENT_HAM_STRING:
             return options['Headers','header_ham_string']
-        elif self.c == 'u':
+        elif self.c == PERSISTENT_UNSURE_STRING:
             return options['Headers','header_unsure_string']
         return None
 
@@ -384,11 +387,11 @@ class Message(email.Message.Message):
         # may change, which would really screw this database up
 
         if cls == options['Headers','header_spam_string']:
-            self.c = 's'
+            self.c = PERSISTENT_SPAM_STRING
         elif cls == options['Headers','header_ham_string']:
-            self.c = 'h'
+            self.c = PERSISTENT_HAM_STRING
         elif cls == options['Headers','header_unsure_string']:
-            self.c = 'u'
+            self.c = PERSISTENT_UNSURE_STRING
         else:
             raise ValueError, \
                   "Classification must match header strings in options"
