@@ -135,6 +135,11 @@ Web Interface
  o We printed out false positive numbers in the false negatives section of
    the stats, and vice versa.
  o Quote IMAP folder names when displaying them.
+ o Added a third configuration page (via the "Experimental Configuration"
+   button on the main Configuration page).  This shows all the current
+   experimental options (see the "New Experimental Options" section below).
+   Note that these are, as the name implies, experimental, and they might
+   not improve the results that you get.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
