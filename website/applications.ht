@@ -27,7 +27,7 @@ For more on this, see the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cg
 <h4>Availability</h4>
 <p>Mark has packaged together <a href="windows.html">an installer for the plugin</a>.
 Go to the <a href="windows.html">Windows page</a> for more.</p>
-<p>Alternatively, to run from source, <a href="download.html">download 1.0 release candidate 1.</a></p>
+<p>Alternatively, to run from source, <a href="download.html">download 1.0 release candidate 2.</a></p>
 <p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_filter">sb_filter.py</a></h3>
@@ -43,7 +43,7 @@ Currently it focuses on running sb_filter via procmail. </p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 1.</a></p>
+<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_server">sb_server.py</a></h3>
@@ -76,7 +76,7 @@ See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spamb
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 1.</a></p>
+<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="mboxtrain">sb_mboxtrain.py</a></h3>
@@ -92,7 +92,7 @@ seen previously.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 1.</a></p>
+<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="notesfilter">sb_notesfilter.py</a></h3>
@@ -110,5 +110,5 @@ caution.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download 1.0 release candidate 1.</a></p>
+<p><a href="download.html">Download 1.0 release candidate 2.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
