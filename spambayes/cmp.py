@@ -17,7 +17,7 @@ f1n, f2n = sys.argv[1:3]
 #   total f-p,
 #   total f-n,
 #   average f-p rate,
-#   average f-n rate)
+#   average f-n rate,
 # from summary file f.
 def suck(f):
     fns = []
@@ -30,7 +30,7 @@ def suck(f):
         line = get()
         if line.startswith('-> <stat> tested'):
             print line,
-        if line.find('sample sdev') != -1:
+        if line.find('; sdev ') != -1:
             vals = line.split(';')
             mean = float(vals[1].split(' ')[-1])
             sdev = float(vals[2].split(' ')[-1])
@@ -64,7 +64,8 @@ def suck(f):
     fntot = int(get().split()[-1])
     fpmean = float(get().split()[-1])
     fnmean = float(get().split()[-1])
-    return fps, fns, fptot, fntot, fpmean, fnmean, hamdev, spamdev,hamdevall,spamdevall
+    return (fps, fns, fptot, fntot, fpmean, fnmean,
+            hamdev, spamdev, hamdevall, spamdevall)
 
 def tag(p1, p2):
     if p1 == p2:
