@@ -580,48 +580,6 @@ Using Spambayes
 ===============
 
 
-How do I configure Spambayes?
------------------------------
-
-The system is configured through a file called "bayescustomize.ini".  In
-here you can configure the name and type of your database, the POP3
-server(s) you want to proxy to, the ports you want the proxy and the web
-interface to run on, and so on.  You can also control details like how sure
-you want the system to be that message really is spam before it marks it as
-such.  The default values for all the options, and the documentation for
-them, all lives in Options.py.
-
-To change an option, create a bayescustomize.ini and add the option to that
-- don't edit Options.py.  If you are using the POP3 proxy, SMTP proxy or IMAP
-filter, you can also change most of the options you will need to access via
-the web user interface.  You will probably find this at
-http://localhost:8880.  To configure the Outlook plugin, you should click on
-the Anti-Spam button on the toolbar.
-
-To setup the POP3 and SMTP proxies (optional), run::
-
-    pop3proxy.py -b
-
-from the command line.  The web interface should open in your default
-browser.  You need to click on the "Configuration Link" to go to the setup
-page.  The minimum you need to do to get started is enter the servers and
-ports information in the POP3 proxy and SMTP proxy sections.
-
-The POP3 proxy is then ready for your email client to connect to it on port
-110 and the SMTP proxy is ready for connections on port 25.  You now need to
-configure your email client to talk to the proxies instead of the real email
-servers.  Change your equivalent of "pop3.my-isp.com" to "localhost" (or to
-the name of the machine you're running the proxy on) in your email client's
-setup, and do the same with your equivalent of "smtp.my-isp.com".  Hit "Get
-new email" and look at the headers of the emails (send yourself an email if
-you don't have any!) - there should be an X-Spambayes-Classification header
-there.  It probably says "unsure", if you haven't done any training yet.
-You should be able to create a mail folder called "Suspected spam" and set
-up a filtering rule that puts emails with an "X-Spambayes-Classification:
-spam" heading into that folder.  (Eventually we should publish instructions
-on how to do this in all the popular email clients).
-
-
 How do I train Spambayes (web method)?
 --------------------------------------
 
@@ -766,22 +724,46 @@ configuration page tells you what this file is called (and where it is) down
 towards the bottom of the page.
 
 
-How do I configure pop3proxy, imapfilter, etc. without a web browser?
----------------------------------------------------------------------
+How do I configure Spambayes?
+-----------------------------
 
-You need to create a configuration file.  This is in the 'standard' ini file
+To configure the Outlook plugin, you should choose `SpamBayes Manager` from
+the `SpamBayes` button on the `SpamBayes` toolbar.
+
+If you use the POP3 proxy or IMAP filter, then simply open a browser
+window to http://localhost:8880, click on the configuration link on the top
+right of the page that opens up, and fill in the details.  If you're using
+the POP3 proxy, you'll also need to configure your email client to talk to
+the proxies instead of the real email servers. Change your equivalent of
+`pop3.example.com` to `localhost` (or to the name of the machine you're
+running the proxy on) in your email client's setup, and do the same with
+your equivalent of `smtp.example.com".  Hit "Get new email" and look at the
+headers of the emails (send yourself an email if you don't have any!) -
+there should be an X-Spambayes-Classification header there.  It probably
+says "unsure", if you haven't done any training yet. You should be able to
+create a mail folder called "Suspected spam" and set up a filtering rule
+that puts emails with an "X-Spambayes-Classification: spam" heading into
+that folder.
+
+Otherwise, the system is configured through a file called
+`bayescustomize.ini` or `.spambayesrc`.  In here you can configure the name
+and type of your database, your ham and spam cutoffs, and so on.  The
+default values for all the options, and the documentation for them, lives
+in Options.py.
+
+To change an option, create a bayescustomize.ini and add the option to that
+- don't edit Options.py.  This is in the 'standard' ini file
 format (originally created for Windows 3.1, I believe).  You can find
 documentation on this format in the `ConfigParser docs`_, but basically,
 it's just a text file: lines beginning with # are comments, sections start
 with a line like "[Section Name]", and options are set out within the
 appropriate section with lines like "opt = val" or "opt: val" (either is
-okay).  Whitespace other than line endings is for the most part ignored, so
+ok).  Whitespace other than line endings is for the most part ignored, so
 you can make it look like whatever you like.  You can see a list of what a
 configuration file of all the defaults would like like if you execute the
-following Python commands::
+following Python command::
 
-    >>> from spambayes.Options import options
-    >>> print options.display()
+    python -c "from spambayes.Options import options ; print options.display()"
 
 .. _`ConfigParser docs`: http://www.python.org/doc/current/lib/module-ConfigParser.html
 
@@ -791,34 +773,33 @@ Now I know what the format looks like, but what options do I need to set?
 
 This depends on exactly what you want to do, and which application you are
 intending to use.  The easiest thing is to execute the following Python
-commands::
+command::
 
-    >>> from spambayes.Options import options
-    >>> print options.display_full()
+    python -c "from spambayes.Options import options ; print options.display_full()"
 
 This will print out a complete list of the options, including a description
 of the option, and its default value.  You can also look up a single
 section, if you know its name::
 
-    >>> print options.display_full("section_name")
+    python -c "from spambayes.Options import options ; print options.display_full('section_name')"
 
 Or just a single option::
 
-    >>> print options.display_full("section_name", "option_name")
+    python -c "from spambayes.Options import options ; print options.display_full('section_name', 'option_name')"
 
 If you want a list of all the sections, you can use this command::
 
-    >>> print options.sections()
+    python -c "from spambayes.Options import options ; print options.sections()"
 
 If you want a list of all the options, you can use this command::
 
-    >>> print options.options(prepend_section_name=False)
+    python -c "from spambayes.Options import options ; print options.options(prepend_section_name=False)"
 
 
-Why is Spambayes ignoring my configuration file?
+Why is SpamBayes ignoring my configuration file?
 ------------------------------------------------
 
-Spambayes looks for your configuration file in three places - if it can't
+SpamBayes looks for your configuration file in three places - if it can't
 find it, then, obviously, your options will not be loaded.  The first place
 that Spambayes checks is the environment variable BAYESCUSTOMIZE.  You can
 set this to the path of your configuration file, wherever it is, and it will
@@ -826,7 +807,7 @@ be loaded.  You can also specify more than one file, separated by the
 appropriate path separator for your platform.  This is the recommended
 method of specifying the location of the file, unless you do so via a user
 interface (as provided by the POP3 proxy, the Outlook plugin, and the IMAP
-filter).  If Spambayes doesn't find anything in the BAYESCUSTOMIZE variable,
+filter).  If SpamBayes doesn't find anything in the BAYESCUSTOMIZE variable,
 then it checks the current working directory and your home directory for a
 bayescustomize.ini or .spambayesrc file (respectively).
 
