@@ -59,7 +59,7 @@ What is the license? How much does it cost? Can I pay anyway?
 -------------------------------------------------------------
 
 SpamBayes is free and open-source - there is no charge.  The software
-is released under `the PSA license`_.
+is released under `the PSF license`_.
 
 If you really feel that your life would be incomplete without giving 
 something back to the project, you have a few options:
@@ -77,7 +77,7 @@ something back to the project, you have a few options:
   This should give you some additional benefits like support or greater 
   ease-of-use.
 
-.. _the PSA license: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/LICENSE.txt
+.. _the PSF license: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/LICENSE.txt
 .. _I'm not a programmer but still want to help: #i-m-not-a-programmer-but-want-to-help-out-what-can-i-do
 .. _Python Software Foundation: http://www.python.org/psf/
 .. _donations page: donations.html
