@@ -98,7 +98,8 @@ def filterer(mgr, progress):
     for f in mgr.message_store.GetFolderGenerator(config.folder_ids, config.include_sub):
         progress.set_status("Filtering folder '%s'" % (f.name))
         this_dispositions = filter_folder(f, mgr, progress)
-        dispositions.update(this_dispositions)
+        for key, val in this_dispositions.items():
+            dispositions[key] = dispositions.get(key, 0) + val
         if progress.stop_requested():
             return
     # All done - report what we did.
