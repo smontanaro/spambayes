@@ -91,9 +91,9 @@ class FilterArrivalsDialog(dialog.Dialog):
         dialog.Dialog.__init__(self, self.dt)
 
     def OnInitDialog(self):
-        self.SetDlgItemText(IDC_EDIT_CERTAIN, "%d" % self.mgr.config.filter.spam_threshold)
+        self.SetDlgItemText(IDC_EDIT_CERTAIN, "%s" % self.mgr.config.filter.spam_threshold)
         self.HookCommand(self.OnEditChange, IDC_EDIT_CERTAIN)
-        self.SetDlgItemText(IDC_EDIT_UNSURE, "%d" % self.mgr.config.filter.unsure_threshold)
+        self.SetDlgItemText(IDC_EDIT_UNSURE, "%s" % self.mgr.config.filter.unsure_threshold)
         self.HookCommand(self.OnEditChange, IDC_EDIT_UNSURE)
 
         self.HookCommand(self.OnButBrowse, IDC_BROWSE_WATCH)
@@ -215,8 +215,8 @@ class FilterArrivalsDialog(dialog.Dialog):
             slider = self.GetDlgItem(IDC_SLIDER_UNSURE)
             assert slider.GetSafeHwnd() == lParam
             idc_edit = IDC_EDIT_UNSURE
-        slider_pos = slider.GetPos()
-        self.SetDlgItemText(idc_edit, "%d" % slider_pos)
+        slider_pos = float(slider.GetPos())
+        self.SetDlgItemText(idc_edit, "%s" % slider_pos)
 
     def _InitSlider(self, idc_slider, idc_edit):
         slider = self.GetDlgItem(idc_slider)
@@ -230,7 +230,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         slider = self.GetDlgItem(idc_slider)
         edit = self.GetDlgItem(idc_edit)
         try:
-            val = int(edit.GetWindowText())
+            val = float(edit.GetWindowText())
         except ValueError:
             return
         slider.SetPos(val)
