@@ -6,6 +6,7 @@ a reservoir directory as necessary.
 
 usage: rebal.py [ options ]
 options:
+   -d     - dry run; display what would be moved, but don't do it [%(DRYRUN)s]
    -r res - specify an alternate reservoir [%(RESDIR)s]
    -s set - specify an alternate Set pfx [%(SETPFX)s]
    -n num - specify number of files per Set dir desired [%(NPERDIR)s]
@@ -50,11 +51,16 @@ RESDIR = 'Data/Ham/reservoir'
 SETPFX = 'Data/Ham/Set'
 VERBOSE = True
 CONFIRM = True
+DRYRUN = False
 
-def usage():
+def usage(msg):
+    msg = str(msg)
+    if msg:
+        print >> sys.stderr, msg
     print >> sys.stderr, """\
 usage: rebal.py [ options ]
 options:
+   -d     - dry run; display what would be moved, but don't do it [%(DRYRUN)s]
    -r res - specify an alternate reservoir [%(RESDIR)s]
    -s set - specify an alternate Set pfx [%(SETPFX)s]
    -n num - specify number of files per dir [%(NPERDIR)s]
@@ -82,11 +88,12 @@ def main(args):
     setpfx = SETPFX
     verbose = VERBOSE
     confirm = CONFIRM
+    dryrun = DRYRUN
 
     try:
-        opts, args = getopt.getopt(args, "r:s:n:vqcQh")
-    except getopt.GetoptError:
-        usage()
+        opts, args = getopt.getopt(args, "dr:s:n:vqcQh")
+    except getopt.GetoptError, msg:
+        usage(msg)
         return 1
 
     for opt, arg in opts:
@@ -104,8 +111,10 @@ def main(args):
             verbose = False
         elif opt == "-Q":
             confirm = False
+        elif opt == "-d":
+            dryrun = True
         elif opt == "-h":
-            usage()
+            usage('')
             return 0
 
     res = os.listdir(resdir)
@@ -142,8 +151,12 @@ def main(args):
         random.shuffle(fs)
         movethese = fs[nperdir:]
         del fs[nperdir:]
-        for f in movethese:
-            migrate(os.path.join(dir, f), resdir, verbose)
+        if dryrun:
+            print "would move", len(movethese), "files from", dir, \
+                  "to reservoir", resdir
+        else:
+            for f in movethese:
+                migrate(os.path.join(dir, f), resdir, verbose)
         res.extend(movethese)
 
     # randomize reservoir once so we can just bite chunks from the front
@@ -156,13 +169,17 @@ def main(args):
 
         movethese = res[:nperdir-len(fs)]
         res = res[nperdir-len(fs):]
-        for f in movethese:
-            if confirm:
-                print file(os.path.join(resdir, f)).read()
-                ok = raw_input('good enough? ').lower()
-                if not ok.startswith('y'):
-                    continue
-            migrate(os.path.join(resdir, f), dir, verbose)
+        if dryrun:
+            print "would move", len(movethese), "files from reservoir", \
+                  resdir, "to", dir
+        else:
+            for f in movethese:
+                if confirm:
+                    print file(os.path.join(resdir, f)).read()
+                    ok = raw_input('good enough? ').lower()
+                    if not ok.startswith('y'):
+                        continue
+                migrate(os.path.join(resdir, f), dir, verbose)
         fs.extend(movethese)
 
     return 0
