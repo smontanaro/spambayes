@@ -6,9 +6,7 @@ Author: spambayes
 </h1>
 <ol>
   <li>
-    Overview
-  </li>
-  <li style="list-style: none">
+    Overview<br>
     <ol type="a">
       <li>
 	<a href="#whatisit">So what is Spambayes?</a>
@@ -27,9 +25,7 @@ Author: spambayes
     </ol>
   </li>
   <li>
-    Compatibility
-  </li>
-  <li style="list-style: none">
+    Compatibility<br>
     <ol type="a">
       <li>
 	<a href="#outlookversions">What version of Outlook does it
@@ -54,9 +50,7 @@ Author: spambayes
     </ol>
   </li>
   <li>
-    Using Spambayes
-  </li>
-  <li style="list-style: none">
+    Using Spambayes<br>
     <ol type="a">
       <li>
 	<a href="#configs">How do I configure Spambayes?</a>
@@ -112,9 +106,7 @@ Author: spambayes
     </ol>
   </li>
   <li>
-    Development
-  </li>
-  <li style="list-style: none">
+    Development<br>
     <ol type="a">
       <li>
 	<a href="#tokentrick">Hey! Why don't you implement cool
