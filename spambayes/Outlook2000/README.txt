@@ -8,7 +8,7 @@ See below for a list of known problems.
 Outlook Addin
 ==========
 If you execute "addin.py", the Microsoft Outlook plugin will be installed.
-Next time outlook is started, you should see a "Anti-Spam" drop-down
+Next time outlook is started, you should see a "SpamBayes" drop-down
 on the toolbar.  Clicking it will allow you to maintain your bayes database
 and filters.
 
