@@ -44,7 +44,7 @@ except NameError:
 import re
 
 import UserInterface
-from Options import options, optionsPathname
+from spambayes.Options import options, optionsPathname
 
 # These are the options that will be offered on the configuration page.
 # If the option is None, then the entry is a header and the following
@@ -106,7 +106,7 @@ adv_map = (
 
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
-    def __init__(self, cls, imap, pwd):
+    def __init__(self, cls, imap, pwd, imap_session_class):
         global parm_map
         # Only offer SSL if it is available
         try:
@@ -121,6 +121,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         self.imap_pwd = pwd
         self.imap_logged_in = False
         self.app_for_version = "IMAP Filter"
+        self.imap_session_class = imap_session_class
 
     def onHome(self):
         """Serve up the homepage."""
@@ -194,7 +195,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
                     port = 993
                 else:
                     port = 143
-            imap = IMAPSession(server, port)
+            imap = self.imap_session_class(server, port)
         if self.imap is None:
             content = self._buildBox("Error", None,
                                      """Must specify server details first.""")

@@ -797,7 +797,8 @@ or training will be performed."""
         if server != "":
             imap = IMAPSession(server, port, imapDebug, doExpunge)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
-        httpServer.register(IMAPUserInterface(classifier, imap, pwd))
+        httpServer.register(IMAPUserInterface(classifier, imap, pwd,
+                                              IMAPSession))
         Dibbler.run(launchBrowser=launchUI)
     else:
         while True:
