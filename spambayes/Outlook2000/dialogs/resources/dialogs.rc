@@ -543,7 +543,7 @@ BEGIN
                     BS_MULTILINE | WS_TABSTOP,11,163,204,16
     LTEXT           "Clicking Delete as Spam should",IDC_STATIC,10,183,104,
                     10
-    COMBOBOX        IDC_DEL_SPAM_RS,129,180,112,54,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_DEL_SPAM_RS,127,180,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
 END
 
