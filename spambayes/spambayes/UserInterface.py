@@ -502,6 +502,12 @@ class UserInterface(BaseUserInterface):
         # Append the message(s) to a file, to make it easier to rebuild
         # the database later.   This is a temporary implementation -
         # it should keep a Corpus of trained messages.
+        # XXX Temporary, heh.  One of the problems with this is that
+        # XXX these files get opened in whatever happens to be the cwd.
+        # XXX I don't think anyone uses these anyway, but we should fix
+        # XXX this for 1.1.  I think that creating a new message in the
+        # XXX Ham/Spam corpus would work, and not interfere with anything.
+        # XXX We could later search for them, too, which would be a bonus.
         if isSpam:
             f = open("_pop3proxyspam.mbox", "a")
         else:
@@ -511,6 +517,9 @@ class UserInterface(BaseUserInterface):
         self.write("<b>Training...</b>\n")
         self.flush()
         for message in messages:
+            # XXX Here, we should really use the message.Message class,
+            # XXX so that the messageinfo database is updated (and so
+            # XXX the stats are correct, and so on).
             tokens = tokenizer.tokenize(message)
             self.classifier.learn(tokens, isSpam)
             f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
@@ -912,9 +921,11 @@ class UserInterface(BaseUserInterface):
         # Caching this information somewhere would be a good idea,
         # rather than regenerating it every time.  If people complain
         # about it being too slow, then do this!
+        # XXX The Stats object should be generated once, when we start up,
+        # XXX and then just called, here.
         s = Stats.Stats()
         self._writePreamble("Statistics")
-        stats = s.GetStats()
+        stats = s.GetStats(use_html=True)
         stats = self._buildBox("Statistics", None, "<br/><br/>".join(stats))
         self.write(stats)
         self._writePostamble(help_topic="stats")

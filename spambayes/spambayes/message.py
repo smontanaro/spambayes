@@ -82,6 +82,7 @@ except NameError:
 import os
 import sys
 import types
+import time
 import math
 import re
 import errno
@@ -110,12 +111,24 @@ except ImportError:
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
+STATS_START_KEY = "Statistics start date"
+
 class MessageInfoBase(object):
     def __init__(self, db_name):
         self.db_name = db_name
 
     def __len__(self):
         return len(self.db)
+
+    def get_statistics_start_date(self):
+        if STATS_START_KEY in self.db:
+            return self.db[STATS_START_KEY]
+        else:
+            return None
+
+    def set_statistics_start_date(self, date):
+        self.db[STATS_START_KEY] = date
+        self.store()
 
     def load_msg(self, msg):
         if self.db is not None:
@@ -149,14 +162,15 @@ class MessageInfoBase(object):
                         msg.t = {"0" : False, "1" : True}[attributes]
                         return
                     else:
-                        print >> sys.stderr, "Unknown message info type"
+                        print >> sys.stderr, "Unknown message info type", \
+                              attributes
                         sys.exit(1)
                 for att, val in attributes:
                     setattr(msg, att, val)
 
     def store_msg(self, msg):
         if self.db is not None:
-            attributes = []
+            attributes = [("date_modified", time.time())]
             for att in msg.stored_attributes:
                 attributes.append((att, getattr(msg, att)))
             self.db[msg.getDBKey()] = attributes
@@ -263,19 +277,24 @@ def database_type():
 class Message(email.Message.Message):
     '''An email.Message.Message extended for SpamBayes'''
 
-    def __init__(self):
+    def __init__(self, id=None, message_info_db=None):
         email.Message.Message.__init__(self)
 
         # persistent state
-        nm, typ = database_type()
-        self.message_info_db = open_storage(nm, typ)
+        # (non-persistent state includes all of email.Message.Message state)
+        if message_info_db is not None:
+            self.message_info_db = message_info_db
+        else:
+            nm, typ = database_type()
+            self.message_info_db = open_storage(nm, typ)
         self.stored_attributes = ['c', 't',]
         self.getDBKey = self.getId
         self.id = None
         self.c = None
         self.t = None
 
-        # non-persistent state includes all of email.Message.Message state
+        if id is not None:
+            self.setId(id)
 
     # This function (and it's hackishness) can be avoided by using
     # email.message_from_string(text, _class=SBHeaderMessage)
@@ -313,6 +332,9 @@ class Message(email.Message.Message):
 
         if not type(id) in types.StringTypes:
             raise TypeError, "Id must be a string"
+
+        if id == STATS_START_KEY:
+            raise ValueError, "MsgId must not be" + STATS_START_KEY
 
         self.id = id
         self.message_info_db.load_msg(self)
