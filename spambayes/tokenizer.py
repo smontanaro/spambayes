@@ -583,8 +583,7 @@ html_re = re.compile(r"""
 """, re.VERBOSE)
 
 # An equally cheap-ass gimmick to strip style sheets
-stylesheet_re = re.compile(r"<style>.{0,2000}?</style>", 
-                    re.IGNORECASE|re.DOTALL)
+stylesheet_re = re.compile(r"<style>.{0,2000}?</style>", re.DOTALL)
 
 received_host_re = re.compile(r'from (\S+)\s')
 received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
