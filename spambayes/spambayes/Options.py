@@ -145,6 +145,11 @@ defaults = {
      """(DEPRECATED) Extract day of the week tokens from the Date: header.""",
      BOOLEAN, RESTORE),
 
+    ("x-pick_apart_urls", "Extract clues about url structure", False,
+     """(EXPERIMENTAL) Note whether url contains non-standard port or
+     user/password elements.""",
+     BOOLEAN, RESTORE),
+
     ("replace_nonascii_chars", "Replace non-ascii characters", False,
      """If true, replace high-bit characters (ord(c) >= 128) and control
      characters with question marks.  This allows non-ASCII character
