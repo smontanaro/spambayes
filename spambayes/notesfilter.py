@@ -16,30 +16,72 @@ Abstract:
         Ham
         Train as Spam
         Train as Ham
+
+    Depending on the execution parameters, it will do any or all of the
+    following steps, in the order given.
+
+    1. Train Spam from the Train as Spam folder (-t option)
+    2. Train Ham from the Train as Ham folder (-t option)
+    3. Replicate (-r option)
+    4. Classify the inbox (-c option)
         
-    It classifies mail that is in the inbox.  Mail that is classified
-    as spam is moved to the Spam folder.  Mail that is to be trained
-    as spam should be manually moved to that folder by the user.
-    Likewise mail that is to be trained as ham.  After training, spam
-    is moved to the Spam folder and ham is moved to the Ham folder.
+    Mail that is to be trained as spam should be manually moved to
+    that folder by the user. Likewise mail that is to be trained as
+    ham.  After training, spam is moved to the Spam folder and ham is
+    moved to the Ham folder.
+
+    Replication takes place if a remote server has been specified.
+    This step may take a long time, depending on replication
+    parameters and how much information there is to download, as well
+    as line speed and server load.  Please be patient if you run with
+    replication.  There is currently no progress bar or anything like
+    that to tell you that it's working, but it is and will complete
+    eventually.  There is also no mechanism for notifying you that the
+    replication failed.  If it did, there is no harm done, and the program
+    will continue execution.
+
+    Mail that is classified as Spam is moved from the inbox to the
+    Train as Spam folder.  You should occasionally review your Spam
+    folder for Ham that has mistakenly been classified as Spam.  If
+    there is any there, move it to the Train as Ham folder, so
+    Spambayes will be less likely to make this mistake again.
+
+    Mail that is classified as Ham or Unsure is left in the inbox.
+    There is currently no means of telling if a mail was classified as
+    Ham or Unsure.
+
+    You should occasionally select some Ham and move it to the Train
+    as Ham folder, so Spambayes can tell the difference between Spam
+    and Ham. The goal is to maintain a relative balance between the
+    number of Spam and the number of Ham that have been trained into
+    the database. These numbers are reported every time this program
+    executes.  However, if the amount of Spam you receive far exceeds
+    the amount of Ham you receive, it may be very difficult to
+    maintain this balance.  This is not a matter of great concern.
+    Spambayes will still make very few mistakes in this circumstance.
+    But, if this is the case, you should review your Spam folder for
+    falsely classified Ham, and retrain those that you find, on a
+    regular basis.  This will prevent statistical error accumulation,
+    which if allowed to continue, would cause Spambayes to tend to
+    classify everything as Spam.
     
     Because there is no programmatic way to determine if a particular
     mail has been previously processed by this classification program,
     it keeps a pickled dictionary of notes mail ids, so that once a
     mail has been classified, it will not be classified again.  The
-    non-existence of is index file, named <local database>.'sbindex',
-    indicates to the system that this is the first time it has been
-    run.  Rather than classify the inbox in this case, the contents of
-    the inbox are placed in the index to note the 'starting point' of
-    the system.  After that, any new messages in the inbox are
-    eligible for classification.
+    non-existence of is index file, named <local database>.sbindex,
+    indicates to the system that this is an initialization execution.
+    Rather than classify the inbox in this case, the contents of the
+    inbox are placed in the index to note the 'starting point' of the
+    system.  After that, any new messages in the inbox are eligible
+    for classification.
 
 Usage:
     notesfilter [options]
 
 	note: option values with spaces in them must be enclosed
 	      in double quotes
-	      
+
         options:
             -d  dbname  : pickled training database filename
             -D  dbname  : dbm training database filename
@@ -56,6 +98,10 @@ Usage:
             -t          : train contents of Train as Spam and Train as Ham
             -c          : classify inbox
             -h          : help
+            -p          : prompt "Press Enter to end" before ending
+                          This is useful for automated executions where the
+                          statistics output would otherwise be lost when the
+                          window closes.
 
 Examples:
 
@@ -70,10 +116,10 @@ Examples:
  
 To Do:
     o Dump/purge notesindex file
-    o Show h:s ratio, make recommendations
     o Create correct folders if they do not exist
     o Options for some of this stuff?
     o pop3proxy style training/configuration interface?
+    o parameter to retrain?
     o Suggestions?
     '''
 
@@ -82,7 +128,7 @@ To Do:
 # Foundation license.
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
-__credits__ = "Mark Hammond, for his remarkable win32 module."
+__credits__ = "Mark Hammond, for his remarkable win32 modules."
 
 from __future__ import generators
 
@@ -100,31 +146,25 @@ from spambayes.Options import options
 import cPickle as pickle
 import errno
 import win32com.client
+import pywintypes
 import getopt
 
 
-def classifyInbox(v, vmoveto, bayes, ldbname):
+def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
 
     # the notesindex hash ensures that a message is looked at only once
 
-    try:
-        fp = open("%s.sbindex" % (ldbname), 'rb')
-    except IOError, e:
-        if e.errno != errno.ENOENT: raise
-        notesindex = {}
-        print "notesindex file not found, this is a first time run"
-        print "No classification will be performed"
+    if len(notesindex.keys()) == 0:
         firsttime = 1
     else:
-        notesindex = pickle.load(fp)
-        fp.close()
         firsttime = 0
-
+        
     docstomove = []
     numham = 0
     numspam = 0
     numuns = 0
     numdocs = 0
+    
     doc = v.GetFirstDocument()
     while doc:
         nid = doc.NOTEID
@@ -134,6 +174,13 @@ def classifyInbox(v, vmoveto, bayes, ldbname):
             if not notesindex.has_key(nid):
 
                 numdocs += 1
+
+                # Notes returns strings in unicode, and the Python
+                # uni-decoder has trouble with these strings when
+                # you try to print them.  So don't...
+
+                # The com interface returns basic data types as tuples
+                # only, thus the subscript on GetItemValue
                 
                 try:
                     subj = doc.GetItemValue('Subject')[0]
@@ -145,9 +192,10 @@ def classifyInbox(v, vmoveto, bayes, ldbname):
                 except:
                     body = 'No Body'
 
-                message = "Subject: %s\r\n%s" % (subj, body)
+                message = "Subject: %s\r\n\r\n%s" % (subj, body)
 
-                # generate_long_skips = True blows up on occ.
+                # generate_long_skips = True blows up on occasion,
+                # probably due to this unicode problem.
                 options.generate_long_skips = False
                 tokens = tokenizer.tokenize(message)
                 prob, clues = bayes.spamprob(tokens, evidence=True)
@@ -163,10 +211,16 @@ def classifyInbox(v, vmoveto, bayes, ldbname):
                     disposition = options.header_unsure_string
                     numuns += 1
 
-                notesindex[nid] = disposition
+                notesindex[nid] = 'classified'
+                try:
+                    print "%s spamprob is %s" % (subj[:30], prob)
+                except UnicodeError:
+                    print "<subject not printed> spamprob is %s" % (prob)
 
         doc = v.GetNextDocument(doc)
 
+    # docstomove list is built because moving documents in the middle of
+    # the classification loop looses the iterator position
     for doc in docstomove:
         doc.RemoveFromFolder(v.Name)
         doc.PutInFolder(vmoveto.Name)
@@ -176,16 +230,13 @@ def classifyInbox(v, vmoveto, bayes, ldbname):
     print "   %s classified as ham" % (numham)
     print "   %s classified as unsure" % (numuns)
     
-    fp = open("timstone.nsf.sbindex", 'wb')
-    pickle.dump(notesindex, fp)
-    fp.close()
 
-def processAndTrain(v, vmoveto, bayes, is_spam):
+def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
     if is_spam:
-        str = "spam"
+        str = options.header_spam_string
     else:
-        str = "ham"
+        str = options.header_ham_string
 
     print "Training %s" % (str)
     
@@ -206,10 +257,21 @@ def processAndTrain(v, vmoveto, bayes, is_spam):
 
         options.generate_long_skips = False
         tokens = tokenizer.tokenize(message)
+
+        nid = doc.NOTEID
+        if notesindex.has_key(nid):
+            trainedas = notesindex[nid]
+            if trainedas == options.header_spam_string and not is_spam:
+                # msg is trained as spam, is to be retrained as ham
+                bayes.unlearn(tokens, True)
+            elif trainedas == options.header_ham_string and is_spam:
+                # msg is trained as ham, is to be retrained as spam
+                bayes.unlearn(tokens, False)
+  
         bayes.learn(tokens, is_spam)
 
+        notesindex[nid] = str
         docstomove += [doc]
-
         doc = v.GetNextDocument(doc)
 
     for doc in docstomove:
@@ -217,6 +279,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam):
         doc.PutInFolder(vmoveto.Name)
 
     print "%s documents trained" % (len(docstomove))
+    
 
 def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
 
@@ -224,9 +287,26 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
         bayes = storage.DBDictClassifier(bdbname)
     else:
         bayes = storage.PickledClassifier(bdbname)
-    
+
+    try:
+        fp = open("%s.sbindex" % (ldbname), 'rb')
+    except IOError, e:
+        if e.errno != errno.ENOENT: raise
+        notesindex = {}
+        print "%s.sbindex file not found, this is a first time run" \
+              % (ldbname)
+        print "No classification will be performed"
+    else:
+        notesindex = pickle.load(fp)
+        fp.close()
+     
     sess = win32com.client.Dispatch("Lotus.NotesSession")
-    sess.initialize()
+    try:
+        sess.initialize()
+    except pywintypes.com_error:
+        print "Session aborted"
+        sys.exit()
+        
     db = sess.GetDatabase("",ldbname)
     
     vinbox = db.getView('($Inbox)')
@@ -235,25 +315,33 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
     vtrainspam = db.getView("%s\Train as Spam" % (foldname))
     vtrainham = db.getView("%s\Train as Ham" % (foldname))
     
+    if doTrain:
+        processAndTrain(vtrainspam, vspam, bayes, True, notesindex)
+        # for some reason, using inbox as a target here loses the mail
+        processAndTrain(vtrainham, vham, bayes, False, notesindex)
+        
     if rdbname:
         print "Replicating..."
         db.Replicate(rdbname)
         print "Done"
         
-    if doTrain:
-        processAndTrain(vtrainspam, vspam, bayes, True)
-        # for some reason, using inbox as a target here loses the mail
-        processAndTrain(vtrainham, vham, bayes, False)
-        
     if doClassify:
-        classifyInbox(vinbox, vspam, bayes, ldbname)
-    
+        classifyInbox(vinbox, vtrainspam, bayes, ldbname, notesindex)
+
+    print "The Spambayes database currently has %s Spam and %s Ham" \
+        % (bayes.nspam, bayes.nham)
+
     bayes.store()
+
+    fp = open("%s.sbindex" % (ldbname), 'wb')
+    pickle.dump(notesindex, fp)
+    fp.close()
+    
 
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcd:D:l:r:f:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcpd:D:l:r:f:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -264,6 +352,7 @@ if __name__ == '__main__':
     sbfname = None  # spambayes folder name
     doTrain = False
     doClassify = False
+    doPrompt = False
 
     for opt, arg in opts:
         if opt == '-h':
@@ -285,9 +374,17 @@ if __name__ == '__main__':
             doTrain = True
         elif opt == '-c':
             doClassify = True
+        elif opt == '-p':
+            doPrompt = True
 
     if (bdbname and ldbname and sbfname and (doTrain or doClassify)):
         run(bdbname, useDBM, ldbname, rdbname, \
             sbfname, doTrain, doClassify)
+
+        if doPrompt:
+            try:
+                key = input("Press Enter to end")
+            except SyntaxError:
+                pass
     else:
         print >>sys.stderr, __doc__
