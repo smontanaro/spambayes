@@ -3,13 +3,16 @@
 """
 Create mapping from features to message ids
 
-usage %(prog)s [ -h ] -t ham|spam -d mapfile mailbox ...
+usage %(prog)s [ options ] mailbox ...
 
--d mapfile - identify file which will hold mapping information
+-d mapfile - identify file which will hold mapping information (required)
 
 -t ham|spam - identify the type of messages in the input mailbox(es)
 
 -h - print this documentation and exit
+
+One of '-t ham' or '-t spam' must be given, as must one or more message
+sources.
 """
 
 import sys
