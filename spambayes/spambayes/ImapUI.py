@@ -63,8 +63,6 @@ parm_map = (
     # on the other hand, we have to be able to enter it somehow...
     ('imap',                  'password'),
     ('imap',                  'use_ssl'),
-    ('Interface Options',     None),
-    ('html_ui',               'allow_remote_connections'),
     ('Header Options',        None),
     ('Headers',               'notate_to'),
     ('Headers',               'notate_subject'),
@@ -101,6 +99,10 @@ adv_map = (
     ('Tokenizer',           'x-pick_apart_urls'),
     ('Interface Options',   None),
     ('html_ui',             'display_adv_find'),
+    ('html_ui',             'allow_remote_connections'),
+    ('html_ui',             'http_authentication'),
+    ('html_ui',             'http_user_name'),
+    ('html_ui',             'http_password'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):
