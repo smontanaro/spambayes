@@ -4,7 +4,7 @@ Author: spambayes
 
 <h2>Project documentation</h2>
 <ul>
-<li>A rudimentary set of <a href="faq.html">Frequently Asked Questions (FAQ)</a>.</li>
+<li>A set of <a href="faq.html">Frequently Asked Questions (FAQ)</a>.</li>
 <li>The <a href="http://www.entrian.com/sbwiki">SpamBayes wiki</a> exists to let the users
 and developers of SpamBayes cooperate to develop documentation, share tips and recipes,
 and generally help each other out.  It would be great to see documentation improvements,
@@ -50,7 +50,7 @@ Always start with the documentation that came with the version you installed.)</
   <dt>ham<dd>The opposite of spam; not necessarily email that you want or
       that you asked for, just anything that's not unsolicited bulk email.
       There is a second use for the term which means an email message which
-      Spambayes classified as good email.  That doesn't mean it's so, just
+      SpamBayes classified as good email.  That doesn't mean it's so, just
       that based upon the evidence provided to the classifier it looked like
       good email.  (See also: spam, unsure.)
 
@@ -63,7 +63,7 @@ Always start with the documentation that came with the version you installed.)</
       people by automated means at the same time it was sent to you.  This
       definition deliberately excludes viruses and those stupid jokes sent
       to you by your Aunt Tillie.  There is a second use for the term which
-      means an email message which Spambayes classified as bad email.  That
+      means an email message which SpamBayes classified as bad email.  That
       doesn't mean it's so, just that based upon the evidence provided to
       the classifier it looked like bad email.  (See also: ham, unsure.)
     
