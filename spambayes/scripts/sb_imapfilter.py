@@ -407,16 +407,14 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             flags = None
 
-        response = imap.append(self.folder.name, flags,
-                               msg_time, self.as_string())
-        if response[0] == "NO":
-            # This may be because we have tried to set an invalid flag.
-            # Try again, losing all the flag information, but warn the
-            # user that this has happened.
-            response = imap.append(self.folder.name, None, msg_time,
+        for flgs, tme in [(flags, msg_time),
+                          (None, msg_time),
+                          (flags, Time2Internaldate(time.time())),
+                          (None, Time2Internaldate(time.time()))]:
+            response = imap.append(self.folder.name, flgs, tme,
                                    self.as_string())
             if response[0] == "OK":
-                print "WARNING: Could not append flags: %s" % (flags,)
+                break
         self._check(response, 'append')
 
         if self.previous_folder is None:
