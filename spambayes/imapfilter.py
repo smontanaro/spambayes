@@ -48,9 +48,9 @@ class IMAPFilter(object):
         filename = options.pop3proxy_persistent_storage_file
         filename = os.path.expanduser(filename)
         if options.pop3proxy_persistent_use_database:
-            self.bayes = storage.DBDictClassifier(filename)
+            self.classifier = storage.DBDictClassifier(filename)
         else:
-            self.bayes = storage.PickledClassifier(filename)
+            self.classifier = storage.PickledClassifier(filename)
         if options.verbose:
             print "Done."
         # Unique names for cached messages - see getNewMessageName() below.
@@ -108,14 +108,33 @@ class IMAPFilter(object):
         except:
             print "Could not retrieve message (id %s)" % uid
             messageText = ""
-        return messageText
+
+        msg = spambayes.message.Message()
+        msg.setPayload(messageText)
+        msg.setId(uid)
+
+        msg.delSBHeaders()  # never include sb headers in a train
+                
+        return msg
 
     def TrainFolder(self, folder_name, isSpam):
         response = self._selectFolder(folder_name, True)
         uids = self._getUIDs(1, int(response[1][0]))
         for uid in uids:
-            messageText = self.RetrieveMessage(uid)
-            self.bayes.learn(tokenizer.tokenize(messageText), isSpam)
+            msg = self.RetrieveMessage(uid)
+
+            if msg.isTrained():
+                if isSpam and msg.isTrndHam():
+                    bayes.unlearn(msg.asTokens(), False)  # untrain the ham
+                elif not isSpam and msg.isTrndSpam():
+                    bayes.unlearn(msg.asTokens(), True)
+                
+            bayes.learn(msg.asTokens(), isSpam) # train as spam
+
+            if isSpam:
+                msg.trndAsSpam()
+            else:
+                msg.trndAsHam()
 
     def Train(self):
         if options.verbose:
@@ -128,7 +147,7 @@ class IMAPFilter(object):
             spam_training_folders = options.imap_spam_train_folders.split(' ' )
             for fol in spam_training_folders:
                 self.TrainFolder(fol, True)
-        self.bayes.store()
+        self.classifier.store()
         if options.verbose:
             print "Training took", time.time() - t, "seconds."
 
@@ -141,13 +160,11 @@ class IMAPFilter(object):
         uids = self._getUIDs(1, int(inbox[1][0]))
         
         for uid in uids:
-            messageText = self.RetrieveMessage(uid)
-            (prob, clues) = self.bayes.spamprob\
-                            (tokenizer.tokenize(messageText),
-                             evidence=True)
-            messageText = self._addHeaders(messageText, prob, clues)
-            #uid = self._updateMessage(uid, messageText)
-            self._filterMessage(uid, prob)
+            msg = self.RetrieveMessage(uid)
+            (prob, clues) = self.classifier.spamprob(msg.asTokens(), evidence=True)
+            msg.addSBHeaders(prob, clues) # adds headers and remembers classification
+            self._updateMessage(msg)
+            self._filterMessage(msg)
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
 
@@ -157,88 +174,54 @@ class IMAPFilter(object):
             self.imap.expunge()
         self.imap.logout()
 
-    def _addHeaders(self, messageText, prob, clues):
-        if options.pop3proxy_strip_incoming_mailids == True:
-            s = re.compile(options.pop3proxy_mailid_header_name + \
-                           ': [\d-]+[\\r]?[\\n]?')
-            messageText = s.sub('', messageText)
-
-        headers, body = re.split(r'\n\r?\n', messageText, 1)
-        messageName = self.getNewMessageName()
-        headers += '\n'
-        if options.pop3proxy_add_mailid_to.find("header") != -1:
-            headers += options.pop3proxy_mailid_header_name \
-                    + ": " + messageName + "\r\n"
-        if options.pop3proxy_add_mailid_to.find("body") != -1:
-            body = body[:len(body)-3] + \
-                   options.pop3proxy_mailid_header_name + ": " \
-                    + messageName + "\r\n.\r\n"
-
-        if options.pop3proxy_include_prob:
-            headers += '%s: %s\r\n' % (options.pop3proxy_prob_header_name,
-                                       prob)
-        if options.pop3proxy_include_thermostat:
-            thermostat = '**********'
-            headers += '%s: %s\r\n' % \
-                      (options.pop3proxy_thermostat_header_name,
-                       thermostat[int(prob*10):])
-        if options.pop3proxy_include_evidence:
-            headers += options.pop3proxy_evidence_header_name + ": "
-            headers += "; ".join(["%r: %.2f" % (word, prob)
-                     for word, score in clues
-                     if (word[0] == '*' or
-                         score <= options.clue_mailheader_cutoff or
-                         score >= 1.0 - options.clue_mailheader_cutoff)])
-            headers += "\r\n"
-        headers += "\r\n"
-        return headers + body
-
-    def _updateMessage(self, uid, messageText):
+    def _updateMessage(self, msg):
         # we can't actually update the message with IMAP
         # XXX (someone tell me if this is wrong!)
         # so what we do is create a new message and delete the old one
         # we return the new uid, which we obtain by searching for the
         # spambayes id
         res = self.imap.append(options.imap_inbox, None,
-                               self._extractTimeFromMessage(messageText),
-                               messageText)
+                               self._extractTimeFromMessage(msg),
+                               msg.payload())
         self._check(res, "append")
-        res = self.imap.uid("STORE", uid, "+FLAGS.SILENT", "(\\Deleted)")
+        res = self.imap.uid("STORE", msg.getId(), "+FLAGS.SILENT", "(\\Deleted)")
         self._check(res, "uid store")
-        res = self.imap.uid("SEARCH", "(TEXT)", messageText)
+        res = self.imap.uid("SEARCH", "(TEXT)", msg.payload())
         self._check(res, "uid search")
         return res[1][0]
 
-    def _extractTimeFromMessage(self, messageText):
+    def _extractTimeFromMessage(self, msg):
         # When we create a new copy of a message, we need to specify
         # a timestamp for the message.  Ideally, this would be the
         # timestamp from the message itself, but for the moment, we
         # just use the current time.
         return imaplib.Time2Internaldate(time.time())
 
-    def _moveMessage(self, uid, dest):
+    def _moveMessage(self, msg, dest):
         # The IMAP copy command makes an alias, not a whole new
         # copy, so what we need to do (sigh) is create a new message
         # in the correct folder, and delete the old one
         # XXX (someone tell me if this is wrong, too!)
-        response = self.imap.uid("FETCH", uid, "(RFC822.PEEK)")
+        response = self.imap.uid("FETCH", msg.getId(), "(RFC822.PEEK)")
         self._check(response, 'uid fetch')
-        messageText = response[1][0][1]
-        response = self.imap.append(dest, None,
-                                    self._extractTimeFromMessage(messageText),
-                                    messageText)
+
+        msg = spambayes.message.Message()
+        msg.setPayload(response[1][0][1])
+        msg.setId(_extractTimeFromMessage(msg))
+
+        response = self.imap.append(dest, None, msg.getId(), msg.payload())
         self._check(response, "append")
-        res = self.imap.uid("STORE", uid, "+FLAGS.SILENT", "(\\Deleted)")
+        res = self.imap.uid("STORE", msg.getId(), "+FLAGS.SILENT", "(\\Deleted)")
         self._check(response, "uid store")
 
-    def _filterMessage(self, uid, prob):
-        if prob < options.ham_cutoff:
+    def _filterMessage(self, msg, prob):
+        if msg.isClsfdHam():
             # we leave ham alone
             pass
-        elif prob > options.spam_cutoff:
-            self._moveMessage(uid, options.imap_spam_folder)
+        elif msg.isClsfdSpam():
+            self._moveMessage(msg, options.imap_spam_folder)
         else:
-            self._moveMessage(uid, options.imap_unsure_folder)
+            self._moveMessage(msg, options.imap_unsure_folder)
 
 if __name__ == '__main__':
     options.verbose = True
