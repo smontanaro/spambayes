@@ -33,6 +33,7 @@ from Options import options
 import hammie
 
 import msgs
+import CostCounter
 
 program = sys.argv[0]
 
@@ -57,6 +58,7 @@ def drive(nsets):
 
     nham = len(hamfns)
     nspam = len(spamfns)
+    cc = CostCounter.default()
 
     allfns = {}
     for fn in spamfns+hamfns:
@@ -70,10 +72,6 @@ def drive(nsets):
     spamtrain = 0
     fp = 0
     fn = 0
-    flexcost = 0
-    FPW = options.best_cutoff_fp_weight
-    FNW = options.best_cutoff_fn_weight
-    UNW = options.best_cutoff_unsure_weight
     SPC = options.spam_cutoff
     HC = options.ham_cutoff
     for dir,name, is_spam in allfns.iterkeys():
@@ -87,10 +85,11 @@ def drive(nsets):
             scr=0.50
         if debug:
             print "score:%.3f"%scr,
+        if is_spam:
+            cc.spam(scr)
+        else:
+            cc.ham(scr)
         if scr < SPC and is_spam:
-            t = FNW * (SPC - scr) / (SPC - HC)
-            #print "Spam at %.3f costs %.2f"%(scr,t)
-            flexcost += t
             if scr < HC:
                 fn += 1
                 if debug:
@@ -103,9 +102,6 @@ def drive(nsets):
             d.train_spam(m)
             d.update_probabilities()
         elif scr > HC and not is_spam:
-            t = FPW * (scr - HC) / (SPC - HC)
-            #print "Ham at %.3f costs %.2f"%(scr,t)
-            flexcost += t
             if scr > SPC:
                 fp += 1
                 if debug:
@@ -130,8 +126,7 @@ def drive(nsets):
         unsure, unsure * 100.0 / len(allfns))
     print "Trained on %d ham and %d spam"%(hamtrain, spamtrain)
     print "fp: %d fn: %d"%(fp, fn)
-    print "Total cost: $%.2f"%(FPW * fp + FNW * fn + UNW * unsure)
-    print "Flex cost: $%.4f"%flexcost
+    print cc
 
 def main():
     import getopt
