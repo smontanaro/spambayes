@@ -11,7 +11,10 @@ if __name__=='__main__':
         sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
 
 import sys, types
-def _(text): return text
+try:
+    _
+except NameError:
+    _ = lambda arg: arg
 
 try:
     True, False
