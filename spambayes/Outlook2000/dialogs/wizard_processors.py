@@ -4,7 +4,7 @@
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-import win32gui, win32con, commctrl
+import win32gui, win32con, win32api, commctrl
 from dialogs import ShowDialog, MakePropertyPage
 
 try:
@@ -30,7 +30,7 @@ class WizardButtonProcessor(processors.ButtonProcessor):
         self.currentPageHwnd = None
         self.finish_fn = finish_fn
         self.page_placeholder_id = self.other_ids[1]
-        
+
     def Init(self):
         processors.ButtonProcessor.Init(self)
         self.back_btn_hwnd = self.GetControl(self.back_btn_id)
@@ -115,26 +115,110 @@ class ConfigureWizardProcessor(WizardButtonProcessor):
         id = self.page_ids[index]
         return id.startswith("IDD_WIZARD_FINISHED")
 
+    def canGoNext(self):
+        # XXX - how to hook this in?  We really want this to be dynamic, as
+        # options change - however, hooking WM_COMMAND at the parent doesn't
+        # work how we want due to the property page being in the middle
+        # (and then I gave up)
+        index = self.currentPageIndex
+        id = self.page_ids[index]
+        config = self.window.manager.config
+        ok = True
+        if id == 'IDD_WIZARD_FOLDERS_WATCH':
+            # todo - check the folder is valid.
+            pass
+        elif id == 'IDD_WIZARD_FOLDERS_REST':
+            # Check we have folders.
+            ok = (config.wizard.spam_folder_name or config.wizard.spam_folder_id) and \
+               (config.wizard.unsure_folder_name or config.wizard.unsure_folder_id)
+        return ok
+        
     def getNextPage(self):
         index = self.currentPageIndex
         id = self.page_ids[index]
         config = self.window.manager.config
-        print "GetNextPAge with current", index, id
+        print "GetNextPage with current", index, id
         if id == 'IDD_WIZARD_WELCOME':
             # Welcome page
             if config.wizard.preparation == 0:
                 return "IDD_WIZARD_FOLDERS_WATCH"
             elif config.wizard.preparation == 1: # pre-prepared.
-                print "getting there"
+                return "IDD_WIZARD_FOLDERS_TRAIN"
             elif config.wizard.preparation == 2: # configure manually
                 return "IDD_WIZARD_FINISHED_UNCONFIGURED"
             else:
                 assert 0, "oops"
+        elif id == 'IDD_WIZARD_FOLDERS_TRAIN':
+            return 'IDD_WIZARD_FOLDERS_WATCH'
         elif id == 'IDD_WIZARD_FOLDERS_WATCH':
             return 'IDD_WIZARD_FOLDERS_REST'
         elif id == 'IDD_WIZARD_FOLDERS_REST':
+            if config.wizard.preparation==1:
+                return 'IDD_WIZARD_TRAIN'
             return 'IDD_WIZARD_FINISHED_UNTRAINED'
+        elif id == 'IDD_WIZARD_TRAIN':
+            print "Need really finished page"
 
 class WatchFolderIDProcessor(opt_processors.FolderIDProcessor):
-    # todo - default to the "inbox" folder
-    pass
+    def __init__(self, window, control_ids,
+                 option, option_include_sub = None,
+                 use_fqn = True,
+                 name_joiner = '\r\n'):
+        opt_processors.FolderIDProcessor.__init__(self, window, control_ids,
+                                                  option, option_include_sub,
+                                                  use_fqn, name_joiner)
+
+# For the wizard - folder "name" in an edit box, and ids used by
+# browse dialog.  If ids None, "name" is assumed off the root, and created
+# if necessary.
+class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
+    def __init__(self, window, control_ids,
+                 option, option_folder_name,
+                 use_fqn = False, name_joiner = "; "):
+        self.button_id = control_ids[1]
+        self.use_fqn = use_fqn
+        self.name_joiner = name_joiner
+        self.in_setting_name = False
+       
+        name_sect_name, name_sub_option_name = option_folder_name.split(".")
+        
+        self.option_folder_name = window.options.get_option(name_sect_name,
+                                                            name_sub_option_name)
+
+        opt_processors.FolderIDProcessor.__init__(self, window, control_ids,
+                                                  option, None,
+                                                  use_fqn, name_joiner)
+
+        # bit of a hack - if "Spam" is default and we have a training folder
+        # then use that
+        if self.GetOptionValue() is None and self.window.manager.config.wizard.train_spam_ids:
+            self.SetOptionValue(self.window.manager.config.wizard.train_spam_ids)
+
+
+    def OnCommand(self, wparam, lparam):
+        mgr = self.window.manager
+        code = win32api.HIWORD(wparam)
+        id = win32api.LOWORD(wparam)
+        if id == self.button_id:
+            if self.DoBrowse():
+                # clobber the name
+                self.SetOptionValue("", self.option_folder_name)
+        elif id == self.control_id:
+            if code==win32con.EN_CHANGE:
+                if not self.in_setting_name :
+                    self.SetOptionValue(None) # reset the folder IDs.
+
+    def UpdateControl_FromValue(self):
+        name_val = self.GetOptionValue(self.option_folder_name)
+        id_val = self.GetOptionValue()
+        print "Got", name_val, id_val
+        if name_val:
+            assert not id_val, "Shouldn't have both name and id!"
+            self.in_setting_name = True
+            win32gui.SetWindowText(self.GetControl(), name_val)
+            self.in_setting_name = False
+        else:
+            if id_val:
+                self.in_setting_name = True
+                opt_processors.FolderIDProcessor.UpdateControl_FromValue(self)
+                self.in_setting_name = False
