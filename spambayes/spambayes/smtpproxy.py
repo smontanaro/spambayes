@@ -358,7 +358,7 @@ class SMTPTrainer(object):
         self.imap = imap
 
     def extractSpambayesID(self, data):
-        msg = message_from_string(data)
+        msg = sbheadermessage_from_string(data)
 
         # The nicest MUA is one that forwards the header intact.
         id = msg.get(options["Headers", "mailid_header_name"])
