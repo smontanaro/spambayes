@@ -542,6 +542,8 @@ installed.
 
  o Get hold of a fresh copy of the source (Windows line endings,
    presumably).
+ o Run the setup.up file in the spambayes/Outlook2000/docs directory
+   to generate the dynamic documentation.
  o Run sb_server and open the web interface.  This gets resourcepackage
    to generate the needed files.
  o Replace the __init__.py file in spambayes/spambayes/resources with
