@@ -155,11 +155,11 @@ def mbox_train(h, path, is_spam, force):
             sys.stdout.flush()
         if msg_train(h, msg, is_spam, force):
             trained += 1
-        if not options["Headers", "include_trained"]:
+        if options["Headers", "include_trained"]:
             # Write it out with the Unix "From " line
             outf.write(msg.as_string(True))
 
-    if not options["Headers", "include_trained"]:
+    if options["Headers", "include_trained"]:
         outf.seek(0)
         try:
             os.ftruncate(f.fileno(), 0)
