@@ -446,13 +446,13 @@ class SMTPTrainer(object):
             # checksum for the message and use that as an id (this would
             # mean that we didn't need to store the id with the message)
             # but that might be a little unreliable.
-            self.classifier.learn(msg.asTokens(), isSpam)
+            self.classifier.learn(msg.tokenize(), isSpam)
         else:
             if msg.GetTrained() == (not isSpam):
-                self.classifier.unlearn(msg.asTokens(), not isSpam)
+                self.classifier.unlearn(msg.tokenize(), not isSpam)
                 msg.RememberTrained(None)
             if msg.GetTrained() is None:
-                self.classifier.learn(msg.asTokens(), isSpam)
+                self.classifier.learn(msg.tokenize(), isSpam)
                 msg.RememberTrained(isSpam)
 
     def train_cached_message(self, id, isSpam):
@@ -490,12 +490,12 @@ class SMTPTrainer(object):
         if msg.GetTrained() == (not isSpam):
             msg.get_substance()
             msg.delSBHeaders()
-            self.classifier.unlearn(msg.asTokens(), not isSpam)
+            self.classifier.unlearn(msg.tokenize(), not isSpam)
             msg.RememberTrained(None)
         if msg.GetTrained() is None:
             msg.get_substance()
             msg.delSBHeaders()
-            self.classifier.learn(msg.asTokens(), isSpam)
+            self.classifier.learn(msg.tokenize(), isSpam)
             msg.RememberTrained(isSpam)
         self.classifier.store()
         return True
