@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 # At the moment, this requires Python 2.3 from CVS
 
-# A driver for the classifier module.  Currently mostly a wrapper around
-# existing stuff.  Neale Pickett <neale@woozle.org> is the person to
-# blame for this.
+# A driver for the classifier module and Tim's tokenizer that you can
+# call from procmail.
 
 """Usage: %(program)s [options]
 
@@ -18,14 +17,14 @@ Where:
         mbox of unknown messages.  A ham/spam decision is reported for each.
     -p FILE
         use file as the persistent store.  loads data from this file if it
-        exists, and saves data to this file at the end.  Default: hammie.db
+        exists, and saves data to this file at the end.  Default: %(DEFAULTDB)s
     -d
         use the DBM store instead of cPickle.  The file is larger and
         creating it is slower, but checking against it is much faster,
         especially for large word databases.
     -f
         run as a filter: read a single message from stdin, add an
-        X-Spam-Disposition header, and write it to stdout.
+        %(DISPHEADER)s header, and write it to stdout.
 """
 
 import sys
@@ -43,6 +42,9 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Name of the header to add in filter mode
 DISPHEADER = "X-Hammie-Disposition"
+
+# Default database name
+DEFAULTDB = "hammie.db"
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
@@ -277,7 +279,7 @@ def main():
     if not opts:
         usage(2, "No options given")
 
-    pck = "hammie.db"
+    pck = DEFAULTDB
     good = spam = unknown = None
     do_filter = usedb = False
     for opt, arg in opts:
