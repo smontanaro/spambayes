@@ -67,7 +67,7 @@ class MsgStream(object):
         for fname in os.listdir(directory):
             yield Msg(directory, fname)
 
-    def produce(self):
+    def xproduce(self):
         import random
         directory = self.directory
         all = os.listdir(directory)
