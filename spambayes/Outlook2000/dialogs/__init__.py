@@ -1,12 +1,46 @@
 # This package defines dialog boxes used by the main
 # SpamBayes Outlook 2k integration code.
+import os, sys, stat
 
-def LoadDialogs(rc_file = "dialogs.rc"):
-    import os
-    from resources import rcparser
-    if not os.path.isabs(rc_file):
-        rc_file = os.path.join( os.path.dirname( rcparser.__file__ ), rc_file)
-    return rcparser.ParseDialogs(rc_file)
+def LoadDialogs(rc_name = "dialogs.rc"):
+    base_name = os.path.splitext(rc_name)[0]
+    mod_name = "resources." + base_name
+    mod = None
+    # If we are running from source code, check the .py file is up to date
+    # wrt the .rc file passed in.
+    # If we are running from binaries, the rc name is not used at all - we
+    # assume someone running from source previously generated the .py!
+    if not hasattr(sys, "frozen"):
+        from resources import rc2py
+        rc_path = os.path.dirname( rc2py.__file__ )
+        if not os.path.isabs(rc_name):
+            rc_name = os.path.join( rc_path, rc_name)
+        py_name = os.path.join(rc_path, base_name + ".py")
+        mtime = size = None
+        if os.path.exists(py_name):
+            try:
+                mod = __import__(mod_name)
+                # mod is the top-level 'resources' module
+                mod = getattr(mod, base_name)
+                mtime = mod._rc_mtime_
+                size = mod._rc_size_
+            except (ImportError, AttributeError):
+                mtime = None
+        try:
+            stat_data = os.stat(rc_name)
+            rc_mtime = stat_data[stat.ST_MTIME]
+            rc_size = stat_data[stat.ST_SIZE]
+        except OSError:
+            rc_mtime = None
+        if rc_mtime!=mtime or rc_size!=size:
+            # Need to generate the dialog.
+            print "Generating %s from %s" % (py_name, rc_name)
+            rc2py.convert(rc_name, py_name)
+    if mod is None:
+        mod = __import__(mod_name)
+        # mod is the top-level 'resources' module
+        mod = getattr(mod, base_name)
+    return mod.FakeParser()
 
 def ShowDialog(parent, manager, config, idd):
     """Displays another dialog"""
@@ -47,6 +81,6 @@ def MakePropertyPage(parent, manager, config, idd, yoffset=24):
     import dlgcore
     dlg = dlgcore.ProcessorPage(parent, manager, config, idd, commands, yoffset)
     return dlg
-    
+
 import dlgutils
 SetWaitCursor = dlgutils.SetWaitCursor
