@@ -317,6 +317,7 @@ class _HTTPHandler(BrighterAsyncChat):
         # hence the two-stage construction.
         BrighterAsyncChat.__init__(self, map=context._map)
         BrighterAsyncChat.set_socket(self, clientSocket, context._map)
+        self._context = context
         self._server = server
         self._request = ''
         self.set_terminator('\r\n\r\n')
@@ -408,8 +409,22 @@ class _HTTPHandler(BrighterAsyncChat):
                     # it go.
                     eType, eValue, eTrace = sys.exc_info()
                     if eType == SystemExit:
-                        ##self.shutdown(2)
-                        raise
+                        # Let any existing connections close down first.  This
+                        # has happened when all we have left are Listeners and
+                        # _HTTPHandlers (including this one and any others
+                        # that are using keep-alive; no others can be actually
+                        # doing any work because *we're* the one doing the
+                        # work).
+                        def isProtected(dispatcher):
+                            return not (isinstance(dispatcher, Listener) or
+                                        isinstance(dispatcher, _HTTPHandler))
+                        
+                        map = self._context._map
+                        while len(filter(isProtected, map.values())) > 0:
+                            asyncore.poll(timeout=1, map=map)
+                        
+                        raise SystemExit
+                        
                     message = """<h3>500 Server error</h3><pre>%s</pre>"""
                     details = traceback.format_exception(eType, eValue, eTrace)
                     details = '\n'.join(details)
