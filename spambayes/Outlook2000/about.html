@@ -39,12 +39,14 @@ donation</a>.<br>
 </h3>
 <p><span style="font-weight: bold;">Filtering in the background:</span>
 When Outlook is under load, SpamBayes may occasionally miss some
-messages (as Outlook doesn't tell us they appeared).&nbsp; Also, if you
-use builtin Outlook rules, you may find that occasionally they also
-fail to filter messages (as both SpamBayes and the builtin rules
-"fight" over processing the message).&nbsp; Both of these
-problems can generally be solved by enabling background filtering of
-messages, via the SpamBayes Manager's <span style="font-style: italic;">Advanced</span>
+messages (as Outlook doesn't tell us they appeared), and if you use
+builtin Outlook rules, you may find that occasionally they also
+fail to filter messages (as both SpamBayes and Outlook
+"fight" over processing the message).&nbsp; To overcome these problems,
+SpamBayes defaults to filtering new messages in the background.&nbsp;
+The enabling or disabling of this feature, and the delay before
+processing new mails can be configured via the SpamBayes Manager's <span
+ style="font-style: italic;">Advanced</span>
 tab. </p>
 <p><span style="font-weight: bold;">Toolbars stop working:</span> Many
 people report that occasionally the toolbars will stop working.&nbsp;
@@ -55,7 +57,12 @@ If you uninstall SpamBayes, the toolbar items will remain when you next
 start Outlook.&nbsp; You can delete the toolbar by right-clicking on
 it, then selecting Customize.&nbsp; Our <a
  href="docs/troubleshooting.html">troubleshooting guide</a> has alot
-more information on toolbars.<br>
+more information on toolbars.</p>
+<p><span style="font-weight: bold;">Late Breaking Problems:</span> For
+problems reported since this version of SpamBayes was released, see the
+online <a
+ href="http://spambayes.sourceforge.net/apps/outlook/bugs.html">frequently
+reported bugs list</a>.<br>
 </p>
 <h3><a name="Field"></a>Viewing and Using the Spam Score Field</h3>
 A custom property named <span style="font-style: italic;">Spam</span>
