@@ -1,10 +1,25 @@
 ###
 ### This is a training regime for the incremental.py harness.
+### It does perfect training on all messages.
+###
+
+class perfect:
+    def __init__(self):
+        pass
+
+    def group_action(self, which, test):
+        pass
+
+    def guess_action(self, which, test, guess, actual, msg):
+        return actual
+
+###
+### This is a training regime for the incremental.py harness.
 ### It does guess-based training on all messages, followed by
 ### correction to perfect at the end of each group.
 ###
 
-class Regime:
+class corrected:
     def __init__(self):
         self.spam_to_ham = []
         self.ham_to_spam = []
@@ -33,3 +48,37 @@ class Regime:
                 else:
                     self.spam_to_ham.append(msg)
         return guess[0]
+
+###
+### This is a training regime for the incremental.py harness.
+### It does perfect training for fp, fn, and unsures.
+###
+
+class fpfnunsure:
+    def __init__(self):
+        pass
+
+    def group_action(self, which, test):
+        pass
+
+    def guess_action(self, which, test, guess, actual, msg):
+        if guess[0] != actual:
+            return actual
+        return 0
+###
+### This is a training regime for the incremental.py harness.
+### It does perfect training for fn, and unsures, leaving
+### false positives broken.
+###
+
+class fnunsure:
+    def __init__(self):
+        pass
+
+    def group_action(self, which, test):
+        pass
+
+    def guess_action(self, which, test, guess, actual, msg):
+        if guess[0] != actual and guess[0] >= 0:
+            return actual
+        return 0

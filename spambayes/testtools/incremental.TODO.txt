@@ -6,8 +6,8 @@ record db size?
 interesting rules:
 perfect -- DONE
 corrected -- DONE
-fpfnunsure
-fnunsure
+fpfnunsure -- DONE
+fnunsure -- DONE
 aging (separate from rules, so can mix it with others?)
 
 interesting transitions:

@@ -41,11 +41,12 @@ There are a few steps to doing incremental training tests:
 4. Run incremental.py to actually process the messages in
    a training and testing run.  How training is done is
    determined by what regime you specify (regimes are
-   defined in helper .py files; see perfect.py and corrected.py
-   for examples).  For large corpora, you may want to do
-   the various set runs separately (by specifying the -s
-   option), instead of building nsets classifiers all
-   in parallel (memory usage can get high).
+   defined in the regimes.py file; see the perfect and
+   corrected classes for examples).  For large corpora,
+   you may want to do the various set runs separately
+   (by specifying the -s option), instead of building
+   nsets classifiers all in parallel (memory usage can
+   get high).
 
    Make sure to save the output of incremental.py into
    a file... by itself it's ugly, but postprocessing

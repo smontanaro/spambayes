@@ -1,8 +1,8 @@
 ###
 ### This is a test harness for doing testing of incremental
 ### training regimes.  The individual regimes used should
-### be specified in separate files; see perfect.py and
-### corrected.py for examples.
+### be specified in regime.py; see the perfect and
+### corrected classes for examples.
 ###
 
 import getopt
@@ -18,6 +18,7 @@ from spambayes import classifier
 from spambayes import msgs
 import email
 from email import Message
+from testtools import regimes
 
 try:
     True, False
@@ -311,10 +312,7 @@ def main():
         # if which is not None and j != which:
         #     continue
         tests.append(Test(classifier.Bayes()))
-        exec """
-import %s
-regimes.append(%s.Regime())
-""" % (regime, regime) in globals(), locals()
+        exec """regimes.append(regimes.%s())""" % (regime) in globals(), locals()
         nham_tested.append([])
         nham_trained.append([])
         nham_right.append([])
