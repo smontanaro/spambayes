@@ -983,7 +983,16 @@ if not optionsPathname:
             windowsUserDirectory = os.path.join(
                     shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),
                     "SpamBayes", "Proxy")
-            optionsPathname = os.path.join(windowsUserDirectory, 'bayescustomize.ini')
+            try:
+                if not os.path.isdir(windowsUserDirectory):
+                    os.makedirs(windowsUserDirectory)
+                optionsPathname = os.path.join(windowsUserDirectory,
+                                               'bayescustomize.ini')
+                # Not everyone is unicode aware - keep it a string.
+                optionsPathname = optionsPathname.encode("mbcs")
+            except os.error:
+                # unable to make the directory - stick to default.
+                pass
         except ImportError:
             # We are on Windows, with no BAYESCUSTOMIZE set, no ini file
             # in the current directory, and no win32 extensions installed
