@@ -12,7 +12,7 @@
 #define IDD_GENERAL                     108
 #define IDD_FILTER_SPAM                 110
 #define IDD_FILTER_UNSURE               111
-#define IDD_DIAGNOSIC                   113
+#define IDD_DIAGNOSTIC                  113
 #define IDD_WIZARD                      114
 #define IDD_WIZARD_WELCOME              115
 #define IDD_WIZARD_FINISHED_UNTRAINED   116

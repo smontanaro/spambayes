@@ -90,7 +90,7 @@ BEGIN
     CONTROL         "",IDC_SLIDER_CERTAIN,"msctls_trackbar32",TBS_AUTOTICKS | 
                     TBS_TOP | WS_TABSTOP,13,62,165,22
     EDITTEXT        IDC_EDIT_CERTAIN,184,63,51,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,13,82,107,10
+    LTEXT           "and these messages should be:",IDC_STATIC,13,82,107,10
     COMBOBOX        IDC_ACTION_CERTAIN,13,93,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "to folder",IDC_STATIC,75,95,31,10
@@ -112,7 +112,7 @@ BEGIN
     CONTROL         "",IDC_SLIDER_UNSURE,"msctls_trackbar32",TBS_AUTOTICKS | 
                     TBS_TOP | WS_TABSTOP,12,18,165,20
     EDITTEXT        IDC_EDIT_UNSURE,183,24,54,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,12,38,107,10
+    LTEXT           "and these messages should be:",IDC_STATIC,12,38,107,10
     COMBOBOX        IDC_ACTION_UNSURE,12,49,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "to folder",IDC_STATIC,74,52,31,10
@@ -120,14 +120,14 @@ BEGIN
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
                     WS_GROUP,119,49,59,14
     PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,49,50,14
-    CONTROL         "Mark posiible spam as read",IDC_MARK_UNSURE_AS_READ,
+    CONTROL         "Mark possible  spam as read",IDC_MARK_UNSURE_AS_READ,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,70,101,10
 END
 
-IDD_DIAGNOSIC DIALOGEX 0, 0, 179, 52
+IDD_DIAGNOSTIC DIALOGEX 0, 0, 179, 52
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Diagnosic"
+CAPTION "Diagnostic"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,122,7,50,14
@@ -201,7 +201,7 @@ BEGIN
     LTEXT           "Spam and Unsure Folders",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes uses two folders to manage your Spam - a folder where 'certain' spam is stored, and another for unsure messages.  The installation wizard will create these folders if they do not exist.",
                     IDC_STATIC,20,22,247,25
-    LTEXT           "If you would prefer to select an existing filder, click the Browse button",
+    LTEXT           "If you would prefer to select an existing folder, click the Browse button",
                     IDC_STATIC,20,54,243,12
     EDITTEXT        IDC_EDIT2,20,86,103,14,ES_AUTOHSCROLL
     LTEXT           "Unsure messages will be delivered to a folder named",
@@ -458,7 +458,7 @@ BEGIN
     CONTROL         "Slider1",IDC_SLIDER_CERTAIN,"msctls_trackbar32",
                     TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,45,165,22
     EDITTEXT        IDC_EDIT_CERTAIN,184,46,51,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,13,65,107,10
+    LTEXT           "and these messages should be:",IDC_STATIC,13,65,107,10
     COMBOBOX        IDC_ACTION_CERTAIN,13,76,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "to folder",IDC_STATIC,75,78,31,10
@@ -472,7 +472,7 @@ BEGIN
     CONTROL         "Slider1",IDC_SLIDER_UNSURE,"msctls_trackbar32",
                     TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,12,128,165,20
     EDITTEXT        IDC_EDIT_UNSURE,183,134,54,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,12,148,107,10
+    LTEXT           "and these messages should be:",IDC_STATIC,12,148,107,10
     COMBOBOX        IDC_ACTION_UNSURE,12,159,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "to folder",IDC_STATIC,74,162,31,10
@@ -482,7 +482,7 @@ BEGIN
     PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,159,50,14
     CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,93,81,10
-    CONTROL         "Mark posiible spam as read",IDC_MARK_UNSURE_AS_READ,
+    CONTROL         "Mark possible spam as read",IDC_MARK_UNSURE_AS_READ,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,179,101,10
 END
 

@@ -331,7 +331,7 @@ dialog_map = {
          "make no change to the read state,mark as read,mark as unread"),
         (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSIC"),
         ),
-    "IDD_DIAGNOSIC" : (
+    "IDD_DIAGNOSTIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),
         (IntProcessor,   "IDC_VERBOSE_LOG",  "General.verbose"),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
