@@ -21,7 +21,7 @@ Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "py2exe\dist\bin\mscvr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+; Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
@@ -52,7 +52,7 @@ Filename: "{app}\bin\outlook_addin_register.exe"; StatusMsg: "Registering Outloo
 ; Possibly register for all users (unregister removes this if it is present, so we don't need
 ; a special case for that). We do both a single-user registration and then the all-user, because
 ; that keeps the script much simpler, and it doesn't do any harm.
-Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHINE"; StatusMsg: "Registering Outlook Addin for all users"; Check: OutlookAllUsers;
+;Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHINE"; StatusMsg: "Registering Outlook Addin for all users"; Check: OutlookAllUsers;
 [UninstallRun]
 Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin";Check: InstallingOutlook;
 
@@ -148,170 +148,35 @@ end;
 
 // Inno has a pretty primitive "Components/Tasks" concept that
 // doesn't quite fit what we want - so we create a custom wizard page.
-function PromptApplications( BackClicked: Boolean): Boolean;
-var
-  Next: Boolean;
-  Prompts, Values: array of String;
-begin
-
-    // First open the custom wizard page
-    ScriptDlgPageOpen();
-
-    // Set some captions
-    ScriptDlgPageSetCaption('Select applications to install');
-    ScriptDlgPageSetSubCaption1('A number of applications are included with this package.');
-    ScriptDlgPageSetSubCaption2('Select the components you wish to install.');
-
-    SetArrayLength(Prompts, 2);
-    SetArrayLength(Values, 2);
-    if InstallOutlook then
-      Prompts[0] := 'Microsoft Outlook Addin (Outlook appears to be installed)'
-    else
-      Prompts[0] := 'Microsoft Outlook Addin (Outlook does not appear to be installed)';
-    Prompts[1] := 'Server/Proxy application, for all other POP based mail clients, including Outlook Express';
-
-    while True do begin
-      if InstallOutlook then Values[0] := '1' else Values[0] := '0';
-      if InstallProxy then Values[1] := '1' else Values[1] := '0';
-      Next:= InputOptionArray(Prompts, Values, False, False);
-      if not Next then Break;
-      InstallOutlook := (Values[0] = '1');
-      InstallProxy := (Values[1] = '1');
-
-      if InstallOutlook and not IsOutlookInstalled and not WarnedNoOutlook then begin
-        if MsgBox(
-              'Outlook does not appear to be installed.' + #13 + #13 +
-              'This addin only works with Microsoft Outlook 2000 and later - it' + #13 +
-              'does not work with Outlook Express.' + #13 + #13 +
-              'If you know that Outlook is installed, you may wish to continue.' + #13 + #13 +
-              'Would you like to change your selection?',
-              mbConfirmation, MB_YESNO) = idNo then begin
-            WarnedNoOutlook := True;
-            Break; // break check loop
-          end;
-          Continue;
-      end;
-
-      if InstallOutlook and InstallProxy and not WarnedBoth then begin
-        if MsgBox(
-              'You have selected to install both the Outlook Addin and the Server/Proxy Applications.' + #13 + #13 +
-              'Unless you regularly use both Outlook and another mailer on the same system,' + #13 +
-              'you do not need both applications.' + #13 + #13 +
-              'Would you like to change your selection?',
-              mbConfirmation, MB_YESNO) = idNo then begin
-            WarnedBoth := True;
-            Break; // break check loop
-          end;
-        Continue
-      end;
-
-      if not InstallOutlook and not InstallProxy then begin
-        MsgBox('You must select one of the applications.', mbError, MB_OK);
-        Continue;
-      end
-      // we got to here, we are OK.
-      Break;
-    end
-    // See NextButtonClick and BackButtonClick: return True if the click should be allowed
-    if not BackClicked then
-      Result := Next
-    else
-      Result := not Next;
-    // Close the wizard page. Do a FullRestore only if the click (see above) is not allowed
-    ScriptDlgPageClose(not Result);
-end;
-
-
-function ScriptDlgPages(CurPage: Integer; BackClicked: Boolean): Boolean;
-begin
-  if (not BackClicked and (CurPage = wpWelcome)) or (BackClicked and (CurPage = wpSelectDir)) then begin
-    // Insert a custom wizard page between two non custom pages
-	Result := PromptApplications( BackClicked );
-  end
-  else
-    Result := True;
-end;
-
-function NextButtonClick(CurPage: Integer): Boolean;
-begin
-  Result := ScriptDlgPages(CurPage, False);
-end;
-
-function BackButtonClick(CurPage: Integer): Boolean;
-begin
-  Result := ScriptDlgPages(CurPage, True);
-end;
-
-function SkipCurPage(CurPage: Integer): Boolean;
-begin
-  Result := (CurPage = wpSelectTasks) and (not InstallProxy);
-end;
-
 
 var
-  InstallOutlook, InstallProxy: Boolean;
-  WarnedNoOutlook, WarnedBoth : Boolean;
-  ComponentsPage: TInputQueryWizardPage;
+  ComponentsPage: TInputOptionWizardPage;
 
 procedure InitializeWizard;
 begin
   { Create the pages }
 
-  ComponentsPage := CreateInputQueryPage(wpWelcome,
-    'Personal Information', 'Who are you?',
-    'Please specify your name and the company for whom you work, then click Next.');
-  UserPage.Add('Name:', False);
-  UserPage.Add('Company:', False);
-
-  UsagePage := CreateInputOptionPage(UserPage.ID,
-    'Personal Information', 'How will you use My Program?',
-    'Please specify how you would like to use My Program, then click Next.',
-    True, False);
-  UsagePage.Add('Light mode (no ads, limited functionality)');
-  UsagePage.Add('Sponsored mode (with ads, full functionality)');
-  UsagePage.Add('Paid mode (no ads, full functionality)');
-
-  { Set default values, using settings that were stored last time if possible }
-
-  UserPage.Values[0] := GetPreviousData('Name', ExpandConstant('{sysuserinfoname}'));
-  UserPage.Values[1] := GetPreviousData('Company', ExpandConstant('{sysuserinfoorg}'));
-
-  case GetPreviousData('UsageMode', '') of
-    'light': UsagePage.SelectedValueIndex := 0;
-    'sponsored': UsagePage.SelectedValueIndex := 1;
-    'paid': UsagePage.SelectedValueIndex := 2;
+  ComponentsPage := CreateInputOptionPage(wpWelcome,
+    'Select applications to install',
+    'A number of applications are included with this package.',
+    'Select the components you wish to install, then click Next.',
+    False, False);
+  if InstallOutlook then
+    ComponentsPage.Add('Microsoft Outlook Addin (Outlook appears to be installed)')
   else
-    UsagePage.SelectedValueIndex := 1;
-  end;
+    ComponentsPage.Add('Microsoft Outlook Addin (Outlook does not appear to be installed)');
+  ComponentsPage.Add('Server/Proxy Application, for all other POP based mail clients, including Outlook Express');
 
-  DataDirPage.Values[0] := GetPreviousData('DataDir', '');
-end;
+  { Set default values based on whether or not Outlook is installed. }
 
-procedure RegisterPreviousData(PreviousDataKey: Integer);
-var
-  UsageMode: String;
-begin
-  { Store the settings so we can restore them next time }
-  SetPreviousData(PreviousDataKey, 'Name', UserPage.Values[0]);
-  SetPreviousData(PreviousDataKey, 'Company', UserPage.Values[1]);
-  case UsagePage.SelectedValueIndex of
-    0: UsageMode := 'light';
-    1: UsageMode := 'sponsored';
-    2: UsageMode := 'paid';
-  end;
-  SetPreviousData(PreviousDataKey, 'UsageMode', UsageMode);
-  SetPreviousData(PreviousDataKey, 'DataDir', DataDirPage.Values[0]);
+  if InstallOutlook then ComponentsPage.Values[0] := True else ComponentsPage.Values[0] := False;
+  if InstallProxy then ComponentsPage.Values[1] := True else ComponentsPage.Values[1] := False;
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   { Skip pages that shouldn't be shown }
-  if (PageID = LightMsgPage.ID) and (UsagePage.SelectedValueIndex <> 0) then
-    Result := True
-  else if (PageID = KeyPage.ID) and (UsagePage.SelectedValueIndex <> 2) then
-    Result := True
-  else
-    Result := False;
+  Result := (PageID = wpSelectTasks) and (not InstallProxy);
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -319,35 +184,39 @@ var
   I: Integer;
 begin
   { Validate certain pages before allowing the user to proceed }
-  if CurPageID = UserPage.ID then begin
-    if UserPage.Values[0] = '' then begin
-      MsgBox('You must enter your name.', mbError, MB_OK);
+  if CurPageID = ComponentsPage.ID then begin
+    InstallOutlook := ComponentsPage.Values[0];
+    InstallProxy := ComponentsPage.Values[1];
+
+    if InstallOutlook and not IsOutlookInstalled and not WarnedNoOutlook then begin
+      if MsgBox(
+            'Outlook does not appear to be installed.' + #13 + #13 +
+            'This addin only works with Microsoft Outlook 2000 and later - it' + #13 +
+            'does not work with Outlook Express.' + #13 + #13 +
+            'If you know that Outlook is installed, you may wish to continue.' + #13 + #13 +
+            'Would you like to change your selection?',
+            mbConfirmation, MB_YESNO) = idNo then begin
+        WarnedNoOutlook := True;
+        Result := True;
+      end else
+        Result := False;
+    end else if InstallOutlook and InstallProxy and not WarnedBoth then begin
+      if MsgBox(
+            'You have selected to install both the Outlook Addin and the Server/Proxy Applications.' + #13 + #13 +
+            'Unless you regularly use both Outlook and another mailer on the same system,' + #13 +
+            'you do not need both applications.' + #13 + #13 +
+            'Would you like to change your selection?',
+            mbConfirmation, MB_YESNO) = idNo then begin
+        WarnedBoth := True;
+        Result := True;
+      end else
+        Result := False;
+    end else if not InstallOutlook and not InstallProxy then begin
+      MsgBox('You must select one of the applications.', mbError, MB_OK);
       Result := False;
-    end else begin
-      if DataDirPage.Values[0] = '' then
-        DataDirPage.Values[0] := 'C:\' + UserPage.Values[0];
+    end else
+      // we got to here, we are OK.
       Result := True;
-    end;
-  end else if CurPageID = KeyPage.ID then begin
-    { Just to show how 'OutputProgress' pages work.
-      Always use a try..finally between the Show and Hide calls as shown below. }
-    ProgressPage.SetText('Authorizing registration key...', '');
-    ProgressPage.SetProgress(0, 0);
-    ProgressPage.Show;
-    try
-      for I := 0 to 10 do begin
-        ProgressPage.SetProgress(I, 10);
-        Sleep(100);
-      end;
-    finally
-      ProgressPage.Hide;
-    end;
-    if KeyPage.Values[0] = 'inno' then
-      Result := True
-    else begin
-      MsgBox('You must enter a valid registration key. (Hint: The key is "inno".)', mbError, MB_OK);
-      Result := False;
-    end;
   end else
     Result := True;
 end;
@@ -358,39 +227,15 @@ var
   S: String;
 begin
   { Fill the 'Ready Memo' with the normal settings and the custom settings }
-  S := '';
-  S := S + 'Personal Information:' + NewLine;
-  S := S + Space + UserPage.Values[0] + NewLine;
-  if UserPage.Values[1] <> '' then
-    S := S + Space + UserPage.Values[1] + NewLine;
+  S := 'Selected applications:' + NewLine;
+  if InstallOutlook then S := S + Space + 'Outlook Addin' + NewLine
+  if InstallProxy then S := S + Space + 'Server/Proxy Application' + NewLine
   S := S + NewLine;
-
-  S := S + 'Usage Mode:' + NewLine + Space;
-  case UsagePage.SelectedValueIndex of
-    0: S := S + 'Light mode';
-    1: S := S + 'Sponsored mode';
-    2: S := S + 'Paid mode';
-  end;
-  S := S + NewLine + NewLine;
-
-  S := S + MemoDirInfo + NewLine;
-  S := S + Space + DataDirPage.Values[0] + ' (personal data files)' + NewLine;
+  
+  S := S + MemoDirInfo + NewLine + NewLine;
+  S := S + MemoGroupInfo + NewLine + NewLine;
+  S := S + MemoTasksInfo;
 
   Result := S;
 end;
 
-function GetUser(Param: String): String;
-begin
-  { Return a user value }
-  { Could also be split into separate GetUserName and GetUserCompany functions }
-  if Param = 'Name' then
-    Result := UserPage.Values[0]
-  else if Param = 'Company' then
-    Result := UserPage.Values[1];
-end;
-
-function GetDataDir(Param: String): String;
-begin
-  { Return the selected DataDir }
-  Result := DataDirPage.Values[0];
-end;
