@@ -32,8 +32,9 @@ from win32gui import *
 # Allow for those without SpamBayes on the PYTHONPATH
 sys.path.insert(-1, os.getcwd())
 sys.path.insert(-1, os.path.dirname(os.getcwd()))
+sys.path.insert(-1, os.path.join(os.path.dirname(os.getcwd()),"scripts"))
 
-import pop3proxy
+import sb_server
 from spambayes import Dibbler
 from spambayes.Options import options
 
@@ -72,13 +73,13 @@ class MainWindow(object):
                                          message_map)
 
         # Get the custom icon
-        startedIconPathName = "%s\\windows\\resources\\sb-started.ico" % \
-                       (os.path.dirname(pop3proxy.__file__),)
-        stoppedIconPathName = "%s\\windows\\resources\\sb-stopped.ico" % \
-                       (os.path.dirname(pop3proxy.__file__),)
+        startedIconPathName = "%s\\..\\windows\\resources\\sb-started.ico" % \
+                       (os.path.dirname(sb_server.__file__),)
+        stoppedIconPathName = "%s\\..\\windows\\resources\\sb-stopped.ico" % \
+                       (os.path.dirname(sb_server.__file__),)
         # When 1.0a6 is released, the above line will need to change to:
 ##        iconPathName = "%s\\..\\windows\\resources\\sbicon.ico" % \
-##                       (os.path.dirname(pop3proxy.__file__),)
+##                       (os.path.dirname(sb_server.__file__),)
         if os.path.isfile(startedIconPathName) and os.path.isfile(stoppedIconPathName):
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
             self.hstartedicon = LoadImage(hinst, startedIconPathName, win32con.IMAGE_ICON, 0,
@@ -92,11 +93,11 @@ class MainWindow(object):
         self.started = False
         self.tip = None
 
-        # Start up pop3proxy
+        # Start up sb_server
         # XXX This needs to be finished off.
         # XXX This should determine if we are using the service, and if so
-        # XXX start that, and if not kick pop3proxy off in a separate thread.
-        pop3proxy.prepare(state=pop3proxy.state)
+        # XXX start that, and if not kick sb_server off in a separate thread.
+        sb_server.prepare(state=sb_server.state)
         self.StartStop()
 
     def BuildToolTip(self):
@@ -104,8 +105,8 @@ class MainWindow(object):
         if self.started == True:
             #%i spam %i unsure %i session %i active
             tip = "SpamBayes %i spam %i ham %i unsure %i sessions %i active" %\
-            (pop3proxy.state.numSpams, pop3proxy.state.numHams, pop3proxy.state.numUnsure,
-             pop3proxy.state.totalSessions, pop3proxy.state.activeSessions)
+            (sb_server.state.numSpams, sb_server.state.numHams, sb_server.state.numUnsure,
+             sb_server.state.totalSessions, sb_server.state.activeSessions)
         else:
             tip = "SpamBayes is not running"
         return tip
@@ -166,23 +167,23 @@ class MainWindow(object):
 
     def OnExit(self):
         if self.started:
-            pop3proxy.stop(pop3proxy.state)
+            sb_server.stop(sb_server.state)
             self.started = False
         DestroyWindow(self.hwnd)
         sys.exit()
         
     def StartProxyThread(self):
-        args = (pop3proxy.state,)
-        thread.start_new_thread(pop3proxy.start, args)
+        args = (sb_server.state,)
+        thread.start_new_thread(sb_server.start, args)
         self.started = True
 
     def StartStop(self):
         # XXX This needs to be finished off.
         # XXX This should determine if we are using the service, and if so
-        # XXX start/stop that, and if not kick pop3proxy off in a separate
+        # XXX start/stop that, and if not kick sb_server off in a separate
         # XXX thread, or stop the thread that was started.
         if self.started:
-            pop3proxy.stop(pop3proxy.state)
+            sb_server.stop(sb_server.state)
             self.started = False
             self.control_functions[START_STOP_ID] = ("Start SpamBayes",
                                                      self.StartStop)
