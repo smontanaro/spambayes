@@ -451,6 +451,27 @@ It is recommended that you configure auto-complete to keep at least a
 few days of Spam around, should the SpamBayes database become corrupt and 
 require you to perform a full re-train.
 
+Will "Show Spam Clues" notify a spammer that I opened their message?
+--------------------------------------------------------------------
+We think not (but we don't have the source code to Outlook to check
+for sure).  In general, there are 2 ways spammers can determine this;
+the first is via an automatic 'Read Receipt' (but this is unusual, as
+the "from" address is generally forged so the receipt goes nowhere
+useful).  The second common trick is by sending HTML spam that
+references unique URLs (generally images) on the spammer's server.
+When this HTML message is rendered, these fetching of these URLs 
+identifies to the spammer the associated email address.
+
+As far as we are aware, SpamBayes does not generate a "read receipt"
+for "Show Spam Clues", even though the message is marked as read (and
+we don't know how to prevent it being marked as read).  However
+that if you are concerned about this, you are encouraged to configure
+Outlook's generation of receipts manually.
+
+Further, as "Show Spam Clues" does not attempt to render the HTML nor
+otherwise contact any of the URLs in the message, this will not
+register a hit on the spammer's server.
+
 Using Spambayes
 ===============
 
