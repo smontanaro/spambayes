@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by dialogs.rc
 //
 #define IDD_MANAGER                     101
@@ -14,6 +14,11 @@
 #define IDD_FILTER_UNSURE               111
 #define IDD_DIAGNOSIC                   113
 #define IDD_WIZARD                      114
+#define IDD_WIZARD_WELCOME              115
+#define IDD_WIZARD_FINISHED_UNTRAINED   116
+#define IDD_WIZARD_FOLDERS_REST         117
+#define IDD_WIZARD_FOLDERS_WATCH        118
+#define IDD_WIZARD_FINISHED_UNCONFIGURED 119
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -82,14 +87,17 @@
 #define IDC_HIDDEN                      1076
 #define IDC_FORWARD_BTN                 1077
 #define IDC_PAGE_PLACEHOLDER            1078
+#define IDC_EDIT2                       1080
+#define IDC_EDIT3                       1081
+#define IDC_BUT_PREPARATION             1081
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        115
+#define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1079
+#define _APS_NEXT_CONTROL_VALUE         1082
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
