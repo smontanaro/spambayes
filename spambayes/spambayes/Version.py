@@ -28,32 +28,39 @@ versions = {
     # Sub-dict for application specific version strings.
     "Apps": {
         "sb_filter" : {
-            "Version":          0.2,
+            "Version":          0.3,
             "Description":      "SpamBayes Command Line Filter",
-            "Date":             "February 2004",
+            "Date":             "April 2004",
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
-            "Version":          0.9,
-            "BinaryVersion":    0.9,
+            # Note these version numbers currently don't appear in the
+            # "description" strings below - they just need to increment
+            # so automated version checking works.
+            # 0.99 indicates '1.0b/rc/' so will go 0.992 etc, until a real
+            # 1.0, which can get 1.0 :)
+            "Version":          0.991,
+            "BinaryVersion":    0.991,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "February 2004",
-            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
+            "Date":             "April 2004",
+            "Full Description": "%(Description)s Version 1.0b1 (%(Date)s)",
             "Full Description Binary":
-                                "%(Description)s Binary Version %(BinaryVersion)s (%(Date)s)",
+                                "%(Description)s Binary Version 1.0b1 (%(Date)s)",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
             "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "POP3 Proxy" : {
-            "Version":          0.4,
-            "BinaryVersion":    0.4,
+            # Note these version numbers also currently don't appear in the
+            # "description" strings below - see above
+            "Version":          0.5,
+            "BinaryVersion":    0.5,
             "Description":      "SpamBayes POP3 Proxy",
-            "Date":             "February 2004",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
+            "Date":             "April 2004",
+            "Full Description": """%(Description)s Version 1.0b1 (%(Date)s)""",
             "Full Description Binary":
-                                """%(Description)s Binary Version %(BinaryVersion)s (%(Date)s)""",
+                                """%(Description)s Binary Version 1.0b1 (%(Date)s)""",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
@@ -66,9 +73,9 @@ versions = {
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "IMAP Filter" : {
-            "Version":          0.2,
+            "Version":          0.3,
             "Description":      "SpamBayes IMAP Filter",
-            "Date":             "February 2004",
+            "Date":             "April 2004",
             "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
         },
         "IMAP Server" : {
