@@ -172,6 +172,16 @@ runtest.sh
     works, then paste the output to the spambayes list for good karma.
 
 
+Experimental Files
+==================
+clgen.py
+    A test driver only for use with one of the speculative central-limit
+    schemes.  Its purpose is to generate a binary pickle containing
+    internal information about every prediction made.  This will go
+    away someday.
+    XXX Still need tools to analyze this data.
+
+
 Standard Test Data Setup
 ========================
 Barry gave me mboxes, but the spam corpus I got off the web had one spam
