@@ -78,6 +78,7 @@ if sys.version_info >= (2, 3):
 from win32com.client import Dispatch, constants
 from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
+import pythoncom
 
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
@@ -153,11 +154,12 @@ class MAPIMsgStore(MsgStore):
         folder = MAPIMsgStoreFolder(self, folder_eid, "Unknown - temp message", -1)
         return  MAPIMsgStoreMsg(self, folder, message_id, unread)        
 
-    def GetOutlookObjectFromID(self, eid):
-        if self.outlook is None:
-            from win32com.client import Dispatch
-            self.outlook = Dispatch("Outlook.Application")
-        return self.outlook.Session.GetItemFromID(mapi.HexFromBin(eid))
+##    # Currently no need for this
+##    def GetOutlookObjectFromID(self, eid):
+##        if self.outlook is None:
+##            from win32com.client import Dispatch
+##            self.outlook = Dispatch("Outlook.Application")
+##        return self.outlook.Session.GetItemFromID(mapi.HexFromBin(eid))
 
 
 _MapiTypeMap = {
@@ -211,26 +213,47 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     def GetOutlookEntryID(self):
         return mapi.HexFromBin(self.id)
 
+    def _GetPropFromStream(self, prop_id):
+        try:
+            stream = self.mapi_object.OpenProperty(prop_id, pythoncom.IID_IStream, 0, 0)
+            chunks = []
+            while 1:
+                chunk = stream.Read(1024)
+                if not chunk: break
+                chunks.append(chunk)
+            return "".join(chunks)
+        except pythoncom.com_error, d:
+            print "Error getting property from stream", d
+            return ""
+
+    def _GetPotentiallyLargeStringProp(self, prop_id, row):
+        got_tag, got_val = row
+        if PROP_TYPE(got_tag)==PT_ERROR:
+            ret = ""
+            if got_val==mapi.MAPI_E_NOT_FOUND:
+                pass # No body for this message.
+            elif got_val==mapi.MAPI_E_NOT_ENOUGH_MEMORY:
+                # Too big for simple properties - get via a stream
+                ret = self._GetPropFromStream(prop_id)
+            else:
+                tag_name = mapiutil.GetPropTagName(prop_id)
+                err_string = mapiutil.GetScodeString(got_val)
+                print "Warning - failed to get property %s: %s" % (tag_name, err_string)
+        else:
+            ret = got_val
+        return ret
+
     def _GetMessageText(self):
+        # This is finally reliable.  The only messages this now fails for
+        # are for "forwarded" messages, where the forwards are actually
+        # in an attachment.  Later.
         self._EnsureObject()
-        prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY, MYPR_BODY_HTML_A
+        prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY_A, MYPR_BODY_HTML_A
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         headers = data[0][1]
-        if type(headers) != type(''): headers = '' # If no field will be an int error (the tag([0]) would tell us, but this is easier)
-        body = data[1][1]
-        if type(body) != type(''): body= '' # If no field will be an int error (the tag([0]) would tell us, but this is easier)
-        # Messages with "text/html" and "multipart/*" give grief.
-        # In some cases, the HTML body appears *only* accessible via Outlook :(  Outlook is slow, so try and avoid
-        # Tried using the "_W" props, and indeed tried dumping every prop - these HTML messages are hidden from Mapi!
-        if PROP_TYPE(data[2][0])==PT_ERROR:
-            # No HTML body - see if one of our problem children.
-            html = ""
-            lo_headers = headers.lower()
-            if lo_headers.find("content-type: text/html")>=0 or lo_headers.find("content-type: multipart/")>=0:
-                outlook_msg = self.msgstore.GetOutlookObjectFromID(self.id)
-                html = outlook_msg.HTMLBody.encode("ascii", "replace")
-        else:
-            html = data[2][1]
+        headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
+        body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
+        html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
         return headers + "\n" + html + "\n" + body
 
     def _EnsureObject(self):
