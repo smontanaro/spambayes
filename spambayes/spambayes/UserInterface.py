@@ -1045,10 +1045,14 @@ days), you can no longer find them.</p>
                               "I am having is [DESCRIBE YOUR PROBLEM HERE] " \
                               % (sb_ver, sb_type, py_ver, os_name,
                                  self.classifier.nham, self.classifier.nspam)
-        domain_guess = options["pop3proxy", "remote_servers"][0]
-        for pre in ["pop.", "pop3.", "mail.",]:
-            if domain_guess.startswith(pre):
-                domain_guess = domain_guess[len(pre):]
+        remote_servers = options["pop3proxy", "remote_servers"]
+        if remote_servers:
+            domain_guess = remote_servers[0]
+            for pre in ["pop.", "pop3.", "mail.",]:
+                if domain_guess.startswith(pre):
+                    domain_guess = domain_guess[len(pre):]
+        else:
+            domain_guess = "[YOUR ISP]"
         report.from_addr.value = "[YOUR EMAIL ADDRESS]@%s" % (domain_guess,)
         report.subject.value = "Problem with %s: [PROBLEM SUMMARY]" % \
                                (self.app_for_version,)
