@@ -801,10 +801,9 @@ def crack_urls(text):
         assert guts
         while guts and guts[-1] in '.:?!/':
             guts = guts[:-1]
-        for i, piece in enumerate(guts.split('/')):
-            prefix = "%s%s:" % (proto, i < 2 and str(i) or '>1')
+        for piece in guts.split('/'):
             for chunk in urlsep_re.split(piece):
-                pushclue(prefix + chunk)
+                pushclue("url:" + chunk)
 
         i = end
 
