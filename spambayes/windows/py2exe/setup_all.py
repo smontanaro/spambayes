@@ -126,6 +126,7 @@ outlook_data_files = [
 ]
 proxy_data_files = [
     ["docs/sb_server", [os.path.join(sb_top_dir, r"windows\readme_proxy.html")]],
+    ["docs/sb_server", [os.path.join(sb_top_dir, r"windows\docs\troubleshooting.html")]],
     # note that this includes images that are already in the outlook/docs/images
     # directory - we need to consolidate the documentation (in terms of
     # sharing images, if nothing else)
