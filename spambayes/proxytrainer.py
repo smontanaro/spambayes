@@ -229,8 +229,8 @@ class UserInterface(BrighterAsyncChat):
                                border-bottom: 1px solid #808080;
                                font-weight: bold }
              .sectionbody { padding: 1em }
-             .reviewheaders a { color: #000000 }
-             .stripe_on td { background: #f4f4f4 }
+             .reviewheaders a { color: #000000; font-weight: bold }
+             .stripe_on td { background: #dddddd }
              </style>
              </head>\n"""
 
@@ -283,6 +283,8 @@ class UserInterface(BrighterAsyncChat):
                    <form action='review' method='GET'>
                        <input type='hidden' name='prior' value='%d'>
                        <input type='hidden' name='next' value='%d'>
+                       <input type='hidden' name='startAt' value='%d'>
+                       <input type='hidden' name='howMany' value='%d'>
                        <table border='0' cellpadding='0' cellspacing='0'>
                        <tr><td><input type='submit' name='go'
                                       value='Previous day' %s>&nbsp;</td>
@@ -320,12 +322,11 @@ class UserInterface(BrighterAsyncChat):
     reviewSubheader = \
         """<tr><td><b>Messages classified as %s:</b></td>
           <td><b>From:</b></td>
-          <td class='reviewheaders' nowrap><b>
-              <a href='javascript: onHeader("%s", "Discard");'>Discard</a> /
-              <a href='javascript: onHeader("%s", "Defer");'>Defer</a> /
-              <a href='javascript: onHeader("%s", "Ham");'>Ham</a> /
-              <a href='javascript: onHeader("%s", "Spam");'>Spam</a>
-          </b></td></tr>"""
+          <td class='reviewheaders'><a href='javascript: onHeader("%s", "Discard");'>Discard</a></td>
+          <td class='reviewheaders'><a href='javascript: onHeader("%s", "Defer");'>Defer</a></td>
+          <td class='reviewheaders'><a href='javascript: onHeader("%s", "Ham");'>Ham</a></td>
+          <td class='reviewheaders'><a href='javascript: onHeader("%s", "Spam");'>Spam</a></td>
+          </tr>"""
 
     upload = """<form action='%s' method='POST'
                 enctype='multipart/form-data'>
@@ -656,15 +657,22 @@ class UserInterface(BrighterAsyncChat):
         # Return the keys and their date.
         return keys, date, prior, start, end
 
-    def appendMessages(self, lines, keyedMessages, label):
+    def appendMessages(self, lines, keyedMessages, label, startAt, howMany):
         """Appends the lines of a table of messages to 'lines'."""
         buttons = \
-          """<input type='radio' name='classify:%s:%s' value='discard'>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='defer' %s>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='ham' %s>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='spam' %s>"""
+          """<td align='center'><input type='radio' name='classify:%s:%s' value='discard'></td>
+             <td align='center'><input type='radio' name='classify:%s:%s' value='defer' %s></td>
+             <td align='center'><input type='radio' name='classify:%s:%s' value='ham' %s></td>
+             <td align='center'><input type='radio' name='classify:%s:%s' value='spam' %s></td>"""
         stripe = 0
+        i = -1
         for key, message in keyedMessages:
+            i += 1
+            if i < startAt:
+                continue
+            if i >= startAt+howMany:
+                break
+
             # Parse the message and get the relevant headers and the first
             # part of the body if we can.
             subject = self.trimAndQuote(message["Subject"] or "(none)", 50)
@@ -686,22 +694,36 @@ class UserInterface(BrighterAsyncChat):
             text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
             text = self.trimAndQuote(text.strip(), 200, True)
 
+            buttonLabel = label
+            # classify unsure messages
+            if buttonLabel == 'Unsure':
+                tokens = tokenizer.tokenize(message)
+                prob, clues = state.bayes.spamprob(tokens, evidence=True)
+                if prob < options.ham_cutoff:
+                    buttonLabel = 'Ham'
+                elif prob >= options.spam_cutoff:
+                    buttonLabel = 'Spam'
+
             # Output the table row for this message.
             defer = ham = spam = ""
-            if label == 'Spam':
+            if buttonLabel == 'Spam':
                 spam='checked'
-            elif label == 'Ham':
+            elif buttonLabel == 'Ham':
                 ham='checked'
-            elif label == 'Unsure':
+            elif buttonLabel == 'Unsure':
                 defer='checked'
-            subject = "<span title=\"%s\">%s</span>" % (text, subject)
-            radioGroup = buttons % (label, key,
-                                    label, key, defer,
-                                    label, key, ham,
-                                    label, key, spam)
+            subject = ('<span title="%s">'
+                       '<a target=_top href="/view?key=%s&corpus=%s">'
+                       '%s'
+                       '</a>'
+                       '</span>') % (text, key, label, subject)
+            radioGroup = buttons % (buttonLabel, key,
+                                    buttonLabel, key, defer,
+                                    buttonLabel, key, ham,
+                                    buttonLabel, key, spam)
             stripeClass = ['stripe_on', 'stripe_off'][stripe]
             lines.append("""<tr class='%s'><td>%s</td><td>%s</td>
-                            <td align='center'>%s</td></tr>""" % \
+                            %s</tr>""" % \
                             (stripeClass, subject, from_, radioGroup))
             stripe = stripe ^ 1
 
@@ -711,8 +733,14 @@ class UserInterface(BrighterAsyncChat):
         id = ''
         numTrained = 0
         numDeferred = 0
+        startAt = 0
+        howMany = 20
         for key, value in params.items():
-            if key.startswith('classify:'):
+            if key == 'startAt':
+                startAt = int(value)
+            elif key == 'howMany':
+                howMany = int(value)
+            elif key.startswith('classify:'):
                 id = key.split(':')[2]
                 if value == 'spam':
                     targetCorpus = state.spamCorpus
@@ -796,17 +824,20 @@ class UserInterface(BrighterAsyncChat):
             if not next:
                 nextState = 'disabled'
             lines = [self.onReviewHeader,
-                     self.reviewHeader % (prior, next, priorState, nextState)]
+                     self.reviewHeader % (prior, next,
+                                          startAt+howMany, howMany,
+                                          priorState, nextState)]
             for header, label in ((options.header_spam_string, 'Spam'),
                                   (options.header_ham_string, 'Ham'),
                                   (options.header_unsure_string, 'Unsure')):
                 if keyedMessages[header]:
-                    lines.append("<tr><td>&nbsp;</td><td></td><td></td></tr>")
+                    lines.append("<tr><td>&nbsp;</td><td></td></tr>")
                     lines.append(self.reviewSubheader %
                                  (label, label, label, label, label))
-                    self.appendMessages(lines, keyedMessages[header], label)
+                    self.appendMessages(lines, keyedMessages[header], label,
+                                        startAt, howMany)
 
-            lines.append("""<tr><td></td><td></td><td align='center'>&nbsp;<br>
+            lines.append("""<tr><td></td><td></td><td align='center' colspan='4'>&nbsp;<br>
                             <input type='submit' value='Train'></td></tr>""")
             lines.append("</table></form>")
             content = "\n".join(lines)
@@ -852,6 +883,25 @@ class UserInterface(BrighterAsyncChat):
                 self.pageSection % ('Word query', query))
         self.push(body)
 
+    def onView(self, params):
+        msgkey = corpus = None
+        for key, value in params.items():
+            if key == 'key':
+                msgkey = value
+            elif key == 'corpus':
+                corpus = value
+            if msgkey is not None and corpus is not None:
+                message = state.unknownCorpus.get(msgkey)
+                if message is None:
+                    self.push("<p>Can't find message %s.\n" % msgkey)
+                    self.push("Maybe it expired.</p>\n")
+                else:
+                    self.push("<pre>")
+                    self.push(message.hdrtxt.replace("<", "&lt;"))
+                    self.push("\n")
+                    self.push(message.payload.replace("<", "&lt;"))
+                    self.push("</pre>")
+                msgkey = corpus = None
 
 # This keeps the global state of the module - the command-line options,
 # statistics like how many mails have been classified, the handle of the
@@ -877,7 +927,6 @@ class State:
         self.hamCache = options.pop3proxy_ham_cache
         self.unknownCache = options.pop3proxy_unknown_cache
         self.runTestServer = False
-        self.isTest = False
         if self.gzipCache:
             factory = GzipFileMessageFactory()
         else:
@@ -903,36 +952,27 @@ class State:
         self.bayes = storage.DBDictClassifier(self.databaseFilename)
         print "Done."
 
-        # Don't set up the caches and training objects when running the
-        # self-test, so as not to clutter the filesystem.
-        if not self.isTest:
-            def ensureDir(dirname):
-                try:
-                    os.mkdir(dirname)
-                except OSError, e:
-                    if e.errno != errno.EEXIST:
-                        raise
+        def ensureDir(dirname):
+            try:
+                os.mkdir(dirname)
+            except OSError, e:
+                if e.errno != errno.EEXIST:
+                    raise
 
-            # Create/open the Corpuses.
-            map(ensureDir, [self.spamCache, self.hamCache, self.unknownCache])
-            if self.gzipCache:
-                factory = GzipFileMessageFactory()
-            else:
-                factory = FileMessageFactory()
-            age = options.pop3proxy_cache_expiry_days*24*60*60
-            self.spamCorpus = ExpiryFileCorpus(age, factory, self.spamCache)
-            self.hamCorpus = ExpiryFileCorpus(age, factory, self.hamCache)
-            self.unknownCorpus = FileCorpus(factory, self.unknownCache)
+        # Create/open the Corpuses.
+        map(ensureDir, [self.spamCache, self.hamCache, self.unknownCache])
+        if self.gzipCache:
+            factory = GzipFileMessageFactory()
+        else:
+            factory = FileMessageFactory()
+        age = options.pop3proxy_cache_expiry_days*24*60*60
+        self.spamCorpus = ExpiryFileCorpus(age, factory, self.spamCache)
+        self.hamCorpus = ExpiryFileCorpus(age, factory, self.hamCache)
+        self.unknownCorpus = FileCorpus(factory, self.unknownCache)
 
-            # Expire old messages from the trained corpuses.
-            self.spamCorpus.removeExpiredMessages()
-            self.hamCorpus.removeExpiredMessages()
-
-            # Create the Trainers.
-            self.spamTrainer = storage.SpamTrainer(self.bayes)
-            self.hamTrainer = storage.HamTrainer(self.bayes)
-            self.spamCorpus.addObserver(self.spamTrainer)
-            self.hamCorpus.addObserver(self.hamTrainer)
+        # Expire old messages from the trained corpuses.
+        self.spamCorpus.removeExpiredMessages()
+        self.hamCorpus.removeExpiredMessages()
 
 state = State()
 
@@ -946,43 +986,6 @@ def main(uiPort, launchUI):
     asyncore.loop()
 
 
-
-# ===================================================================
-# Test code.
-# ===================================================================
-
-# One example of spam and one of ham - both are used to train, and are
-# then classified.  Not a good test of the classifier, but a perfectly
-# good test of the POP3 proxy.  The bodies of these came from the
-# spambayes project, and I added the headers myself because the
-# originals had no headers.
-
-spam1 = """From: friend@public.com
-Subject: Make money fast
-
-Hello tim_chandler , Want to save money ?
-Now is a good time to consider refinancing. Rates are low so you can cut
-your current payments and save money.
-
-http://64.251.22.101/interest/index%38%30%300%2E%68t%6D
-
-Take off list on site [s5]
-"""
-
-good1 = """From: chris@example.com
-Subject: ZPT and DTML
-
-Jean Jordaan wrote:
-> 'Fraid so ;>  It contains a vintage dtml-calendar tag.
->   http://www.zope.org/Members/teyc/CalendarTag
->
-> Hmm I think I see what you mean: one needn't manually pass on the
-> namespace to a ZPT?
-
-Yeah, Page Templates are a bit more clever, sadly, DTML methods aren't :-(
-
-Chris
-"""
 
 # ===================================================================
 # __main__ driver.
@@ -1016,5 +1019,4 @@ def run():
     main(state.uiPort, state.launchUI)
 
 if __name__ == '__main__':
-    sys.setrecursionlimit(100)
     run()
