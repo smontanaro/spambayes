@@ -294,7 +294,7 @@ BEGIN
     LTEXT           "SpamBayes will not be effective until it is trained",
                     IDC_STATIC,11,8,191,14
     PUSHBUTTON      "About...",IDC_BUT_ABOUT,214,140,60,15
-    LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no builtin rules, so must have some training information before it will be effective",
+    LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no built-in rules, so must have some training information before it will be effective",
                     IDC_STATIC,11,21,263,30
     LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Delete as Spam' and 'Recover from Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
                     IDC_STATIC,22,61,252,29
@@ -323,7 +323,7 @@ BEGIN
                     IDC_STATIC,20,46,247,35
     LTEXT           "For examples of spam messages, you may like to look through your Deleted Items folder, and your Inbox.  However, you will not be able to specify the Deleted Items folder as examples of spam, so you will need to move them to a folder you create.",
                     IDC_STATIC,20,82,247,35
-    LTEXT           "When you are finished, open the SpamBayes Manager via the SpamBayes toobar, and re-start the Configuration Wizard.",
+    LTEXT           "When you are finished, open the SpamBayes Manager via the SpamBayes toolbar, and re-start the Configuration Wizard.",
                     IDC_STATIC,20,121,245,17
 END
 
