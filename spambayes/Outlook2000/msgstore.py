@@ -429,7 +429,24 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if self.mapi_object is None:
             self.mapi_object = self.msgstore._OpenEntry(self.id)
 
-    def GetEmailPackageObject(self):
+    def GetEmailPackageObject(self, strip_content_type=True):
+        # Return an email.Message object.
+        # strip_content_type is a hack, and should be left True unless you're
+        # trying to display all the headers for diagnostic purposes.  If we
+        # figure out something better to do, it should go away entirely.
+        # The problem:  suppose a msg is multipart/alternative, with
+        # text/plain and text/html sections.  The latter MIME decorations
+        # are plain missing in what _GetMessageText() returns.  If we leave
+        # the multipart/alternative in the headers anyway, the email
+        # package's "lax parsing" won't complain about not finding any
+        # sections, but since the type *is* multipart/alternative then
+        # anyway, the tokenizer finds no text/* parts at all to tokenize.
+        # As a result, only the headers get tokenized.  By stripping
+        # Content-Type from the headers (if present), the email pkg
+        # considers the body to be text/plain (the default), and so it
+        # does get tokenized.
+        # Short course:  we either have to synthesize non-insane MIME
+        # structure, or eliminate all evidence of original MIME structure.
         import email
         text = self._GetMessageText()
         try:
@@ -437,6 +454,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         except:
             print "FAILED to create email.message from: ", `text`
             raise
+
+        if strip_content_type:
+            if msg.has_key('content-type'):
+                del msg['content-type']
+
         return msg
 
     def SetField(self, prop, val):
