@@ -719,6 +719,7 @@ class ExplorerWithEvents:
 # Events from our "Explorers" collection (not an Explorer instance)
 class ExplorersEvent:
     def Init(self, manager):
+        assert self.manager
         self.manager = manager
         self.explorers = []
         self.have_created_toolbar = False
@@ -917,13 +918,14 @@ class OutlookAddin:
     def OnStartupComplete(self, custom):
         # Toolbar and other UI stuff must be setup once startup is complete.
         explorers = self.application.Explorers
-        # and Explorers events so we know when new explorers spring into life.
-        self.explorers_events = WithEvents(explorers, ExplorersEvent)
-        self.explorers_events.Init(self.manager)
-        # And hook our UI elements to all existing explorers
-        for i in range(explorers.Count):
-            explorer = explorers.Item(i+1)
-            self.explorers_events._DoNewExplorer(explorer)
+        if self.manager is not None: # If we successfully started up.
+            # and Explorers events so we know when new explorers spring into life.
+            self.explorers_events = WithEvents(explorers, ExplorersEvent)
+            self.explorers_events.Init(self.manager)
+            # And hook our UI elements to all existing explorers
+            for i in range(explorers.Count):
+                explorer = explorers.Item(i+1)
+                self.explorers_events._DoNewExplorer(explorer)
 
     def OnBeginShutdown(self, custom):
         pass
