@@ -94,6 +94,23 @@ class UserInterfaceServer(Dibbler.HTTPServer):
         Dibbler.HTTPServer.__init__(self, uiPort)
         print 'User interface url is http://localhost:%d/' % (uiPort)
 
+    def requestAuthenticationMode(self):
+        return options["html_ui", "http_authentication"]
+
+    def getRealm(self):
+        return "SpamBayes Web Interface"
+
+    def isValidUser(self, name, password):
+        return (name == options["html_ui", "http_user_name"] and
+                password == options["html_ui", "http_password"])
+
+    def getPasswordForUser(self, name):
+        # There is only one login available in the web interface.
+        return options["html_ui", "http_password"]
+
+    def getCancelMessage(self):
+        return "You must login to use SpamBayes."""
+
 
 class BaseUserInterface(Dibbler.HTTPPlugin):
     def __init__(self):

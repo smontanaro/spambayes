@@ -169,7 +169,7 @@ try:
 except ImportError:
     import StringIO
 
-import os, sys, re, time, traceback
+import os, sys, re, time, traceback, md5, base64
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
 
 try:
@@ -290,6 +290,10 @@ class HTTPServer(Listener):
     `context` optionally specifies a `Dibbler.Context` for the server.
     """
 
+    NO_AUTHENTICATION     = "None"
+    BASIC_AUTHENTICATION  = "Basic"
+    DIGEST_AUTHENTICATION = "Digest"
+
     def __init__(self, port=('', 80), context=_defaultContext):
         """Create an `HTTPServer` for the given port."""
         Listener.__init__(self, port, _HTTPHandler,
@@ -305,6 +309,30 @@ class HTTPServer(Listener):
         server."""
         for plugin in plugins:
             self._plugins.append(plugin)
+
+    def requestAuthenticationMode(self):
+        """Override: HTTP Authentication. It should return a value among
+        NO_AUTHENTICATION, BASIC_AUTHENTICATION and DIGEST_AUTHENTICATION.
+        The two last values will force HTTP authentication respectively
+        through Base64 and MD5 encodings."""
+        return self.NO_AUTHENTICATION
+
+    def isValidUser(self, name, password):
+        """Override: Return True for authorized logins."""
+        return True
+
+    def getPasswordForUser(self, name):
+        """Override: Return the password associated to the specified user
+        name."""
+        return ''
+
+    def getRealm(self):
+        """Override: Specify the HTTP authentication realm."""
+        return "Dibbler application server"
+
+    def getCancelMessage(self):
+        """Override: Specify the cancel message for an HTTP Authentication."""
+        return "You must log in."""
 
 
 class _HTTPHandler(BrighterAsyncChat):
@@ -383,6 +411,32 @@ class _HTTPHandler(BrighterAsyncChat):
         params = {}
         for name, value in cgiParams.iteritems():
             params[name] = value[0]
+
+        # Parse the headers.
+        headersRegex = re.compile('([^:]*):\s*(.*)')
+        headersDict = dict([headersRegex.match(line).groups(2)
+                           for line in headers.split('\r\n')
+                           if headersRegex.match(line)])
+        
+        # HTTP Basic/Digest Authentication support.
+        serverAuthMode = self._server.requestAuthenticationMode()
+        if serverAuthMode != HTTPServer.NO_AUTHENTICATION:
+            # The server wants us to authenticate the user.
+            authResult = False
+            authHeader = headersDict.get('Authorization')
+            if authHeader:
+                authMatch = re.search('(\w+)\s+(.*)', authHeader)
+                authenticationMode, login = authMatch.groups()
+
+                if authenticationMode == HTTPServer.BASIC_AUTHENTICATION:
+                    authResult = self._basicAuthentication(login)
+                elif authenticationMode == HTTPServer.DIGEST_AUTHENTICATION:
+                    authResult = self._digestAuthentication(login, method)
+                else:
+                    print >>sys.stdout, "Unknown mode: %s" % authenticationMode
+
+            if not authResult:
+                self.writeUnauthorizedAccess(serverAuthMode)
 
         # Find and call the methlet.  '/eggs.gif' becomes 'onEggsGif'.
         if path == '/':
@@ -491,6 +545,94 @@ class _HTTPHandler(BrighterAsyncChat):
         if content is None:
             content = ''
         self.push('\r\n'.join(headers) + str(content))
+
+    def writeUnauthorizedAccess(self, authenticationMode):
+        """Access is protected by HTTP authentication."""
+        if authenticationMode == HTTPServer.BASIC_AUTHENTICATION:
+            authString = self._getBasicAuthString()
+        elif authenticationMode == HTTPServer.DIGEST_AUTHENTICATION:
+            authString = self._getDigestAuthString()
+        else:
+            self.writeError(500, "Inconsistent authentication mode.")
+            return
+        
+        headers = []
+        headers.append('HTTP/1.0 401 Unauthorized')
+        headers.append('WWW-Authenticate: ' + authString)
+        headers.append('Connection: close')
+        headers.append('Content-Type: text/html')
+        headers.append('')
+        headers.append('')
+        self.write('\r\n'.join(headers) + self._server.getCancelMessage())
+        self.close_when_done()
+
+    def _getDigestAuthString(self):
+        """Builds the WWW-Authenticate header for Digest authentication."""
+        authString  = 'Digest realm="' + self._server.getRealm() + '"'
+        authString += ', nonce="' + self._getCurrentNonce() + '"'
+        authString += ', opaque="0000000000000000"'
+        authString += ', stale="false"'
+        authString += ', algorithm="MD5"'
+        authString += ', qop="auth"'
+        return authString
+
+    def _getBasicAuthString(self):
+        """Builds the WWW-Authenticate header for Basic authentication."""
+        return 'Basic realm="' + self._server.getRealm() + '"'
+
+    def _getCurrentNonce(self):
+        """Returns the current nonce value. This value is a Base64 encoding 
+        of current time plus one minute. This means the nonce will expire a
+        minute from now."""
+        timeString = time.asctime(time.localtime(time.time() + 60))
+        return base64.encodestring(timeString).rstrip('\n=')
+
+    def _isValidNonce(self, nonce):
+        """Check if the specified nonce is still valid. A nonce is invalid
+        when its time converted value is lower than current time."""
+        padAmount = len(nonce) % 4
+        if padAmount > 0: padAmount = 4 - padAmount
+        nonce += '=' * (len(nonce) + padAmount)
+
+        decoded = base64.decodestring(nonce)
+        return time.time() < time.mktime(time.strptime(decoded))
+
+    def _basicAuthentication(self, login):
+        """Performs a Basic HTTP authentication. Returns True when the user
+        has logged in successfully, False otherwise."""
+        userName, password = base64.decodestring(login).split(':')
+        return self._server.isValidUser(userName, password)
+
+    def _digestAuthentication(self, login, method):
+        """Performs a Digest HTTP authentication. Returns True when the user
+        has logged in successfully, False otherwise."""
+        def stripQuotes(s):
+            return (s[0] == '"' and s[-1] == '"') and s[1:-1] or s
+        
+        options  = dict([s.split('=') for s in login.split(", ")])
+        userName = stripQuotes(options["username"])
+        password = self._server.getPasswordForUser(userName)
+        nonce    = stripQuotes(options["nonce"])
+
+        # The following computations are based upon RFC 2617.
+        A1  = "%s:%s:%s" % (userName, self._server.getRealm(), password)
+        HA1 = md5.new(A1).hexdigest()
+        A2  = "%s:%s" % (method, stripQuotes(options["uri"]))
+        HA2 = md5.new(A2).hexdigest()
+
+        unhashedDigest = ""
+        if options.has_key("qop"):
+            unhashedDigest = "%s:%s:%s:%s:%s:%s" % \
+                            (HA1, nonce,
+                             stripQuotes(options["nc"]),
+                             stripQuotes(options["cnonce"]),
+                             stripQuotes(options["qop"]), HA2)
+        else:
+            unhashedDigest = "%s:%s:%s" % (HA1, nonce, HA2)
+        hashedDigest = md5.new(unhashedDigest).hexdigest()
+
+        return (stripQuotes(options["response"]) == hashedDigest and
+                self._isValidNonce(nonce))
 
 
 class HTTPPlugin:

@@ -831,6 +831,24 @@ defaults = {
      useful if you receive mail from multiple accounts, or if you
      want to quickly identify mail received via a mailing list.""",
      BOOLEAN, RESTORE),
+
+    ("http_authentication", "HTTP Authentication", "None",
+     """This option lets you choose the security level of the web interface.
+     When selecting Basic or Digest, the user will be prompted a login and a
+     password to access the web interface. The Basic option is faster, but
+     transmits the password in clear on the network. The Digest option
+     encrypts the password before transmission.""",
+     ("None", "Basic", "Digest"), RESTORE),
+
+    ("http_user_name", "User name", "admin",
+     """If you activated the HTTP authentication option, you can modify the
+     authorized user name here.""",
+     r"[\w]+", RESTORE),
+
+    ("http_password", "Password", "admin",
+     """If you activated the HTTP authentication option, you can modify the
+     authorized user password here.""",
+     r"[\w]+", RESTORE),
   ),
 
   "imap" : (
