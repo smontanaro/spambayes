@@ -30,7 +30,7 @@ import py2exe
 
 py2exe_options = dict(
     packages = "spambayes.resources,encodings",
-    excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
+    excludes = "pywin,pywin.debugger", # pywin is a package, and still seems to be included.
     includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
     dll_excludes = "dapi.dll,mapi32.dll",
     typelibs = [
@@ -105,6 +105,10 @@ pop3proxy_tray = dict(
                       (1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
+autoconfigure = dict(
+    dest_base = "bin/setup_server",
+    script = os.path.join(sb_top_dir, "windows", "autoconfigure.py"),
+)
 
 outlook_data_files = [
     ["docs/outlook", [os.path.join(sb_top_dir, r"Outlook2000\about.html")]],
@@ -139,7 +143,7 @@ setup(name="SpamBayes",
       # console exes for debugging
       console=[sb_server, sb_upload, outlook_dump_props],
       # The taskbar
-      windows=[pop3proxy_tray, outlook_addin_register],
+      windows=[pop3proxy_tray, outlook_addin_register, autoconfigure],
       # and the misc data files
       data_files = outlook_data_files + proxy_data_files + common_data_files,
       options = {"py2exe" : py2exe_options},

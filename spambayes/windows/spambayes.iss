@@ -30,6 +30,7 @@ Source: "py2exe\dist\docs\outlook\docs\welcome.html"; DestDir: "{app}\docs\outlo
 Source: "py2exe\dist\bin\sb_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\sb_tray.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\sb_upload.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
+Source: "py2exe\dist\bin\setup_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\docs\sb_server\readme_proxy.html"; DestDir: "{app}\docs\sb_server"; Check: InstallingProxy; Flags: isreadme
 Source: "py2exe\dist\docs\sb_server\*.*"; DestDir: "{app}\docs\sb_server"; Check: InstallingProxy; Flags: recursesubdirs
 
