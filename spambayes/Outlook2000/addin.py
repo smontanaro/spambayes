@@ -97,72 +97,14 @@ gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1,
 # Damn - we should use EnsureModule for the _IDTExtensibility2 typelib, but
 # win32all 155 and earlier don't like us pre-generating :(
 universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
-
-# A couple of functions that are in new win32all, but we dont want to
-# force people to ugrade if we can avoid it.
-# NOTE: Most docstrings and comments removed - see the win32all version
-def CastToClone(ob, target):
-    """'Cast' a COM object to another type"""
-    if hasattr(target, "index"): # string like
-    # for now, we assume makepy for this to work.
-        if not ob.__class__.__dict__.has_key("CLSID"):
-            ob = gencache.EnsureDispatch(ob)
-        if not ob.__class__.__dict__.has_key("CLSID"):
-            raise ValueError, "Must be a makepy-able object for this to work"
-        clsid = ob.CLSID
-        mod = gencache.GetModuleForCLSID(clsid)
-        mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID,
-                                           mod.MajorVersion, mod.MinorVersion)
-        # XXX - should not be looking in VTables..., but no general map currently exists
-        # (Fixed in win32all!)
-        target_clsid = mod.VTablesNamesToIIDMap.get(target)
-        if target_clsid is None:
-            raise ValueError, "The interface name '%s' does not appear in the " \
-                              "same library as object '%r'" % (target, ob)
-        mod = gencache.GetModuleForCLSID(target_clsid)
-        target_class = getattr(mod, target)
-        target_class = getattr(target_class, "default_interface", target_class)
-        return target_class(ob) # auto QI magic happens
-    raise ValueError, "Don't know what to do with '%r'" % (ob,)
 try:
-    from win32com.client import CastTo
-except ImportError: # appears in 151 and later.
-    CastTo = CastToClone
-
-# Something else in later win32alls - like "DispatchWithEvents", but the
-# returned object is not both the Dispatch *and* the event handler
-def WithEventsClone(clsid, user_event_class):
-    clsid = getattr(clsid, "_oleobj_", clsid)
-    disp = Dispatch(clsid)
-    if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
-        try:
-            ti = disp._oleobj_.GetTypeInfo()
-            disp_clsid = ti.GetTypeAttr()[0]
-            tlb, index = ti.GetContainingTypeLib()
-            tla = tlb.GetLibAttr()
-            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
-            disp_class = gencache.GetClassForProgID(str(disp_clsid))
-        except pythoncom.com_error:
-            raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
-    else:
-        disp_class = disp.__class__
-    clsid = disp_class.CLSID
-    import new
-    events_class = getevents(clsid)
-    if events_class is None:
-        raise ValueError, "This COM object does not support events."
-    result_class = new.classobj("COMEventClass", (events_class, user_event_class), {})
-    instance = result_class(disp) # This only calls the first base class __init__.
-    if hasattr(user_event_class, "__init__"):
-        user_event_class.__init__(instance)
-    return instance
-
-try:
-    from win32com.client import WithEvents
-except ImportError: # appears in 151 and later.
-    WithEvents = WithEventsClone
-
-# Whew - we seem to have all the COM support we need - let's rock!
+    from win32com.client import CastTo, WithEvents
+except ImportError:
+    print "*" * 50
+    print "You appear to be running a win32all version pre 151, which is pretty old"
+    print "I'm afraid it is time to upgrade"
+    raise
+# we seem to have all the COM support we need - let's rock!
 
 # Determine if we have ever seen a message before.  If we have saved the spam
 # field, then we know we have - but saving the spam field is an option (and may
