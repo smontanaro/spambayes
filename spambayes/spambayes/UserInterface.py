@@ -81,6 +81,7 @@ import PyMeldLite
 import Version
 import Dibbler
 import tokenizer
+from spambayes import Stats
 from Options import options, optionsPathname, defaults, OptionsClass
 
 IMAGES = ('helmet', 'status', 'config', 'help',
@@ -891,12 +892,15 @@ class UserInterface(BaseUserInterface):
         options.update_file(optionsPathname)
 
     def onHelp(self, topic=None):
+        """Provide a help page, either the default if topic is not
+        supplied, or specific to the topic given."""
         self._writePreamble("Help")
         helppage = self.html.helppage.clone()
         if topic:
             # Present help specific to a certain page.  We probably want to
             # load this from a file, rather than fill up UserInterface.py,
             # but for demonstration purposes, do this for now.
+            # (Note that this, of course, should be in ProxyUI, not here.)
             if topic == "review":
                 helppage.helpheader = "Review Page Help"
                 helppage.helptext = "This page lists messages that have " \
@@ -908,4 +912,16 @@ class UserInterface(BaseUserInterface):
                                     "SpamBayes with these messages" \
                                     % (options["Storage", "cache_expiry_days"],)
         self.write(helppage)
+        self._writePostamble()
+
+    def onStats(self):
+        """Provide statistics about previous SpamBayes activity."""
+        # Caching this information somewhere would be a good idea,
+        # rather than regenerating it every time.  If people complain
+        # about it being too slow, then do this!
+        s = Stats.Stats()
+        self._writePreamble("Statistics")
+        stats = s.GetStats()
+        stats = self._buildBox("Statistics", None, "<br/><br/>".join(stats))
+        self.write(stats)
         self._writePostamble()
