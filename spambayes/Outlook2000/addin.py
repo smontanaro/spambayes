@@ -719,7 +719,7 @@ class ExplorerWithEvents:
 # Events from our "Explorers" collection (not an Explorer instance)
 class ExplorersEvent:
     def Init(self, manager):
-        assert self.manager
+        assert manager
         self.manager = manager
         self.explorers = []
         self.have_created_toolbar = False
