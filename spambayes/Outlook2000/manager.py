@@ -604,7 +604,7 @@ class BayesManager:
             if self.bayes_dirty:
                 self.SaveBayes()
             else:
-                print "Bayes database is not dirty - not writing"
+                self.LogDebug(1, "Bayes database is not dirty - not writing")
         else:
             print "Using a slow database - not saving after incremental train"
 
