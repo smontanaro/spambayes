@@ -2,7 +2,7 @@
 
 """Split an mbox into N random directories of files.
 
-Usage: %(program)s [-h] [-s seed] [-v] -n N sourcembox outdirbase
+Usage: %(program)s [-h] [-s seed] [-v] -n N sourcembox ... outdirbase
 
 Options:
     -h / --help
@@ -83,29 +83,30 @@ def main():
     if n is None or n <= 1:
         usage(1, "an -n value > 1 is required")
 
-    if len(args) != 2:
+    if len(args) < 2:
         usage(1, "input mbox name and output base path are required")
-    inputpath, outputbasepath = args
+    inputpaths, outputbasepath = args[:-1], args[-1]
 
     outdirs = [outputbasepath + ("%d" % i) for i in range(1, n+1)]
     for dir in outdirs:
         if not os.path.isdir(dir):
             os.makedirs(dir)
 
-    mbox = mboxutils.getmbox(inputpath)
     counter = 0
-    for msg in mbox:
-        i = random.randrange(n)
-        astext = str(msg)
-        #assert astext.endswith('\n')
-        counter += 1
-        msgfile = open('%s/%d' % (outdirs[i], counter), 'wb')
-        msgfile.write(astext)
-        msgfile.close()
-        if verbose:
-            if counter % 100 == 0:
-                sys.stdout.write('.')
-                sys.stdout.flush()
+    for inputpath in inputpaths:
+        mbox = mboxutils.getmbox(inputpath)
+        for msg in mbox:
+            i = random.randrange(n)
+            astext = str(msg)
+            #assert astext.endswith('\n')
+            counter += 1
+            msgfile = open('%s/%d' % (outdirs[i], counter), 'wb')
+            msgfile.write(astext)
+            msgfile.close()
+            if verbose:
+                if counter % 100 == 0:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
 
     if verbose:
         print
