@@ -198,6 +198,7 @@ class IMAPSession(BaseIMAP):
         # both IMAPMessage and IMAPFolder.
         self.current_folder = None
         self.do_expunge = do_expunge
+        self.logged_in = False
 
     def login(self, username, pwd):
         try:
@@ -209,11 +210,24 @@ class IMAPSession(BaseIMAP):
                 sys.exit()
             else:
                 raise
+        self.logged_in = True
     
     def logout(self):
         # sign off
         if self.do_expunge:
-            self.expunge()
+            # we may never have logged in, in which case we do nothing
+            if self.logged_in:
+                # expunge messages from the spam and unsure folders
+                for fol in ["spam_folder",
+                            "unsure_folder",]:
+                    self.select(options["imap", fol])
+                    self.expunge()
+                # expunge messages from the ham and spam training folders
+                for fol_list in ["ham_train_folders",
+                                 "spam_train_folders",]:
+                    for fol in options["imap", fol_list]:
+                        self.select(fol)
+                        self.expunge()
         BaseIMAP.logout(self)  # superclass logout
         
     def SelectFolder(self, folder):
