@@ -46,6 +46,14 @@ def DumpItemProps(item, shorten, get_large_props):
     all_props = GetAllProperties(item)
     all_props.sort() # sort by first tuple item, which is name :)
     for prop_name, prop_tag, prop_val in all_props:
+        # Do some magic rtf conversion
+        if PROP_ID(prop_tag) == PROP_ID(PR_RTF_COMPRESSED):
+            rtf_stream = item.OpenProperty(PR_RTF_COMPRESSED, pythoncom.IID_IStream,
+                                                  0, 0)
+            html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
+            prop_val = mapi.RTFStreamToHTML(html_stream)
+            prop_name = "PR_RTF_COMPRESSED (to HTML)"
+            prop_tag = PROP_TAG(PT_STRING8, PR_RTF_COMPRESSED)
         if get_large_props and \
            PROP_TYPE(prop_tag)==PT_ERROR and \
            prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,'MAPI_E_NOT_ENOUGH_MEMORY']:
