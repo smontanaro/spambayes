@@ -637,7 +637,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             except pythoncom.com_error:
                 print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
             # Now move it.
-            msgstore_message.MoveTo(spam_folder)
+            msgstore_message.MoveToReportingError(self.manager, spam_folder)
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
@@ -692,7 +692,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             except pythoncom.com_error:
                 print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
             # Now move it.
-            msgstore_message.MoveTo(restore_folder)
+            msgstore_message.MoveToReportingError(self.manager, restore_folder)
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
@@ -1143,6 +1143,12 @@ class OutlookAddin:
                 except:
                     print "Error processing missed messages!"
                     traceback.print_exc()
+            else:
+                # We should include this fact in the log, as I suspect a
+                # a number of "it doesn't work" bugs are simply related to not
+                # being enabled.  The new Wizard should help, but things can
+                # still screw up.
+                self.manager.LogDebug(0, "*** SpamBayes is NOT enabled, so will not filter incoming mail. ***")
         except:
             print "Error connecting to Outlook!"
             traceback.print_exc()

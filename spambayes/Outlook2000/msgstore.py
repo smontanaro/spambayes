@@ -125,6 +125,22 @@ def GetCOMExceptionString(exc_val):
     err_string = mapiutil.GetScodeString(hr)
     return "Exception 0x%x (%s): %s" % (hr, err_string, msg)
 
+def ReportMAPIError(manager, what, exc_type, exc_val):
+    hr, exc_msg, exc, arg_err = exc_val
+    if hr == mapi.MAPI_E_TABLE_TOO_BIG:
+        err_msg = what + " failed as one of your\r\n" \
+                    "Outlook folders is full.  Futher operations are\r\n" \
+                    "likely to fail until you clean up this folder.\r\n\r\n" \
+                    "This message will not be reported again until SpamBayes\r\n"\
+                    "is restarted."
+    else:
+        err_msg = what + " failed due to an unexpected Outlook error.\r\n" \
+                  + GetCOMExceptionString(exc_val) + "\r\n\r\n" \
+                  "It is recommended you restart Outlook at the earliest opportunity\r\n\r\n" \
+                  "This message will not be reported again until SpamBayes\r\n"\
+                  "is restarted."
+    manager.ReportErrorOnce(err_msg)
+
 class MAPIMsgStore(MsgStore):
     def __init__(self, outlook = None):
         self.outlook = outlook
@@ -938,11 +954,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if isMove: flags |= MESSAGE_MOVE
         eid = self.id[1]
         source_folder.CopyMessages((eid,),
-                                   None,
-                                   dest_folder,
-                                   0,
-                                   None,
-                                   flags)
+                                    None,
+                                    dest_folder,
+                                    0,
+                                    None,
+                                    flags)
         # At this stage, I think we have lost meaningful ID etc values
         # Set everything to None to make it clearer what is wrong should
         # this become an issue.  We would need to re-fetch the eid of
@@ -955,6 +971,23 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def CopyTo(self, folder):
         self._DoCopyMove(folder, False)
+
+    # Functions to perform operations, but report the error (ONCE!) to the
+    # user.  Any errors are re-raised so the caller can degrade gracefully if
+    # necessary.
+    def MoveToReportingError(self, manager, folder):
+        try:
+            self.MoveTo(folder)
+        except pythoncom.com_error, details:
+            ReportMAPIError(manager, "Moving a message", pythoncom.com_error, details)
+            raise
+    def CopyToReportingError(self, manager, folder):
+        try:
+            self.MoveTo(folder)
+        except pythoncom.com_error, details:
+            ReportMAPIError(manager, "Copying a message", pythoncom.com_error, details)
+            raise
+
     def GetFolder(self):
         # return a folder object with the parent, or None
         folder_id = (mapi.HexFromBin(self.folder_id[0]),

@@ -72,23 +72,19 @@ def filter_message(msg, mgr, all_actions=True):
                     print "ERROR: Unable to open the folder to Copy the " \
                           "message - this message was not copied"
                 else:
-                    msg.CopyTo(dest_folder)
+                    msg.CopyToReportingError(mgr, dest_folder)
             elif action.startswith("mo"): # Moved
                 dest_folder = mgr.message_store.GetFolder(folder_id)
                 if dest_folder is None:
                     print "ERROR: Unable to open the folder to Move the " \
                           "message - this message was not moved"
                 else:
-                    msg.MoveTo(dest_folder)
+                    msg.MoveToReportingError(mgr, dest_folder)
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 
         return disposition
     except:
-        # Have seen MAPI_E_TABLE_TOO_BIG errors reported here when doing the
-        # move, but in what is probably a semi-corrupt pst.
-        # However, this *is* a legitimate error to get if the target folder
-        # has > 16,383 entries.
         print "Failed filtering message!", msg
         import traceback
         traceback.print_exc()
