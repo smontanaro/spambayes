@@ -507,8 +507,8 @@ class OptionsClass(object):
                 self._options[section, o.name] = o
 
     def merge_files(self, file_list):
-        for file in file_list:
-            self.merge_file(file)
+        for f in file_list:
+            self.merge_file(f)
 
     def convert_and_set(self, section, option, value):
         if self.multiple_values_allowed(section, option):
@@ -533,16 +533,17 @@ class OptionsClass(object):
                             self.convert_and_set(section, option, value)
                         # not an error if an X- option is missing
                     else:
-                        option = 'x-'+option
+                        l_option = 'x-' + option
+                        u_option = 'X-' + option
                         # going the other way, if the option has been
                         # deprecated, set its x-prefixed version and
                         # emit a warning
-                        if self._options.has_key((section, option)):
-                            self.convert_and_set(section, option, value)
-                            print >> sys.stderr, (
-                                "warning: option %s in"
-                                " section %s is deprecated" %
-                                (opt, sect))
+                        if self._options.has_key((section, l_option)):
+                            self.convert_and_set(section, l_option, value)
+                            self._report_deprecated_error(section, option)
+                        elif self._options.has_key((section, u_option)):
+                            self.convert_and_set(section, u_option, value)
+                            self._report_deprecated_error(section, option)
                         else:
                             print >> sys.stderr, (
                                 "warning: Invalid option %s in"
@@ -628,6 +629,11 @@ class OptionsClass(object):
                 raise
         else:
             self.set(sect, opt, val)
+
+    def _report_deprecated_error(self, sect, opt):
+        print >> sys.stderr, (
+            "Warning: option %s in section %s is deprecated" %
+            (opt, sect))
 
     def _report_option_error(self, sect, opt, val, stream, msg):
         import textwrap
