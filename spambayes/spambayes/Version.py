@@ -39,13 +39,13 @@ versions = {
             # so automated version checking works.
             # 0.99 indicates '1.0b/rc/' so will go 0.992 etc, until a real
             # 1.0, which can get 1.0 :)
-            "Version":          0.991,
-            "BinaryVersion":    0.991,
+            "Version":          0.992,
+            "BinaryVersion":    0.992,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "April 2004",
-            "Full Description": "%(Description)s Version 1.0b1 (%(Date)s)",
+            "Date":             "May 2004",
+            "Full Description": "%(Description)s Version 1.0rc1 (%(Date)s)",
             "Full Description Binary":
-                                "%(Description)s Binary Version 1.0b1 (%(Date)s)",
+                                "%(Description)s Binary Version 1.0rc1 (%(Date)s)",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
@@ -54,13 +54,13 @@ versions = {
         "POP3 Proxy" : {
             # Note these version numbers also currently don't appear in the
             # "description" strings below - see above
-            "Version":          0.5,
-            "BinaryVersion":    0.5,
+            "Version":          0.6,
+            "BinaryVersion":    0.6,
             "Description":      "SpamBayes POP3 Proxy",
-            "Date":             "April 2004",
-            "Full Description": """%(Description)s Version 1.0b1 (%(Date)s)""",
+            "Date":             "May 2004",
+            "Full Description": """%(Description)s Version 1.0rc1 (%(Date)s)""",
             "Full Description Binary":
-                                """%(Description)s Binary Version 1.0b1 (%(Date)s)""",
+                                """%(Description)s Binary Version 1.0rc1 (%(Date)s)""",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
