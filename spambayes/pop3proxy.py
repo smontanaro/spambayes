@@ -703,6 +703,7 @@ class UserInterface(BrighterAsyncChat):
 
     def onWordquery(self, params):
         word = params['word']
+        word = word.lower()
         try:
             # Must be a better way to get __dict__ for a new-style class...
             wi = self.bayes.wordinfo[word]
