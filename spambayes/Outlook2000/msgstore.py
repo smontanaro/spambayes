@@ -29,7 +29,6 @@ MSGFLAG_UNSENT = 0x00000008
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
 MYPR_MESSAGE_ID_A = 0x1035001E # more magic (message id field used for Exchange)
-MYPR_VERSION_ID = 0x7E8FFFFD # magic that I think tells us the Outlook version
 
 CLEAR_READ_FLAG = 0x00000004
 CLEAR_RN_PENDING = 0x00000020
@@ -988,11 +987,7 @@ class MAPIMsgStoreMsg:
         # on an exchange server that do not have such headers of their own.
         prop_ids = PR_SUBJECT_A, PR_SENDER_NAME_A, PR_DISPLAY_TO_A, \
                    PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME, \
-                   MYPR_MESSAGE_ID_A, PR_IMPORTANCE, PR_CLIENT_SUBMIT_TIME, \
-#       This property gives a 'The parameter is incorrect' error, for some
-#       reason, as does, 0x7E8EFFE2, which I think is the 'pretty' version
-#       number.  Until that's figured out, we'll have to not get this.
-#                   MYPR_VERSION_ID
+                   MYPR_MESSAGE_ID_A, PR_IMPORTANCE, PR_CLIENT_SUBMIT_TIME,
         hr, data = self.mapi_object.GetProps(prop_ids, 0)
         headers = ["X-Exchange-Message: true"]
         for header, index, potentially_large, format_func in (\
@@ -1004,7 +999,7 @@ class MAPIMsgStoreMsg:
             ("Message-ID", 5, True, None),
             ("Importance", 6, False, self._format_importance),
             ("Date", 7, False, self._format_time),
-#            ("X-Mailer", 8, False, self._format_version),
+            ("X-Mailer", 7, False, self._format_version),
             ):
             if potentially_large:
                 value = self._GetPotentiallyLargeStringProp(prop_ids[index],
@@ -1032,9 +1027,8 @@ class MAPIMsgStoreMsg:
         # olImportanceHigh = 2, olImportanceLow = 0, olImportanceNormal = 1
         return {0 : "low", 1 : "normal", 2 : "high"}[raw]
 
-    def _format_version(self, raw):
-        # Data is just a version string, so prepend something to it.
-        return "Exchange Client " + raw
+    def _format_version(self, unused):
+        return "Microsoft Exchange Client"
 
     _address_re = re.compile(r"[()<>,:@!/=; ]")
     def _format_address(self, raw):
