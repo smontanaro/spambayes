@@ -93,7 +93,6 @@ def main():
     for msg in mbox:
         i = random.randrange(n)
         astext = str(msg)
-        assert astext.endswith('\n')
         outfiles[i].write(astext)
         counter += 1
         if verbose:
