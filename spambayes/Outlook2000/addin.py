@@ -832,7 +832,8 @@ class ExplorerWithEvents:
                         print "ERROR: Could't re-find control to delete"
                         break
                     item.Delete(False)
-                    print "Deleted the dead popup control - re-creating"
+                    print "The above toolbar message is common - " \
+                          "recreating the toolbar..."
                 except pythoncom.com_error, e:
                     print "ERROR: Failed to delete our dead toolbar control"
                     break
@@ -1244,7 +1245,15 @@ class OutlookAddin:
                                     config.watch_folder_ids,
                                     config.watch_include_sub):
             event_hook = self._GetHookForFolder(folder)
-            if event_hook.use_timer:
+            # Note event_hook may be none in some strange cases where we
+            # were unable to hook the events for the folder.  This is
+            # generally caused by a temporary Outlook issue rather than a
+            # problem of ours we need to address.
+            if event_hook is None:
+                manager.LogDebug(0,
+                    "Skipping processing of missed messages in folder '%s', "
+                    "as it is not available" % folder.name)
+            elif event_hook.use_timer:
                 print "Processing missed spam in folder '%s' by starting a timer" \
                       % (folder.name,)
                 event_hook._StartTimer()
@@ -1301,7 +1310,9 @@ class OutlookAddin:
         self.folder_hooks = new_hooks
 
     def _GetHookForFolder(self, folder):
-        ret = self.folder_hooks[folder.id]
+        ret = self.folder_hooks.get(folder.id)
+        if ret is None: # we were unable to hook events for this folder.
+            return None
         assert ret.target == folder
         return ret
 
@@ -1311,8 +1322,21 @@ class OutlookAddin:
                     folder_ids, include_sub):
             existing = self.folder_hooks.get(msgstore_folder.id)
             if existing is None or existing.__class__ != HandlerClass:
-                folder = msgstore_folder.GetOutlookItem()
                 name = msgstore_folder.GetFQName()
+                try:
+                    folder = msgstore_folder.GetOutlookItem()
+                except self.manager.message_store.MsgStoreException, details:
+                    # Exceptions here are most likely when the folder is valid
+                    # and available to MAPI, but not via the Outlook.
+                    # One good way to provoke this is to configure Outlook's
+                    # profile so default delivery is set to "None".  Then,
+                    # when you start Outlook, it immediately displays an
+                    # error and terminates.  During this process, the addin
+                    # is initialized, attempts to get the folders, and fails.
+                    print "FAILED to open the Outlook folder '%s' " \
+                          "to hook events" % name
+                    print details
+                    continue
                 # Ensure the field is created before we hook the folder
                 # events, else there is a chance our event handler will
                 # see the temporary message we create.
