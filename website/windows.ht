@@ -66,7 +66,7 @@ Notes:
   in the logfile with an error message like "no codec search functions
   registered: can't find encoding".  At the moment, the only workaround is
   to install Python, download the Spambayes distribution and install the
-  plugin from source.</li>
+  plugin from source (see below).</li>
 
   <li><a name="2">Outlook XP SP2</a> is known to work.  Earlier versions are
   known to have some issues.  If you're having problems and are behind on
@@ -84,6 +84,37 @@ Notes:
 
 </ol>
 </p>
+
+<h3>Installing the Outlook Client From Source</h3>
+
+<p>If the Outlook binary doesn't work for you, you can install from source.
+To do this, you will need three pieces of software:
+
+<ol>
+  <li> The Python installer, available from the <a
+  href="http://www.python.org/download/">download page</a> of the Python
+  website.  You should choose the latest stable release (that is, the
+  latest release with no letters in its version).</li>
+
+  <li> Mark Hammond's <a
+  href="http://starship.python.net/crew/mhammond/win32/Downloads.html">win32all
+  extensions</a>.  Choose the version which corresponds to the version of
+  Python you downloaded.</li>
+
+  <li> The Spambayes source, either as a <a
+  href="https://sourceforge.net/project/showfiles.php?group_id=61702">zip
+  file</a> or <a href="http://sourceforge.net/cvs/?group_id=61702">via
+  CVS</a>.  The zip file will probably be easier to handle, but there are
+  several significant improvements to the code which make the CVS version a
+  viable option (though you will have to have a CVS client for Windows
+  installed).</li>
+</ol>
+</p>
+
+<p>Once you have all three bits downloaded, run the Python installer then
+the win32all installer.  Finally, double-click the addin.py script in the
+Outlook2000 folder of the Spambayes distribution and you should be good to
+go.</p>
 
 <h2>Other Mail Clients</h2>
 
