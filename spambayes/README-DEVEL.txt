@@ -319,6 +319,135 @@ usually screamingly obvious under the NxN grid method (rates vary by a
 factor of 10 or more across training sets, and even within runs against
 a single training set), but harder to spot using N-fold c-v.
 
+Testing a change and posting the results
+========================================
+
+(Adapted from clues Tim posted on the spambayes and spambayes-dev lists)
+
+Firstly, setup your data as above; it's really not worth the hassle to
+come up with a different scheme.  If you use the Outlook plug-in, the
+export.py script in the Outlook2000 directory will export all the spam
+and ham in your 'training' folders for you into this format (or close
+enough).
+
+Basically the idea is that you should have 10 sets of data, each with
+around 500 messages in them; this means about 5000 spam and 5000 ham.
+Obviously if you're testing something to do with the size of a corpus,
+you'll want to change that.  You then want to run
+    timcv.py -n 10 > std.txt
+(call std.txt whatever you like), and then
+    rates.py std.txt
+You end up with two files, std.txt, which has the raw results, and stds.txt,
+which has more of a summary of the results.
+
+Now make the change to the code or options, and repeat the process,
+giving the files different names (note that rates.py will automatically
+choose the name for the output file, based on the input one).
+
+You've now got the data you need, but you have to interpret it.  The
+simplest way of all is just to post it to spambayes-dev@python.org and let
+someone else do it for you <wink>.  The data you should post is the output of
+    cmp.py stds.txt alts.txt
+along with the output of
+    table.py stds.txt alts.txt
+(note that these just print to stdout).
+
+Other information you can find in the 'raw' output (std.txt, above) are
+histograms of the ham/spam spread, and a copy of the options settings.
+
+Interpreting cmp.py output
+--------------------------
+
+(Using an example from Tim on spambayes-dev)
+
+> cv_octs.txt -> cv_oct_subjs.txt
+> -> <stat> tested 488 hams & 897 spams against 1824 hams & 3501 spams 
+> -> <stat> tested 462 hams & 863 spams against 1850 hams & 3535 spams 
+> -> <stat> tested 475 hams & 863 spams against 1837 hams & 3535 spams 
+> -> <stat> tested 430 hams & 887 spams against 1882 hams & 3511 spams 
+> -> <stat> tested 457 hams & 888 spams against 1855 hams & 3510 spams 
+> -> <stat> tested 488 hams & 897 spams against 1824 hams & 3501 spams 
+> -> <stat> tested 462 hams & 863 spams against 1850 hams & 3535 spams 
+> -> <stat> tested 475 hams & 863 spams against 1837 hams & 3535 spams 
+> -> <stat> tested 430 hams & 887 spams against 1882 hams & 3511 spams 
+> -> <stat> tested 457 hams & 888 spams against 1855 hams & 3510 spams
+>
+> false positive percentages
+>     0.000  0.000  tied
+>     0.000  0.000  tied
+>     0.000  0.000  tied
+>     0.000  0.000  tied
+>     0.219  0.219  tied
+>
+> won   0 times
+> tied  5 times
+> lost  0 times
+
+So all 5 runs tied on FP.  That tells us much more than that the *net*
+effect across 5 runs was nil on FP:  it tells us that there are no hidden
+glitches hiding behind that "net nothing" -- it was no change across the board.
+
+> total unique fp went from 1 to 1 tied
+> mean fp % went from 0.0437636761488 to 0.0437636761488 tied
+>
+> false negative percentages
+>     2.007  2.007  tied
+>     1.390  1.390  tied
+>     1.622  1.622  tied
+>     2.029  1.917  won     -5.52%
+>     2.703  2.477  won     -8.36%
+>
+> won   2 times
+> tied  3 times
+> lost  0 times
+
+When evaluating a small change, I'm heartened to see that in no run did it lose.
+At worst it tied, and twice it helped a little.  That's encouraging.
+
+What the histograms would tell us that we can't tell from this is whether you
+could have done just as well without the change by raising your ham cutoff a little.
+That would also tie on FP, and *may* also get rid of the same number (or even
+more) of FN.
+
+> total unique fn went from 86 to 83 won     -3.49%
+> mean fn % went from 1.95029003772 to 1.88269707836 won     -3.47%
+>
+> ham mean                     ham sdev
+>    0.57    0.58   +1.75%        4.63    4.77   +3.02%
+>    0.08    0.07  -12.50%        1.20    1.01  -15.83%
+>    0.36    0.29  -19.44%        3.61    3.23  -10.53%
+>    0.08    0.11  +37.50%        0.89    1.18  +32.58%
+>    0.72    0.76   +5.56%        6.80    7.06   +3.82%
+>
+> ham mean and sdev for all runs
+>    0.37    0.37   +0.00%        4.10    4.16   +1.46%
+
+That's a good example of grand averages hiding the truth:  the averaged change
+in the mean ham score was 0 across all 5 runs, but *within* the 5 runs it slobbered
+around wildly, from decreasing 20% to increasing 40%(!).
+
+> spam mean                    spam sdev
+>   96.43   96.44   +0.01%       15.89   15.89   +0.00%
+>   97.01   97.07   +0.06%       13.79   13.70   -0.65%
+>   97.14   97.16   +0.02%       14.05   14.02   -0.21%
+>   96.52   96.56   +0.04%       15.65   15.52   -0.83%
+>   95.53   95.63   +0.10%       17.47   17.31   -0.92%
+>
+> spam mean and sdev for all runs
+>   96.52   96.57   +0.05%       15.46   15.37   -0.58%
+
+That's good to see:  it's a consistent win for spam scores across runs,
+although an almost imperceptible one.  It's good when the mean spam score rises,
+and it's good when sdev (for ham or spam) decreases.
+
+> ham/spam mean difference: 96.15 96.20 +0.05
+
+This is a slight win for the chance, although seeing the details gives cause
+to worry some about the effect on ham:  the ham sdev increased overall, and
+the effects on ham mean and ham sdev varied wildly across runs.  OTOH, the
+"before" numbers for ham mean and ham sdev varied wildly across runs already.
+That gives cause to worry some about the data <wink>.
+
 
 Making a source release
 =======================

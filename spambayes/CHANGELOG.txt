@@ -2,6 +2,7 @@
 
 Release 1.1a1
 =============
+Mark Hammond      10/10/2003  It is no longer necessary to pre-load our default message store, and doing so caused us to fail if this default store was in offline mode.
 Tony Meyer        08/10/2003  When training via the web interface record the training in the messageinfo db.
 Tony Meyer        07/10/2003  Fix [ 818871 ] sb_server.py calls undefined variable
 Tony Meyer        06/10/2003  Add Tim's fix for the stats to the web interface stats as well.  i.e. round the percentages, don't truncate them.
@@ -33,6 +34,7 @@ Tony Meyer        20/09/2003  Make the review messages page on the web UI more c
 
 Alpha Release 7
 ===============
+Tony Meyer        09/10/2003  An old-style option was left in hammiebulk; fix this.
 Tony Meyer        08/10/2003  If the (stats) db uses a pickle, then use a pickle for the messageinfo db as well.
 Tony Meyer        08/10/2003  Try and close the db when we are no longer using it.
 Tony Meyer        08/10/2003  Ensure that we store the messageinfo database when changes are made.
