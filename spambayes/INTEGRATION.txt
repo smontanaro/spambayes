@@ -50,7 +50,7 @@ for the version appropriate to your computer:
 
 You also need version 2.4.3 or above of the Python "email" package.  If
 you're running Python 2.3 (which at the time of writing is available
-from SourceForge CVS, or as the alpha version 2.3a1, available from 
+from SourceForge CVS, or as the alpha version 2.3a1, available from
 python.org) then you already have this.  If not, you can download
 it from http://mimelib.sf.net and install it - unpack the archive, cd to
 the email-2.4.3 directory and type "python setup.py install" (YMMV on
@@ -180,7 +180,7 @@ prompt).  You can also use the web interface for training as detailed below.
 Minimal setup for using the POP3 proxy and web interface
 --------------------------------------------------------
 
-The minimum you need too do to get started is create a bayescustomize.ini
+The minimum you need to do to get started is create a bayescustomize.ini
 containing the following:
 
 [pop3proxy]
