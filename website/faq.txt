@@ -625,7 +625,10 @@ means that we do not know whether we should delete the icon or not.
 
 Until someone comes up with a clever solution for all of this, you'll have to
 put up with the little envelope, sorry.  Note that there is a feature request
-already open for this, which you may add to if you have comments to make.
+already open for this (`RFE 774978`_), which you may add to if you have comments
+to make.
+
+.. _`RFE 774978`: http://sourceforge.net/tracker/index.php?func=detail&aid=774978&group_id=61702&atid=498106
 
 
 How can I configure SpamBayes to delete spam rather than moving it?
