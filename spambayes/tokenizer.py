@@ -746,6 +746,43 @@ def breakdown_ipaddr(ipaddr):
     for i in range(1, 5):
         yield '.'.join(parts[:i])
 
+uuencode_begin_re = re.compile(r"""
+    ^begin \s+
+    (\S+) \s+   # capture mode
+    (\S+) \s*   # capture filename
+    $
+""", re.VERBOSE | re.MULTILINE)
+
+uuencode_end_re = re.compile(r"^end\s*\n", re.MULTILINE)
+
+# Strip out uuencoded sections and produce tokens.  The return value
+# is (new_text, sequence_of_tokens), where new_text no longer contains
+# uuencoded stuff.  Note that we're not bothering to decode it!  Maybe
+# we should.
+def crack_uuencode(text):
+    new_text = []
+    tokens = []
+    i = 0
+    while True:
+        # Invariant:  Through text[:i], all non-uuencoded text is in
+        # new_text, and tokens contains summary clues for all uuencoded
+        # portions.  text[i:] hasn't been looked at yet.
+        m = uuencode_begin_re.search(text, i)
+        if not m:
+            new_text.append(text[i:])
+            break
+        start, end = m.span()
+        new_text.append(text[i : start])
+        mode, fname = m.groups()
+        tokens.append('uuencode mode:%s' % mode)
+        tokens.extend(['uuencode:%s' % x for x in crack_filename(fname)])
+        m = uuencode_end_re.search(text, end)
+        if not m:
+            break
+        i = m.end()
+
+    return ''.join(new_text), tokens
+
 class Tokenizer:
 
     def get_message(self, obj):
@@ -880,6 +917,11 @@ class Tokenizer:
 
             # Normalize case.
             text = text.lower()
+
+            # Get rid of uuencoded sections.
+            text, tokens = crack_uuencode(text)
+            for t in tokens:
+                yield t
 
             # Special tagging of embedded URLs.
             for proto, guts in url_re.findall(text):
