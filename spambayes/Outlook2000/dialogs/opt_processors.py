@@ -234,7 +234,6 @@ class EditNumberProcessor(OptionControlProcessor):
             val = float(self.GetOptionValue())
             # Convert it to our range.
             val *= float(self.ticks) / self.max_val
-            print "Edit setting sliter to tick pos", val
             val = int(val)
         except ValueError:
             return
