@@ -143,7 +143,9 @@ class Hammie:
             disp = self.formatclues(clues)
             del msg[debugheader]
             msg.add_header(debugheader, disp)
-        return msg.as_string(unixfrom=(msg.get_unixfrom() is not None))
+        result = mboxutils.as_string(msg, unixfrom=(msg.get_unixfrom()
+                                                    is not None))
+        return result
 
     def train(self, msg, is_spam, add_header=False):
         """Train bayes with a message.
