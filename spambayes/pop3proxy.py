@@ -36,6 +36,7 @@ __credits__ = "Tim Peters, Neale Pickett, all the spambayes contributors."
 import sys, re, operator, errno, getopt, cPickle, time
 import socket, asyncore, asynchat
 import classifier, tokenizer, hammie
+from Options import options
 
 HEADER_FORMAT = '%s: %%s\r\n' % hammie.DISPHEADER
 HEADER_EXAMPLE = '%s: Yes\r\n' % hammie.DISPHEADER
@@ -343,7 +344,7 @@ class BayesProxy(POP3ProxyBase):
             # need to be able to report the size of a message before
             # it's been classified.
             prob = self.bayes.spamprob(tokenizer.tokenize(message))
-            if prob >= hammie.SPAM_THRESHOLD:
+            if prob > options.spam_cutoff:
                 disposition = "Yes"
             else:
                 disposition = "No "
