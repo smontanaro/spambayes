@@ -20,18 +20,6 @@ The following functions are currently included:
   onHome - a home page with various options
 
 To do:
- o There is a function to get a list of all the folders available on
-   the server, but nothing is done with this.  Obviously what we would
-   like is to present a page where the user selects (checkboxes) the
-   folders that s/he wishes to filter, the folders s/he wishes to use
-   as train-as-ham and train-as-spam, and (radio buttons) the folders
-   to move suspected spam and unsures into.  I think this should be
-   a separate page from the standard config as it's already going to
-   be really big if there are lots of folders to choose from.
-   An alternative design would be to have a single list of the folders
-   and five columns - three of checkboxes (filter, train-as-spam and
-   train-as-ham) and two of radio buttons (spam folder and ham folder).
-   I think this might be more confusing, though.
  o This could have a neat review page, like pop3proxy, built up by
    asking the IMAP server appropriate questions.  I don't know whether
    this is needed, however.  This would then allow viewing a message,
@@ -95,6 +83,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
     def __init__(self, cls, imap, pwd):
         global classifier
+        # Only offer SSL if it is available
+        try:
+            from imaplib import IMAP_SSL
+        except ImportError:
+            parm_list = list(parm_map)
+            parm_list.remove(("imap", "use_ssl"))
+            parm_map = tuple(parm_list)
         UserInterface.UserInterface.__init__(self, cls, parm_map)
         classifier = cls
         self.imap = imap

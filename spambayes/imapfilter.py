@@ -56,21 +56,11 @@ Warnings:
       True, then this mail will be irretrievably lost.
     
 To Do:
-    o Find a better way to remove old msg from info database when saving
-      modified messages
     o IMAPMessage and IMAPFolder currently carry out very simple checks
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
-    o IMAP over SSL would be nice.  imaplib in Python 2.3 has an SSL class
-      that we could inherit from.  This idea would be that SSL is available
-      if the SSL class is available (so those using Python 2.2 can't use
-      imapfilter with SSL, but 2.3ers can).  It's easy enough to do the
-      enabling/disabling of the options (don't forget to wipe it from the
-      UI list), but I'm not quite sure how to handle the inheritance.  We
-      don't actually use the IMAP4 class, we use our own class that inherits
-      from that.  How can we dynamically select which class to inherit from?
-      (This is probably where my lack of Python expertise shows up...)
+    o IMAP over SSL is untested.
     o Develop a test script, like testtools/pop3proxytest.py that runs
       through some tests (perhaps with a *real* imap server, rather than
       a dummy one).  This would make it easier to carry out the tests
@@ -101,7 +91,6 @@ except NameError:
     True, False = 1, 0
 
 import socket
-import imaplib
 import os
 import re
 import time
@@ -117,6 +106,16 @@ from spambayes.Options import options
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
+
+from imaplib import Debug
+from imaplib import Time2Internaldate
+try:
+    if options["imap", "use_ssl"]:
+        from imaplib import IMAP_SSL as BaseIMAP
+    else:
+        from imaplib import IMAP4 as BaseIMAP
+except ImportError:
+    from imaplib import IMAP4 as BaseIMAP
 
 # global IMAPlib object
 global imap
@@ -180,13 +179,13 @@ def _extract_fetch_data(response):
                 data[mo.group(1)] = mo.group(2)
     return data
 
-class IMAPSession(imaplib.IMAP4):
+class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
     
     def __init__(self, server, port, debug=0, do_expunge=False):
-        imaplib.Debug = debug  # this is a global in the imaplib module
+        Debug = debug  # this is a global in the imaplib module
         try:
-            imaplib.IMAP4.__init__(self, server, port)
+            BaseIMAP.__init__(self, server, port)
         except:
             # A more specific except would be good here, but I get
             # (in Python 2.2) a generic 'error' and a 'gaierror'
@@ -203,8 +202,8 @@ class IMAPSession(imaplib.IMAP4):
 
     def login(self, username, pwd):
         try:
-            imaplib.IMAP4.login(self, username, pwd)  # superclass login
-        except imaplib.IMAP4.error, e:
+            BaseIMAP.login(self, username, pwd)  # superclass login
+        except BaseIMAP.error, e:
             if str(e) == "permission denied":
                 print "There was an error logging in to the IMAP server."
                 print "The userid and/or password may be incorrect."
@@ -216,7 +215,7 @@ class IMAPSession(imaplib.IMAP4):
         # sign off
         if self.do_expunge:
             self.expunge()
-        imaplib.IMAP4.logout(self)  # superclass logout
+        BaseIMAP.logout(self)  # superclass logout
         
     def SelectFolder(self, folder):
         '''A method to point ensuing imap operations at a target folder'''
@@ -303,9 +302,9 @@ class IMAPMessage(message.SBHeaderMessage):
         if message_date is not None:
             parsed_date = parsedate(message_date)
             if parsed_date is not None:
-                return imaplib.Time2Internaldate(time.mktime(parsed_date))
+                return Time2Internaldate(time.mktime(parsed_date))
         else:
-            return imaplib.Time2Internaldate(time.time())
+            return Time2Internaldate(time.time())
 
     def get_substance(self):
         '''Retrieve the RFC822 message from the IMAP server and set as the
