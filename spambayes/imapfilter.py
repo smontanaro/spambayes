@@ -109,7 +109,7 @@ from spambayes.ImapUI import IMAPUserInterface
 from spambayes.Version import get_version_string
 
 from imaplib import Debug
-from imaplib import error
+from imaplib import IMAP4
 from imaplib import Time2Internaldate
 try:
     if options["imap", "use_ssl"]:
@@ -322,7 +322,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # all IMAP servers support this, even though it is in RFC1730
         try:
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
-        except error:
+        except IMAP4.error:
             self.rfc822_command = "RFC822"
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         if response[0] != "OK":
@@ -697,7 +697,8 @@ or training will be performed."""
         #   multiple values, but for the moment, we just use the first one
         server = options["imap", "server"][0]
         username = options["imap", "username"][0]
-        pwd = options["imap", "password"][0]
+        if not promptForPass:
+            pwd = options["imap", "password"][0]
     else:
         if not launchUI:
             print "You need to specify both a server and a username."
