@@ -814,6 +814,14 @@ help you create a good training set:
   the classifier.
 
 
+Can Spambayes be used to perform n-way classification?
+------------------------------------------------------
+
+In theory, yes it can, though this has not yet been tried.  There are a
+couple other tools, `POPFile <http://popfile.sourceforge.net/>`_ and `CRM114
+<http://crm114.sourceforge.net/>`_.
+
+
 Known Problems & Workarounds
 ============================
 
