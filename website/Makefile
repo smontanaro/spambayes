@@ -29,7 +29,8 @@ faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
 
 download/Version.cfg: $(VERSION_PY)
-	python $(VERSION_PY) -g > download/Version.cfg
+	python $(VERSION_PY) -g > download/Version.cfg.tmp
+	mv -f download/Version.cfg.tmp download/Version.cfg
 
 local_install: 
 	cd download ; $(MAKE) install
