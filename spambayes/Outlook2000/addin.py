@@ -704,7 +704,6 @@ class OutlookAddin:
         # Handle failures during initialization so that we are not
         # automatically disabled by Outlook.
         # Our error reporter is in the "manager" module, so we get that first
-        print "SpamBayes - Connecting to Outlook"
         import manager
         try:
             self.application = application
@@ -714,6 +713,12 @@ class OutlookAddin:
             assert self.manager.addin is None, "Should not already have an addin"
             self.manager.addin = self
     
+            # Only now will the import of "spambayes.Version" work, as the
+            # manager is what munges sys.path for us.
+            from spambayes.Version import get_version_string
+            print "%s starting (with engine %s)..." % \
+                    (get_version_string("Outlook"), get_version_string())
+
             explorers = application.Explorers
             # and Explorers events so we know when new explorers spring into life.
             self.explorers_events = WithEvents(explorers, ExplorersEvent)
@@ -800,7 +805,7 @@ class OutlookAddin:
                     new_hook.Init(folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
                     self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
-                    print "AntiSpam: Watching for new messages in folder ", name
+                    print "SpamBayes: Watching for new messages in folder ", name
             else:
                 new_hooks[msgstore_folder.id] = existing
         return new_hooks
@@ -846,8 +851,8 @@ def RegisterAddin(klass):
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
-    _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, klass._reg_progid_)
-    _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, klass._reg_progid_)
+    _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, "SpamBayes anti-spam tool")
+    _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, "SpamBayes")
 
 def UnregisterAddin(klass):
     import _winreg
