@@ -189,6 +189,7 @@ class BrighterAsyncChat(asynchat.async_chat):
         """See `asynchat.async_chat`."""
         asynchat.async_chat.__init__(self, conn)
         self._map = map
+        self._closed = False
 
     def handle_connect(self):
         """Suppresses the asyncore "unhandled connect event" warning."""
@@ -197,20 +198,23 @@ class BrighterAsyncChat(asynchat.async_chat):
     def handle_error(self):
         """Let SystemExit cause an exit."""
         type, v, t = sys.exc_info()
-        if type == socket.error and v[0] == 9:  # Why?  Who knows...
-            pass
-        elif type == SystemExit:
+        if type == SystemExit:
             raise
         else:
             asynchat.async_chat.handle_error(self)
 
     def flush(self):
         """Flush everything in the output buffer."""
-        while self.producer_fifo or self.ac_out_buffer:
+        # We check self._closed here because of the case where
+        # self.initiate_send() raises an exception, causing self.close()
+        # to be called.  If we didn't check, we could end up in an infinite
+        # loop.
+        while (self.producer_fifo or self.ac_out_buffer) and not self._closed:
             self.initiate_send()
 
     def close(self):
         """Remove this object from the correct socket map."""
+        self._closed = True
         self.del_channel(self._map)
         self.socket.close()
 
