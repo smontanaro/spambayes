@@ -62,12 +62,7 @@ To Do:
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
-    o The filter is currently designed to be periodically run (with cron,
-      for example).  It would probably be nicer if it was continually
-      running (like pop3proxy, for example) and periodically checked for
-      any new messages to process (with the RECENT command).  The period
-      could be an option.  This is partially done with the -l operand.
-    o Mail flagged with /Deleted shouldn't be filtered.
+    o IMAP over SSL would be nice. (isbg has an example of how to do this)
     o The flags should be copied along with the message (especially
       the /Seen flag, but all of them, really).
     o Should the imap options server and port be combined?  i.e. instead
@@ -196,11 +191,27 @@ class IMAPMessage(message.SBHeaderMessage):
     def Save(self):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
+        # we need to copy the flags as well
+        response = imap.uid("FETCH", self.id, "(FLAGS INTERNALDATE)")
+        self._check(response, 'fetch (flags internaldate)')
+        response_pattern = r"[\d]+ \(UID [\w]+ FLAGS (\([\\\w]+\)) "
+        response_pattern += r'INTERNALDATE ["]?([\w\-: ]+)["]?\)'
+        mo = re.match(response_pattern, response[1][0])
+        if mo is None:
+            msg_time = self.extractTime()
+            flags = None
+        else:
+            flags = mo.group(1)
+            msg_time = mo.group(2)
+
+        # See searching for new uid comments below
+        old_id = self.id
+        self["X-Spambayes-IMAP-OldID"] = old_id
+                    
         response = imap.append(self.folder.name, None,
-                               self.extractTime(), self.as_string())
+                               msg_time, self.as_string())
         self._check(response, 'append')
 
-        old_id = self.id
         if self.previous_folder is None:
             imap.SelectFolder(self.folder.name, False)
         else:
@@ -210,19 +221,24 @@ class IMAPMessage(message.SBHeaderMessage):
         self._check(response, 'store')
 
         # We need to update the uid, as it will have changed
-        # XXX There will be problems here if the message *has not*
-        # XXX changed, as the message to be deleted will be found first
-        # XXX (if they are in the same folder)
-        imap.SelectFolder(self.folder.name, True)
-        #response = imap.uid("SEARCH", "TEXT", self.as_string())
-        #self._check(response, 'search')
-        #new_id = response[1][0]
-        new_id = ""
+        # Searching for the new message is full of problems.  Searching for
+        # the text sends far too much data through the connection, and
+        # doesn't work reliably anyway.  We instead search for a special
+        # header that we add for this explicit purpose.
+        imap.SelectFolder(self.folder.name, False)
+        response = imap.uid("SEARCH", "HEADER", "X-Spambayes-IMAP-OldID",
+                            old_id)
+        self._check(response, 'search')
+        new_id = response[1][0]
+
+        # now that we know the new id, we need to correct the flags
+        if flags != None:
+            response = imap.uid("STORE", new_id, "+FLAGS.SILENT", flags)
+            self._check(response, "store flags")
 
         #XXX This code to delete the old message id from the message
         #XXX info db and manipulate the message id, is a *serious* hack.
         #XXX There's gotta be a better way to do this.
-
         message.msginfoDB._delState(self)
         self.id = new_id
         self.modified()
@@ -249,6 +265,14 @@ class IMAPFolder(object):
             except KeyError:
                 pass
 
+    def recent_keys(self):
+        '''Returns uids for all the messages in the folder that
+        are flagged as recent, but not flagged as deleted.'''
+        imap.SelectFolder(self.name, True)
+        response = imap.uid("SEARCH", "(RECENT UNDELETED)")
+        self._check(response, "SEARCH (RECENT UNDELETED)")
+        return response[1][0].split(' ')
+
     def keys(self):
         '''Returns uids for all the messages in the folder'''
         # request message range
@@ -256,13 +280,15 @@ class IMAPFolder(object):
         total_messages = response[1][0]
         if total_messages == '0':
             return []
-        response = imap.fetch("1:" + total_messages, "UID")
-        r = re.compile(r"[0-9]+ \(UID ([0-9]+)\)")
+        response = imap.fetch("1:" + total_messages, "(UID FLAGS)")
+        r = re.compile(r"[0-9]+ \(UID ([0-9]+) FLAGS \(([\\\w]*)\)\)")
         uids = []
         for i in response[1]:
             mo = r.match(i)
             if mo is not None:
-                uids.append(mo.group(1))
+                # We are not interested in messages marked as deleted
+                if mo.group(2).lower() != "\\deleted":
+                    uids.append(mo.group(1))
         return uids
 
     def __getitem__(self, key):
@@ -322,12 +348,12 @@ class IMAPFolder(object):
                     msg.MoveTo(unsurefolder)
 
                 msg.Save()
+
             
 class IMAPFilter(object):
     def __init__(self, classifier):
         self.spam_folder = IMAPFolder(options["imap", "spam_folder"])
         self.unsure_folder = IMAPFolder(options["imap", "unsure_folder"])
-
         self.classifier = classifier
         
     def Train(self):
@@ -361,7 +387,8 @@ class IMAPFilter(object):
             
         for filter_folder in options["imap", "filter_folders"].split():
             folder = IMAPFolder(filter_folder, False)
-            folder.Filter(self.classifier, self.spam_folder, self.unsure_folder)
+            folder.Filter(self.classifier, self.spam_folder,
+                          self.unsure_folder)
  
         if options["globals", "verbose"]:
             print "Filtering took", time.time() - t, "seconds."
@@ -454,6 +481,7 @@ or training will be performed."""
     # XXX then there will be trouble since both interfaces are
     # XXX using the same port by default.
     if launchUI:
+        imap.login(options["imap", "username"], pwd)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap))
         Dibbler.run(launchBrowser=launchUI)

@@ -397,6 +397,7 @@ class UserInterface(BaseUserInterface):
                 del configTable.configCbRow1
                 del configTable.configRow2
                 del configTable.blankRow
+                del configTable.folderRow
                 section.heading = html_key
                 del section.iconCell
                 continue
@@ -454,6 +455,13 @@ class UserInterface(BaseUserInterface):
                     currentValue = "False"
                 elif str(currentValue) == '1':
                     currentValue = "True"
+            # XXX Something needs to be done here, otherwise really
+            # XXX long options squeeze the help text too far to the
+            # XXX right.  Browsers can't wrap the text (even if
+            # XXX no-wrap is False) unless there is whitespace to
+            # XXX wrap on - comma's don't count.  This works, but
+            # XXX it's a bit ugly.  Ideas?
+            # currentValue = str(currentValue).replace(',', '<br />')
             newConfigRow2.currentValue = currentValue
             configTable += newConfigRow1 + newConfigRow2 + blankRow
 

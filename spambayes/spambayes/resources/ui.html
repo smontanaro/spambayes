@@ -309,8 +309,8 @@ a:hover { color: #6040ff }
     <span id="configForm">
     <FORM action="changeopts" method="POST">
 
-    <p>This page allows you to change the options that control how
-    Spambayes processes your email.  Your options are stored in
+    <p><span id="introduction">This page allows you to change the options that control how
+    Spambayes processes your email.</span>  Your options are stored in
     <b><span id='optionsPathname'>/example/pathname</span></b>.</p>
 
     <span id="configFormContent">
@@ -344,9 +344,19 @@ a:hover { color: #6040ff }
     </TR>
     <TR id="configRow2">
         <TD nowrap='1' align='right'>Current Value:</TD>
-        <TD nowrap='1'>&nbsp;<span id="currentValue">(value)</span></TD>
+        <TD nowrap='0' width='150'>&nbsp;<span id="currentValue">(value)</span></TD>
     </TR>
     <TR id="blankRow"><TD>&nbsp;</TD></TR>
+    <TR id="folderRow">
+        <TD width="25%">
+            <input type="checkbox" id="folderBox" value="value" name="folderName">
+            <span id="folderName">Folder name</span>
+            </input>
+        </TD>
+        <TD id='helpCell' valign='top' rowspan='1000'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
     </TABLE>
     </span>
 

@@ -56,7 +56,7 @@ except NameError:
 import re
 
 import UserInterface
-from Options import options
+from Options import options, optionsPathname
 
 global classifier
 
@@ -130,12 +130,63 @@ class IMAPUserInterface(UserInterface.UserInterface):
         global options
         from Options import options
 
+    def onSave(self, how):
+        self.imap.logout(False) # never expunge from the web ui
+        UserInterface.UserInterface.onSave(self, how)
+        
+    def onSelectfolders(self):
+        available_folders = self._folder_list()
+        content = self.html.configForm.clone()
+        content.configFormContent = ""
+        content.introduction = """This page allows you to change which
+        folders the filter works with."""
+        content.optionsPathname = optionsPathname
+
+        for opt in ("unsure_folder", "spam_folder",
+                    "filter_folders", "ham_train_folders",
+                    "spam_train_folders"):
+            folderBox = self._buildFolderBox("imap", opt, available_folders)
+            content.configFormContent += folderBox
+
+        self._writePreamble("Select Folders")
+        self.write(content)
+        self._writePostamble()
+
+    def _buildFolderBox(self, section, option, available_folders):
+        folderTable = self.html.configTable.clone()
+        del folderTable.configTextRow1
+        del folderTable.configCbRow1
+        del folderTable.configRow2
+        del folderTable.blankRow
+        del folderTable.folderRow
+        firstRow = True
+        for folder in available_folders:
+            folderRow = self.html.configTable.folderRow.clone()
+            if firstRow:
+                folderRow.helpCell = options.doc(section, option)
+                firstRow = False
+            else:
+                del folderRow.helpCell
+            folderRow.folderBox.name = option
+            folderRow.folderBox.value = folder
+            folderRow.folderName = folder
+            if options.multiple_values_allowed(section, option):
+                folderRow.folderBox.name += ',' + folder
+            else:
+                folderRow.folderBox.type = "radio"
+            current_options = ',' + options[section, option] + ','
+            if current_options.find(',' + folder + ',') != -1:
+                folderRow.folderBox.checked = "checked"
+            folderTable += folderRow
+        return self._buildBox(options.display_name(section, option),
+                              None, folderTable)
+
     def _folder_list(self):
         '''Return a alphabetical list of all folders available
         on the server'''
-        response = imap.list()
+        response = self.imap.list()
         if response[0] != "OK":
-            return ()
+            return []
         all_folders = response[1]
         folders = []
         for fol in all_folders:
