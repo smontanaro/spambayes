@@ -78,6 +78,7 @@ import os
 import sys
 import getopt
 from spambayes import hammie, Options, mboxutils
+from spambayes.Version import get_version_string
 
 try:
     True, False
@@ -125,6 +126,11 @@ def examples():
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
+    # Include version info in usage
+    print >> sys.stderr, get_version_string("sb_filter")
+    print >> sys.stderr, "    with engine %s" % get_version_string()
+    print >> sys.stderr
+    
     if msg:
         print >> sys.stderr, msg
         print >> sys.stderr
