@@ -116,14 +116,14 @@ def main():
 
 def usage():
     print """ \
-Usage: %s -q [directory]
+Usage: %s [-q] [-n min] [directory]
 
 -q : quiet - don't prompt for confirmation.
 -n : Minimum number of files to aim for in each directory, default=%d
 
-Export the folders defined in the Outlook Plugin to a test directory.
-The directory structure is as defined in the parent README.txt file,
-in the "Standard Test Data Setup" section.
+Export Spam and Ham training folders defined in the Outlook Plugin to a
+test directory.  The directory structure is as defined in the parent
+README.txt file, in the "Standard Test Data Setup" section.
 
 If 'directory' is not specified, '%s' is assumed.
 
