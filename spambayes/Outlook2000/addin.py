@@ -31,6 +31,10 @@ if sys.version_info >= (2, 3):
     # todo - remove this - win32all has removed all these warnings
     # (but we will wait some time for people to update)
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
+    # Binary builds can avoid our pendingdeprecation too
+    if hasattr(sys, "frozen"):
+        warnings.filterwarnings("ignore", category=DeprecationWarning, append=1)
+
 
 from win32com import universal
 from win32com.server.exception import COMException
@@ -73,26 +77,22 @@ except win32api.error:
     else:
         import win32traceutil
 
-# Attempt to catch the most common errors - COM objects not installed.
-try:
-    # Generate support so we get complete support including events
-    gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, bForDemand=True) # Outlook 9
-    gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, bForDemand=True) # Office 9
+# We used to catch COM errors - but as most users are now on the binary, this
+# niceness doesn't help anyone.
 
-    # Register what vtable based interfaces we need to implement.
-    universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
-except pythoncom.com_error, (hr, msg, exc, arg):
-    if __name__ != '__main__':
-        # Error when not running as a script - eeek - just let it go.
-        raise
-    print "This Addin requires that Outlook 2000 be installed on this machine."
-    print
-    print "This appears to not be installed due to the following error:"
-    print "COM Error 0x%x (%s)" % (hr, msg)
-    if exc:
-        print "Exception: %s" % (exc)
-    print "Sorry I can't be more help, but I can't continue while I have this error."
-    sys.exit(1)
+# win32com generally checks the gencache is up to date (typelib hasn't
+# changed, makepy hasn't changed, etc), but when frozen we dont want to
+# do this - not just for perf, but because they don't always exist!
+bValidateGencache = not hasattr(sys, "frozen")
+# Generate support so we get complete support including events
+gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0,
+                        bForDemand=True, bValidateFile=bValidateGencache) # Outlook 9
+gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1,
+                        bForDemand=True, bValidateFile=bValidateGencache) # Office 9
+
+# Register what vtable based interfaces we need to implement.
+gencache.EnsureModule('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0,
+                        bForDemand=True, bValidateFile=bValidateGencache) # Addin
 
 # A couple of functions that are in new win32all, but we dont want to
 # force people to ugrade if we can avoid it.
@@ -865,8 +865,11 @@ class OutlookAddin:
             # Only now will the import of "spambayes.Version" work, as the
             # manager is what munges sys.path for us.
             from spambayes.Version import get_version_string
+            version_key = "Full Description"
+            if hasattr(sys, "frozen"): version_key += " Binary"
             print "%s starting (with engine %s)" % \
-                    (get_version_string("Outlook"), get_version_string())
+                    (get_version_string("Outlook", version_key),
+                     get_version_string())
             major, minor, spack, platform, ver_str = win32api.GetVersionEx()
             print "on Windows %d.%d.%d (%s)" % \
                   (major, minor, spack, ver_str)
@@ -1017,12 +1020,10 @@ class OutlookAddin:
 
 def RegisterAddin(klass):
     # prints to help debug binary install issues.
-    print "Starting register"
     import _winreg
     key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER,
                             "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
-    print "Setting values"
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
     _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, "SpamBayes anti-spam tool")
