@@ -16,6 +16,10 @@ import glob
 for fname in glob.glob(PROJECT_ROOT + "/images/*"):
     if os.path.isfile(fname):
         extras.append( ("images/"+basename(fname), abspath(fname), 'DATA') )
+# bitmaps for the dialog.
+for fname in glob.glob(PROJECT_ROOT + "/dialogs/resources/*.bmp"):
+    if os.path.isfile(fname):
+        extras.append( ("images/"+basename(fname), abspath(fname), 'DATA') )
 # docs
 extras.append( ("about.html", join(PROJECT_ROOT, "about.html"), 'DATA') )
 extras.append( ("LICENSE.TXT", join(PROJECT_ROOT, "..", "LICENSE.TXT"), 'DATA') )
@@ -28,7 +32,7 @@ for fname in glob.glob(PROJECT_ROOT + "/docs/images/*"):
 # config
 extras.append( ("default_bayes_customize.ini", join(PROJECT_ROOT, "default_bayes_customize.ini"), 'DATA') )
 
-excludes = ['dde', 'win32help']
+excludes = ['dde', 'win32help', 'pywin', 'win32ui']
 
 mods = []
 mods += [INSTALLER_ROOT+'/support/_mountzlib.py']
@@ -52,8 +56,9 @@ typelibs = [
     ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1),
     ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0),
 ]
+extra_script_options = []
 dll = DLL(pyz,
-          a.scripts,
+          a.scripts + extra_script_options,
           exclude_binaries=1,
           name='buildspambayes_addin/spambayes_addin.dll',
           debug=debug)
