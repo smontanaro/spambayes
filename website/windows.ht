@@ -11,8 +11,8 @@ and for <a href="#non-outlook">all other mail clients</a>
 
 <h3>Latest Release</h3>
 <p>The latest release is <b>Version 0.9</b> - see the 
-<a href="http://sourceforge.net/project/shownotes.php?release_id=183129">release notes</a>
-or <a href="http://prdownloads.sourceforge.net/spambayes/SpamBayes-Setup-0.9.exe?download">download the installation program</a>.
+<a href="http://sourceforge.net/project/shownotes.php?release_id=215808">release notes</a>
+or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0a9.exe?download">download the installation program</a>.
 </p>
 
 <h3>General Information</h3>
@@ -26,7 +26,7 @@ not work with Outlook Express</b> - see <a href="#non-outlook">below for
 other options</a>.</p>
 <p>In general, you should download and install the latest version, as shown 
 above.  Older versions and the release notes can be viewed at the
-<a href="https://sourceforge.net/project/showfiles.php?group_id=61702">spambayes releases page</a>.
+<a href="http://sourceforge.net/project/showfiles.php?group_id=61702">spambayes releases page</a>.
 </p>
 
 <p>If you have a problem, the best way to help make progress is to look for
@@ -55,7 +55,7 @@ To do this, you will need three pieces of software:
   Python you downloaded.</li>
 
   <li> The SpamBayes source, either as a <a
-  href="https://sourceforge.net/project/showfiles.php?group_id=61702">zip
+  href="http://sourceforge.net/project/showfiles.php?group_id=61702">zip
   file</a> or <a href="http://sourceforge.net/cvs/?group_id=61702">via
   CVS</a>.  The zip file will probably be easier to handle, but there are
   several improvements to the code which make the CVS version a
@@ -73,14 +73,14 @@ go.  See the README.txt file in the Outlook2000 directory for more details</p>
 
 <p>Windows users using other mail clients and retrieving mail via POP3
 can now download the same
-<a href="http://prdownloads.sourceforge.net/spambayes/SpamBayes-Setup-0.9.exe?download">
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0a9.exe?download">
 installation program</a> and use it to install a binary version of
 sb_server, including a tray application.</p>
 <p>See also the information about <a href="applications.html#sb_server">sb_server</a>.</p>
 
-<p>If you retrieve mail via IMAP, you, you currently need to
+<p>If you retrieve mail via IMAP, you currently need to
 install a recent version of <a href="http://www.python.org/">Python</a> and
 the <a
-href="https://sourceforge.net/project/showfiles.php?group_id=61702">SpamBayes
+href="http://sourceforge.net/project/showfiles.php?group_id=61702">SpamBayes
 source</a><sup><font size="-2">1</font></sup>, then setup the <a
 href="applications.html#imap">IMAP filter</a>) for your mail server.
