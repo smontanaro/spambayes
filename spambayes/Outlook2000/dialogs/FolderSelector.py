@@ -640,7 +640,11 @@ class FolderSelector(FolderSelector_Parent):
                         new_folder = parent_folder.CreateFolder(name)
                         # Create a new FolderSpec for this folder, and stash
                         new_spec = FolderSpec(new_folder.GetID(), name)
-                        self.item_map[item[7]] = new_spec
+                        # The info passed by the notify message appears to
+                        # not have the lparam (even though the docs say it
+                        # does.)  Fetch it
+                        spec_key = self._GetTVItem(handle)[7]
+                        self.item_map[spec_key] = new_spec
                         # And update the tree with the new item
                         buf, extra = PackTVITEM(handle, None, None, name, None, None, None, None)
                         win32gui.SendMessage(self.list, commctrl.TVM_SETITEM, 0, buf)
