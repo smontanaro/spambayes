@@ -157,8 +157,7 @@ def ShowClues(mgr, app):
     push("<h2>Message Stream:</h2><br>")
     push("<PRE>\n")
     txt = msgstore_message.GetEmailPackageObject().as_string(unixfrom=1)
-    import cgi
-    push(cgi.escape(txt, True))
+    push(escape(txt, True))
     push("</PRE>\n")
     body = ''.join(body)
 
