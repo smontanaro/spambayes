@@ -1,0 +1,42 @@
+Title: SpamBayes: Unix/Linux platform
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h1>Spambayes on Unix or Linux</h1>
+
+<p>There is no direct mail client integration on Unix and Linux
+systems<sup><font size="-2">1</font></sup>.  You must make sure a <a
+href="download.html">recent enough version of Python</a> is installed, then
+install the Spambayes source either as a <a
+href="https://sourceforge.net/project/showfiles.php?group_id=61702">bundled
+package</a> or <a href="https://sourceforge.net/cvs/?group_id=61702">from
+CVS</a>, then choose the Spambayes application which best fits into your
+mail setup.
+
+<h2>Procmail</h2>
+
+<p>If you use <a href="http://www.procmail.org/">procmail</a> as your local
+delivery agent and your email package picks up your primary mail from a
+local spool file (e.g. <code>/var/spool/mail</code>), you will probably find
+hammiefilter.py the easiest application to integrate into your mail
+environment.  Details are available in the <a
+href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">Hammie
+integration guide</a>. (XXX: More of what's there needs to be incorporated
+here.)</p>
+
+<h2>POP3</h2>
+
+<p>If your mail program fetches mail using POP3, then you should run <a
+href="applications.html#pop3">pop3proxy.py</a>.
+
+<h2>IMAP</h2>
+
+<p>If your mail program fetches mail using IMAP, then you should run
+<a href="applications.html#imap">imapfilter.py</a>.
+
+<h2>Notes</h2>
+
+<ol>
+  <li> If you're a Unix weenie using a Mac OS X system, this page is
+  probably more appropriate than the <a href="mac.html">Mac page</a>.
+</ol>
