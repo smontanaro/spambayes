@@ -337,12 +337,9 @@ class BayesSMTPProxy(SMTPProxyBase):
     def onData(self, command, args):
         self.inData = True
         if self.train_as_ham == True or self.train_as_spam == True:
-            self.push("250 OK\r\n")
+            self.push("354 Enter data ending with a . on a line by itself\r\n")
             return None
-        rv = command
-        for arg in args:
-            rv += ' ' + arg
-        return rv
+        return command + ' ' + ' '.join(args)
 
     def onMailFrom(self, command, args):
         """Just like the default handler, but has the necessary colon."""
