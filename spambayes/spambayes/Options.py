@@ -1011,6 +1011,12 @@ defaults = {
      """""",
      IMAP_FOLDER, DO_NOT_RESTORE),
 
+    ("ham_folder", "Folder for ham messages", "",
+    """If you leave this option blank, messages classified as ham will not
+    be moved.  However, if you wish to have ham messages moved, you can
+    select a folder here.""",
+    IMAP_FOLDER, DO_NOT_RESTORE),
+    
     ("ham_train_folders", "Folders with mail to be trained as ham", (),
      """Comma delimited list of folders that will be examined for messages
      to train as ham.""",

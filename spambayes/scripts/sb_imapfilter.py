@@ -170,9 +170,10 @@ class IMAPSession(BaseIMAP):
         SelectFolder, rather than here, for purposes of speed."""
         # We may never have logged in, in which case we do nothing.
         if self.do_expunge and self.logged_in:
-            # Expunge messages from the spam and unsure folders.
+            # Expunge messages from the ham, spam and unsure folders.
             for fol in ["spam_folder",
-                        "unsure_folder",]:
+                        "unsure_folder",
+                        "ham_folder"]:
                 self.select(options["imap", fol])
                 self.expunge()
             # Expunge messages from the ham and spam training folders.
@@ -746,7 +747,7 @@ class IMAPFolder(object):
                     msg.Save()
         return num_trained
 
-    def Filter(self, classifier, spamfolder, unsurefolder):
+    def Filter(self, classifier, spamfolder, unsurefolder, hamfolder):
         count = {}
         count["ham"] = 0
         count["spam"] = 0
@@ -769,7 +770,9 @@ class IMAPFolder(object):
 
                 cls = msg.GetClassification()
                 if cls == options["Headers", "header_ham_string"]:
-                    # We leave ham alone.
+                    if hamfolder:
+                        msg.MoveTo(hamfolder)
+                    # Otherwise, we leave ham alone.
                     count["ham"] += 1
                 elif cls == options["Headers", "header_spam_string"]:
                     msg.MoveTo(spamfolder)
@@ -785,6 +788,7 @@ class IMAPFilter(object):
     def __init__(self, classifier):
         self.spam_folder = None
         self.unsure_folder = None
+        self.ham_folder = None
         self.classifier = classifier
         self.imap_server = None
 
@@ -831,6 +835,9 @@ class IMAPFilter(object):
             self.unsure_folder = IMAPFolder(options["imap",
                                                     "unsure_folder"],
                                             self.imap_server)
+        ham_folder_name = options["imap", "ham_folder"]
+        if ham_folder_name and not self.ham_folder:
+            self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server)
 
         if options["globals", "verbose"]:
             t = time.time()
@@ -840,7 +847,7 @@ class IMAPFilter(object):
         count["spam"] = 0
         count["unsure"] = 0
 
-        # Select the spam folder and unsure folder to make sure they exist.
+        # Select the ham, spam and unsure folders to make sure they exist.
         try:
             self.imap_server.SelectFolder(self.spam_folder.name)
         except BadIMAPResponseError:
@@ -851,7 +858,13 @@ class IMAPFilter(object):
         except BadIMAPResponseError:
             print "Cannot select spam folder.  Please check configuration."
             sys.exit(-1)
-
+        if self.ham_folder:
+            try:
+                self.imap_server.SelectFolder(self.ham_folder.name)
+            except BadIMAPResponseError:
+                print "Cannot select ham folder.  Please check configuration."
+                sys.exit(-1)
+                
         for filter_folder in options["imap", "filter_folders"]:
             # Select the folder to make sure it exists.
             try:
@@ -862,7 +875,7 @@ class IMAPFilter(object):
 
             folder = IMAPFolder(filter_folder, self.imap_server)
             subcount = folder.Filter(self.classifier, self.spam_folder,
-                                     self.unsure_folder)
+                                     self.unsure_folder, self.ham_folder)
             for key in count.keys():
                 count[key] += subcount.get(key, 0)
 
