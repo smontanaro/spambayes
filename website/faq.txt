@@ -246,7 +246,7 @@ There are eight main components to the SpamBayes system:
    box next to each one.  After training on a few messages (say 20 spams and
    20 hams), you'll find that it's getting it right most of the time.  The
    web training interface automatically checks the Ham/Spam boxes according
-   to what it thinks, so all you need to do it correct the odd mistake -
+   to what it thinks, so all you need to do is correct the odd mistake -
    it's very quick and easy.
 
 6. The Outlook plug-in.  For Outlook (2000, 2002 (XP), or 2003) users (not
