@@ -699,6 +699,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
 
     def _GetMessageText(self):
+        parts = self._GetMessageTextParts()
+        # parts is (headers, body, html), but could possibly grow
+        return "\n".join(parts)
+
+    def _GetMessageTextParts(self):
         # This is finally reliable.  The only messages this now fails for
         # are for "forwarded" messages, where the forwards are actually
         # in an attachment.  Later.
@@ -792,7 +797,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                     return collected
                 body = collect_text_parts(msg)
 
-        return "%s\n%s\n%s" % (headers, html, body)
+        return headers, body, html
 
     def _GetFakeHeaders(self):
         # This is designed to fake up some SMTP headers for messages

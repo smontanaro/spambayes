@@ -62,7 +62,12 @@ def DBExtractor(bayes):
 # marked as either ham or spam.  Simply enumerates the
 # bayes word list looking for any word with zero count in the
 # non-requested category.
+_top_ham = None
+_top_spam = None
 def FindTopWords(bayes, num, get_spam):
+    global _top_spam, _top_ham
+    if get_spam and _top_spam: return _top_spam
+    if not get_spam and _top_ham: return _top_ham
     items = []
     try:
         bayes.db # bsddb style
@@ -71,6 +76,8 @@ def FindTopWords(bayes, num, get_spam):
         extractor = DictExtractor
 
     for word, info in extractor(bayes):
+        if info is None:
+            break
         if ":" in word:
             continue
         if get_spam:
@@ -88,6 +95,10 @@ def FindTopWords(bayes, num, get_spam):
     ret = {}
     for n, word, info in items[:num]:
         ret[word]=copy.copy(info)
+    if get_spam:
+        _top_spam = ret
+    else:
+        _top_ham = ret
     return ret
 
 # A little driver/manager for our tests
@@ -398,7 +409,9 @@ def run_nonfilter_tests(manager):
     import msgstore
     msgstore.test_suite_running = False
     try:
+        print "Scanning all your good mail and spam for some sanity checks..."
         num_found = num_looked = 0
+        num_without_headers = num_without_body = num_without_html_body = 0
         for folder_ids, include_sub in [
             (manager.config.filter.watch_folder_ids, manager.config.filter.watch_include_sub),
             ([manager.config.filter.spam_folder_id], False),
@@ -417,7 +430,14 @@ def run_nonfilter_tests(manager):
                             print "If any of these messages should be filtered, we have a bug!"
                         num_found += 1
                         print " %s/%s" % (folder.name, message.subject)
+                    headers, body, html_body = message._GetMessageTextParts()
+                    if not headers: num_without_headers += 1
+                    if not body: num_without_body += 1
+                    if not html_body: num_without_html_body += 1
+
         print "Checked %d items, %d non-filterable items found" % (num_looked, num_found)
+        print "of these items, %d had no headers, %d had no text body and %d had no HTML" % \
+                (num_without_headers, num_without_body, num_without_html_body)
     finally:
         msgstore.test_suite_running = True
 
@@ -427,8 +447,9 @@ def test(manager):
     SetWaitCursor(1)
     try: # restore the plugin config at exit.
         msgstore.test_suite_running = True
-        run_filter_tests(manager)
         run_nonfilter_tests(manager)
+        # filtering tests take alot of time - do them last.
+        run_filter_tests(manager)
     finally:
         # Always restore configuration to how we started.
         msgstore.test_suite_running = False
