@@ -205,10 +205,11 @@ defaults = {
         FILTER_ACTION, RESTORE),
     ("spam_mark_as_read", "Should filtered spam also be marked as 'read'", False,
         """Determines if spam messages are marked as 'Read' as they are
-        filtered.  This can be set to 'True' if the new-mail icon bothers
+        filtered.  This can be set to 'True' if the new-mail folder counts bothers
         you when the only new items are spam.  It can be set to 'False'
         if you use the 'read' state of these messages to determine which
-        items you are yet to review.""",
+        items you are yet to review. This option does not affect the
+        new-mail icon in the system tray.""",
         BOOLEAN, RESTORE),
     (FolderIDOption,
         "unsure_folder_id", "The folder used to track uncertain messages", None,
