@@ -51,6 +51,9 @@ class MsgStoreMsg:
         # User field is for the user to see - status/internal fields
         # should get their own methods
         raise NotImplementedError
+    def GetField(self, name):
+        # Abstractly get a user field name/id to a field value.
+        raise NotImplementedError
     def Save(self):
         # Save changes after field changes.
         raise NotImplementedError
@@ -60,14 +63,6 @@ class MsgStoreMsg:
     def CopyTo(self, folder_id):
         # Copy the message to a folder.
         raise NotImplementedError
-    # And some status ones we may hopefully use.
-    def BeenFiltered(self):
-        # Ever been filtered by us before
-        raise NotImplementedError
-    def GetTrainedCorpaName(self):
-        # Return None, "ham" or "spam"
-        raise NotImplementedError
-
 
 # Our MAPI implementation
 import warnings
@@ -76,7 +71,7 @@ if sys.version_info >= (2, 3):
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)
 
 from win32com.client import Dispatch, constants
-from win32com.mapi import mapi
+from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
 import pythoncom
 
@@ -182,17 +177,18 @@ class MAPIMsgStore(MsgStore):
     def GetMessage(self, message_id):
         # Return a single message given the ID.
         message_id = mapi.BinFromHex(message_id)
-        prop_ids = PR_PARENT_ENTRYID, PR_CONTENT_UNREAD
+        prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
         mapi_object = self.mapi_msgstore.OpenEntry(message_id,
                                                    None,
                                                    mapi.MAPI_MODIFY |
                                                        USE_DEFERRED_ERRORS)
         hr, data = mapi_object.GetProps(prop_ids,0)
         folder_eid = data[0][1]
-        unread = data[1][1]
+        searchkey = data[1][1]
+        unread = data[2][1]
         folder = MAPIMsgStoreFolder(self, folder_eid,
                                     "Unknown - temp message", -1)
-        return  MAPIMsgStoreMsg(self, folder, message_id, unread)
+        return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, unread)
 
 ##    # Currently no need for this
 ##    def GetOutlookObjectFromID(self, eid):
@@ -233,7 +229,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                                                        mapi.MAPI_MODIFY |
                                                            USE_DEFERRED_ERRORS)
         table = folder.GetContentsTable(0)
-        prop_ids = PR_ENTRYID, PR_CONTENT_UNREAD
+        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
         table.SetColumns(prop_ids, 0)
         while 1:
             # Getting 70 at a time was the random number that gave best
@@ -243,15 +239,21 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                 break
             for row in rows:
                 yield MAPIMsgStoreMsg(self.msgstore, self,
-                                      row[0][1], row[1][1])
+                                      row[0][1], row[1][1], row[2][1])
 
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
-    def __init__(self, msgstore, folder, entryid, unread):
+    def __init__(self, msgstore, folder, entryid, searchkey, unread):
         self.folder = folder
         self.msgstore = msgstore
         self.mapi_object = None
         self.id = entryid
+        # Search key is the only reliable thing after a move/copy operation
+        # only problem is that it can potentially be changed - however, the
+        # Outlook client provides no such (easy/obvious) way
+        # (ie, someone would need to really want to change it <wink>
+        # This, searchkey is the only reliable long-lived message key.
+        self.searchkey = searchkey
         self.unread = unread
         self.dirty = False
 
@@ -274,7 +276,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                                                    0, 0)
             chunks = []
             while 1:
-                chunk = stream.Read(1024)
+                chunk = stream.Read(4096)
                 if not chunk:
                     break
                 chunks.append(chunk)
@@ -305,18 +307,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # This is finally reliable.  The only messages this now fails for
         # are for "forwarded" messages, where the forwards are actually
         # in an attachment.  Later.
-
-        # Note:  There's no distinction made here between msgs that have
-        # been received, and, e.g., msgs that were sent and moved from the
-        # Sent Items folder.  It would be good not to train on the latter,
-        # since it's simply not received email.  An article on the web said
-        # the distinction can't be made with 100% certainty, but that a good
-        # heuristic is to believe that a msg has been received iff at least
-        # one of these properties has a sensible value:
-        #     PR_RECEIVED_BY_EMAIL_ADDRESS
-        #     PR_RECEIVED_BY_NAME
-        #     PR_RECEIVED_BY_ENTRYID
-        #     PR_TRANSPORT_MESSAGE_HEADERS
+        # Oh - and for multipart/signed messages <frown>
         self._EnsureObject()
         prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY_A, MYPR_BODY_HTML_A
         hr, data = self.mapi_object.GetProps(prop_ids,0)
@@ -363,6 +354,15 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return msg
 
     def SetField(self, prop, val):
+        # Future optimization note - from GetIDsFromNames doco
+        # Name-to-identifier mapping is represented by an object's
+        # PR_MAPPING_SIGNATURE property. PR_MAPPING_SIGNATURE contains
+        # a MAPIUID structure that indicates the service provider
+        # responsible for the object. If the PR_MAPPING_SIGNATURE
+        # property is the same for two objects, assume that these
+        # objects use the same name-to-identifier mapping.
+        # [MarkH: Note MAPIUUID object are supported and hashable]
+        
         # XXX If the SpamProb (Hammie, whatever) property is passed in as an
         # XXX int, Outlook displays the field as all blanks, and sorting on
         # XXX it doesn't do anything, etc.  I don't know why.  Since I'm
@@ -390,9 +390,27 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             self.mapi_object.SetProps(((prop,val),))
         self.dirty = True
 
+    def GetField(self, prop):
+        self._EnsureObject()
+        if type(prop) != type(0):
+            props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
+            prop = self.mapi_object.GetIDsFromNames(props, 0)[0]
+            # Docs say PT_ERROR, reality shows PT_UNSPECIFIED
+            if PROP_TYPE(prop) == PT_ERROR: # No such property
+                return None
+            prop = PROP_TAG( PT_UNSPECIFIED, PROP_ID(prop))
+        hr, props = self.mapi_object.GetProps((prop,), 0)
+        ((tag, val), ) = props
+        if PROP_TYPE(tag) == PT_ERROR:
+            if val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
+                # Too big for simple properties - get via a stream
+                return self._GetPropFromStream(prop)
+            return None
+        return val
+
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"
-        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE)
+        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
         self.dirty = False
 
     def _DoCopyMode(self, folder, isMove):

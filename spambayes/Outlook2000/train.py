@@ -3,7 +3,18 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-import sys, os, traceback
+import traceback
+from win32com.mapi import mapi
+
+def been_trained_as_ham(msg, mgr):
+    spam = mgr.message_db.get(msg.searchkey)
+    # spam is None
+    return spam == False
+
+def been_trained_as_spam(msg, mgr):
+    spam = mgr.message_db.get(msg.searchkey)
+    # spam is None
+    return spam == True
 
 def train_message(msg, is_spam, mgr):
     # Train an individual message.
@@ -14,7 +25,7 @@ def train_message(msg, is_spam, mgr):
     stream = msg.GetEmailPackageObject()
     tokens = tokenize(stream)
     # Handle we may have already been trained.
-    was_spam = mgr.message_db.get(msg.id)
+    was_spam = mgr.message_db.get(msg.searchkey)
     if was_spam is None:
         # never previously trained.
         pass
@@ -26,7 +37,7 @@ def train_message(msg, is_spam, mgr):
         mgr.bayes.unlearn(tokens, was_spam, False)
     # OK - setup the new data.
     mgr.bayes.learn(tokens, is_spam, False)
-    mgr.message_db[msg.id] = is_spam
+    mgr.message_db[msg.searchkey] = is_spam
     mgr.bayes_dirty = True
     return True
 

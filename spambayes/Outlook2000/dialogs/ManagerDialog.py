@@ -1,3 +1,6 @@
+import os
+import operator
+
 from pywin.mfc import dialog
 import win32con
 import commctrl
@@ -7,127 +10,161 @@ import pythoncom
 
 from DialogGlobals import *
 
-IDC_BUT_MOREINFO = 1024
-IDC_BUT_DB = 1025
-IDC_BUT_TRAIN = 1026
-IDC_DB_STATUS = 1027
-IDC_BUT_ENABLE_FILTER = 1028
-IDC_BUT_FILTER = 1029
-IDC_FILTER_STATUS = 1030
-IDC_BUT_CLASSIFY = 1031
+IDC_BUT_ABOUT = 1024
+IDC_BUT_TRAIN_FROM_SPAM_FOLDER = 1025
+IDC_BUT_TRAIN_TO_SPAM_FOLDER = 1026
+IDC_BUT_TRAIN_NOW = 1027
+IDC_BUT_FILTER_NOW = 1028
+IDC_BUT_FILTER_DEFINE= 1029
+IDC_BUT_FILTER_ENABLE = 1030
+IDC_BUT_ADVANCED= 1031
+IDC_TRAINING_STATUS = 1032
+IDC_FILTER_STATUS = 1033
 
 class ManagerDialog(dialog.Dialog):
     style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
     csts = cs | win32con.WS_TABSTOP
-    filter_msg = "Filter the following folders as messages arrive"
-    intro_msg = "This application filters out spam by continually learning the characteristics of email you recieve and filtering spam from your regular email.  The system must be trained before it will be effective."
     training_intro = "Training is the process of giving examples of both good and bad email to the system so it can classify future email"
-    filtering_intro = "Filtering is the process of deleting, moving or otherwise modifying messages based on their spam probability"
-    classify_intro = "Classification is the process of adding properties to messages based on their Spam probability.  Creating a property with the spam rating allows you to select the field using the Outlook Field Chooser."
-
+    filtering_intro = "Filtering defines how spam is handled as it arrives"
+    
     dt = [
         # Dialog itself.
-        ["Anti-Spam", (0, 0, 242, 277), style, None, (8, "MS Sans Serif")],
-        # Children
-        [STATIC,          intro_msg,            -1,                  (  7,   7, 228,  25), cs],
-        [BUTTON,          'Details...',         IDC_BUT_MOREINFO,    (168,  33,  62,  14), csts | win32con.BS_PUSHBUTTON],
+        ["Anti-Spam", (0, 0, 242, 191), style, None, (8, "MS Sans Serif")],
+        # Training
+        [BUTTON,          "Training",           -1,                  (8,7,227,103), cs   | win32con.BS_GROUPBOX],
+        [STATIC,          training_intro,       -1,                  (15,17,215,17), cs],
+        [STATIC,          "Automatically train that a message is good when",
+                                                -1,                  (15,40,208,10), cs],
+        [BUTTON,          "It is moved from a spam folder back to the Inbox",
+                                                IDC_BUT_TRAIN_FROM_SPAM_FOLDER,(20,50,204,9), csts | win32con.BS_AUTOCHECKBOX],
+        
+        [STATIC,          "Automatically train that a message is spam when",
+                                                -1,                  (15,64,208,10), cs],
+        [BUTTON,          "It is moved to the certain-spam folder",
+                                                IDC_BUT_TRAIN_TO_SPAM_FOLDER,(20,75,204,9), csts | win32con.BS_AUTOCHECKBOX],
+        
+        [STATIC,          "",                   IDC_TRAINING_STATUS, (15,88,146,14),       cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          'Train Now...',       IDC_BUT_TRAIN_NOW,   (167,88,63,14),       csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,          "Database and Training", -1,               (  7,  49, 228,  62), cs   | win32con.BS_GROUPBOX],
-        [STATIC,          training_intro,       -1,                  ( 15,  57, 215,  17), cs],
-        [BUTTON,          'Database Options',   IDC_BUT_DB,          ( 15,  77,  62,  14), csts | win32con.BS_PUSHBUTTON | win32con.WS_DISABLED],
-        [BUTTON,          '&Training',          IDC_BUT_TRAIN,       (168,  77,  62,  14), csts | win32con.BS_PUSHBUTTON],
-        [STATIC,          "",                   IDC_DB_STATUS,       ( 15,  95, 215,  12), cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        # Filter
+        [BUTTON,          "Filtering",          -1,                   (7,112,228,57), cs   | win32con.BS_GROUPBOX],
+        [STATIC,          filtering_intro,      -1,                   (15,121,202,8), cs],
+        [BUTTON,          'Enable &filtering',  IDC_BUT_FILTER_ENABLE,(20,133,120,11),csts | win32con.BS_AUTOCHECKBOX],
+        [STATIC,          "",                   IDC_FILTER_STATUS,    (15,147,146,18),cs   | win32con.SS_SUNKEN],
+        [BUTTON,          'Filter Now...',      IDC_BUT_FILTER_NOW,   (167,131,63,14),   csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,          'Define filters...',  IDC_BUT_FILTER_DEFINE,(167,150,63,14),csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,          "Filtering",          -1,                  (  7, 116, 228,  68), cs   | win32con.BS_GROUPBOX],
-        [STATIC,          filtering_intro,      -1,                  ( 15, 127, 215,  17), cs],
-        [BUTTON,          'Enable &filtering',  IDC_BUT_ENABLE_FILTER,(24, 147, 131,  11), csts | win32con.BS_AUTOCHECKBOX],
-        [BUTTON,          'Define filters...',  IDC_BUT_FILTER,      (168, 144,  62,  14), csts | win32con.BS_PUSHBUTTON],
-        [STATIC,          "",                   IDC_FILTER_STATUS,   ( 15, 162, 215,  12), cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
-
-        [BUTTON,          "Classification",     -1,                  (  7, 188, 228,  61), cs   | win32con.BS_GROUPBOX],
-        [STATIC,          classify_intro,       -1,                  ( 15, 201, 215,  26), cs],
-        [BUTTON,          'Classify...',        IDC_BUT_CLASSIFY,    (168, 228,  62,  14), csts | win32con.BS_PUSHBUTTON],
-
-        [BUTTON,         'Close',               win32con.IDOK,       (168, 256,  62,  14), csts | win32con.BS_DEFPUSHBUTTON],
+        [BUTTON,         'Advanced...',         IDC_BUT_ADVANCED,     (15,174,62,14), csts | win32con.BS_PUSHBUTTON | win32con.WS_DISABLED],
+        [BUTTON,         'About...',            IDC_BUT_ABOUT,        (99,174,62,14), csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,         'Close',               win32con.IDOK,        (167,174,62,14),csts | win32con.BS_DEFPUSHBUTTON],
     ]
 
-    def __init__(self, mgr, do_train, do_filter, do_classify):
+    def __init__(self, mgr, do_train, do_filter, define_filter):
         self.mgr = mgr
         self.do_train = do_train
         self.do_filter = do_filter
-        self.do_classify = do_classify
+        self.define_filter = define_filter
+
+        self.checkbox_items = [
+            (IDC_BUT_FILTER_ENABLE, "self.mgr.config.filter.enabled"),
+            (IDC_BUT_TRAIN_FROM_SPAM_FOLDER, "self.mgr.config.training.train_recovered_spam"),
+            (IDC_BUT_TRAIN_TO_SPAM_FOLDER, "self.mgr.config.training.train_manual_spam"),
+        ]
+        
         dialog.Dialog.__init__(self, self.dt)
 
     def OnInitDialog(self):
-        self.HookCommand(self.OnButMoreInfo, IDC_BUT_MOREINFO)
-        self.HookCommand(self.OnButDoSomething, IDC_BUT_TRAIN)
-        self.HookCommand(self.OnButDoSomething, IDC_BUT_FILTER)
-        self.HookCommand(self.OnButDoSomething, IDC_BUT_CLASSIFY)
-        self.HookCommand(self.OnButEnableFilter, IDC_BUT_ENABLE_FILTER)
+##        self.HookCommand(self.OnButAdvanced, IDC_BUT_ADVANCED)
+        self.HookCommand(self.OnButAbout, IDC_BUT_ABOUT)
+        self.HookCommand(self.OnButDoSomething, IDC_BUT_TRAIN_NOW)
+        self.HookCommand(self.OnButDoSomething, IDC_BUT_FILTER_DEFINE)
+        self.HookCommand(self.OnButDoSomething, IDC_BUT_FILTER_NOW)
+
+        for cid, expr in self.checkbox_items:
+            self.HookCommand(self.OnButCheckbox, cid)
+            val = eval(expr)
+            self.GetDlgItem(cid).SetCheck(val)
         self.UpdateControlStatus()
         return dialog.Dialog.OnInitDialog(self)
 
     def UpdateControlStatus(self):
         nspam = self.mgr.bayes.nspam
         nham = self.mgr.bayes.nham
-        enable_buttons = nspam > 0 and nham > 0
-        if enable_buttons:
-            db_status = "Database has %d good and %d spam messages" % (nham, nspam)
+        config = self.mgr.config.filter
+        if nspam > 0 and nham > 0:
+            db_status = "Database has %d good and %d spam" % (nham, nspam)
         else:
-            db_status = "Database must be trained before use"
-        for id in [IDC_BUT_FILTER, IDC_BUT_CLASSIFY, IDC_BUT_ENABLE_FILTER]:
-            self.GetDlgItem(id).EnableWindow(enable_buttons)
-        self.SetDlgItemText(IDC_DB_STATUS, db_status)
-        if not enable_buttons:
-            self.mgr.config.filter.enabled = False
-            self.GetDlgItem(IDC_BUT_ENABLE_FILTER).SetCheck(0)
-            return
+            db_status = "Database has no training information"
+        self.SetDlgItemText(IDC_TRAINING_STATUS, db_status)
+        # For the sake of getting reasonable results, let's insist
+        # on 5 spam and 5 ham messages before we can allow filtering
+        # to be enabled.
+        min_ham = 5
+        min_spam = 5
+        ok_to_enable = operator.truth(config.watch_folder_ids)
+        if not ok_to_enable:
+            filter_status = "You must define folders to watch for new messages"
+        if ok_to_enable:
+            ok_to_enable = nspam >= min_spam and nham >= min_ham
+            if not ok_to_enable:
+                filter_status = "There must be %d good and %d spam messages\n" \
+                                "trained before filtering can be enabled" \
+                                % (min_ham, min_spam)
+        if ok_to_enable:
+            self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(config.enabled)
+            ok_to_enable = operator.truth(config.spam_folder_id)
+            if ok_to_enable:
+                certain_spam_name = self.mgr.FormatFolderNames([config.spam_folder_id], False)
+                ok_to_enable = operator.truth(config.unsure_folder_id)
+                if ok_to_enable:
+                    unsure_name = self.mgr.FormatFolderNames([config.unsure_folder_id], False)
+            # whew
+            if ok_to_enable:
+                watch_names = self.mgr.FormatFolderNames(config.watch_folder_ids, config.watch_include_sub)
+                filter_status = "Watching '%s'. Spam managed in '%s', unsure managed in '%s'" \
+                                % (watch_names, certain_spam_name, unsure_name)
+                
+        self.GetDlgItem(IDC_BUT_FILTER_ENABLE).EnableWindow(ok_to_enable)
+        enabled = config.enabled
+        self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(ok_to_enable and enabled)
+        self.SetDlgItemText(IDC_FILTER_STATUS, filter_status)
 
-        # Build a filter-status string
-        self.GetDlgItem(IDC_BUT_ENABLE_FILTER).SetCheck(self.mgr.config.filter.enabled)
-        names = []
-        for eid in self.mgr.config.filter.folder_ids:
-            names.append(self.mgr.message_store.GetFolder(eid).name)
-        # count enabled rules
-        num = len([r for r in self.mgr.config.rules if r.enabled ])
-        if num == 0:
-            num_rules_text = " with no active rules"
-        elif num == 1:
-            num_rules_text = " with 1 active rule"
-        else:
-            num_rules_text = " with %d active rules" % (num,)
-
-        if not names:
-            status = "No folders are being filtered"
-        elif len(names) == 1:
-            status = "Filtering %s%s." % (names[0], num_rules_text)
-        elif len(names) == 2:
-            status = "Filtering %s;%s%s." % (names[0], names[1], num_rules_text)
-        else:
-            status = "Filtering %d folders%s." % (len(names), num_rules_text)
-        self.SetDlgItemText(IDC_FILTER_STATUS, status)
-
-    def OnButMoreInfo(self, id, code):
+    def OnButAbout(self, id, code):
         if code == win32con.BN_CLICKED:
-            self.MessageBox("Contributions of HTML code to display here would be welcome :)")
+            
+            fname = os.path.join(os.path.dirname(__file__), os.pardir, "about.html")
+            fname = os.path.abspath(fname)
+            print fname
+            if os.path.isfile(fname):
+                win32ui.DoWaitCursor(1)
+                os.startfile(fname)
+                win32ui.DoWaitCursor(0)
+            else:
+                self.MessageBox("Can't find about.html")
 
     def OnButDoSomething(self, id, code):
         if code == win32con.BN_CLICKED:
-            if id == IDC_BUT_TRAIN:
+            if id == IDC_BUT_TRAIN_NOW:
                 doer = self.do_train
-            elif id == IDC_BUT_CLASSIFY:
-                doer = self.do_classify
-            elif id == IDC_BUT_FILTER:
+            elif id == IDC_BUT_FILTER_NOW:
                 doer = self.do_filter
+            elif id == IDC_BUT_FILTER_DEFINE:
+                doer = self.define_filter
             else:
                 raise RuntimeError, "Unknown button ID!"
             doer(self)
             self.UpdateControlStatus()
 
-    def OnButEnableFilter(self, id, code):
+    def OnButCheckbox(self, id, code):
         if code == win32con.BN_CLICKED:
-            self.mgr.config.filter.enabled = self.GetDlgItem(IDC_BUT_ENABLE_FILTER).GetCheck()==1
+            for look_id, expr in self.checkbox_items:
+                if id == look_id:
+                    break
+            else:
+                raise RuntimeError, "bad control ID '%d'" % (id,)
+            item = self.GetDlgItem(id)
+            exec expr + " = " + str(item.GetCheck()==1)
 
     def OnOK(self):
         return dialog.Dialog.OnOK(self)

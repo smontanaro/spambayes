@@ -6,6 +6,7 @@ import commctrl
 import win32ui
 import win32api
 import pythoncom
+from win32com.client import constants
 
 #these are the atom numbers defined by Windows for basic dialog controls
 BUTTON    = 0x80
@@ -65,6 +66,16 @@ class TrainingDialog(AsyncDialogBase):
         return AsyncDialogBase.OnInitDialog (self)
 
     def UpdateStatus(self):
+        # Set some defaults.
+        # If we have no known ham folders, suggest the Inbox.
+        if len(self.config.ham_folder_ids)==0 and self.mgr.outlook is not None:
+            inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
+            self.config.ham_folder_ids = [inbox.EntryID]
+        # If we have no known spam folders, but do have a spam folder
+        # defined in the filters, use it.
+        if len(self.config.spam_folder_ids)==0 and self.mgr.config.filter.spam_folder_id:
+            self.config.spam_folder_ids = [self.mgr.config.filter.spam_folder_id]
+        
         names = []
         for eid in self.config.ham_folder_ids:
             try:

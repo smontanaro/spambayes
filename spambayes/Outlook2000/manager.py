@@ -3,7 +3,6 @@ from __future__ import generators
 import cPickle
 import os
 import sys
-import thread
 
 import win32com.client
 import win32com.client.gencache
@@ -55,7 +54,6 @@ class BayesManager:
         self.config_filename = config_base + "_configuration.pck"
 
         # First read the configuration file.
-        path = os.path.split(this_filename)[0]
         self.config = self.LoadConfig()
 
         self.outlook = outlook
@@ -71,6 +69,67 @@ class BayesManager:
     def WorkerThreadEnding(self):
         pythoncom.CoUninitialize()
 
+    def FormatFolderNames(self, folder_ids, include_sub):
+        names = []
+        for eid in folder_ids:
+            try:
+                name = self.message_store.GetFolder(eid).name
+            except pythoncom.com_error:
+                name = "<unknown folder>"
+            names.append(name)
+        ret = '; '.join(names)
+        if include_sub:
+            ret += " (incl. Sub-folders)"
+        return ret
+
+    def EnsureOutlookFieldsForFolder(self, folder_id, include_sub = False):
+        # Ensure that our fields exist on the Outlook *folder*
+        # Setting properties via our msgstore (via Ext Mapi) gets the props
+        # on the message OK, but Outlook doesn't see it as a "UserProperty".
+        # Using MAPI to set them directly on the folder also has no effect.
+        # So until we know better, use Outlook to hack this in.
+        # Should be called once per folder you are watching/filtering etc
+        assert self.outlook is not None, "I need outlook :("
+        ol = self.outlook
+        folder = ol.Session.GetFolderFromID(folder_id)
+        if self.verbose > 1:
+            print "Checking folder '%s' for our field '%s'" \
+                  % (self.config.field_score_name,folder.Name.encode("mbcs", "replace"))
+        items = folder.Items
+        item = items.GetFirst()
+        if item is not None:
+            ups = item.UserProperties
+            # Display format is documented as being the 1-based index in
+            # the combo box in the outlook UI for the given data type.
+            # 1 is the first - "all digits", which seems fine.
+            # *sigh* - need to search by int index
+            for i in range(ups.Count):
+                up = ups[i+1]
+                if up.Name == self.config.field_score_name:
+                    break
+            else: # for not broken
+                try:
+                    ups.Add(self.config.field_score_name,
+                           # "Integer" from the UI doesn't exist!
+                           # 'olNumber' doesn't seem to work with PT_INT*
+                           win32com.client.constants.olCombination, 
+                           True) # Add to folder
+                    item.Save()
+                    if self.verbose > 1:
+                        print "Created the UserProperty!"
+                except pythoncom.com_error:
+                    import traceback
+                    print "Failed to create the field"
+                    traceback.print_exc()
+        # else no items in this folder - not much worth doing!
+        if include_sub:
+            # Recurse down the folder list.
+            folders = item.Folders
+            folder = folders.GetFirst()
+            while folder is not None:
+                self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
+                folder = folders.GetNext()
+    
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
             raise ManagerError("The file '%s' must exist before the "
@@ -214,6 +273,8 @@ _mgr = None
 def GetManager(outlook = None, verbose=1):
     global _mgr
     if _mgr is None:
+        if outlook is None:
+            outlook = win32com.client.Dispatch("Outlook.Application")
         _mgr = BayesManager(outlook=outlook, verbose=verbose)
     # If requesting greater verbosity, honour it
     if verbose > _mgr.verbose:
@@ -227,22 +288,23 @@ def ShowManager(mgr):
         d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
         d.DoModal()
 
-    def do_classify(dlg):
-        import classify
-        import dialogs.ClassifyDialog
-        d = dialogs.ClassifyDialog.ClassifyDialog(dlg.mgr, classify.classifier)
+    def do_filter(dlg):
+        import filter
+        import dialogs.FilterDialog
+        d = dialogs.FilterDialog.FilterNowDialog(dlg.mgr, filter.filterer)
         d.DoModal()
 
-    def do_filter(dlg):
-        import filter, rule
+    def define_filter(dlg):
+        import filter
         import dialogs.FilterDialog
-        d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, rule.Rule, filter.filterer)
+        d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, filter.filterer)
         d.DoModal()
         if dlg.mgr.addin is not None:
             dlg.mgr.addin.FiltersChanged()
 
+
     import dialogs.ManagerDialog
-    d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, do_classify)
+    d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, define_filter)
     d.DoModal()
 
 def main(verbose_level = 1):
@@ -255,6 +317,7 @@ def main(verbose_level = 1):
     ShowManager(mgr)
     mgr.Save()
     mgr.Close()
+    return 0
 
 def usage():
     print "Usage: manager [-v ...]"
@@ -271,4 +334,4 @@ if __name__=='__main__':
             verbose += 1
         else:
             usage()
-    main(verbose)
+    sys.exit(main(verbose))

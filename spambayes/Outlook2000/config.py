@@ -1,7 +1,6 @@
 # configuration stuff we persist via a pickle
 # Can't be defined in any module that may be used as "__main__"
 # or as a module.
-import pprint
 
 class _ConfigurationContainer:
     def __init__(self, **kw):
@@ -35,28 +34,36 @@ class _ConfigurationContainer:
 
 class ConfigurationRoot(_ConfigurationContainer):
     def __init__(self):
+        _ConfigurationContainer.__init__(self)
         self.training = _ConfigurationContainer(
             ham_folder_ids = [],
             ham_include_sub = False,
             spam_folder_ids = [],
             spam_include_sub = False,
-            )
-        self.classify = _ConfigurationContainer(
-            folder_ids = [],
-            include_sub = False,
-            field_name = "SpamProb",
+            # Train as unsure/spam is moved back to Inbox
+            train_recovered_spam = True,
+            # Train as stuff dragged into spam folders.
+            train_manual_spam = True,
             )
         self.filter = _ConfigurationContainer(
-            folder_ids = [],
-            include_sub = False,
+            watch_folder_ids = [],
+            watch_include_sub = False,
+            spam_folder_id = None,
+            spam_threshold = 90,
+            spam_action = "Nothing",
+            unsure_folder_id = None,
+            unsure_threshold = 15,
+            unsure_action = "Nothing",
             enabled = False,
             )
         self.filter_now = _ConfigurationContainer(
             folder_ids = [],
             include_sub = False,
             only_unread = False,
+            only_unseen = True,
+            action_all = True,
             )
-        self.rules = []
+        self.field_score_name = "Spam"
 
 if __name__=='__main__':
     print "Please run 'manager.py'"

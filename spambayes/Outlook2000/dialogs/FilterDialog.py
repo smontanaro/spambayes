@@ -1,5 +1,4 @@
 from __future__ import generators
-import copy
 
 from pywin.mfc import dialog
 import win32con
@@ -9,201 +8,22 @@ import win32api
 import pythoncom
 
 from DialogGlobals import *
-import RuleDialog
 
-class RuleList:
-    def __init__(self, parent, idc, rules, rule_factory,
-                 idc_add = None, idc_copy = None, idc_edit = None, idc_remove = None,
-                 idc_moveup = None, idc_movedown = None):
-        self.parent = parent
-        self.list = parent.GetDlgItem(idc)
-        self.rules = rules
-        self.rule_factory = rule_factory
-
-        bitmapID = win32ui.IDB_HIERFOLDERS
-        bitmapMask = win32api.RGB(0,0,255)
-        self.imageList = win32ui.CreateImageList(bitmapID, 16, 0, bitmapMask)
-        self.list.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
-
-        parent.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGED)
-        parent.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
-
-        self._HookButton(idc_add, "butAdd", self.OnButAdd)
-        self._HookButton(idc_copy, "butCopy", self.OnButCopy)
-        self._HookButton(idc_edit, "butEdit", self.OnButEdit)
-        self._HookButton(idc_remove, "butRemove", self.OnButRemove)
-        self._HookButton(idc_moveup, "butMoveUp", self.OnButMoveUp)
-        self._HookButton(idc_movedown, "butMoveDown", self.OnButMoveDown)
-        self.Refresh()
-
-    def _HookButton(self, idc, attr, func):
-        if idc is None:
-            setattr(self, attr, None)
-        else:
-            self.parent.HookCommand(func, idc)
-            setattr(self, attr, self.parent.GetDlgItem(idc))
-
-    def PushEnabledStates(self):
-        self.pushed_state = {}
-        for rule in self.rules:
-            self.pushed_state[rule] = rule.enabled
-
-    def PopEnabledStates(self):
-        for rule in self.rules:
-            old_state = self.pushed_state.get(rule)
-            if old_state is not None:
-                rule.enabled = old_state
-
-    def Refresh(self, selIndex = None):
-        if selIndex is None:
-            selIndex = self.GetSelectedRuleIndex()
-        self.SyncEnabledStates()
-        self.list.DeleteAllItems()
-        index = 0
-        for rule in self.rules:
-            if rule.enabled:
-                state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
-            else:
-                state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
-            mask = commctrl.TVIS_STATEIMAGEMASK
-            bitmapCol = bitmapSel = 5
-            hItem = self.list.InsertItem(commctrl.TVI_ROOT, 0, (None, state, mask, rule.name, bitmapCol, bitmapSel, 0, index))
-            if index == selIndex:
-                self.list.SelectItem(hItem)
-            index += 1
-
-    def _YieldItems(self):
-        try:
-            h = self.list.GetNextItem(commctrl.TVI_ROOT, commctrl.TVGN_CHILD)
-        except win32ui.error:
-            h = None
-        index = 0
-        while h is not None:
-            yield h, index, self.rules[index]
-            index += 1
-            try:
-                h = self.list.GetNextItem(h, commctrl.TVGN_NEXT)
-            except win32ui.error:
-                h = None
-
-    # No reliable way to get notified of checkbox state - so
-    # when we need to know, this will set rule.enabled to the
-    # current state of the checkbox.
-    def SyncEnabledStates(self):
-        mask = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED) | INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
-        for h, index, rule in self._YieldItems():
-            state = self.list.GetItemState(h, mask)
-            checked = (state >> 12) - 1
-            rule.enabled = checked
-
-    def GetSelectedRuleIndex(self):
-        try:
-            hitem = self.list.GetSelectedItem()
-        except win32ui.error:
-            return None
-
-        for h, index, rule in self._YieldItems():
-            if hitem == h:
-                return index
-
-    def OnTreeItemSelChanged(self,(hwndFrom, idFrom, code), extra):
-        #if idFrom != IDC_LIST_FOLDERS: return None
-        action, itemOld, itemNew, pt = extra
-
-        if self.butRemove is not None: self.butRemove.EnableWindow(itemNew != 0)
-        if self.butEdit is not None: self.butEdit.EnableWindow(itemNew != 0)
-        if self.butCopy is not None: self.butCopy.EnableWindow(itemNew != 0)
-        if itemNew:
-            index = self.GetSelectedRuleIndex()
-            if self.butMoveUp is not None:
-                self.butMoveUp.EnableWindow(index > 0)
-            if self.butMoveDown is not None:
-                self.butMoveDown.EnableWindow(index < len(self.rules)-1)
-        else:
-            self.butMoveUp.EnableWindow(False)
-            self.butMoveDown.EnableWindow(False)
-        return 1
-
-    def OnTreeItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
-        if self.butEdit is not None:
-            self.OnButEdit(idFrom, win32con.BN_CLICKED)
-
-    def OnButRemove(self, id, code):
-        if code == win32con.BN_CLICKED:
-            self.SyncEnabledStates()
-            index = self.GetSelectedRuleIndex()
-            hitem = self.list.GetSelectedItem()
-            name = self.rules[index].name
-            result = self.parent.MessageBox("Are you sure you wish to delete rule '%s'?" % (name,), "Delete confirmation", win32con.MB_YESNO)
-            if result==win32con.IDYES:
-                self.list.DeleteItem(hitem)
-                del self.rules[index]
-                self.Refresh()
-
-    def OnButAdd(self, id, code):
-        if code == win32con.BN_CLICKED:
-            new_rule = self.rule_factory()
-            d = RuleDialog.RuleDialog(new_rule, self.parent.mgr)
-            if d.DoModal()==win32con.IDOK:
-                self.rules.append(new_rule)
-                self.Refresh(len(self.rules)-1)
-
-    def OnButEdit(self, id, code):
-        if code == win32con.BN_CLICKED:
-            self.SyncEnabledStates()
-            index = self.GetSelectedRuleIndex()
-
-            rule = copy.copy(self.rules[index])
-            d = RuleDialog.RuleDialog(rule, self.parent.mgr)
-            if d.DoModal()==win32con.IDOK:
-                self.rules[index] = rule
-                self.Refresh()
-
-    def OnButCopy(self, id, code):
-        if code == win32con.BN_CLICKED:
-            self.SyncEnabledStates()
-            index = self.GetSelectedRuleIndex()
-
-            rule = copy.copy(self.rules[index])
-            rule.name = "Copy of " + rule.name
-            d = RuleDialog.RuleDialog(rule, self.parent.mgr)
-            if d.DoModal()==win32con.IDOK:
-                self.rules.append(rule)
-                self.Refresh(len(self.rules)-1)
-
-    def OnButMoveUp(self, id, code):
-        if code == win32con.BN_CLICKED:
-            self.SyncEnabledStates()
-            index = self.GetSelectedRuleIndex()
-            assert index > 0, "Can't move index zero up!"
-            old = self.rules[index]
-            self.rules[index] = self.rules[index-1]
-            self.rules[index-1] = old
-            self.Refresh(index-1)
-
-    def OnButMoveDown(self, id, code):
-        if code == win32con.BN_CLICKED:
-            self.SyncEnabledStates()
-            index = self.GetSelectedRuleIndex()
-            num = len(self.rules)
-            assert index < num-1, "Can't move last index down!"
-            old = self.rules[index]
-            self.rules[index] = self.rules[index+1]
-            self.rules[index+1] = old
-            self.Refresh(index+1)
-
-IDC_FOLDER_NAMES=1024
-IDC_BROWSE=1025
-IDC_BUT_DELETE=1026
-IDC_BUT_NEW=1027
-IDC_BUT_EDIT=1028
-IDC_LIST_RULES=1029
-IDC_BUT_FILTERNOW=1030
-IDC_BUT_UNREAD=1031
-IDC_BUT_COPY=1032
-IDC_BUT_MOVEUP=1033
-IDC_BUT_MOVEDOWN=1034
-
+IDC_FOLDER_WATCH = 1024
+IDC_BROWSE_WATCH = 1025
+IDC_SLIDER_CERTAIN = 1026
+IDC_EDIT_CERTAIN = 1027
+IDC_ACTION_CERTAIN = 1028
+IDC_FOLDER_CERTAIN = 1029
+IDC_BROWSE_CERTAIN = 1030
+IDC_SLIDER_UNSURE = 1031
+IDC_EDIT_UNSURE = 1032
+IDC_ACTION_UNSURE = 1033
+IDC_FOLDER_UNSURE = 1034
+IDC_BROWSE_UNSURE = 1035
+IDC_TOFOLDER_CERTAIN = 1036
+IDC_TOFOLDER_UNDURE = 1037
+IDC_BUT_FILTERNOW=1038
 
 class FilterArrivalsDialog(dialog.Dialog):
     style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
@@ -211,121 +31,288 @@ class FilterArrivalsDialog(dialog.Dialog):
     csts = cs | win32con.WS_TABSTOP
     treestyle = csts | win32con.WS_BORDER | commctrl.TVS_CHECKBOXES | commctrl.TVS_DISABLEDRAGDROP | commctrl.TVS_SHOWSELALWAYS
     filter_msg = "Filter the following folders as messages arrive"
+    certain_spam_msg = "To be considered certain spam, a message must score at least"
+    unsure_msg = "To be considered uncertain, a message must score at least"
+    good_msg = "All other messages are considered good, and are not filtered."
     dt = [
         # Dialog itself.
-        ["Filters", (0, 0, 249, 195), style, None, (8, "MS Sans Serif")],
+        ["Filter Rules", (0, 0, 249, 239), style, None, (8, "MS Sans Serif")],
         # Children
-        [STATIC,          filter_msg,           -1,                  (  8,   9, 168,  11), cs],
-        [STATIC,          "",                   IDC_FOLDER_NAMES,    (  7,  20, 175,  12), cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
-        [BUTTON,          '&Browse',            IDC_BROWSE,          (190,  19,  50,  14), csts | win32con.BS_PUSHBUTTON],
-        [BUTTON,          "Enabled Rules",      -1,                  (  7,  40, 237, 130), cs   | win32con.BS_GROUPBOX],
-        ["SysTreeView32", None,                 IDC_LIST_RULES,      ( 18,  52, 164,  95), treestyle],
+        [STATIC,          filter_msg,           -1,                  (8,9,168,11),     cs],
+        [STATIC,          "",                   IDC_FOLDER_WATCH,    (7,20,177,12),    cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          '&Browse',            IDC_BROWSE_WATCH,    (192,19,50,14),   csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,          "&New...",            IDC_BUT_NEW,         (190,  52,  50,  14), csts ],
-        [BUTTON,          "&Copy..",            IDC_BUT_COPY,        (190,  72,  50,  14), csts ],
-        [BUTTON,          "&Modify...",         IDC_BUT_EDIT,        (190,  92,  50,  14), csts | win32con.WS_DISABLED],
-        [BUTTON,          "&Delete",            IDC_BUT_DELETE,      (190, 112,  50,  14), csts | win32con.WS_DISABLED],
+        [BUTTON,          "Certain Spam",       -1,                  (7,43,235,65),    cs   | win32con.BS_GROUPBOX],
+        [STATIC,          certain_spam_msg,     -1,                  (13,52,212,10),   cs],
+        ["msctls_trackbar32", "",               IDC_SLIDER_CERTAIN,  (13,66,165,12),   cs   | commctrl.TBS_BOTH | commctrl.TBS_NOTICKS],
+        [EDIT,            "",                   IDC_EDIT_CERTAIN,    (184,63,51,14),   csts | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER],
+        [STATIC,          "and these messages should be", -1,        (13,76,107,10),   cs],
+        [COMBOBOX,        "",                   IDC_ACTION_CERTAIN,  (13,88,55,40),    csts | win32con.CBS_DROPDOWNLIST | win32con.WS_VSCROLL],
+        [STATIC,          "to folder",          IDC_TOFOLDER_CERTAIN,(75,90,31,10),    cs],
+        [STATIC,          "",                   IDC_FOLDER_CERTAIN,  (120,88,59,14),   cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          '&Browse',            IDC_BROWSE_CERTAIN,  (184,88,50,14),   csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,          "Move &Up",           IDC_BUT_MOVEUP,      ( 15, 150,  73,  14), csts | win32con.WS_DISABLED],
-        [BUTTON,          "Move &Down",         IDC_BUT_MOVEDOWN,    (109, 150,  73,  14), csts | win32con.WS_DISABLED],
+        [BUTTON,          "Possible Spam",      -1,                  (7,114,235,68),   cs   | win32con.BS_GROUPBOX],
+        [STATIC,          unsure_msg,           -1,                  (13,124,212,10),  cs],
+        ["msctls_trackbar32", "",               IDC_SLIDER_UNSURE,   (13,141,165,12),  cs   | commctrl.TBS_BOTH | commctrl.TBS_NOTICKS],
+        [EDIT,            "",                   IDC_EDIT_UNSURE,     (184,137,54,14),  csts | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER],
+        [STATIC,          "and these messages should be", -1,        (13,150,107,10),  cs],
+        [COMBOBOX,        "",                   IDC_ACTION_UNSURE,   (13,161,55,40),   csts | win32con.CBS_DROPDOWNLIST | win32con.WS_VSCROLL],
+        [STATIC,          "to folder",          IDC_TOFOLDER_UNDURE, (75,164,31,10),   cs],
+        [STATIC,          "",                   IDC_FOLDER_UNSURE,   (120,161,59,14),  cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          '&Browse',            IDC_BROWSE_UNSURE,   (184,161,50,14),  csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,         '&Filter Now...',      IDC_BUT_FILTERNOW,   ( 15, 175,  50,  14), csts | win32con.BS_PUSHBUTTON],
-        [BUTTON,         'Close',               win32con.IDOK,       (190, 175,  50,  14), csts | win32con.BS_DEFPUSHBUTTON],
+        [BUTTON,          "Good messages",      -1,                  (7,185,235,25),   cs   | win32con.BS_GROUPBOX],
+        [STATIC,          good_msg,             -1,                  (14,196,212,10),  cs],
+
+        [BUTTON,         'Filter Now...',       IDC_BUT_FILTERNOW,   (7,218,50,14),    csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,         'OK',                  win32con.IDOK,       (134,218,50,14),  csts | win32con.BS_DEFPUSHBUTTON],
+        [BUTTON,         'Cancel',              win32con.IDCANCEL,   (192,218,50,14),  csts | win32con.BS_PUSHBUTTON],
     ]
 
-    def __init__(self, mgr, rule_factory, filterer):
+    def __init__(self, mgr, filterer):
         self.mgr = mgr
-        self.rule_factory = rule_factory
         self.filterer = filterer
+        self.watch_folder_ids = mgr.config.filter.watch_folder_ids
+        self.watch_include_sub = mgr.config.filter.watch_include_sub
+        # If we have no watch folder, suggest the Inbox.
+        if len(self.watch_folder_ids)==0 and mgr.outlook is not None:
+            inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
+            self.watch_folder_ids = [inbox.EntryID]
+
+        self.spam_folder_id = mgr.config.filter.spam_folder_id
+        self.unsure_folder_id = mgr.config.filter.unsure_folder_id
         dialog.Dialog.__init__(self, self.dt)
 
     def OnInitDialog(self):
-        self.list = RuleList(self, IDC_LIST_RULES, self.mgr.config.rules, self.rule_factory, IDC_BUT_NEW, IDC_BUT_COPY, IDC_BUT_EDIT, IDC_BUT_DELETE, IDC_BUT_MOVEUP, IDC_BUT_MOVEDOWN)
-        self.HookCommand(self.OnButBrowse, IDC_BROWSE)
+        self.SetDlgItemText(IDC_EDIT_CERTAIN, "%d" % self.mgr.config.filter.spam_threshold)
+        self.HookCommand(self.OnEditChange, IDC_EDIT_CERTAIN)
+        self.SetDlgItemText(IDC_EDIT_UNSURE, "%d" % self.mgr.config.filter.unsure_threshold)
+        self.HookCommand(self.OnEditChange, IDC_EDIT_UNSURE)
+
+        self.HookCommand(self.OnButBrowse, IDC_BROWSE_WATCH)
+        self.HookCommand(self.OnButBrowse, IDC_BROWSE_CERTAIN)
+        self.HookCommand(self.OnButBrowse, IDC_BROWSE_UNSURE)
+
         self.HookCommand(self.OnButFilterNow, IDC_BUT_FILTERNOW)
+
+        self._InitSlider(IDC_SLIDER_CERTAIN, IDC_EDIT_CERTAIN)
+        self._InitSlider(IDC_SLIDER_UNSURE, IDC_EDIT_UNSURE)
+        self.HookMessage(self.OnSlider, win32con.WM_HSCROLL)
+
+        for idc, attr in [ (IDC_ACTION_CERTAIN, "spam_action"), (IDC_ACTION_UNSURE, "unsure_action")]:
+            index = sel_index = 0
+            combo = self.GetDlgItem(idc)
+            for s in ["Untouched", "Moved", "Copied"]:
+                combo.AddString(s)
+                if getattr(self.mgr.config.filter, attr).startswith(s):
+                    sel_index = index
+                index += 1
+            combo.SetCurSel(sel_index)
+        self.HookCommand(self.OnComboSelChange, IDC_ACTION_CERTAIN)
+        self.OnComboSelChange(IDC_ACTION_CERTAIN, win32con.LBN_SELCHANGE)
+        self.HookCommand(self.OnComboSelChange, IDC_ACTION_UNSURE)
+        self.OnComboSelChange(IDC_ACTION_UNSURE, win32con.LBN_SELCHANGE)
+
         self.UpdateFolderNames()
         return dialog.Dialog.OnInitDialog(self)
 
-    def OnOK(self):
-        self.list.SyncEnabledStates()
-        return dialog.Dialog.OnOK(self)
-
     def OnDestroy(self,msg):
-        dialog.Dialog.OnDestroy(self, msg)
-        self.list = None
         self.mgr = None
+        self.filterer = None
+        dialog.Dialog.OnDestroy(self, msg)
 
     def UpdateFolderNames(self):
-        names = []
-        folder_ids = self.mgr.config.filter.folder_ids
-        for eid in folder_ids:
-            try:
-                name = self.mgr.message_store.GetFolder(eid).name
-            except pythoncom.com_error:
-                name = "<unknown folder>"
-            names.append(name)
-        self.SetDlgItemText(IDC_FOLDER_NAMES, "; ".join(names))
+        self._DoUpdateFolderNames(self.watch_folder_ids, self.watch_include_sub, IDC_FOLDER_WATCH)
+        if self.spam_folder_id is not None:
+            self._DoUpdateFolderNames([self.spam_folder_id], False, IDC_FOLDER_CERTAIN)
+        if self.unsure_folder_id is not None:
+            self._DoUpdateFolderNames([self.unsure_folder_id], False, IDC_FOLDER_UNSURE)
 
-    def OnButBrowse(self, id, code):
-        if code == win32con.BN_CLICKED:
-            import FolderSelector
-            filter = self.mgr.config.filter
-            d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
-            if d.DoModal()==win32con.IDOK:
-                filter.folder_ids, filter.include_sub = d.GetSelectedIDs()
-                self.UpdateFolderNames()
+    def OnOK(self):
+        if not self._CheckEdits():
+            return True
+        config = self.mgr.config.filter
+        combo_certain = self.GetDlgItem(IDC_ACTION_CERTAIN)
+        combo_unsure = self.GetDlgItem(IDC_ACTION_UNSURE)
+        if combo_certain.GetCurSel()!=0 and not self.spam_folder_id or \
+           combo_certain.GetCurSel()!=0 and not self.spam_folder_id:
+            self.MessageBox("You must enter a destination folder")
+            return True
+        config.spam_action = combo_certain.GetLBText(combo_certain.GetCurSel())
+        config.unsure_action = combo_unsure.GetLBText(combo_unsure.GetCurSel())
+
+        self.mgr.config.filter.watch_folder_ids = self.watch_folder_ids
+        self.mgr.config.filter.spam_folder_id = self.spam_folder_id
+        self.mgr.config.filter.unsure_folder_id = self.unsure_folder_id
+        return self._obj_.OnOK()
+
+    def _DoUpdateFolderNames(self, folder_ids, include_sub, idc):
+        self.SetDlgItemText(idc, self.mgr.FormatFolderNames(folder_ids, include_sub))
+
+    def OnEditChange(self, controlid, code):
+        if code==win32con.EN_CHANGE:
+            if controlid == IDC_EDIT_CERTAIN:
+                sliderid = IDC_SLIDER_CERTAIN
+            else:
+                sliderid = IDC_SLIDER_UNSURE
+            self._AdjustSliderToEdit(sliderid, controlid)
+        return 1 # I handled this, so no need to call defaults!
+
+    def OnComboSelChange(self, id, code):
+        if code == win32con.LBN_SELCHANGE:
+            if id == IDC_ACTION_CERTAIN:
+                controls = [IDC_FOLDER_CERTAIN, IDC_BROWSE_CERTAIN, IDC_TOFOLDER_CERTAIN]
+            else:
+                controls = [IDC_FOLDER_UNSURE, IDC_BROWSE_UNSURE, IDC_TOFOLDER_UNDURE]
+            cb = self.GetDlgItem(id)
+            enabled = cb.GetCurSel() != 0
+            for control in controls:
+                self.GetDlgItem(control).EnableWindow(enabled)
 
     def OnButFilterNow(self, id, code):
         if code == win32con.BN_CLICKED:
-            self.list.SyncEnabledStates()
-            self.list.PushEnabledStates()
-            d = FilterNowDialog(self.mgr, self.rule_factory, self.filterer)
+            d = FilterNowDialog(self.mgr, self.filterer)
             d.DoModal()
-            self.list.PopEnabledStates()
-            self.list.Refresh()
+
+    def OnButBrowse(self, id, code):
+        if code == win32con.BN_CLICKED:
+            ids_are_list = False
+            if id == IDC_BROWSE_CERTAIN:
+                attr_ids = "spam_folder_id"
+            elif id == IDC_BROWSE_UNSURE:
+                attr_ids = "unsure_folder_id"
+            elif id == IDC_BROWSE_WATCH:
+                attr_ids = "watch_folder_ids"
+                ids_are_list = True
+            else:
+                raise RuntimeError, "Dont know about this button!"
+            import FolderSelector
+            ids = getattr(self, attr_ids)
+            if not ids_are_list:
+                ids = [ids]
+            single_select = not ids_are_list
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, ids, checkbox_state=None, single_select=single_select)
+            if d.DoModal()==win32con.IDOK:
+                new_ids, include_sub = d.GetSelectedIDs()
+                if not ids_are_list:
+                    new_ids = new_ids[0]
+                setattr(self, attr_ids, new_ids)
+                self.UpdateFolderNames()
+
+    def OnSlider(self, params):
+        lParam = params[3]
+        slider = self.GetDlgItem(IDC_SLIDER_CERTAIN)
+        if slider.GetSafeHwnd() == lParam:
+            idc_edit = IDC_EDIT_CERTAIN
+        else:
+            slider = self.GetDlgItem(IDC_SLIDER_UNSURE)
+            assert slider.GetSafeHwnd() == lParam
+            idc_edit = IDC_EDIT_UNSURE
+        slider_pos = slider.GetPos()
+        self.SetDlgItemText(idc_edit, "%d" % slider_pos)
+ 
+    def _InitSlider(self, idc_slider, idc_edit):
+        slider = self.GetDlgItem(idc_slider)
+        slider.SetRange(0, 100, 0)
+        slider.SetLineSize(1)
+        slider.SetPageSize(5)
+        self._AdjustSliderToEdit(idc_slider, idc_edit)
+
+    def _AdjustSliderToEdit(self, idc_slider, idc_edit):
+        slider = self.GetDlgItem(idc_slider)
+        edit = self.GetDlgItem(idc_edit)
+        try:
+            val = int(edit.GetWindowText())
+        except ValueError:
+            return
+        slider.SetPos(val)
+
+    def _CheckEdits(self):
+        try:
+            idc_error = IDC_EDIT_CERTAIN
+            val_certain = float(self.GetDlgItemText(IDC_EDIT_CERTAIN))
+            if val_certain < 0 or val_certain > 100:
+                raise ValueError
+            idc_error = IDC_EDIT_UNSURE
+            val_unsure = float(self.GetDlgItemText(IDC_EDIT_UNSURE))
+            if val_unsure < 0 or val_unsure > 100:
+                raise ValueError
+        except ValueError:
+            self.MessageBox("Please enter a number between 0 and 100")
+            self.GetDlgItem(idc_error).SetFocus()
+            return False
+        if val_unsure > val_certain:
+            self.MessageBox("The unsure value must not be greater than the certain value")
+            self.SetDlgItemText(IDC_EDIT_UNSURE, str(val_certain))
+            self.GetDlgItem(IDC_EDIT_UNSURE).SetFocus()
+
+        self.mgr.config.filter.spam_threshold = val_certain
+        self.mgr.config.filter.unsure_threshold = val_unsure
+        return True
 
 from AsyncDialog import *
+IDC_FOLDER_NAMES=1024
+IDC_BROWSE=1025
+IDC_BUT_UNREAD=1027
+IDC_BUT_UNSEEN=1028
+IDC_BUT_ACT_ALL = 1029
+IDC_BUT_ACT_SCORE = 1030
 
 class FilterNowDialog(AsyncDialogBase):
     style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
-    treestyle = cs | win32con.WS_BORDER | commctrl.TVS_CHECKBOXES | commctrl.TVS_DISABLEDRAGDROP | commctrl.TVS_SHOWSELALWAYS
-    only_unread = "Only apply the filter to unread mail"
+    csts = cs | win32con.WS_TABSTOP
+    only_group = "Restrict the filter to"
+    only_unread = "Unread mail"
+    only_unseen = "Mail never previously spam filtered"
+
+    action_all = "Perform all filter actions"
+    action_score = "Score messages, but don't perform filter action"
     process_start_text = "&Start filtering"
     process_stop_text = "&Stop filtering"
     dt = [
         # Dialog itself.
-        ["Filter Now", (0, 0, 244, 221), style, None, (8, "MS Sans Serif")],
+        ["Filter Now", (0, 0, 244, 182), style, None, (8, "MS Sans Serif")],
         # Children
-        [STATIC,          "Filter the following folders", -1,        (  8,   9, 168,  11), cs],
-        [STATIC,          "",                   IDC_FOLDER_NAMES,    (  7,  20, 172,  12), cs | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
-        [BUTTON,          '&Browse',            IDC_BROWSE,          (187,  19,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
-        [BUTTON,          "Run the following rules", -1,             (  7,  40, 230, 113), cs | win32con.BS_GROUPBOX],
-        ["SysTreeView32", None,                 IDC_LIST_RULES,      ( 14,  52, 216,  95), treestyle | win32con.WS_TABSTOP],
-        [BUTTON,          only_unread,          IDC_BUT_UNREAD,      ( 15, 157, 149,   9), cs | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
+        [STATIC,          "Filter the following folders", -1,        (8,9,168,11),   cs],
+        [STATIC,          "",                   IDC_FOLDER_NAMES,    (7,20,172,12),  cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          '&Browse',            IDC_BROWSE,          (187,19,50,14), csts | win32con.BS_PUSHBUTTON],
 
-        ["msctls_progress32", '',               IDC_PROGRESS,        ( 10, 170, 227,  11), cs | win32con.WS_BORDER],
-        [STATIC,          '',                   IDC_PROGRESS_TEXT,   ( 10, 186, 227,  10), cs ],
+        [BUTTON,          "Filter Action",      -1,                  (7,38,230,40),  cs   | win32con.BS_GROUPBOX | win32con.WS_GROUP],
+        [BUTTON,          action_all,           IDC_BUT_ACT_ALL,     (15,49,126,10), csts | win32con.BS_AUTORADIOBUTTON],
+        [BUTTON,          action_score,         IDC_BUT_ACT_SCORE,   (15,62,203,10), csts | win32con.BS_AUTORADIOBUTTON],
 
-        [BUTTON,         process_start_text,    IDC_START,           (  7, 200,  60,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
-        [BUTTON,         'Close',               win32con.IDOK,       (187, 200,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
+        
+        [BUTTON,          only_group,           -1,                  (7,84,230,35),  cs   | win32con.BS_GROUPBOX | win32con.WS_GROUP],
+        [BUTTON,          only_unread,          IDC_BUT_UNREAD,      (15,94,149,9),  csts | win32con.BS_AUTOCHECKBOX],
+        [BUTTON,          only_unseen,          IDC_BUT_UNSEEN,      (15,106,149,9), csts | win32con.BS_AUTOCHECKBOX],
+
+        ["msctls_progress32", '',               IDC_PROGRESS,        (7,129,230,11), cs | win32con.WS_BORDER],
+        [STATIC,          '',                   IDC_PROGRESS_TEXT,   (7,144,227,10), cs ],
+
+        [BUTTON,         process_start_text,    IDC_START,           (7,161,50,14),   csts | win32con.BS_DEFPUSHBUTTON],
+        [BUTTON,         'Close',               win32con.IDCANCEL,   (187,161,50,14), csts | win32con.BS_PUSHBUTTON],
     ]
-    disable_while_running_ids = [IDC_LIST_RULES, IDC_BUT_UNREAD, IDC_BROWSE, win32con.IDOK]
+    disable_while_running_ids = [IDC_BUT_UNSEEN, IDC_BUT_UNREAD, IDC_BROWSE, win32con.IDCANCEL]
 
-    def __init__(self, mgr, rule_factory, filterer):
+    def __init__(self, mgr, filterer):
         self.mgr = mgr
         self.filterer = filterer
-        self.rule_factory = rule_factory
         AsyncDialogBase.__init__ (self, self.dt)
 
     def OnInitDialog(self):
-        self.list = RuleList(self, IDC_LIST_RULES, self.mgr.config.rules, self.rule_factory)
         self.HookCommand(self.OnButBrowse, IDC_BROWSE)
         self.HookCommand(self.OnButUnread, IDC_BUT_UNREAD)
-        if self.mgr.config.filter_now.only_unread:
-            self.GetDlgItem(IDC_BUT_UNREAD).SetCheck(1)
+        self.HookCommand(self.OnButUnseen, IDC_BUT_UNSEEN)
+        self.HookCommand(self.OnButAction, IDC_BUT_ACT_SCORE)
+        self.HookCommand(self.OnButAction, IDC_BUT_ACT_ALL)
+        self.GetDlgItem(IDC_BUT_UNREAD).SetCheck(self.mgr.config.filter_now.only_unread)
+        self.GetDlgItem(IDC_BUT_UNSEEN).SetCheck(self.mgr.config.filter_now.only_unseen)
+        if self.mgr.config.filter_now.action_all:
+            self.GetDlgItem(IDC_BUT_ACT_ALL).SetCheck(True)
         else:
-            self.GetDlgItem(IDC_BUT_UNREAD).SetCheck(0)
+            self.GetDlgItem(IDC_BUT_ACT_SCORE).SetCheck(True)
         self.UpdateFolderNames()
         return AsyncDialogBase.OnInitDialog(self)
 
@@ -348,12 +335,22 @@ class FilterNowDialog(AsyncDialogBase):
                 filter.folder_ids, filter.include_sub = d.GetSelectedIDs()
                 self.UpdateFolderNames()
 
+    def OnButAction(self, id, code):
+        if code == win32con.BN_CLICKED:
+            self.mgr.config.filter_now.action_all = self.GetDlgItem(IDC_BUT_ACT_ALL).GetCheck() != 0
     def OnButUnread(self, id, code):
         if code == win32con.BN_CLICKED:
             self.mgr.config.filter_now.only_unread = self.GetDlgItem(IDC_BUT_UNREAD).GetCheck() != 0
+    def OnButUnseen(self, id, code):
+        if code == win32con.BN_CLICKED:
+            self.mgr.config.filter_now.only_unseen = self.GetDlgItem(IDC_BUT_UNSEEN).GetCheck() != 0
 
     def StartProcess(self):
-        self.list.SyncEnabledStates()
+        # Must do this here, as we are still in the main thread.
+        # Outlook gets upset when used from a different thread.
+        config = self.mgr.config.filter_now
+        for folder_id in config.folder_ids:
+            self.mgr.EnsureOutlookFieldsForFolder(folder_id, config.include_sub)
         return AsyncDialogBase.StartProcess(self)
 
     def _DoProcess(self):
@@ -362,48 +359,42 @@ class FilterNowDialog(AsyncDialogBase):
         else:
             self.mgr.WorkerThreadStarting()
             try:
-                self.filterer(self.mgr, self.progress, self.mgr.config.filter_now)
+                self.filterer(self.mgr, self.progress)
             finally:
                 self.mgr.WorkerThreadEnding()
 
 if __name__=='__main__':
-    # This doesnt work - still uses CDO.
-    from win32com.client import Dispatch
-    import pythoncom
-    mapi = Dispatch("MAPI.Session")
-    mapi.Logon()
+    from win32com.client import Dispatch, constants
+    outlook = Dispatch("Outlook.Application")
+
+    import sys; sys.path.append('..')
+    import msgstore
 
     class Config: pass
     class Manager: pass
     mgr = Manager()
-    mgr.mapi = mapi
+    mgr.message_store = msgstore.MAPIMsgStore()
     mgr.config = config = Config()
     config.filter = Config()
-    config.filter.folder_ids = [mapi.Inbox.ID]
-    config.filter.include_sub = True
+    config.filter.watch_folder_ids = [outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID]
+    config.filter.watch_folder_include_sub = True
+    config.filter.spam_folder_id = ""
+    config.filter.spam_action = "Mo"
+    config.filter.spam_threshold = 80
+    config.filter.unsure_folder_id = ""
+    config.filter.unsure_action = "No"
+    config.filter.unsure_threshold = 20
     config.filter_now=Config()
-    config.filter_now.folder_ids = [mapi.Inbox.ID]
+    config.filter_now.folder_ids = [outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID]
     config.filter_now.include_sub = True
-    config.filter_now.only_unread= True
+    config.filter_now.only_unread = False
+    config.filter_now.only_unseen = True
+    config.filter_now.action_all = True
 
-    class Rule:
-        def __init__(self):
-            self.enabled = True
-            self.name = "My Rule"
-            self.min = 0.1
-            self.max = 0.9
-            self.action = "Move"
-            self.flag_message = True
-            self.write_field = True
-            self.write_field_name = "SpamProb"
-            self.folder_id = ""
-        def GetProblem(self, mgr):
-            if self.min > self.max:
-                return "max must be > min"
-
-    config.rules = [Rule()]
-
-    tester = FilterArrivalsDialog
-    #tester = FilterNowDialog
-    d = tester(mgr, Rule, None)
-    d.DoModal()
+    #tester = FilterArrivalsDialog
+    tester = FilterNowDialog
+    d = tester(mgr, None)
+    if d.DoModal() == win32con.IDOK:
+        # do it again to make sure all config data is reflected.
+        d = tester(mgr, None)
+        d.DoModal()

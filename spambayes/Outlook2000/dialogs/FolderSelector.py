@@ -112,7 +112,7 @@ class FolderSelector(dialog.Dialog):
     ]
 
     def __init__ (self, mapi, selected_ids = None, single_select = False, checkbox_state = False, checkbox_text = None, desc_noun = "Select", desc_noun_suffix = "ed"):
-        assert single_select == False or selected_ids is None or len(selected_ids)<=1
+        assert not single_select or selected_ids is None or len(selected_ids)<=1
         dialog.Dialog.__init__ (self, self.dt)
         self.single_select = single_select
         self.next_item_id = 1
