@@ -14,11 +14,7 @@ Currently works with:
  o PocoMail (POP3/SMTP only)
 
 To do:
- o Establish which mail client(s) are to be setup.
- o Locate the appropriate configuration directory
-   (e.g. for Eudora this is probably either the application directory,
-   or c:\documents and settings\username\application data\qualcomm\eudora,
-   i.e. sh_appdata\qualcomm\eudora)
+ o Establish which mail client(s) are installed in a more clever way.
  o This will create some unnecessary proxies in some cases.  For example,
    if I have my client set up to get mail from pop.example.com for the
    user 'tmeyer' and the user 'tonym', two proxies will be created, but
@@ -69,9 +65,17 @@ import shutil
 import StringIO
 import ConfigParser
 
-# Allow for those without SpamBayes on their PYTHONPATH
-sys.path.insert(-1, os.getcwd())
-sys.path.insert(-1, os.path.dirname(os.getcwd()))
+try:
+    import win32ui
+    import win32api
+    import win32con
+    from win32com.shell import shell, shellcon
+except ImportError:
+    # The ImportError is delayed until these are needed - if we
+    # did it here, the functions that don't need these would still
+    # fail.  (And having "import win32api" in lots of functions
+    # didn't seem to make much sense).
+    win32api = win32con = shell = shellcon = win32ui = None
 
 from spambayes import OptionsClass
 from spambayes.Options import options, optionsPathname
@@ -422,11 +426,13 @@ def configure_m2(config_location):
 def configure_outlook_express(unused):
     """Configure OE to use the SpamBayes POP3 and SMTP proxies, and
     configure SpamBayes to proxy the servers that OE was connecting to."""
+    # Requires win32all to be available (or for someone to write a
+    # Mac version <wink>)
+    if win32api is None:
+        raise ImportError("win32 extensions required")
+
     # OE stores its configuration in the registry, not a file.
     key = "Software\\Microsoft\\Internet Account Manager\\Accounts"
-
-    import win32api
-    import win32con
 
     translate = {("POP3 Server", "POP3 Port") : "pop3proxy",
                  ("SMTP Server", "SMTP Port") : "smtpproxy",
@@ -553,9 +559,9 @@ def configure_pegasus_mail(config_location):
     rules_file.close()
 
 def configure_pocomail(unused):
-    import win32api
-    import win32con
-
+    # Requires win32all to be available.
+    if win32api is None:
+        raise ImportError("win32 extensions required")
     key = "Software\\Poco Systems Inc"
 
     pop_proxy  = pop_proxy_port
@@ -667,8 +673,10 @@ def find_config_location(mailer):
     """Attempt to find the location of the config file for
     the given mailer, to pass to the configure_* scripts
     above."""
-    import win32api
-    from win32com.shell import shell, shellcon
+    # Requires win32all to be available, until someone
+    # fixes the function to look in the right places for *nix/Mac.
+    if win32api is None:
+        raise ImportError("win32 extensions required")
     if mailer in ["Outlook Express", "PocoMail"]:
         # Outlook Express and PocoMail can be configured without a
         # config location, because it's all in the registry
@@ -679,7 +687,7 @@ def find_config_location(mailer):
                                         "Mozilla%(sep)sProfiles%(sep)sdefault",),
                            "M2" : ("Opera%(sep)sOpera7",),
                            }
-    # We try with the username that the user uses [that's a lot of 'use'!]
+    # We try with the username that the user uses
     # for Windows, even though that might not be the same as their profile
     # names for mailers.  We can get smarter later.
     username = win32api.GetUserName()
@@ -710,13 +718,32 @@ def configure(mailer):
     return True
 
 
+def offer_to_configure(mailer):
+    """If the mailer appears to be installed, offer to set it up for
+    SpamBayes (and SpamBayes for it)."""
+    # Requires win32all to be available, or someone to write a version
+    # with a different gui.
+    if win32api is None:
+        raise ImportError("win32 extensions required")
+    # At the moment, the test we use to check if the mailer is installed
+    # is whether a valid path to the configuration file can be found.
+    # This is ok, except for those that are setup in the registry - there
+    # will always be a valid path, whether they are installed or not.
+    if find_config_location(mailer) is not None:
+        confirm_text = "Would you like %s setup for SpamBayes, and " \
+                       "SpamBayes setup with your %s settings?\n" \
+                       "(This is alpha software! We recommend that you " \
+                       "only do this if you know how to re-setup %s " \
+                       "if necessary.)" % (mailer, mailer, mailer)
+        ans = win32ui.MessageBox(confirm_text, "Configure?",
+                                 win32con.MB_YESNO)
+        if ans == win32con.IDYES:
+            configure(mailer)
+
+
 if __name__ == "__main__":
     pmail_ini_dir = "C:\\Program Files\\PMAIL\\MAIL\\ADMIN"
-    #configure_eudora(eudora_ini_dir)
-    #configure_mozilla(mozilla_ini_dir)
-    #configure_m2(m2_ini_dir)
-    #configure_outlook_express()
-    #configure_pocomail()
-    #configure_pegasus_mail(pmail_ini_dir)
     for mailer in ["Eudora", "Mozilla", "M2", "Outlook Express", "PocoMail"]:
-        print find_config_location(mailer)
+        #print find_config_location(mailer)
+        #configure(mailer)
+        offer_to_configure(mailer)
