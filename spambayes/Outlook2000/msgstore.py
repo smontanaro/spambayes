@@ -168,7 +168,6 @@ class MAPIMsgStore:
         locale.setlocale(locale.LC_NUMERIC, "C")
         self.mapi_msg_stores = {}
         self.default_store_bin_eid = None
-        self._GetMessageStore(None)
         os.chdir(cwd)
 
     def Close(self):
