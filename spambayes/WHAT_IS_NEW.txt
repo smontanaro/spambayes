@@ -25,6 +25,7 @@ Outlook Plugin
  o Tokens are listed one per line in Show Clues.
  o Messages can be scored after training.
  o Plugin *may* now work correctly in non-English locales.
+ o Databases are saved after any training operation.
 
 POP3 Proxy
 ----------
@@ -55,6 +56,9 @@ POP3 Proxy
  o Improved proxying of "STAT" POP3 command so that a guess at the message
    size is returned.
  o Web interface encourage browsers not to cache the pages.
+ o Added an option to display who a message is to in the "Review" page.
+ o A new option to correct for a much higher ratio of spam to ham (or
+   vice-versa) is available via the interface page.
 
 Developer
 ---------
@@ -78,6 +82,13 @@ General
  o A filter for IMAP.
  o A script to test the effectiveness of following URLs in messages when
    insufficient clues are otherwise present.
+ o 'Nonsense' HTML tags are stripped rather than replaced with a space
+   (e.g. Wr<!$FS|i|R3$s80sA >inkle Reduc<!$FS|i|R3$s80sA >tion becomes
+    "Wrinkle" and "Reduction" rather than "Wr", "inkle", "Reduc" and
+    "tion").
+ o Decode numeric character entities so that
+   yo&#117;r se<!XE>p&#116;ic sys&#116;em becomes "your septic system".
+ o <p> and <br> tags are replaced with single blanks.
 
 
 Transition
@@ -109,7 +120,7 @@ Reported Bugs Fixed
 The following bugs tracked via the Sourceforge system were fixed:
 677804, 642740, 685746, 693423, 696995, 696476, 697120, 698852, 700165,
 704921, 707491, 725307, 725616, 725307, 725466, 726255, 728886, 715248,
-733247
+733247, 737956, 737955, 706170, 737986
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:

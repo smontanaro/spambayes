@@ -209,4 +209,25 @@ Tony Meyer	11/05/03	Fixed KeyError bug in message.py.
 Tony Meyer	11/05/03	Added SSL support to imapfilter (untested).
 Tony Meyer	13/05/03	Added refresh button to review messages page in pop3proxy ui.
 Tony Meyer	13/05/03	Added "check again" link on 'no more untrained messages page' in pop3proxy ui.
-Tony Meyer	13/05/03	Added "html_ui":"display" option.
+Tony Meyer	13/05/03	Added "html_ui":"display_to" option.
+Mark Hammond	14/05/03	Various changes to urlslurper.py
+Mark Hammond	14/05/03	Fix SF#737956
+Mark Hammond	14/05/03	Fix SF#737955
+Tony Meyer	14/05/03	Added missing import to UserInterface.py
+Tony Meyer	14/05/03	Increased efforts to stop browsers caching the interface pages.
+Mark Hammond	15/05/03	The training dialog now shows a correct progress bar for the *complete* operation - training *and* scoring
+Mark Hammond	15/05/03	Fix SF#706170
+Mark Hammond	15/05/03	Save bsddb databases after a training operation (should prevent Outlook ever saving at shutdown).
+Mark Hammond	15/05/03	Print how long each save takes (so people can complain).
+Mark Hammond	15/05/03	Keep and print some stats about how many items SpamBayes saw.
+Tim Peters	19/05/03	Catch BoundaryError when parsing messages.
+Tim Peters	19/05/03	Improve tokenisation for messages that have text that looks like Wr<!$FS|i|R3$s80sA >inkle Reduc<!$FS|i|R3$s80sA >tion
+Tim Peters	19/05/03	Decode numeric character entities in html.
+Tim Peters	19/05/03	Replace <p> and <br> tages with single blanks.
+Tony Meyer	21/05/03	Cosmetic changes to pop3proxy and imapfilter interface.
+Tony Meyer	21/05/03	Remove the "account for string nham/nspam" code in classifier.
+Tony Meyer	25/05/03	Expose experimental ham/spam imbalance option to pop3proxy/imapfilter users
+Tim Peters	25/05/03	Restore __slots__ declaration to WordInfo object in classifier.py
+Tim Peters	25/05/03	PickledClassifier.load():  use getstate/setstate to copy the state. 
+Tony Meyer	26/05/03	Fix SF#737986
+Tony Meyer	26/05/03	Restore notate_to and notate_subject functionality to pop3proxy.
