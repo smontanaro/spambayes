@@ -62,6 +62,7 @@ except NameError:
     def bool(val):
         return not not val
 
+import os
 import sys
 import types
 from spambayes import classifier
@@ -137,9 +138,31 @@ class PickledClassifier(classifier.Classifier):
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Persisting',self.db_name,'as a pickle'
 
-        fp = open(self.db_name, 'wb')
-        pickle.dump(self, fp, PICKLE_TYPE)
-        fp.close()
+        # Be as defensive as possible; keep always a safe copy.
+        tmp = self.db_name + '.tmp'
+        try: 
+            fp = open(tmp, 'wb') 
+            pickle.dump(self, fp, PICKLE_TYPE) 
+            fp.close() 
+        except IOError, e: 
+            if options["globals", "verbose"]: 
+                print 'Failed update: ' + str(e)
+            if fp is not None: 
+                os.remove(tmp) 
+            raise
+        try:
+            # With *nix we can just rename, and (as long as permissions
+            # are correct) the old file will vanish.  With win32, this
+            # won't work - the Python help says that there may not be
+            # a way to do an atomic replace, so we rename the old one,
+            # put the new one there, and then delete the old one.  If
+            # something goes wrong, there is at least a copy of the old
+            # one.
+            os.rename(tmp, self.db_name)
+        except OSError:
+            os.rename(self.db_name, self.db_name + '.bak')
+            os.rename(tmp, self.db_name)
+            os.remove(self.db_name + '.bak')
 
     def close(self):
         # we keep no resources open - nothing to do
