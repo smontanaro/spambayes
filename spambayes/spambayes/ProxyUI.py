@@ -282,7 +282,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         stripe = 0
 
         keyedMessageInfo = self._sortMessages(keyedMessageInfo, sort_order)
-        for key, messageInfo in keyedMessageInfo:
+        nrows = options["html_ui", "rows_per_section"]
+        for key, messageInfo in keyedMessageInfo[:nrows]:
             unused, unused, messageInfo.received = \
                     self._getTimeRange(self._keyToTimestamp(key))
             row = self.html.reviewRow.clone()
