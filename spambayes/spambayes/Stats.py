@@ -43,6 +43,8 @@ from spambayes.message import database_type, open_storage
 
 class Stats(object):
     class __empty_msg:
+        def __init__(self):
+            self.getDBKey = self.getId
         def getId(self):
             return self.id
 
@@ -69,7 +71,7 @@ class Stats(object):
             self.total += 1
             m = self.__empty_msg()
             m.id = msg
-            msginfoDB._getState(m)
+            msginfoDB.load_msg(m)
             if m.c == 's':
                 # Classified as spam.
                 self.cls_spam += 1
