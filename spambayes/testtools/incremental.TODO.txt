@@ -1,0 +1,23 @@
+-r for rules: import named file, get functions from it -- DONE
+-t for transitions: import named file, control switching regimes
+init called for both -r and -t, with unrecognized args between it and next
+record db size?
+
+interesting rules:
+perfect -- DONE
+corrected -- DONE
+fpfnunsure
+fnunsure
+aging (separate from rules, so can mix it with others?)
+
+interesting transitions:
+specific group number
+error rate < n
+fp rate < n
+fn rate < n
+unsure rate < n
+
+
+graphing:
+separate files for each graph
+cumulative vs span totals

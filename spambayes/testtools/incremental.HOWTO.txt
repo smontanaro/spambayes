@@ -1,0 +1,62 @@
+Yes, this is a lame attempt at explaining what I've built,
+in the vain hope that someone will read it and improve it.
+I'm writing this with only about 4 hours sleep, so my
+coherency may not be particularly high.
+
+
+
+There are a few steps to doing incremental training tests:
+
+1. Get your corpora.  It's best if they're contemporaneous
+   and single source, because that makes it much easier to
+   sequence and group them.  The corpora need to be in the
+   good old familiar Data/{Ham,Spam}/{reservior,Set*} tree.
+   For my purposes, I wrote the es2hs.py tool to grab stuff
+   out of my real MH mail archive folders; other people may
+   want some other method of getting the corpora into the
+   tree.
+
+2. Sort and group the corpora.  When testing, messages will
+   be processed in sorted order.  The messages should all
+   have unique names with a group number and an id number
+   separated by a dash (eg. 0123-004556).  I wrote
+   sort+group.py for this.  sort+group.py sorts the messages
+   into chronological order (by topmost Received header) and
+   then groups them by 24-hour period.
+
+3. Distribute the corpora into multiple sets so you can do
+   multiple similar runs to gauge validity of the results
+   (similar to a cross-validation, but not really).  When
+   testing, all but one set will be used for a particular
+   run.  I personally use 5 sets.
+
+   Distribution is done with mksets.py.  It will evenly
+   distribute the corpora across the sets, keeping the
+   groups evenly distributed, too.  You can specify the
+   number of sets, limit the number of groups used (to
+   make short runs), and limit the number of messages per
+   group*set distributed (to simulate less mail per group,
+   and thus get more fine-grained results).
+
+4. Run incremental.py to actually process the messages in
+   a training and testing run.  How training is done is
+   determined by what regime you specify (regimes are
+   defined in helper .py files; see perfect.py and corrected.py
+   for examples).  For large corpora, you may want to do
+   the various set runs separately (by specifying the -s
+   option), instead of building nsets classifiers all
+   in parallel (memory usage can get high).
+
+   Make sure to save the output of incremental.py into
+   a file... by itself it's ugly, but postprocessing
+   can make it useful.
+
+5. Postprocess the incremental.py output.  I made mkgraph.py
+   to do this, outputting datasets for plotmtv.  plotmtv is
+   a really neat data visualization tool.  Use it.  Love it.
+   Gods, I need more sleep.
+
+See dotest.sh for a sample of automating steps 4 & 5.
+
+Please, somebody rewrite this file.
+ 
