@@ -749,6 +749,20 @@ class State:
             self.warning = "Database has no training information.  SpamBayes " \
                            "will classify all messages as 'unsure', " \
                            "ready for you to train."
+        # Add an additional warning message if the user's thresholds are
+        # truly odd.
+        spam_cut = options["Categorization", "spam_cutoff"]
+        ham_cut = options["Categorization", "ham_cutoff"]
+        if spam_cut < 0.5:
+            self.warning += "<br/>Warning: we do not recommend setting " \
+                            "the spam threshold less than 0.5."
+        if ham_cut > 0.5:
+            self.warning += "<br/>Warning: we do not recommend setting " \
+                            "the ham threshold greater than 0.5."
+        if ham_cut > spam_cut:
+            self.warning += "<br/>Warning: your ham threshold is " \
+                            "<b>higher</b> than your spam threshold. " \
+                            "Results are unpredictable."
 
     def createWorkers(self):
         """Using the options that were initialised in __init__ and then
