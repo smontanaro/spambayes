@@ -100,6 +100,11 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+try:
+    import csv
+except ImportError:
+    import spambayes.compatcsv as csv
+
 import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno, re
@@ -109,10 +114,13 @@ from types import UnicodeType
 def uquote(s):
     if isinstance(s, UnicodeType):
         s = s.encode('utf-8')
-    return urllib.quote(s)
+    return s
 
 def uunquote(s):
-    return unicode(urllib.unquote(s), 'utf-8')
+    try:
+        return unicode(s, 'utf-8')
+    except UnicodeDecodeError:
+        return s
 
 def runExport(dbFN, useDBM, outFN):
     bayes = spambayes.storage.open_storage(dbFN, useDBM)
@@ -128,6 +136,8 @@ def runExport(dbFN, useDBM, outFN):
         if e.errno != errno.ENOENT:
             raise
 
+    writer = csv.writer(fp)
+
     nham = bayes.nham;
     nspam = bayes.nspam;
 
@@ -135,48 +145,43 @@ def runExport(dbFN, useDBM, outFN):
     print "Database has %s ham, %s spam, and %s words" \
             % (nham, nspam, len(words))
 
-    fp.write("%s,%s,\n" % (nham, nspam))
+    writer.writerow([nham, nspam])
 
     for word in words:
         wi = bayes._wordinfoget(word)
         hamcount = wi.hamcount
         spamcount = wi.spamcount
         word = uquote(word)
-        fp.write("%s`%s`%s`\n" % (word, hamcount, spamcount))
-
-    fp.close()
+        writer.writerow([word, hamcount, spamcount])
 
 def runImport(dbFN, useDBM, newDBM, inFN):
 
     if newDBM:
         try:
             os.unlink(dbFN)
-        except OSError, e:
-            if e.errno != 2:     # errno.<WHAT>
-                raise
+        except OSError:
+            pass
 
         try:
             os.unlink(dbFN+".dat")
-        except OSError, e:
-            if e.errno != 2:     # errno.<WHAT>
-                raise
+        except OSError:
+            pass
 
         try:
             os.unlink(dbFN+".dir")
-        except OSError, e:
-            if e.errno != 2:     # errno.<WHAT>
-                raise
+        except OSError:
+            pass
 
     bayes = spambayes.storage.open_storage(dbFN, useDBM)
 
     try:
-        fp = open(inFN, 'r')
+        fp = open(inFN, 'rb')
     except IOError, e:
         if e.errno != errno.ENOENT:
             raise
 
-    nline = fp.readline()
-    (nham, nspam, junk) = re.split(',', nline)
+    rdr = csv.reader(fp)
+    (nham, nspam) = rdr.next()
 
     if newDBM:
         bayes.nham = int(nham)
@@ -192,10 +197,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
     print "%s database %s using file %s" % (impType, dbFN, inFN)
 
-    lines = fp.readlines()
-
-    for line in lines:
-        (word, hamcount, spamcount, junk) = re.split('`', line)
+    for (word, hamcount, spamcount) in rdr:
         word = uunquote(word)
 
         try:
@@ -207,8 +209,6 @@ def runImport(dbFN, useDBM, newDBM, inFN):
         wi.spamcount += int(spamcount)
 
         bayes._wordinfoset(word, wi)
-
-    fp.close()
 
     print "Storing database, please be patient.  Even moderately sized"
     print "databases may take a very long time to store."

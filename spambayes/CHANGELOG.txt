@@ -1,5 +1,9 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
+Alpha Release 10 (Beta Release 1?)
+==================================
+Skip Montanaro    16/03/2004  Change sb_dbexpimp.py to use csv as interchange format.
+
 Alpha Release 9
 ===============
 Skip Montanaro    07/02/2004  New script - tte.py: Train to exhaustion based upon my understanding of the technique as described in Gary Robinson's blog.
