@@ -4,7 +4,7 @@
 Train to exhaustion: train repeatedly on a pile of ham and spam until
 everything scores properly.
 
-usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] [ -m N ]
+usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] [ -m N ] [ -r N ]
 
 -h      - print this documentation and exit.
 
@@ -17,6 +17,9 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] [ -m N ]
 -p file - use a pickle-based classifier named file
 
 -m N    - train on at most N messages (nham == N/2 and nspam == N/2)
+
+-r N    - run at most N rounds (default %(MAXROUNDS)s), even if not
+          all messages score correctly
 
 See Gary Robinson's blog:
 
@@ -37,17 +40,19 @@ from spambayes.tokenizer import tokenize
 
 prog = os.path.basename(sys.argv[0])
 
+MAXROUNDS = 10
+
 def usage(msg=None):
     if msg is not None:
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-def train(store, ham, spam, maxmsgs):
+def train(store, ham, spam, maxmsgs, maxrounds):
     smisses = hmisses = round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
 
-    while hmisses or smisses or round == 0:
+    while round < maxrounds and (hmisses or smisses or round == 0):
         hambone = mboxutils.getmbox(ham)
         spamcan = mboxutils.getmbox(spam)
         round += 1
@@ -97,16 +102,17 @@ def train(store, ham, spam, maxmsgs):
 
 def main(args):
     try:
-        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:",
+        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:",
                                    ["help", "good=", "spam=",
                                     "database=", "pickle=",
-                                    "option=", "max="])
+                                    "option=", "max=", "maxrounds="])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
 
     ham = spam = dbname = usedb = None
     maxmsgs = 0
+    maxrounds = MAXROUNDS
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -117,6 +123,8 @@ def main(args):
             spam = arg
         elif opt in ("-m", "--max"):
             maxmsgs = int(arg)
+        elif opt in ("-r", "--maxrounds"):
+            maxrounds = int(arg)
         elif opt in ('-o', '--option'):
             Options.options.set_from_cmdline(arg, sys.stderr)
             
@@ -133,7 +141,7 @@ def main(args):
 
     store = storage.open_storage(dbname, usedb)
 
-    train(store, ham, spam, maxmsgs)
+    train(store, ham, spam, maxmsgs, maxrounds)
 
     store.store()
 
