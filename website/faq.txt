@@ -587,6 +587,33 @@ Using SpamBayes
 ===============
 
 
+Does SpamBayes work with non-English languages?
+-----------------------------------------------
+
+SpamBayes was developed by English-speaking people and has therefore had
+very little testing with other languages.  There are some anecdotal reports
+that it doesn't work as well with Western European language.  It might work
+very well with them if these default values are changed in the user's ini
+file:
+
+    [Tokenizer]
+    replace_nonascii_chars: True
+    skip_max_word_size: 12
+
+The first setting causes all non-ASCII characters to be replaced by a
+question mark.  For non-English languages the setting should probably be
+False.  The second setting causes all words longer than 12 characters to
+yield a "skip: X NNN" token instead of the word itself, where X is the first
+letter of the word and NNN is the word length.  For languages like German,
+this can be especially troublesome, because an inordinate number of words
+will yield tokens like "skip: ? 17" because they are long and start with an
+accented character.
+
+Asian languages will be particularly troublesome.  The SpamBayes tokenizer
+splits the message into whitespace-separated tokens.  (Many?/Most?/All?)
+Asian languages don't separate "words" with whitespace, so the entire body
+of a message will generate little other than "skip: ? NNN" tokens.
+
 How do I train SpamBayes (web method)?
 --------------------------------------
 
