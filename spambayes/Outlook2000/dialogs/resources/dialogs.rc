@@ -55,6 +55,8 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_RECOVER_RS,36,148,126,63,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
+    LTEXT           "I'm not here. Don't Right Click me.",IDC_HIDDEN,165,118,
+                    69,46
 END
 
 IDD_MANAGER DIALOGEX 0, 0, 275, 300

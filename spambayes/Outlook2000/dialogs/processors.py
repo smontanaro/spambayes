@@ -41,6 +41,8 @@ class ControlProcessor:
         raise RuntimeError, "I don't hook any messages, so I shouldn't be called"
     def OnOptionChanged(self, option):
         pass
+    def OnRButtonUp(self, wparam, lparam):
+        pass
 
 class ImageProcessor(ControlProcessor):
     def Init(self):

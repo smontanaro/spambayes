@@ -231,6 +231,19 @@ class DialogCommand(ButtonProcessor):
     def GetPopupHelpText(self, id):
         dd = self.window.manager.dialog_parser.dialogs[self.idd]
         return "Displays the %s dialog" % dd.caption
+class HiddenDialogCommand(DialogCommand):
+    def __init__(self, window, control_ids, idd):
+        DialogCommand.__init__(self, window, control_ids, idd)
+    def Init(self):
+        DialogCommand.Init(self)
+        # Hide it
+        win32gui.SetWindowText(self.GetControl(), "")
+    def OnCommand(self, wparam, lparam):
+        pass
+    def OnRButtonUp(self, wparam, lparam):
+        self.OnClicked(0)
+    def GetPopupHelpText(self, id):
+        return "Nothing to see here."
 
 from async_processor import AsyncCommandProcessor
 import filter, train
@@ -312,6 +325,7 @@ dialog_map = {
          "make no change to the read state,mark as read,mark as unread"),
         (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state",
          "make no change to the read state,mark as read,mark as unread"),
+        (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSIC"),
         ),
     "IDD_DIAGNOSIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),

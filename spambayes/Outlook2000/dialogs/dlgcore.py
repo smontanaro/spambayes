@@ -95,6 +95,7 @@ class Dialog:
             win32con.WM_INITDIALOG: self.OnInitDialog,
             win32con.WM_CLOSE: self.OnClose,
             win32con.WM_DESTROY: self.OnDestroy,
+            win32con.WM_RBUTTONUP: self.OnRButtonUp,
         }
         return ret
 
@@ -116,6 +117,8 @@ class Dialog:
     def OnClose(self, hwnd, msg, wparam, lparam):
         pass
     def OnDestroy(self, hwnd, msg, wparam, lparam):
+        pass
+    def OnRButtonUp(self, hwnd, msg, wparam, lparam):
         pass
 
     def _DoCreate(self, fn):
@@ -215,7 +218,10 @@ class ProcessorDialog(TooltipDialog):
         
         print "Can not get command processor for", self._GetIDName(iCtrlId)
         return None
-
+    def OnRButtonUp(self, hwnd, msg, wparam, lparam):
+        for cp in self.command_processors.values():
+            cp.OnRButtonUp(wparam,lparam)
+            
     def OnCommandProcessorMessage(self, hwnd, msg, wparam, lparam):
         for p in self.processor_message_map[msg]:
             p.OnMessage(msg, wparam, lparam)
