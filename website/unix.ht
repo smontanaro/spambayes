@@ -53,7 +53,142 @@ readme</a>.</p>
 <h2>POP3</h2>
 
 <p>If your mail program fetches mail using POP3, then you should run <a
-href="applications.html#pop3">pop3proxy.py</a>.
+href="applications.html#sb_server">sb_server.py</a>.
+
+<p>You might wish to set sb_server.py to run as a daemon - Fernando NIÑO and
+Dave Handley have provided these scripts (respectively) which will allow you
+to do this:
+<pre>
+#!/bin/bash
+#
+# spambayes:    Starts the spam filter as a pop3 proxy
+#
+# Version:      @(#) /etc/init.d/spambayes 1.0
+#
+# chkconfig: - 95 21
+# description: This shell script takes care of starting and stopping \
+#              spambayes pop3 proxy
+# processname: sb_server.py
+#
+# Source function library.
+. /etc/init.d/functions
+
+SBPROXY=/opt/bin/sb_server.py
+SBLOG=/var/log/spam.log
+SBDIR=/opt/sb_data
+
+[ -x $SBPROXY ] || exit 0
+
+RETVAL=0
+
+start () {
+    date >> $SBLOG
+    echo -n "Starting SpamBayes POP3 proxy: "
+    if [ ! -d $SBDIR ] ; then
+      echo "Repertoire $SBDIR non present" >> $SBLOG
+      RETVAL=1
+    else 
+      cd $SBDIR
+      ($SBPROXY 2>&1 >> $SBLOG) &
+      RETVAL=$?
+    fi
+    action "" [ $RETVAL = 0 ]
+    return $RETVAL
+}
+
+stop () {
+    # stop daemon
+    date >> $SBLOG
+    echo -n "Stopping SpamBayes POP3 proxy: "
+    killproc $SBPROXY 1
+    RETVAL=$?
+    echo 
+      [ $RETVAL = 0 ] 
+    return $RETVAL
+}
+
+restart () {
+    stop
+    start
+    RETVAL=$?
+    return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status $SBPROXY
+	RETVAL=$?
+	;;
+    restart)
+	restart
+	;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        RETVAL=1
+esac
+
+exit $RETVAL
+</pre>
+<br/>
+<pre>
+#!/bin/sh
+#
+# spamd         This shell script takes care of starting and stopping
+#               the spambayes deamon.
+#
+# Author:       Dave Handley
+# Date:         11 Oct 03
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemons.
+	echo -n "Starting spamd: "
+	cd /etc/spamd/
+	daemon /usr/local/bin/sb_server.py &
+	RETVAL=$?
+	echo
+	;;
+  stop)
+	# Stop daemons.
+	echo -n "Shutting down spamd: "
+	killproc sb_server.py
+	RETVAL=$?
+	echo
+	;;
+  restart|reload)
+	$0 stop
+	$0 start
+	RETVAL=$?
+	;;
+  status)
+	status sb_server.py
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: spamd {start|stop|restart|status}"
+	exit 1
+esac
+
+exit $RETVAL
+</pre>
+</p>
 
 <h2>IMAP</h2>
 
