@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by dialogs.rc
 //
 #define IDD_MANAGER                     101
@@ -25,6 +25,7 @@
 #define IDD_WIZARD_FINISHED_TRAIN_LATER 124
 #define IDB_SBWIZLOGO                   125
 #define IDB_FOLDERS                     127
+#define IDD_NOTIFICATIONS               128
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -98,17 +99,27 @@
 #define IDC_WIZ_GRAPHIC                 1092
 #define IDC_BUT_VIEW_LOG                1093
 #define IDC_EDIT1                       1094
+#define IDC_HAM_SOUND                   1094
 #define IDC_STATISTICS                  1095
+#define IDC_UNSURE_SOUND                1095
 #define IDC_BUT_RESET_STATS             1096
+#define IDC_SPAM_SOUND                  1096
 #define IDC_LAST_RESET_DATE             1097
+#define IDC_ENABLE_SOUNDS               1098
+#define IDC_ACCUMULATE_DELAY_SLIDER     1099
+#define IDC_ACCUMULATE_DELAY_TEXT       1100
+#define IDC_BROWSE_HAM_SOUND            1101
+#define IDC_BROWSE_UNSURE_SOUND         1102
+#define IDC_BROWSE_HAM_SOUND2           1103
+#define IDC_BROWSE_SPAM_SOUND           1103
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        128
+#define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1098
+#define _APS_NEXT_CONTROL_VALUE         1102
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

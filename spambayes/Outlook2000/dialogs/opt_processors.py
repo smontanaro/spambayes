@@ -251,6 +251,56 @@ class EditNumberProcessor(OptionControlProcessor):
             raise ValueError, "Value must be between %d and %d" % (self.min_val, self.max_val)
         self.SetOptionValue(val)
 
+class FilenameProcessor(OptionControlProcessor):
+    def __init__(self, window, control_ids, option, file_filter="All Files|*.*"):
+        self.button_id = control_ids[1]
+        self.file_filter = file_filter
+        OptionControlProcessor.__init__(self, window, control_ids, option)
+
+    def GetPopupHelpText(self, idFrom):
+        if idFrom == self.button_id:
+            return "Displays a dialog from which you can select a file."
+        return OptionControlProcessor.GetPopupHelpText(self, id)
+
+    def DoBrowse(self):
+        from win32struct import OPENFILENAME
+        ofn = OPENFILENAME(512)
+        ofn.hwndOwner = self.window.hwnd
+        ofn.setFilter(self.file_filter)
+        ofn.setTitle(_("Browse for file"))
+        def_filename = self.GetOptionValue()
+        if (len(def_filename) > 0):
+            from os.path import basename
+            ofn.setInitialDir(basename(def_filename))
+        ofn.setFilename(def_filename)
+        ofn.Flags = win32con.OFN_FILEMUSTEXIST
+        retval = win32gui.GetOpenFileName(str(ofn))
+        if (retval == win32con.IDOK):
+            self.SetOptionValue(ofn.getFilename())
+            self.UpdateControl_FromValue()
+            return True
+        return False
+
+    def OnCommand(self, wparam, lparam):
+        id = win32api.LOWORD(wparam)
+        code = win32api.HIWORD(wparam)
+        if id == self.button_id:
+            self.DoBrowse()
+        elif code==win32con.EN_CHANGE:
+            self.UpdateValue_FromControl()
+
+    def UpdateControl_FromValue(self):
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0,
+                             self.GetOptionValue())
+
+    def UpdateValue_FromControl(self):
+        buf_size = 256
+        buf = win32gui.PyMakeBuffer(buf_size)
+        nchars = win32gui.SendMessage(self.GetControl(), win32con.WM_GETTEXT,
+                                      buf_size, buf)
+        str_val = buf[:nchars]
+        self.SetOptionValue(str_val)
+
 # Folder IDs, and the "include_sub" option, if applicable.
 class FolderIDProcessor(OptionControlProcessor):
     def __init__(self, window, control_ids,

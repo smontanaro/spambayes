@@ -465,6 +465,31 @@ BEGIN
                     IDC_STATIC,20,121,245,17
 END
 
+IDD_NOTIFICATIONS DIALOGEX 0, 0, 248, 257
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Notifications"
+FONT 8, "Tahoma", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "New Mail Sounds",IDC_STATIC,7,3,241,229
+    CONTROL         "Enable new mail notification sounds",IDC_ENABLE_SOUNDS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,17,129,10
+    LTEXT           "Good sound:",IDC_STATIC,14,31,42,8
+    EDITTEXT        IDC_HAM_SOUND,14,40,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_HAM_SOUND,192,40,50,14
+    LTEXT           "Unsure sound:",IDC_STATIC,14,58,48,8
+    EDITTEXT        IDC_UNSURE_SOUND,14,67,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_UNSURE_SOUND,192,67,50,14
+    LTEXT           "Spam sound:",IDC_STATIC,14,85,42,8
+    EDITTEXT        IDC_SPAM_SOUND,14,94,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM_SOUND,192,94,50,14
+    LTEXT           "Time to wait for additional messages:",IDC_STATIC,14,
+                    116,142,8
+    CONTROL         "",IDC_ACCUMULATE_DELAY_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,14,127,148,22
+    EDITTEXT        IDC_ACCUMULATE_DELAY_TEXT,163,133,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,205,136,28,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -595,6 +620,13 @@ BEGIN
     BEGIN
         VERTGUIDE, 20
         BOTTOMMARGIN, 161
+    END
+
+    IDD_NOTIFICATIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 232
     END
 END
 #endif    // APSTUDIO_INVOKED

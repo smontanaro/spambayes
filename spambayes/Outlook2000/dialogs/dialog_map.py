@@ -443,7 +443,8 @@ dialog_map = {
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         (TabProcessor,            "IDC_TAB",
                                   """IDD_GENERAL IDD_FILTER IDD_TRAINING
-                                  IDD_STATISTICS IDD_ADVANCED"""),
+                                  IDD_STATISTICS IDD_NOTIFICATIONS
+                                  IDD_ADVANCED"""),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
     "IDD_GENERAL": (
@@ -517,6 +518,22 @@ dialog_map = {
     "IDD_STATISTICS" : (
         (StatsProcessor,        "IDC_STATISTICS IDC_BUT_RESET_STATS " \
                                 "IDC_LAST_RESET_DATE"),
+        ),
+    "IDD_NOTIFICATIONS" : (
+        (BoolButtonProcessor,   "IDC_ENABLE_SOUNDS",     "Notification.notify_sound_enabled",
+                                """IDC_HAM_SOUND IDC_BROWSE_HAM_SOUND
+                                   IDC_UNSURE_SOUND IDC_BROWSE_UNSURE_SOUND
+                                   IDC_SPAM_SOUND IDC_BROWSE_SPAM_SOUND
+                                   IDC_ACCUMULATE_DELAY_SLIDER
+                                   IDC_ACCUMULATE_DELAY_TEXT"""),
+        (FilenameProcessor,     "IDC_HAM_SOUND IDC_BROWSE_HAM_SOUND",
+                                "Notification.notify_ham_sound", _("Sound Files (*.wav)|*.wav|All Files (*.*)|*.*")),
+        (FilenameProcessor,     "IDC_UNSURE_SOUND IDC_BROWSE_UNSURE_SOUND",
+                                "Notification.notify_unsure_sound", _("Sound Files (*.wav)|*.wav|All Files (*.*)|*.*")),
+        (FilenameProcessor,     "IDC_SPAM_SOUND IDC_BROWSE_SPAM_SOUND",
+                                "Notification.notify_spam_sound", _("Sound Files (*.wav)|*.wav|All Files (*.*)|*.*")),
+        (EditNumberProcessor,   "IDC_ACCUMULATE_DELAY_TEXT IDC_ACCUMULATE_DELAY_SLIDER",
+                                "Notification.notify_accumulate_delay", 0, 30, 20, 60),
         ),
     "IDD_ADVANCED" : (
         (BoolButtonProcessor,   "IDC_BUT_TIMER_ENABLED", "Filter.timer_enabled",

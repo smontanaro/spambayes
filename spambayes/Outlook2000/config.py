@@ -290,7 +290,7 @@ defaults = {
             batch of new messages is processed.  A different sound can be
             assigned to each of the three classifications of messages.  The
             good sound will be played if any good messages are received.  The
-            possible spam sound will be played if unsure messages are received,
+            unsure sound will be played if unsure messages are received,
             but no good messages.  The spam sound will be played if all
             received messages are spam."""),
             BOOLEAN, RESTORE),
@@ -301,21 +301,21 @@ defaults = {
         ("notify_unsure_sound", _("Sound file to play for possible spam messages"), "",
             _("""Specifies the full path to a Windows sound file (WAV format) that
             will be played as notification that a possible spam message has been
-            received.  The possible spam notification sound will only be played
-            if no good messages have been received."""),
+            received.  The unsure notification sound will only be played if no
+            good messages have been received."""),
             FILE_WITH_PATH, DO_NOT_RESTORE),
         ("notify_spam_sound", _("Sound file to play for spam messages"), "",
             _("""Specifies the full path to a Windows sound file (WAV format) that
             will be played as notification that a spam message has been
             received.  The spam notification sound will only be played if no
-            good or possible spam messages have been received."""),
+            good or unsure messages have been received."""),
             FILE_WITH_PATH, DO_NOT_RESTORE),
         ("notify_accumulate_delay", _("The delay time to wait for additional received messages (in seconds)"), 10.0,
             _("""When SpamBayes classifies a new message, it sets a timer to wait
             for additional new messages.  If another new message is received
             before the timer expires then the delay time is reset and SpamBayes
             continues to wait.  If no new messages arrive within the delay time
-            the SpamBayes will play the appropriate notification sound for the
+            then SpamBayes will play the appropriate notification sound for the
             received messages."""),
             REAL, RESTORE),
     ),
