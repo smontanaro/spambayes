@@ -275,8 +275,14 @@ class FileMessage(Corpus.Message):
     def createTimestamp(self):
         '''Return the create timestamp for the file'''
 
-        stats = os.stat(self.pathname())
-        ctime = stats[stat.ST_CTIME]
+        # make sure we don't die if someone has
+        #removed the file out from underneath us
+        try:
+            stats = os.stat(self.pathname())
+        except OSError, e:
+            ctime = time.time()
+        else:
+            ctime = stats[stat.ST_CTIME]
 
         return ctime
 
