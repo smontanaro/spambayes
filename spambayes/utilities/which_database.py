@@ -72,7 +72,7 @@ def main():
 
     print
 
-    hammie = options["Storage", "persistent_storage_file"]
+    hammie = os.path.expanduser(options["Storage", "persistent_storage_file"])
     use_dbm = options["Storage", "persistent_use_database"]
     if not use_dbm:
             print "Your storage %s is a: pickle" % (hammie,)
