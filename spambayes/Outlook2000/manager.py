@@ -77,6 +77,10 @@ def import_core_spambayes_stuff(ini_filename):
 class ManagerError(Exception):
     pass
 
+class Stats:
+    def __init__(self):
+        self.num_seen = self.num_spam = self.num_unsure = 0
+
 # Report a message to the user - should only be used for pretty serious errors
 # hence we also print a traceback.
 # Module level function so we can report errors creating the manager
@@ -138,6 +142,8 @@ class PickleStorageManager(BasicStorageManager):
         SavePickle(mdb, self.mdb_filename)
     def close_mdb(self, mdb):
         pass
+    def is_incremental(self):
+        return False # False means we always save the entire DB
 
 class DBStorageManager(BasicStorageManager):
     db_extension = ".db"
@@ -158,6 +164,8 @@ class DBStorageManager(BasicStorageManager):
         mdb.sync()
     def close_mdb(self, mdb):
         mdb.close()
+    def is_incremental(self):
+        return True # True means only changed records get actually written
 
 # Our main "bayes manager"
 class BayesManager:
@@ -166,6 +174,7 @@ class BayesManager:
         self.config = None
         self.addin = None
         self.verbose = verbose
+        self.stats = Stats()
         self.application_directory = os.path.dirname(this_filename)
         self.data_directory = self.LocateDataDirectory()
         self.MigrateDataDirectory()
@@ -432,7 +441,21 @@ class BayesManager:
         self.message_db = self.db_manager.new_mdb()
         self.bayes_dirty = True
 
+    def SaveBayesPostIncrementalTrain(self):
+        # Save the database after a training operation - only actually
+        # saves if we aren't using pickles.
+        if self.db_manager.is_incremental():
+            if self.bayes_dirty:
+                self.SaveBayes()
+            else:
+                print "Bayes database is not dirty - not writing"
+        else:
+            print "Using a slow database - not saving after incremental train"
+
+
     def SaveBayes(self):
+        import time
+        start = time.clock()
         bayes = self.bayes
         # Try and work out where this count sometimes goes wrong.
         if bayes.nspam + bayes.nham != len(self.message_db):
@@ -449,6 +472,8 @@ class BayesManager:
             print " ->", self.db_manager.mdb_filename
         self.db_manager.store_mdb(self.message_db)
         self.bayes_dirty = False
+        if self.verbose:
+            print "Saved databases in %gms" % ((time.clock()-start)*1000)
 
     def GetClassifier(self):
         """Return the classifier we're using."""

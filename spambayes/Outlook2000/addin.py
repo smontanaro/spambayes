@@ -164,6 +164,7 @@ def ProcessMessage(msgstore_message, manager):
             else:
                 print "already was trained as good"
             assert train.been_trained_as_ham(msgstore_message, manager)
+            manager.SaveBayesPostIncrementalTrain()
         return
     if manager.config.filter.enabled:
         import filter
@@ -235,6 +236,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                     # idiot at the other end of the mouse <wink>)
                     print "already was trained as spam"
                 assert train.been_trained_as_spam(msgstore_message, self.manager)
+            # And if the DB can save itself incrementally, do it now
+            self.manager.SaveBayesPostIncrementalTrain()
 
 # Event function fired from the "Show Clues" UI items.
 def ShowClues(mgr, explorer):
@@ -364,6 +367,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             msgstore_message.MoveTo(spam_folder)
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
+        # And if the DB can save itself incrementally, do it now
+        self.manager.SaveBayesPostIncrementalTrain()
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
     def Init(self, manager, explorer):
@@ -409,6 +414,8 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             msgstore_message.MoveTo(restore_folder)
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
+        # And if the DB can save itself incrementally, do it now
+        self.manager.SaveBayesPostIncrementalTrain()
 
 # Helpers to work with images on buttons/toolbars.
 def SetButtonImage(button, fname, manager):
@@ -765,6 +772,9 @@ class OutlookAddin:
         self.explorers_events = None
         if self.manager is not None:
             self.manager.Save()
+            stats = self.manager.stats
+            print "SpamBayes processed %d messages, finding %d spam and %d unsure" % \
+                (stats.num_seen, stats.num_spam, stats.num_unsure)
             self.manager.Close()
             self.manager = None
 
