@@ -133,7 +133,7 @@ filter'''
         if not fnmatch.fnmatch(message.key(), self.filter):
             raise ValueError
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'adding',message.key(),'to corpus'
 
         message.directory = self.directory
@@ -145,7 +145,7 @@ filter'''
     def removeMessage(self, message):
         '''Remove a Message from this corpus'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'removing',message.key(),'from corpus'
 
         message.remove()
@@ -163,7 +163,7 @@ filter'''
         else:
             s = ''
 
-        if options.verbose and nummsgs > 0:
+        if options["globals", "verbose"] and nummsgs > 0:
             lst = ', ' + '%s' % (self.keys())
         else:
             lst = ''
@@ -207,7 +207,7 @@ class FileMessage(Corpus.Message):
     def load(self):
         '''Read the Message substance from the file'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'loading', self.file_name
 
         pn = self.pathname()
@@ -223,7 +223,7 @@ class FileMessage(Corpus.Message):
     def store(self):
         '''Write the Message substance to the file'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'storing', self.file_name
 
         pn = self.pathname()
@@ -234,7 +234,7 @@ class FileMessage(Corpus.Message):
     def remove(self):
         '''Message hara-kiri'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'physically deleting file',self.pathname()
 
         os.unlink(self.pathname())
@@ -253,7 +253,7 @@ class FileMessage(Corpus.Message):
         elip = ''
         sub = self.getSubstance()
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             sub = self.getSubstance()
         else:
             if len(sub) > 20:
@@ -296,7 +296,7 @@ class GzipFileMessage(FileMessage):
     def load(self):
         '''Read the Message substance from the file'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'loading', self.file_name
 
         pn = self.pathname()
@@ -314,7 +314,7 @@ class GzipFileMessage(FileMessage):
     def store(self):
         '''Write the Message substance to the file'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'storing', self.file_name
 
         pn = self.pathname()
@@ -452,11 +452,11 @@ We should not see MSG00003 in this iteration.'
 
         print 'Message %s spam probability is %f' % (msg.key(), prob)
 
-        if prob < options.ham_cutoff:
+        if prob < options["Categorization", "ham_cutoff"]:
             print 'Moving %s from unsurecorpus to hamcorpus, \
 based on prob of %f' % (msg.key(), prob)
             hamcorpus.takeMessage(msg.key(), unsurecorpus)
-        elif prob > options.spam_cutoff:
+        elif prob > options["Categorization", "spam_cutoff"]:
             print 'Moving %s from unsurecorpus to spamcorpus, \
 based on prob of %f' % (msg.key(), prob)
             spamcorpus.takeMessage(msg.key(), unsurecorpus)
@@ -689,7 +689,7 @@ if __name__ == '__main__':
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    options.verbose = False
+    options["globals", "verbose"] = False
     runTestServer = False
     setupTestServer = False
     cleanupTestServer = False
@@ -710,13 +710,11 @@ if __name__ == '__main__':
         elif opt == '-c':
             cleanupTestServer = True
         elif opt == '-v':
-            options.verbose = True
+            options["globals", "verbose"] = True
         elif opt == '-g':
             useGzip = True
         elif opt == '-u':
             useExistingDB = True
-        elif opt == '-v':
-            options.verbose = True
 
     if setupTestServer:
         setupTest(useGzip)

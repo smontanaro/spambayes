@@ -122,7 +122,7 @@ class Corpus:
     def addMessage(self, message):
         '''Add a Message to this corpus'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'adding message %s to corpus' % (message.key())
 
         self.cacheMessage(message)
@@ -141,7 +141,7 @@ class Corpus:
         '''Remove a Message from this corpus'''
 
         key = message.key()
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'removing message %s from corpus' % (key)
         self.unCacheMessage(key)
         del self.msgs[key]
@@ -159,7 +159,7 @@ class Corpus:
 
         key = message.key()
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'placing %s in corpus cache' % (key)
 
         self.msgs[key] = message
@@ -176,7 +176,7 @@ class Corpus:
         '''Remove a message from the in-memory cache'''
         # This method should probably not be overridden
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print 'Flushing %s from corpus cache' % (key)
 
         try:
@@ -268,7 +268,7 @@ class ExpiryCorpus:
 
         for msg in self:
             if msg.createTimestamp() < time.time() - self.expireBefore:
-                if options.verbose:
+                if options["globals", "verbose"]:
                     print 'message %s has expired' % (msg.key())
                 self.removeMessage(msg)
 
