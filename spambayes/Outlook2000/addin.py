@@ -357,6 +357,14 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
             return
+        # If we are not yet enabled, tell the user.
+        # (This is better than disabling the button as a) the user may not
+        # understand why it is disabled, and b) as we would then need to check
+        # the button state as the manager dialog closes.
+        if not self.manager.config.filter.enabled:
+            self.manager.ReportError(
+                "You must enable SpamBayes before you can delete as spam")
+            return
         win32ui.DoWaitCursor(1)
         # Delete this item as spam.
         spam_folder = None
@@ -412,6 +420,14 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         msgstore = self.manager.message_store
         msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
+            return
+        # If we are not yet enabled, tell the user.
+        # (This is better than disabling the button as a) the user may not
+        # understand why it is disabled, and b) as we would then need to check
+        # the button state as the manager dialog closes.
+        if not self.manager.config.filter.enabled:
+            self.manager.ReportError(
+                "You must enable SpamBayes before you can recover spam")
             return
         win32ui.DoWaitCursor(1)
         # Get the inbox as the default place to restore to
