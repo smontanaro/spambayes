@@ -10,6 +10,8 @@ Where:
     -n int
         Number of Set directories (Data/Spam/Set1, ... and Data/Ham/Set1, ...).
         This is required.
+    -o section:option:value
+        set [section, option] in the options database to value
 
 If you only want to use some of the messages in each set,
 
@@ -126,7 +128,7 @@ def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hn:s:',
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:s:o:',
                                    ['HamTrain=', 'SpamTrain=',
                                    'HamTest=', 'SpamTest=',
                                    'ham-keep=', 'spam-keep='])
@@ -154,6 +156,8 @@ def main():
             hamkeep = int(arg)
         elif opt == '--spam-keep':
             spamkeep = int(arg)
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
 
     if args:
         usage(1, "Positional arguments not supported")
