@@ -10,6 +10,9 @@ import struct, array
 
 import dlgutils
 
+from pprint import pprint # debugging only
+verbose = 0
+
 def INDEXTOSTATEIMAGEMASK(i): # from new commctrl.h
     return i << 12
 IIL_UNCHECKED = 1
@@ -71,6 +74,9 @@ def _BuildFoldersMAPI(manager, folder_spec):
     rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,
                                        PR_STORE_ENTRYID,
                                        PR_DISPLAY_NAME_A), None, order, 0)
+    if verbose:
+        print "Rows for sub-folder of", folder_spec.name, "-", folder_spec.folder_id
+        pprint(rows)
     for (eid_tag, eid),(storeeid_tag, store_eid), (name_tag, name) in rows:
         # Note the eid we get here is short-term - hence we must
         # re-fetch from the object itself (which is what our manager does,
@@ -108,6 +114,9 @@ def BuildFolderTreeMAPI(session, ignore_ids):
     tab = session.GetMsgStoresTable(0)
     prop_tags = PR_ENTRYID, PR_DISPLAY_NAME_A
     rows = mapi.HrQueryAllRows(tab, prop_tags, None, None, 0)
+    if verbose:
+        print "message store rows:"
+        pprint(rows)
     for row in rows:
         (eid_tag, eid), (name_tag, name) = row
         hex_eid = mapi.HexFromBin(eid)
@@ -122,12 +131,20 @@ def BuildFolderTreeMAPI(session, ignore_ids):
             subtree_eid = data[0][1]
             ignore_eids = [item[1] for item in data[1:] if PROP_TYPE(item[0])==PT_BINARY]
         except pythoncom.com_error, details:
-            # Some weird error opening a folder tree
-            # Just print a warning and ignore the tree.
-            print "Failed to open a folder for the FolderSelector dialog"
-            print "Exception details:", details
+            # Handle 'expected' errors.
+            if details[0]== mapi.MAPI_E_FAILONEPROVIDER:
+                print "A message store is temporarily unavailable - " \
+                      "it will not appear in the Folder Selector dialog"
+            else:
+                # Some weird error opening a folder tree
+                # Just print a warning and ignore the tree.
+                print "Failed to open a message store for the FolderSelector dialog"
+                print "Exception details:", details
             continue
         folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
+        if verbose:
+            print "message store root folder id is", folder_id
+
         spec = FolderSpec(folder_id, name, ignore_eids)
         spec.children = None
         root.children.append(spec)
@@ -285,8 +302,12 @@ class FolderSelector(FolderSelector_Parent):
                                         bitmapSel,
                                         cItems,
                                         item_id))
+        if verbose:
+            print "Inserting item", repr(insert_buf), "-",
         hitem = win32gui.SendMessage(self.list, commctrl.TVM_INSERTITEM,
                                         0, insert_buf)
+        if verbose:
+            print "got back handle", hitem
         return hitem
 
     def _InsertSubFolders(self, hParent, folderSpec):
@@ -615,4 +636,5 @@ def Test():
     d.DoModal()
 
 if __name__=='__main__':
+    verbose = 1
     Test()
