@@ -40,28 +40,14 @@ class XMLHammie(hammie.Hammie):
             msg = msg.data
         except AttributeError:
             pass
-        score = hammie.Hammie.score
-        if len(extra) == 0:
-            return score(self, msg)
-        elif len(extra) == 1:
-            return score(self, msg, extra[0])
-        else:
-            raise TypeError("Wrong number of arguments")
+        return hammie.Hammie.score(self, msg, *extra)
 
     def filter(self, msg, *extra):
         try:
             msg = msg.data
         except AttributeError:
             pass
-        filter = hammie.Hammie.filter
-        if len(extra) == 0:
-            return filter(self, msg)
-        elif len(extra) == 1:
-            return filter(self, msg, extra[0])
-        elif len(extra) == 2:
-            return filter(self, msg, extra[0], extra[1])
-        else:
-            raise TypeError("Wrong number of arguments")
+        return hammie.Hammie.filter(self, msg, *extra)
 
 
 class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
