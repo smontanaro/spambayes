@@ -46,6 +46,11 @@ pyz = PYZ(a.pure)
 #          strip=0,
 #          console=0 )
 
+typelibs = [
+    ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0),
+    ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1),
+    ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0),
+]
 dll = DLL(pyz,
           a.scripts,
           exclude_binaries=1,
@@ -55,4 +60,5 @@ coll = COLLECT(dll,
                a.binaries + extras - [('MAPI32.dll','','')],
                strip=0,
                debug=debug,
-               name='dist')
+               name='dist',
+               typelibs=typelibs)
