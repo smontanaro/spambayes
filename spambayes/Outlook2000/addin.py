@@ -77,6 +77,19 @@ except win32api.error:
 # We used to catch COM errors - but as most users are now on the binary, this
 # niceness doesn't help anyone.
 
+# As MarkH assumed, and later found to back him up in:
+# http://www.slipstick.com/dev/comaddins.htm:
+# On building add-ins for multiple Outlook versions, Randy Byrne writes in
+# the microsoft.public.office.developer.com.add_ins newsgroup, "The best
+# practice is to compile your Add-in with OL2000 and MSO9.dll. Then your
+# add-in will work with both OL2000 and OL2002, and CommandBar events will
+# work with both versions. If you need to use any specific OL2002 or
+# Office 10.0 Object Library calls, you can use late binding to address
+# those issues. The CommandBar Events are the same in both Office
+# 2000 and Office XP."
+# So that is what we do: specify the minimum versions of the typelibs we
+# can work with - ie, Outlook 2000.
+
 # win32com generally checks the gencache is up to date (typelib hasn't
 # changed, makepy hasn't changed, etc), but when frozen we dont want to
 # do this - not just for perf, but because they don't always exist!
@@ -120,7 +133,7 @@ def HaveSeenMessage(msgstore_message, manager):
     return msgstore_message.GetReadState()
 
 # Helper functions
-def TrainAsHam(msgstore_message, manager, rescore = True):
+def TrainAsHam(msgstore_message, manager, rescore = True, save_db = True):
     import train
     subject = msgstore_message.subject
     print "Training on message '%s' in '%s - " % \
@@ -136,9 +149,10 @@ def TrainAsHam(msgstore_message, manager, rescore = True):
     else:
         print "already was trained as good"
     assert train.been_trained_as_ham(msgstore_message, manager.classifier_data)
-    manager.SaveBayesPostIncrementalTrain()
+    if save_db:
+        manager.SaveBayesPostIncrementalTrain()
 
-def TrainAsSpam(msgstore_message, manager, rescore = True):
+def TrainAsSpam(msgstore_message, manager, rescore = True, save_db = True):
     import train
     subject = msgstore_message.subject
     print "Training on message '%s' in '%s - " % \
@@ -154,7 +168,8 @@ def TrainAsSpam(msgstore_message, manager, rescore = True):
         print "already was trained as spam"
     assert train.been_trained_as_spam(msgstore_message, manager.classifier_data)
     # And if the DB can save itself incrementally, do it now
-    manager.SaveBayesPostIncrementalTrain()
+    if save_db:
+        manager.SaveBayesPostIncrementalTrain()
 
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
@@ -619,7 +634,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Moving and spam training message '%s' - " % (subject,),
-            TrainAsSpam(msgstore_message, self.manager)
+            TrainAsSpam(msgstore_message, self.manager, save_db = False)
             # Do the new message state if necessary.
             try:
                 if new_msg_state == "Read":
@@ -682,7 +697,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                                         self.manager.score(msgstore_message))
                 # Must train before moving, else we lose the message!
                 print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
-                TrainAsHam(msgstore_message, self.manager)
+                TrainAsHam(msgstore_message, self.manager, save_db = False)
                 # Do the new message state if necessary.
                 try:
                     if new_msg_state == "Read":
