@@ -2,6 +2,8 @@
 
 import re
 import sys
+import os
+import glob
 import mailbox
 import email.Parser
 import email.Message
@@ -55,26 +57,46 @@ def deSA(msg):
             msg.set_payload("\n".join(newbody))
     unheader(msg, "X-Spam-")
 
+def process_message(msg, dosa, pats):
+    if pats is not None:
+        unheader(msg, pats)
+    if dosa:
+        deSA(msg)
+
 def process_mailbox(f, dosa=1, pats=None):
     gen = email.Generator.Generator(sys.stdout, maxheaderlen=0)
     for msg in mailbox.PortableUnixMailbox(f, Parser().parse):
-        if pats is not None:
-            unheader(msg, pats)
-        if dosa:
-            deSA(msg)
+        process_message(msg, dosa, pats)
         gen(msg, unixfrom=1)
 
+def process_maildir(d, dosa=1, pats=None):
+    parser = Parser()
+    for fn in glob.glob(os.path.join(d, "cur", "*")):
+        print ("reading from %s..." % fn),
+        file = open(fn)
+        msg = parser.parse(file)
+        process_message(msg, dosa, pats)
+
+        tmpfn = os.path.join(d, "tmp", os.path.basename(fn))
+        tmpfile = open(tmpfn, "w")
+        print "writing to %s" % tmpfn
+        email.Generator.Generator(tmpfile, maxheaderlen=0)(msg, unixfrom=0)
+
+        os.rename(tmpfn, fn)
+
 def usage():
-    print >> sys.stderr, "usage: unheader.py [ -p pat ... ] [ -s ]"
+    print >> sys.stderr, "usage: unheader.py [ -p pat ... ] [ -s ] folder"
     print >> sys.stderr, "-p pat gives a regex pattern used to eliminate unwanted headers"
     print >> sys.stderr, "'-p pat' may be given multiple times"
     print >> sys.stderr, "-s tells not to remove SpamAssassin headers"
+    print >> sys.stderr, "-d means treat folder as a Maildir"
 
 def main(args):
     headerpats = []
     dosa = 1
+    ismbox = 1
     try:
-        opts, args = getopt.getopt(args, "p:sh")
+        opts, args = getopt.getopt(args, "p:shd")
     except getopt.GetoptError:
         usage()
         sys.exit(1)
@@ -87,15 +109,19 @@ def main(args):
                 headerpats.append(arg)
             elif opt == "-s":
                 dosa = 0
+            elif opt == "-d":
+                ismbox = 0
         pats = headerpats and "|".join(headerpats) or None
-        if not args:
-            f = sys.stdin
-        elif len(args) == 1:
-            f = file(args[0])
-        else:
+
+        if len(args) != 1:
             usage()
             sys.exit(1)
-        process_mailbox(f, dosa, pats)
+
+        if ismbox:
+            f = file(args[0])
+            process_mailbox(f, dosa, pats)
+        else:
+            process_maildir(args[0], dosa, pats)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
