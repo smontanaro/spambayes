@@ -116,9 +116,12 @@ class Stats(object):
             m = Message(msg_id, self.messageinfo_db)
             self.messageinfo_db.load_msg(m)
 
+            # Skip all old messages that don't have a date.
+            if m.date_modified is None:
+                continue
+
             # Skip ones that are too old.
-            if self.from_date and m.date_modified and \
-               m.date_modified < self.from_date:
+            if self.from_date and m.date_modified < self.from_date:
                 continue
 
             classification = m.GetClassification()
@@ -149,20 +152,21 @@ class Stats(object):
 
     def _CombineSessionAndTotal(self):
         totals = self.totals
-        num_seen = self.num_ham + self.num_spam + self.num_unsure + \
-                   totals["num_ham"] + totals["num_spam"] + \
-                   totals["num_unsure"]
-        num_ham = self.num_ham + totals["num_ham"]
-        num_spam = self.num_spam + totals["num_spam"]
-        num_unsure = self.num_unsure + totals["num_unsure"]
-        num_trained_ham = self.num_trained_ham + totals["num_trained_ham"]
-        num_trained_ham_fp = self.num_trained_ham_fp + \
-                             totals["num_trained_ham_fp"]
-        num_trained_spam = self.num_trained_spam + \
-                           totals["num_trained_spam"]
-        num_trained_spam_fn = self.num_trained_spam_fn + \
-                              totals["num_trained_spam_fn"]
-        return locals()
+        data = {}
+        data["num_ham"] = self.num_ham + totals["num_ham"]
+        data["num_spam"] = self.num_spam + totals["num_spam"]
+        data["num_unsure"] = self.num_unsure + totals["num_unsure"]
+        data["num_seen"] = data["num_ham"] + data["num_spam"] + \
+                           data["num_unsure"]
+        data["num_trained_ham"] = self.num_trained_ham + \
+                                  totals["num_trained_ham"]
+        data["num_trained_ham_fp"] = self.num_trained_ham_fp + \
+                                     totals["num_trained_ham_fp"]
+        data["num_trained_spam"] = self.num_trained_spam + \
+                                   totals["num_trained_spam"]
+        data["num_trained_spam_fn"] = self.num_trained_spam_fn + \
+                                      totals["num_trained_spam_fn"]
+        return data
 
     def _CalculateAdditional(self, data):
         data["perc_ham"] = 100.0 * data["num_ham"] / data["num_seen"]
