@@ -478,6 +478,9 @@ have any other text editor, so it make things like the README unREADable.
    environment; I keep a VMWare snapshot of a clean Windows installation
    for this, but that's probably overkill 8-) and test the latter on Unix
    (a Debian VMWare box in my case).
+ o If you can, rename these with "rc" at the end, and make them available
+   to the spambayes-dev crowd as release candidates.  If all is ok, then
+   fix the names (or redo this) and keep going.
  o Dance the SourceForge release dance:
    http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#filereleasesteps
    When it comes to the "what's new" and the ChangeLog, I cut'n'paste the
