@@ -36,18 +36,21 @@ def BuildBuckets(manager):
     dirs = ["Set%d" % i for i in range(1, num_buckets + 1)]
     return num_spam, num_ham, dirs
 
-def ChooseBucket(buckets):
-    import random
-    return random.choice(buckets)
+# Export the messages from the folders in folder_ids, as text files, into
+# the subdirectories whose names are given in buckets, under the directory
+# 'root' (which is .../Ham or .../Spam).  Each message is placed in a
+# bucket subdirectory chosen at random (among all bucket subdirectories).
+# Returns the total number of .txt files created (== the number of msgs
+# successfully exported).
+def _export_folders(manager, root, buckets, folder_ids, include_sub):
+    from random import choice
 
-def _export_folders(manager, dir, buckets, folder_ids, include_sub):
     num = 0
     store = manager.message_store
     for folder in store.GetFolderGenerator(folder_ids, include_sub):
         print "", folder.name
         for message in folder.GetMessageGenerator():
-            sub = ChooseBucket(buckets)
-            this_dir = os.path.join(dir, sub)
+            this_dir = os.path.join(root,  choice(buckets))
             # filename is the EID.txt
             try:
                 # Don't use str(msg) instead -- that inserts an information-
