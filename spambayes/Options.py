@@ -56,7 +56,7 @@ safe_headers: abuse-reports-to
 mine_received_headers: False
 
 [TestDriver]
-# These control various displays in class Drive (timtest.py).
+# These control various displays in class Driver (timtest.py).
 
 # Number of buckets in histograms.
 nbuckets: 40
@@ -73,11 +73,23 @@ show_ham_hi: 0.0
 show_false_positives: True
 show_false_negatives: False
 show_best_discriminators: True
+
+# If save_trained_pickles is true, Driver.train() saves a binary pickle
+# of the classifier after training.  The file basename is given by
+# pickle_basename, the extension is .pik, and increasing integers are
+# appended to pickle_basename.  By default (if save_trained_pickles is
+# true), the filenames are class1.pik, class2.pik, ...  If a file of that
+# name already exists, it's overwritten.  pickle_basename is ignored when
+# save_trained_pickles is false.
+
+save_trained_pickles: False
+pickle_basename: class
 """
 
 int_cracker = ('getint', None)
 float_cracker = ('getfloat', None)
 boolean_cracker = ('getboolean', bool)
+string_cracker = ('get', None)
 
 all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
@@ -94,6 +106,8 @@ all_options = {
                    'show_false_negatives': boolean_cracker,
                    'show_histograms': boolean_cracker,
                    'show_best_discriminators': boolean_cracker,
+                   'save_trained_pickles': boolean_cracker,
+                   'pickle_basename': string_cracker,
                   },
 }
 

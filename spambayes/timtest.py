@@ -151,6 +151,7 @@ class Driver:
         self.falseneg = Set()
         self.global_ham_hist = Hist(options.nbuckets)
         self.global_spam_hist = Hist(options.nbuckets)
+        self.ntimes_train_called = 0
 
     def train(self, ham, spam):
         self.classifier = classifier.GrahamBayes()
@@ -163,11 +164,14 @@ class Driver:
         self.trained_ham_hist = Hist(options.nbuckets)
         self.trained_spam_hist = Hist(options.nbuckets)
 
-        #f = file('w.pik', 'wb')
-        #pickle.dump(self.classifier, f, 1)
-        #f.close()
-        #import sys
-        #sys.exit(0)
+        self.ntimes_train_called += 1
+        if options.save_trained_pickles:
+            fname = "%s%d.pik" % (options.pickle_basename,
+                                  self.ntimes_train_called)
+            print "    saving pickle to", fname
+            fp = file(fname, 'wb')
+            pickle.dump(self.classifier, fp, 1)
+            fp.close()
 
     def finishtest(self):
         if options.show_histograms:
