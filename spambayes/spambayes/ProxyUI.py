@@ -684,10 +684,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def reReadOptions(self):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
-        # Reload the options.
+        # Re-read the options.
         global state
         import Options
-        reload(Options)
+        Options.load_options()
         global options
         from Options import options
 

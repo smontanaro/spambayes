@@ -93,7 +93,7 @@ class ServerUserInterface(UserInterface.UserInterface):
         # Reload the options.
         self.state.bayes.store()
         import Options
-        reload(Options)
+        Options.load_options()
         global options
         from Options import options
 
