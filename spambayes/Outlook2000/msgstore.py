@@ -369,16 +369,21 @@ class MAPIMsgStore:
                 folder_eid, ret_class = store.GetReceiveFolder(msg_class, 0)
                 hex_folder_eid = mapi.HexFromBin(folder_eid)
                 hex_store_eid = mapi.HexFromBin(store_eid)
+            except pythoncom.com_error, details:
+                if not IsNotAvailableCOMException(details):
+                    print "ERROR enumerating a receive folder -", details
+                continue
+            try:
                 folder = self.GetFolder((hex_store_eid, hex_folder_eid))
                 # For 'unconfigured' stores, or "stand-alone" PST files,
                 # this is a root folder - so not what we wan't.  Only return
                 # folders with a parent.
                 if folder.GetParent() is not None:
                     yield folder
-            except pythoncom.com_error, details:
-                if not IsNotAvailableCOMException(details):
-                    print "ERROR enumerating a receive folder -", details
+            except MsgStoreException, details:
+                print "ERROR opening receive folder -", details
                 # but we just continue
+                continue
 
 _MapiTypeMap = {
     type(0.0): PT_DOUBLE,
@@ -686,11 +691,18 @@ class MAPIMsgStoreMsg:
                                      self.GetSubject(),
                                      id_str)
 
+    # as per search-key comments above, we also "enforce" this at the Python
+    # level.  2 different messages, but one copied from the other, will
+    # return "==".
+    # Not being consistent could cause subtle bugs, especially in interactions
+    # with various test tools.
+    # Compare the GetID() results if you need to know different messages.
+    def __hash__(self):
+        return hash(self.searchkey)
+
     def __eq__(self, other):
-        if other is None: return False
         ceid = self.msgstore.session.CompareEntryIDs
-        return ceid(self.id[0], other.id[0]) and \
-               ceid(self.id[1], other.id[1])
+        return ceid(self.searchkey, other.searchkey)
 
     def __ne__(self, other):
         return not self.__eq__(other)
