@@ -163,7 +163,7 @@ class RuleList:
         if code == win32con.BN_CLICKED:
             self.SyncEnabledStates()
             index = self.GetSelectedRuleIndex()
-            
+
             rule = copy.copy(self.rules[index])
             rule.name = "Copy of " + rule.name
             d = RuleDialog.RuleDialog(rule, self.parent.mgr)
@@ -220,7 +220,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         [BUTTON,          '&Browse',            IDC_BROWSE,          (190,  19,  50,  14), csts | win32con.BS_PUSHBUTTON],
         [BUTTON,          "Enabled Rules",      -1,                  (  7,  40, 237, 130), cs   | win32con.BS_GROUPBOX],
         ["SysTreeView32", None,                 IDC_LIST_RULES,      ( 18,  52, 164,  95), treestyle],
-        
+
         [BUTTON,          "&New...",            IDC_BUT_NEW,         (190,  52,  50,  14), csts ],
         [BUTTON,          "&Copy..",            IDC_BUT_COPY,        (190,  72,  50,  14), csts ],
         [BUTTON,          "&Modify...",         IDC_BUT_EDIT,        (190,  92,  50,  14), csts | win32con.WS_DISABLED],
@@ -228,7 +228,7 @@ class FilterArrivalsDialog(dialog.Dialog):
 
         [BUTTON,          "Move &Up",           IDC_BUT_MOVEUP,      ( 15, 150,  73,  14), csts | win32con.WS_DISABLED],
         [BUTTON,          "Move &Down",         IDC_BUT_MOVEDOWN,    (109, 150,  73,  14), csts | win32con.WS_DISABLED],
-        
+
         [BUTTON,         '&Filter Now...',      IDC_BUT_FILTERNOW,   ( 15, 175,  50,  14), csts | win32con.BS_PUSHBUTTON],
         [BUTTON,         'Close',               win32con.IDOK,       (190, 175,  50,  14), csts | win32con.BS_DEFPUSHBUTTON],
     ]

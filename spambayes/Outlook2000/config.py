@@ -32,7 +32,7 @@ class _ConfigurationContainer:
                 print "%s %s: %s" % (prefix, name, pprint.pformat(ob))
             else:
                 d(name, level+1)
-                
+
 class ConfigurationRoot(_ConfigurationContainer):
     def __init__(self):
         self.training = _ConfigurationContainer(

@@ -59,12 +59,12 @@ class Rule:
             outlook_message.FlagRequest = "Check Spam"
             outlook_message.FlagStatus = constants.olFlagMarked
             dirty = True
-        if self.write_field:            
+        if self.write_field:
             format = 4 # 4=2 decimal, 3=1 decimal - index in "field chooser" combo when type=Number.
             prop = outlook_message.UserProperties.Add(self.write_field_name, constants.olNumber, True, format)
             prop.Value = prob
             dirty = True
-        if dirty:        
+        if dirty:
             outlook_message.Save()
 
         if self.action == "None":

@@ -64,25 +64,25 @@ except pythoncom.com_error, (hr, msg, exc, arg):
 
 # Something that should be in win32com in some form or another.
 def CastTo(ob, target):
-  """'Cast' a COM object to another type"""
-  if hasattr(target, "index"): # string like
+    """'Cast' a COM object to another type"""
+    if hasattr(target, "index"): # string like
     # for now, we assume makepy for this to work.
-    if not ob.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
-      ob = gencache.EnsureDispatch(ob)
-    if not ob.__class__.__dict__.get("CLSID"):
-      raise ValueError, "Must be a makepy-able object for this to work"
-    clsid = ob.CLSID
-    mod = gencache.GetModuleForCLSID(clsid)
-    # Get the 'root' module.
-    mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID, mod.MajorVersion, mod.MinorVersion)
-    # Find the CLSID of the target
-    # XXX - should not be looking in VTables..., but no general map currently exists
-    target_clsid = mod.VTablesNamesToIIDMap.get(target)
-    mod = gencache.GetModuleForCLSID(target_clsid)
-    target_class = getattr(mod, target)
-    # resolve coclass to interface
-    target_class = getattr(target_class, "default_interface", target_class)
-    return target_class(ob) # auto QI magic happens
+        if not ob.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+            ob = gencache.EnsureDispatch(ob)
+        if not ob.__class__.__dict__.get("CLSID"):
+            raise ValueError, "Must be a makepy-able object for this to work"
+        clsid = ob.CLSID
+        mod = gencache.GetModuleForCLSID(clsid)
+        # Get the 'root' module.
+        mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID, mod.MajorVersion, mod.MinorVersion)
+        # Find the CLSID of the target
+        # XXX - should not be looking in VTables..., but no general map currently exists
+        target_clsid = mod.VTablesNamesToIIDMap.get(target)
+        mod = gencache.GetModuleForCLSID(target_clsid)
+        target_class = getattr(mod, target)
+        # resolve coclass to interface
+        target_class = getattr(target_class, "default_interface", target_class)
+        return target_class(ob) # auto QI magic happens
 
 # Whew - we seem to have all the COM support we need - let's rock!
 

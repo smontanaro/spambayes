@@ -43,7 +43,7 @@ def filter_folder(f, mgr, progress, filter):
             continue
         if filter_message(message, mgr):
             num_messages += 1
-        
+
     return num_messages
 
 

@@ -25,7 +25,7 @@ class ManagerDialog(dialog.Dialog):
     training_intro = "Training is the process of giving examples of both good and bad email to the system so it can classify future email"
     filtering_intro = "Filtering is the process of deleting, moving or otherwise modifying messages based on their spam probability"
     classify_intro = "Classification is the process of adding properties to messages based on their Spam probability.  Creating a property with the spam rating allows you to select the field using the Outlook Field Chooser."
-    
+
     dt = [
         # Dialog itself.
         ["Anti-Spam", (0, 0, 242, 277), style, None, (8, "MS Sans Serif")],
@@ -44,7 +44,7 @@ class ManagerDialog(dialog.Dialog):
         [BUTTON,          'Enable &filtering',  IDC_BUT_ENABLE_FILTER,(24, 147, 131,  11), csts | win32con.BS_AUTOCHECKBOX],
         [BUTTON,          'Define filters...',  IDC_BUT_FILTER,      (168, 144,  62,  14), csts | win32con.BS_PUSHBUTTON],
         [STATIC,          "",                   IDC_FILTER_STATUS,   ( 15, 162, 215,  12), cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
-         
+
         [BUTTON,          "Classification",     -1,                  (  7, 188, 228,  61), cs   | win32con.BS_GROUPBOX],
         [STATIC,          classify_intro,       -1,                  ( 15, 201, 215,  26), cs],
         [BUTTON,          'Classify...',        IDC_BUT_CLASSIFY,    (168, 228,  62,  14), csts | win32con.BS_PUSHBUTTON],
@@ -128,7 +128,7 @@ class ManagerDialog(dialog.Dialog):
     def OnButEnableFilter(self, id, code):
         if code == win32con.BN_CLICKED:
             self.mgr.config.filter.enabled = self.GetDlgItem(IDC_BUT_ENABLE_FILTER).GetCheck()==1
-        
+
     def OnOK(self):
         return dialog.Dialog.OnOK(self)
 

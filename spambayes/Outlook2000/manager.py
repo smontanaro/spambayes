@@ -221,7 +221,7 @@ def ShowManager(mgr):
         import dialogs.TrainingDialog
         d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
         d.DoModal()
-        
+
     def do_classify(dlg):
         import classify
         import dialogs.ClassifyDialog
@@ -235,7 +235,7 @@ def ShowManager(mgr):
         d.DoModal()
         if dlg.mgr.addin is not None:
             dlg.mgr.addin.FiltersChanged()
-        
+
     import dialogs.ManagerDialog
     d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, do_classify)
     d.DoModal()
@@ -254,7 +254,7 @@ def main(verbose_level = 1):
 def usage():
     print "Usage: manager [-v ...]"
     sys.exit(1)
-        
+
 if __name__=='__main__':
     verbose = 1
     import getopt
