@@ -58,6 +58,8 @@ and referred to where possible.  This defaults to the file "url.pck" in
 the local directory, but you can specify your own file via the command line:
         -f filename             URL cache filename
 
+Other options:
+        -v                      Increase verbosity.
 Notes:
  o There are lots of ways to get around this working.  If the site has a
    robots.txt file that excludes all robots, or all urllib robots, then
@@ -83,7 +85,7 @@ __credits__ = "Richard Jowsey, all the Spambayes folk."
 
 from __future__ import generators
 
-import urllib2, socket
+import urllib2, socket, httplib
 import sys
 import re
 import pickle
@@ -177,7 +179,7 @@ class SlurpingClassifier(Classifier):
                         page = headers + "\r\n" + page
                         if options["globals", "verbose"]:
                             print >> sys.stderr, "Slurped."
-                    except (IgnoreURLException, IOError, socket.error), details:
+                    except (IgnoreURLException, IOError, socket.error, httplib.HTTPException), details:
                         url_dict[url] = 0.5
                         print >> sys.stderr, "Couldn't get %s (%s)" % (url, details)
                     if not url_dict.has_key(url) or url_dict[url] != 0.5:
@@ -238,7 +240,7 @@ def main():
     from spambayes import msgs
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbu:p:a:o:f:n:s:',
+        opts, args = getopt.getopt(sys.argv[1:], 'hbu:p:a:o:f:n:s:v',
                                    ['ham-keep=', 'spam-keep='])
     except getopt.error, msg:
         print >>sys.stderr, __doc__
@@ -268,6 +270,8 @@ def main():
             nsets = int(arg)
         elif opt == '-s':
             seed = int(arg)
+        elif opt == '-v':
+            options["globals", "verbose"] = 1
         elif opt == '--ham-keep':
             hamkeep = int(arg)
         elif opt == '--spam-keep':
