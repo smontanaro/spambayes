@@ -154,9 +154,8 @@ def make_cfg(stream):
     for appname in versions["Apps"]:
         _make_cfg_section(stream, appname, versions["Apps"][appname])
     
-if __name__=='__main__':
-    import sys
-    if '-g' in sys.argv:
+def main(args):
+    if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
     print "SpamBayes version is:", get_version_string()
@@ -183,3 +182,7 @@ if __name__=='__main__':
     print "Application versions:"
     for app in latest_dict["Apps"]:
         print "%s: %s" % (app, get_version_string(app, version_dict=latest_dict))
+
+if __name__=='__main__':
+    import sys
+    main(sys.argv)
