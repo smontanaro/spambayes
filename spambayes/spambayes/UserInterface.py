@@ -803,6 +803,8 @@ class UserInterface(BaseUserInterface):
     def onRestoredefaults(self, how):
         if how == "Restore advanced options defaults":
             self.restoreConfigDefaults(self.advanced_options_map)
+        elif how == "Restore experimental options defaults (all off)":
+            self.restoreConfigDefaults(experimental_ini_map)
         else:
             self.restoreConfigDefaults(self.parm_ini_map)
         self.reReadOptions()
