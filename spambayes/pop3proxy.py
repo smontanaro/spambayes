@@ -62,7 +62,6 @@ Web training interface:
  o [Francois Granger] Show the raw spambrob number close to the buttons
    (this would mean using the extra X-Hammie header by default).
  o Add Today and Refresh buttons on the Review page.
- o "There are no untrained messages to display.  Return Home."
 
 
 User interface improvements:
@@ -90,15 +89,14 @@ New features:
  o Whitelist.
  o Online manual.
  o Links to project homepage, mailing list, etc.
- o Edit settings through the web.
  o List of words with stats (it would have to be paged!) a la SpamSieve.
 
 
 Code quality:
 
+ o Make a separate Dibbler plugin for serving images, so there's no
+   duplication between pop3proxy and OptionConfig.
  o Move the UI into its own module.
- o Eventually, pull the common HTTP code from pop3proxy.py and Entrian
-   Debugger into a library.
  o Cope with the email client timing out and closing the connection.
  o Lose the trailing dot from cached messages.
 
@@ -146,10 +144,12 @@ except ImportError:
 import os, sys, re, operator, errno, getopt, string, time, bisect
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
 import mailbox, email.Header
-from spambayes import storage, tokenizer, mboxutils
+import spambayes
+from spambayes import storage, tokenizer, mboxutils, PyMeldLite, Dibbler
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from email.Iterators import typed_subpart_iterator
+from OptionConfig import OptionsConfigurator
 from spambayes.Options import options
 
 # HEADER_EXAMPLE is the longest possible header - the length of this one
@@ -157,70 +157,17 @@ from spambayes.Options import options
 HEADER_FORMAT = '%s: %%s\r\n' % options.hammie_header_name
 HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % options.hammie_header_name
 
+IMAGES = ('helmet', 'status', 'config',
+          'message', 'train', 'classify', 'query')
 
-class Listener(asyncore.dispatcher):
-    """Listens for incoming socket connections and spins off
-    dispatchers created by a factory callable.
-    """
-
-    def __init__(self, port, factory, factoryArgs=(),
-                 socketMap=asyncore.socket_map):
-        asyncore.dispatcher.__init__(self, map=socketMap)
-        self.socketMap = socketMap
-        self.factory = factory
-        self.factoryArgs = factoryArgs
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setblocking(False)
-        self.set_socket(s, socketMap)
-        self.set_reuse_addr()
-        if options.verbose:
-            print "%s listening on port %d." % (self.__class__.__name__, port)
-        self.bind(('', port))
-        self.listen(5)
-
-    def handle_accept(self):
-        # If an incoming connection is instantly reset, eg. by following a
-        # link in the web interface then instantly following another one or
-        # hitting stop, handle_accept() will be triggered but accept() will
-        # return None.
-        result = self.accept()
-        if result:
-            clientSocket, clientAddress = result
-            args = [clientSocket] + list(self.factoryArgs)
-            if self.socketMap != asyncore.socket_map:
-                self.factory(*args, **{'socketMap': self.socketMap})
-            else:
-                self.factory(*args)
-
-
-class BrighterAsyncChat(asynchat.async_chat):
-    """An asynchat.async_chat that doesn't give spurious warnings on
-    receiving an incoming connection, and lets SystemExit cause an
-    exit."""
-
-    def handle_connect(self):
-        """Suppress the asyncore "unhandled connect event" warning."""
-        pass
-
-    def handle_error(self):
-        """Let SystemExit cause an exit."""
-        type, v, t = sys.exc_info()
-        if type == socket.error and v[0] == 9:  # Why?  Who knows...
-            pass
-        elif type == SystemExit:
-            raise
-        else:
-            asynchat.async_chat.handle_error(self)
-
-
-class ServerLineReader(BrighterAsyncChat):
+class ServerLineReader(Dibbler.BrighterAsyncChat):
     """An async socket that reads lines from a remote server and
     simply calls a callback with the data.  The BayesProxy object
     can't connect to the real POP3 server and talk to it
     synchronously, because that would block the process."""
 
     def __init__(self, serverName, serverPort, lineCallback):
-        BrighterAsyncChat.__init__(self)
+        Dibbler.BrighterAsyncChat.__init__(self)
         self.lineCallback = lineCallback
         self.request = ''
         self.set_terminator('\r\n')
@@ -246,7 +193,7 @@ class ServerLineReader(BrighterAsyncChat):
         self.close()
 
 
-class POP3ProxyBase(BrighterAsyncChat):
+class POP3ProxyBase(Dibbler.BrighterAsyncChat):
     """An async dispatcher that understands POP3 and proxies to a POP3
     server, calling `self.onTransaction(request, response)` for each
     transaction. Responses are not un-byte-stuffed before reaching
@@ -260,7 +207,7 @@ class POP3ProxyBase(BrighterAsyncChat):
     """
 
     def __init__(self, clientSocket, serverName, serverPort):
-        BrighterAsyncChat.__init__(self, clientSocket)
+        Dibbler.BrighterAsyncChat.__init__(self, clientSocket)
         self.request = ''
         self.response = ''
         self.set_terminator('\r\n')
@@ -349,7 +296,7 @@ class POP3ProxyBase(BrighterAsyncChat):
         """Asynchat override."""
         verb = self.request.strip().upper()
         if verb == 'KILL':
-            self.shutdown(2)
+            self.socket.shutdown(2)
             self.close()
             raise SystemExit
         elif verb == 'CRASH':
@@ -389,15 +336,16 @@ class POP3ProxyBase(BrighterAsyncChat):
         self.seenAllHeaders = False
 
 
-class BayesProxyListener(Listener):
+class BayesProxyListener(Dibbler.Listener):
     """Listens for incoming email client connections and spins off
     BayesProxy objects to serve them.
     """
 
     def __init__(self, serverName, serverPort, proxyPort):
         proxyArgs = (serverName, serverPort)
-        Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
-        print 'Listener on port %d is proxying %s:%d' % (proxyPort, serverName, serverPort)
+        Dibbler.Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
+        print 'Listener on port %d is proxying %s:%d' % \
+               (proxyPort, serverName, serverPort)
 
 
 class BayesProxy(POP3ProxyBase):
@@ -530,8 +478,9 @@ class BayesProxy(POP3ProxyBase):
                 if command == 'RETR':
                     state.numUnsure += 1
 
+            header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
             headers, body = re.split(r'\n\r?\n', messageText, 1)
-            headers = headers + "\n" + HEADER_FORMAT % disposition + "\r\n"
+            headers = headers + "\n" + header + "\r\n"
             messageText = headers + body
 
             # Cache the message; don't pollute the cache with test messages.
@@ -570,364 +519,142 @@ class BayesProxy(POP3ProxyBase):
         return response
 
 
-class UserInterfaceListener(Listener):
-    """Listens for incoming web browser connections and spins off
-    UserInterface objects to serve them."""
+class UserInterfaceServer(Dibbler.HTTPServer):
+    """Implements the web server component via a Dibbler plugin."""
 
-    def __init__(self, uiPort, socketMap=asyncore.socket_map):
-        Listener.__init__(self, uiPort, UserInterface, (), socketMap=socketMap)
-        print 'User interface url is http://localhost:%d' % (uiPort)
-
-
-# Until the user interface has had a wider audience, I won't pollute the
-# project with .gif files and the like.  Here's the viking helmet.
-import base64
-helmet = base64.decodestring(
-"""R0lGODlhIgAYAPcAAEJCRlVTVGNaUl5eXmtaVm9lXGtrZ3NrY3dvZ4d0Znt3dImHh5R+a6GDcJyU
-jrSdjaWlra2tra2tta+3ur2trcC9t7W9ysDDyMbGzsbS3r3W78bW78be78be973e/8bn/86pjNav
-kc69re/Lrc7Ly9ba4vfWveTh5M7e79be79bn797n7+fr6+/v5+/v7/f3787e987n987n/9bn99bn
-/9bv/97n997v++fv9+f3/+/v9+/3//f39/f/////9////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAB4ALAAAAAAiABgA
-AAj+AD0IHEiwoMGDA2XI8PBhxg2EECN+YJHjwwccOz5E3FhQBgseMmK44KGRo0kaLHzQENljoUmO
-NE74uGHDxQ8aL2GmzFHzZs6NNFr8yKHC5sOfEEUOVcHiR8aNFksi/LCCx1KZPXAilLHBAoYMMSB6
-9DEUhsyhUgl+wOBAwQIHFsIapGpzaIcTVnvcSOsBhgUFBgYUMKAgAgqNH2J0aPjxR9YPJerqlYEi
-w4YYExQM2FygwIHCKVBgiBChBIsXP5wu3HD2Bw8MC2JD0CygAIHOnhU4cLDA7QWrqfd6iBE5dQsH
-BgJvHiDgNoID0A88V6AAAQSyjl16QIHXBwnNAwDIBAhAwDmDBAjQHyiAIPkC7DnUljhxwkGAAQHE
-B+icIAGD8+clUMByCNjUUkEdlHCBAvflF0BtB/zHQAMSCjhYYBXsoFVBMWAQWH4AAFBbAg2UWOID
-FK432AEO2ABRBwtsFuKDBTSAYgMghBDCAwwgwB4CClQAQ0R/4RciAQjYyMADIIwwAggN+PeWBTPw
-VdAHHEjA4IMR8ojjCCaEEGUCFcygnUQxaEndbhBAwKQIFVAAgQMQHPZTBxrkqUEHfHLAAZ+AdgBR
-QAAAOw==""")
+    def __init__(self, uiPort):
+        Dibbler.HTTPServer.__init__(self, uiPort)
+        print 'User interface url is http://localhost:%d/' % (uiPort)
 
 
-class UserInterface(BrighterAsyncChat):
+def readUIResources():
+    """Returns ui.html and a dictionary of Gifs.  Used here and by
+    OptionConfig"""
+
+    # Using `exec` is nasty, but I couldn't figure out a way of making
+    # `getattr` or `__import__` work with ResourcePackage.
+    from spambayes.resources import ui_html
+    images = {}
+    for imageName in IMAGES:
+        exec "from spambayes.resources import %s_gif" % imageName
+        exec "images[imageName] = %s_gif.data" % imageName
+    return ui_html.data, images
+
+
+class UserInterface(Dibbler.HTTPPlugin):
     """Serves the HTML user interface of the proxy."""
 
-    # A couple of notes about the HTML here:
-    #  o I've tried to keep content and presentation separate using
-    #    one main stylesheet - no <font> tags, and no inline stylesheets
-    #  o Form fields must specify their name and value attributes like
-    #    this: "... name='n' value='v' ..." even if there is no default
-    #    value.  This is so that setFieldValue can set the value.
+    def __init__(self):
+        """Load up the necessary resources: ui.html and helmet.gif."""
+        Dibbler.HTTPPlugin.__init__(self)
+        htmlSource, self._images = readUIResources()
+        self.html = PyMeldLite.Meld(htmlSource, readonly=True)
 
-    header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-             <html><head><title>Spambayes proxy: %s</title>
-             <style>
-             body { font: 90%% arial, swiss, helvetica; margin: 0 }
-             table { font: 90%% arial, swiss, helvetica }
-             form { margin: 0 }
-             .banner { background: #c0e0ff; padding=5; padding-left: 15;
-                       border-top: 1px solid black;
-                       border-bottom: 1px solid black }
-             .header { font-size: 133%% }
-             .content { margin: 15 }
-             .messagetable td { padding-left: 1ex; padding-right: 1ex }
-             .sectiontable { border: 1px solid #808080; width: 95%% }
-             .sectionheading { background: fffae0; padding-left: 1ex;
-                               border-bottom: 1px solid #808080;
-                               font-weight: bold }
-             .sectionbody { padding: 1em }
-             .reviewheaders a { color: #000000 }
-             .stripe_on td { background: #f4f4f4 }
-             </style>
-             </head>\n"""
+    def onIncomingConnection(self, clientSocket):
+        """Checks the security settings."""
+        return options.html_ui_allow_remote_connections or \
+               clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
 
-    bodyStart = """<body>
-                <div class='banner'>
-                %s
-                <span class='header'>Spambayes proxy: %s</span></div>
-                <div class='content'>\n"""
+    def _writePreamble(self, name, showImage=True):
+        """Writes the HTML for the beginning of a page - time-consuming
+        methlets use this and `_writePostamble` to write the page in
+        pieces, including progress messages."""
 
-    footer = """</div>
-             <form action='save' method='POST'>
-             <table width='100%%' cellspacing='0'>
-             <tr><td class='banner'>&nbsp;<a href='home'>Spambayes Proxy</a>,
-             %s.
-             <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
-             <td align='right' class='banner'>
-             %s
-             </td></tr></table></form>
-             </body></html>\n"""
+        # Take the whole palette and remove the content and the footer,
+        # leaving the header and an empty body.
+        html = self.html.clone()
+        html.mainContent = " "
+        del html.footer
 
-    saveButtons = """<input type='submit' name='how' value='Save'>&nbsp;&nbsp;
-            <input type='submit' name='how' value='Save &amp; shutdown'>"""
-
-    pageSection = """<table class='sectiontable' cellspacing='0'>
-                  <tr><td class='sectionheading'>%s</td></tr>
-                  <tr><td class='sectionbody'>%s</td></tr></table>
-                  &nbsp;<br>\n"""
-
-    summary = """POP3 proxy running on <b>%(proxyPortsString)s</b>,
-              proxying to <b>%(serversString)s</b>.<br>
-              Active POP3 conversations: <b>%(activeSessions)d</b>.<br>
-              POP3 conversations this session: <b>%(totalSessions)d</b>.<br>
-              Emails classified this session: <b>%(numSpams)d</b> spam,
-                <b>%(numHams)d</b> ham, <b>%(numUnsure)d</b> unsure.<br>
-              Total emails trained: Spam: <b>%(nspam)d</b>
-                                     Ham: <b>%(nham)d</b><br>
-              """
-
-    wordQuery = """<form action='wordquery'>
-                <input name='word' value='' type='text' size='30'>
-                <input type='submit' value='Tell me about this word'>
-                </form>"""
-
-    review = """<p>The Spambayes proxy stores all the messages it sees.
-             You can train the classifier based on those messages
-             using the <a href='review'>Review messages</a> page."""
-
-    reviewHeader = """<p>These are untrained emails, which you can use to
-                   train the classifier.  Check the appropriate button for
-                   each email, then click 'Train' below.  'Defer' leaves the
-                   message here, to be trained on later.  Click one of the
-                   Discard / Defer / Ham / Spam headers to check all of the
-                   buttons in that section in one go.</p>
-                   <form action='review' method='GET'>
-                       <input type='hidden' name='prior' value='%d'>
-                       <input type='hidden' name='next' value='%d'>
-                       <table border='0' cellpadding='0' cellspacing='0'>
-                       <tr><td><input type='submit' name='go'
-                                      value='Previous day' %s>&nbsp;</td>
-                           <td><input type='submit' name='go'
-                                      value='Next day' %s>&nbsp;</td>
-                           <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                        </tr></table>
-                   </form>
-                   &nbsp;
-                   <form action='review' method='POST'>
-                   <table class='messagetable' cellpadding='0' cellspacing='0'>
-                   """
-
-    onReviewHeader = \
-    """<script type='text/javascript'>
-    function onHeader(type, switchTo)
-    {
-        if (document.forms && document.forms.length >= 2)
-        {
-            form = document.forms[1];
-            for (i = 0; i < form.length; i++)
-            {
-                splitName = form[i].name.split(':');
-                if (splitName.length == 3 && splitName[1] == type &&
-                    form[i].value == switchTo.toLowerCase())
-                {
-                    form[i].checked = true;
-                }
-            }
-        }
-    }
-    </script>
-    """
-
-    reviewSubheader = \
-        """<tr><td><b>Messages classified as %s:</b></td>
-          <td><b>From:</b></td>
-          <td class='reviewheaders' nowrap><b>
-              <a href='javascript: onHeader("%s", "Discard");'>Discard</a> /
-              <a href='javascript: onHeader("%s", "Defer");'>Defer</a> /
-              <a href='javascript: onHeader("%s", "Ham");'>Ham</a> /
-              <a href='javascript: onHeader("%s", "Spam");'>Spam</a>
-          </b></td></tr>"""
-
-    upload = """<form action='%s' method='POST'
-                enctype='multipart/form-data'>
-             Either upload a message %s file:
-             <input type='file' name='file' value=''><br>
-             Or paste one whole message (incuding headers) here:<br>
-             <textarea name='text' rows='3' cols='60'></textarea><br>
-             %s
-             </form>"""
-
-    uploadSumbit = """<input type='submit' name='which' value='%s'>"""
-
-    train = upload % ('train', "or mbox",
-                      (uploadSumbit % "Train as Spam") + "&nbsp;" + \
-                      (uploadSumbit % "Train as Ham"))
-
-    classify = upload % ('classify', "", uploadSumbit % "Classify")
-
-    def __init__(self, clientSocket, socketMap=asyncore.socket_map):
-        # Grumble: asynchat.__init__ doesn't take a 'map' argument,
-        # hence the two-stage construction.
-        BrighterAsyncChat.__init__(self)
-        BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
-        self.request = ''
-        self.set_terminator('\r\n\r\n')
-        self.helmet = helmet
-
-    def collect_incoming_data(self, data):
-        """Asynchat override."""
-        self.request = self.request + data
-
-    def found_terminator(self):
-        """Asynchat override.
-        Read and parse the HTTP request and call an on<Command> handler."""
-        requestLine, headers = (self.request+'\r\n').split('\r\n', 1)
-        try:
-            method, url, version = requestLine.strip().split()
-        except ValueError:
-            self.pushError(400, "Malformed request: '%s'" % requestLine)
-            self.close_when_done()
-        else:
-            method = method.upper()
-            _, _, path, _, query, _ = urlparse.urlparse(url)
-            params = cgi.parse_qs(query, keep_blank_values=True)
-            if self.get_terminator() == '\r\n\r\n' and method == 'POST':
-                # We need to read a body; set a numeric async_chat terminator.
-                match = re.search(r'(?i)content-length:\s*(\d+)', headers)
-                contentLength = int(match.group(1))
-                if contentLength > 0:
-                    self.set_terminator(contentLength)
-                    self.request = self.request + '\r\n\r\n'
-                    return
-
-            if type(self.get_terminator()) is type(1):
-                # We've just read the body of a POSTed request.
-                self.set_terminator('\r\n\r\n')
-                body = self.request.split('\r\n\r\n', 1)[1]
-                match = re.search(r'(?i)content-type:\s*([^\r\n]+)', headers)
-                contentTypeHeader = match.group(1)
-                contentType, pdict = cgi.parse_header(contentTypeHeader)
-                if contentType == 'multipart/form-data':
-                    # multipart/form-data - probably a file upload.
-                    bodyFile = StringIO.StringIO(body)
-                    params.update(cgi.parse_multipart(bodyFile, pdict))
-                else:
-                    # A normal x-www-form-urlencoded.
-                    params.update(cgi.parse_qs(body, keep_blank_values=True))
-
-            # Convert the cgi params into a simple dictionary.
-            plainParams = {}
-            for name, value in params.iteritems():
-                plainParams[name] = value[0]
-            self.onRequest(path, plainParams)
-            self.close_when_done()
-
-    def onRequest(self, path, params):
-        """Handles a decoded HTTP request."""
-        if path == '/':
-            path = '/Home'
-
-        if path == '/helmet.gif':
-            # XXX Why doesn't Expires work?  Must read RFC 2616 one day...
-            inOneHour = time.gmtime(time.time() + 3600)
-            expiryDate = time.strftime('%a, %d %b %Y %H:%M:%S GMT', inOneHour)
-            extraHeaders = {'Expires': expiryDate}
-            self.pushOKHeaders('image/gif', extraHeaders)
-            self.push(self.helmet)
-        else:
-            try:
-                name = path[1:].capitalize()
-                handler = getattr(self, 'on' + name)
-            except AttributeError:
-                self.pushError(404, "Not found: '%s'" % path)
-            else:
-                # This is a request for a valid page; run the handler.
-                self.pushOKHeaders('text/html')
-                isKill = (params.get('how', '').lower().find('shutdown') >= 0)
-                self.pushPreamble(name, showImage=(not isKill))
-                handler(params)
-                timeString = time.asctime(time.localtime())
-                self.push(self.footer % (timeString, self.saveButtons))
-
-    def pushOKHeaders(self, contentType, extraHeaders={}):
-        timeNow = time.gmtime(time.time())
-        httpNow = time.strftime('%a, %d %b %Y %H:%M:%S GMT', timeNow)
-        self.push("HTTP/1.1 200 OK\r\n")
-        self.push("Connection: close\r\n")
-        self.push("Content-Type: %s\r\n" % contentType)
-        self.push("Date: %s\r\n" % httpNow)
-        for name, value in extraHeaders.items():
-            self.push("%s: %s\r\n" % (name, value))
-        self.push("\r\n")
-
-    def pushError(self, code, message):
-        self.push("HTTP/1.0 %d Error\r\n" % code)
-        self.push("Content-Type: text/html\r\n")
-        self.push("\r\n")
-        self.push("<html><body><p>%d %s</p></body></html>" % (code, message))
-
-    def pushPreamble(self, name, showImage=True):
-        self.push(self.header % name)
+        # Add in the name of the page and remove the link to Home if this
+        # *is* Home.
+        html.title = name
         if name == 'Home':
-            homeLink = name
+            del html.homelink
+            html.pagename = "Home"
         else:
-            homeLink = "<a href='home'>Home</a> &gt; %s" % name
-        if showImage:
-            image = "<img src='helmet.gif' align='absmiddle'>&nbsp;"
-        else:
-            image = ""
-        self.push(self.bodyStart % (image, homeLink))
+            html.pagename = "> " + name
 
-    def setFieldValue(self, form, name, value):
-        """Sets the default value of a field in a form.  See the comment
-        at the top of this class for how to specify HTML that works with
-        this function.  (This is exactly what Entrian PyMeld is for, but
-        that ships under the Sleepycat License.)"""
-        match = re.search(r"\s+name='%s'\s+value='([^']*)'" % name, form)
-        if match:
-            quotedValue = re.sub("'", "&#%d;" % ord("'"), value)
-            return form[:match.start(1)] + quotedValue + form[match.end(1):]
-        else:
-            print >>sys.stderr, "Warning: setFieldValue('%s') failed" % name
-            return form
+        # Remove the helmet image if we're not showing it - this happens on
+        # shutdown because the browser might ask for the image after we've
+        # exited.
+        if not showImage:
+            del html.helmet
 
-    def trimAndQuote(self, field, limit, quote=False):
-        """Trims a string, adding an ellipsis if necessary, and
-        HTML-quotes it.  Also pumps it through email.Header.decode_header,
-        which understands charset sections in email headers - I suspect
-        this will only work for Latin character sets, but hey, it works for
-        Francois Granger's name.  8-)"""
+        # Strip the closing tags, so we push as far as the start of the main
+        # content.  We'll push the closing tags at the end.
+        self.writeOKHeaders('text/html')
+        self.write(re.sub(r'</div>\s*</body>\s*</html>', '', str(html)))
+
+    def _writePostamble(self):
+        """Writes the end of time-consuming pages - see `_writePreamble`."""
+        footer = self.html.footer.clone()
+        footer.timestamp = time.asctime(time.localtime())
+        self.write("</div>" + self.html.footer)
+        self.write("</body></html>")
+
+    def _trimHeader(self, field, limit, quote=False):
+        """Trims a string, adding an ellipsis if necessary and HTML-quoting
+        on request.  Also pumps it through email.Header.decode_header, which
+        understands charset sections in email headers - I suspect this will
+        only work for Latin character sets, but hey, it works for Francois
+        Granger's name.  8-)"""
+
         sections = email.Header.decode_header(field)
-        field = ' '.join([text for text, _ in sections])
+        field = ' '.join([text for text, unused in sections])
         if len(field) > limit:
             field = field[:limit-3] + "..."
-        return cgi.escape(field, quote)
+        if quote:
+            field = cgi.escape(field)
+        return field
 
-    def onHome(self, params):
+    def onHome(self):
         """Serve up the homepage."""
-        stateDict = state.__dict__
+        stateDict = state.__dict__.copy()
         stateDict.update(state.bayes.__dict__)
-        # so the property() isn't as cool as we thought.  -ntp
-        stateDict['nham'] = state.bayes.nham
-        stateDict['nspam'] = state.bayes.nspam
-        body = (self.pageSection % ('Status', self.summary % stateDict)+
-                self.pageSection % ('Train on proxied messages', self.review)+
-                self.pageSection % ('Train on a given message', self.train)+
-                self.pageSection % ('Classify a message', self.classify)+
-                self.pageSection % ('Word query', self.wordQuery))
-        self.push(body)
+        statusTable = self.html.statusTable.clone()
+        if not state.servers:
+            statusTable.proxyDetails = "No POP3 proxies running."
+        content = (self._buildBox('Status and Configuration',
+                                  'status.gif', statusTable % stateDict)+
+                   self._buildBox('Train on proxied messages',
+                                  'train.gif', self.html.reviewText) +
+                   self._buildTrainBox() +
+                   self._buildClassifyBox() +
+                   self._buildBox('Word query', 'query.gif',
+                                  self.html.wordQuery))
+        self._writePreamble("Home")
+        self.write(content)
+        self._writePostamble()
 
-    def doSave(self):
+    def _doSave(self):
         """Saves the database."""
-        self.push("<b>Saving... ")
-        self.push(' ')
+        self.write("<b>Saving... ")
+        self.flush()
         state.bayes.store()
-        self.push("Done</b>.\n")
+        self.write("Done</b>.\n")
 
-    def onSave(self, params):
+    def onSave(self, how):
         """Command handler for "Save" and "Save & shutdown"."""
-        self.doSave()
-        if params['how'].lower().find('shutdown') >= 0:
-            self.push("<b>Shutdown</b>. Goodbye.</div></body></html>")
-            self.push(' ')
-            self.shutdown(2)
+        isShutdown = how.lower().find('shutdown') >= 0
+        self._writePreamble("Save", showImage=(not isShutdown))
+        self._doSave()
+        if isShutdown:
+            self.write("<p>%s</p>" % self.html.shutdownMessage)
+            self.write("</div></body></html>")
+            self.flush()
+            ## Is this still required?: self.shutdown(2)
             self.close()
             raise SystemExit
+        self._writePostamble()
 
-    def onTrain(self, params):
+    def onTrain(self, file, text, which):
         """Train on an uploaded or pasted message."""
+        self._writePreamble("Train")
+
         # Upload or paste?  Spam or ham?
-        content = params.get('file') or params.get('text')
-        isSpam = (params['which'] == 'Train as Spam')
+        content = file or text
+        isSpam = (which == 'Train as Spam')
 
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
@@ -954,8 +681,8 @@ class UserInterface(BrighterAsyncChat):
             f = open("_pop3proxyham.mbox", "a")
 
         # Train on the uploaded message(s).
-        self.push("<b>Training...</b>\n")
-        self.push(' ')
+        self.write("<b>Training...</b>\n")
+        self.flush()
         for message in messages:
             tokens = tokenizer.tokenize(message)
             state.bayes.learn(tokens, isSpam)
@@ -965,17 +692,18 @@ class UserInterface(BrighterAsyncChat):
 
         # Save the database and return a link Home and another training form.
         f.close()
-        self.doSave()
-        self.push("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
-        self.push(self.pageSection % ('Train another', self.train))
+        self._doSave()
+        self.write("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
+        self.write(self._buildTrainBox())
+        self._writePostamble()
 
-    def keyToTimestamp(self, key):
+    def _keyToTimestamp(self, key):
         """Given a message key (as seen in a Corpus), returns the timestamp
         for that message.  This is the time that the message was received,
         not the Date header."""
         return long(key[:10])
 
-    def getTimeRange(self, timestamp):
+    def _getTimeRange(self, timestamp):
         """Given a unix timestamp, returns a 3-tuple: the start timestamp
         of the given day, the end timestamp of the given day, and the
         formatted date of the given day."""
@@ -987,7 +715,7 @@ class UserInterface(BrighterAsyncChat):
         date = time.strftime("%A, %B %d, %Y", start)
         return time.mktime(start), time.mktime(end), date
 
-    def buildReviewKeys(self, timestamp):
+    def _buildReviewKeys(self, timestamp):
         """Builds an ordered list of untrained message keys, ready for output
         in the Review list.  Returns a 5-tuple: the keys, the formatted date
         for the list (eg. "Friday, November 15, 2002"), the start of the prior
@@ -1001,10 +729,10 @@ class UserInterface(BrighterAsyncChat):
         # or the system time if there are no messages (not that it gets used).
         if not timestamp:
             if allKeys:
-                timestamp = self.keyToTimestamp(allKeys[-1])
+                timestamp = self._keyToTimestamp(allKeys[-1])
             else:
                 timestamp = time.time()
-        start, end, date = self.getTimeRange(timestamp)
+        start, end, date = self._getTimeRange(timestamp)
 
         # Find the subset of the keys within this range.
         startKeyIndex = bisect.bisect(allKeys, "%d" % long(start))
@@ -1017,65 +745,68 @@ class UserInterface(BrighterAsyncChat):
         # messages - this will skip empty days.
         prior = end = 0
         if startKeyIndex != 0:
-            prior = self.keyToTimestamp(allKeys[startKeyIndex-1])
+            prior = self._keyToTimestamp(allKeys[startKeyIndex-1])
         if endKeyIndex != len(allKeys):
-            end = self.keyToTimestamp(allKeys[endKeyIndex])
+            end = self._keyToTimestamp(allKeys[endKeyIndex])
 
         # Return the keys and their date.
         return keys, date, prior, start, end
 
-    def appendMessages(self, lines, keyedMessages, label):
-        """Appends the lines of a table of messages to 'lines'."""
-        buttons = \
-          """<input type='radio' name='classify:%s:%s' value='discard'>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='defer' %s>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='ham' %s>&nbsp;
-             <input type='radio' name='classify:%s:%s' value='spam' %s>"""
-        stripe = 0
-        for key, message in keyedMessages:
-            # Parse the message and get the relevant headers and the first
-            # part of the body if we can.
-            subject = self.trimAndQuote(message["Subject"] or "(none)", 50)
-            from_ = self.trimAndQuote(message["From"] or "(none)", 40)
+    def _makeMessageInfo(self, message):
+        """Given an email.Message, return an object with subjectHeader,
+        fromHeader and bodySummary attributes.  These objects are passed into
+        appendMessages by onReview - passing email.Message objects directly
+        uses too much memory."""
+        subjectHeader = message["Subject"] or "(none)"
+        fromHeader = message["From"] or "(none)"
+        try:
+            part = typed_subpart_iterator(message, 'text', 'plain').next()
+            text = part.get_payload()
+        except StopIteration:
             try:
-                part = typed_subpart_iterator(message, 'text', 'plain').next()
+                part = typed_subpart_iterator(message, 'text', 'html').next()
                 text = part.get_payload()
+                text, unused = tokenizer.crack_html_style(text)
+                text, unused = tokenizer.crack_html_comment(text)
+                text = tokenizer.html_re.sub(' ', text)
+                text = '(this message only has an HTML body)\n' + text
             except StopIteration:
-                try:
-                    part = typed_subpart_iterator(message, 'text', 'html').next()
-                    text = part.get_payload()
-                    text, _ = tokenizer.crack_html_style(text)
-                    text, _ = tokenizer.crack_html_comment(text)
-                    text = tokenizer.html_re.sub(' ', text)
-                    text = '(this message only has an HTML body)\n' + text
-                except StopIteration:
-                    text = '(this message has no text body)'
-            text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
-            text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
-            text = self.trimAndQuote(text.strip(), 200, True)
+                text = '(this message has no text body)'
+        text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
+        text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
+        text = text.strip()
 
-            # Output the table row for this message.
-            defer = ham = spam = ""
+        class _MessageInfo:
+            pass
+        messageInfo = _MessageInfo()
+        messageInfo.subjectHeader = self._trimHeader(subjectHeader, 50, True)
+        messageInfo.fromHeader = self._trimHeader(fromHeader, 40, True)
+        messageInfo.bodySummary = self._trimHeader(text, 200)
+        return messageInfo
+
+    def _appendMessages(self, table, keyedMessageInfo, label):
+        """Appends the rows of a table of messages to 'table'."""
+        stripe = 0
+        for key, messageInfo in keyedMessageInfo:
+            row = self.html.reviewRow.clone()
             if label == 'Spam':
-                spam='checked'
+                row.spam.checked = 1
             elif label == 'Ham':
-                ham='checked'
-            elif label == 'Unsure':
-                defer='checked'
-            subject = "<span title=\"%s\">%s</span>" % (text, subject)
-            radioGroup = buttons % (label, key,
-                                    label, key, defer,
-                                    label, key, ham,
-                                    label, key, spam)
-            stripeClass = ['stripe_on', 'stripe_off'][stripe]
-            lines.append("""<tr class='%s'><td>%s</td><td>%s</td>
-                            <td align='center'>%s</td></tr>""" % \
-                            (stripeClass, subject, from_, radioGroup))
+                row.ham.checked = 1
+            else:
+                row.defer.checked = 1
+            row.subject = messageInfo.subjectHeader
+            row.subject.title = messageInfo.bodySummary
+            row.from_ = messageInfo.fromHeader
+            setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
+            row = str(row).replace('TYPE', label).replace('KEY', key)
+            table += row
             stripe = stripe ^ 1
 
-    def onReview(self, params):
+    def onReview(self, **params):
         """Present a list of message for (re)training."""
         # Train/discard sumbitted messages.
+        self._writePreamble("Review")
         id = ''
         numTrained = 0
         numDeferred = 0
@@ -1099,8 +830,8 @@ class UserInterface(BrighterAsyncChat):
                     try:
                         targetCorpus.takeMessage(id, state.unknownCorpus)
                         if numTrained == 0:
-                            self.push("<p><b>Training... ")
-                            self.push(" ")
+                            self.write("<p><b>Training... ")
+                            self.flush()
                         numTrained += 1
                     except KeyError:
                         pass  # Must be a reload.
@@ -1110,20 +841,20 @@ class UserInterface(BrighterAsyncChat):
             plural = ''
             if numTrained != 1:
                 plural = 's'
-            self.push("Trained on %d message%s. " % (numTrained, plural))
-            self.doSave()
-            self.push("<br>&nbsp;")
+            self.write("Trained on %d message%s. " % (numTrained, plural))
+            self._doSave()
+            self.write("<br>&nbsp;")
 
         # If any messages were deferred, show the same page again.
         if numDeferred > 0:
-            start = self.keyToTimestamp(id)
+            start = self._keyToTimestamp(id)
 
         # Else after submitting a whole page, display the prior page or the
         # next one.  Derive the day of the submitted page from the ID of the
         # last processed message.
         elif id:
-            start = self.keyToTimestamp(id)
-            _, _, prior, _, next = self.buildReviewKeys(start)
+            start = self._keyToTimestamp(id)
+            unused, unused, prior, unused, next = self._buildReviewKeys(start)
             if prior:
                 start = prior
             else:
@@ -1131,91 +862,168 @@ class UserInterface(BrighterAsyncChat):
 
         # Else if they've hit Previous or Next, display that page.
         elif params.get('go') == 'Next day':
-            start = self.keyToTimestamp(params['next'])
+            start = self._keyToTimestamp(params['next'])
         elif params.get('go') == 'Previous day':
-            start = self.keyToTimestamp(params['prior'])
+            start = self._keyToTimestamp(params['prior'])
 
-        # Else show the most recent day's page, as decided by buildReviewKeys.
+        # Else show the most recent day's page, as decided by _buildReviewKeys.
         else:
             start = 0
 
         # Build the lists of messages: spams, hams and unsure.
-        keys, date, prior, this, next = self.buildReviewKeys(start)
-        keyedMessages = {options.header_spam_string: [],
-                         options.header_ham_string: [],
-                         options.header_unsure_string: []}
+        keys, date, prior, this, next = self._buildReviewKeys(start)
+        keyedMessageInfo = {options.header_spam_string: [],
+                            options.header_ham_string: [],
+                            options.header_unsure_string: []}
         for key in keys:
-            # Parse the message and get the judgement header.
+            # Parse the message, get the judgement header and build a message
+            # info object for each message.
             cachedMessage = state.unknownCorpus[key]
             message = mboxutils.get_message(cachedMessage.getSubstance())
             judgement = message[options.hammie_header_name] or \
                                             options.header_unsure_string
-            keyedMessages[judgement].append((key, message))
+            messageInfo = self._makeMessageInfo(message)
+            keyedMessageInfo[judgement].append((key, messageInfo))
 
         # Present the list of messages in their groups in reverse order of
         # appearance.
         if keys:
-            priorState = nextState = ""
-            if not prior:
-                priorState = 'disabled'
-            if not next:
-                nextState = 'disabled'
-            lines = [self.onReviewHeader,
-                     self.reviewHeader % (prior, next, priorState, nextState)]
+            page = self.html.reviewtable.clone()
+            if prior:
+                page.prior.value = prior
+                del page.priorButton.disabled
+            if next:
+                page.next.value = next
+                del page.nextButton.disabled
+            templateRow = page.reviewRow.clone()
+            page.table = ""  # To make way for the real rows.
             for header, label in ((options.header_spam_string, 'Spam'),
                                   (options.header_ham_string, 'Ham'),
                                   (options.header_unsure_string, 'Unsure')):
-                if keyedMessages[header]:
-                    lines.append("<tr><td>&nbsp;</td><td></td><td></td></tr>")
-                    lines.append(self.reviewSubheader %
-                                 (label, label, label, label, label))
-                    self.appendMessages(lines, keyedMessages[header], label)
+                messages = keyedMessageInfo[header]
+                if messages:
+                    subHeader = str(self.html.reviewSubHeader)
+                    subHeader = subHeader.replace('TYPE', label)
+                    page.table += self.html.blankRow
+                    page.table += subHeader
+                    self._appendMessages(page.table, messages, label)
 
-            lines.append("""<tr><td></td><td></td><td align='center'>&nbsp;<br>
-                            <input type='submit' value='Train'></td></tr>""")
-            lines.append("</table></form>")
-            content = "\n".join(lines)
+            page.table += self.html.trainRow
             title = "Untrained messages received on %s" % date
+            box = self._buildBox(title, None, page)  # No icon, to save space.
         else:
-            content = "<p>There are no untrained messages to display.</p>"
+            page = "<p>There are no untrained messages to display. "
+            page += "Return <a href='home'>Home</a>.</p>"
             title = "No untrained messages"
+            box = self._buildBox(title, 'status.gif', page)
 
-        self.push(self.pageSection % (title, content))
+        self.write(box)
+        self._writePostamble()
 
-    def onClassify(self, params):
+    def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
-        message = params.get('file') or params.get('text')
+        message = file or text
         message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
         tokens = tokenizer.tokenize(message)
-        prob, clues = state.bayes.spamprob(tokens, evidence=True)
-        self.push("<p>Spam probability: <b>%.8f</b></p>" % prob)
-        self.push("<table class='sectiontable' cellspacing='0'>")
-        self.push("<tr><td class='sectionheading'>Clues:</td></tr>\n")
-        self.push("<tr><td class='sectionbody'><table>")
-        for w, p in clues:
-            self.push("<tr><td>%s</td><td>%.8f</td></tr>\n" % (w, p))
-        self.push("</table></td></tr></table>")
-        self.push("<p>Return <a href='home'>Home</a> or classify another:</p>")
-        self.push(self.pageSection % ('Classify another', self.classify))
+        probability, clues = state.bayes.spamprob(tokens, evidence=True)
 
-    def onWordquery(self, params):
-        word = params['word']
+        cluesTable = self.html.cluesTable.clone()
+        cluesRow = cluesTable.cluesRow.clone()
+        del cluesTable.cluesRow   # Delete dummy row to make way for real ones
+        for word, wordProb in clues:
+            cluesTable += cluesRow % (word, wordProb)
+
+        results = self.html.classifyResults.clone()
+        results.probability = probability
+        results.cluesBox = self._buildBox("Clues:", 'status.gif', cluesTable)
+        results.classifyAnother = self._buildClassifyBox()
+        self._writePreamble("Classify")
+        self.write(results)
+        self._writePostamble()
+
+    def onWordquery(self, word):
         word = word.lower()
-        wi = state.bayes._wordinfoget(word)
-        if wi:
-            members = wi.__dict__
-            members['spamprob'] = state.bayes.probability(wi)
-            info = """Number of spam messages: <b>%(spamcount)d</b>.<br>
-                   Number of ham messages: <b>%(hamcount)d</b>.<br>
-                   Probability that a message containing this word is spam:
-                   <b>%(spamprob)f</b>.<br>""" % members
+        wordinfo = state.bayes._wordinfoget(word)
+        if wordinfo:
+            stats = self.html.wordStats.clone()
+            stats.spamcount = wordinfo.spamcount
+            stats.hamcount = wordinfo.hamcount
+            stats.spamprob = state.bayes.probability(wordinfo)
         else:
-            info = "%r does not appear in the database." % word
+            stats = "%r does not exist in the database." % word
 
-        query = self.setFieldValue(self.wordQuery, 'word', params['word'])
-        body = (self.pageSection % ("Statistics for %r" % word, info) +
-                self.pageSection % ('Word query', query))
-        self.push(body)
+        query = self.html.wordQuery.clone()
+        query.word.value = word
+        statsBox = self._buildBox("Statistics for %r" % word,
+                                  'status.gif', stats)
+        queryBox = self._buildBox("Word query", 'query.gif', query)
+        self._writePreamble("Word query")
+        self.write(statsBox + queryBox)
+        self._writePostamble()
+
+    def _writeImage(self, image):
+        self.writeOKHeaders('image/gif')
+        self.write(self._images[image])
+
+    # If you are easily offended, look away now...
+    for imageName in IMAGES:
+        exec "def %s(self): self._writeImage('%s')" % \
+             ("on%sGif" % imageName.capitalize(), imageName)
+
+    def _buildBox(self, heading, icon, content):
+        """Builds a yellow-headed HTML box."""
+        box = self.html.headedBox.clone()
+        box.heading = heading
+        if icon:
+            box.icon.src = icon
+        else:
+            del box.iconCell
+        box.boxContent = content
+        return box
+
+    def _buildClassifyBox(self):
+        """Returns a "Classify a message" box.  This is used on both the Home
+        page and the classify results page.  The Classify form is based on the
+        Upload form."""
+
+        form = self.html.upload.clone()
+        del form.or_mbox
+        del form.submit_spam
+        del form.submit_ham
+        form.action = "classify"
+        return self._buildBox("Classify a message", 'classify.gif', form)
+
+    def _buildTrainBox(self):
+        """Returns a "Train on a given message" box.  This is used on both
+        the Home page and the training results page.  The Train form is
+        based on the Upload form."""
+
+        form = self.html.upload.clone()
+        del form.submit_classify
+        return self._buildBox("Train on a given message", 'message.gif', form)
+
+    def reReadOptions(self):
+        """Called by the config page when the user saves some new options, or
+        restores the defaults."""
+        # Reload the options.
+        global state
+        state.bayes.store()
+        reload(spambayes.Options)
+        global options
+        from spambayes.Options import options
+
+        # Recreate the state.
+        state = State()
+        state.buildServerStrings()
+        state.createWorkers()
+
+        # Close the exsiting listeners and create new ones.  This won't
+        # affect any running proxies - once a listener has created a proxy,
+        # that proxy is then independent of it.
+        for proxy in proxyListeners:
+            proxy.close()
+        del proxyListeners[:]
+        _createProxies(state.servers, state.proxyPorts)
 
 
 # This keeps the global state of the module - the command-line options,
@@ -1233,20 +1041,21 @@ class State:
 
         # Load up the old proxy settings from Options.py / bayescustomize.ini
         # and give warnings if they're present.   XXX Remove these soon.
+        self.servers = []
+        self.proxyPorts = []
         if options.pop3proxy_port != 110 or \
            options.pop3proxy_server_name != '' or \
            options.pop3proxy_server_port != 110:
             print "\n    pop3proxy_port, pop3proxy_server_name and"
             print "    pop3proxy_server_port are deprecated!  Please use"
             print "    pop3proxy_servers and pop3proxy_ports instead.\n"
-        self.servers = [(options.pop3proxy_server_name,
-                         options.pop3proxy_server_port)]
-        self.proxyPorts = [options.pop3proxy_port]
+            self.servers = [(options.pop3proxy_server_name,
+                             options.pop3proxy_server_port)]
+            self.proxyPorts = [options.pop3proxy_port]
 
         # Load the new proxy settings - these will override the old ones
         # if both are present.
         if options.pop3proxy_servers:
-            self.servers = []
             for server in options.pop3proxy_servers.split(','):
                 server = server.strip()
                 if server.find(':') > -1:
@@ -1264,15 +1073,11 @@ class State:
             sys.exit()
 
         # Load up the other settings from Option.py / bayescustomize.ini
-        self.databaseFilename = options.pop3proxy_persistent_storage_file
         self.useDB = options.pop3proxy_persistent_use_database
         self.uiPort = options.html_ui_port
         self.launchUI = options.html_ui_launch_browser
         self.gzipCache = options.pop3proxy_cache_use_gzip
         self.cacheExpiryDays = options.pop3proxy_cache_expiry_days
-        self.spamCache = options.pop3proxy_spam_cache
-        self.hamCache = options.pop3proxy_ham_cache
-        self.unknownCache = options.pop3proxy_unknown_cache
         self.runTestServer = False
         self.isTest = False
 
@@ -1301,11 +1106,14 @@ class State:
         print "Loading database...",
         if self.isTest:
             self.useDB = True
-            self.databaseFilename = '_pop3proxy_test.pickle'   # Never saved
+            options.pop3proxy_persistent_storage_file = \
+                        '_pop3proxy_test.pickle'   # This is never saved.
         if self.useDB:
-            self.bayes = storage.DBDictClassifier(self.databaseFilename)
+            self.bayes = storage.DBDictClassifier( \
+                                options.pop3proxy_persistent_storage_file)
         else:
-            self.bayes = storage.PickledClassifier(self.databaseFilename)
+            self.bayes = storage.PickledClassifier(\
+                                options.pop3proxy_persistent_storage_file)
         print "Done."
 
         # Don't set up the caches and training objects when running the self-test,
@@ -1318,16 +1126,25 @@ class State:
                     if e.errno != errno.EEXIST:
                         raise
 
-            # Create/open the Corpuses.
-            map(ensureDir, [self.spamCache, self.hamCache, self.unknownCache])
+            # Create/open the Corpuses.  Use small cache sizes to avoid hogging
+            # lots of memory.
+            map(ensureDir, [options.pop3proxy_spam_cache,
+                            options.pop3proxy_ham_cache,
+                            options.pop3proxy_unknown_cache])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
                 factory = FileMessageFactory()
             age = options.pop3proxy_cache_expiry_days*24*60*60
-            self.spamCorpus = ExpiryFileCorpus(age, factory, self.spamCache)
-            self.hamCorpus = ExpiryFileCorpus(age, factory, self.hamCache)
-            self.unknownCorpus = FileCorpus(factory, self.unknownCache)
+            self.spamCorpus = ExpiryFileCorpus(age, factory,
+                                               options.pop3proxy_spam_cache,
+                                               cacheSize=20)
+            self.hamCorpus = ExpiryFileCorpus(age, factory,
+                                              options.pop3proxy_ham_cache,
+                                              cacheSize=20)
+            self.unknownCorpus = FileCorpus(factory,
+                                            options.pop3proxy_unknown_cache,
+                                            cacheSize=20)
 
             # Expire old messages from the trained corpuses.
             self.spamCorpus.removeExpiredMessages()
@@ -1340,17 +1157,21 @@ class State:
             self.hamCorpus.addObserver(self.hamTrainer)
 
 state = State()
-
+proxyListeners = []
+def _createProxies(servers, proxyPorts):
+    """Create BayesProxyListeners for all the given servers."""
+    for (server, serverPort), proxyPort in zip(servers, proxyPorts):
+        listener = BayesProxyListener(server, serverPort, proxyPort)
+        proxyListeners.append(listener)
 
 def main(servers, proxyPorts, uiPort, launchUI):
     """Runs the proxy forever or until a 'KILL' command is received or
     someone hits Ctrl+Break."""
-    for (server, serverPort), proxyPort in zip(servers, proxyPorts):
-        BayesProxyListener(server, serverPort, proxyPort)
-    UserInterfaceListener(uiPort)
-    if launchUI:
-        webbrowser.open_new("http://localhost:%d/" % uiPort)
-    asyncore.loop()
+    _createProxies(servers, proxyPorts)
+    httpServer = UserInterfaceServer(uiPort)
+    proxyUI = UserInterface()
+    httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
+    Dibbler.run(launchBrowser=launchUI)
 
 
 
@@ -1391,26 +1212,27 @@ Yeah, Page Templates are a bit more clever, sadly, DTML methods aren't :-(
 Chris
 """
 
-class TestListener(Listener):
+class TestListener(Dibbler.Listener):
     """Listener for TestPOP3Server.  Works on port 8110, to co-exist
     with real POP3 servers."""
 
     def __init__(self, socketMap=asyncore.socket_map):
-        Listener.__init__(self, 8110, TestPOP3Server, socketMap=socketMap)
+        Dibbler.Listener.__init__(self, 8110, TestPOP3Server,
+                                  (socketMap,), socketMap=socketMap)
 
 
-class TestPOP3Server(BrighterAsyncChat):
+class TestPOP3Server(Dibbler.BrighterAsyncChat):
     """Minimal POP3 server, for testing purposes.  Doesn't support
     UIDL.  USER, PASS, APOP, DELE and RSET simply return "+OK"
     without doing anything.  Also understands the 'KILL' command, to
     kill it.  The mail content is the example messages above.
     """
 
-    def __init__(self, clientSocket, socketMap=asyncore.socket_map):
+    def __init__(self, clientSocket, socketMap):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
-        BrighterAsyncChat.__init__(self)
-        BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
+        Dibbler.BrighterAsyncChat.__init__(self)
+        Dibbler.BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
         self.maildrop = [spam1, good1]
         self.set_terminator('\r\n')
         self.okCommands = ['USER', 'PASS', 'APOP', 'NOOP',
@@ -1438,7 +1260,7 @@ class TestPOP3Server(BrighterAsyncChat):
             if command == 'QUIT':
                 self.close_when_done()
             if command == 'KILL':
-                self.shutdown(2)
+                self.socket.shutdown(2)
                 self.close()
                 raise SystemExit
         else:
@@ -1525,18 +1347,19 @@ def test():
         asyncore.loop(map=testSocketMap)
 
     proxyReady = threading.Event()
-    def runProxy():
-        # Name the database in case it ever gets auto-flushed to disk.
-        UserInterfaceListener(8881)
+    def runUIAndProxy():
+        httpServer = UserInterfaceServer(8881)
+        proxyUI = UserInterface()
+        httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
         BayesProxyListener('localhost', 8110, 8111)
         state.bayes.learn(tokenizer.tokenize(spam1), True)
         state.bayes.learn(tokenizer.tokenize(good1), False)
         proxyReady.set()
-        asyncore.loop()
+        Dibbler.run()
 
     threading.Thread(target=runTestServer).start()
     testServerReady.wait()
-    threading.Thread(target=runProxy).start()
+    threading.Thread(target=runUIAndProxy).start()
     proxyReady.wait()
 
     # Connect to the proxy.
@@ -1605,7 +1428,7 @@ def run():
         elif opt == '-d':
             state.useDB = True
         elif opt == '-p':
-            state.databaseFilename = arg
+            options.pop3proxy_persistent_storage_file = arg
         elif opt == '-l':
             state.proxyPorts = [int(arg)]
         elif opt == '-u':
@@ -1634,14 +1457,8 @@ def run():
         elif len(args) == 2:
             state.servers = [(args[0], int(args[1]))]
 
-        if not state.servers or not state.servers[0][0]:
-            print >>sys.stderr, \
-                  ("Error: You must give a POP3 server name, either in\n"
-                   "bayescustomize.ini as pop3proxy_servers or on the\n"
-                   "command line.  pop3server.py -h prints a usage message.")
-        else:
-            state.buildServerStrings()
-            main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+        state.buildServerStrings()
+        main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
 
     else:
         print >>sys.stderr, __doc__

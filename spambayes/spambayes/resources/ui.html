@@ -1,0 +1,358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title id="title">Spambayes User Interface</title>
+<style>
+body { font: 90% arial, swiss, helvetica; margin: 0 }
+table { font: 90% arial, swiss, helvetica }
+form { margin: 0 }
+
+a:link { color: #0000c0 }
+a:visited { color: #0000c0 }
+a:hover { color: #6040ff }
+.content a { font-weight: bold }
+
+.banner { background: #c0e0ff; padding=5; padding-left: 15;
+          border-top: 1px solid black;
+          border-bottom: 1px solid black }
+.header { font-size: 133% }
+.content { margin: 15 }
+.messagetable td { padding-left: 1ex; padding-right: 1ex }
+.sectiontable { border: 1px solid #808080; width: 95% }
+.sectionheading { background: fffae0; padding-left: 1ex;
+                  border-bottom: 1px solid #808080;
+                  font-weight: bold }
+.sectionbody { padding: 10px }
+
+.reviewheaders a:link { color: #000000 }
+.reviewheaders a:visited { color: #000000 }
+.stripe_on td { background: #f4f4f4 }
+
+.uiHtmlHeader { font-size: 120%; color: #800000; font-weight: bold }
+</style>
+</head>
+
+<body id="body">
+
+    <div class='banner'>
+    <span id="helmet"><img src='helmet.gif' align='absmiddle'/>&nbsp;</span>
+    <span class='header'>
+        <span id="productName">Spambayes proxy</span>:
+        <a id="homelink" href='home'>Home</a>
+        <span id="pagename">&gt; ui.html</span>
+    </span>
+    </div>
+
+<div id="mainContent" class="content">
+
+<h4>Introduction</h4>
+
+    <p>This file, <code>ui.html</code>, defines the look-and-feel
+    of the user interface of the Spambayes Server.  The various
+    pieces of HTML defined here are extracted and maniplulated at
+    runtime to dynamically produce the HTML that the Spambayes
+    Server serves up - this file acts as a palette of HTML
+    components.  <code>PyMeldLite</code> is the module that provides
+    the HTML-to-object mapping layer that makes all this possible.
+    Each piece of HTML that needs to be manipulated has an
+    <code>id</code> tag, and becomes a Python object at runtime.</p>
+
+    <p>As an example of how this works, here is an editbox with
+    an <code>id</code> of <code>examplebox</code>:
+    <input id="examplebox" type="text" value="example" size="10"/>
+    PyMeldLite lets you manipulate the HTML programmatically:</p>
+
+    <div style='border: 1px solid #606060'>
+    <pre style='background: #fffae0; margin: 0; padding: 10'>
+    <font color="#0000C0">>>></font> import PyMeldLite
+    <font color="#0000C0">>>></font> html = open("ui.html", "rt").read()
+    <font color="#0000C0">>>></font> doc = PyMeldLite.Container(html)
+    <font color="#0000C0">>>></font> print doc.examplebox
+    <i>&lt;input id="examplebox" size="10" type="text" value="example"/&gt;</i>
+    <font color="#0000C0">>>></font> doc.examplebox.value = "Changed"
+    <font color="#0000C0">>>></font> print doc.examplebox
+    <i>&lt;input id="examplebox" size="10" type="text" value="Changed"/&gt;</i>
+    </pre>
+    </div>
+
+    <p>So the Python code to build the HTML user interface pages doesn't
+    need to faff about pasting strings together, or building HTML components
+    from scratch in code.  And the look-and-feel is controlled solely by
+    this one HTML file - changing the stylesheet, translating into
+    other languages, adding a new piece of user interface - all of these
+    things are very easy.</p>
+
+    <p>Below are all the user interface components along with their
+    <code>id</code>s.</p>
+
+
+<hr/>
+<p class="uiHtmlHeader">headedBox</p>
+
+    <span id="headedBox">
+    <table class='sectiontable' cellspacing='0'>
+    <tr><td id="heading" class='sectionheading' colspan='2'>Headed box</td></tr>
+    <tr><td id='iconCell' valign='top' class='sectionbody' width='20'>
+            <img id='icon' src='status.gif' width='40' height='40'/>&nbsp;
+        </td>
+        <td id="boxContent" class='sectionbody'>
+        This is a "headedBox".  Most of the user interfaces pieces are
+        presented in one of these.  The pieces aren't presented in these
+        boxes here in <code>ui.html</code> to avoid duplication of HTML.
+    </td></tr></table>
+    &nbsp;<br/>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">status</p>
+
+    <table id="statusTable" border="0" cellspacing="0" cellpadding="0">
+    <tr><td>
+        <span id="status">
+        <span id="proxyDetails">
+        POP3 proxy running on <b><span id="proxyPortsString">1110</span></b>,
+        proxying to <b><span id="serversString">example.com</span></b>.
+        </span><br/>
+        Active POP3 conversations:
+            <b><span id="activeSessions">0</span></b>.<br/>
+        POP3 conversations this session:
+            <b><span id="totalSessions">0</span></b>.<br/>
+        Emails classified this session:
+            <b><span id="numSpams">0</span></b> spam,
+            <b><span id="numHams">0</span></b> ham,
+            <b><span id="numUnsure">0</span></b> unsure.<br/>
+        Total emails trained:
+            Spam: <b><span id="nspam">0</span></b>
+            Ham: <b><span id="nham">0</span></b><br/>
+        </span>
+    </td>
+    <td style='width: 6ex'>&nbsp;&nbsp;&nbsp;</td>
+    <td valign='top'>
+        <img src='config.gif' width='40' height='40' align='left'/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your Spambayes<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;system using the
+            <a href='config'>Configuration page</a>.</td>
+    </tr>
+    </table>
+
+<hr/>
+<p class="uiHtmlHeader">reviewText</p>
+
+    <p id="reviewText">
+    The Spambayes proxy stores all the messages it sees.
+    You can train the classifier based on those messages
+    using the <a href='review'>Review messages</a> page.
+    </p>
+
+
+<hr/>
+<p class="uiHtmlHeader">reviewTable</p>
+
+    <span id="reviewtable">
+    <p>These are untrained emails, which you can use to
+    train the classifier.  Check the appropriate button for
+    each email, then click 'Train' below.  'Defer' leaves the
+    message here, to be trained on later.  Click one of the
+    Discard / Defer / Ham / Spam headers to check all of the
+    buttons in that section in one go.</p>
+
+    <form action='review' method='GET'>
+       <input type='hidden' name='prior' id='prior' value='0'/>
+       <input type='hidden' name='next' id='next' value='0'/>
+       <table border='0' cellpadding='0' cellspacing='0'>
+       <tr><td><input type='submit' name='go' id='priorButton'
+                      value='Previous day' disabled='1'/>&nbsp;</td>
+           <td><input type='submit' name='go' id='nextButton'
+                      value='Next day' disabled='1'/>&nbsp;</td>
+           <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        </tr></table>
+    </form>
+    &nbsp;
+
+    <script type='text/javascript'>//<![CDATA[
+    function onHeader(type, switchTo)
+    {
+        if (document.forms && document.forms.length >= 2)
+        {
+            form = document.forms[1];
+            for (i = 0; i < form.length; i++)
+            {
+                splitName = form[i].name.split(':');
+                if (splitName.length == 3 && splitName[1] == type &&
+                    form[i].value == switchTo.toLowerCase())
+                {
+                    form[i].checked = true;
+                }
+            }
+        }
+    }
+    //]]>
+    </script>
+
+    <form action='review' method='POST'>
+    <table id='table' class='messagetable' cellpadding='0' cellspacing='0'>
+    <tr id="reviewSubHeader">
+        <td><b>Messages classified as TYPE:</b></td>
+        <td><b>From:</b></td>
+        <td class='reviewheaders' nowrap='1'><b>
+            <a href="javascript: onHeader('TYPE', 'Discard');">Discard</a> /
+            <a href="javascript: onHeader('TYPE', 'Defer');">Defer</a> /
+            <a href="javascript: onHeader('TYPE', 'Ham');">Ham</a> /
+            <a href="javascript: onHeader('TYPE', 'Spam');">Spam</a>
+            </b>
+        </td>
+    </tr>
+    <tr id="reviewRow" class='stripe_on'>
+        <td id="subject">Re: Spambayes and PyMeld rock!  8-)</td>
+        <td id="from_">Richie Hindle &lt;richie@entrian.com&gt;</td>
+        <td align='center'>
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="discard" value='discard'/>&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="defer"   value='defer'/>&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="ham"     value='ham'/>&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="spam"    value='spam'/>
+        </td>
+    </tr>
+    <tr id="blankRow"><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr id="trainRow"><td>&nbsp;</td><td>&nbsp;</td>
+        <td align='center'>&nbsp;<br/>
+            <input type='submit' value='Train'/>
+        </td>
+    </tr>
+    </table>
+    </form>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">upload</p>
+
+    <form id="upload" action='train'
+          method='POST' enctype='multipart/form-data'>
+    Either upload a message <span id="or_mbox">or mbox</span> file:
+    <input type='file' name='file' value=''/><br/>
+    Or paste one whole message (incuding headers) here:<br/>
+    <textarea name='text' rows='3' cols='60'></textarea><br/>
+    <input id="submit_spam" type='submit' name='which' value='Train as Spam'/>
+    <input id="submit_ham" type='submit' name='which' value='Train as Ham'/>
+    <input id="submit_classify" type='submit' name='which' value='Classify'/>
+    </form>
+
+    <p>(The upload form gets used for both training and classifying - the
+     inappropriate pieces are removed at runtime.)</p>
+
+
+<hr/>
+<p class="uiHtmlHeader">wordQuery</p>
+
+    <form id="wordQuery" action='wordquery'>
+    <input id="word" name='word' value='' type='text' size='30'/>
+    <input type='submit' value='Tell me about this word'/>
+    </form>
+
+
+<hr/>
+<p class="uiHtmlHeader">wordStats</p>
+
+    <span id="wordStats">
+    Number of spam messages: <b><span id="spamcount">123</span></b>.<br/>
+    Number of ham messages: <b><span id="hamcount">456</span></b>.<br/>
+    Probability that a message containing this word is spam:
+    <b><span id="spamprob">0.789</span></b>.<br/>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">classifyResults</p>
+
+    <span id="classifyResults">
+    <p>Spam probability: <b id="probability">0.123</b></p>
+    <span id="cluesBox">
+        (The table of clues goes here, like this but in a headedBox):
+        <table id="cluesTable">
+            <tr id="cluesRow">
+                <td id="clue" style='padding-right: 10'>Example word</td>
+                <td id="probability">0.123</td>
+            </tr>
+        </table>
+    </span>
+    <p>Return <a href='home'>Home</a> or classify another:</p>
+    <span id="classifyAnother">(The Classify form goes here)</span>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">configForm</p>
+
+    <span id="configForm">
+    <FORM action="changeopts" method="POST">
+
+    <p>This page allows you to change certain customizable options that control
+    the way in which Spambayes processes your email.</p>
+
+    <span id="configFormContent">
+    <TABLE id="configTable" border="0" cellpadding="0">
+    <TR id="configRow1">
+        <TD align="right" nowrap='1'>
+            <span id="label">Label</span>:&nbsp;
+        </TD>
+        <TD>
+            <INPUT type="text" size="26" id="input" name="from_parm_ini_map"/>
+        </TD>
+        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' rowspan='100' valign='top'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    <TR id="configRow2">
+        <TD nowrap='1' align='right'>Current Value:</TD>
+        <TD nowrap='1'>&nbsp;<span id="currentValue">(value)</span></TD>
+    </TR>
+    <TR id="blankRow"><TD>&nbsp;</TD></TR>
+    </TABLE>
+    </span>
+
+    <center>
+      <input type="submit" name="how" value="Save"/>
+    </center>
+
+    </FORM>
+
+    <FORM action="restoredefaults" method="POST">
+    <center>
+      <input type="submit" name="how" value="Restore Defaults"/>
+    </center>
+    </FORM>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">shutdownMessage</p>
+
+    <p id="shutdownMessage"><b>Shutdown</b>. Goodbye.</p>
+
+<hr/>
+
+</div>
+
+
+<form id="footer" action='save' method='POST'>
+<table width='100%' cellspacing='0'>
+<tr>
+    <td class='banner'>
+        <a id='footerHome' href='home'>Spambayes Proxy</a>,
+        <span id="timestamp">Mon Dec 30 14:04:32 2002</span>.
+        <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
+    <td align='right' class='banner' id="shutdownTableCell">
+        <input type='submit' id='shutdownButton' name='how'
+               value='Save &amp; shutdown'/></td>
+</tr>
+</table>
+</form>
+
+</body>
+</html>

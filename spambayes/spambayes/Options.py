@@ -383,6 +383,7 @@ pop3proxy_port: 110
 [html_ui]
 html_ui_port: 8880
 html_ui_launch_browser: False
+html_ui_allow_remote_connections: True
 
 [globals]
 verbose: False
@@ -478,6 +479,7 @@ all_options = {
                   },
     'html_ui': {'html_ui_port': int_cracker,
                 'html_ui_launch_browser': boolean_cracker,
+                'html_ui_allow_remote_connections': boolean_cracker,
                 },
     'globals': {'verbose': boolean_cracker,
                 'dbm_type': string_cracker,
