@@ -105,6 +105,7 @@
 #define IDC_BUT_TRAIN                   1089
 #define IDC_BUT_TIMER_ENABLED           1091
 #define IDC_WIZ_GRAPHIC                 1092
+#define IDC_BUT_VIEW_LOG                1093
 
 // Next default values for new objects
 // 
@@ -112,7 +113,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1093
+#define _APS_NEXT_CONTROL_VALUE         1094
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

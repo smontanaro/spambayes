@@ -202,6 +202,34 @@ def ShowDataFolder(window):
     """
     import os
     os.startfile(window.manager.windows_data_directory)
+def ShowLog(window):
+    """Opens the log file for the current SpamBayes session
+    """
+    import sys, os, win32api
+    if 1 or hasattr(sys, "frozen"):
+        # current log always "spambayes1.log"
+        log_name = os.path.join(win32api.GetTempPath(), "spambayes1.log")
+        if not os.path.exists(log_name):
+            window.manager.ReportError("The log file for this session can not be located")
+        else:
+            cmd = 'notepad.exe "%s"' % log_name
+            os.system(cmd)
+    else:
+        question = "As you are running from source-code, viewing the\n" \
+                   "log means executing a Python program.  If you already\n" \
+                   "have a viewer running, the output may appear in either.\n\n"\
+                   "Do you want to execute this viewer?"
+        if not window.manager.AskQuestion(question):
+            return
+        # source-code users - fire up win32traceutil.py
+        import win32traceutil # will already be imported
+        py_name = win32traceutil.__file__
+        if py_name[-1] in 'co': # pyc/pyo
+            py_name = py_name[:-1]
+        # execute the .py file - hope that this will manage to invoke
+        # python.exe for it.  If this breaks for you, feel free to send me
+        # a patch :)
+        os.system('start ' + win32api.GetShortPathName(py_name))
 
 def ResetConfig(window):
     question = "This will reset all configuration options to their default values\r\n\r\n" \
@@ -425,6 +453,7 @@ dialog_map = {
     "IDD_DIAGNOSTIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),
         (IntProcessor,   "IDC_VERBOSE_LOG",  "General.verbose"),
+        (CommandButtonProcessor, "IDC_BUT_VIEW_LOG", ShowLog, ()),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         ),
     # All the wizards

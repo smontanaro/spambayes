@@ -116,20 +116,21 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,70,101,10
 END
 
-IDD_DIAGNOSTIC DIALOGEX 0, 0, 183, 89
+IDD_DIAGNOSTIC DIALOGEX 0, 0, 183, 98
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Diagnostic"
+EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,50,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,70,50,14
-    CONTROL         "Save Spam Score",IDC_SAVE_SPAM_SCORE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,49,72,10
-    LTEXT           "Log level",IDC_STATIC,5,71,29,8
-    EDITTEXT        IDC_VERBOSE_LOG,41,67,40,14,ES_AUTOHSCROLL
     LTEXT           "These advanced options are for diagnostic or debugging purposes only.  You should only change these options if specifically asked to, or you know exactly what they mean.",
                     IDC_STATIC,5,3,174,36
+    LTEXT           "Log file verbosity",IDC_STATIC,5,44,56,8
+    EDITTEXT        IDC_VERBOSE_LOG,73,42,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "View log...",IDC_BUT_VIEW_LOG,129,41,50,14
+    CONTROL         "Save Spam Score",IDC_SAVE_SPAM_SCORE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,63,72,10
+    PUSHBUTTON      "Cancel",IDCANCEL,69,79,50,14,NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Close",IDOK,129,79,50,14
 END
 
 IDD_WIZARD DIALOGEX 0, 0, 384, 190
@@ -375,7 +376,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 5
         RIGHTMARGIN, 179
-        BOTTOMMARGIN, 84
+        BOTTOMMARGIN, 93
     END
 
     IDD_WIZARD, DIALOG
