@@ -57,16 +57,90 @@ UNKNOWN_SPAMPROB = 0.5
 # (In addition, the count compared is after multiplying it with the
 # appropriate bias factor.)
 #
-# XXX Reducing this to 1.0 (effectively not using it at all then) seemed to
-# XXX give a sharp reduction in the f-n rate in a partial test run, while
-# XXX adding a few mysterious f-ps.  Then boosting it to 2.0 appeared to
-# XXX give an increase in the f-n rate in a partial test run.  This needs
-# XXX deeper investigation.  Might also be good to develop a more general
-# XXX concept of confidence:  MINCOUNT is a gross gimmick in that direction,
-# XXX effectively saying we have no confidence in probabilities computed
-# XXX from fewer than MINCOUNT instances, but unbounded confidence in
-# XXX probabilities computed from at least MINCOUNT instances.
-MINCOUNT = 5.0
+# Twist:  Graham used MINCOUNT=5.0 here.  I got rid of it:  in effect,
+# given HAMBIAS=2.0, it meant we ignored a possibly perfectly good piece
+# of spam evidence unless it appeared at least 5 times, and ditto for
+# ham evidence unless it appeared at least 3 times.  That certainly does
+# bias in favor of ham, but multiple distortions in favor of ham are
+# multiple ways to get confused and trip up.  Here are the test results
+# before and after, MINCOUNT=5.0 on the left, no MINCOUNT on the right;
+# ham sets had 4000 msgs (so 0.025% is one msg), and spam sets 2750:
+#
+# false positive percentages
+#     0.000  0.000  tied
+#     0.000  0.000  tied
+#     0.100  0.050  won    -50.00%
+#     0.000  0.025  lost  +(was 0)
+#     0.025  0.075  lost  +200.00%
+#     0.025  0.000  won   -100.00%
+#     0.100  0.100  tied
+#     0.025  0.050  lost  +100.00%
+#     0.025  0.025  tied
+#     0.050  0.025  won    -50.00%
+#     0.100  0.050  won    -50.00%
+#     0.025  0.050  lost  +100.00%
+#     0.025  0.050  lost  +100.00%
+#     0.025  0.000  won   -100.00%
+#     0.025  0.000  won   -100.00%
+#     0.025  0.075  lost  +200.00%
+#     0.025  0.025  tied
+#     0.000  0.000  tied
+#     0.025  0.025  tied
+#     0.100  0.050  won    -50.00%
+#
+# won   7 times
+# tied  7 times
+# lost  6 times
+#
+# total unique fp went from 9 to 13
+#
+# false negative percentages
+#     0.364  0.327  won    -10.16%
+#     0.400  0.400  tied
+#     0.400  0.327  won    -18.25%
+#     0.909  0.691  won    -23.98%
+#     0.836  0.545  won    -34.81%
+#     0.618  0.291  won    -52.91%
+#     0.291  0.218  won    -25.09%
+#     1.018  0.654  won    -35.76%
+#     0.982  0.364  won    -62.93%
+#     0.727  0.291  won    -59.97%
+#     0.800  0.327  won    -59.13%
+#     1.163  0.691  won    -40.58%
+#     0.764  0.582  won    -23.82%
+#     0.473  0.291  won    -38.48%
+#     0.473  0.364  won    -23.04%
+#     0.727  0.436  won    -40.03%
+#     0.655  0.436  won    -33.44%
+#     0.509  0.218  won    -57.17%
+#     0.545  0.291  won    -46.61%
+#     0.509  0.254  won    -50.10%
+#
+# won  19 times
+# tied  1 times
+# lost  0 times
+#
+# total unique fn went from 168 to 106
+#
+# So dropping MINCOUNT was a huge win for the f-n rate, and a mixed bag
+# for the f-p rate (but the f-p rate was so low compared to 4000 msgs that
+# even the losses were barely significant).  In addition, dropping MINCOUNT
+# had a larger good effect when using random training subsets of size 500;
+# this makes intuitive sense, as with less training data it was harder to
+# exceed the MINCOUNT threshold.
+#
+# Still, MINCOUNT seemed to be a gross approximation to *something* valuable:
+# a strong clue appearing in 1,000 training msgs is certainly more trustworthy
+# than an equally strong clue appearing in only 1 msg.  I'm almost certain it
+# would pay to develop a way to take that into account when scoring.  In
+# particular, there was a very specific new class of false positives
+# introduced by dropping MINCOUNT:  some c.l.py msgs consisting mostly of
+# Spanish or French.  The "high probability" spam clues were innocuous
+# words like "puedo" and "como", that appeared in very rare Spanish and
+# French spam too.  There has to be a more principled way to address this
+# than the MINCOUNT hammer, and the test results clearly showed that MINCOUNT
+# did more harm than good overall.
+
 
 # The maximum number of words spamprob() pays attention to.  Graham had 15
 # here.  If there are 8 indicators with spam probabilities near 1, and 7
@@ -476,19 +550,19 @@ class GrahamBayes(object):
             # Compute prob(msg is spam | msg contains word).
             hamcount = HAMBIAS * record.hamcount
             spamcount = SPAMBIAS * record.spamcount
-            if hamcount + spamcount < MINCOUNT:
-                prob = UNKNOWN_SPAMPROB
-            else:
-                hamratio = min(1.0, hamcount / nham)
-                spamratio = min(1.0, spamcount / nspam)
+            hamratio = min(1.0, hamcount / nham)
+            spamratio = min(1.0, spamcount / nspam)
 
-                prob = spamratio / (hamratio + spamratio)
-                if prob < MIN_SPAMPROB:
-                    prob = MIN_SPAMPROB
-                elif prob > MAX_SPAMPROB:
-                    prob = MAX_SPAMPROB
+            prob = spamratio / (hamratio + spamratio)
+            if prob < MIN_SPAMPROB:
+                prob = MIN_SPAMPROB
+            elif prob > MAX_SPAMPROB:
+                prob = MAX_SPAMPROB
+
             if record.spamprob != prob:
                 record.spamprob = prob
+                # The next seemingly pointless line appears to be a hack
+                # to allow a persistent db to realize the record has changed.
                 self.wordinfo[word] = record
 
         if self.DEBUG:
@@ -496,21 +570,16 @@ class GrahamBayes(object):
             for w, r in self.wordinfo.iteritems():
                 print "P(%r) = %g" % (w, r.spamprob)
 
-    def clearjunk(self, oldesttime, mincount=MINCOUNT):
+    def clearjunk(self, oldesttime):
         """Forget useless wordinfo records.  This can shrink the database size.
 
         A record for a word will be retained only if the word was accessed
-        at or after oldesttime, or appeared at least mincount times in
-        messages passed to learn().  mincount is optional, and defaults
-        to the value an internal algorithm uses to decide that a word is so
-        rare that it has no predictive value.
+        at or after oldesttime.
         """
 
         wordinfo = self.wordinfo
         mincount = float(mincount)
-        tonuke = [w for w, r in wordinfo.iteritems()
-                    if r.atime < oldesttime and
-                       SPAMBIAS*r.spamcount + HAMBIAS*r.hamcount < mincount]
+        tonuke = [w for w, r in wordinfo.iteritems() if r.atime < oldesttime]
         for w in tonuke:
             if self.DEBUG:
                 print "clearjunk removing word %r: %r" % (w, r)

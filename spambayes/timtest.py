@@ -97,6 +97,15 @@ class MsgStream(object):
         for fname in os.listdir(directory):
             yield Msg(directory, fname)
 
+    def xproduce(self):
+        import random
+        directory = self.directory
+        all = os.listdir(directory)
+        random.seed(hash(directory))
+        random.shuffle(all)
+        for fname in all[-500:]:
+            yield Msg(directory, fname)
+
     def __iter__(self):
         return self.produce()
 
