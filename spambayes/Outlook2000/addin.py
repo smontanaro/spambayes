@@ -289,10 +289,14 @@ class _BaseItemsEvent:
 class HamFolderItemsEvent(_BaseItemsEvent):
     def Init(self, *args):
         _BaseItemsEvent.Init(self, *args)
-        
-        start_delay = self.manager.config.experimental.timer_start_delay
-        interval = self.manager.config.experimental.timer_interval
-        use_timer = start_delay and interval
+        timer_enabled = self.manager.config.filter.timer_enabled
+        start_delay = self.manager.config.filter.timer_start_delay
+        interval = self.manager.config.filter.timer_interval
+        use_timer = timer_enabled and start_delay and interval
+        if timer_enabled and not use_timer:
+            print "*" * 50
+            print "The timer is enabled, but one of the timer intervals values is zero"
+            print "You must set both intervals before the timer will enable"
         if use_timer and not hasattr(timer, "__version__"):
             # No binaries will see this.
             print "*" * 50
@@ -307,20 +311,28 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             # The user wants to use a timer - see if we should only enable
             # the timer for known 'inbox' folders, or for all watched folders.
             is_inbox = self.target.IsReceiveFolder()
-            if not is_inbox and self.manager.config.experimental.timer_only_receive_folders:
+            if not is_inbox and self.manager.config.filer.timer_only_receive_folders:
                 use_timer = False
 
-        # Good chance someone will assume timer is seconds, not ms.
-        if use_timer and (start_delay < 500 or interval < 500):
-            print "*" * 50
-            print "The timer is configured to fire way too often " \
+        # Don't allow insane values for the timer.
+        if use_timer:
+            too = None
+            if type(start_delay) != type(0.0) or type(interval) != type(0.0):
+                print "*" * 50
+                print "Timer values are garbage!", repr(start_delay), repr(interval)
+                use_timer = False
+            elif start_delay < 0.4 or interval < 0.4:
+                too = "too often"
+            elif start_delay > 30 or interval > 30:
+                too = "too infrequently"
+            if too:
+                print "*" * 50
+                print "The timer is configured to fire way " + too + \
                   "(delay=%s milliseconds, interval=%s milliseconds)" \
                   % (start_delay, interval)
-            print "This is very high, and is likely to starve Outlook and the "
-            print "SpamBayes addin.  Please adjust your configuration"
-            print "The timer is NOT enabled..."
-            print "*" * 50
-            use_timer = False
+                print "Please adjust your configuration.  The timer is NOT enabled..."
+                print "*" * 50
+                use_timer = False
 
         self.use_timer = use_timer
         self.timer_id = None
@@ -337,8 +349,10 @@ class HamFolderItemsEvent(_BaseItemsEvent):
     def _DoStartTimer(self, delay):
         assert thread.get_ident() == self.owner_thread_ident
         assert self.timer_id is None, "Shouldn't start a timer when already have one"
+        assert type(delay)==type(0.0), "Timer values are float seconds"
         # And start a new timer.
         assert delay, "No delay means no timer!"
+        delay = int(delay*1000) # convert to ms.
         self.timer_id = timer.set_timer(delay, self._TimerFunc)
         self.manager.LogDebug(1, "New message timer started - id=%d, delay=%d" % (self.timer_id, delay))
 
@@ -346,7 +360,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # First kill any existing timer
         self._KillTimer()
         # And start a new timer.
-        delay = self.manager.config.experimental.timer_start_delay
+        delay = self.manager.config.filter.timer_start_delay
         field_name = self.manager.config.general.field_score_name
         self.timer_generator = self.target.GetNewUnscoredMessageGenerator(field_name)
         self._DoStartTimer(delay)
@@ -391,7 +405,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
                 ProcessMessage(item, self.manager)
             finally:
                 # And setup the timer for the next check.
-                delay = self.manager.config.experimental.timer_interval
+                delay = self.manager.config.filter.timer_interval
                 self._DoStartTimer(delay)
 
     def OnItemAdd(self, item):
@@ -674,6 +688,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             restore_folder = msgstore_message.GetRememberedFolder()
             if restore_folder is None or \
                msgstore_message.GetFolder() == restore_folder:
+                print "Unable to determine source folder for message '%s' - restoring to Inbox" % (subject,)
                 restore_folder = inbox_folder
 
             # Must train before moving, else we lose the message!

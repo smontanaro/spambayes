@@ -225,80 +225,9 @@ versions, the configuration options <span style="font-style: italic;">will
 <span style="font-style: italic;">[Experimental]</span> section into a
 more appropriate one, so you <span style="font-style: italic;">will </span>need
 to change these options later.
-The following options are supported in this version<br>
-<table cellpadding="2" cellspacing="2" border="1"
- style="text-align: left; width: 100%;">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top; font-weight: bold;">Option Name<br>
-      </td>
-      <td style="vertical-align: top; font-weight: bold;">Valid Values<br>
-      </td>
-      <td style="vertical-align: top; font-weight: bold;">Default<br>
-      </td>
-      <td style="vertical-align: top; font-weight: bold;">Comments<br>
-      </td>
-    </tr>
-    <tr>
-      <td style="vertical-align: top;">timer_start_delay</td>
-      <td style="vertical-align: top;">Number</td>
-      <td style="vertical-align: top;">0</td>
-      <td style="vertical-align: top;">Enables the use of a timer to
-process messages rather than processing as they arrive.&nbsp; This has
-been designed to avoid problems where the plugin conflicts with
-Outlook's builtin rules, causing a number of symptoms; either Outlook
-rules not firing, or strange 'unread' states on the messages.&nbsp; If
-this value is zero, the timer is disabled, otherwise it specifies the
-delay (in <span style="font-weight: bold;">milliseconds</span>)
-between a new item being received in the Inbox, and SpamBayes starting
-to process the items.&nbsp; If another new message arrives during this
-period, the timer will be reset, and the delay will start again.&nbsp;
-This prevents SpamBayes from becoming overwhelmed when Outlook itself
-is being overwhelmed with new messages - SpamBayes will patiently wait
-until the flood has stopped, and begin sorting out the Spam.<br>
-A reasonable starting point for this option would be 2000 (ie, every 2
-seconds), but the optimal value will vary depending on the speed of
-your machine, network connection and mail server.<br>
-      </td>
-    </tr>
-    <tr>
-      <td style="vertical-align: top;">timer_interval<br>
-      </td>
-      <td style="vertical-align: top;">integer<br>
-      </td>
-      <td style="vertical-align: top;">1000<br>
-      </td>
-      <td style="vertical-align: top;">Once the new message timer has
-actually started, how long (in <span style="font-style: italic;">milliseconds</span>)
-should it wait before checking each new message.&nbsp; If a new message
-arrives during this process, the entire timer process is restarted,
-meaning that <span style="font-style: italic;">timer_start_delay</span>
-(above) will elapse before the process begins again.<br>
-      </td>
-    </tr>
-    <tr>
-      <td style="vertical-align: top;">timer_only_receive_folders<br>
-      </td>
-      <td style="vertical-align: top;">True, False<br>
-      </td>
-      <td style="vertical-align: top;">True<br>
-      </td>
-      <td style="vertical-align: top;">If you have specified that a
-timer be used, this option controls if the timer is used only for
-special 'Inbox' type folders (True), or for all watched folders (False).<br>
-The point of using a timer is to prevent the SpamBayes filter getting
-in the way the builtin Outlook rules.&nbsp; Therefore, is it generally
-only necessary to use a timer for folders that have new items being
-delivered directly to them by the server - typically, your
-'Inbox'.&nbsp; Folders that are not inbox style folders generally are
-not subject to builtin filtering, so generally have no problems
-filtering messages in 'real time'.<br>
-      </td>
-    </tr>
-  </tbody>
-</table>
 <br>
 <br>
+This release has no experimental options. <br>
 <h2>Multiple Configuration Files</h2>
 There is rudimentary support for multiple configuration files.&nbsp;
 The intention of these files is to site administrators can set global

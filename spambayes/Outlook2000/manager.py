@@ -645,7 +645,12 @@ class BayesManager:
         if self.verbose:
             self.LogDebug(self.verbose, "System verbosity set to", self.verbose)
 
+        # Do any migrations - first the old pickle into the new format.
         self.MigrateOldPickle()
+        # Then any options we change (particularly any 'experimental' ones we
+        # consider important)
+        import config
+        config.MigrateOptions(self.options)
 
         if self.verbose > 1:
             print "Dumping loaded configuration:"

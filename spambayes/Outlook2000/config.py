@@ -109,28 +109,14 @@ defaults = {
     ),
     # Experimental options may change, may get removed, and *will* get moved
     # should they be kept.
+    # Experimental options will *never* be exposed via the GUI, meaning that
+    # migrating any such options should be considered a favour :)
     "Experimental" : (
-        ("timer_start_delay", "The interval, (in ms) before the timer starts.", 0,
-            """Once a new item is received in the inbox, SpamBayes will begin
-            processing messages after the given delay.  If a new message arrives
-            during this period, the timer will be reset and delay will start again.""",
-            INTEGER, RESTORE),
-        ("timer_interval", "The interval between subsequent timer checks (in ms)", 1000,
-            """Once the new message timer finds a new message, how long should
-            SpamBayes wait before checking for another new message, assuming no
-            other new messages arrive.  Should a new message arrive during this
-            process, the timer will reset, meaning that timer_start_delay will
-            elapse before the process begins again.""",
-            INTEGER, RESTORE),
-        ("timer_only_receive_folders",
-            "Should the timer only be used for 'Inbox' type folders", True,
-            """The point of using a timer is to prevent the SpamBayes filter
-            getting in the way the builtin Outlook rules.  Therefore, is it 
-            generally only necessary to use a timer for folders that have new
-            items being delivered directly to them.  Folders that are not inbox
-            style folders generally are not subject to builtin filtering, so
-            generally have no problems filtering messages in 'real time'.""",
-            BOOLEAN, RESTORE),
+        # These are migrated, so must remain while migration code remains in place.
+        # This isn't critical, so should be deleted after just a few version.
+        ("timer_start_delay", "obsolete", 0, "", INTEGER, RESTORE),
+        ("timer_interval", "obsolete", 1000, "", INTEGER, RESTORE),
+        ("timer_only_receive_folders", "obsolete", True, "", BOOLEAN, RESTORE),
     ),
     "Training" : (
     (FolderIDOption,
@@ -230,6 +216,35 @@ defaults = {
     ("enabled", "Is filtering enabled?", False,
         """""",
         BOOLEAN, RESTORE),
+    # Options that allow the filtering to be done by a timer.
+    ("timer_enabled", "Should items be filtered by a timer?", False,
+        """Depending on a number of factors, SpamBayes may occasionally miss
+        messages or conflict with builtin Outlook rules.  If this option
+        is set, SpamBayes will filter all messages in the background.  This
+        generally solves both of these problem, at the cost of having Spam stay
+        in your inbox for a few extra seconds.""",
+        BOOLEAN, RESTORE),
+    ("timer_start_delay", "The interval (in seconds) before the timer starts.", 2.0,
+        """Once a new item is received in the inbox, SpamBayes will begin
+        processing messages after the given delay.  If a new message arrives
+        during this period, the timer will be reset and the delay will start again.""",
+        REAL, RESTORE),
+    ("timer_interval", "The interval between subsequent timer checks (in seconds)", 1.0,
+        """Once the new message timer finds a new message, how long should
+        SpamBayes wait before checking for another new message, assuming no
+        other new messages arrive.  Should a new message arrive during this
+        process, the timer will reset, meaning that timer_start_delay will
+        elapse before the process begins again.""",
+        REAL, RESTORE),
+    ("timer_only_receive_folders",
+        "Should the timer only be used for 'Inbox' type folders?", True,
+        """The point of using a timer is to prevent the SpamBayes filter
+        getting in the way the builtin Outlook rules.  Therefore, is it 
+        generally only necessary to use a timer for folders that have new
+        items being delivered directly to them.  Folders that are not inbox
+        style folders generally are not subject to builtin filtering, so
+        generally have no problems filtering messages in 'real time'.""",
+        BOOLEAN, RESTORE),
     ),
     "Filter_Now": (
     (FolderIDOption, "folder_ids", "Folders to filter in a 'Filter Now' operation", [],
@@ -286,6 +301,27 @@ def CreateConfig(defaults=defaults):
     options = OptionsClass()
     options.load_defaults(defaults)
     return options
+
+def MigrateOptions(options):
+    # Migrate some "old" options to "new" options.  Can be deleted in
+    # a few versions :)
+    # Binary007 last with experimental timer values.
+    delay = options.get("Experimental", "timer_start_delay")
+    interval = options.get("Experimental", "timer_interval")
+    if delay and interval:
+        options.set("Filter", "timer_enabled", True)
+        options.set("Filter", "timer_start_delay", float(delay / 1000))
+        options.set("Filter", "timer_interval", float(interval / 1000))
+        # and reset the old options so they are not written to the new file
+        # (actually, resetting isn't enough - must hack and clobber)
+        del options._options["Experimental", "timer_start_delay"]
+        del options._options["Experimental", "timer_interval"]
+
+    torf = options.get("Experimental", "timer_only_receive_folders")
+    if not torf:
+        options.set("Filter", "timer_only_receive_folders", False)
+        # and reset old
+        del options._options["Experimental", "timer_only_receive_folders"]
 
 # Old code when we used a pickle.  Still needed so old pickles can be
 # loaded, and moved to the new options file format.
