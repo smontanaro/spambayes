@@ -220,6 +220,12 @@ rmspik.py
     The chance() function seems to make an assumption that's true
     only under use_central_limit2 and use_central_limit3.
 
+cvcost.py
+    A program that analyzes the output of timcv.py (the final histograms)
+    and optimizes the cost of handling the mail body by defining a "ham"
+    zone, a "spam" zone and a "grey" zone. It can be tuned by choosing 
+    pseudo-realistic costs to handle a fp, a fn and to handle a message
+    in the grey zone.
 
 Standard Test Data Setup
 ========================
