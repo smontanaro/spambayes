@@ -44,7 +44,7 @@ Currently it focusses on running hammie via procmail. </p>
 <p><a href="download.html">Download the alpha2 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
-<h3>pop3proxy.py</h3>
+<h3><a name="pop3">pop3proxy.py</a></h3>
 <p>pop3proxy sits between your mail client and your real POP3 server and marks
 mail as ham or spam as it passes through. See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/pop3proxy.py?rev=HEAD&content-type=text/plain">docstring at the top of pop3proxy.py</a> for more.
 <h4>Requirements</h4>
@@ -57,7 +57,7 @@ mail as ham or spam as it passes through. See the <a href="http://cvs.sourceforg
 <p><a href="download.html">Download the alpha2 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
-<h3>imapfilter.py</h3>
+<h3><a name="imap">imapfilter.py</a></h3>
 <p>imap filter connects to your imap server and marks mail as ham or spam,
 moving it to appropriate folders as it arrives.
 See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/pop3proxy.py?rev=HEAD&content-type=text/plain">docstring at the top of imapfilter.py</a> for more.</p>
