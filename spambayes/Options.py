@@ -206,6 +206,16 @@ robinson_minimum_prob_strength: 0.1
 # Speculative options for Gary Robinson's central-limit ideas.  These may go
 # away, or a bunch of incompatible stuff above may go away.
 
+# For the default scheme, use "tim-combining" of probabilities.  This has
+# no effect under the central-limit schemes.  Tim-combining is a kind of
+# cross between Paul Graham's and Gary Robinson's combining schemes.  Unlike
+# Paul's, it's never crazy-certain, and compared to Gary's, in Tim's tests it
+# greatly increased the spread between mean ham-scores and spam-scores, while
+# simultaneously decreasing the variance of both.  Tim needed a higher
+# spam_cutoff value for best results, but spam_cutoff is less touchy
+# than under Gary-combining.
+use_tim_combining: False
+
 # Use a central-limit approach for scoring.
 # The number of extremes to use is given by max_discriminators (above).
 # spam_cutoff should almost certainly be exactly 0.5 when using this approach.
@@ -278,6 +288,8 @@ all_options = {
                    'use_central_limit2': boolean_cracker,
                    'use_central_limit3': boolean_cracker,
                    'zscore_ratio_cutoff': float_cracker,
+
+                   'use_tim_combining': boolean_cracker,
                    },
 }
 

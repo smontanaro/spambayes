@@ -384,6 +384,70 @@ class Bayes(object):
     # A subclass would be cleaner, but experiments will soon enough lead
     # to only one of the alternatives surviving.
 
+    def tim_spamprob(self, wordstream, evidence=False):
+        """Return best-guess probability that wordstream is spam.
+
+        wordstream is an iterable object producing words.
+        The return value is a float in [0.0, 1.0].
+
+        If optional arg evidence is True, the return value is a pair
+            probability, evidence
+        where evidence is a list of (word, probability) pairs.
+        """
+
+        from math import frexp
+
+        # The real H = this H times 2**Hexp.  Likewise for S.  We're
+        # simulating unbounded dynamic float range by hand.  If this pans
+        # out, *maybe* we should store logarithms in the database instead
+        # and just add them here.  But I like keeping raw counts in the
+        # database (they're easy to understand, manipulate and combine),
+        # and there's no evidence that this simulation is a significant
+        # expense.
+        # S is a spamminess measure, and is the geometric mean of the
+        # extreme-word spamprobs.
+        # H is a hamminess measure, and is the geometric mean of 1 - the
+        # extreme-word spamprobs.
+        H = S = 1.0
+        Hexp = Sexp = 0
+        clues = self._getclues(wordstream)
+        for prob, word, record in clues:
+            if record is not None:  # else wordinfo doesn't know about it
+                record.killcount += 1
+            S *= prob
+            H *= 1.0 - prob
+            if S < 1e-200:  # move back into range
+                S, e = frexp(S)
+                Sexp += e
+            if H < 1e-200:  # move back into range
+                H, e = frexp(H)
+                Hexp += e
+
+        S, e = frexp(S)
+        Sexp += e
+        H, e = frexp(H)
+        Hexp += e
+
+        num_clues = len(clues)
+        if num_clues:
+            # (x*2**e)**n = x**n * 2**(e*n).
+            n = 1.0 / num_clues
+            S = S**n * 2.0**(Sexp * n)
+            H = H**n * 2.0**(Hexp * n)
+            prob = S/(S+H)
+        else:
+            prob = 0.5
+
+        if evidence:
+            clues = [(w, p) for p, w, r in clues]
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            return prob, clues
+        else:
+            return prob
+
+    if options.use_tim_combining:
+        spamprob = tim_spamprob
+
     def _add_popstats(self, sum, sumsq, n, is_spam):
         from math import ldexp
 
