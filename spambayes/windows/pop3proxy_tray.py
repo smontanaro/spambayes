@@ -169,18 +169,18 @@ class MainWindow(object):
             self.hstartedicon = self.hstoppedicon = None
             hexe = GetModuleHandle(None)
             icon_flags = win32con.LR_DEFAULTSIZE
-            self.hstartedicon = LoadImage(hexe, 1000, win32con.IMAGE_ICON, 0,
-                                          0, icon_flags)
-            self.hstoppedicon = LoadImage(hexe, 1010, win32con.IMAGE_ICON, 0,
-                                          0, icon_flags)
+            self.hstartedicon = LoadImage(hexe, 1000, win32con.IMAGE_ICON,
+                                          16, 16, icon_flags)
+            self.hstoppedicon = LoadImage(hexe, 1010, win32con.IMAGE_ICON,
+                                          16, 16, icon_flags)
         else:
             # If we have no icon we fail in all sorts of places - so may as
             # well make it here :)
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-            self.hstartedicon = LoadImage(hinst, startedIconPathName, win32con.IMAGE_ICON, 0,
-                                          0, icon_flags)
-            self.hstoppedicon = LoadImage(hinst, stoppedIconPathName, win32con.IMAGE_ICON, 0,
-                                          0, icon_flags)
+            self.hstartedicon = LoadImage(hinst, startedIconPathName, win32con.IMAGE_ICON,
+                                          16, 16, icon_flags)
+            self.hstoppedicon = LoadImage(hinst, stoppedIconPathName, win32con.IMAGE_ICON,
+                                          16, 16, icon_flags)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon,
