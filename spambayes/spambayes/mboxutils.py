@@ -27,6 +27,7 @@ import email
 import mailbox
 import email.Message
 import re
+import traceback
 
 class DirOfTxtFileMailbox:
 
@@ -169,7 +170,8 @@ def as_string(msg, unixfrom=False):
             parts.append(part.as_string())
         if boundary:
             parts.append("--%s--" % boundary)
-        return "\n".join(parts)
+        # make sure it ends with a newline:
+        return "\n".join(parts)+"\n"
 
 
 header_break_re = re.compile(r"\r?\n(\r?\n)")
