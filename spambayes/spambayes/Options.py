@@ -740,10 +740,10 @@ defaults = {
 
     ("no_cache_large_messages", "Maximum size of cached messages", 0,
      """Where message caching is enabled, this option suppresses caching
-     of messages which are larger than this value.  If you receive a lot
-     of messages that include large attachments (and are correctly
-     classified), you may not wish to cache these.  If you set this to
-     zero (0), then this option will have no effect.""",
+     of messages which are larger than this value (measured in bytes).
+     If you receive a lot of messages that include large attachments
+     (and are correctly classified), you may not wish to cache these.
+     If you set this to zero (0), then this option will have no effect.""",
      INTEGER, RESTORE),
   ),
 
