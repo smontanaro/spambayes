@@ -134,7 +134,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
         '''Return a alphabetical list of all folders available
         on the server'''
         response = imap.list()
-        if response[0] != "OK" return ()
+        if response[0] != "OK":
+            return ()
         all_folders = response[1]
         folders = []
         for fol in all_folders:
