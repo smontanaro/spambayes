@@ -378,7 +378,7 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
 
     bayes.store()
 
-    fp = open(idxname), 'wb')
+    fp = open(idxname, 'wb')
     pickle.dump(notesindex, fp)
     fp.close()
 
