@@ -113,6 +113,8 @@ class FolderItemsEvent:
             print "Spam filtering is disabled - ignoring new message"
 
 def ShowClues(mgr, app):
+    from cgi import escape
+
     sel = app.ActiveExplorer().Selection
     if sel.Count == 0:
         win32ui.MessageBox("No items are selected", "No selection")
@@ -142,7 +144,7 @@ def ShowClues(mgr, app):
     probs = ['%g' % prob for word, prob in clues]
     max_word_len = max(map(len, words))
     for word, prob in zip(words, probs):
-        push(word + ' ' * (max_word_len - len(word)))
+        push(escape(word) + ' ' * (max_word_len - len(word)))
         push(' ' + prob + '\n')
     push("</PRE>\n")
     body = ''.join(body)
