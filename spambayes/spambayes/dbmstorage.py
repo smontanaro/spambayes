@@ -22,6 +22,12 @@ def open_dbhash(*args):
         import bsddb3 as bsddb
     return bsddb.hashopen(*args)
 
+def open_db185hash(*args):
+    """Open a bsddb185 hash."""
+    # See [ 1106457 ] bsddb185 has to be covered in dbmstorage.py
+    import bsddb185
+    return bsddb185.hashopen(*args)
+
 def open_gdbm(*args):
     """Open a gdbm database."""
     import gdbm
@@ -47,6 +53,7 @@ open_funcs = {
     "best": open_best,
     "db3hash": open_db3hash,
     "dbhash": open_dbhash,
+    "bsddb185": open_db185hash,
     "gdbm": open_gdbm,
     }
 
