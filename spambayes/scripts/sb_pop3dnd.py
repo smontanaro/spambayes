@@ -71,6 +71,7 @@ import types
 import email
 import thread
 import getopt
+import socket
 import imaplib
 import operator
 import email.Utils
@@ -84,7 +85,6 @@ from twisted import cred
 import twisted.application.app
 from twisted.internet import defer
 from twisted.internet import reactor
-from twisted.internet import win32eventreactor
 from twisted.internet.defer import maybeDeferred
 from twisted.internet.protocol import ServerFactory
 from twisted.protocols.imap4 import IMessage
@@ -94,6 +94,7 @@ from twisted.protocols.imap4 import collapseNestedLists, MessageSet
 from twisted.protocols.imap4 import IMAP4Server, MemoryAccount, IMailbox
 from twisted.protocols.imap4 import IMailboxListener, collapseNestedLists
 
+from spambayes import storage
 from spambayes import message
 from spambayes.Stats import Stats
 from spambayes.Options import options
@@ -226,10 +227,10 @@ class IMAPMessage(message.Message):
 
     def train(self, classifier, isSpam):
         if self.GetTrained() == (not isSpam):
-            classifier.unlearn(self.asTokens(), not isSpam)
+            classifier.unlearn(self.tokenize(), not isSpam)
             self.RememberTrained(None)
         if self.GetTrained() is None:
-            classifier.learn(self.asTokens(), isSpam)
+            classifier.learn(self.tokenize(), isSpam)
             self.RememberTrained(isSpam)
         classifier.store()
 
@@ -318,8 +319,7 @@ class IMAPFileMessageFactory(FileCorpus.FileMessageFactory):
         '''Create a message object from a filename in a directory'''
         if content is None:
             return IMAPFileMessage(key, directory)
-        msg = email.message_from_string(content, _class=IMAPFileMessage,
-                                        strict=False)
+        msg = email.message_from_string(content, _class=IMAPFileMessage)
         msg.id = key
         msg.file_name = key
         msg.directory = directory
@@ -608,8 +608,7 @@ class SpambayesInbox(SpambayesMailbox):
                  'From: "SpamBayes" <no-reply@spambayes.invalid>\r\n\r\n' \
                  '%s\r\nSee <http://spambayes.org>.\r\n' % (__doc__,)
         date = imaplib.Time2Internaldate(time.time())[1:-1]
-        msg = email.message_from_string(about, _class=IMAPMessage,
-                                        strict=False)
+        msg = email.message_from_string(about, _class=IMAPMessage)
         msg.date = date
         self.addMessage(msg)
         msg = DynamicIMAPMessage(self.buildStatusMessage)
@@ -617,9 +616,7 @@ class SpambayesInbox(SpambayesMailbox):
         msg = DynamicIMAPMessage(self.buildStatisticsMessage)
         self.addMessage(msg)
         # XXX Add other messages here, for example
-        # XXX one with a link to the configuration page
-        # XXX   (or maybe even the configuration page itself,
-        # XXX    in html!)
+        # XXX help and other documentation.
 
     def isWriteable(self):
         """Get the read/write status of the mailbox."""
@@ -829,7 +826,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                 msg = email.message_from_string(messageText,
                                                 _class=message.SBHeaderMessage)
                 # Now find the spam disposition and add the header.
-                (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
+                (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
                                  evidence=True)
 
                 # Note that the X-SpamBayes-MailID header will be worthless
@@ -907,6 +904,15 @@ class IMAPState(State):
         self.totalIMAPSessions = 0
         self.activeIMAPSessions = 0
 
+    def createWorkers(self):
+        """There aren't many workers in an IMAP State - most of the
+        work is done elsewhere.  We do need to load the classifier,
+        though, and build the status strings."""
+        if not hasattr(self, "DBName"):
+            self.DBName, self.useDB = storage.database_type([])
+        self.bayes = storage.open_storage(self.DBName, self.useDB)
+        self.buildStatusStrings()
+
     def buildServerStrings(self):
         """After the server details have been set up, this creates string
         versions of the details, for display in the Status panel."""
@@ -920,7 +926,7 @@ state = IMAPState()
 # __main__ driver.
 # ===================================================================
 
-def setup():
+def prepare():
     # Setup state, server, boxes, trainers and account.
     state.imap_port = options["imapserver", "port"]
     state.createWorkers()
@@ -960,7 +966,34 @@ def setup():
                                                  proxyPort, spam_box,
                                                  unsure_box)
         proxyListeners.append(listener)
-    state.buildServerStrings()
+    state.prepare()
+
+def start():
+    assert state.prepared, "Must prepare before starting"
+    # The asyncore stuff doesn't play nicely with twisted (or vice-versa),
+    # so put them in separate threads.
+    thread.start_new_thread(Dibbler.run, ())
+    reactor.run()
+
+def stop():
+    # Save the classifier, although that should not be necessary.
+    state.bayes.store()
+    # Explicitly closing the db is a good idea, though.
+    state.bayes.close()
+    
+    # Stop the POP3 proxy.
+    if state.proxyPorts:
+        killer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            killer.connect(('localhost', state.proxyPorts[0][1]))
+            killer.send('KILL\r\n')
+            killer.close()
+        except socket.error:
+            # Well, we did our best to shut down gracefully.  Warn the user
+            # and just die when the thread we are in does.
+            print "Could not shut down POP3 proxy gracefully."
+    # Stop the IMAP4 server.
+    reactor.stop()
 
 def run():
     # Read the arguments.
@@ -985,12 +1018,11 @@ def run():
     print "Twisted version %s.\n" % (twisted_version,)
 
     # Setup everything.
-    setup()
+    prepare()
 
-    # Kick things off.  The asyncore stuff doesn't play nicely
-    # with twisted (or vice-versa), so put them in separate threads.
-    thread.start_new_thread(Dibbler.run, ())
-    reactor.run()
+    # Kick things off.
+    start()
+
 
 if __name__ == "__main__":
     run()
