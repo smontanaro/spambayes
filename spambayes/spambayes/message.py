@@ -205,9 +205,11 @@ class MessageInfoDB(MessageInfoBase):
 # so that these files don't litter lots of working directories.
 # Once there is a master db, this option can be removed.
 message_info_db_name = get_pathname_option("Storage", "messageinfo_storage_file")
-if options["Storage", "persistent_use_database"]:
+if options["Storage", "persistent_use_database"] is True or \
+   options["Storage", "persistent_use_database"] == "dbm":
     msginfoDB = MessageInfoDB(message_info_db_name)
-else:
+elif options["Storage", "persistent_use_database"] is False or \
+     options["Storage", "persistent_use_database"] == "pickle":
     msginfoDB = MessageInfoPickle(message_info_db_name)
 
 class Message(email.Message.Message):
@@ -427,6 +429,24 @@ class SBHeaderMessage(Message):
 
         if options['Headers','add_unique_id']:
             self[options['Headers','mailid_header_name']] = self.id
+
+    def currentSBHeaders(self):
+        """Return a dictionary containing the current values of the
+        SpamBayes headers.  This can be used to restore the values
+        after using the delSBHeaders() function."""
+        headers = {}
+        for header_name in [options['Headers','classification_header_name'],
+                            options['Headers','mailid_header_name'],
+                            options['Headers','classification_header_name'] + "-ID",
+                            options['Headers','thermostat_header_name'],
+                            options['Headers','evidence_header_name'],
+                            options['Headers','score_header_name'],
+                            options['Headers','trained_header_name'],
+                            ]:
+            value = self[header_name]
+            if value is not None:
+                headers[header_name] = value
+        return headers
 
     def delSBHeaders(self):
         del self[options['Headers','classification_header_name']]

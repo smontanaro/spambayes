@@ -666,6 +666,7 @@ class IMAPFolder(object):
 
             if msg.GetTrained() is None:
                 msg.get_substance()
+                saved_headers = msg.currentSBHeaders()
                 msg.delSBHeaders()
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
@@ -675,6 +676,9 @@ class IMAPFolder(object):
                 else:
                     move_opt_name = "move_trained_ham_to_folder"
                 if options["imap", move_opt_name] != "":
+                    # We need to restore the SpamBayes headers.
+                    for header, value in saved_headers.items():
+                        msg[header] = value
                     msg.MoveTo(IMAPFolder(options["imap",
                                                   move_opt_name]))
                     msg.Save()
