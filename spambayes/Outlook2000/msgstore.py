@@ -1,12 +1,52 @@
 from __future__ import generators
 
-import sys, os
+import sys, os, re
 
 try:
     True, False
 except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
+
+
+# XXX
+# import mboxutils  doesn't work at this point.  The extract_headers function
+# here is a copy-and-paste.
+header_break_re = re.compile(r"\r?\n(\r?\n)")
+
+def extract_headers(text):
+    """Very simple-minded header extraction:  prefix of text up to blank line.
+
+    A blank line is recognized via two adjacent line-ending sequences, where
+    a line-ending sequence is a newline optionally preceded by a carriage
+    return.
+
+    If no blank line is found, all of text is considered to be a potential
+    header section.  If a blank line is found, the text up to (but not
+    including) the blank line is considered to be a potential header section.
+
+    The potential header section is returned, unless it doesn't contain a
+    colon, in which case an empty string is returned.
+
+    >>> extract_headers("abc")
+    ''
+    >>> extract_headers("abc\\n\\n\\n")  # no colon
+    ''
+    >>> extract_headers("abc: xyz\\n\\n\\n")
+    'abc: xyz\\n'
+    >>> extract_headers("abc: xyz\\r\\n\\r\\n\\r\\n")
+    'abc: xyz\\r\\n'
+    >>> extract_headers("a: b\\ngibberish\\n\\nmore gibberish")
+    'a: b\\ngibberish\\n'
+    """
+
+    m = header_break_re.search(text)
+    if m:
+        eol = m.start(1)
+        text = text[:eol]
+    if ':' not in text:
+        text = ""
+    return text
 
 
 # Abstract definition - can be moved out when we have more than one sub-class <wink>
@@ -383,6 +423,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
         has_attach = data[3][1]
+
+        # Some Outlooks deliver a strange notion of headers, including
+        # interior MIME armor.  To prevent later errors, try to get rid
+        # of stuff now that can't possibly be parsed as "real" (SMTP)
+        # headers.
+        headers = extract_headers(headers)
+
         # Mail delivered internally via Exchange Server etc may not have
         # headers - fake some up.
         if not headers:
@@ -391,6 +438,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # gibberish at the start of the headers - fix this.
         elif headers.startswith("Microsoft Mail"):
             headers = "X-MS-Mail-Gibberish: " + headers
+
         if not html and not body:
             # Only ever seen this for "multipart/signed" messages, so
             # without any better clues, just handle this.
