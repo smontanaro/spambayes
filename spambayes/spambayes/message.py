@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-'''message.py - Core Spambayes classes.
+"""message.py - Core Spambayes classes.
 
 Classes:
     Message - an email.Message.Message, extended with spambayes methods
@@ -66,7 +66,7 @@ To Do:
     o Master DB module
     o Suggestions?
 
-    '''
+    """
 
 # This module is part of the spambayes project, which is Copyright 2002
 # The Python Software Foundation and is covered by the Python Software
