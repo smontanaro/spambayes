@@ -102,7 +102,8 @@ def filter_message(msg, mgr, all_actions=True):
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 
-        mgr.stats.RecordClassification(prob)
+        if all_actions:
+            mgr.stats.RecordClassification(prob)
         return disposition
     except:
         print "Failed filtering message!", msg
