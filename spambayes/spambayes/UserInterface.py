@@ -1035,42 +1035,47 @@ class UserInterface(BaseUserInterface):
             if cc_addr:
                 outer['CC'] = cc_addr
             outer['From'] = from_addr
-            outer.preamble = message
+            outer.preamble = self._wrap(message)
             # To guarantee the message ends with a newline
             outer.epilogue = ''
 
             # Guess the content type based on the file's extension.
-            ctype, encoding = mimetypes.guess_type(attach)
-            if ctype is None or encoding is not None:
-                # No guess could be made, or the file is encoded (compressed),
-                # so use a generic bag-of-bits type.
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
-            if maintype == 'text':
-                fp = open(attach)
-                # Note: we should handle calculating the charset
-                msg = MIMEText(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'image':
-                fp = open(attach, 'rb')
-                msg = MIMEImage(fp.read(), _subtype=subtype)
-                fp.close()
-            elif maintype == 'audio':
-                fp = open(attach, 'rb')
-                msg = MIMEAudio(fp.read(), _subtype=subtype)
-                fp.close()
+            try:
+                ctype, encoding = mimetypes.guess_type(attach)
+                if ctype is None or encoding is not None:
+                    # No guess could be made, or the file is encoded (compressed),
+                    # so use a generic bag-of-bits type.
+                    ctype = 'application/octet-stream'
+                maintype, subtype = ctype.split('/', 1)
+                if maintype == 'text':
+                    fp = open(attach)
+                    # Note: we should handle calculating the charset
+                    msg = MIMEText(fp.read(), _subtype=subtype)
+                    fp.close()
+                elif maintype == 'image':
+                    fp = open(attach, 'rb')
+                    msg = MIMEImage(fp.read(), _subtype=subtype)
+                    fp.close()
+                elif maintype == 'audio':
+                    fp = open(attach, 'rb')
+                    msg = MIMEAudio(fp.read(), _subtype=subtype)
+                    fp.close()
+                else:
+                    fp = open(attach, 'rb')
+                    msg = MIMEBase(maintype, subtype)
+                    msg.set_payload(fp.read())
+                    fp.close()
+                    # Encode the payload using Base64
+                    Encoders.encode_base64(msg)
+            except IOError:
+                # Couldn't access the file, so don't attach it.
+                pass
             else:
-                fp = open(attach, 'rb')
-                msg = MIMEBase(maintype, subtype)
-                msg.set_payload(fp.read())
-                fp.close()
-                # Encode the payload using Base64
-                Encoders.encode_base64(msg)
-            # Set the filename parameter
-            msg.add_header('Content-Disposition', 'attachment',
-                           filename=os.path.basename(attach))
-            outer.attach(msg)
-            msg = MIMEText(message)
+                # Set the filename parameter
+                msg.add_header('Content-Disposition', 'attachment',
+                               filename=os.path.basename(attach))
+                outer.attach(msg)
+            msg = MIMEText(self._wrap(message))
             outer.attach(msg)
 
             recips = []
@@ -1091,3 +1096,47 @@ class UserInterface(BaseUserInterface):
         if message.endswith("[DESCRIBE YOUR PROBLEM HERE]"):
             return False
         return True
+
+    def _wrap(self, text, width=70):
+        """Wrap the text into lines no bigger than the specified width."""
+        try:
+            from textwrap import wrap
+        except ImportError:
+            pass
+        else:
+            return '\n'.join(wrap(text, width))
+        # No textwrap module, so do the same stuff (more-or-less) ourselves.
+        wordsep_re = re.compile(r'(\s+|'                  # any whitespace
+                                r'-*\w{2,}-(?=\w{2,})|'   # hyphenated words
+                                r'(?<=\S)-{2,}(?=\w))')   # em-dash
+        if len(text) <= width:
+            return [text]
+        chunks = wordsep_re.split(text)
+        chunks = filter(None, chunks)
+        return self._wrap_chunks(chunks, width)
+
+    def _wrap_chunks(self, chunks, width):
+        """Stolen from textwrap; see that module in Python > 2.3 for
+        details."""
+        lines = []
+        while chunks:
+            cur_line = []
+            cur_len = 0
+            if chunks[0].strip() == '' and lines:
+                del chunks[0]
+            while chunks:
+                l = len(chunks[0])
+                if cur_len + l <= width:
+                    cur_line.append(chunks.pop(0))
+                    cur_len += l
+                else:
+                    break
+            if chunks and len(chunks[0]) > width:
+                space_left = width - cur_len
+                cur_line.append(chunks[0][0:space_left])
+                chunks[0] = chunks[0][space_left:]
+            if cur_line and cur_line[-1].strip() == '':
+                del cur_line[-1]
+            if cur_line:
+                lines.append(indent + ''.join(cur_line))
+        return lines
