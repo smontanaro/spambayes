@@ -99,18 +99,18 @@ def main():
     except getopt.error, msg:
         usage(2, msg)
 
-    if opts:
-        for opt, arg in opts:
-            if opt == '-h':
-                usage(0)
-            elif opt == '-n':
-                nsets = int(arg)
-            elif opt == '-g':
-                ngroups = int(arg)
-            elif opt == '-m':
-                nmess = int(arg)
-        if args:
-            usage(2, "Positional arguments not allowed")
+    if args:
+        usage(2, "Positional arguments not allowed")
+
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-n':
+            nsets = int(arg)
+        elif opt == '-g':
+            ngroups = int(arg)
+        elif opt == '-m':
+            nmess = int(arg)
 
     distribute(hamdir)
     distribute(spamdir)
