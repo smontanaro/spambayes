@@ -2,6 +2,7 @@
 
 import sys
 import time
+import email
 import types
 import socket
 import thread
@@ -12,11 +13,11 @@ import asyncore
 import sb_test_support
 sb_test_support.fix_sys_path()
 
+from spambayes import message
 from spambayes import Dibbler
 from spambayes.Options import options
 from spambayes.classifier import Classifier
 from sb_imapfilter import BadIMAPResponseError
-from spambayes.message import message_from_string
 from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder, IMAPFilter
 
 IMAP_PORT = 8143
@@ -542,7 +543,8 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         keys = self.folder.keys()
         for msg in self.folder:
             msg = msg.get_full_message()
-            msg_correct = message_from_string(IMAP_MESSAGES[int(keys[0])])
+            msg_correct = email.message_from_string(IMAP_MESSAGES[int(keys[0])],
+                                                    _class=message.Message)
             id_header_name = options["Headers", "mailid_header_name"]
             if msg_correct[id_header_name] is None:
                 msg_correct[id_header_name] = msg.id
@@ -562,7 +564,8 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         msg1 = self.folder[101]
         self.assertEqual(msg1.id, SB_ID_1)
         msg1 = msg1.get_full_message()
-        msg1_correct = message_from_string(IMAP_MESSAGES[101])
+        msg1_correct = email.message_from_string(IMAP_MESSAGES[101],
+                                                 message.Message)
         self.assertNotEqual(msg1[id_header_name], None)
         msg1_correct[id_header_name] = SB_ID_1
         self.assertEqual(msg1.as_string(), msg1_correct.as_string())
@@ -583,7 +586,8 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         id_header_name = options["Headers", "mailid_header_name"]
         msg3 = self.folder[104]
         self.assertNotEqual(msg3[id_header_name], None)
-        msg_correct = message_from_string(IMAP_MESSAGES[104])
+        msg_correct = email.message_from_string(IMAP_MESSAGES[104],
+                                                message.Message)
         msg_correct[id_header_name] = msg3.id
         self.assertEqual(msg3.as_string(), msg_correct.as_string())
 
@@ -627,12 +631,45 @@ class IMAPFilterTest(BaseIMAPFilterTest):
         pass
 
 
+class SFBugsTest(BaseIMAPFilterTest):
+    def test_802545(self):
+        # Test that the filter selects each folder before expunging,
+        # and that it was logged in in the first place.
+        pass
+
+    def test_816400(self):
+        # Test that bad dates don't cause an error in appending.
+        # (also sf #890645)
+        # e.g. 31-Dec-1969 16:00:18 +0100
+        #  Date: Mon, 06 May 0102 10:51:16 -0100
+        # Date: Sat, 08 Jun 0102 19:44:54 -0700
+        # Date: 16 Mar 80 8:16:44 AM
+        pass
+
+    def test_818552(self):
+        # Test that, when saving, we remove the RECENT flag including
+        # the space after it.
+        pass
+
+    def test_842984(self):
+        # Confirm that if webbrowser.open_new() fails, we print a
+        # message saying "Please point your web browser at
+        # http://localhost:8880/" rather than bombing out.
+        pass
+
+    def test_886133(self):
+        # Check that folder names with characters not allowed in XML
+        # are correctly handled for the web interface.
+        pass
+
+
 def suite():
     suite = unittest.TestSuite()
     for cls in (IMAPSessionTest,
                 IMAPMessageTest,
                 IMAPFolderTest,
                 IMAPFilterTest,
+                SFBugsTest,
                ):
         suite.addTest(unittest.makeSuite(cls))
     return suite

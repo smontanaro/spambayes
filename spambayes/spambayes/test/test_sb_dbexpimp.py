@@ -39,7 +39,13 @@ class dbexpimpTest(unittest.TestCase):
     def tearDown(self):
         try:
             os.remove(TEMP_PICKLE_NAME)
+        except OSError:
+            pass
+        try:
             os.remove(TEMP_CSV_NAME)
+        except OSError:
+            pass
+        try:
             os.remove(TEMP_DBM_NAME)
         except OSError:
             pass
