@@ -209,6 +209,10 @@ Data/
         Set10/           ""
         reservoir/ (contains "backup ham")
 
+Every file at the deepest level is used (not just files with .txt
+extenstions).  Every file should have a "Unix From" header before the
+RFC-822 message (i.e. a line of the form "From <address> <date>").
+
 If you use the same names and structure, huge mounds of the tedious testing
 code will work as-is.  The more Set directories the merrier, although you
 want at least a few hundred messages in each one.  The "reservoir" directory
