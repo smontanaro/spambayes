@@ -411,8 +411,14 @@ def run():
             sleepTime = int(arg) * 60
 
     if not (doClassify or doTrain or launchUI):
-        print "-c and/or -t operands must be specified"
+        print "-b, -c, or -t operands must be specified"
         sys.exit()
+
+    if (launchUI and (doClassify or doTrain)):
+        print """
+-b option is exclusive with -c and -t options.
+The user interface will be launched, but no classification
+or training will be performed."""
 
     if promptForPass:
         pwd = getpass()
@@ -441,28 +447,29 @@ def run():
     # XXX If someone is running *both* pop3proxy and imapfilter
     # XXX then there will be trouble since both interfaces are
     # XXX using the same port by default.
-    httpServer = UserInterfaceServer(options["html_ui", "port"])
-    httpServer.register(IMAPUserInterface(classifier, imap))
-    Dibbler.run(launchBrowser=launchUI)
+    if launchUI:
+        httpServer = UserInterfaceServer(options["html_ui", "port"])
+        httpServer.register(IMAPUserInterface(classifier, imap))
+        Dibbler.run(launchBrowser=launchUI)
+    else:
+        while True:
+            imap.login(options["imap", "username"], pwd)
 
-    while True:
-        imap.login(options["imap", "username"], pwd)
+            if doTrain:
+                if options["globals", "verbose"]:
+                    print "Training"
+                imap_filter.Train()
+            if doClassify:
+                if options["globals", "verbose"]:
+                    print "Classifying"
+                imap_filter.Filter()
 
-        if doTrain:
-            if options["globals", "verbose"]:
-                print "Training"
-            imap_filter.Train()
-        if doClassify:
-            if options["globals", "verbose"]:
-                print "Classifying"
-            imap_filter.Filter()
-
-        imap.logout(doExpunge)
-        
-        if sleepTime:
-            time.sleep(sleepTime)
-        else:
-            break
+            imap.logout(doExpunge)
+            
+            if sleepTime:
+                time.sleep(sleepTime)
+            else:
+                break
 
 if __name__ == '__main__':
     run()
