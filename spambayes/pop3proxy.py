@@ -708,6 +708,7 @@ def _createProxies(servers, proxyPorts):
         proxyListeners.append(listener)
 
 def _recreateState():
+    global state
     state = State()
     state.buildServerStrings()
     state.createWorkers()
