@@ -21,6 +21,8 @@ Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+; Needed when built with Python 2.4.  This must be manually copied to this directory
+; from wherever it is being sourced from.
 ; Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
@@ -40,6 +42,8 @@ Source: "py2exe\dist\docs\sb_server\readme_proxy.html"; DestDir: "{app}\docs\sb_
 Source: "py2exe\dist\docs\sb_server\troubleshooting.html"; DestDir: "{app}\docs\sb_server"; Check: InstallingProxy
 Source: "py2exe\dist\docs\sb_server\*.*"; DestDir: "{app}\docs\sb_server"; Check: InstallingProxy; Flags: recursesubdirs
 
+Source: "py2exe\dist\bin\sb_imapfilter.exe"; DestDir: "{app}\bin"; Check: InstallingIMAP; Flags: ignoreversion
+
 ; There is a problem attempting to get Inno to unregister our DLL.  If we mark our DLL
 ; as 'regserver', it installs and registers OK, but at uninstall time, it unregisters
 ; OK, but Inno is then unable to delete the files.  My guess is Inno loads the DLL,
@@ -52,33 +56,33 @@ Filename: "{app}\bin\outlook_addin_register.exe"; StatusMsg: "Registering Outloo
 ; Possibly register for all users (unregister removes this if it is present, so we don't need
 ; a special case for that). We do both a single-user registration and then the all-user, because
 ; that keeps the script much simpler, and it doesn't do any harm.
-;Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHINE"; StatusMsg: "Registering Outlook Addin for all users"; Check: OutlookAllUsers;
+Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHINE"; StatusMsg: "Registering Outlook Addin for all users"; Check: InstallOutlookAllUsers;
 [UninstallRun]
-Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin";Check: InstallingOutlook;
-
-[Tasks]
-Name: startup; Description: "Execute SpamBayes each time Windows starts";
-Name: desktop; Description: "Add an icon to the desktop"; Flags: unchecked;
+Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin"; Check: InstallingOutlook;
 
 [Run]
 FileName:"{app}\bin\sb_tray.exe"; Description: "Start the server now"; Flags: postinstall skipifdoesntexist nowait; Check: InstallingProxy
 
 [Icons]
-Name: "{group}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy
-Name: "{userdesktop}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy; Tasks: desktop
-Name: "{userstartup}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy; Tasks: startup
+Name: "{group}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy;
+Name: "{userdesktop}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: DesktopIcon;
+Name: "{userstartup}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: StartupProxy;
 Name: "{group}\About SpamBayes"; Filename: "{app}\docs\sb_server\readme_proxy.html"; Check: InstallingProxy;
 Name: "{group}\Troubleshooting Guide"; Filename: "{app}\docs\sb_server\troubleshooting.html"; Check: InstallingProxy;
 
-Name: "{group}\SpamBayes Outlook Addin\About SpamBayes"; Filename: "{app}\docs\outlook\about.html"; Check: InstallingOutlook
-Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\docs\outlook\docs\troubleshooting.html"; Check: InstallingOutlook
+Name: "{group}\SpamBayes IMAP Filter Web Interface"; Filename: "{app}\sb_imapfilter.exe"; Parameters: "-b"; Check: InstallingIMAP;
+Name: "{userstartup}\SpamBayes IMAP Filter"; Filename: "{app}\bin\sb_imapfilter.exe"; Parameters: "-c -t"; Check: StartupIMAP;
+
+Name: "{group}\SpamBayes Outlook Addin\About SpamBayes"; Filename: "{app}\docs\outlook\about.html"; Check: InstallingOutlook;
+Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\docs\outlook\docs\troubleshooting.html"; Check: InstallingOutlook;
 
 [UninstallDelete]
 
 [Code]
 var
-  InstallOutlook, InstallProxy: Boolean;
+  InstallOutlook, InstallProxy, InstallIMAP: Boolean;
   WarnedNoOutlook, WarnedBoth : Boolean;
+  startup, desktop, allusers, startup_imap : Boolean; // Tasks
 
 function InstallingOutlook() : Boolean;
 begin
@@ -87,6 +91,27 @@ end;
 function InstallingProxy() : Boolean;
 begin
   Result := InstallProxy;
+end;
+function InstallingIMAP() : Boolean;
+begin
+  Result := InstallIMAP;
+end;
+
+function StartupProxy() : Boolean;
+begin
+  Result := startup;
+end;
+function DesktopIcon() : Boolean;
+begin
+  Result := desktop;
+end;
+function InstallOutlookAllUsers() : Boolean;
+begin
+  Result := allusers;
+end;
+function StartupIMAP() : Boolean;
+begin
+  Result := startup_imap;
 end;
 
 function IsOutlookInstalled() : Boolean;
@@ -138,23 +163,30 @@ begin
     // default our install type.
     if IsOutlookInstalled() then begin
       InstallOutlook := True;
-      InstallProxy := False
+      InstallProxy := False;
+      InstallIMAP := False;
     end
     else begin
       InstallOutlook := False;
       InstallProxy := True;
+      InstallIMAP := False;
     end;
+    startup := False;
+    desktop := False;
+    allusers := False;
+    startup_imap := False;
 end;
 
 // Inno has a pretty primitive "Components/Tasks" concept that
-// doesn't quite fit what we want - so we create a custom wizard page.
+// doesn't quite fit what we want - so we create custom wizard pages.
 
 var
   ComponentsPage: TInputOptionWizardPage;
+  TasksPage: TInputOptionWizardPage;
 
 procedure InitializeWizard;
 begin
-  { Create the pages }
+  { Create the Components page }
 
   ComponentsPage := CreateInputOptionPage(wpWelcome,
     'Select applications to install',
@@ -166,17 +198,20 @@ begin
   else
     ComponentsPage.Add('Microsoft Outlook Addin (Outlook does not appear to be installed)');
   ComponentsPage.Add('Server/Proxy Application, for all other POP based mail clients, including Outlook Express');
+  ComponentsPage.Add('IMAP Filter Application, for all other IMAP based mail clients');
 
   { Set default values based on whether or not Outlook is installed. }
 
   if InstallOutlook then ComponentsPage.Values[0] := True else ComponentsPage.Values[0] := False;
   if InstallProxy then ComponentsPage.Values[1] := True else ComponentsPage.Values[1] := False;
-end;
+  if InstallIMAP then ComponentsPage.Values[2] := True else ComponentsPage.Values[2] := False;
 
-function ShouldSkipPage(PageID: Integer): Boolean;
-begin
-  { Skip pages that shouldn't be shown }
-  Result := (PageID = wpSelectTasks) and (not InstallProxy);
+  { Create the Tasks page.  Note that this is empty and gets replaced later. }
+  TasksPage := CreateInputOptionPage(ComponentsPage.ID,
+    'Select additional tasks',
+    'Which additional tasks should be performed?',
+    'Select the components you would like Setup to perform while installing SpamBayes, then click Next.',
+    False, False);
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -184,9 +219,26 @@ var
   I: Integer;
 begin
   { Validate certain pages before allowing the user to proceed }
+  if CurPageID = TasksPage.ID then begin
+    I := 0;
+    if InstallOutlook then begin
+      allusers := TasksPage.Values[I];
+      I := I + 1;
+    end;
+    if InstallProxy then begin
+      startup := TasksPage.Values[I];
+      desktop := TasksPage.Values[I+1];
+      I := I + 2;
+    end;
+    if InstallIMAP then begin
+      startup_imap := TasksPage.Values[I];
+      I := I + 1;
+    end;
+  end;
   if CurPageID = ComponentsPage.ID then begin
     InstallOutlook := ComponentsPage.Values[0];
     InstallProxy := ComponentsPage.Values[1];
+    InstallIMAP := ComponentsPage.Values[2];
 
     if InstallOutlook and not IsOutlookInstalled and not WarnedNoOutlook then begin
       if MsgBox(
@@ -200,9 +252,9 @@ begin
         Result := True;
       end else
         Result := False;
-    end else if InstallOutlook and InstallProxy and not WarnedBoth then begin
+    end else if InstallOutlook and (InstallProxy or InstallIMAP) and not WarnedBoth then begin
       if MsgBox(
-            'You have selected to install both the Outlook Addin and the Server/Proxy Applications.' + #13 + #13 +
+            'You have selected to install both the Outlook Addin and the Server/Proxy/IMAP Applications.' + #13 + #13 +
             'Unless you regularly use both Outlook and another mailer on the same system,' + #13 +
             'you do not need both applications.' + #13 + #13 +
             'Would you like to change your selection?',
@@ -211,14 +263,30 @@ begin
         Result := True;
       end else
         Result := False;
-    end else if not InstallOutlook and not InstallProxy then begin
+    end else if not InstallOutlook and not InstallProxy and not InstallIMAP then begin
       MsgBox('You must select one of the applications.', mbError, MB_OK);
       Result := False;
     end else
       // we got to here, we are OK.
       Result := True;
-  end else
-    Result := True;
+
+    // Generate the Tasks page based on the component selections.
+    TasksPage.Free();
+    TasksPage := CreateInputOptionPage(ComponentsPage.ID,
+      'Select additional tasks',
+      'Which additional tasks should be performed?',
+      'Select the components you would like Setup to perform while installing SpamBayes, then click Next.',
+      False, False);
+    if InstallOutlook then
+      TasksPage.Add('Register add-in for all users');
+    if InstallProxy then begin
+      TasksPage.Add('Execute SpamBayes each time Windows starts');
+      TasksPage.Add('Add an icon to the desktop');
+    end;
+    if InstallIMAP then
+      TasksPage.Add('Automatically execute IMAP filter periodically');
+    end else
+      Result := True;
 end;
 
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo,
@@ -230,11 +298,17 @@ begin
   S := 'Selected applications:' + NewLine;
   if InstallOutlook then S := S + Space + 'Outlook Addin' + NewLine
   if InstallProxy then S := S + Space + 'Server/Proxy Application' + NewLine
+  if InstallIMAP then S := S + Space + 'IMAP Filter Application' + NewLine
   S := S + NewLine;
   
   S := S + MemoDirInfo + NewLine + NewLine;
   S := S + MemoGroupInfo + NewLine + NewLine;
-  S := S + MemoTasksInfo;
+
+  S := S + 'Additional Tasks:' + NewLine;
+  if startup then S := S + Space + 'Run Proxy on Startup' + NewLine
+  if desktop then S := S + Space + 'Install Proxy Desktop Icon' + NewLine
+  if allusers then S := S + Space + 'Install Addin for all users' + NewLine
+  if startup_imap then S := S + Space + 'Automatically run Filter' + NewLine
 
   Result := S;
 end;
