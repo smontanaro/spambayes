@@ -1,7 +1,30 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
+Alpha Release 6
+===============
+Tony Meyer        09/09/2003  Fix for [ 802545 ] crash when loggin off imapfilter UI
+Tony Meyer        09/09/2003  Fix for [ 802347 ] multiline options saved incorrectly
+Tony Meyer        09/09/2003  Implement half of [ 801699 ] migration from hammie to sb_* scripts (although in a different way)
+Tony Meyer        09/09/2003  sb_server should store and close the db before reopening it.  gdbm fails if we do not do this.  Fix this.
+Tony Meyer        09/09/2003  imapfilter: correctly handle imap servers that (wrongly) fail to put folder names in quotation marks
+Mark Hammond      09/09/2003  Add a close method to the various storage classes.
+Sjoerd Mullender  08/09/2003  Fix for [ 801952 ] Imapfilter appending headers
+Sjoerd Mullender  08/09/2003  imapfilter: Count all messages being classified instead of just the ones from the last folder.
+Sjoerd Mullender  08/09/2003  Trivial fix for IMAP over SSL.
+Tony Meyer        08/09/2003  imapfilter: handle a folder name as a literal when presenting a list to choose from
+Tony Meyer        08/09/2003  imapfilter: handle imap servers that don't pass a blank result line for an empty search
+Mark Hammond      08/09/2003  Outlook: When we fail to add the 'Spam' field to a read-only store (eg, hotmail), complain less loudly.
+Mark Hammond      08/09/2003  Fix [ 798362 ] Toolbar becomes unresponsive and must be recreated
+Tony Meyer        06/09/2003  Add a missing file that's necessary to try out the sb_pop3dnd.py script, and the version and options necessary.
+Tony Meyer        06/09/2003  Fix [ 800555 ] 1.0a5 release missing key outlook files.
+Tony Meyer        05/09/2003  Remove backwards compat code for options, and update all (I hope) the remaining code that uses it.
+Tony Meyer        05/09/2003  Move and rename all top-level scripts other than setup.py
+
 Alpha Release 5
 ===============
+Tony Meyer     03/09/2003  imapfilter: We would crash if we hadn't set anything up and didn't prompt for password.
+Adam Walker    03/09/2003  pop3proxy_tray: Switch icons based on if the proxy is running or not. Provide some info found on the information page in the tooltip of the icon.
+Tony Meyer     02/09/2003  Add a rough autoconfigure script, which will set up both spambayes and a mail client to use pop3proxy
 Richie Hindle  01/09/2003  Fix [ 797890 ] "assert hamcount <= nham" problem.
 Tony Meyer     01/09/2003  Fix [ spambayes-Bugs-796996 ] smtp server not started until restart.
 Richie Hindle  01/09/2003  Integrated [ 791393 ] HTTP Authentication, which closes #791319.
