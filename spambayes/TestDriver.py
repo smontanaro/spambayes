@@ -66,6 +66,11 @@ class Hist:
         if self.n > 0:
             mean = self.sum / self.n
             var = self.sumsq / self.n - mean**2
+            # The vagaries of f.p. rounding can make var come out negative.
+            # There are ways to fix that, but they're too painful for this
+            # part of the code to endure.
+            if var < 0.0:
+                var = 0.0
             print "%d items; mean %.2f; sdev %.2f" % (self.n, mean, sqrt(var))
 
         biggest = max(self.buckets)
