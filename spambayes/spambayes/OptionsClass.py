@@ -435,7 +435,8 @@ class OptionsClass(object):
                         if self._options.has_key((sectname, optname)):
                             out.write(optname)
                             out.write(vi)
-                            out.write(self.unconvert(sectname, optname))
+                            newval = self.unconvert(sectname, optname)
+                            out.write(newval.replace("\n", "\n\t"))
                             out.write('\n')
                             written.append((sectname, optname))
         for sect in self.sections():
@@ -464,7 +465,8 @@ class OptionsClass(object):
                     label = False
                 out.write(opt)
                 out.write(vi)
-                out.write(self.unconvert(sect, opt))
+                newval = self.unconvert(sect, opt)
+                out.write(newval.replace("\n", "\n\t"))
                 out.write('\n')
                 written.append((sect, opt))
 
