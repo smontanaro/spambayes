@@ -356,7 +356,7 @@ have any other text editor, so it make things like the README unREADable.
    check the "Keep my preformatted text" checkbox.
  o Now commit spambayes/__init__.py and tag the whole checkout - see the
    existing tag names for the tag name format.
- o Update the website News section.
+ o Update the website News, Download and Application sections.
 
 Then announce the release on the mailing lists and watch the bug reports
 roll in.  8-)
