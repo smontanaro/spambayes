@@ -5,89 +5,79 @@
 
 import sys, os, os.path, getopt, cPickle, string
 import win32com.client
+import pythoncom
+import win32con
+
 import classifier
 from tokenizer import tokenize
 
-def findFolder(f,findName, name=""):
-    folders = f.Folders
-    folder = folders.GetFirst()
-    while folder:
-        nm = "%s/%s" % (name, folder.Name)
-        nm = nm.encode('ascii','replace')
-        if nm == findName:
-            return folder
+def train_folder( f, isspam, mgr, progress):
+    for message in mgr.YieldMessageList(f):
+        if progress.stop_requested():
+            break
+        progress.tick()
         try:
-            f = findFolder(folder, findName, nm)
-            if f: return f
-        except:
-            pass
-        folder = folders.GetNext()
-    return None
-
-def train( bayes, rootFolder,folderName, isspam):
-    f = findFolder(rootFolder, folderName)
-    if not f:
-        print "Can't find folder", folderName
-        return
-    messages = f.Messages
-    if not messages:
-        print "Can't find messages in folder", folderName
-        return
-    message = messages.GetFirst()
-    while message:
-        try:
-            headers = "%s" % message.fields[0x7D001E]
+            # work with MAPI until we work out how to get headers from outlook
+            message = mgr.mapi.GetMessage(message.ID)
+            headers = message.Fields[0x7D001E].Value
             headers = headers.encode('ascii', 'replace')
             body = message.Text.encode('ascii', 'replace')
-            text = headers + body
-            bayes.learn(tokenize(text), isspam, False)
-        except:
-            pass
-        message = messages.GetNext()
+        except pythoncom.com_error:
+            progress.warning("failed to get a message")
+            continue
+        text = headers + body
+        mgr.bayes.learn(tokenize(text), isspam, False)
 
-def usage():
-    print "Usage: train.py --bayes=bayes.pck --spam=folder,folder,folder --ham=folder,folder,folder"
-    print """Example: python train.py --bayes=bayes.pck --spam=/JunkMail,/Personal/Hotmail,/Personal/Spam  --ham="/Dragon People,/WebReply,/House,/Tenberry,/Receipts and coupons,/Rational and MIT,/Lists/List-mod_python,/Lists/List-other,/List-Webware,/Microsoft,/Fishing,/Ebusiness,/Amazon" """
+# Called back from the dialog to do the actual training.
+def trainer(mgr, progress):
+    pythoncom.CoInitialize()
+    config = mgr.config
+    mgr.InitNewBayes()
+    bayes = mgr.bayes
+    session = mgr.mapi
 
+    if not config.training.ham_folder_ids or not config.training.spam_folder_ids:
+        progress.error("You must specify at least one spam, and one good folder")
+        return
+    progress.set_status("Counting messages")
+    ham_folders = mgr.BuildFolderList(config.training.ham_folder_ids, config.training.ham_include_sub)
+    spam_folders = mgr.BuildFolderList(config.training.spam_folder_ids, config.training.ham_include_sub)
+    num_msgs = 0
+    for f in ham_folders + spam_folders:
+        num_msgs += f.Messages.Count + 1
+    progress.set_max_ticks(num_msgs+3)
 
+    for f in ham_folders:
+        progress.set_status("Processing good folder '%s'" % (f.Name.encode("ascii", "replace"),))
+        train_folder(f, 0, mgr, progress)
+        if progress.stop_requested():
+            return
+
+    for f in spam_folders:
+        progress.set_status("Processing spam folder '%s'" % (f.Name.encode("ascii", "replace"),))
+        train_folder(f, 1, mgr, progress)
+        if progress.stop_requested():
+            return
+
+    progress.tick()
+    progress.set_status('Updating probabilities...')
+    bayes.update_probabilities()
+    progress.tick()
+    if progress.stop_requested():
+        return
+    mgr.bayes_dirty = True
+    progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
 
 def main():
-    db_name = 'bayes.pck'
-    spam = []
-    ham = []
-    options = ["ham=", "spam=", "bayes="]
-    opts,args = getopt.getopt(sys.argv[1:], None, options)
-    if args:
-        usage()
-        sys.exit(1)
-    for opt,arg in opts:
-        if opt == "--spam": spam = string.split(arg, ',')
-        elif opt == "--ham":  ham = string.split(arg,',')
-        elif opt == "--bayes":  db_name = arg
-    if not spam and not ham:
-        usage()
-        sys.exit(1)
-    cwd =  os.getcwd()
-    session = win32com.client.Dispatch("MAPI.Session")
-    session.Logon()
-    personalFolders = findFolder(session.GetFolder(''),
-                                 '/Top of Personal Folders')
-    bayes = classifier.Bayes()
-    for folder in spam:
-        print "Training with %s as spam" % folder
-        train(bayes, personalFolders,folder, 1)
-    for folder in ham:
-        print "Training with %s as ham" % folder
-        train(bayes, personalFolders,folder, 0)
-    session.Logoff()
-    session = None
-    print 'Updating probabilities...'
-    bayes.update_probabilities()
-    print ("Done with training %s, built with %d examples and %d counter "
-           "examples" % (db_name, bayes.nspam, bayes.nham))
-    db_name = os.path.join(cwd, db_name)
-    print 'Writing DB...'
-    cPickle.dump(bayes, open(db_name,"wb"), 1)
+    import manager
+    mgr = manager.GetManager()
+
+    import dialogs.TrainingDialog
+    d = dialogs.TrainingDialog.TrainingDialog(mgr, trainer)
+    d.DoModal()
+
+    mgr.Save()    
+    mgr.Close()
 
 if __name__ == "__main__":
     main()

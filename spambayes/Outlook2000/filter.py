@@ -3,122 +3,77 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-# Make py2exe happy
-import dbhash, anydbm
+import sys, os
+from win32com.client import Dispatch, constants
+import pythoncom
+import rule
 
-import sys, os, os.path, cPickle, string, getopt
-import win32com.client
+from hammie import Hammie
 
-import email
-import email.Parser
-from hammie import createbayes, Hammie
-import classifier
-
-
-def findFolder(f, findName, name=""):
-    folders = f.Folders
-    folder = folders.GetFirst()
-    while folder:
-        nm = "%s/%s" % (name, folder.Name)
-        nm = nm.encode('ascii', 'replace')
-        if nm == findName:
-            return folder
+def filter_folder(f, mgr, progress, filter):
+    only_unread = filter.only_unread
+    hammie = Hammie(mgr.bayes)
+    num_messages = 0
+    for message in mgr.YieldMessageList(f):
+        if progress.stop_requested():
+            break
+        progress.tick()
+        if only_unread and not message.Unread:
+            continue
+        
         try:
-            f = findFolder(folder, findName, nm)
-            if f:
-                return f
-        except:
-            pass
-        folder = folders.GetNext()
-    return None
-
-
-from tokenizer import tokenize
-def filter(bayes, rootFolder, folderName, targetName=None, over=None,
-           under=None, detail=None):
-    hammie = Hammie(bayes)
-    n = nover = nunder = 0
-    f = findFolder(rootFolder, folderName)
-    targetf = None
-    if targetName:
-        targetf = findFolder(rootFolder, targetName)
-        if not targetf:
-            print "Can't find folder %s to move messages to" % targetName
-            return
-    messages = f.Messages
-    message = messages.GetFirst()
-    while message:
-        try:
-            headers = "%s" % message.fields[0x7D001E]
+            headers = message.Fields[0x7D001E].Value
             headers = headers.encode('ascii', 'replace')
             body = message.Text.encode('ascii', 'replace')
-            n = n + 1
-        except:
-            message = messages.GetNext()
+            text = headers + body
+        except pythoncom.com_error, d:
+            progress.warning("Failed to get a message: %s" % (str(d),) )
             continue
-        text = headers + body
-        prob, clues = hammie.score(text, evidence=1)
-        if over <> None and prob >= over:
-            nover = nover + 1
-            if detail:
-                print "***Over threshold", prob, over
-                for i in range(1, message.recipients.Count+1):
-                    print message.Recipients[i].Address,
-                print message.Subject.encode('ascii','replace')
-                print hammie.formatclues(clues)
-            if targetf:
-                message.MoveTo(targetf.ID)
-        if under <> None and prob <= under:
-            nunder = nunder + 1
-            if detail:
-                print "***Under threshold", prob, under
-                for i in range(1, message.recipients.Count+1):
-                    print message.Recipients[i].Address,
-                print message.Subject.encode('ascii','replace')
-                print hammie.formatclues(clues)
-            if targetf:
-                message.MoveTo(targetf.ID)
-        message = messages.GetNext()
-    print "Total %d, over %d under %d" % (n, nover, nunder)
 
-def usage():
-    print "Usage: filter.py --bayes=bayes.pck --from=folder,folder,folder [--to=folder] [--detail] [--over=float|--under=float]"
-    print """Example: python filter.py --from=/Personal/Hotmail,/Personal/ExJunk
---over=.35 --detail --to=/SpamMaybe"""
+        prob, clues = hammie.score(text, evidence=1)
+        did_this_message = False
+        for rule in mgr.config.rules:
+            if rule.enabled:
+                try:
+                    if rule.Act(mgr, message, prob):
+                        did_this_message = True
+                except:
+                    print "Rule failed!"
+                    import traceback
+                    traceback.print_exc()
+        if did_this_message:
+            num_messages += 1
+    return num_messages
+
+        
+def filterer(mgr, progress, filter):
+    if not filter.folder_ids:
+        progress.error("You must specify at least one folder")
+        return
+
+    progress.set_status("Counting messages")
+    folders = mgr.BuildFolderList(filter.folder_ids, filter.include_sub)
+    num_msgs = 0
+    for f in folders:
+        num_msgs += f.Messages.Count + 1
+    progress.set_max_ticks(num_msgs+3)
+    num = 0
+    for f in folders:
+        progress.set_status("Filtering folder '%s'" % (f.Name.encode("ascii", "replace"),))
+        num += filter_folder(f, mgr, progress, filter)
+        if progress.stop_requested():
+            return
+    progress.set_status("Filter acted upon %d messages" % (num,))
 
 def main():
-    from hammie import createbayes
-    db_name = 'bayes.pck'
-    folders = []
-    options = ["over=", "under=", "bayes=", "to=", "from=", "detail"]
-    dodetail=targetName=to=over=under= None
-    opts,args = getopt.getopt(sys.argv[1:], None, options)
-    if args:
-        usage()
-        sys.exit(1)
-    for opt, arg in opts:
-        if opt == "--under": under = float(arg)
-        elif opt == "--over":  over = float(arg)
-        elif opt == "--bayes":  db_name = arg
-        elif opt == "--to": targetName = arg
-        elif opt == "--from": folders = string.split(arg, ",")
-        elif opt == "--detail": dodetail = 1
-    if not (over or under) or not folders:
-        usage()
-        sys.exit(1)
-    bayes = cPickle.load(open(db_name,'rb'))
-    cwd =  os.getcwd()
-    session = win32com.client.Dispatch("MAPI.Session")
-    session.Logon()
-    personalFolders = findFolder(session.GetFolder(''),
-                                 '/Top of Personal Folders')
-    for folder in folders:
-        print "Filtering %s, over: %s under %s" % (arg, over, under)
-        filter(bayes, personalFolders, folder, targetName, over=over,
-               under=under, detail=dodetail)
-    session.Logoff()
-    session = None
-    print 'Done'
+    import manager
+    mgr = manager.GetManager()
+    
+    import dialogs.FilterDialog
+    d = dialogs.FilterDialog.FilterArrivalsDialog(mgr, rule.Rule, filterer)
+    d.DoModal()
+    mgr.Save()
+    mgr.Close()
 
 if __name__ == "__main__":
     main()
