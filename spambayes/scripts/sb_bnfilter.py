@@ -109,7 +109,7 @@ def main():
         elif opt == '-k':
             filename = arg
 
-    if len(args) != 0:
+    if args:
         usage(2)
         
     server_options.append(filename)
