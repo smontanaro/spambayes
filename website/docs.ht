@@ -26,7 +26,9 @@ Author: spambayes
 <dt>false positive<dd>a ham that's incorrectly classified as spam.
 <dt>f-n, FN<dd>(abbrev.) false negative
 <dt>f-p, FP<dd>(abbrev.) false positive
-
+<dt>corpus<dd>in this context, a body of messages. Usually referring to a
+training database.
+<dt>hapax, hapax legomenon <dd>a word or form occuring only once in a 
+document or corpus. (plural is hapax legomena)
 </dl>
-
 
