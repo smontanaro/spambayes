@@ -411,10 +411,6 @@ class BayesManager:
         else:
             self.data_directory = self.windows_data_directory
 
-        # Now we have the data directory, migrate anything needed, and load
-        # any config from it.
-        self.MigrateDataDirectory()
-
         # Get the message store before loading config, as we use the profile
         # name.
         self.message_store = msgstore.MAPIMsgStore(outlook)
@@ -424,13 +420,20 @@ class BayesManager:
         # default_bayes_customize.ini in the app directory and user data
         # directory (version 0.8 and earlier, we copied the app one to the
         # user dir - that was a mistake - but supporting a version in that
-        # directory wasn't).
+        # directory wasn't).  We also look for a
+        # {outlook-profile-name}_bayes_customize.ini file in the data
+        # directory, to allow per-profile customisations.
         bayes_option_filenames = []
         # data dir last so options there win.
         for look_dir in [self.application_directory, self.data_directory]:
             look_file = os.path.join(look_dir, "default_bayes_customize.ini")
             if os.path.isfile(look_file):
                 bayes_option_filenames.append(look_file)
+        look_file = os.path.join(self.data_directory,
+                                 self.GetProfileName() + \
+                                 "_bayes_customize.ini")
+        if os.path.isfile(look_file):
+            bayes_option_filenames.append(look_file)
         import_core_spambayes_stuff(bayes_option_filenames)
 
         # Set interface to use the user language in configuration file.
@@ -550,31 +553,6 @@ class BayesManager:
             # Can't make the directory.
             return self.application_directory
 
-    def MigrateDataDirectory(self):
-        # A bit of a nod to save people doing a full retrain.
-        # Try and locate our files in the old location, and move
-        # them to the new one.
-        # Note that this is migrating data for very old versions of the
-        # plugin (before the first decent binary!).  The next time it is
-        # touched it can die :)
-        self._MigrateFile("default_bayes_database.pck")
-        self._MigrateFile("default_bayes_database.db")
-        self._MigrateFile("default_message_database.pck")
-        self._MigrateFile("default_message_database.db")
-        self._MigrateFile("default_configuration.pck")
-
-    # Copy a file from the application_directory to the data_directory.
-    # By default (do_move not specified), the source file is deleted.
-    # Pass do_move=False to leave the original file.
-    def _MigrateFile(self, filename):
-        src = os.path.join(self.application_directory, filename)
-        dest = os.path.join(self.data_directory, filename)
-        if os.path.isfile(src) and not os.path.isfile(dest):
-            # shutil in 2.2 and earlier don't contain 'move'.
-            # Win95 and Win98 don't support MoveFileEx.
-            shutil.copyfile(src, dest)
-            os.remove(src)
-
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
         for eid in folder_ids:
@@ -690,11 +668,7 @@ class BayesManager:
                     "Filename: ") + filename
             self.ReportError(msg)
 
-    def LoadConfig(self):
-        # Insist on english numeric conventions in config file.
-        # See addin.py, and [725466] Include a proper locale fix in Options.py
-        import locale; locale.setlocale(locale.LC_NUMERIC, "C")
-
+    def GetProfileName(self):
         profile_name = self.message_store.GetProfileName()
         # The profile name may include characters invalid in file names.
         if profile_name is not None:
@@ -708,16 +682,13 @@ class BayesManager:
             print "* SpamBayes, and running a win32all version pre 154."
             print "* If you work with multiple Outlook profiles, it is recommended"
             print "* you upgrade - see http://starship.python.net/crew/mhammond"""
-        else:
-            # xxx - remove me sometime - win32all grew this post 154(ish)
-            # binary never released with this, so we can be a little more brutal
-            # Try and rename to current profile, silent failure
-            try:
-                os.rename(os.path.join(self.data_directory, "unknown_profile.ini"),
-                          os.path.join(self.data_directory, profile_name + ".ini"))
-            except os.error:
-                pass
+        return profile_name
 
+    def LoadConfig(self):
+        # Insist on English numeric conventions in config file.
+        # See addin.py, and [725466] Include a proper locale fix in Options.py
+        import locale; locale.setlocale(locale.LC_NUMERIC, "C")
+        profile_name = self.GetProfileName()
         self.config_filename = os.path.join(self.data_directory, profile_name + ".ini")
         self.never_configured = not os.path.exists(self.config_filename)
         # Now load it up
