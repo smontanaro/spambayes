@@ -158,16 +158,18 @@ def as_string(msg, unixfrom=False):
         headers = []
         if unixfrom:
             headers.append(msg.get_unixfrom())
-        for hdr in msg.keys():
-            for val in msg.get_all(hdr):
-                headers.append("%s: %s" % (hdr, val))
+        for (hdr, val) in msg.items():
+            headers.append("%s: %s" % (hdr, val))
         headers.append("X-Spambayes-Exception: %s" % excstr)
         parts = ["%s\n" % "\n".join(headers)]
         boundary = msg.get_boundary()
         for part in msg.get_payload():
             if boundary:
                 parts.append(boundary)
-            parts.append(part.as_string())
+            try:
+                parts.append(part.as_string())
+            except AttributeError:
+                parts.append(str(part))
         if boundary:
             parts.append("--%s--" % boundary)
         # make sure it ends with a newline:
