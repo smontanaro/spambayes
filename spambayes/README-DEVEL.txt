@@ -1,4 +1,4 @@
-Copyright (C) 2002 Python Software Foundation; All Rights Reserved
+Copyright (C) 2002-5 Python Software Foundation; All Rights Reserved
 
 The Python Software Foundation (PSF) holds copyright on all material
 in this project.  You may use it under the terms of the PSF license;
@@ -55,10 +55,6 @@ Options.py
     On Unix, Linux and Mac OS X systems it is ':'.  On Windows it is ';'.
     On Mac OS 9 and earlier systems it is a NL character.
 
-    *NOTE* The separator character changed after the second alpha version of
-    the first release.  Previously, if multiple files were specified in
-    BAYESCUSTOMIZE they were space-separated.
-
 classifier.py
     The classifier, which is the soul of the method.
 
@@ -70,28 +66,13 @@ tokenizer.py
 chi2.py
     A collection of statistics functions.
 
-IMPORTANT NOTE
-==============
-
-The applications have all been renamed in preparation for 1.0 - the
-following section refers to old application names.
-
-IMPORTANT NOTE
-==============
-
-The applications have all been renamed in preparation for 1.0 - the
-following section refers to old application names.
-
 Apps
 ====
-hammie.py
-    A spamassassin-like filter which uses tokenizer and classifier (above).
-
-hammiefilter.py
+sb_filter.py
     A simpler hammie front-end that doesn't print anything.  Useful for
     procmail filtering and scoring from your MUA.
 
-mboxtrain.py
+sb_mboxtrain.py
     Trainer for Maildir, MH, or mbox mailboxes.  Remembers which
     messages it saw the last time you ran it, and will only train on new
     messages or messages which should be retrained.  
@@ -101,7 +82,7 @@ mboxtrain.py
     will work with any IMAP4 mail client, or any client running on the
     server.
 
-pop3proxy.py
+sb_server.py
     A spam-classifying POP3 proxy.  It adds a spam-judgment header to
     each mail as it's retrieved, so you can use your email client's
     filters to deal with them without needing to fiddle with your email
@@ -109,32 +90,30 @@ pop3proxy.py
 
     Also acts as a web server providing a user interface that allows you
     to train the classifier, classify messages interactively, and query
-    the token database.  This piece will at some point be split out into
+    the token database.  This piece may at some point be split out into
     a separate module.
 
-smtpproxy.py
-   A message training SMTP proxy.  It sits between your email client and
-   your SMTP server and intercepts mail to set ham and spam addresses.
-   All other mail is simply passed through to the SMTP server.
+    If the appropriate options are set, also serves a message training
+    SMTP proxy.  It sits between your email client and your SMTP server
+    and intercepts mail to set ham and spam addresses.
+    All other mail is simply passed through to the SMTP server.
 
-mailsort.py
+sb_mailsort.py
     A delivery agent that uses a CDB of word probabilities and delivers
     a message to one of two Maildir message folders, depending on the
     classifier score.  Note that both Maildirs must be on the same
     device.
 
-hammiesrv.py
+sb_xmlrpcserver.py
     A stab at making hammie into a client/server model, using XML-RPC.
 
-hammiecli.py
-    A client for hammiesrv.
+sb_client.py
+    A client for sb_xmlrpcserver.py.
 
-imapfilter.py
+sb_imapfilter.py
     A spam-classifying and training application for use with IMAP servers.
     You can specify folders that contain mail to train as ham/spam, and
     folders that contain mail to classify, and the filter will do so.
-    Note that this is currently in very early development and not
-    recommended for production use.
 
 
 Test Driver Core
@@ -213,7 +192,7 @@ fpfn.py
 
 Test Data Utilities
 ===================
-cleanarch
+cleanarch.py
     A script to repair mbox archives by finding "Unix From" lines that
     should have been escaped, and escaping them.
 
@@ -504,12 +483,16 @@ on Windows, so his approach to building the zip file is at the end.
    check the "Keep my preformatted text" checkbox.
  o Now commit spambayes/__init__.py and tag the whole checkout - see the
    existing tag names for the tag name format.
+ o In either checkout, run "python setup.py register" to register the new
+   version with PyPI.
  o Create MD5 checksums for the files, and update download.ht with these.
    Tony uses wxChecksums (http://wxchecksums.sourceforge.net) for this,
    but you could just do
       >>> import md5
       >>> print md5.md5(file("spambayes-1.0.1.exe", "rb").read()).hexdigest()
  o Calculate the sizes of the files, and update download.ht with these.
+   From release 1.1 doing a "setup.py sdist" will generate checksums
+   and sizes for you, and print out the results to stdout.
  o Create OpenPGP/PGP signatures for the files.  Using GnuPG:
       % gpg -sab spambayes-1.0.1.zip
       % gpg -sab spambayes-1.0.1.tar.gz
@@ -576,3 +559,143 @@ installed.
  o Compile the spambayes.iss script to get the executable.
  o You can now follow the steps in the source release description above,
    from the testing step.
+
+Making a translation
+====================
+
+Note that it is, in general, best to translate against a stable version.
+This means you avoid having to repeatedly re-translate text as the
+code changes.  This means code that has been released via the sourceforge
+system, that does not have a letter code at the end of the version (e.g.
+1.0.1, 1.1.2, but not 1.0a1, 1.1b1, or 2.1rc2).  If you do want to
+translate a more recent version, be sure to discuss your plans first on
+spambayes-dev so that you can be warned about any planned changes.
+
+Translation is only feasible for 1.1 and above.  No translation effort
+is planned for the 1.0.x release series.
+
+To translate, you will need:
+
+ o A suitable version of Python (2.2 or greater) installed.
+   See http://python.org/download
+
+ o A copy of the SpamBayes source that you wish to translate.
+
+ o Resourcepackage installed.
+   See http://resourcepackage.sourceforge.net
+
+Optional tools that may make translation easier include:
+
+ o A copy of VC++, Visual Studio, or some other GUI tool that allows
+   editing of VC++ dialog resource files.
+
+ o A GUI HTML editor.
+
+ o A GUI gettext editor, such as poEdit.
+   http://poedit.sourceforge.net
+
+Setup
+-----
+
+You will need to create a directory structure as follows:
+
+spambayes/                                    # root spambayes directory
+                                              # containing contrib, utilities,
+                                              # scripts, etc
+          languages/                          # root languages directory,
+                                              # possibly already containing
+                                              # other translations
+                    {lang_code}/              # directory for the specific
+                                              # translation - {lang_code} is
+                                              # described below
+                                DIALOGS/      # directory for Outlook plug-in
+                                              # dialog resources
+                                LC_MESSAGES/  # directory for gettext managed
+                                              # strings
+                                __init__.py   # Copy of spambayes/spambayes/resources/__init__.py
+
+
+Translation Tasks
+-----------------
+
+There are four translation tasks:
+
+ o Documentation.  This is the least exciting, but the most important.
+   If the documentation is appropriately translated, then even if elements
+   of the interface are not translated, users should be able to manage.
+
+   A method of managing translated documents has yet to be created.  If you
+   are interested in translating documentation, please contact
+   spambayes-dev@python.org.
+
+ o Outlook dialogs.  The majority of the Outlook plug-in interface is
+   handled by a VC++/Visual Studio dialog resource file pair (dialogs.h
+   and dialogs.rc).  The plug-in code then manipulates this to create the
+   actual dialog.
+
+   The easiest method of translating these dialogs is to use a tool like
+   VC++ or Visual Studio.  Simply open the
+   'spambayes\Outlook2000\dialogs\resources\dialogs.rc' file, translate the
+   dialog, and save the file as
+   'spambayes\languages\{lang_code}\DIALOGS\dialogs.rc', where {lang_code}
+   is the appropriate language code for the language you have translated
+   into (e.g. 'en_UK', 'es', 'de_DE').  If you do not have a GUI tool to
+   edit the dialogs, simply open the dialogs.rc file in a text editor,
+   manually change the appropriate strings, and save the file as above.
+   Ensure that a copy of the dialogs.h file is also copied across to the
+   'spambayes\languages\{lang_code}\DIALOGS' directory (this does not
+   need any translation).
+
+   Once the dialogs are translated, you need to use the rc2py.py utility
+   to create the i18n_dialogs.py file.  For example, in the
+   'spambayes\Outlook2000\dialogs\resources' directory:
+     > rc2py.py {base}\spambayes\languages\de_DE\DIALOGS\dialogs.rc
+       {base}\spambayes\languages\de_DE\DIALOGS\i18n_dialogs.py 1
+   Where {base} is the directory that contains the root spambayes directory.
+   This should create a 'i18n_dialogs.py' in the same directory as your
+   translated dialogs.rc file - this is the file the the Outlook plug-in
+   uses.
+
+ o Web interface template file.  The majority of the web interface is
+   created by dynamic use of a HTML template file.
+
+   The easiest method of translating this file is to use a GUI HTML editor.
+   Simply open the 'spambayes/spambayes/resources/ui.html' file, translate
+   it as described within, and save the file as
+   'spambayes/languages/{lang_code}/i18n.ui.html', where {lang_code} is
+   the appropriate language code as described above.  If you do not have
+   a GUI HTML editor, or are happy editing HTML by hand, simply use your
+   favority HTML editor to do this task.
+
+   Once the template file is created, resourcepackage will automatically
+   create the required ui_html.py file when SpamBayes is run with that
+   language selected.
+
+ o Gettext managed strings.  The remainder of both the Outlook plug-in
+   and the web interface are contained within the various Python files
+   that make up SpamBayes.  The Python gettext module (very similar to
+   the GNU gettext system) is used to manage translation of these strings.
+
+   To translate these strings, use the translation template
+   'spambayes/languages/messages.pot'.  You can regenerate that file, if
+   necessary, by running this command in the root spambayes directory:
+     > {python dir}\tools\i18n\pygettext.py -o languages\messages.pot
+       contrib\*.py Outlook2000\*.py scripts\*.py spambayes\*.py
+       testtools\*.py utilities\*.py windows\*.py
+
+   You may wish to use a GUI system to create the required *.po file, 
+   such as poEdit, but you can also do this manually with a text editor.
+   If your utility does not do it for you, you will also need to
+   compile the .po file to a .mo file.  The utility msgfmt.py will do
+   this for you - it should be located '{python dir}\tools\i18n'.
+
+Testing the translation
+-----------------------
+
+There are two ways to set the language that SpamBayes will use:
+
+ o If you are using Windows, change the preferred Windows language using
+   the Control Panel.
+
+ o Get the [globals] language SpamBayes option to a list of the
+   preferred language(s).
