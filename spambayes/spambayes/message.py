@@ -87,6 +87,7 @@ except NameError:
 
 import sys
 import types
+import re
 
 import email.Message
 import email.Parser
@@ -168,6 +169,13 @@ class Message(email.Message.Message):
 
     def asTokens(self):
         return tokenize(self.as_string())
+
+    def as_string(self):
+        # This override is currently needed because of an apparent bug
+        # in the email package, where header lines are not properly
+        # terminated with \r\n
+        return re.sub('([^\r])\n', r'\1\r\n', \
+                      email.Message.Message.as_string(self))
         
     def modified(self):
         if self.id:    # only persist if key is present

@@ -191,11 +191,8 @@ class IMAPMessage(message.SBHeaderMessage):
     def Save(self):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
-        time_stamp = self.extractTime()
-        msgstr = re.sub('([^\r])\n', r'\1\r\n', self.as_string())
-        
         response = imap.append(self.folder.name, None,
-                               time_stamp, msgstr)
+                               self.extractTime(), self.as_string())
         self._check(response, 'append')
 
         old_id = self.id
