@@ -9,130 +9,50 @@ probably only interest developers, and one for everything else.
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 7
+New in Alpha Release 8
 ======================
 
 --------------------------
 ** Incompatible changes **
 --------------------------
 
- o If you are using a pickle for storage, your 'message info' database
-   would previously still have been a dbm (where available).  This is
-   no longer the case - if you are using a pickle for the statistics
-   database, you have a pickle for everything.  Your old 'message info'
-   database is not converted (and there is no utility provided to do so).
-   If you are using a pickle for storage, you should delete your old
-   'spambayes.messageinfo.db' file before restarting after the upgrade.
-   You should not suffer any ill effects from this, *unless* you are
-   using sb_imapfilter.py.  In that case, you will find that the filter
-   trains and classifies all messages in the folders it examines, even
-   if it has seen them before - this will only occur once, however.
+ o XXX
 
-There should be no other incompatible changes (from 1.0a6) in this release.
+There should be no other incompatible changes (from 1.0a7) in this release.
 
- o The scripts have all moved (in the archive), and their names have been
-   changed.  If you run "setup.py install", it will offer to remove the old
-   ones for you, which we recommend.  In the archive, the scripts are all
-   in a 'scripts' directory, and all the scripts start with the "sb_"
-   prefix, to avoid clashing with similarly named scripts from other
-   packages.  Some name changes go further - "pop3proxy" is now named
-   "sb_server", "hammiefilter" is now named "sb_filter", "hammiecli" is now
-   named "sb_client", "hammiesrv" is now named "sb_xmlrpcserver", "proxytee"
-   is now named "sb_upload", and the experimental "overkill" script is now
-   named "sb_pop3dnd".
 
-If you were previously using the "hammie.py" script, you will notice that
-it is no longer available.  We recommend that you use either "sb_filter"
-(probably with "sb_mboxtrain"), or use "sb_server" and "sb_upload".  If you
-wish to continue as you were, you can use the "hammie.py" module, which
-will be installed in the "spambayes" package directory, in the same way you
-used the old "hammie.py" script.
-
- o All the backwards compatibility code for options which changed names has
-   been removed, which means that you *must* use the correct (new) names.
-   A script (sb_chkopts) is provided which, if you run it, will inform you
-   if you have any invalid names (if will not output anything if there are
-   no problems).
-
-In addition, the values taken by some options have changed, so if you're
-upgrading from a previous version, you may need to update your configuration
-file (.spambayesrc or bayescustomize.ini)
-
- o The options to put the classification in the subject or recipient list
-   (notate_to and notate_subject) have moved from the "pop3proxy" section
-   to the "Headers" section.
- o All the "pop3proxy" storage options (where the cache is stored, the
-   number of days before messages expire, and so on) have moved to the
-   "Storage" section.
- o The "hammie" debug header options have been removed, and you should use
-   the "Headers" evidence header options instead.
-
-Note that pop3proxy (sb_server) and imapfilter users can simply use the web
-interface to check their options and correct any that are wrong.  All
-incorrectly named options in the configuration file will be removed.
+-------------------
+** Other changes **
+-------------------
 
 Outlook Plugin
 --------------
- o Change the default for the ham/spam imbalance adjustment option to
-   False - this should make misclassifications for those with large
-   imbalances easier to understand.  Note that we recommend roughly equal
-   numbers of ham and spam are trained.
- o Add a warning for those with highly imbalanced ham and spam.
- o Improved the 'Show Clues' results page.
- o When we fail to add the 'Spam' field to a read-only store (eg, hotmail),
-   complain less loudly.
+ o 
 
 POP3 Proxy / SMTP Proxy
 -----------------------
- o An error where a failure message would be printed by
-   the SMTP proxy, even on success, was fixed.
+ o 
 
 Web Interface
 -------------
- o The bug which caused the "TypeError" when trying to access
-   the database after setting a configuration option via the
-   interface has been fixed.
+ o 
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
 
- o Both the pop3proxy_service.py and pop3proxy_tray.py
-   scripts are now installed (with "setup.py install") if
-   the user is using Windows.
+ o 
 
 IMAP Filter
 -----------
- o Correctly handle IMAP servers that (wrongly) fail to put folder names
-   in quotation marks
- o Count all messages being classified instead of just the ones from the
-   last folder.
- o Handle a folder name as a literal when presenting a list to choose from.
- o Handle IMAP servers that do not pass a blank result line for an empty
-   search.
- o Fix IMAP over SSL.
+ o 
 
 General
 -------
- o Various improvements have been made to the management of the
-   'message info' database.  As outlined above, it will now be
-   stored as a pickle, if your statistics database uses a pickle.
-   In addition, we attempt to close the database when we should,
-   and make sure that we explicitly update it.  This should hopefully
-   go some way to solving the "DB_RUN_RECOVERY" errors that have
-   been regularly reported - we would be interested to hear from
-   you if upgrading to 1.0a7 does appear to solve this problem
-   for you (email spambayes@python.org).
- o We now try to determine the type of dbm storage used from the
-   file, if one already exists.  This should make the transition
-   between formats a little easier.
- o Fix sb_xmlrpcserver to work with the renamed (since 1.0a5)
-   scripts.
- o Fix the sense of include_trained in sb_mboxtrain.
-   
+ o 
 
 Transition
 ==========
-If you are transitioning from a version older than 1.0a6, please also
+If you are transitioning from a version older than 1.0a7, please also
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
@@ -143,7 +63,7 @@ this document, there are no known transition issues.
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-809769, 814322, 816400, 810342, 818552
+
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -160,3 +80,31 @@ Patches integrated
 ===================
 No patches tracked via the Sourceforge system were integrated for this
 release.
+
+
+Deprecated Options
+==================
+
+[add explanation of deprecated options here]
+
+The following options have been deprecated in this release:
+  o [Tokenizer] generate_time_buckets
+  o [Tokenizer] extract_dow
+  o [Classifier] experimental_ham_spam_imbalance_adjustment
+
+
+New Experimental Options
+========================
+
+[add explanation of experimental options and a pointer to the testing
+setup here]
+
+The following experimental options have been added in this release:
+  o [Tokenizer] search_for_habeas_headers
+  o [Tokenizer] reduce_habeas_headers
+  o [Classifier] use_bigrams
+  o [URLRetriever] slurp_urls
+  o [URLRetriever] cache_expiry_days
+  o [URLRetriever] cache_directory
+  o [URLRetriever] only_slurp_base
+  o [URLRetriever] web_prefix
