@@ -30,7 +30,7 @@ about how to classify the message.
 In the sections below, are gathered notes about how Spambayes can be
 integrated into your mail processing system.  As a general requirement, you
 must have a recent version of Python installed on your computer, version
-2.2.1 or later.  (Don't ask about backporting it to earlier versions of
+2.2 or later.  (Don't ask about backporting it to earlier versions of
 Python.  It's almost a certainty this won't happen.)  If you need to install
 Python on your system, check the Python download page for the version
 appropriate to your computer:

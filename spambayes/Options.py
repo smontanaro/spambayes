@@ -8,6 +8,15 @@ import StringIO
 import ConfigParser
 from sets import Set
 
+try:
+    True, False, bool
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+    def bool(val):
+        return not not val
+
+
 __all__ = ['options']
 
 defaults = """

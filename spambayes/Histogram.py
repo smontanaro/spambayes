@@ -3,6 +3,13 @@ import math
 
 from Options import options
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 class Hist:
     """Simple histograms of float values."""
 
