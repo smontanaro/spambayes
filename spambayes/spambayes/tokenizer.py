@@ -1004,8 +1004,9 @@ crack_html_style = StyleStripper().analyze
 
 class CommentStripper(Stripper):
     def __init__(self):
-        Stripper.__init__(self, re.compile(r"<!--").search,
-                                re.compile(r"-->").search)
+        Stripper.__init__(self,
+                          re.compile(r"<!--|<\s*comment\s*[^>]*>").search,
+                          re.compile(r"-->|</comment>").search)
 
 crack_html_comment = CommentStripper().analyze
 
