@@ -1607,6 +1607,13 @@ class Tokenizer:
         # Neil Schemenauer reports good results from this.
         if options["Tokenizer", "mine_received_headers"]:
             for header in msg.get_all("received", ()):
+                # Sendmail adds a chit to Received: headers if it thinks
+                # the sender is forging its identity.  That seems to be
+                # a pretty reliable spam clue.  I'll leave it for others
+                # to decide if this should be pulled outside the check
+                # for mine_received_headers.
+                if header.lower().find('may be forged') != -1:
+                    yield 'received:may be forged'
                 for pat, breakdown in [(received_host_re, breakdown_host),
                                        (received_ip_re, breakdown_ipaddr)]:
                     m = pat.search(header)
