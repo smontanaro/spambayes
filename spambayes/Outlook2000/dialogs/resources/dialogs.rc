@@ -519,7 +519,7 @@ BEGIN
     CONTROL         "",IDC_STATIC_HAM,"Static",SS_LEFTNOWORDWRAP | 
                     SS_CENTERIMAGE | SS_SUNKEN,11,21,175,12
     PUSHBUTTON      "&Browse...",IDC_BROWSE_HAM,192,20,50,14
-    LTEXT           "Folders with spam or other junk messages",IDC_STATIC,11,
+    LTEXT           "Folders with spam or other junk messages.",IDC_STATIC,11,
                     36,171,9
     CONTROL         "Static",IDC_STATIC_SPAM,"Static",SS_LEFTNOWORDWRAP | 
                     SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,11,46,174,12
