@@ -14,7 +14,7 @@ from distutils.core import setup
 import email
 if email.__version__ < '2.4.3':
     print "Error: email package version < 2.4.3 found - need newer version"
-    print "See INTEGRATION.txt for download information for email package"
+    print "See README.txt for download information for email package"
     sys.exit(0)
 
 # patch distutils if it can't cope with the "classifiers" keyword.
@@ -73,6 +73,20 @@ class install_scripts(parent):
                             pass
         return parent.run(self)
 
+import distutils.command.sdist
+parent = distutils.command.sdist.sdist
+class sdist(parent):
+    """Like the standard sdist, but also prints out MD5 checksums and sizes
+    for the created files, for convenience."""
+    def run(self):
+        import md5
+        retval = parent.run(self)
+        for archive in self.get_archive_files():
+            data = file(archive, "rb").read()
+            print '\n', archive, "\n\tMD5:", md5.md5(data).hexdigest()
+            print "\tLength:", len(data)
+        return retval
+        
 scripts=['scripts/sb_client.py',
          'scripts/sb_dbexpimp.py',
          'scripts/sb_evoscore.py',
@@ -106,23 +120,30 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    cmdclass = {'install_scripts': install_scripts},
+    cmdclass = {'install_scripts': install_scripts,
+                'sdist': sdist,
+                },
     scripts=scripts,
     packages = [
         'spambayes',
         'spambayes.resources',
         ],
     classifiers = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
+        'Environment :: Plugins',
+        'Environment :: Win32 (MS Windows)',
         'License :: OSI Approved :: Python Software Foundation License',
         'Operating System :: POSIX',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows :: Windows 95/98/2000',
         'Operating System :: Microsoft :: Windows :: Windows NT/2000',
+        'Natural Language :: English',
         'Programming Language :: Python',
+        'Programming Language :: C',
         'Intended Audience :: End Users/Desktop',
         'Topic :: Communications :: Email :: Filters',
         'Topic :: Communications :: Email :: Post-Office :: POP3',
+        'Topic :: Communications :: Email :: Post-Office :: IMAP',
         ],
     )
