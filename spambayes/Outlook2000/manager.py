@@ -93,17 +93,26 @@ class BayesManager:
 
     def LoadConfig(self):
         try:
-            ret = cPickle.load(open(self.config_filename,'rb'))
+            f = open(self.config_filename, 'rb')
+        except IOError:
+            if self.verbose:
+                print ("Created new configuration file '%s'" %
+                       self.config_filename)
+            return _ConfigurationRoot()
+
+        try:
+            ret = cPickle.load(f)
             if self.verbose > 1:
                 print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
-        except (AttributeError, ImportError, IOError):
+        except (AttributeError, ImportError):
             ret = _ConfigurationRoot()
             if self.verbose > 1:
                 print ("FAILED to load configuration from '%s "
                        "- using default:" % self.config_filename)
                 import traceback
                 traceback.print_exc()
+        f.close()
         return ret
 
     def InitNewBayes(self):
