@@ -15,6 +15,9 @@ later -- as is, the false positive rate has gotten too small to measure
 reliably across test sets with 4000 hams + 2750 spams, but the false
 negative rate is still over 1%.
 
+The code here depends in various ways on the latest Python from CVS
+(a.k.a. Python 2.3a0 :-).
+
 
 Primary Files
 =============
