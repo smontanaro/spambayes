@@ -503,7 +503,7 @@ class GrahamBayes(object):
         # number.
 
         # The real P = this P times 2**Pexp.  Likewise for Q.  We're
-        # simulating unbounding dynamic float range by hand.  If this pans
+        # simulating unbounded dynamic float range by hand.  If this pans
         # out, *maybe* we should store logarithms in the database instead
         # and just add them here.
         P = Q = 1.0
@@ -538,7 +538,7 @@ class GrahamBayes(object):
             # (x*2**e)**n = x**n * 2**(e*n)
             n = 1.0 / num_clues
             P = 1.0 - P**n * 2.0**(Pexp * n)
-            Q = 1.0 - P**n * 2.0**(Qexp * n)
+            Q = 1.0 - Q**n * 2.0**(Qexp * n)
 
             prob = (P-Q)/(P+Q)  # in -1 .. 1
             prob = 0.5 + prob/2 # shift to 0 .. 1
@@ -587,7 +587,8 @@ class GrahamBayes(object):
             #         a + (n * p(w))
             # f(w) = ---------------
             #          (a / x) + n
-            n = hamcount + spamratio
+
+            n = hamcount + spamcount
             prob = (A + n * prob) / (AoverX + n)
 
             if record.spamprob != prob:
