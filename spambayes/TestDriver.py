@@ -123,13 +123,19 @@ class Driver:
         self.trained_ham_hist = Hist(options.nbuckets)
         self.trained_spam_hist = Hist(options.nbuckets)
 
+    # CAUTION:  this just doesn't work for incrememental training when
+    # options.use_central_limit is in effect.
     def train(self, ham, spam):
         print "-> Training on", ham, "&", spam, "...",
         c = self.classifier
         nham, nspam = c.nham, c.nspam
         self.tester.train(ham, spam)
         print c.nham - nham, "hams &", c.nspam- nspam, "spams"
+        c.compute_population_stats(ham, False)
+        c.compute_population_stats(spam, True)
 
+    # CAUTION:  this just doesn't work for incrememental training when
+    # options.use_central_limit is in effect.
     def untrain(self, ham, spam):
         print "-> Forgetting", ham, "&", spam, "...",
         c = self.classifier

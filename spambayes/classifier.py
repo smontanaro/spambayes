@@ -220,11 +220,38 @@ class GrahamBayes(object):
     __slots__ = ('wordinfo',  # map word to WordInfo record
                  'nspam',     # number of spam messages learn() has seen
                  'nham',      # number of non-spam messages learn() has seen
+
+                 # The rest is unique to the central-limit code.
+                 # n is the # of data points in the population.
+                 # sum is the sum of the probabilities, and is a long scaled
+                 # by 2**64.
+                 # sumsq is the sum of the squares of the probabilities, and
+                 # is a long scaled by 2**128.
+                 # mean is the mean probability of the population, as an
+                 # unscaled float.
+                 # var is the variance of the population, as unscaled float.
+                 # There's one set of these for the spam population, and
+                 # another for the ham population.
+                 # XXX If this code survives, clean it up.
+                 'spamn',
+                 'spamsum',
+                 'spamsumsq',
+                 'spammean',
+                 'spamvar',
+
+                 'hamn',
+                 'hamsum',
+                 'hamsumsq',
+                 'hammean',
+                 'hamvar',
                 )
 
     def __init__(self):
         self.wordinfo = {}
         self.nspam = self.nham = 0
+        self.spamn = self.hamn = 0
+        self.spamsum = self.spamsumsq = 0
+        self.hamsum = self.hamsumsq = 0
 
     def __getstate__(self):
         return PICKLE_VERSION, self.wordinfo, self.nspam, self.nham
@@ -450,6 +477,36 @@ class GrahamBayes(object):
                 if record.hamcount == 0 == record.spamcount:
                     del self.wordinfo[word]
 
+    def compute_population_stats(self, msgstream, is_spam):
+        pass
+
+    # XXX More stuff should be reworked to use this as a helper function.
+    def _getclues(self, wordstream):
+        # A priority queue to remember the MAX_DISCRIMINATORS best
+        # probabilities, where "best" means largest distance from 0.5.
+        # The tuples are (distance, prob, word, record).
+        nbest = [(-1.0, None, None, None)] * options.max_discriminators
+        smallest_best = -1.0
+
+        wordinfoget = self.wordinfo.get
+        now = time.time()
+        for word in Set(wordstream):
+            record = wordinfoget(word)
+            if record is None:
+                prob = UNKNOWN_SPAMPROB
+            else:
+                record.atime = now
+                prob = record.spamprob
+
+            distance = abs(prob - 0.5)
+            if distance > smallest_best:
+                heapreplace(nbest, (distance, prob, word, record))
+                smallest_best = nbest[0][0]
+
+        clues = [(prob, word, record)
+                    for distance, prob, word, record in nbest
+                    if prob is not None]
+        return clues
 
     #************************************************************************
     # Some options change so much behavior that it's better to write a
@@ -598,6 +655,90 @@ class GrahamBayes(object):
                 # to allow a persistent db to realize the record has changed.
                 self.wordinfo[word] = record
 
-
     if options.use_robinson_probability:
         update_probabilities = robinson_update_probabilities
+
+    def central_limit_compute_population_stats(self, msgstream, is_spam):
+        from math import ldexp
+
+        sum = sumsq = 0
+        seen = {}
+        for msg in msgstream:
+            for prob, word, record in self._getclues(msg):
+                if word in seen:
+                    continue
+                seen[word] = 1
+                prob = long(ldexp(prob, 64))
+                sum += prob
+                sumsq += prob * prob
+        n = len(seen)
+
+        if is_spam:
+            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
+            spamsum = self.spamsum
+            self.spammean = ldexp(spamsum, -64) / self.spamn
+            spamvar = self.spamsumsq * self.spamn - spamsum**2
+            self.spamvar = ldexp(spamvar, -128) / (self.spamn ** 2)
+            print 'spammean', self.spammean, 'spamvar', self.spamvar
+        else:
+            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
+            hamsum = self.hamsum
+            self.hammean = ldexp(hamsum, -64) / self.hamn
+            hamvar = self.hamsumsq * self.hamn - hamsum**2
+            self.hamvar = ldexp(hamvar, -128) / (self.hamn ** 2)
+            print 'hammean', self.hammean, 'hamvar', self.hamvar
+
+    if options.use_central_limit:
+        compute_population_stats = central_limit_compute_population_stats
+
+    def central_limit_spamprob(self, wordstream, evidence=False):
+        """Return best-guess probability that wordstream is spam.
+
+        wordstream is an iterable object producing words.
+        The return value is a float in [0.0, 1.0].
+
+        If optional arg evidence is True, the return value is a pair
+            probability, evidence
+        where evidence is a list of (word, probability) pairs.
+        """
+
+        from math import sqrt
+
+        clues = self._getclues(wordstream)
+        sum = 0.0
+        for prob, word, record in clues:
+            sum += prob
+            if record is not None:
+                record.killcount += 1
+        n = len(clues)
+        if n == 0:
+            return 0.5
+        mean = sum / n
+
+        # If this sample is drawn from the spam population, its mean is
+        # distributed around spammean with variance spamvar/n.  Likewise
+        # for if it's drawn from the ham population.  Compute a normalized
+        # z-score (how many stddevs is it away from the population mean?)
+        # against both populations, and then it's ham or spam depending
+        # on which population it matches better.
+        zham = (mean - self.hammean) / sqrt(self.hamvar / n)
+        zspam = (mean - self.spammean) / sqrt(self.spamvar / n)
+        stat = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
+
+        # Normalize into [0, 1].  I'm arbitrarily clipping it to fit in
+        # [-20, 20] first.  20 is a massive z-score difference.
+        if stat < -20.0:
+            stat = -20.0
+        elif stat > 20.0:
+            stat = 20.0
+        stat = 0.5 + stat / 40.0
+
+        if evidence:
+            clues = [(word, prob) for prob, word, record in clues]
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            return stat, clues
+        else:
+            return stat
+
+    if options.use_central_limit:
+        spamprob = central_limit_spamprob

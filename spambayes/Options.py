@@ -184,6 +184,18 @@ use_robinson_ranking: False
 # corpus.  Since one effect is to separate the means more, you'll probably
 # want a higher spam_cutoff.
 robinson_minimum_prob_strength: 0.0
+
+###########################################################################
+# More speculative options for Gary Robinson's central-limit.  These may go
+# away, or a bunch of incompatible stuff above may go away.
+
+# Use a central-limit approach for scoring.
+# The number of extremes to use is given by max_discriminators (above).
+# spam_cutoff should almost certainly be exactly 0.5 when using this approach.
+# DO NOT run cross-validation tests when this is enabled!  They'll deliver
+# nonense, or, if you're lucky, will blow up with division by 0 or negative
+# square roots.  An NxN test grid should work fine.
+use_central_limit: False
 """
 
 int_cracker = ('getint', None)
@@ -229,6 +241,8 @@ all_options = {
                    'robinson_probability_x': float_cracker,
                    'use_robinson_ranking': boolean_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
+
+                   'use_central_limit': boolean_cracker,
                    },
 }
 
