@@ -287,7 +287,7 @@ class BayesManager:
                     print "", details
             if include_sub:
                 # Recurse down the folder list.
-                folders = item.Folders
+                folders = item.Parent.Folders
                 folder = folders.GetFirst()
                 while folder is not None:
                     self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
