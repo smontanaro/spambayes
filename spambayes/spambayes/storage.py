@@ -235,12 +235,18 @@ class DBDictClassifier(classifier.Classifier):
             word = word.encode("utf-8")
         if record.spamcount + record.hamcount <= 1:
             self.db[word] = record.__getstate__()
-            # Remove this word from the changed list (not that it should be
-            # there, but strange things can happen :)
             try:
                 del self.changed_words[word]
             except KeyError:
+                # This can happen if, e.g., a new word is trained as ham
+                # twice, then untrained once, all before a store().
                 pass
+
+            try:
+                del self.wordinfo[word]
+            except KeyError:
+                pass
+
         else:
             self.wordinfo[word] = record
             self.changed_words[word] = WORD_CHANGED

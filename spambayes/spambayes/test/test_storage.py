@@ -25,7 +25,7 @@ class _StorageTestBase(unittest.TestCase):
         self.classifier = None
         if os.path.isfile(self.db_name):
             os.remove(self.db_name)
-    
+
     def _checkWordCounts(self, word, expected_ham, expected_spam):
         assert word
         info = self.classifier._wordinfoget(word)
@@ -90,12 +90,42 @@ class _StorageTestBase(unittest.TestCase):
                                    ("hapax", 0, 0)),
                                   do_persist)
 
-        
+
         c.unlearn(["common"], False)
         self._checkAllWordCounts( (("common", 0, 0),
                                    ("nearly_hapax", 0, 0),
                                    ("hapax", 0, 0)),
                                   do_persist)
+
+    def test_bug777026(self):
+        c = self.classifier
+        word = "tim"
+        c.learn([word], False)
+        c.learn([word], False)
+        self._checkAllWordCounts([(word, 2, 0)], False)
+
+        # Clone word's WordInfo record.
+        record = self.classifier.wordinfo[word]
+        newrecord = type(record)()
+        newrecord.__setstate__(record.__getstate__())
+        self.assertEqual(newrecord.hamcount, 2)
+        self.assertEqual(newrecord.spamcount, 0)
+
+        # Reduce the hamcount -- this tickled an excruciatingly subtle
+        # bug in a DBDictClassifier's _wordinfoset, which, at the time
+        # this test was written, couldn't actually be provoked by the
+        # way _wordinfoset got called by way of learn() and unlearn()
+        # methods.  The code implicitly relied on that the record passed
+        # to _wordinfoset was always the same object as was already
+        # in wordinfo[word].
+        newrecord.hamcount -= 1
+        c._wordinfoset(word, newrecord)
+        # If the bug is present, the DBDictClassifier still believes
+        # the hamcount is 2.
+        self._checkAllWordCounts([(word, 1, 0)], False)
+
+        c.unlearn([word], False)
+        self._checkAllWordCounts([(word, 0, 0)], False)
 
 # Test classes for each classifier.
 class PickleStorageTestCase(_StorageTestBase):
