@@ -135,11 +135,16 @@ definitely a spam.  But look at the internal scores - it was certain that it
 like anything it's seen before - so the only thing to do is to punt it out 
 with an 'unsure' answer.
 </P>
-<P>
-These two central limit 
-approaches were dropped after Tim, Gary and Rob Hooft produced a combining
-scheme using <a href="http://mathworld.wolfram.com/Chi-SquaredDistribution.html">chi-squared probabilities</a>. This is now the default combining
-scheme. </p>
+<P>The central limit approaches were dropped after Gary suggested a
+novel but well-founded combining scheme using 
+<a href="http://mathworld.wolfram.com/Chi-SquaredDistribution.html">chi-squared
+probabilities</a>. 
+Tim implemented it, including a unique routine to compute 
+-2*sum(ln p_i) without logarithms and without underflow worries.
+Many, many testers reported excellent results.  This is now the 
+default combining scheme.  Some end cases were improved when 
+Rob Hooft discovered a cleaner way to combine the internal overall ham 
+and spam scores, which improved detection of the "middle ground".</P>
 <P>Chi-combining is similar to the central limit approaches, but it doesn't
 have the annoying training problems that central limit approaches suffered
 from, and it produces a "smoother" score.
