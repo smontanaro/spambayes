@@ -568,11 +568,12 @@ def tokenize_word(word, _len=len):
         # A long word.
 
         # Don't want to skip embedded email addresses.
+        # An earlier scheme also split up the y in x@y on '.'.  Not splitting
+        # improved the f-n rate; the f-p rate didn't care either way.
         if n < 40 and '.' in word and word.count('@') == 1:
             p1, p2 = word.split('@')
             yield 'email name:' + p1
-            for piece in p2.split('.'):
-                yield 'email addr:' + piece
+            yield 'email addr:' + p2
 
         # If there are any high-bit chars,
         # tokenize it as byte 5-grams.

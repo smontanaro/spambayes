@@ -106,7 +106,7 @@ class MsgStream(object):
         all = os.listdir(directory)
         random.seed(hash(directory))
         random.shuffle(all)
-        for fname in all[-500:]:
+        for fname in all[-1500:-1000:]:
             yield Msg(directory, fname)
 
     def __iter__(self):
