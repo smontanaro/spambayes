@@ -1121,16 +1121,17 @@ class OutlookAddin:
 
             self.explorers_events = None # create at OnStartupComplete
 
+            if self.manager.never_configured:
+                import dialogs
+                dialogs.ShowWizard(0, self.manager)
+
             if self.manager.config.filter.enabled:
                 # A little "sanity test" to help the user.  If our status is
                 # 'enabled', then it means we have previously managed to
-                # convince the manager dialog we have enough ham/spam and
-                # valid folders.  If for some reason, we have zero ham or spam,
-                # or no folder definitions but are 'enabled', then it is likely
+                # convince the manager dialog to enable.  If for some reason,
+                # we no folder definitions but are 'enabled', then it is likely
                 # something got hosed and the user doesn't know.
-                bayes = self.manager.classifier_data.bayes
-                if bayes.nham==0 or bayes.nspam==0 or \
-                   not self.manager.config.filter.spam_folder_id or \
+                if not self.manager.config.filter.spam_folder_id or \
                    not self.manager.config.filter.watch_folder_ids:
                     msg = "It appears there was an error loading your configuration\r\n\r\n" \
                           "Please re-configure SpamBayes via the SpamBayes dropdown"
