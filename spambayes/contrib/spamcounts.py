@@ -3,7 +3,7 @@
 """
 Check spamcounts for various tokens or patterns
 
-usage %(prog)s [ -h ] [ -r ] [ -d db ] [ -p ] [ -t ] [ -z ] ...
+usage %(prog)s [ -h ] [ -r ] [ -d db ] [ -p ] [ -t ] ...
 
 -h    - print this documentation and exit.
 -r    - treat tokens as regular expressions - may not be used with -t
