@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 Dan Bernstein's CDB implemented in Python
 
@@ -27,9 +28,11 @@ def cdb_hash(buf):
 class Cdb(object):
 
     def __init__(self, fp):
+        self.fp = fp
         fd = fp.fileno()
         self.size = os.fstat(fd).st_size
         self.map = mmap.mmap(fd, self.size, access=mmap.ACCESS_READ)
+        self.eod = uint32_unpack(self.map[:4])
         self.findstart()
         self.loop = 0 # number of hash slots searched under this key
         # initialized if loop is nonzero
@@ -42,6 +45,48 @@ class Cdb(object):
 
     def close(self):
         self.map.close()
+
+    def __iter__(self, fn=None):
+        len = 2048
+        ret = []
+        while len < self.eod:
+            klen, vlen = struct.unpack("<LL", self.map[len:len+8])
+            len += 8
+            key = self.map[len:len+klen]
+            len += klen
+            val = self.map[len:len+vlen]
+            len += vlen
+            if fn:
+                yield fn(key, val)
+            else:
+                yield (key, val)
+
+    def iteritems(self):
+        return self.__iter__()
+
+    def iterkeys(self):
+        return self.__iter__(lambda k,v: k)
+
+    def itervalues(self):
+        return self.__iter__(lambda k,v: v)
+
+    def items(self):
+        ret = []
+        for i in self.iteritems():
+            ret.append(i)
+        return ret
+
+    def keys(self):
+        ret = []
+        for i in self.iterkeys():
+            ret.append(i)
+        return ret
+
+    def values(self):
+        ret = []
+        for i in self.itervalues():
+            ret.append(i)
+        return ret
 
     def findstart(self):
         self.loop = 0
@@ -100,6 +145,13 @@ class Cdb(object):
             return self.findnext(key)
         except KeyError:
             return default
+
+def cdb_dump(infile):
+    """dump a database in djb's cdbdump format"""
+    db = Cdb(infile)
+    for key,value in db.iteritems():
+        print "+%d,%d:%s->%s" % (len(key), len(value), key, value)
+    print
 
 def cdb_make(outfile, items):
     pos = 2048
