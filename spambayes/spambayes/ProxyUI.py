@@ -559,7 +559,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             box = self._buildBox(title, 'status.gif', page)
 
         self.write(box)
-        self._writePostamble()
+        self._writePostamble(help_topic="review")
 
     def _contains(self, a, b, ignore_case=False):
         """Return true if substring b is part of string a."""

@@ -21,6 +21,7 @@ These currently include:
   onSave - save the database and possibly shutdown
   onConfig - present the appropriate configuration page
   onAdvancedconfig - present the appropriate advanced configuration page
+  onHelp - present the help page
 
 To Do:
 
@@ -82,7 +83,7 @@ import Dibbler
 import tokenizer
 from Options import options, optionsPathname, defaults, OptionsClass
 
-IMAGES = ('helmet', 'status', 'config',
+IMAGES = ('helmet', 'status', 'config', 'help',
           'message', 'train', 'classify', 'query')
 
 class UserInterfaceServer(Dibbler.HTTPServer):
@@ -132,7 +133,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
         return False
 
-    def _getHTMLClone(self):
+    def _getHTMLClone(self, help_topic=None):
         """Gets a clone of the HTML, with the footer timestamped, and
         version information added, ready to be modified and sent to the
         browser."""
@@ -140,6 +141,8 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
         clone.footer.timestamp = timestamp
         clone.footer.version = Version.get_version_string(self.app_for_version)
+        if help_topic:
+            clone.helplink.href = "help?topic=%s" % (help_topic,)
         return clone
 
     def _writePreamble(self, name, parent=None, showImage=True):
@@ -177,9 +180,9 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         self.writeOKHeaders('text/html')
         self.write(re.sub(r'</div>\s*</body>\s*</html>', '', str(html)))
 
-    def _writePostamble(self):
+    def _writePostamble(self, help_topic=None):
         """Writes the end of time-consuming pages - see `_writePreamble`."""
-        self.write("</div>" + self._getHTMLClone().footer)
+        self.write("</div>" + self._getHTMLClone(help_topic).footer)
         self.write("</body></html>")
 
     def _trimHeader(self, field, limit, quote=False):
@@ -886,3 +889,23 @@ class UserInterface(BaseUserInterface):
                     options.set(section, option, d.get(section,option))
 
         options.update_file(optionsPathname)
+
+    def onHelp(self, topic=None):
+        self._writePreamble("Help")
+        helppage = self.html.helppage.clone()
+        if topic:
+            # Present help specific to a certain page.  We probably want to
+            # load this from a file, rather than fill up UserInterface.py,
+            # but for demonstration purposes, do this for now.
+            if topic == "review":
+                helppage.helpheader = "Review Page Help"
+                helppage.helptext = "This page lists messages that have " \
+                                    "arrived in the last %s days and that " \
+                                    "have not yet been trained.  You should " \
+                                    "go through the messages, correcting " \
+                                    "the classification where necessary, " \
+                                    "and then click train, to train " \
+                                    "SpamBayes with these messages" \
+                                    % (options["Storage", "cache_expiry_days"],)
+        self.write(helppage)
+        self._writePostamble()
