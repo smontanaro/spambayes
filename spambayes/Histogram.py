@@ -34,7 +34,7 @@ class Hist:
     def compute_stats(self):
         if self.stats_uptodate:
             return
-        stats_uptodate = True
+        self.stats_uptodate = True
         data = self.data
         n = self.n = len(data)
         if n == 0:
