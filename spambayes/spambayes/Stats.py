@@ -55,7 +55,7 @@ class Stats(object):
 
     def CalculateStats(self):
         self.Reset()
-        for msg in msginfoDB.db:
+        for msg in msginfoDB.db.keys():
             self.total += 1
             m = self.__empty_msg()
             m.id = msg
