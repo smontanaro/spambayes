@@ -112,8 +112,9 @@ button.</li>
 button.</li>
     <li>If the SpamBayes addin is not listed, then SpamBayes should be
 reinstalled (Note that running <span style="font-style: italic;">regsvr32.exe
-outlook_addin.dll</span> from the SpamBayes directory may also solve
-this problem)</li>
+outlook_addin.dll</span> or <span style="font-style: italic;">
+outlook_addin_register.exe</span> from the SpamBayes directory may also
+solve this problem).</li>
     <li>If the SpamBayes addin is listed but not checked, then simply
 check it and close the dialog.</li>
   </ol>
@@ -248,9 +249,9 @@ a particular machine, which can be useful in enterprise arrangements
 where users have 'roaming profiles'<br>
 To register SpamBayes in this way, you must log on as a user with
 permissions to modify the system registry, then execute the command
-(obviously with the correct patch substituted):<br>
-<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; regsvr32.exe
-/i:hkey_local_machine "c:\Program Files\SpamBayes\bin\outlook_addin.dll"</span><br>
+(obviously with the correct path substituted):<br>
+<span style="font-style: italic;">&nbsp;&nbsp;&nbsp;
+"c:\Program Files\SpamBayes\bin\outlook_addin_register.exe" hkey_local_machine</span><br>
 If you <a href="#CheckLog">check the installation log</a> after
 performing such an install, you should see the following messages:<br>
 <span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registered:
