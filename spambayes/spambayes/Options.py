@@ -190,7 +190,7 @@ defaults = {
      little in Anthony Baxter's tests.""",
      BOOLEAN, RESTORE),
 
-    ("safe_headers", "Safe headers", ("abuse-reports-to", "date errors-to",
+    ("safe_headers", "Safe headers", ("abuse-reports-to", "date", "errors-to",
                                       "from", "importance", "in-reply-to",
                                       "message-id", "mime-version",
                                       "organization", "received",
@@ -1154,9 +1154,11 @@ class Option(object):
                         # we know at this point that len(self.value) is at
                         # least two, because len==0 and len==1 were dealt
                         # with as special cases
-                        test_str = v0 + sep + v1
+                        test_str = str(v0) + sep + str(v1)
                         test_tuple = self._split_values(test_str)
-                        if test_tuple[0] == v0 and test_tuple[1] == v1 and \
+                        print test_tuple, v0, v1
+                        if test_tuple[0] == str(v0) and \
+                           test_tuple[1] == str(v1) and \
                            len(test_tuple) == 2:
                             break
                     # cache this so we don't always need to do the above
