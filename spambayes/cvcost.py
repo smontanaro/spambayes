@@ -71,12 +71,17 @@ def main(fn):
     spamhist = []
     for line in open(fn):
         if state == 0:
+            # Searching for start of 'all runs' ham histogram.
             if line.startswith('-> <stat> Ham scores for all runs'):
                 state = 1
+
         elif state == 1:
+            # Searching for first bucket in ham histogram.
             if line.startswith('*'):
                 state = 2
+
         elif state == 2:
+            # Parsing ham histogram bucket line.
             word = line.split()
             try:
                 v = float(word[0])
@@ -84,17 +89,24 @@ def main(fn):
                 hamhist.append((v, cnt))
             except IndexError:
                 state = 3
+
         elif state == 3:
+            # Searchin for first bucket in spam histogram.
             if line.startswith('*'):
                 state = 4
-        elif state == 4:
+
+        else:
+            assert state == 4
+            # Parsing spam histogram bucket line.
             word = line.split()
             try:
                 v = float(word[0])
                 cnt = int(word[1])
                 spamhist.append((v, cnt))
             except ValueError:
-                state = 5
+                break
+
+
     besthamcut = 50
     bestspamcut = 80
     bestcost = cost(spamhist, hamhist, besthamcut, bestspamcut)
