@@ -13,45 +13,45 @@ future.</p>
 
 <h2>About the PSF</h2>
 <p>The PSF is a non-profit organization devoted to advancing the
-Python programming language.  The PSF is a registered US non-profit 
-organization, so all donations made by US residents will be fully tax 
-deductible (but see the 
+Python programming language.  The PSF is a public charity under US
+tax law, and all donations made by US residents are tax
+deductible (see the
 <a href="http://www.python.org/psf/donations.html">PSF donations page</a>
-for specific details).</p>
+for details).</p>
 
-<p>For more information on the PSF, please see the 
+<p>For more information on the PSF, please see the
 <a href="http://www.python.org/psf/">PSF web site</a>.
 
 <h2>Why donate to the PSF?</h2>
-<p>SpamBayes is written in the 
-<a href="http://www.python.org">Python programming language</a>.  The 
-developers of SpamBayes believe that if it were not for Python, SpamBayes 
-would simply not exist - the productivity gains and ease of use made it 
-possible for a bunch of hackers to experiment freely and somehow end up with 
+<p>SpamBayes is written in the
+<a href="http://www.python.org">Python programming language</a>.  The
+developers of SpamBayes believe that if it were not for Python, SpamBayes
+would simply not exist - the productivity gains and ease of use made it
+possible for a bunch of hackers to experiment freely and somehow end up with
 this very nice tool.</p>
 
-<p>In addition, the developers are all strong advocates of Open Source 
+<p>In addition, the developers are all strong advocates of Open Source
 Software.  It gives us powerful, free tools we can use to develop software,
-but more importantly, the tools come with the ultimate technical reference - 
-the source code.  Therefore, we are able to fully understand and sometimes 
+but more importantly, the tools come with the ultimate technical reference -
+the source code.  Therefore, we are able to fully understand and sometimes
 even fix the tools we rely on.
 </p>
 
 <h2>Yeah yeah, but why donate to the PSF?</h2>
 <p>Many different people have donated their time to this project, which makes
-it unreasonable for any individual to collect money.  As the PSF is a 
+it unreasonable for any individual to collect money.  As the PSF is a
 registered non-profit and devoted to promoting Open Source Software, it
 seems the logical choice.</p>
 
 <h2>What will the PSF do with my money?  Will it be spent on SpamBayes?</h2>
-<p>Your SpamBayes donation goes into the general PSF fund; it is not 
+<p>Your SpamBayes donation goes into the general PSF fund; it is not
 earmarked specifically for the SpamBayes project.  In the future, the PSF
 may make additional funds available for SpamBayes, for some other worthy
 Open Source project, or for some other purpose within its charter.  You
-may like to read the 
-<a href="http://www.python.org/psf/mission.html">PSF Mission Statement</a> 
+may like to read the
+<a href="http://www.python.org/psf/mission.html">PSF Mission Statement</a>
 for more details.</p>
-    
+
 <h2>OK, OK, where do I pay?</h2>
 <p>Please make sure you have read this document, so you know exactly
 why you are giving money ('cos the software is so cool) and to whom
@@ -67,7 +67,7 @@ why you are giving money ('cos the software is so cool) and to whom
     <input type="hidden" name="currency_code" value="USD">
     <input type="hidden" name="tax" value="0">
     <input type="image" src="https://www.paypal.com/images/x-click-but21.gif"
-           border="0" name="submit" 
+           border="0" name="submit"
            alt="Donate to the Python Software Foundation using PayPal">
   </form>
 </p>
