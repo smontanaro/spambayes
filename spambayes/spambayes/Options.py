@@ -1285,7 +1285,7 @@ class OptionsClass(object):
         '''Update the specified configuration file.'''
         sectname = None
         optname = None
-        out = TemporaryFile("w")
+        out = TemporaryFile()
         if os.path.exists(filename):
             f = file(filename, "r")
         else:
@@ -1356,7 +1356,8 @@ class OptionsClass(object):
             # save a backup of the old file
             shutil.copyfile(filename, filename + ".bak")
         # copy the new file across
-        f = file(filename)
+        f = file(filename, "w")
+        out.seek(0)
         shutil.copyfileobj(out, f)
         out.close()
         f.close()
