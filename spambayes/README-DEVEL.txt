@@ -332,10 +332,16 @@ Notepad and sometimes it's convenient to do so.  End users might not even
 have any other text editor, so it make things like the README unREADable.
 8-)
 
+ o If any new file types have been added since last time (eg. 1.0a5 went
+   out without the Windows .rc and .h files) then add them to MANIFEST.in.
+   If there are any new scripts or packages, add them to setup.py.  Test
+   these changes (by building source packages according to the instructions
+   below) then commit your edits.
  o Checkout the 'spambayes' module twice, once with Windows line endings
    and once with Unix line endings (I use WinCVS for this, using "Admin /
    Preferences / Globals / Checkout text files with the Unix LF".
- o Change spambayes/__init__.py to contain the new version number.
+ o Change spambayes/__init__.py to contain the new version number but don't
+   commit it yet, just in case something goes wrong.
  o In the Windows checkout, run "python setup.py sdist --formats zip"
  o In the Unix checkout, run "python setup.py sdist --formats gztar"
  o Take the resulting spambayes-1.0a5.zip and spambayes-1.0a5.tar.gz, and
@@ -348,6 +354,9 @@ have any other text editor, so it make things like the README unREADable.
    When it comes to the "what's new" and the ChangeLog, I cut'n'paste the
    relevant pieces of WHAT_IS_NEW.txt and CHANGELOG.txt into the form, and
    check the "Keep my preformatted text" checkbox.
+ o Now commit spambayes/__init__.py and tag the whole checkout - see the
+   existing tag names for the tag name format.
+ o Update the website News section.
 
-The announce the release on spambayes-announce, spambayes and spambayes-dev
-(why do things by halves?) and whatch the bug reports roll in.  8-)
+Then announce the release on the mailing lists and watch the bug reports
+roll in.  8-)
