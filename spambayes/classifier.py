@@ -441,24 +441,28 @@ class Bayes(object):
         # on which population it matches better.
         zham = (mean - self.hammean) / sqrt(self.hamvar / n)
         zspam = (mean - self.spammean) / sqrt(self.spamvar / n)
-        stat = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
+        delta = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
 
-        # Normalize into [0, 1].  I'm arbitrarily clipping it to fit in
-        # [-20, 20] first.  20 is a massive z-score difference.
-        if stat < -20.0:
-            stat = -20.0
-        elif stat > 20.0:
-            stat = 20.0
-        stat = 0.5 + stat / 40.0
+        azham, azspam = abs(zham), abs(zspam)
+        if azham < azspam:
+            ratio = azspam / max(azham, 1e-10) # guard against 0 division
+        else:
+            ratio = azham / max(azspam, 1e-10) # guard against 0 division
+        certain = ratio > options.zscore_ratio_cutoff
+
+        if certain:
+            score = delta > 0.0 and 1.0 or 0.0
+        else:
+            score = delta > 0.0 and 0.51 or 0.49
 
         if evidence:
             clues = [(word, prob) for prob, word, record in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
             clues.insert(0, ('*zspam*', zspam))
             clues.insert(0, ('*zham*', zham))
-            return stat, clues
+            return score, clues
         else:
-            return stat
+            return score
 
     if options.use_central_limit:
         spamprob = central_limit_spamprob
@@ -532,24 +536,28 @@ class Bayes(object):
         # on which population it matches better.
         zham = (hmean - self.hammean) / sqrt(self.hamvar / n)
         zspam = (smean - self.spammean) / sqrt(self.spamvar / n)
-        stat = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
+        delta = abs(zham) - abs(zspam)  # > 0 for spam, < 0 for ham
 
-        # Normalize into [0, 1].  I'm arbitrarily clipping it to fit in
-        # [-20, 20] first.  20 is a massive z-score difference.
-        if stat < -20.0:
-            stat = -20.0
-        elif stat > 20.0:
-            stat = 20.0
-        stat = 0.5 + stat / 40.0
+        azham, azspam = abs(zham), abs(zspam)
+        if azham < azspam:
+            ratio = azspam / max(azham, 1e-10) # guard against 0 division
+        else:
+            ratio = azham / max(azspam, 1e-10) # guard against 0 division
+        certain = ratio > options.zscore_ratio_cutoff
+
+        if certain:
+            score = delta > 0.0 and 1.0 or 0.0
+        else:
+            score = delta > 0.0 and 0.51 or 0.49
 
         if evidence:
             clues = [(word, prob) for prob, word, record in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
             clues.insert(0, ('*zspam*', zspam))
             clues.insert(0, ('*zham*', zham))
-            return stat, clues
+            return score, clues
         else:
-            return stat
+            return score
 
     if options.use_central_limit2:
         spamprob = central_limit_spamprob2

@@ -217,6 +217,18 @@ use_central_limit: False
 # Same as use_central_limit, except takes logarithms of probabilities and
 # probability complements (p and 1-p) instead.
 use_central_limit2: False
+
+# For now, a central-limit scheme considers its decision "certain" if the
+# ratio of the zscore with larger magnitude to the zscore with smaller
+# magnitude exceeds zscore_ratio_cutoff.  The value here is seat-of-the-
+# pants for use_central_limit2; nothing is known about use_central_limit wrt
+# this.
+# For now, a central-limit scheme delivers just one of 4 scores:
+# 0.00  -- certain it's ham
+# 0.49  -- guesses ham but is unsure
+# 0.51  -- guesses spam but is unsure
+# 1.00  -- certain it's spam
+zscore_ratio_cutoff: 1.9
 """
 
 int_cracker = ('getint', None)
@@ -263,6 +275,7 @@ all_options = {
 
                    'use_central_limit': boolean_cracker,
                    'use_central_limit2': boolean_cracker,
+                   'zscore_ratio_cutoff': float_cracker,
                    },
 }
 
