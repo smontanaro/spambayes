@@ -2,8 +2,6 @@
 
 """Test that the SMTP proxy is working correctly.
 
-When using the -z command line option, carries out various tests.
-
 The -t option runs a fake SMTP server on port 8025.  This is the
 same server that the testing option uses, and may be separately run for
 other testing purposes.
@@ -19,7 +17,7 @@ Usage:
 Any other options runs this in the standard Python unittest form.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-4
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -65,39 +63,29 @@ Chris
 """
 
 import re
+import sys
 import socket
 import getopt
 import asyncore
 import operator
 import unittest
-import threading
+import thread
 import smtplib
 
-# We need to import sb_server, but it may not be on the PYTHONPATH.
-# Hack around this, so that if we are running in a cvs-like setup
-# everything still works.
-import os
-import sys
-try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
-sb_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(this_file))))
-if sb_dir not in sys.path:
-    sys.path.append(sb_dir)
-    sys.path.append(os.path.join(sb_dir, "scripts"))
+import sb_test_support
+sb_test_support.fix_sys_path()
 
 from spambayes import Dibbler
 from spambayes import tokenizer
 from spambayes.Options import options
 from sb_server import state, _recreateState
-from spambayes.smtpproxy import BayesSMTPProxyListener
+from spambayes.smtpproxy import BayesSMTPProxyListener, SMTPTrainer
 from spambayes.ProxyUI import ProxyUserInterface
 from spambayes.UserInterface import UserInterfaceServer
+from spambayes.classifier import Classifier
 
 class TestListener(Dibbler.Listener):
-    """Listener for TestPOP3Server.  Works on port 8025, because 8025
-    wouldn't work for Tony."""
+    """Listener for TestSMTPServer."""
 
     def __init__(self, socketMap=asyncore.socket_map):
         Dibbler.Listener.__init__(self, 8025, TestSMTPServer,
@@ -113,7 +101,7 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
     def __init__(self, clientSocket, socketMap):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
-        Dibbler.BrighterAsyncChat.__init__(self)
+        Dibbler.BrighterAsyncChat.__init__(self, map=socketMap)
         Dibbler.BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
         self.set_terminator('\r\n')
         self.okCommands = ['MAIL FROM:', 'RCPT TO:', 'DATA', 'QUIT', 'KILL',]
@@ -130,10 +118,8 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
     def collect_incoming_data(self, data):
         """Asynchat override."""
         self.request = self.request + data
-        print "data", data
 
     def push(self, data):
-        print "pushing", repr(data)
         Dibbler.BrighterAsyncChat.push(self, data)
 
     def recv(self, buffer_size):
@@ -141,7 +127,7 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
         try:
             return Dibbler.BrighterAsyncChat.recv(self, buffer_size)
         except socket.error, e:
-            if e[0] == 10053:
+            if e[0] == 10035:
                 return ''
             raise
 
@@ -160,12 +146,13 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
                     handler = self.handlers[cmd]
                     cooked = handler(self.request[len(cmd):])
                     if cooked is not None:
-                        self.push(cooked.strip())
+                        self.push(cooked)
                     foundCmd = True
                     break
             if not foundCmd:
                 # Something we don't know about.  Assume that it is ok!
-                self.push("250 Unknown command ok.\r\n")
+                self.push("250 Unknown command %s ok.\r\n" %
+                          (self.request,))
         self.request = ''
 
     def onKill(self, args):
@@ -188,6 +175,7 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
         elif args == options["smtpproxy", "spam_address"].upper():
             return "504 This command should not have got to the server\r\n"
         return "250 %s... Recipient ok\r\n" % (args.lower(),)
+
     def onData(self, args):
         self.inData = True
         return '354 Enter mail, end with "." on a line by itself\r\n'
@@ -197,38 +185,10 @@ class SMTPProxyTest(unittest.TestCase):
     """Runs a self-test using TestSMTPServer, a minimal SMTP server
     that receives mail and discards it."""
     def setUp(self):
-        # Run a proxy and a test server in separate threads with separate
-        # asyncore environments.  Don't bother with the UI.
-        state.isTest = True
-        testServerReady = threading.Event()
-        def runTestServer():
-            testSocketMap = {}
-            #TestListener(socketMap=testSocketMap)
-            testServerReady.set()
-            #asyncore.loop(map=testSocketMap)
-
-        proxyReady = threading.Event()
-        def runProxy():
-            trainer = None
-            BayesSMTPProxyListener('localhost', 8025, ('', 8026), trainer)
-            proxyReady.set()
-            Dibbler.run()
-
-        serverThread = threading.Thread(target=runTestServer)
-        serverThread.setDaemon(True)
-        serverThread.start()
-        testServerReady.wait()
-        proxyThread = threading.Thread(target=runProxy)
-        proxyThread.setDaemon(True)
-        proxyThread.start()
-        proxyReady.wait()
+        pass
 
     def tearDown(self):
-        return
-        # Kill the proxy and the test server.
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(('localhost', 8025))
-        s.send("kill\r\n")
+        pass
 
     def test_direct_connection(self):
         # Connect to the test server.
@@ -264,15 +224,14 @@ class SMTPProxyTest(unittest.TestCase):
                          "Couldn't connect to proxy server")
         proxy.send('quit\r\n')
 
-    def qtest_disconnection(self):
+    def test_disconnection(self):
         proxy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         proxy.connect(('localhost', 8025))
         try:
             response = proxy.recv(100)
         except socket.error, e:
-            if e[0] == 10035:
-                # non-blocking socket so that the recognition
-                # can proceed, so this doesn't mean much
+            if e[0] == 10053:
+                # Socket is dead, which is what we want.
                 pass
             else:
                 raise
@@ -280,9 +239,8 @@ class SMTPProxyTest(unittest.TestCase):
         try:
             response = proxy.recv(100)
         except socket.error, e:
-            if e[0] == 10035:
-                # non-blocking socket so that the recognition
-                # can proceed, so this doesn't mean much
+            if e[0] == 10053:
+                # Socket is dead, which is what we want.
                 pass
             else:
                 raise
@@ -290,12 +248,18 @@ class SMTPProxyTest(unittest.TestCase):
                          "Couldn't disconnect from SMTP server")
 
     def test_sendmessage(self):
-        try:
-            s = smtplib.SMTP('localhost', 8026)
-            s.sendmail("ta-meyer@ihug.co.nz", "ta-meyer@ihug.co.nz", good1)
-            s.quit()
-        except:
-            self.fail("Couldn't send a message through.")
+        s = smtplib.SMTP('localhost', 8026)
+        s.sendmail("ta-meyer@ihug.co.nz", "ta-meyer@ihug.co.nz", good1)
+        s.quit()
+
+    def test_ham_intercept(self):
+        pre_ham_trained = bayes.nham
+        s = smtplib.SMTP('localhost', 8026)
+        s.sendmail("ta-meyer@ihug.co.nz",
+                   options["smtpproxy", "ham_address"], good1)
+        s.quit()
+        post_ham_trained = bayes.nham
+        self.assertEqual(pre_ham_trained+1, post_ham_trained)
 
 def suite():
     suite = unittest.TestSuite()
@@ -305,12 +269,11 @@ def suite():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htz')
+        opts, args = getopt.getopt(sys.argv[1:], 'ht')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    runSelfTest = False
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
@@ -318,9 +281,6 @@ def run():
         elif opt == '-t':
             state.isTest = True
             state.runTestServer = True
-        elif opt == '-z':
-            state.isTest = True
-            runSelfTest = True
 
     state.createWorkers()
 
@@ -329,8 +289,22 @@ def run():
         TestListener()
         asyncore.loop()
     else:
+        state.isTest = True
         state.buildServerStrings()
-        unittest.main(argv=sys.argv + ['suite'])
+        testSocketMap = {}
+        def runTestServer():
+            TestListener(socketMap=testSocketMap)
+            asyncore.loop(map=testSocketMap)
+        def runProxy():
+            global bayes
+            bayes = Classifier()
+            trainer = SMTPTrainer(bayes, state)
+            BayesSMTPProxyListener('localhost', 8025, ('', 8026), trainer)
+            Dibbler.run()
+        thread.start_new_thread(runTestServer, ())
+        thread.start_new_thread(runProxy, ())
+        sb_test_support.unittest_main(argv=sys.argv + ['suite'])
+
 
 if __name__ == '__main__':
     run()
