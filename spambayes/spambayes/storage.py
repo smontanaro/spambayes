@@ -62,7 +62,7 @@ except NameError:
     def bool(val):
         return not not val
 
-import sys
+import sys, types
 from spambayes import classifier
 from spambayes.Options import options
 import cPickle as pickle
@@ -603,7 +603,8 @@ def open_storage(data_source_name, useDB=True):
     the type of database.  If the source name doesn't include "::",
     then a DBDictClassifier is used."""
     if useDB:
-        if data_source_name.find('::') != -1:
+        if (isinstance(data_source_name, types.StringTypes) and
+            data_source_name.find('::') != -1):
             db_type, rest = data_source_name.split('::', 1)
             if _storage_types.has_key(db_type.lower()):
                 klass = _storage_types[db_type.lower()]
