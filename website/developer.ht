@@ -24,7 +24,7 @@ results from various test corpuses, it's not going to get very far. </p>
 things <i>worse</i>, not better - it seems that stupid beats smart in many
 or even most cases.</p>
 <p>There's a bunch of documentation on things that have already been tried
-available as links from the <a href="documentation.html">documentation</a> page.
+available as links from the <a href="docs.html">documentation</a> page.
 
 <h2>Collecting training data</h2>
 <p>One of the tricky problems is collecting a set of data that's 
