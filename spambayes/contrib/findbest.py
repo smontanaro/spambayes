@@ -109,15 +109,14 @@ def score(unsure, h, cls, scores, msgids=None, skipspam=False):
     add = okalready.add
     for msg in getmbox(unsure):
         prob = cls.spamprob(tokenize(msg))
+        n += 1
         if prob >= spam_cutoff:
-            n += 1
             add(msg['message-id'])
         else:
-            n += 1
             total += prob
     first_mean = total/n
 
-    print len(okalready), "messages already score as spam"
+    print len(okalready), "out of", n, "messages already score as spam"
     print "initial mean spam prob: %.3f" % first_mean
 
     print "%5s %3s %5s %5s %s" % ("prob", "new", "mean", "sdev", "msgid")
