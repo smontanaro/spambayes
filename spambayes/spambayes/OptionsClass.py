@@ -183,6 +183,8 @@ class Option(object):
             
     def _split_values(self, value):
         # do the regex mojo here
+        if not self.allowed_values:
+            return ('',)
         try:
             r = re.compile(self.allowed_values)
         except:
