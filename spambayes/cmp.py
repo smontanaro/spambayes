@@ -81,13 +81,19 @@ def tag(p1, p2):
 def mtag(m1,m2):
     mean1,dev1 = m1
     mean2,dev2 = m2
-    mp = (mean2 - mean1) * 100.0 / mean1
-    dp = (dev2 - dev1) * 100.0 / dev1
-
-    return "%2.2f %2.2f (%+2.2f%%)     %2.2f %2.2f (%+2.2f%%)" %  (
-            mean1,mean2,mp,
-            dev1,dev2,dp
-        )
+    t = "%7.2f %7.2f " % (mean1, mean2)
+    if mean1:
+        mp = (mean2 - mean1) * 100.0 / mean1
+        t += "%+7.2f%%" % mp
+    else:
+        t += "+(was 0)"
+    t += "     %7.2f %7.2f " % (dev1, dev2)
+    if dev1:
+        dp = (dev2 - dev1) * 100.0 / dev1
+        t += "%+7.2f%%" % dp
+    else:
+        t += "+(was 0)"
+    return t
 
 def dump(p1s, p2s):
     alltags = ""
@@ -133,14 +139,14 @@ print "total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2)
 print "mean fn % went from", fnmean1, "to", fnmean2, tag(fnmean1, fnmean2)
 
 print
-print "ham mean                 ham sdev"
+print "ham mean                     ham sdev"
 dumpdev(hamdev1,hamdev2)
 print
 print "ham mean and sdev for all runs"
 dumpdev([hamdevall1],[hamdevall2])
 
 print
-print "spam mean                spam sdev"
+print "spam mean                    spam sdev"
 dumpdev(spamdev1,spamdev2)
 print
 print "spam mean and sdev for all runs"
