@@ -5,12 +5,20 @@ import os, sys, stat
 def LoadDialogs(rc_name = "dialogs.rc"):
     base_name = os.path.splitext(rc_name)[0]
     mod_name = "dialogs.resources." + base_name
-    mod = None
+
+    # I18N
+    # Loads a foreign language dialogs.py file, assuming that sys.path
+    # already points to one with the foreign language resources.
+    try:
+        mod = __import__("i18n_" + base_name)
+    except ImportError:
+        mod = None
+
     # If we are running from source code, check the .py file is up to date
     # wrt the .rc file passed in.
     # If we are running from binaries, the rc name is not used at all - we
     # assume someone running from source previously generated the .py!
-    if not hasattr(sys, "frozen"):
+    if not hasattr(sys, "frozen") and not mod:
         from resources import rc2py
         rc_path = os.path.dirname( rc2py.__file__ )
         if not os.path.isabs(rc_name):

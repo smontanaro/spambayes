@@ -1125,6 +1125,11 @@ defaults = {
      through this proxy server.  The port defaults to 8080, or can be
      entered with the server:port form.""",
      SERVER, DO_NOT_RESTORE),
+
+    ("language", "User Interface Language", ("en_US",),
+     """If possible, the user interface should use a language from this
+     list (in order of preference).""",
+     r"\w\w(?:_\w\w)?", RESTORE),
   ),
 }
 

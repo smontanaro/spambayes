@@ -5,6 +5,12 @@
 # Foundation license.
 __author__="Adam Walker"
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
 import sys, os, shlex
 import win32con
 #import win32gui
@@ -91,6 +97,17 @@ class ControlDef:
         return t
 
 
+class gt_str(str):
+    """Change a string to a gettext version of itself."""
+    def __repr__(self):
+        if len(self) > 0:
+            # timeit indicates that addition is faster than interpolation
+            # here
+            return "_(" + super(gt_str, self).__repr__() + ")"
+        else:
+            return super(gt_str, self).__repr__() 
+
+
 class RCParser:
     next_id = 1001
     dialogs = {}
@@ -102,6 +119,7 @@ class RCParser:
         self.ids = {"IDOK":1, "IDCANCEL":2, "IDC_STATIC": -1}
         self.names = {1:"IDOK", 2:"IDCANCEL", -1:"IDC_STATIC"}
         self.bitmaps = {}
+        self.gettexted = False
 
     def debug(self, *args):
         if self.debugEnabled:
@@ -292,7 +310,11 @@ class RCParser:
             self.getToken()
         self.token = self.token[1:-1]
         self.debug("Caption is:",self.token)
-        dlg.caption = self.token
+        if self.gettexted:
+            # gettext captions 
+            dlg.caption = gt_str(self.token)
+        else:
+            dlg.caption = self.token
         self.getToken()
     def dialogFont(self, dlg):
         if "FONT"==self.token:
@@ -312,7 +334,11 @@ class RCParser:
             #print self.token
             self.getToken()
             if self.token[0:1]=='"':
-                control.label = self.token[1:-1]
+                if self.gettexted:
+                    # gettext labels 
+                    control.label = gt_str(self.token[1:-1])
+                else:
+                    control.label = self.token[1:-1]
                 self.getCommaToken()
                 self.getToken()
             elif self.token.isdigit():
@@ -351,8 +377,10 @@ class RCParser:
                 control.style, control.styles = self.styles([], defaultControlStyle)
             #print control.toString()
             dlg.controls.append(control)
-def ParseDialogs(rc_file):
+
+def ParseDialogs(rc_file, gettexted=False):
     rcp = RCParser()
+    rcp.gettexted = gettexted
     try:
         rcp.loadDialogs(rc_file)
     except:

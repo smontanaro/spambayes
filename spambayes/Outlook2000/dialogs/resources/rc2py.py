@@ -10,13 +10,14 @@ with the same basic public interface as the rcparser module.
 import sys, os, stat
 import rcparser
 
-def convert(inputFilename = None, outputFilename = None):
+def convert(inputFilename = None, outputFilename = None,
+            enableGettext = True):
     """See the module doc string"""
     if inputFilename is None:
         inputFilename = "dialogs.rc"
     if outputFilename is None:
         outputFilename = "test.py"
-    rcp = rcparser.ParseDialogs(inputFilename)
+    rcp = rcparser.ParseDialogs(inputFilename, enableGettext)
     in_stat = os.stat(inputFilename)
 
     out = open(outputFilename, "wt")
@@ -33,7 +34,9 @@ def convert(inputFilename = None, outputFilename = None):
     out.close()
 
 if __name__=="__main__":
-    if len(sys.argv)>1:
-        convert(sys.argv[1], sys.argv[2])
+    if len(sys.argv) > 3:
+        convert(sys.argv[1], sys.argv[2], bool(sys.argv[3]))
+    elif len(sys.argv) > 2:
+        convert(sys.argv[1], sys.argv[2], True)
     else:
         convert()
