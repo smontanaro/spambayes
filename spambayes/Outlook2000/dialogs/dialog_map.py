@@ -36,6 +36,19 @@ class TrainingStatusProcessor(ControlProcessor):
         nham = bayes.nham
         if nspam > 10 and nham > 10:
             db_status = "Database has %d good and %d spam." % (nham, nspam)
+            db_ratio = nham/float(nspam)
+            big = small = None
+            if db_ratio > 5.0:
+                big = "ham"
+                small = "spam"
+            elif db_ratio < (1/5.0):
+                big = "spam"
+                small = "ham"
+            if big is not None:                
+                db_status = "%s\nWarning: you have much more %s than %s - " \
+                            "SpamBayes works best with approximately even " \
+                            "numbers of ham and spam." % (db_status, big,
+                                                          small)
         elif nspam > 0 or nham > 0:
             db_status = "Database only has %d good and %d spam - you should " \
                         "consider performing additional training." % (nham, nspam)
