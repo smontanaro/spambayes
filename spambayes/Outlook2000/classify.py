@@ -3,7 +3,7 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-import sys, os, os.path, getopt, cPickle, string
+import sys, os, traceback
 from win32com.client import Dispatch, constants
 import pythoncom
 import win32con
@@ -13,9 +13,13 @@ def classify_folder( f, mgr, config, progress):
         if progress.stop_requested():
             break
         progress.tick()
-        prob = mgr.score(message)
-        message.SetField(config.field_name, prob)
-        message.Save()
+        try:
+            prob = mgr.score(message)
+            message.SetField(config.field_name, prob)
+            message.Save()
+        except:
+            print "Error classifying message '%s'" % (message,)
+            traceback.print_exc()
 
 # Called back from the dialog to do the actual training.
 def classifier(mgr, progress):

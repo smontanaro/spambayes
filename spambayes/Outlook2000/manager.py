@@ -81,9 +81,6 @@ class BayesManager:
                                self.ini_filename, self.bayes_filename))
         bayes = None
         try:
-            # Ooops - Tim did it another way - checking this in before I get more conficts!
-##            from Options import options
-##            options.mergefiles([self.ini_filename])
             bayes = cPickle.load(open(self.bayes_filename, 'rb'))
             print "Loaded bayes database from '%s'" % (self.bayes_filename,)
         except IOError:
@@ -130,9 +127,6 @@ class BayesManager:
         return ret
 
     def InitNewBayes(self):
-            # Ooops - Tim did it another way - checking this in before I get more conficts!
-##        from Options import options
-##        options.mergefiles([self.ini_filename])
         self.bayes = bayes_classifier.Bayes()
         self.bayes_dirty = True
 

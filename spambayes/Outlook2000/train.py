@@ -3,7 +3,7 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-import sys, os
+import sys, os, traceback
 
 def train_folder( f, isspam, mgr, progress):
     from tokenizer import tokenize
@@ -12,8 +12,12 @@ def train_folder( f, isspam, mgr, progress):
         if progress.stop_requested():
             break
         progress.tick()
-        stream = message.GetEmailPackageObject()
-        mgr.bayes.learn(tokenize(stream), isspam, False)
+        try:
+            stream = message.GetEmailPackageObject()
+            mgr.bayes.learn(tokenize(stream), isspam, False)
+        except:
+            print "Error training message '%s'" % (message,)
+            traceback.print_exc()
         num += 1
     print "Trained over", num, "in folder", f.name
 
