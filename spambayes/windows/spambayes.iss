@@ -4,8 +4,8 @@
 
 [Setup]
 AppName=SpamBayes
-AppVerName=SpamBayes 1.1a1
-AppVersion=1.1a1
+AppVerName=SpamBayes Experimental Binary
+AppVersion=0.85
 DefaultDirName={pf}\SpamBayes
 DefaultGroupName=SpamBayes
 OutputDir=.
@@ -25,6 +25,7 @@ Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: Instal
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_dump_props.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\docs\outlook\*.*"; DestDir: "{app}\docs\outlook"; Check: InstallingOutlook; Flags: ignoreversion recursesubdirs
+Source: "py2exe\dist\docs\outlook\docs\welcome.html"; DestDir: "{app}\docs\outlook\docs"; Check: InstallingOutlook; Flags: isreadme
 
 Source: "py2exe\dist\bin\sb_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\sb_tray.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
