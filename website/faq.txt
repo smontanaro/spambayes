@@ -1478,6 +1478,33 @@ case).
 .. _appropriate SourceForge tracker: http://sourceforge.net/tracker/index.php?func=detail&aid=854547&group_id=61702&atid=498103
                                  
 
+Messages don't move after clicking until I change folder
+--------------------------------------------------------
+
+This applies to users of the Outlook plug-in and Exchange: what you will
+see is that if you click the "Delete As Spam" or "Recover From Spam"
+button the message won't move until you refresh the Outlook display in some
+manner (change folder, select another item, etc).
+
+Actually, the message is moved immediately - it's the Outlook display that
+doesn't get updated, so it just looks like the message hasn't moved.
+
+We believe that this is an Outlook problem that we are triggering (but
+we do not know of any way to work around it.  Please let us know if you
+have more information than we do!).  If you are using Exchange 2003 you
+can enable 'cached mode' and that typically fixes it.
+
+We suspect that this applies to particular combinations of Outlook and
+Exchange versions.  It seems to be newer versions of Outlook (earliest
+seen so far is Outlook 2002 SP2) that are affected.
+
+For the moment, it appears that this is a problem with Outlook, and that
+the most likely solution will be in an update to Outlook from Microsoft.
+
+Please don't report this as a new bug.  However, if you have any additional
+information about this situtation, we would love to hear it.
+
+
 Development
 ===========
 
