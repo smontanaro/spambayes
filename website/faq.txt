@@ -1228,6 +1228,26 @@ assignment".  It may also show up on other pages than the review messages
 one, such as looking up a word in the database.
 
 
+sb_imapfilter prints out "Skipping unparseable message", but the message vanishes!
+----------------------------------------------------------------------------------
+
+This is a known problem with the 1.0a9 (0.9) release, and will be fixed in
+the next release.  Unless you have something set to expunge/purge the IMAP
+folder, the original message will still be there, marked as deleted, so you
+can get it back, although malformed messages are most likely to be spam,
+anyway.
+
+If you need a fix for this before the next release, you can get sb_imapfilter.py
+from CVS (revision 1.26), and use it instead of the one included with 1.0a9 (0.9).
+
+Note that in addition to the message disappearing, you'll find a new message
+(almost certainly unsure) which is blank, apart from the SpamBayes headers.
+You may safely delete these messages.  If you are training and come across
+one of these messages, you'll also have the ham/spam count in your database
+increase, without any tokens increasing their count, but that shouldn't have
+any effect, as long as it doesn't happen regularly.
+
+
 Development
 ===========
 
