@@ -399,41 +399,99 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # Check UID and message_number.
         message_number = "123"
         uid = "5432"
-        response = "%s (UID %s)" % (message_number, uid)
+        response = ("%s (UID %s)" % (message_number, uid),)
         data = self.imap.extract_fetch_data(response)
-        self.assertEqual(data["message_number"], message_number)
-        self.assertEqual(data["UID"], uid)
+        self.assertEqual(data[message_number]["message_number"],
+                         message_number)
+        self.assertEqual(data[message_number]["UID"], uid)
 
         # Check INTERNALDATE, FLAGS.
         flags = r"(\Seen \Deleted)"
         date = '"27-Jul-2004 13:11:56 +1200"'
-        response = "%s (FLAGS %s INTERNALDATE %s)" % \
-                   (message_number, flags, date)
+        response = ("%s (FLAGS %s INTERNALDATE %s)" % \
+                   (message_number, flags, date),)
         data = self.imap.extract_fetch_data(response)
-        self.assertEqual(data["FLAGS"], flags)
-        self.assertEqual(data["INTERNALDATE"], date)
+        self.assertEqual(data[message_number]["message_number"],
+                         message_number)
+        self.assertEqual(data[message_number]["FLAGS"], flags)
+        self.assertEqual(data[message_number]["INTERNALDATE"], date)
 
         # Check RFC822 and literals.
         rfc = "Subject: Test\r\n\r\nThis is a test message."
-        response = ("%s (RFC822 {%s}" % (message_number, len(rfc)), rfc)
+        response = (("%s (RFC822 {%s}" % (message_number, len(rfc)), rfc),)
         data = self.imap.extract_fetch_data(response)
-        self.assertEqual(data["message_number"], message_number)
-        self.assertEqual(data["RFC822"], rfc)
+        self.assertEqual(data[message_number]["message_number"],
+                         message_number)
+        self.assertEqual(data[message_number]["RFC822"], rfc)
 
         # Check RFC822.HEADER.
         headers = "Subject: Foo\r\nX-SpamBayes-ID: 1231-1\r\n"
-        response = ("%s (RFC822.HEADER {%s}" % (message_number,
-                                                len(headers)), headers)
+        response = (("%s (RFC822.HEADER {%s}" % (message_number,
+                                                len(headers)), headers),)
         data = self.imap.extract_fetch_data(response)
-        self.assertEqual(data["RFC822.HEADER"], headers)
+        self.assertEqual(data[message_number]["RFC822.HEADER"], headers)
 
         # Check BODY.PEEK.
         peek = "Subject: Test2\r\n\r\nThis is another test message."
-        response = ("%s (BODY[] {%s}" % (message_number, len(peek)),
-                    peek)
+        response = (("%s (BODY[] {%s}" % (message_number, len(peek)),
+                    peek),)
         data = self.imap.extract_fetch_data(response)
-        self.assertEqual(data["BODY[]"], peek)
+        self.assertEqual(data[message_number]["BODY[]"], peek)
 
+        # A more complcated test with more than one message number.
+        uid = '3018'
+        flags = '(\\Seen \\Deleted)'
+        headers = "Return-Path: <tameyer@ihug.co.nz>\r\nX-Original-To" \
+                  ": david@leinbach.name\r\nDelivered-To: dleinbac@ma" \
+                  "il2.majro.dhs.org\r\nReceived: from its-mail1.mass" \
+                  "ey.ac.nz (its-mail1.massey.ac.nz [130.123.128.11])" \
+                  "\r\n\tby mail2.majro.dhs.org (Postfix) with ESMTP " \
+                  "id 7BC5018FE22\r\n\tfor <david@leinbach.name>; Mon" \
+                  ", 13 Dec 2004 22:46:05 -0800 (PST)\r\nReceived: fr" \
+                  "om its-mm1.massey.ac.nz (its-mm1 [130.123.128.45])" \
+                  "\r\n\tby its-mail1.massey.ac.nz (8.9.3/8.9.3) with" \
+                  "ESMTP id TAA12081;\r\n\tTue, 14 Dec 2004 19:45:56 " \
+                  "+1300 (NZDT)\r\nReceived: from its-campus2.massey." \
+                  "ac.nz (Not Verified[130.123.48.254]) by its-mm1.ma" \
+                  "ssey.ac.nz with NetIQ MailMarshal\r\n\tid <B003745" \
+                  "788>; Tue, 14 Dec 2004 19:45:56 +1300\r\nReceived:" \
+                  "from it029048 (it029048.massey.ac.nz [130.123.238." \
+                  "51])\r\n\tby its-campus2.massey.ac.nz (8.9.3/8.9.3" \
+                  ") with ESMTP id TAA05881;\r\n\tTue, 14 Dec 2004 19" \
+                  ':45:55 +1300 (NZDT)\r\nFrom: "Tony Meyer"  <tameye' \
+                  'r@ihug.co.nz>\r\nTo: "\'David Leinbach\'" <david@l' \
+                  "einbach.name>, <spambayes@python.org>\r\nSubject: " \
+                  "RE: [Spambayes] KeyError in sp_imapfilter\r\nDate:" \
+                  "Tue, 14 Dec 2004 19:45:25 +1300\r\nMessage-ID: <EC" \
+                  "BA357DDED63B4995F5C1F5CBE5B1E86C3872@its-xchg4.mas" \
+                  "sey.ac.nz>\r\nMIME-Version: 1.0\r\nContent-Type: t" \
+                  'ext/plain;\r\n\tcharset="us-ascii"\r\nContent-Tran' \
+                  "sfer-Encoding: quoted-printable\r\nX-Priority: 3 (" \
+                  "Normal)\r\nX-MSMail-Priority: Normal\r\nX-Mailer: " \
+                  "Microsoft Outlook, Build 10.0.4510\r\nIn-Reply-To:" \
+                  "<ECBA357DDED63B4995F5C1F5CBE5B1E801A49168@its-xchg" \
+                  ".massey.ac.nz>\r\nX-Habeas-SWE-1: winter into spri" \
+                  "ng\r\nX-Habeas-SWE-2: brightly anticipated\r\nX-Ha" \
+                  "beas-SWE-3: like Habeas SWE (tm)\r\nX-Habeas-SWE-4" \
+                  ": Copyright 2002 Habeas (tm)\r\nX-Habeas-SWE-5: Se" \
+                  "nder Warranted Email (SWE) (tm). The sender of thi" \
+                  "s\r\nX-Habeas-SWE-6: email in exchange for a licen" \
+                  "se for this Habeas\r\nX-Habeas-SWE-7: warrant mark" \
+                  "warrants that this is a Habeas Compliant\r\nX-Habe" \
+                  "as-SWE-8: Message (HCM) and  not spam. Please repo" \
+                  "rt use of this\r\nX-Habeas-SWE-9: mark in spam to " \
+                  "<http://www.habeas.com/report/>.\r\nX-MimeOLE: Pro" \
+                  "duced By Microsoft MimeOLE V6.00.2900.2180\r\nImpo" \
+                  "rtance: Normal\r\n\r\n"
+        response = ['1 (FLAGS %s)' % flags,
+                    ('2 (UID %s RFC822.HEADER {%d}' % (uid, len(headers)),
+                     headers), ')'] 
+        data = self.imap.extract_fetch_data(response)
+        self.assertEqual(data['1']["message_number"], '1')
+        self.assertEqual(data['2']["message_number"], '2')
+        self.assertEqual(data['1']["FLAGS"], flags)
+        self.assertEqual(data['2']["UID"], uid)
+        self.assertEqual(data['2']["RFC822.HEADER"], headers)
 
 class IMAPMessageTest(BaseIMAPFilterTest):
     def setUp(self):
