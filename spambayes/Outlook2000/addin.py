@@ -31,10 +31,27 @@ import win32gui, win32con, win32clipboard # for button images!
 try:
     win32api.GetConsoleTitle()
 except win32api.error:
-    # No console - redirect
-    import win32traceutil
-    print "Outlook Spam Addin module loading"
-
+    # No console - if we are running from Python sources,
+    # redirect to win32traceutil, but if running from a binary
+    # install, redirect to a log file.
+    # Want to move to logging module later, so for now, we
+    # hack together a simple logging strategy.
+    if hasattr(sys, "frozen"):
+        dir = win32api.GetTempPath()
+        for i in range(3,0,-1):
+            try: os.unlink(os.path.join(dir, "spambayes%d.log" % (i+1)))
+            except os.error: pass
+            try:
+                os.rename(
+                    os.path.join(dir, "spambayes%d.log" % i),
+                    os.path.join(dir, "spambayes%d.log" % (i+1))
+                    )
+            except os.error: pass
+        # Open this log, as unbuffered so crashes still get written.
+        sys.stdout = open(os.path.join(dir,"spambayes1.log"), "wt", 0)
+        sys.stderr = sys.stdout
+    else:
+        import win32traceutil
 
 # Attempt to catch the most common errors - COM objects not installed.
 try:
