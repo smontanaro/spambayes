@@ -2,6 +2,7 @@
 
 Alpha Release 9
 ===============
+Skip Montanaro    07/02/2004  New script - tte.py: Train to exhaustion based upon my understanding of the technique as described in Gary Robinson's blog.
 Tony Meyer        05/02/2004  Web interface: added a third configuration page, which dynamically has all the experimental options (not the deprecated ones).
 Tony Meyer        05/02/2004  Make all the scripts consistent in their command line setting of database type/name.  -d is dbm, -p is pickle.  Also setup things nicer for mysql and pgsql.
 Tony Meyer        05/02/2004  If the allowed values for an option is a tuple of values, then the type is correct if the value is one of those types. 
