@@ -32,6 +32,9 @@ Where OPTIONS is one or more of:
         need to rebuild your database from scratch.
     -q
         quiet mode; no output
+        
+    -n  train mail residing in "new" directory, in addition to "cur" directory,
+        which is always trained
 """
 
 try:
@@ -92,9 +95,9 @@ def maildir_train(h, path, is_spam, force):
     counter = 0
     trained = 0
 
-    for fn in os.listdir(os.path.join(path, "cur")):
+    for fn in os.listdir(path):
         counter += 1
-        cfn = os.path.join(path, "cur", fn)
+        cfn = os.path.join(path, fn)
         tfn = os.path.join(path, "tmp",
                            "%d.%d_%d.%s" % (time.time(), pid,
                                             counter, host))
@@ -208,7 +211,9 @@ def train(h, path, is_spam, force):
     if os.path.isfile(path):
         mbox_train(h, path, is_spam, force)
     elif os.path.isdir(os.path.join(path, "cur")):
-        maildir_train(h, path, is_spam, force)
+        maildir_train(h, os.path.join(path, "cur"), is_spam, force)
+    elif trainnew and os.path.isdir(os.path.join(path, "new")):
+        maildir_train(h, os.path.join(path, "new"), is_spam, force)
     elif os.path.isdir(path):
         mhdir_train(h, path, is_spam, force)
     else:
@@ -229,7 +234,7 @@ def main():
     global loud
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hfqd:D:g:s:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hfqnd:D:g:s:')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -239,6 +244,7 @@ def main():
     pck = None
     usedb = None
     force = False
+    trainnew = False
     good = []
     spam = []
     for opt, arg in opts:
@@ -246,6 +252,8 @@ def main():
             usage(0)
         elif opt == "-f":
             force = True
+        elif opt == "-n":
+            trainnew = True
         elif opt == "-q":
             loud = False
         elif opt == '-g':
