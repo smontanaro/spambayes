@@ -878,7 +878,11 @@ defaults = {
      BOOLEAN, RESTORE),
 
     ("use_ssl", "Connect via a secure socket layer", False,
-     """NOT YET IMPLEMENTED""",
+     """Use SSL to connect to the server. This allows spambayes to connect
+     without sending the password in plain text.
+
+     Note that this does not check the server certificate at this point in
+     time.""",
      BOOLEAN, DO_NOT_RESTORE),
 
     ("filter_folders", "Folders to filter", ("INBOX",),
