@@ -653,11 +653,10 @@ class UserInterface(BaseUserInterface):
         return html
 
     def onChangeopts(self, **parms):
+        pmap = self.parm_ini_map
         if parms.has_key("how"):
             if parms["how"] == "Save advanced options":
                 pmap = self.advanced_options_map
-            else:
-                pmap = self.parm_ini_map
             del parms["how"]
         html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"

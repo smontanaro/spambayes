@@ -485,9 +485,10 @@ class IMAPFolder(object):
         imap.SelectFolder(self.name)
         response = imap.uid("SEARCH", "UNDELETED")
         self._check(response, "SEARCH UNDELETED")
-        if response[1][0] == "":
+        if response[1][0]:
+            return response[1][0].split(' ')
+        else:
             return []
-        return response[1][0].split(' ')
 
     def __getitem__(self, key):
         '''Return message (no substance) matching the given *uid*.'''
