@@ -132,7 +132,7 @@ fpfn.py
 Test Data Utilities
 ===================
 cleanarch
-    A script to repair mbox archives by finding "From" lines that
+    A script to repair mbox archives by finding "Unix From" lines that
     should have been escaped, and escaping them.
 
 unheader.py
@@ -210,8 +210,9 @@ Data/
         reservoir/ (contains "backup ham")
 
 Every file at the deepest level is used (not just files with .txt
-extenstions).  Every file should have a "Unix From" header before the
-RFC-822 message (i.e. a line of the form "From <address> <date>").
+extenstions).  The files may bot don't need to have a "Unix From"
+header before the RFC-822 message (i.e. a line of the form "From
+<address> <date>").
 
 If you use the same names and structure, huge mounds of the tedious testing
 code will work as-is.  The more Set directories the merrier, although you
