@@ -157,7 +157,7 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
         self.args = ''              # ...and its arguments
         self.isClosing = False      # Has the server closed the socket?
         self.inData = False
-        self.data = ""
+        self.data = []
         self.blockData = False
 
         if not self.onIncomingConnection(clientSocket):
@@ -235,11 +235,11 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             self.args = splitCommand[1:]
 
         if self.inData == True:
-            self.data += self.request + '\r\n'
+            self.data.append(self.request + '\r\n')
             if self.request == ".":
                 self.inData = False
-                cooked = self.onProcessData(self.data)
-                self.data = ""
+                cooked = self.onProcessData("".join(self.data))
+                self.data = []
                 if self.blockData == False:
                     self.serverSocket.push(cooked)
                 else:
