@@ -388,12 +388,24 @@ pop3proxy_unknown_cache: pop3proxy-unknown-cache
 pop3proxy_persistent_use_database: True
 pop3proxy_persistent_storage_file: hammie.db
 pop3proxy_notate_to: False
+pop3proxy_add_mailid_header: False
+pop3proxy_mailid_header_name: X-Spambayes-MailId
+pop3proxy_mailid_as_header: False
+pop3proxy_mailid_in_msgbody: False
+pop3proxy_strip_incoming_mailids: False
 pop3proxy_notate_subject: False
 
 # Deprecated - use pop3proxy_servers and pop3proxy_ports instead.
 pop3proxy_server_name:
 pop3proxy_server_port: 110
 pop3proxy_port: 110
+
+[smtpproxy]
+smtpproxy_servers:
+smtpproxy_ports:
+smtpproxy_ham_address = spambayes_ham@localhost
+smtpproxy_spam_address = spambayes_spam@localhost
+smtpproxy_shutdown_address = spambayes_shutdown@localhost
 
 [html_ui]
 html_ui_port: 8880
@@ -495,7 +507,18 @@ all_options = {
                   'pop3proxy_persistent_use_database': boolean_cracker,
                   'pop3proxy_persistent_storage_file': string_cracker,
                   'pop3proxy_notate_to': boolean_cracker,
+                  'pop3proxy_add_mailid_header' : boolean_cracker,
+                  'pop3proxy_mailid_header_name' : string_cracker,
+                  'pop3proxy_mailid_as_header' : boolean_cracker,
+                  'pop3proxy_mailid_in_msgbody' : boolean_cracker,
+                  'pop3proxy_strip_incoming_mailids' : boolean_cracker,
                   'pop3proxy_notate_subject': boolean_cracker,
+                  },
+    'smtpproxy': {'smtpproxy_ham_address' : string_cracker,
+                  'smtpproxy_spam_address' : string_cracker,
+                  'smtpproxy_shutdown_address' : string_cracker,
+                  'smtpproxy_servers' : string_cracker,
+                  'smtpproxy_ports' : string_cracker, 
                   },
     'html_ui': {'html_ui_port': int_cracker,
                 'html_ui_launch_browser': boolean_cracker,

@@ -154,7 +154,7 @@ a:hover { color: #6040ff }
 <p class="uiHtmlHeader">reviewTable</p>
 
     <span id="reviewtable">
-    <p>These are untrained emails, which you can use to
+    <p>These are emails that you can use to
     train the classifier.  Check the appropriate button for
     each email, then click 'Train' below.  'Defer' leaves the
     message here, to be trained on later.  Click one of the
@@ -259,6 +259,15 @@ a:hover { color: #6040ff }
     <form id="wordQuery" action='wordquery'>
     <input id="word" name='word' value='' type='text' size='30'/>
     <input type='submit' value='Tell me about this word'/>
+    </form>
+
+
+<hr/>
+<p class="uiHtmlHeader">findMessage</p>
+
+    <form id="findMessage" action='review' method='POST'>
+    <input id="find" name='find' value='' type='text' size='10'/>
+    <input type='submit' value='Enter the id of the message to find'/>
     </form>
 
 

@@ -22,6 +22,7 @@ header.  Usage:
             -u port : User interface listens on this port number
                       (default 8880; Browse http://localhost:8880/)
             -b      : Launch a web browser showing the user interface.
+            -s      : Start a SMTPProxy server for training use.
 
         All command line arguments and switches take their default
         values from the [pop3proxy] and [html_ui] sections of
@@ -495,9 +496,26 @@ class BayesProxy(POP3ProxyBase):
                 if command == 'RETR':
                     state.numUnsure += 1
 
-            header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
+            if options.pop3proxy_strip_incoming_mailids == True:
+                s = re.compile(options.pop3proxy_mailid_header_name + ': [\d-]+[\\r]?[\\n]?')
+                messageText = s.sub('', messageText)
+
             headers, body = re.split(r'\n\r?\n', messageText, 1)
-            headers = headers + "\n" + header + "\r\n"
+            messageName = state.getNewMessageName()
+            if command == 'RETR' and not state.isTest \
+                and options.pop3proxy_add_mailid_header == True:
+                if options.pop3proxy_mailid_as_header == True:
+                    id_header = options.pop3proxy_mailid_header_name + ": " \
+                            + messageName + "\r\n"
+                if options.pop3proxy_mailid_in_msgbody == True:
+                    body = body[:len(body)-3] + \
+                           options.pop3proxy_mailid_header_name + ": " \
+                            + messageName + "\r\n.\r\n"
+            else:
+                id_header = options.hammie_header_name + "-ID: Test\r\n"
+                            
+            header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
+            headers = headers + "\n" + header + id_header + "\r\n"
             
             if options.pop3proxy_notate_to \
                 and disposition == options.header_spam_string:
@@ -518,7 +536,6 @@ class BayesProxy(POP3ProxyBase):
             # Cache the message; don't pollute the cache with test messages.
             if command == 'RETR' and not state.isTest:
                 # Write the message into the Unknown cache.
-                messageName = state.getNewMessageName()
                 message = state.unknownCorpus.makeMessage(messageName)
                 message.setSubstance(messageText)
                 state.unknownCorpus.addMessage(message)
@@ -649,7 +666,10 @@ class UserInterface(Dibbler.HTTPPlugin):
                    self._buildTrainBox() +
                    self._buildClassifyBox() +
                    self._buildBox('Word query', 'query.gif',
-                                  self.html.wordQuery))
+                                  self.html.wordQuery) +
+                   self._buildBox('Find message', 'query.gif',
+                                  self.html.findMessage)
+                   )
         self._writePreamble("Home")
         self.write(content)
         self._writePostamble()
@@ -876,14 +896,22 @@ class UserInterface(Dibbler.HTTPPlugin):
                     targetCorpus = None
                     numDeferred += 1
                 if targetCorpus:
-                    try:
-                        targetCorpus.takeMessage(id, state.unknownCorpus)
-                        if numTrained == 0:
-                            self.write("<p><b>Training... ")
-                            self.flush()
-                        numTrained += 1
-                    except KeyError:
-                        pass  # Must be a reload.
+                    sourceCorpus = None
+                    if state.unknownCorpus.get(id) is not None:
+                        sourceCorpus = state.unknownCorpus
+                    elif state.hamCorpus.get(id) is not None:
+                        sourceCorpus = state.hamCorpus
+                    elif state.spamCorpus.get(id) is not None:
+                        sourceCorpus = state.spamCorpus
+                    if sourceCorpus is not None:
+                        try:
+                            targetCorpus.takeMessage(id, sourceCorpus)
+                            if numTrained == 0:
+                                self.write("<p><b>Training... ")
+                                self.flush()
+                            numTrained += 1
+                        except KeyError:
+                            pass  # Must be a reload.
 
         # Report on any training, and save the database if there was any.
         if numTrained > 0:
@@ -894,6 +922,9 @@ class UserInterface(Dibbler.HTTPPlugin):
             self._doSave()
             self.write("<br>&nbsp;")
 
+        title = ""
+        keys = []
+        sourceCorpus = state.unknownCorpus
         # If any messages were deferred, show the same page again.
         if numDeferred > 0:
             start = self._keyToTimestamp(id)
@@ -915,19 +946,50 @@ class UserInterface(Dibbler.HTTPPlugin):
         elif params.get('go') == 'Previous day':
             start = self._keyToTimestamp(params['prior'])
 
+        # Else if an id has been specified, just show that message
+        elif params.get('find') is not None:
+            key = params['find']
+            error = False
+            if key == "":
+                error = True
+                page = "<p>You must enter an id to find.</p>"
+            elif state.unknownCorpus.get(key) == None:
+                # maybe this message has been moved to the spam
+                # or ham corpus
+                if state.hamCorpus.get(key) != None:
+                    sourceCorpus = state.hamCorpus
+                elif state.spamCorpus.get(key) != None:
+                    sourceCorpus = state.spamCorpus
+                else:
+                    error = True
+                    page = "<p>Could not find message with id '"
+                    page += key + "' - maybe it expired.</p>"
+            if error == True:
+                title = "Did not find message"
+                box = self._buildBox(title, 'status.gif', page)
+                self.write(box)
+                self.write(self._buildBox('Find message', 'query.gif',
+                                          self.html.findMessage))
+                self._writePostamble()
+                return
+            keys.append(params['find'])
+            prior = this = next = 0
+            title = "Found message"
+
         # Else show the most recent day's page, as decided by _buildReviewKeys.
         else:
             start = 0
 
         # Build the lists of messages: spams, hams and unsure.
-        keys, date, prior, this, next = self._buildReviewKeys(start)
+        if len(keys) == 0:
+            keys, date, prior, this, next = self._buildReviewKeys(start)
         keyedMessageInfo = {options.header_spam_string: [],
                             options.header_ham_string: [],
                             options.header_unsure_string: []}
         for key in keys:
             # Parse the message, get the judgement header and build a message
             # info object for each message.
-            cachedMessage = state.unknownCorpus[key]
+            cachedMessage = sourceCorpus[key]
             message = mboxutils.get_message(cachedMessage.getSubstance())
             judgement = message[options.hammie_header_name]
             if judgement is None:
@@ -961,7 +1023,8 @@ class UserInterface(Dibbler.HTTPPlugin):
                     self._appendMessages(page.table, messages, label)
 
             page.table += self.html.trainRow
-            title = "Untrained messages received on %s" % date
+            if title == "":
+                title = "Untrained messages received on %s" % date
             box = self._buildBox(title, None, page)  # No icon, to save space.
         else:
             page = "<p>There are no untrained messages to display. "
@@ -1002,15 +1065,18 @@ class UserInterface(Dibbler.HTTPPlugin):
         self._writePostamble()
 
     def onWordquery(self, word):
-        word = word.lower()
-        wordinfo = state.bayes._wordinfoget(word)
-        if wordinfo:
-            stats = self.html.wordStats.clone()
-            stats.spamcount = wordinfo.spamcount
-            stats.hamcount = wordinfo.hamcount
-            stats.spamprob = state.bayes.probability(wordinfo)
+        if word == "":
+            stats = "You must enter a word."
         else:
-            stats = "%r does not exist in the database." % cgi.escape(word)
+            word = word.lower()
+            wordinfo = state.bayes._wordinfoget(word)
+            if wordinfo:
+                stats = self.html.wordStats.clone()
+                stats.spamcount = wordinfo.spamcount
+                stats.hamcount = wordinfo.hamcount
+                stats.spamprob = state.bayes.probability(wordinfo)
+            else:
+                stats = "%r does not exist in the database." % cgi.escape(word)
 
         query = self.html.wordQuery.clone()
         query.word.value = word
@@ -1263,7 +1329,6 @@ def main(servers, proxyPorts, uiPort, launchUI):
     proxyUI = UserInterface()
     httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
     Dibbler.run(launchBrowser=launchUI)
-
 
 
 # ===================================================================
@@ -1527,12 +1592,13 @@ def test():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htbzpd:D:l:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htbzpsd:D:l:u:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     runSelfTest = False
+    launchSMTPProxy = False
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
@@ -1542,6 +1608,8 @@ def run():
             state.runTestServer = True
         elif opt == '-b':
             state.launchUI = True
+        elif opt == '-s':
+            launchSMTPProxy = True
         elif opt == '-d':   # dbm file
             state.useDB = True
             options.pop3proxy_persistent_storage_file = arg
@@ -1562,6 +1630,13 @@ def run():
 
     # Do whatever we've been asked to do...
     state.createWorkers()
+
+    if launchSMTPProxy:
+        from smtproxy import LoadServerInfo, CreateProxies
+        servers, proxyPorts = LoadServerInfo()
+        CreateProxies(servers, proxyPorts, state)
+        LoadServerInfo()
+    
     if runSelfTest:
         print "\nRunning self-test...\n"
         state.buildServerStrings()
