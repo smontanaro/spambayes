@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Generates the www.python.org website style
 """
 
@@ -49,13 +50,6 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
         sitelink_fixer = LinkFixer(f.myurl(), rootdir)
         sitelink_fixer.massage(sitelinks, self.__d, aboves=1)
         Banner.__init__(self, sitelinks)
-        # calculate the random corner
-        # XXX Should really do a list of the pics directory...
-        NBANNERS = 64
-        i = whrandom.randint(0, NBANNERS-1)
-        s = "PyBanner%03d.gif" % i
-        self.__d['banner'] = s
-        self.__whichbanner = i
 
     def get_meta(self):
         s1 = Skeleton.get_meta(self)
@@ -98,30 +92,12 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
         # anchor and end center tags, otherwise layout gets messed up
         return '''
 <center>
-    <a href="%(rootdir)s/">
-    <img alt="" border="0"
-         src="%(rootdir)s/pics/%(banner)s"></a></center>''' % \
+    <a href="http://www.student.virginia.edu/~improv/games/findthespam.html">
+    <img alt="" border="0" src="%(rootdir)s/pics/banner.png"></a></center>''' % \
     self.__d 
 
     def get_corner_bgcolor(self):
-        # this may not be 100% correct.  it uses PIL to get the RGB values at
-        # the corners of the image and then takes a vote as to the most likely
-        # value.  Some images may be `bizarre'.  See .../pics/backgrounds.py
-        return [
-             '#3399ff',  '#6699cc',  '#3399ff',  '#0066cc',  '#3399ff', 
-             '#0066cc',  '#0066cc',  '#3399ff',  '#3399ff',  '#3399ff', 
-             '#3399ff',  '#6699cc',  '#3399ff',  '#3399ff',  '#ffffff', 
-             '#6699cc',  '#0066cc',  '#3399ff',  '#0066cc',  '#3399ff', 
-             '#6699cc',  '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff', 
-             '#6699cc',  '#3399ff',  '#3399ff',  '#6699cc',  '#6699cc', 
-             '#0066cc',  '#6699cc',  '#0066cc',  '#6699cc',  '#0066cc', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#0066cc',  '#bbd6f1', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#3399ff',  '#0066cc', 
-             '#0066cc',  '#0066cc',  '#6699cc',  '#6699cc',  '#3399ff', 
-             '#3399ff',  '#6699cc',  '#0066cc',  '#0066cc',  '#6699cc', 
-             '#0066cc',  '#6699cc',  '#3399ff',  '#6699cc',  '#3399ff', 
-             '#d6ebff',  '#6699cc',  '#3399ff',  '#0066cc',
-             ][self.__whichbanner]
+        return "#ffffff"
 
     def get_body(self):
         self.__grokbody()
