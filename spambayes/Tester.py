@@ -117,15 +117,15 @@ class Test:
 
     def false_positive_rate(self):
         """Percentage of ham mistakenly identified as spam, in 0.0..100.0."""
-        return self.nham_wrong * 1e2 / self.nham_tested
+        return self.nham_wrong * 1e2 / (self.nham_tested or 1)
 
     def false_negative_rate(self):
         """Percentage of spam mistakenly identified as ham, in 0.0..100.0."""
-        return self.nspam_wrong * 1e2 / self.nspam_tested
+        return self.nspam_wrong * 1e2 / (self.nspam_tested or 1)
 
     def unsure_rate(self):
         return ((self.nham_unsure + self.nspam_unsure) * 1e2 /
-                (self.nham_tested + self.nspam_tested))
+                ((self.nham_tested + self.nspam_tested) or 1))
 
     def false_positives(self):
         return self.ham_wrong_examples
