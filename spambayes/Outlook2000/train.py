@@ -33,7 +33,7 @@ def trainer(mgr, progress):
         num_msgs += f.count
     for f in mgr.message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
         num_msgs += f.count
-        
+
     progress.set_max_ticks(num_msgs+3)
 
     for f in mgr.message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):

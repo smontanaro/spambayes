@@ -68,7 +68,7 @@ class MsgStoreMsg:
         # Return None, "ham" or "spam"
         raise NotImplementedError
 
-        
+
 # Our MAPI implementation
 import warnings
 if sys.version_info >= (2, 3):
@@ -91,7 +91,7 @@ class MAPIMsgStore(MsgStore):
         self.outlook = outlook
         cwd = os.getcwd()
         mapi.MAPIInitialize(None)
-        logonFlags = mapi.MAPI_NO_MAIL | mapi.MAPI_EXTENDED | mapi.MAPI_USE_DEFAULT 
+        logonFlags = mapi.MAPI_NO_MAIL | mapi.MAPI_EXTENDED | mapi.MAPI_USE_DEFAULT
         self.session = mapi.MAPILogonEx(0, None, None, logonFlags)
         self._FindDefaultMessageStore()
         os.chdir(cwd)
@@ -123,7 +123,7 @@ class MAPIMsgStore(MsgStore):
             folder = self.mapi_msgstore.OpenEntry(eid, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
             for store_folder in self._GetSubFolderIter(folder):
                 yield store_folder
-        
+
     def GetFolderGenerator(self, folder_ids, include_sub):
         for folder_id in folder_ids:
             folder_id = mapi.BinFromHex(folder_id)
@@ -152,7 +152,7 @@ class MAPIMsgStore(MsgStore):
         folder_eid = data[0][1]
         unread = data[1][1]
         folder = MAPIMsgStoreFolder(self, folder_eid, "Unknown - temp message", -1)
-        return  MAPIMsgStoreMsg(self, folder, message_id, unread)        
+        return  MAPIMsgStoreMsg(self, folder, message_id, unread)
 
 ##    # Currently no need for this
 ##    def GetOutlookObjectFromID(self, eid):
@@ -312,7 +312,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if isMove: flags |= MESSAGE_MOVE
         source_folder.CopyMessages( (self.id,), None, dest_folder, 0, None, flags)
         self.folder = self.msgstore.GetFolder(mapi.HexFromBin(folder.id))
-        
+
     def MoveTo(self, folder):
         self._DoCopyMode(folder, True)
 
@@ -330,8 +330,7 @@ def test():
         for msg in folder.GetMessageGenerator():
             print msg
     store.Close()
-    
+
 
 if __name__=='__main__':
     test()
-    
