@@ -1,3 +1,5 @@
+from __future__ import generators
+
 # This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
@@ -6,10 +8,19 @@
 # Based on C++ work by Arne Schloh <oedbx@aroh.de>
 
 __author__ = "Romain Guy"
+__credits__ = "All the SpamBayes folk"
 
 import binascii
 import os
 import struct
+import msgs
+import StringIO
+import sys
+
+if sys.platform == "win32":
+    import win32api
+    import win32con
+    from win32com.shell import shell, shellcon
 
 ###########################################################################
 ## DBX FILE HEADER
@@ -415,6 +426,155 @@ class dbxMessage:
     def getText(self):
         return self.dbxText
 
+# This started its SpamBayes life as a private method of the UserInterface
+# class, but is really a general purpose (Outlook Express) function.
+def convertToMbox(content):
+    """Check if the given buffer is in a non-mbox format, and convert it
+    into mbox format if so.  If it's already an mbox, return it unchanged.
+    """
+
+    dbxStream = StringIO.StringIO(content)
+    header = dbxFileHeader(dbxStream)
+
+    if header.isValid() and header.isMessages():
+        file_info_len = dbxFileHeader.FH_FILE_INFO_LENGTH
+        fh_entries = dbxFileHeader.FH_ENTRIES
+        fh_ptr = dbxFileHeader.FH_TREE_ROOT_NODE_PTR
+        
+        info = dbxFileInfo(dbxStream, header.getEntry(file_info_len))
+        entries = header.getEntry(fh_entries)
+        address = header.getEntry(fh_ptr)
+        
+        if address and entries:
+            tree = dbxTree(dbxStream, address, entries)
+            dbxBuffer = ""
+
+            for i in range(entries):
+                address = tree.getValue(i)
+                messageInfo = dbxMessageInfo(dbxStream, address)
+
+                if messageInfo.isIndexed(dbxMessageInfo.MI_MESSAGE_ADDRESS):
+                    address = dbxMessageInfo.MI_MESSAGE_ADDRESS
+                    messageAddress = messageInfo.getValueAsLong(address)
+                    message = dbxMessage(dbxStream, messageAddress)
+
+                    # This fakes up a from header to conform to mbox
+                    # standards.  It would be better to extract this
+                    # data from the message itself, as this will
+                    # result in incorrect tokens.
+                    dbxBuffer += "From spambayes@spambayes.org %s\n%s" \
+                                 % (strftime("%a %b %d %H:%M:%S MET %Y",
+                                             gmtime()), message.getText())
+            content = dbxBuffer
+    dbxStream.close()
+    return content
+
+def OEStoreRoot():
+    """Return the path to the Outlook Express Store Root.
+
+    Tested with Outlook Express 5.0 with Windows XP."""
+    if sys.platform != "win32":
+        # AFAIK, there is only a Win32 OE, and a Mac OE.
+        # The Mac OE should be easy enough, but I don't know
+        # where the dbx files are stored (I presume they are in the
+        # same format).
+        raise NotImplementedError
+    
+    reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, "")
+    user_index = 0
+    while True:
+        # Loop through all the users
+        try:
+            user_name = "%s\\Identities" % \
+                        (win32api.RegEnumKey(reg, user_index),)
+        except win32api.error:
+            break
+        user_index += 1
+        try:
+            user_key = win32api.RegOpenKeyEx(win32con.HKEY_USERS, user_name)
+        except win32api.error:
+            # Not this one
+            continue
+
+        identity_index = 0
+        while True:
+            # Loop through all the identities
+            try:
+                identity_name = win32api.RegEnumKey(user_key,
+                                                    identity_index)
+            except win32api.error:
+                break
+            identity_index += 1
+            
+            subkey_name = "%s\\%s\\%s" % (user_name, identity_name,
+                                          "Software\\Microsoft\\Outlook " \
+                                          "Express\\5.0")
+            try:
+                subkey = win32api.RegOpenKeyEx(win32con.HKEY_USERS,
+                                               subkey_name, 0,
+                                               win32con.KEY_READ)
+            except win32api.error:
+                # Not this user
+                continue
+
+            try:
+                raw = win32api.RegQueryValueEx(subkey, "Store Root")
+            except win32api.error:
+                break
+            UserDirectory = shell.SHGetFolderPath \
+                            (0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0)
+            raw = raw[0].replace("%UserProfile%\\Local Settings\\" \
+                                 "Application Data", UserDirectory)
+            return raw
+
+## For use by the test tools.
+class OEMsg(msgs.Msg):
+    def __init__(self, guts, id):
+        self.tag = id
+        self.guts = guts
+
+# The iterator yields a stream of Msg objects, taken from a list of
+# dbx files.
+class OEMsgStream(msgs.MsgStream):
+    def __init__(self, tag, dbxes, keep=None):
+        msgs.MsgStream.__init__(self, tag, dbxes, keep)
+
+    def produce(self):
+        if self.keep is None:
+            for dbx in self.directories:
+                folder = convertToMbox(file(dbx))
+                all = folder.split("\nFrom ") # XXX Is this right?
+                count = 0
+                for msg in all:
+                    id = "%s::%s" % (dbx, count)
+                    count += 1
+                    yield OEMsg(msg, id)
+            return
+        # We only want part of the msgs.  Shuffle each directory list, but
+        # in such a way that we'll get the same result each time this is
+        # called on the same directory list.
+        for directory in self.directories:
+            folder = convertToMbox(file(dbx))
+            all = folder.split("\nFrom ") # XXX Is this right?
+            random.seed(hash(max(all)) ^ SEED) # reproducible across calls
+            random.shuffle(all)
+            del all[self.keep:]
+            all.sort()  # for consistency with MsgStream
+            count = 0
+            for msg in all:
+                id = "%s::%s" % (dbx, count)
+                count += 1
+                yield OEMsg(msg, id)
+
+class OEHamStream(msgs.HamStream):
+    def __init__(self, tag, dbxes, train=0):
+        msgs.HamStream.__init__(self, tag, dbxes, train)
+
+class OESpamStream(msgs.SpamStream):
+    def __init__(self, tag, dbxes, train=0):
+        msgs.SpamStream.__init__(self, tag, dbxes, train)
+
+
 ###########################################################################
 ## TEST DRIVER
 ###########################################################################
@@ -441,7 +601,7 @@ if __name__ == '__main__':
         print "Please enter a directory with dbx files."
         sys.exit()
 
-    MAILBOX_DIR = args[0]
+    MAILBOX_DIR = args[0]  
 
     files = [os.path.join(MAILBOX_DIR, file) for file in \
              os.listdir(MAILBOX_DIR) if os.path.splitext(file)[1] == '.dbx']
@@ -467,20 +627,20 @@ if __name__ == '__main__':
                 if address and entries:
                     tree = dbxTree(dbx, address, entries)
 
-                    for i in range(entries):
-                        address = tree.getValue(i)
-                        messageInfo = dbxMessageInfo(dbx, address)
+                for i in range(entries):
+                    address = tree.getValue(i)
+                    messageInfo = dbxMessageInfo(dbx, address)
 
-                        if messageInfo.isIndexed(dbxMessageInfo.MI_MESSAGE_ADDRESS):
-                            messageAddress = messageInfo.getValueAsLong(dbxMessageInfo.MI_MESSAGE_ADDRESS)
-                            message        = dbxMessage(dbx, messageAddress)
+                    if messageInfo.isIndexed(dbxMessageInfo.MI_MESSAGE_ADDRESS):
+                        messageAddress = messageInfo.getValueAsLong(dbxMessageInfo.MI_MESSAGE_ADDRESS)
+                        message        = dbxMessage(dbx, messageAddress)
 
-                            if print_message:
-                                print
-                                print "Message :", messageInfo.getString(dbxMessageInfo.MI_SUBJECT)
-                                print "=" * (len(messageInfo.getString(dbxMessageInfo.MI_SUBJECT)) + 9)
-                                print
-                                print message.getText()
+                        if print_message:
+                            print
+                            print "Message :", messageInfo.getString(dbxMessageInfo.MI_SUBJECT)
+                            print "=" * (len(messageInfo.getString(dbxMessageInfo.MI_SUBJECT)) + 9)
+                            print
+                            print message.getText()
 
         except Exception, (strerror):
             print strerror
