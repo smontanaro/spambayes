@@ -60,7 +60,7 @@ def AskQuestion(message, title = None):
                                       win32con.MB_ICONQUESTION) == win32con.IDYES
 
 # Non-ascii characters in file or directory names only fully work in
-# Python 2.3.3+, but latin-1 "compatible" filenames should work in 2.2
+# Python 2.3.3+, but latin-1 "compatible" filenames should work in 2.3
 try:
     filesystem_encoding = sys.getfilesystemencoding()
 except AttributeError:
