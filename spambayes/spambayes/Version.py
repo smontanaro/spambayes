@@ -30,17 +30,17 @@ versions = {
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
-            "Version":          0.7,
-            "BinaryVersion":    0.7,
+            "Version":          0.8,
+            "BinaryVersion":    0.8,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "August 9, 2003",
+            "Date":             "September 8, 2003",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
             "Full Description Binary":
                                 "%(Description)s, Binary version %(BinaryVersion)s (%(Date)s)",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
-            "Download Page": "http://starship.python.net/crew/mhammond/spambayes"
+            "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "POP3 Proxy" : {
             "Version":          0.2,
