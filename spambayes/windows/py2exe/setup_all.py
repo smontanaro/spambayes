@@ -135,6 +135,7 @@ proxy_data_files = [
 
 common_data_files = [
     ["", [os.path.join(sb_top_dir, r"windows\resources\sbicon.ico")]],
+    ["", [os.path.join(sb_top_dir, r"LICENSE.txt")]],
 ]
 
 # Default and only distutils command is "py2exe" - save adding it to the

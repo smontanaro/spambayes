@@ -17,6 +17,7 @@ UninstallDisplayIcon={app}\sbicon.ico
 
 [Files]
 Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
