@@ -94,7 +94,7 @@ defaults = {
         FIELD_NAME, RESTORE),
     ("data_directory", "The directory to store the data files.", "",
         """""",
-        PATH, RESTORE),
+        PATH, DO_NOT_RESTORE),
     ("delete_as_spam_message_state", "How the 'read' flag on a message is modified", "None",
         """When the 'Delete as Spam' function is used, the message 'read' flag can
            also be set.""",
@@ -200,7 +200,7 @@ defaults = {
         """Any message with a Spam score greater than or equal to this value
         will be considered spam, and processed accordingly.""",
         REAL, RESTORE),
-    ("spam_action", "The action to take for new spam", "Untouched",
+    ("spam_action", "The action to take for new spam", "Moved",
         """The action that should be taken as Spam messages arrive.""",
         FILTER_ACTION, RESTORE),
     ("spam_mark_as_read", "Should filtered spam also be marked as 'read'", False,
@@ -220,7 +220,7 @@ defaults = {
         (but less than the spam threshold) will be considered spam, and
         processed accordingly.""",
         REAL, RESTORE),
-    ("unsure_action", "The action to take for new uncertain messages", "Untouched",
+    ("unsure_action", "The action to take for new uncertain messages", "Moved",
         """The action that should be taken as unsure messages arrive.""",
         FILTER_ACTION, RESTORE),
     ("unsure_mark_as_read", "Should filtered uncertain message also be marked as 'read'", False,
