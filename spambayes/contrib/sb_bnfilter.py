@@ -8,7 +8,7 @@
 # The strategy is:
 #
 # * while we cant connect to a unix domain socket
-#     * fork a seperate process that runs in the background
+#     * fork a separate process that runs in the background
 #     * in the child process:
 #         * exec sb_bnserver. it listens on that same unix domain socket.
 #     * in the parent process:
@@ -151,7 +151,8 @@ def main():
     # tries to handle errors internally by constructing a stdout that is
     # the same as stdin was.
     if total_size != expected_size:
-        print >> sys.stderr, 'size mismatch %d != %d' % (total_size, expected_size)
+        print >> sys.stderr, 'size mismatch %d != %d' % (total_size,
+                                                         expected_size)
         sys.exit(3)
     if error:
         sys.exit(error)
@@ -177,9 +178,11 @@ def make_socket(server_options, file):
                 # socket file exists but noone listening.
                 refused_count += 1
                 if refused_count == 6:
-                    # We have been waiting ages and still havent been able to connect. Maybe that socket
-                    # file has got orphaned. remove it, wait, and try again. We need to allow 
-                    # enough time for sb_bnserver to initialise the rest of spambayes
+                    # We have been waiting ages and still havent been able
+                    # to connect. Maybe that socket file has got
+                    # orphaned. remove it, wait, and try again. We need to
+                    # allow enough time for sb_bnserver to initialise the
+                    # rest of spambayes
                     try:
                         os.unlink(file)
                     except EnvironmentError:
@@ -204,8 +207,11 @@ def fork_server(options):
     # os.close(2)
     # sys.stderr = sys.__stderr__ = open("/dev/null", "w")
     os.setsid()
-    # Use exec rather than import here because eventually it may be nice to reimplement this one file in C
-    os.execv(sys.executable,[sys.executable, os.path.join(os.path.split(sys.argv[0])[0],'sb_bnserver.py') ]+options)
+    # Use exec rather than import here because eventually it may be nice to
+    # reimplement this one file in C
+    os.execv(sys.executable,[sys.executable,
+                             os.path.join(os.path.split(sys.argv[0])[0],
+                                          'sb_bnserver.py') ]+options)
     # should never get here
     sys._exit(1)
     
