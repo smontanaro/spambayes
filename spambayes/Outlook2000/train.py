@@ -18,7 +18,7 @@ def been_trained_as_spam(msg, mgr):
     # spam is None
     return spam == True
 
-def train_message(msg, is_spam, mgr, update_probs = True):
+def train_message(msg, is_spam, mgr):
     # Train an individual message.
     # Returns True if newly added (message will be correctly
     # untrained if it was in the wrong category), False if already
@@ -40,9 +40,6 @@ def train_message(msg, is_spam, mgr, update_probs = True):
     # OK - setup the new data.
     mgr.bayes.learn(tokens, is_spam, False)
     mgr.message_db[msg.searchkey] = is_spam
-    if update_probs:
-        mgr.bayes.update_probabilities()
-
     mgr.bayes_dirty = True
     return True
 
@@ -53,7 +50,7 @@ def train_folder( f, isspam, mgr, progress):
             break
         progress.tick()
         try:
-            if train_message(message, isspam, mgr, False):
+            if train_message(message, isspam, mgr):
                 num_added += 1
         except:
             print "Error training message '%s'" % (message,)
