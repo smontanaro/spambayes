@@ -9,6 +9,9 @@ import commctrl
 import struct, array
 from dlgutils import *
 
+# Cache our leaky bitmap handles
+bitmap_handles = {}
+
 # A generic set of "ControlProcessors".  A control processor by itself only
 # does a few basic things.
 class ControlProcessor:
@@ -51,17 +54,21 @@ class ImageProcessor(ControlProcessor):
         rcp = self.window.manager.dialog_parser;
         text = win32gui.GetWindowText(self.GetControl())
         name = rcp.names[int(text)]
-        filename = rcp.bitmaps[name]
-        import os, sys
-        if hasattr(sys, "frozen"):
-            # bitmap in the app/images directory
-            filename = os.path.join(self.window.manager.application_directory,
-                                    "images", filename)
+        if bitmap_handles.has_key(name):
+            handle = bitmap_handles[name]
         else:
-            if not os.path.isabs(filename):
-                filename = os.path.join( os.path.dirname( __file__ ), "resources", filename)
-        handle = win32gui.LoadImage(0, filename, win32con.IMAGE_BITMAP,0,0,
-                                    win32con.LR_COLOR|win32con.LR_LOADFROMFILE|win32con.LR_SHARED)
+            filename = rcp.bitmaps[name]
+            import os, sys
+            if hasattr(sys, "frozen"):
+                # bitmap in the app/images directory
+                filename = os.path.join(self.window.manager.application_directory,
+                                        "images", filename)
+            else:
+                if not os.path.isabs(filename):
+                    filename = os.path.join( os.path.dirname( __file__ ), "resources", filename)
+            handle = win32gui.LoadImage(0, filename, win32con.IMAGE_BITMAP,0,0,
+                                        win32con.LR_COLOR|win32con.LR_LOADFROMFILE|win32con.LR_SHARED)
+            bitmap_handles[name] = handle
         win32gui.SendMessage(self.GetControl(), win32con.STM_SETIMAGE, win32con.IMAGE_BITMAP, handle)
 
     def GetPopupHelpText(self, cid):
