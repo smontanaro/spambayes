@@ -83,6 +83,8 @@ class BayesManager:
 
     def GetBayesStreamForMessage(self, message):
         # Note - caller must catch COM error
+        import email
+
         headers = message.Fields[0x7D001E].Value
         headers = headers.encode('ascii', 'replace')
         try:
@@ -91,8 +93,18 @@ class BayesManager:
         except pythoncom.error:
             body = ""
         body += message.Text.encode("ascii", "replace")
-        return headers + body
-      
+
+        # XXX If this was originally a MIME msg, we're hosed at this point --
+        # the boundary tag in the headers doesn't exist in the body, and
+        # the msg is simply ill-formed.  The miserable hack here simply
+        # squashes the text part (if any) and the HTML part (if any) together,
+        # and strips MIME info from the original headers.
+        msg = email.message_from_string(headers + '\n' + body)
+        if msg.has_key('content-type'):
+            del msg['content-type']
+        if msg.has_key('content-transfer-encoding'):
+            del msg['content-transfer-encoding']
+        return msg
 
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
