@@ -79,7 +79,7 @@ class WordInfo(object):
         (self.atime, self.spamcount, self.hamcount, self.killcount,
          self.spamprob) = t
 
-class Bayes(object):
+class Bayes:
     # Defining __slots__ here made Jeremy's life needlessly difficult when
     # trying to hook this all up to ZODB as a persistent object.  There's
     # no space benefit worth getting from slots in this class; slots were
@@ -90,6 +90,9 @@ class Bayes(object):
     #             'nspam',     # number of spam messages learn() has seen
     #             'nham',      # number of non-spam messages learn() has seen
     #            )
+
+    # allow a subclass to use a different class for WordInfo
+    WordInfoClass = WordInfo
 
     def __init__(self):
         self.wordinfo = {}
@@ -400,7 +403,7 @@ class Bayes(object):
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
-                record = WordInfo(now)
+                record = self.WordInfoClass(now)
 
             if is_spam:
                 record.spamcount += 1
