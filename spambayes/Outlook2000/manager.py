@@ -403,7 +403,7 @@ class BayesManager:
         db_manager = ManagerClass(bayes_base, mdb_base)
         self.classifier_data = ClassifierData(db_manager, self)
         self.LoadBayes()
-        self.stats = oastats.Stats(self.config)
+        self.stats = oastats.Stats(self.config, self.data_directory)
 
     # "old" bayes functions - new code should use "classifier_data" directly
     def LoadBayes(self):

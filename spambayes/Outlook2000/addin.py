@@ -379,7 +379,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
     def OnItemAdd(self, item):
         # Callback from Outlook - locale may have changed.
         locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
-        self.manager.LogDebug(2, "OnItemAdd event for folder", self,
+        self.manager.LogDebug(2, "OnItemAdd event for folder", self.name,
                               "with item", item.Subject.encode("mbcs", "ignore"))
         # Due to the way our "missed message" indicator works, we do
         # a quick check here for "UnRead".  If UnRead, we assume it is very
@@ -1241,10 +1241,8 @@ class OutlookAddin:
             print "on Windows %d.%d.%d (%s)" % \
                   (major, minor, spack, ver_str)
             print "using Python", sys.version
-            from time import localtime
-            ltime = localtime()
-            print "Log created %s-%s-%s" % \
-                  (ltime[0], ltime[1], ltime[2])
+            from time import asctime, localtime
+            print "Log created", asctime(localtime())
 
             self.explorers_events = None # create at OnStartupComplete
 
@@ -1457,8 +1455,13 @@ class OutlookAddin:
             # config never needs saving as it is always done by whoever changes
             # it (ie, the dialog)
             self.manager.Save()
-            # Report some simple stats.
+            # Report some simple stats, for session, and for total.
+            print "Session:"
+            print "\r\n".join(self.manager.stats.GetStats(True))
+            print "Total:"
             print "\r\n".join(self.manager.stats.GetStats())
+            # Save stats.
+            self.manager.stats.Store()
             self.manager.Close()
             self.manager = None
 
