@@ -827,9 +827,15 @@ def crack_content_xyz(msg):
     if x is not None:
         yield 'content-type/type:' + x.lower()
 
-    for x in msg.get_charsets(None):
-        if x is not None:
-            yield 'charset:' + x.lower()
+    try:
+        for x in msg.get_charsets(None):
+            if x is not None:
+                yield 'charset:' + x.lower()
+    except UnicodeEncodeError:
+        # Bad messages can cause an exception here.
+        # See [ 1175439 ] UnicodeEncodeError raised for bogus Content-Type
+        #                 header
+        yield 'charset:invalid_unicode'
 
     x = msg.get('content-disposition')
     if x is not None:
