@@ -1066,9 +1066,11 @@ appropriate section with lines like "opt = val" or "opt: val" (either is
 ok).  Whitespace other than line endings is for the most part ignored, so
 you can make it look like whatever you like.  You can see a list of what a
 configuration file of all the defaults would like like if you execute the
-following Python command::
+following Python command (the wrapping here is just for display - this
+should all be a single line)::
 
-    python -c "from spambayes.Options import options ; print options.display()"
+    python -c "from spambayes.Options import options ;
+    print options.display()"
 
 .. _`ConfigParser docs`: http://www.python.org/doc/current/lib/module-ConfigParser.html
 
@@ -1078,27 +1080,33 @@ Now I know what the format looks like, but what options do I need to set?
 
 This depends on exactly what you want to do, and which application you are
 intending to use.  The easiest thing is to execute the following Python
-command::
+command (the wrapping here is just for display - this
+should all be a single line)::
 
-    python -c "from spambayes.Options import options ; print options.display_full()"
+    python -c "from spambayes.Options import options ;
+    print options.display_full()"
 
 This will print out a complete list of the options, including a description
 of the option, and its default value.  You can also look up a single
 section, if you know its name::
 
-    python -c "from spambayes.Options import options ; print options.display_full('section_name')"
+    python -c "from spambayes.Options import options ;
+    print options.display_full('section_name')"
 
 Or just a single option::
 
-    python -c "from spambayes.Options import options ; print options.display_full('section_name', 'option_name')"
+    python -c "from spambayes.Options import options ;
+    print options.display_full('section_name', 'option_name')"
 
 If you want a list of all the sections, you can use this command::
 
-    python -c "from spambayes.Options import options ; print options.sections()"
+    python -c "from spambayes.Options import options ;
+    print options.sections()"
 
 If you want a list of all the options, you can use this command::
 
-    python -c "from spambayes.Options import options ; print options.options(prepend_section_name=False)"
+    python -c "from spambayes.Options import options ;
+    print options.options(prepend_section_name=False)"
 
 
 Why is SpamBayes ignoring my configuration file?
@@ -1195,7 +1203,7 @@ dict).  A pickle will be relatively small, but slower, compared to using
 of the the dbm storage methods.
 
 To use a pickle, set the option "persistent_use_database" to False in your
-`configuration file <#how-do-i-configure-pop3proxy-imapfilter-etc-without-a-web-browser>`_,
+`configuration file <#how-do-i-configure-spambayes>`_,
 in the section "Storage" (if you have been using SpamBayes for a while,
 check that you don't have an old version of this option elsewhere in your
 configuration file, in the pop3proxy or hammiefilter sections).  You may
