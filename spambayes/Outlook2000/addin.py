@@ -691,7 +691,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             self.manager.stats.RecordTraining(False,
                                 self.manager.score(msgstore_message))
             msgstore_message.t = True
-            self.manager.classifier_data.message_db.store_msg(msg)
+            self.manager.classifier_data.message_db.store_msg(msgstore_message)
             self.manager.classifier_data.dirty = True
             # Record the original folder, in case this message is not where
             # it was after filtering, or has never been filtered.
