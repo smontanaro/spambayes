@@ -9,6 +9,8 @@ sys.path.append(os.path.join(sb_top_dir, "scripts"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000/sandbox"))
 
+import spambayes.resources
+
 # Generate the dialogs.py file.
 import dialogs
 dialogs.LoadDialogs()
@@ -35,7 +37,7 @@ import py2exe
 py2exe_options = dict(
     packages = "spambayes.resources,encodings",
     excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
-    includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
+    includes = "dialogs.resources.dialogs,weakref", # Outlook dynamic dialogs
     dll_excludes = "dapi.dll,mapi32.dll",
     typelibs = [
         ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0),
@@ -146,6 +148,7 @@ if len(sys.argv)==1 or \
 
 setup(name="SpamBayes",
       packages = ["spambayes.resources"],
+      package_dir = {"spambayes.resources" : spambayes.resources.__path__[0]},
       # We implement a COM object.
       com_server=[outlook_addin],
       # A service
