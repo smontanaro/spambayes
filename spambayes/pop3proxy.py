@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """A POP3 proxy that works with classifier.py, and adds a simple
-X-Hammie-Disposition header (Yes/No/Unsure) to each incoming email.
-You point pop3proxy at your POP3 server, and configure your email
-client to collect mail from the proxy then filter on the added
+X-Spambayes-Classification header (ham/spam/unsure) to each incoming
+email.  You point pop3proxy at your POP3 server, and configure your
+email client to collect mail from the proxy then filter on the added
 header.  Usage:
 
     pop3proxy.py [options] [<server> [<server port>]]
@@ -30,7 +30,7 @@ header.  Usage:
 For safety, and to help debugging, the whole POP3 conversation is
 written out to _pop3proxy.log for each run.
 
-To make rebuilding the database easier, trained messages are appended
+To make rebuilding the database easier, uploaded messages are appended
 to _pop3proxyham.mbox and _pop3proxyspam.mbox.
 """
 
@@ -59,6 +59,8 @@ Web training interface:
    arrow enough?
  o [Francois Granger] Show the raw spambrob number close to the buttons
    (this would mean using the extra X-Hammie header by default).
+ o Add Today and Refresh buttons on the Review page.
+ o "There are no untrained messages to display.  Return Home."
 
 
 User interface improvements:
@@ -68,8 +70,6 @@ User interface improvements:
    webbrowser?
  o Can it cleanly dynamically update its status display while having a
    POP3 converation?  Hammering reload sucks.
- o Add a command to save the database without shutting down, and one to
-   reload the database.
  o Save the stats (num classified, etc.) between sessions.
  o "Reload database" button.
 
@@ -83,11 +83,13 @@ New features:
  o Possibly integrate Tim Stone's SMTP code - make it use async, make
    the training code update (rather than replace!) the database.
  o Allow use of the UI without the POP3 proxy.
- o Remove any existing X-Hammie-Disposition header from incoming emails.
+ o Remove any existing X-Spambayes-Classification header from incoming
+   emails.
  o Whitelist.
  o Online manual.
  o Links to project homepage, mailing list, etc.
  o Edit settings through the web.
+ o List of words with stats (it would have to be paged!) a la SpamSieve.
 
 
 Code quality:
@@ -114,11 +116,24 @@ Gimmicks:
  o NNTP proxy.
  o Zoe...!
 
+Notes, for the sake of somewhere better to put them:
+
+Don't proxy spams at all?  This would mean writing a full POP3 client
+and server - it would download all your mail on a timer and serve to you
+all the non-spams.  It could be 'safe' in that it leaves the messages in
+the real POP3 account until you collect them from it (or in the case of
+spams, until you collect contemporaneous hams).  The web interface would
+then present all the spams so that you could correct any FPs and mark
+them for collection.  The thing is no longer a proxy (because the first
+POP3 command in a conversion is STAT or LIST, which tells you how many
+mails there are - it wouldn't know the answer, and finding out could
+take weeks over a modem - I've already had problems with clients timing
+out while the proxy was downloading stuff from the server).
 """
 
 import os, sys, re, operator, errno, getopt, string, cStringIO, time, bisect
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
-import storage, tokenizer, mboxutils
+import mailbox, storage, tokenizer, mboxutils
 from FileCorpus import FileCorpus, FileMessageFactory, GzipFileMessageFactory
 from email.Iterators import typed_subpart_iterator
 from Options import options
@@ -296,6 +311,19 @@ class POP3ProxyBase(BrighterAsyncChat):
             # line will be passed to onTransaction and ignored, then the
             # rest will be proxied straight through.
             return False
+
+    ## This is an attempt to solve the problem whereby the email client
+    ## times out and closes the connection but the ServerLineReader is still
+    ## connected, so you get errors from the POP3 server next time because
+    ## there's already an active connection.  But after introducing this,
+    ## I kept getting unexplained "Bad file descriptor" errors in recv.
+    ##
+    ## def handle_close(self):
+    ##     """If the email client closes the connection unexpectedly, eg.
+    ##     because of a timeout, close the server connection."""
+    ##     self.serverSocket.shutdown(2)
+    ##     self.serverSocket.close()
+    ##     self.close()
 
     def collect_incoming_data(self, data):
         """Asynchat override."""
@@ -597,7 +625,7 @@ class UserInterface(BrighterAsyncChat):
                 <div class='content'>\n"""
 
     footer = """</div>
-             <form action='shutdown' method='POST'>
+             <form action='save' method='POST'>
              <table width='100%%' cellspacing='0'>
              <tr><td class='banner'>&nbsp;<a href='home'>Spambayes Proxy</a>,
              %s.
@@ -607,9 +635,7 @@ class UserInterface(BrighterAsyncChat):
              </td></tr></table></form>
              </body></html>\n"""
 
-    shutdownDB = """<input type='submit' name='how' value='Shutdown'>"""
-
-    shutdownPickle = shutdownDB + """&nbsp;&nbsp;
+    saveButtons = """<input type='submit' name='how' value='Save'>&nbsp;&nbsp;
             <input type='submit' name='how' value='Save &amp; shutdown'>"""
 
     pageSection = """<table class='sectiontable' cellspacing='0'>
@@ -625,9 +651,6 @@ class UserInterface(BrighterAsyncChat):
                 <b>%(numHams)d</b> ham, <b>%(numUnsure)d</b> unsure.<br>
               Total emails trained: Spam: <b>%(nspam)d</b>
                                      Ham: <b>%(nham)d</b><br>
-              <form action='save' method='POST'>
-              <input type='submit' value='Save database'>
-              </form>
               """
 
     wordQuery = """<form action='wordquery'>
@@ -666,20 +689,20 @@ class UserInterface(BrighterAsyncChat):
 
     upload = """<form action='%s' method='POST'
                 enctype='multipart/form-data'>
-             Either upload a message file:
+             Either upload a message %s file:
              <input type='file' name='file' value=''><br>
-             Or paste the whole message (incuding headers) here:<br>
+             Or paste one whole message (incuding headers) here:<br>
              <textarea name='text' rows='3' cols='60'></textarea><br>
              %s
              </form>"""
 
     uploadSumbit = """<input type='submit' name='which' value='%s'>"""
 
-    train = upload % ('train',
+    train = upload % ('train', "or mbox",
                       (uploadSumbit % "Train as Spam") + "&nbsp;" + \
                       (uploadSumbit % "Train as Ham"))
 
-    classify = upload % ('classify', uploadSumbit % "Classify")
+    classify = upload % ('classify', "", uploadSumbit % "Classify")
 
     def __init__(self, clientSocket, socketMap=asyncore.socket_map):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
@@ -759,13 +782,11 @@ class UserInterface(BrighterAsyncChat):
             else:
                 # This is a request for a valid page; run the handler.
                 self.pushOKHeaders('text/html')
-                self.pushPreamble(name, showImage=(name != 'Shutdown'))
+                isKill = (params.get('how', '').lower().find('shutdown') >= 0)
+                self.pushPreamble(name, showImage=(not isKill))
                 handler(params)
                 timeString = time.asctime(time.localtime())
-                if state.useDB:
-                    self.push(self.footer % (timeString, self.shutdownDB))
-                else:
-                    self.push(self.footer % (timeString, self.shutdownPickle))
+                self.push(self.footer % (timeString, self.saveButtons))
 
     def pushOKHeaders(self, contentType, extraHeaders={}):
         timeNow = time.gmtime(time.time())
@@ -831,49 +852,66 @@ class UserInterface(BrighterAsyncChat):
         self.push(body)
 
     def doSave(self):
-        """Saves the database.  Worker for onSave and onShutdown."""
+        """Saves the database."""
         self.push("<b>Saving... ")
         self.push(' ')
         state.bayes.store()
         self.push("Done</b>.\n")
 
     def onSave(self, params):
-        """Command handler for "Save"."""
+        """Command handler for "Save" and "Save & shutdown"."""
         self.doSave()
-
-    def onShutdown(self, params):
-        """Shutdown the server, saving the pickle if requested to do so."""
-        if params['how'].lower().find('save') >= 0:
-            self.doSave()
-        self.push("<b>Shutdown</b>. Goodbye.</div></body></html>")
-        self.push(' ')
-        self.shutdown(2)
-        self.close()
-        raise SystemExit
+        if params['how'].lower().find('shutdown') >= 0:
+            self.push("<b>Shutdown</b>. Goodbye.</div></body></html>")
+            self.push(' ')
+            self.shutdown(2)
+            self.close()
+            raise SystemExit
 
     def onTrain(self, params):
         """Train on an uploaded or pasted message."""
         # Upload or paste?  Spam or ham?
-        message = params.get('file') or params.get('text')
+        content = params.get('file') or params.get('text')
         isSpam = (params['which'] == 'Train as Spam')
 
-        # Append the message to a file, to make it easier to rebuild
+        # Convert platform-specific line endings into unix-style.
+        content = content.replace('\r\n', '\n').replace('\r', '\n')
+
+        # Single message or mbox?
+        if content.startswith('From '):
+            # Get a list of raw messages from the mbox content.
+            class SimpleMessage:
+                def __init__(self, fp):
+                    self.guts = fp.read()
+            contentFile = cStringIO.StringIO(content)
+            mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
+            messages = map(lambda m: m.guts, mbox)
+        else:
+            # Just the one message.
+            messages = [content]
+
+        # Append the message(s) to a file, to make it easier to rebuild
         # the database later.   This is a temporary implementation -
         # it should keep a Corpus of trained messages.
-        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
         if isSpam:
             f = open("_pop3proxyspam.mbox", "a")
         else:
             f = open("_pop3proxyham.mbox", "a")
-        f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
-        f.write(message)
-        f.write("\n\n")
-        f.close()
 
-        # Train on the message.
-        tokens = tokenizer.tokenize(message)
-        state.bayes.learn(tokens, isSpam, True)
-        self.push("<p>OK. Return <a href='home'>Home</a> or train another:</p>")
+        # Train on the uploaded message(s).
+        self.push("<b>Training...</b>\n")
+        self.push(' ')
+        for message in messages:
+            tokens = tokenizer.tokenize(message)
+            state.bayes.learn(tokens, isSpam)
+            f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
+            f.write(message)
+            f.write("\n\n")
+
+        # Save the database and return a link Home and another training form.
+        f.close()
+        self.doSave()
+        self.push("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
         self.push(self.pageSection % ('Train another', self.train))
 
     def keyToTimestamp(self, key):
@@ -933,10 +971,11 @@ class UserInterface(BrighterAsyncChat):
 
     def appendMessages(self, lines, keyedMessages, judgement):
         """Appends the lines of a table of messages to 'lines'."""
-        buttons = """<input type='radio' name='classify:%s' value='discard'>
-                  <input type='radio' name='classify:%s' value='defer' %s>
-                  <input type='radio' name='classify:%s' value='ham' %s>
-                  <input type='radio' name='classify:%s' value='spam' %s>"""
+        buttons = \
+             """<input type='radio' name='classify:%s' value='discard'>&nbsp;
+                <input type='radio' name='classify:%s' value='defer' %s>&nbsp;
+                <input type='radio' name='classify:%s' value='ham' %s>&nbsp;
+                <input type='radio' name='classify:%s' value='spam' %s>"""
         stripe = 0
         for key, message in keyedMessages:
             # Parse the message and get the relevant headers and the first
@@ -969,7 +1008,7 @@ class UserInterface(BrighterAsyncChat):
             radioGroup = buttons % (key, key, defer, key, ham, key, spam)
             stripeClass = ['stripe_on', 'stripe_off'][stripe]
             lines.append("""<tr class='%s'><td>%s</td><td>%s</td>
-                            <td align='middle'>%s</td></tr>""" % \
+                            <td><center>%s</center></td></tr>""" % \
                             (stripeClass, subject, from_, radioGroup))
             stripe = stripe ^ 1
 
@@ -1005,12 +1044,14 @@ class UserInterface(BrighterAsyncChat):
                     except KeyError:
                         pass  # Must be a reload.
 
-        # Report on any training.
+        # Report on any training, and save the database if there was any.
         if numTrained > 0:
             plural = ''
             if numTrained != 1:
                 plural = 's'
             self.push("Trained on %d message%s. " % (numTrained, plural))
+            self.doSave()
+            self.push("<br>&nbsp;")
 
         # If any messages were deferred, show the same page again.
         if numDeferred > 0:
@@ -1195,6 +1236,7 @@ class State:
         the Corpuses, the Trainers and so on."""
         print "Loading database...",
         if self.isTest:
+            self.useDB = True
             self.databaseFilename = '_pop3proxy_test.pickle'   # Never saved
         if self.useDB:
             self.bayes = storage.DBDictClassifier(self.databaseFilename)
