@@ -804,11 +804,18 @@ def crack_content_xyz(msg):
     if x is not None:
         yield 'content-disposition:' + x.lower()
 
-    fname = msg.get_filename()
-    if fname is not None:
-        for x in crack_filename(fname):
-            yield 'filename:' + x
-
+    try:
+        fname = msg.get_filename()
+        if fname is not None:
+            for x in crack_filename(fname):
+                yield 'filename:' + x
+    except TypeError:
+        # bug in email pkg?  see the thread beginning at
+        # http://mail.python.org/pipermail/spambayes/2003-September/008006.html
+        # and
+        # http://mail.python.org/pipermail/spambayes-dev/2003-September/001177.html
+        yield "filename:<bogus>"
+        
     if 0:   # disabled; see comment before function
         x = msg.get('content-transfer-encoding')
         if x is not None:
