@@ -332,10 +332,10 @@ values to analyze.""",
 ("best_cutoff_fp_weight",
 "Best cutoff false positive weight", 10.00, "", "[\d]+[\.]?[\d]*",
  False, True),
-("TestDriver", "best_cutoff_fn_weight",
+("best_cutoff_fn_weight",
 "Best cutoff false negative weight", 1.00, "", "[\d]+[\.]?[\d]*",
  False, True),
-("TestDriver", "best_cutoff_unsure_weight",
+("best_cutoff_unsure_weight",
 "Best cutoff unsure weight", 0.20, "", "[\d]+[\.]?[\d]*",
  False, True),
 
@@ -1115,10 +1115,13 @@ class OptionsClass(object):
                 # A (really ugly) bit of backwards compatability
                 # *** This will vanish soon, so do not make use of it in
                 #     new code ***
+                garbage, converter = all_options[section][opt[0]]
+                if converter is not None:
+                    value = converter(opt[2])
                 old_name = section[0:1].lower() + section[1:] + "_" + opt[0]
-                setattr(options, old_name, opt[2])
+                setattr(options, old_name, value)
                 old_name = opt[0]
-                setattr(options, old_name, opt[2])
+                setattr(options, old_name, value)
 
     # not necessary, but convenient shortcuts to self._options
     def display_name(self, sect, opt):
@@ -1215,7 +1218,10 @@ class OptionsClass(object):
                     # away very soon, so don't rely on this working
                     garbage, new_name = option.split('_', 1)
                     if self._options.has_key((section, new_name)):
-                        value = c.get(section, option)
+                        fetcher, converter = goodopts[new_name]
+                        value = getattr(c, fetcher)(section, option)
+                        if converter is not None:
+                            value = converter(value)
                         setattr(options, option, value) # ugly!
                         option = new_name
                     else:
