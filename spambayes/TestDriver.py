@@ -1,7 +1,7 @@
 # Loop:
 #     Optional:
 #         # Set up a new base classifier for testing.
-#         new_classifier()
+#         new_classifier(), or set_classifier()
 #     # Run tests against (possibly variants of) this classifier.
 #     Loop:
 #         Loop:
@@ -135,8 +135,13 @@ class Driver:
         self.new_classifier()
 
     def new_classifier(self):
-        c = self.classifier = classifier.Bayes()
-        self.tester = Tester.Test(c)
+        """Create and use a new, virgin classifier."""
+        self.set_classifier(classifier.Bayes())
+
+    def set_classifier(self, classifier):
+        """Specify a classifier to be used for further testing."""
+        self.classifier = classifier
+        self.tester = Tester.Test(classifier)
         self.trained_ham_hist = Hist()
         self.trained_spam_hist = Hist()
 
