@@ -34,6 +34,22 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 # Default DB path
 DEFAULTDB = hammie.DEFAULTDB
 
+class XMLHammie(hammie.Hammie):
+    def score(self, msg, **kwargs):
+        try:
+            msg = msg.data
+        except AttributeError:
+            pass
+        return hammie.Hammie.score(self, msg, **kwargs)
+
+    def filter(self, msg, **kwargs):
+        try:
+            msg = msg.data
+        except AttributeError:
+            pass
+        return hammie.Hammie.filter(self, msg, **kwargs)
+
+
 class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
     def do_POST(self):
         """Handles the HTTP POST request.
@@ -113,7 +129,7 @@ def main():
     port = int(port)
 
     bayes = hammie.createbayes(pck, usedb)
-    h = hammie.Hammie(bayes)
+    h = XMLHammie(bayes)
 
     server = SimpleXMLRPCServer.SimpleXMLRPCServer((ip, port), HammieHandler)
     server.register_instance(h)
