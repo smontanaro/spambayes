@@ -167,26 +167,27 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onFilterfolders(self):
         self._writePreamble("Select Filter Folders")
         self._login_to_imap()
-        available_folders = self.imap.folder_list()
-        content = self.html.configForm.clone()
-        content.configFormContent = ""
-        content.introduction = """This page allows you to change which
-        folders are filtered, and where filtered mail ends up."""
-        content.config_submit.value = "Save Filter Folders"
-        content.optionsPathname = optionsPathname
+        if self.imap_logged_in:
+            available_folders = self.imap.folder_list()
+            content = self.html.configForm.clone()
+            content.configFormContent = ""
+            content.introduction = """This page allows you to change which
+            folders are filtered, and where filtered mail ends up."""
+            content.config_submit.value = "Save Filter Folders"
+            content.optionsPathname = optionsPathname
 
-        for opt in ("unsure_folder", "spam_folder",
-                    "filter_folders"):
-            folderBox = self._buildFolderBox("imap", opt, available_folders)
-            content.configFormContent += folderBox
+            for opt in ("unsure_folder", "spam_folder",
+                        "filter_folders"):
+                folderBox = self._buildFolderBox("imap", opt, available_folders)
+                content.configFormContent += folderBox
 
-        self.write(content)
-        self._writePostamble()
+            self.write(content)
+            self._writePostamble()
 
     def _login_to_imap(self):
         if self.imap_logged_in:
             return
-        if self.imap is None:
+        if self.imap is None and len(options["imap", "server"]) > 0:
             server = options["imap", "server"][0]
             if server.find(':') > -1:
                 server, port = server.split(':', 1)
@@ -216,21 +217,22 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onTrainingfolders(self):
         self._writePreamble("Select Training Folders")
         self._login_to_imap()
-        available_folders = self.imap.folder_list()
-        content = self.html.configForm.clone()
-        content.configFormContent = ""
-        content.introduction = """This page allows you to change which
-        folders contain mail to train Spambayes."""
-        content.config_submit.value = "Save Training Folders"
-        content.optionsPathname = optionsPathname
+        if self.imap_logged_in:
+            available_folders = self.imap.folder_list()
+            content = self.html.configForm.clone()
+            content.configFormContent = ""
+            content.introduction = """This page allows you to change which
+            folders contain mail to train Spambayes."""
+            content.config_submit.value = "Save Training Folders"
+            content.optionsPathname = optionsPathname
 
-        for opt in ("ham_train_folders",
-                    "spam_train_folders"):
-            folderBox = self._buildFolderBox("imap", opt, available_folders)
-            content.configFormContent += folderBox
+            for opt in ("ham_train_folders",
+                        "spam_train_folders"):
+                folderBox = self._buildFolderBox("imap", opt, available_folders)
+                content.configFormContent += folderBox
 
-        self.write(content)
-        self._writePostamble()
+            self.write(content)
+            self._writePostamble()
 
     def onChangeopts(self, **parms):
         backup = self.parm_ini_map
