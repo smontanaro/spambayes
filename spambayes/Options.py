@@ -53,12 +53,17 @@ octet_prefix_size: 5
 # regular inbox traffic, the presence of a header like List-Info will be a
 # very strong ham clue, but a bogus one.  In that case, set
 # count_all_header_lines to False, and adjust safe_headers instead.
-
 count_all_header_lines: False
 
-# Like count_all_header_lines, but restricted to headers in this list.
-# safe_headers is ignored when count_all_header_lines is true.
+# When True, generate a "noheader:HEADERNAME" token for each header in
+# safe_headers (below) that *doesn't* appear in the headers.  This helped
+# in various of Tim's python.org tests, but appeared to hurt a little in
+# Anthony Baxter's tests.
+record_header_absence: False
 
+# Like count_all_header_lines, but restricted to headers in this list.
+# safe_headers is ignored when count_all_header_lines is true, unless
+# record_header_absence is also true.
 safe_headers: abuse-reports-to
     date
     errors-to
@@ -335,6 +340,7 @@ all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
+                  'record_header_absence': boolean_cracker,
                   'generate_long_skips': boolean_cracker,
                   'skip_max_word_size': int_cracker,
                   'extract_dow': boolean_cracker,

@@ -1178,6 +1178,9 @@ class Tokenizer:
                     x2n[x] = x2n.get(x, 0) + 1
         for x in x2n.items():
             yield "header:%s:%d" % x
+        if options.record_header_absence:
+            for x in options.safe_headers - Set([k.lower() for k in x2n]):
+                yield "noheader:" + x
 
     def tokenize_body(self, msg, maxword=options.skip_max_word_size):
         """Generate a stream of tokens from an email Message.
