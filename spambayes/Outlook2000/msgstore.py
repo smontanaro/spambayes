@@ -366,7 +366,12 @@ class MAPIMsgStore(MsgStore):
                 folder_eid, ret_class = store.GetReceiveFolder(msg_class, 0)
                 hex_folder_eid = mapi.HexFromBin(folder_eid)
                 hex_store_eid = mapi.HexFromBin(store_eid)
-                yield self.GetFolder((hex_store_eid, hex_folder_eid))
+                folder = self.GetFolder((hex_store_eid, hex_folder_eid))
+                # For 'unconfigured' stores, or "stand-alone" PST files,
+                # this is a root folder - so not what we wan't.  Only return
+                # folders with a parent.
+                if folder.GetParent() is not None:
+                    yield folder
             except pythoncom.com_error, details:
                 if not IsNotAvailableCOMException(details):
                     print "ERROR enumerating a receive folder -", details
@@ -448,6 +453,27 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         while parent is not None:
             parts.insert(0, parent.name)
             parent = parent.GetParent()
+        # We now end up with [0] being an empty string??, [1] being the
+        # information store root folder name, etc.  Outlook etc all just
+        # use the information store name here.
+        if not parts[0]:
+            del parts[0]
+        # Replace the "root" folder name with the information store name
+        # as Outlook, our Folder selector etc do.
+        mapi_store = self.msgstore._GetMessageStore(self.id[0])
+        hr, data = mapi_store.GetProps((PR_DISPLAY_NAME_A,), 0)
+        name = data[0][1]
+        if parts:
+            # and replace with new name
+            parts[0] = name
+        else:
+            # This can happen for the very root folder (ie, parent of the
+            # top-level folder shown by Outlook.  This folder should *never*
+            # be used directly.
+            parts = [name]
+            print "WARNING: It appears you are using the top-level root of " \
+                  "the information store as a folder.  You probably don't "\
+                  "want to do that"
         return "/".join(parts)
 
     def _FolderFromMAPIFolder(self, mapifolder):
