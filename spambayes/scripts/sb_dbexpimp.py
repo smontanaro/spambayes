@@ -131,7 +131,7 @@ def runExport(dbFN, useDBM, outFN):
         words = bayes.wordinfo.keys()
 
     try:
-        fp = open(outFN, 'w')
+        fp = open(outFN, 'wb')
     except IOError, e:
         if e.errno != errno.ENOENT:
             raise
