@@ -379,7 +379,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
     def OnItemAdd(self, item):
         # Callback from Outlook - locale may have changed.
         locale.setlocale(locale.LC_NUMERIC, "C") # see locale comments above
-        self.manager.LogDebug(2, "OnItemAdd event for folder", self.name,
+        self.manager.LogDebug(2, "OnItemAdd event for folder", self,
                               "with item", item.Subject.encode("mbcs", "ignore"))
         # Due to the way our "missed message" indicator works, we do
         # a quick check here for "UnRead".  If UnRead, we assume it is very
