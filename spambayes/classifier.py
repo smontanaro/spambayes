@@ -24,7 +24,6 @@
 # This implementation is due to Tim Peters et alia.
 
 import time
-from heapq import heapreplace
 from sets import Set
 
 from Options import options
@@ -178,8 +177,8 @@ class Bayes(object):
             prob = 0.5
 
         if evidence:
-            clues.sort()
             clues = [(w, p) for p, w, r in clues]
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
             return prob, clues
         else:
             return prob
@@ -346,11 +345,8 @@ class Bayes(object):
         mindist = options.robinson_minimum_prob_strength
         unknown = options.robinson_probability_x
 
-        # A priority queue to remember the MAX_DISCRIMINATORS best
-        # probabilities, where "best" means largest distance from 0.5.
-        # The tuples are (distance, prob, word, record).
-        nbest = [(-1.0, None, None, None)] * options.max_discriminators
-        smallest_best = -1.0
+        clues = []  # (distance, prob, word, record) tuples
+        pushclue = clues.append
 
         wordinfoget = self.wordinfo.get
         now = time.time()
@@ -362,12 +358,14 @@ class Bayes(object):
                 record.atime = now
                 prob = record.spamprob
             distance = abs(prob - 0.5)
-            if distance >= mindist and distance > smallest_best:
-                heapreplace(nbest, (distance, prob, word, record))
-                smallest_best = nbest[0][0]
+            if distance >= mindist:
+                pushclue((distance, prob, word, record))
 
-        # Return (prob, word, record) for the non-dummies.
-        return [t[1:] for t in nbest if t[1] is not None]
+        clues.sort()
+        if len(clues) > options.max_discriminators:
+            del clues[0 : -options.max_discriminators]
+        # Return (prob, word, record).
+        return [t[1:] for t in clues]
 
     #************************************************************************
     # Some options change so much behavior that it's better to write a
