@@ -99,15 +99,15 @@ class HammieFilter(object):
         # This will work unless a user:
         #   * had hammie.db as their value for persistent_storage_file, and
         #   * their config file was loaded by Options.py.
-        if options["hammiefilter", "persistent_storage_file"] == \
+        if options["Storage", "persistent_storage_file"] == \
            options.default("Storage", "persistent_storage_file"):
-            options["hammiefilter", "persistent_storage_file"] = \
+            options["Storage", "persistent_storage_file"] = \
                                     "~/.hammiedb"
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
-        self.dbname = options["hammiefilter", "persistent_storage_file"]
+        self.dbname = options["Storage", "persistent_storage_file"]
         self.dbname = os.path.expanduser(self.dbname)
-        self.usedb = options["hammiefilter", "persistent_use_database"]
+        self.usedb = options["Storage", "persistent_use_database"]
 
     def newdb(self):
         h = hammie.open(self.dbname, self.usedb, 'n')
