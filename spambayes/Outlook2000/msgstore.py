@@ -396,7 +396,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             # without any better clues, just handle this.
             # Find all attachments with PR_ATTACH_MIME_TAG_A=multipart/signed
             pass
-            
+
         return "%s\n%s\n%s" % (headers, html, body)
 
     def _GetFakeHeaders(self):

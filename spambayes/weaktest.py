@@ -57,7 +57,7 @@ def drive(nsets):
 
     nham = len(hamfns)
     nspam = len(spamfns)
-    
+
     allfns = {}
     for fn in spamfns+hamfns:
         allfns[fn] = None
@@ -132,7 +132,7 @@ def drive(nsets):
     print "fp: %d fn: %d"%(fp, fn)
     print "Total cost: $%.2f"%(FPW * fp + FNW * fn + UNW * unsure)
     print "Flex cost: $%.4f"%flexcost
-    
+
 def main():
     import getopt
 

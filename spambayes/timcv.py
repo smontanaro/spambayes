@@ -14,7 +14,7 @@ Where:
 If you only want to use some of the messages in each set,
 
     --HamTrain int
-        The maximum number of msgs to use from each Ham set for training.  
+        The maximum number of msgs to use from each Ham set for training.
         The msgs are chosen randomly.  See also the -s option.
 
     --SpamTrain int
@@ -22,7 +22,7 @@ If you only want to use some of the messages in each set,
         The msgs are chosen randomly.  See also the -s option.
 
     --HamTest int
-        The maximum number of msgs to use from each Ham set for testing.  
+        The maximum number of msgs to use from each Ham set for testing.
         The msgs are chosen randomly.  See also the -s option.
 
     --SpamTest int
@@ -72,9 +72,9 @@ def drive(nsets):
 
     d = TestDriver.Driver()
     # Train it on all sets except the first.
-    d.train(msgs.HamStream("%s-%d" % (hamdirs[1], nsets), 
+    d.train(msgs.HamStream("%s-%d" % (hamdirs[1], nsets),
                             hamdirs[1:], train=1),
-            msgs.SpamStream("%s-%d" % (spamdirs[1], nsets), 
+            msgs.SpamStream("%s-%d" % (spamdirs[1], nsets),
                             spamdirs[1:], train=1))
 
     # Now run nsets times, predicting pair i against all except pair i.
@@ -97,7 +97,7 @@ def drive(nsets):
                 s2 = spamdirs[:]
                 del s2[i]
 
-                d.train(msgs.HamStream(hname, h2, train=1), 
+                d.train(msgs.HamStream(hname, h2, train=1),
                         msgs.SpamStream(sname, s2, train=1))
 
             else:

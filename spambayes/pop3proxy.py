@@ -139,7 +139,7 @@ class ServerLineReader(BrighterAsyncChat):
     simply calls a callback with the data.  The BayesProxy object
     can't connect to the real POP3 server and talk to it
     synchronously, because that would block the process."""
-    
+
     def __init__(self, serverName, serverPort, lineCallback):
         BrighterAsyncChat.__init__(self)
         self.lineCallback = lineCallback
@@ -147,7 +147,7 @@ class ServerLineReader(BrighterAsyncChat):
         self.set_terminator('\r\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((serverName, serverPort))
-    
+
     def collect_incoming_data(self, data):
         self.request = self.request + data
 
@@ -183,7 +183,7 @@ class POP3ProxyBase(BrighterAsyncChat):
         self.isClosing = False      # Has the server closed the socket?
         self.seenAllHeaders = False # For the current RETR or TOP
         self.startTime = 0          # (ditto)
-        self.serverSocket = ServerLineReader(serverName, serverPort, 
+        self.serverSocket = ServerLineReader(serverName, serverPort,
                                              self.onServerLine)
 
     def onTransaction(self, command, args, response):
@@ -197,19 +197,19 @@ class POP3ProxyBase(BrighterAsyncChat):
         """A line of response has been received from the POP3 server."""
         isFirstLine = not self.response
         self.response = self.response + line
-        
+
         # Is this line that terminates a set of headers?
         self.seenAllHeaders = self.seenAllHeaders or line in ['\r\n', '\n']
-        
+
         # Has the server closed its end of the socket?
         if not line:
             self.isClosing = True
-        
+
         # If we're not processing a command, just echo the response.
         if not self.command:
             self.push(self.response)
             self.response = ''
-        
+
         # Time out after 30 seconds for message-retrieval commands if
         # all the headers are down.  The rest of the message will proxy
         # straight through.
@@ -222,7 +222,7 @@ class POP3ProxyBase(BrighterAsyncChat):
            (isFirstLine and line.startswith('-ERR')):
             self.onResponse()
             self.response = ''
-    
+
     def isMultiline(self):
         """Returns True if the request should get a multiline
         response (assuming the response is positive).
@@ -253,7 +253,7 @@ class POP3ProxyBase(BrighterAsyncChat):
             self.shutdown(2)
             self.close()
             raise SystemExit
-        
+
         self.serverSocket.push(self.request + '\r\n')
         if self.request.strip() == '':
             # Someone just hit the Enter key.
@@ -264,15 +264,15 @@ class POP3ProxyBase(BrighterAsyncChat):
             self.command = splitCommand[0].upper()
             self.args = splitCommand[1:]
             self.startTime = time.time()
-        
+
         self.request = ''
-        
+
     def onResponse(self):
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
         cooked = self.onTransaction(self.command, self.args, self.response)
         self.push(cooked)
-        
+
         # If onServerLine() decided that the server has closed its
         # socket, close this one when the response has been sent.
         if self.isClosing:
@@ -350,7 +350,7 @@ class BayesProxy(POP3ProxyBase):
     def close(self):
         status.activeSessions -= 1
         POP3ProxyBase.close(self)
-    
+
     def onTransaction(self, command, args, response):
         """Takes the raw request and response, and returns the
         (possibly processed) response to pass back to the email client.
@@ -418,7 +418,7 @@ class BayesProxy(POP3ProxyBase):
                 disposition = options.header_unsure_string
                 if command == 'RETR':
                     status.numUnsure += 1
-            
+
             headers, body = re.split(r'\n\r?\n', response, 1)
             headers = headers + "\n" + HEADER_FORMAT % disposition + "\r\n"
             return headers + body
@@ -489,7 +489,7 @@ class UserInterface(BrighterAsyncChat):
              .header { font-size: 133%% }
              .content { margin: 15 }
              .sectiontable { border: 1px solid #808080; width: 95%% }
-             .sectionheading { background: fffae0; padding-left: 1ex; 
+             .sectionheading { background: fffae0; padding-left: 1ex;
                                border-bottom: 1px solid #808080;
                                font-weight: bold }
              .sectionbody { padding: 1em }
@@ -512,7 +512,7 @@ class UserInterface(BrighterAsyncChat):
              </td></tr></table></form>\n"""
 
     shutdownDB = """<input type='submit' name='how' value='Shutdown'>"""
-    
+
     shutdownPickle = shutdownDB + """&nbsp;&nbsp;
             <input type='submit' name='how' value='Save &amp; shutdown'>"""
 
@@ -520,7 +520,7 @@ class UserInterface(BrighterAsyncChat):
                   <tr><td class='sectionheading'>%s</td></tr>
                   <tr><td class='sectionbody'>%s</td></tr></table>
                   &nbsp;<br>\n"""
-    
+
     summary = """POP3 proxy running on port <b>%(proxyPort)d</b>,
               proxying to <b>%(serverName)s:%(serverPort)d</b>.<br>
               Active POP3 conversations: <b>%(activeSessions)d</b>.<br>
@@ -528,12 +528,12 @@ class UserInterface(BrighterAsyncChat):
               Emails classified this session: <b>%(numSpams)d</b> spam,
                 <b>%(numHams)d</b> ham, <b>%(numUnsure)d</b> unsure.
               """
-    
+
     wordQuery = """<form action='/wordquery'>
                 <input name='word' type='text' size='30'>
                 <input type='submit' value='Tell me about this word'>
                 </form>"""
-    
+
     train = """<form action='/upload' method='POST'
                 enctype='multipart/form-data'>
             Either upload a message file: <input type='file' name='file'><br>
@@ -545,7 +545,7 @@ class UserInterface(BrighterAsyncChat):
                    name='which' value='spam' checked>Spam</input>?<br>
             <input type='submit' value='Train on this message'>
             </form>"""
-    
+
     def __init__(self, clientSocket, bayes):
         BrighterAsyncChat.__init__(self, clientSocket)
         self.bayes = bayes
@@ -576,7 +576,7 @@ class UserInterface(BrighterAsyncChat):
                 self.set_terminator(int(match.group(1)))
                 self.request = self.request + '\r\n\r\n'
                 return
-    
+
             if type(self.get_terminator()) is type(1):
                 # We've just read the body of a POSTed request.
                 self.set_terminator('\r\n\r\n')
@@ -591,7 +591,7 @@ class UserInterface(BrighterAsyncChat):
                 else:
                     # A normal x-www-form-urlencoded.
                     params.update(cgi.parse_qs(body, keep_blank_values=True))
-            
+
             # Convert the cgi params into a simple dictionary.
             plainParams = {}
             for name, value in params.iteritems():
@@ -603,7 +603,7 @@ class UserInterface(BrighterAsyncChat):
         """Handles a decoded HTTP request."""
         if path == '/':
             path = '/Home'
-        
+
         if path == '/helmet.gif':
             # XXX Why doesn't Expires work?  Must read RFC 2616 one day.
             inOneHour = time.gmtime(time.time() + 3600)
@@ -627,7 +627,7 @@ class UserInterface(BrighterAsyncChat):
                     self.push(self.footer % (timeString, self.shutdownDB))
                 else:
                     self.push(self.footer % (timeString, self.shutdownPickle))
-    
+
     def pushOKHeaders(self, contentType, extraHeaders={}):
         timeNow = time.gmtime(time.time())
         httpNow = time.strftime('%a, %d %b %Y %H:%M:%S GMT', timeNow)
@@ -644,7 +644,7 @@ class UserInterface(BrighterAsyncChat):
         self.push("Content-Type: text/html\r\n")
         self.push("\r\n")
         self.push("<html><body><p>%d %s</p></body></html>" % (code, message))
-    
+
     def pushPreamble(self, name):
         self.push(self.header % name)
         if name == 'Home':
@@ -680,7 +680,7 @@ class UserInterface(BrighterAsyncChat):
         # Upload or paste?  Spam or ham?
         message = params.get('file') or params.get('text')
         isSpam = (params['which'] == 'spam')
-        
+
         # Append the message to a file, to make it easier to rebuild
         # the database later.   This is a temporary implementation -
         # it should keep a Corpus (from Tim Stone's forthcoming message
@@ -717,7 +717,7 @@ class UserInterface(BrighterAsyncChat):
                    Last used: <b>%(atime)s</b>.<br>""" % members
         except KeyError:
             info = "'%s' does not appear in the database." % word
-        
+
         body = (self.pageSection % ("Statistics for '%s'" % word, info) +
                 self.pageSection % ('Word query', self.wordQuery))
         self.push(body)
@@ -991,7 +991,7 @@ if __name__ == '__main__':
             status.proxyPort = int(arg)
         elif opt == '-u':
             status.uiPort = int(arg)
-            
+
     # Do whatever we've been asked to do...
     if not opts and not args:
         print "Running a self-test (use 'pop3proxy -h' for help)"

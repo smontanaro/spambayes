@@ -83,7 +83,7 @@ class SpamStream(MsgStream):
             MsgStream.__init__(self, tag, directories, SPAMTEST)
 
 def setparms(hamtrain, spamtrain, hamtest=None, spamtest=None, seed=None):
-    """Set HAMTEST/TRAIN and SPAMTEST/TRAIN.  
+    """Set HAMTEST/TRAIN and SPAMTEST/TRAIN.
        If seed is not None, also set SEED.
        If (ham|spam)test are not set, set to the same as the (ham|spam)train
        numbers (backwards compat option).
