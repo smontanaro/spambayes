@@ -272,7 +272,7 @@ class Hammie:
         elif prob > spam_cutoff:
             disp = options.header_spam_string
         else:
-            disp = options.header_unknown_string
+            disp = options.header_unsure_string
         disp += ("; %."+str(options.header_score_digits)+"f") % prob
         if options.header_score_logarithm:
             if prob<=0.005 and prob>0.0:
