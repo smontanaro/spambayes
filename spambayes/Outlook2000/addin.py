@@ -852,11 +852,12 @@ class OutlookAddin:
             # Only now will the import of "spambayes.Version" work, as the
             # manager is what munges sys.path for us.
             from spambayes.Version import get_version_string
-            print "%s starting (with engine %s)..." % \
+            print "%s starting (with engine %s)" % \
                     (get_version_string("Outlook"), get_version_string())
             major, minor, spack, platform, ver_str = win32api.GetVersionEx()
-            print "On Windows version %d.%d.%d (%s)" % \
+            print "on Windows %d.%d.%d (%s)" % \
                   (major, minor, spack, ver_str)
+            print "using Python", sys.version
 
             self.explorers_events = None # create at OnStartupComplete
 
