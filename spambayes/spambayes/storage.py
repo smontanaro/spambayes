@@ -141,7 +141,7 @@ class PickledClassifier(classifier.Classifier):
         fp.close()
 
     def close(self):
-        # we keep no reasources open - nothing to do
+        # we keep no resources open - nothing to do
         pass
 
 # Values for our changed words map
