@@ -488,16 +488,19 @@ To backup the databases, all you need to do is make a copy of the directory
 that SpamBayes keeps its data in.  If you need to, you can drop the files
 back in to recover from a corrupted database, or for any other reason.
 
-This directory is located in the "Application Data" directory.  On Windows
-NT/2000/XP, this will probably be:
+This directory is located in the "Application Data" directory.  If you have
+version 008 of the plug-in, or higher, you can locate this directory by
+using the `Show Data Folder` button on the `Advanced` tab of the main
+`SpamBayes` manager dialog.  If you need to locate it by hand, on Windows
+NT/2000/XP, it will probably be:
 
     C:\\Documents and Settings\\[username]\\Application Data\\Spambayes
 
-On other versions of Windows, this will probably be:
+On other versions of Windows, it will probably be:
 
     C:\\Windows\\Application Data\\Spambayes
 
-Note that this folder may be hidden.
+Note that the 'Application Data' folder may be hidden.
 
 
 Can I share/move my training data from one computer to another?
