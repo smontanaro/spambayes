@@ -17,7 +17,8 @@ class Message(email.Message.Message):
     def replace_header(self, hdr, newval):
         """replace first value for hdr with newval"""
         hdr = hdr.lower()
-        for (i, (k, v)) in enumerate(self._headers):
+        for i in range(len(self._headers)):
+            k, v = self._headers[i]
             if k.lower() == hdr:
                 self._headers[i] = (k, newval)
 

@@ -18,6 +18,8 @@ Options:
         Read no more than MSGS messages from mailbox.
 """
 
+from __future__ import generators
+
 import getopt
 import mailbox
 import random

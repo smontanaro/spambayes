@@ -31,6 +31,8 @@ In addition, an attempt is made to merge bayescustomize.ini into the options.
 If that exists, it can be used to change the settings in Options.options.
 """
 
+from __future__ import generators
+
 import os
 import sys
 import random

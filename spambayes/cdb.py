@@ -5,6 +5,9 @@ Dan Bernstein's CDB implemented in Python
 see http://cr.yp.to/cdb.html
 
 """
+
+from __future__ import generators
+
 import os
 import struct
 import mmap

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 """Module to tokenize email messages for spam filtering."""
 
+from __future__ import generators
+
 import email
 import re
 from sets import Set
@@ -512,14 +514,14 @@ if options.ignore_redundant_html:
         text = Set()
         redundant_html = Set()
         for part in msg.walk():
-            if part.get_content_type() == 'multipart/alternative':
+            if part.get_type() == 'multipart/alternative':
                 # Descend this part of the tree, adding any redundant HTML text
                 # part to redundant_html.
                 htmlpart = textpart = None
                 stack = part.get_payload()[:]
                 while stack:
                     subpart = stack.pop()
-                    ctype = subpart.get_content_type()
+                    ctype = subpart.get_type('text/plain')
                     if ctype == 'text/plain':
                         textpart = subpart
                     elif ctype == 'text/html':
@@ -534,7 +536,7 @@ if options.ignore_redundant_html:
                 elif htmlpart is not None:
                     text.add(htmlpart)
 
-            elif part.get_content_maintype() == 'text':
+            elif part.get_main_type('text') == 'text':
                 text.add(part)
 
         return text - redundant_html
@@ -543,7 +545,7 @@ else:
     # Use all text parts.  If a text/plain and text/html part happen to
     # have redundant content, so it goes.
     def textparts(msg):
-        return Set(filter(lambda part: part.get_content_maintype() == 'text',
+        return Set(filter(lambda part: part.get_main_type('text') == 'text',
                           msg.walk()))
 
 url_re = re.compile(r"""
@@ -1018,7 +1020,7 @@ class Tokenizer:
                 yield t
 
             # Remove HTML/XML tags.
-            if (part.get_content_type() == "text/plain" or
+            if (part.get_type() == "text/plain" or
                     not options.retain_pure_html_tags):
                 text = html_re.sub(' ', text)
 

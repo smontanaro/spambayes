@@ -27,6 +27,8 @@ Where:
         %(DISPHEADER)s header, and write it to stdout.
 """
 
+from __future__ import generators
+
 import sys
 import os
 import getopt

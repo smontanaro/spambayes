@@ -60,7 +60,8 @@ class Hist:
         ndigits = len(str(biggest))
         format = "%6.2f %" + str(ndigits) + "d"
 
-        for i, n in enumerate(self.buckets):
+        for i in range(len(self.buckets)):
+            n = self.buckets[i]
             print format % (100.0 * i / self.nbuckets, n),
             print '*' * ((n + hunit - 1) // hunit)
 
