@@ -340,6 +340,17 @@ class IMAPMessage(message.SBHeaderMessage):
             if parsed_date is not None:
                 try:
                     return Time2Internaldate(time.mktime(parsed_date))
+                except ValueError:
+                    # Invalid dates can cause mktime() to raise a
+                    # ValueError, for example:
+                    #   >>> time.mktime(parsedate("Mon, 06 May 0102 10:51:16 -0100"))
+                    #   Traceback (most recent call last):
+                    #     File "<interactive input>", line 1, in ?
+                    #   ValueError: year out of range
+                    # (Why this person is getting mail from almost two
+                    # thousand years ago is another question <wink>).
+                    # In any case, we just pass and use the current date.
+                    pass
                 except OverflowError:
                     pass
         return Time2Internaldate(time.time())
