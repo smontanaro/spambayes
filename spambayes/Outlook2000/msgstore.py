@@ -9,6 +9,8 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# Nod to our automated test suite - we *do* want these messages filtered!
+test_suite_running = False
 
 # Abstract definition - can be moved out when we have more than one sub-class <wink>
 # External interface to this module is almost exclusively via a "folder ID"
@@ -481,6 +483,12 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                 if msg.IsFilterCandidate():
                     yield msg
 
+    def IsReceiveFolder(self, msg_class = "IPM.Note"):
+        # Is this folder the nominated "receive folder" for its store?
+        mapi_store = self.msgstore._GetMessageStore(self.id[0])
+        eid, ret_class = mapi_store.GetReceiveFolder(msg_class, 0)
+        return mapi_store.CompareEntryIDs(eid, self.id[1])
+
 class MAPIMsgStoreMsg(MsgStoreMsg):
     # All the properties we must initialize a message with.
     # These include all the IDs we need, parent IDs, any properties needed
@@ -551,8 +559,22 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # We don't attempt to filter:
         # * Non-mail items
         # * Messages that have never been sent (ie, user-composed)
+        
+        # Note:  While we handle messages that have never been sent,
+        # we dont handle messages that were sent and moved from the
+        # Sent Items folder. It would be good not to train on them,
+        # since they are simply not received email.  An article on
+        # the web said the distinction can't be made with 100%
+        # certainty, but that a good heuristic is to believe that a
+        # msg has been received iff at least one of these properties
+        # has a sensible value:
+        #     PR_RECEIVED_BY_EMAIL_ADDRESS
+        #     PR_RECEIVED_BY_NAME
+        #     PR_RECEIVED_BY_ENTRYID
+        #     PR_TRANSPORT_MESSAGE_HEADERS
+
         return self.msgclass.lower().startswith("ipm.note") and \
-               not self.is_unsent
+               (not self.is_unsent or test_suite_running)
 
     def _GetPotentiallyLargeStringProp(self, prop_id, row):
         return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
