@@ -19,8 +19,18 @@ class reader:
     def __iter__(self):
         return self
 
+    def _readline(self):
+        line = self.fp.readline()
+        # strip any EOL detritus
+        while line[-1:] in ("\r", "\n"):
+            line = line[:-1]
+        return line
+
     def next(self):
-        return self.parse_line(self.fp.readline())
+        line = self._readline()
+        if not line:
+            raise StopIteration
+        return self.parse_line(line)
 
     def parse_line(self, line):
         """parse the line.
@@ -34,36 +44,41 @@ class reader:
 
         result = []
         while line:
+            # quoted field
             if line[0] == '"':
-                # search for ending quotation mark
-                match = re.match('"(.*?)"[^"]', line)
-                if match is None:
-                    # embedded newline
-                    line = line + self.fp.readline()
-                    continue
-                else:
-                    field = match.group(1)
-                field = field.replace('""', '"')
-                try:
-                    dummy = unicode(field, "ascii")
-                except UnicodeError:
-                    field = unicode(field, "utf-8")
-                result.append(field)
-                line = line[len(field)+3:]
-            
+                line = line[1:]
+                field = []
+                while True:
+                    if line[0:2] == '""':
+                        field.append('"')
+                        line = line[2:]
+                    elif line[0] == '"':
+                        # end of field - skip quote and possible comma
+                        line = line[1:]
+                        if line[0:1] == ',':
+                            line = line[1:]
+                        break
+                    else:
+                        field.append(line[0])
+                        line = line[1:]
+                    # ran out of line before field
+                    if not line:
+                        field.append("\n")
+                        line = self._readline()
+                        if not line:
+                            raise IOError, "end-of-file during parsing"
             else:
-                # field is terminated by a comma or EOL
-                match = re.match("(.*?)(,|%s)"%EOL, line)
-                if match is None:
-                    print "parse error:", line
-                    raise
-                field = match.group(1)
-                try:
-                    dummy = unicode(field, "ascii")
-                except UnicodeError:
-                    field = unicode(field, "utf-8")
-                result.append(field)
-                line = line[len(field)+len(match.group(2)):]
+                # unquoted field
+                field = []
+                while line:
+                    if line[0] == ',':
+                        # end of field
+                        line = line[1:]
+                        break
+                    else:
+                        field.append(line[0])
+                        line = line[1:]
+            result.append("".join(field))
         return result
 
 class writer:
@@ -83,3 +98,23 @@ class writer:
 
         result = ",".join(result)
         self.fp.write(result+EOL)
+
+if __name__ == "__main__":
+    import unittest
+    import StringIO
+
+    class TestCase(unittest.TestCase):
+        def test_reader(self):
+            f = StringIO.StringIO('''\
+"""rare""",1,0
+"beginning;
+	end=""itinhh.txt""",1,0
+''')
+            f.seek(0)
+            rdr = reader(f)
+            self.assertEqual(rdr.next(), ['"rare"', '1', '0'])
+            self.assertEqual(rdr.next(),
+                             ['beginning;\n\tend="itinhh.txt"','1', '0'])
+            self.assertRaises(StopIteration, rdr.next)
+
+    unittest.main()
