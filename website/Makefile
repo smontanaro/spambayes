@@ -1,5 +1,5 @@
 # this def'n must occur before the include!
-EXTRA_TARGETS = reply.txt faq.html default.css
+EXTRA_TARGETS = reply.txt faq.html default.css download/Version.cfg
 
 include scripts/make.rules
 ROOT_DIR = .
@@ -19,3 +19,6 @@ faq.ht : faq.txt
 
 faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
+
+download/Version.cfg: ../spambayes/Version.py
+	../spambayes/Version.py -g > download/Version.cfg
