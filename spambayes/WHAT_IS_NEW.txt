@@ -92,6 +92,11 @@ General
    when there are no proxies configured.
  o Prevent the "Show clues" links on the web interface's training page
    from word-wrapping and making all the table rows two lines high.
+ o You can now put "*" at the end of a word in the "Word Query" box
+   on the web interface, and have it show you the first ten words,
+   and how many words there are in total, in the database that start with
+   that word.
+ o The web interface now supports HTTP-Auth.
  o Added a new script (code-named 'overkill.py') which enables
    'drag and drop' training for POP3 users.  This is currently still in
    the experimental stage, and anyone interested in trying it out should
@@ -154,7 +159,7 @@ Feature Requests Added
 ======================
 The following feature requests tracked via the Sourceforge system were
 added:
-789916, 698036
+789916, 698036, 796832, 791319
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:
@@ -164,7 +169,7 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498106&
 Patches integrated
 ===================
 The following patches tracked via the Sourceforge system were integrated:
-791254, 790615, 788001, 769981
+791254, 790615, 788001, 769981, 791393
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:
