@@ -59,7 +59,7 @@ def main():
         usage(2, "socket not specified")
 
     # get the server up before initializing spambayes, so that
-    # we havent wasted time if we later find we cant start the server
+    # we haven't wasted time if we later find we can't start the server
     try:
         server = BNServer(args[0], BNRequest)
     except socket.error,e:
