@@ -18,8 +18,11 @@ except NameError:
     True, False = 1, 0
 
 try:
-    this_filename = os.path.abspath(__file__)
-except NameError:
+    if hasattr(sys, "frozen"):
+        this_filename = os.path.abspath(sys.argv[0])
+    else:
+        this_filename = os.path.abspath(__file__)
+except NameError: # no __file__
     this_filename = os.path.abspath(sys.argv[0])
 
 # This is a little bit of a hack <wink>.  We are generally in a child directory

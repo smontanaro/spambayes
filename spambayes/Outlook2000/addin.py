@@ -348,7 +348,13 @@ def SetButtonImage(button, fname):
     # Also note that the clipboard takes ownership of the handle -
     # this, we can not simply perform this load once and reuse the image.
     if not os.path.isabs(fname):
-        fname = os.path.join( os.path.dirname(__file__), "images", fname)
+        if hasattr(sys, "frozen"):
+            # images relative to the executable.
+            fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                 "images", fname)
+        else:
+            # Ensure references are relative to this .py file
+            fname = os.path.join( os.path.dirname(__file__), "images", fname)
     if not os.path.isfile(fname):
         print "WARNING - Trying to use image '%s', but it doesn't exist" % (fname,)
         return None

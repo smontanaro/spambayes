@@ -1,4 +1,4 @@
-import os
+import os, sys
 import operator
 
 from pywin.mfc import dialog
@@ -155,12 +155,16 @@ class ManagerDialog(dialog.Dialog):
 
     def OnButAbout(self, id, code):
         if code == win32con.BN_CLICKED:
-
-            fname = os.path.join(os.path.dirname(__file__),
-                                 os.pardir,
-                                 "about.html")
+            if hasattr(sys, "frozen"):
+                # Same directory as to the executable.
+                fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                     "about.html")
+            else:
+                # In the parent (ie, main Outlook2000) dir
+                fname = os.path.join(os.path.dirname(__file__),
+                                     os.pardir,
+                                     "about.html")
             fname = os.path.abspath(fname)
-            print fname
             if os.path.isfile(fname):
                 win32ui.DoWaitCursor(1)
                 os.startfile(fname)
