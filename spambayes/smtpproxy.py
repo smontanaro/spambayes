@@ -6,10 +6,9 @@ a spambayes id is extracted from them, and the original messages are
 trained on (from the Corpus cache).  You point smtpproxy at your SMTP
 server, and configure your email client to send mail through the proxy
 then forward/bounce any incorrectly classified messages to the ham/spam
-training address. To use, run pop3proxy.py with the switch '-s'.
-
-All options are found in the [pop3proxy] and [smtpproxy] sections of the
-.ini file.
+training address. To use, run pop3proxy and enter appropriate values for
+the smtp proxy options.  All options are found in the [pop3proxy] and
+[smtpproxy] sections of the configuration file.
 """
 
 # This module is part of the spambayes project, which is Copyright 2002-3
@@ -40,6 +39,16 @@ todo = """
    be an option, of course, and it would be nice to be able to set
    it to be sent every time, or as a x days/hours digest.
    
+ o Clean up the above documentation ;)
+ 
+ o We could change things so that if this script is executed, then
+   the proxy operates independantly of pop3proxy.  The options would be
+   the same, but instead of extracting an id and using that to find a
+   message in pop3proxy's cache, it trains on the text of whatever is
+   sent to it.  This (hopefully) will allow use by mailers like procmail.
+
+ o Suggestions?
+
 Testing:
 
  o Test with as many clients as possible to check that the
@@ -303,9 +312,11 @@ class BayesSMTPProxy(SMTPProxyBase):
     def onProcessData(self, data):
         if self.train_as_spam:
             self.train(data, True)
+            self.train_as_spam = False
             return ""
         elif self.train_as_ham:
             self.train(data, False)
+            self.train_as_ham = False
             return ""
         return data
 
