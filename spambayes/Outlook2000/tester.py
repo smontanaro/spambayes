@@ -422,8 +422,9 @@ def run_nonfilter_tests(manager):
         msgstore.test_suite_running = True
 
 def test(manager):
-    import msgstore, win32ui
-    win32ui.DoWaitCursor(1)
+    import msgstore
+    from dialogs import SetWaitCursor
+    SetWaitCursor(1)
     try: # restore the plugin config at exit.
         msgstore.test_suite_running = True
         run_filter_tests(manager)
@@ -433,7 +434,7 @@ def test(manager):
         msgstore.test_suite_running = False
         manager.LoadConfig()
         manager.addin.FiltersChanged() # restore original filters.
-        win32ui.DoWaitCursor(0)
+        SetWaitCursor(0)
 
 if __name__=='__main__':
     print "NOTE: This will NOT work from the command line"

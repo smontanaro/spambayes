@@ -42,11 +42,12 @@ from win32com.client import gencache, DispatchWithEvents, Dispatch
 import win32api
 import pythoncom
 from win32com.client import constants, getevents
-import win32ui
 
 import win32gui, win32con, win32clipboard # for button images!
 
 import timer, thread
+
+from dialogs.dlgutils import SetWaitCursor
 
 toolbar_name = "SpamBayes"
 
@@ -536,9 +537,9 @@ def CheckLatestVersion(manager):
     cur_ver_num = get_version_number(app_name, version_number_key)
 
     try:
-        win32ui.DoWaitCursor(1)
+        SetWaitCursor(1)
         latest = fetch_latest_dict()
-        win32ui.DoWaitCursor(0)
+        SetWaitCursor(0)
         latest_ver_string = get_version_string(app_name, version_string_key,
                                                version_dict=latest)
         latest_ver_num = get_version_number(app_name, version_number_key,
@@ -560,14 +561,13 @@ def CheckLatestVersion(manager):
               "\r\n\r\nThe download page for the latest version is\r\n%s" \
               "\r\n\r\nWould you like to visit this page now?" \
               % (cur_ver_string, latest_ver_string, url)
-        rc = win32ui.MessageBox(msg, "SpamBayes", win32con.MB_YESNO)
-        if rc == win32con.IDYES:
+        if manager.AskQuestion(msg):
             print "Opening browser page", url
             os.startfile(url)
     else:
         msg = "The latest available version is %s\r\n\r\n" \
               "No later version is available." % latest_ver_string
-        win32ui.MessageBox(msg, "SpamBayes")
+        manager.ReportInformation(msg)
 
 # A hook for whatever tests we have setup
 def Tester(manager):
@@ -608,7 +608,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             self.manager.ReportError(
                 "You must enable SpamBayes before you can delete as spam")
             return
-        win32ui.DoWaitCursor(1)
+        SetWaitCursor(1)
         # Delete this item as spam.
         spam_folder = None
         spam_folder_id = self.manager.config.filter.spam_folder_id
@@ -642,7 +642,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
         self.manager.SaveBayesPostIncrementalTrain()
-        win32ui.DoWaitCursor(0)
+        SetWaitCursor(0)
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
     def OnClick(self, button, cancel):
@@ -658,7 +658,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             self.manager.ReportError(
                 "You must enable SpamBayes before you can recover spam")
             return
-        win32ui.DoWaitCursor(1)
+        SetWaitCursor(1)
         # Get the inbox as the default place to restore to
         # (incase we dont know (early code) or folder removed etc
         app = self.explorer.Application
@@ -697,7 +697,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
         self.manager.SaveBayesPostIncrementalTrain()
-        win32ui.DoWaitCursor(0)
+        SetWaitCursor(0)
 
 # Helpers to work with images on buttons/toolbars.
 def SetButtonImage(button, fname, manager):

@@ -7,7 +7,7 @@ import errno
 import shutil
 import traceback
 import operator
-import win32api, win32con, win32ui
+import win32api, win32con, win32gui
 
 import win32com.client
 import win32com.client.gencache
@@ -20,6 +20,36 @@ try:
 except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
+
+# Report a message to the user - should only be used for pretty serious errors
+# hence we also print a traceback.
+# Module level function so we can report errors creating the manager
+def _GetParent():
+    try:
+        return win32gui.GetActiveWindow()
+    except win32gui.error:
+        pass
+    return 0
+
+def _DoMessage(message, title, flags):
+    return win32gui.MessageBox(_GetParent(), message, title, flags)
+
+def ReportError(message, title = None):
+    import traceback
+    print "ERROR:", repr(message)
+    if sys.exc_info()[0] is not None:
+        traceback.print_exc()
+    if title is None: title = "SpamBayes"
+    _DoMessage(message, title, win32con.MB_ICONEXCLAMATION)
+
+def ReportInformtation(message, title = None):
+    if title is None: title = "SpamBayes"
+    _DoMessage(message, title, win32con.MB_ICONINFORMATION)
+
+def AskQuestion(message, title = None):
+    if title is None: title = "SpamBayes"
+    return _DoMessage(message, title, win32con.MB_YESNO | \
+                                      win32con.MB_ICONQUESTION) == win32con.IDYES
 
 # Notes on Unicode directory names
 # You will have much more success with extended characters in
@@ -98,18 +128,6 @@ class ManagerError(Exception):
 class Stats:
     def __init__(self):
         self.num_seen = self.num_spam = self.num_unsure = 0
-
-# Report a message to the user - should only be used for pretty serious errors
-# hence we also print a traceback.
-# Module level function so we can report errors creating the manager
-def ReportError(message, title = None):
-    import traceback
-    print "ERROR:", repr(message)
-    if sys.exc_info()[0] is not None:
-        traceback.print_exc()
-    if title is None:
-        title = "SpamBayes Anti-Spam plugin"
-    win32ui.MessageBox(message, title)
 
 # Function to "safely" save a pickle, only overwriting
 # the existing file after a successful write.
@@ -386,6 +404,10 @@ class BayesManager:
 
     def ReportError(self, message, title = None):
         ReportError(message, title)
+    def ReportInformation(self, message, title=None):
+        ReportInformation(message, title)
+    def AskQuestion(self, message, title=None):
+        return AskQuestion(message, title)
 
     # Report a super-serious startup error to the user.
     # This should only be used when SpamBayes was previously working, but a
