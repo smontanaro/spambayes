@@ -37,7 +37,7 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
-def cost(spamhist,hamhist,hamcut,spamcut):
+def cost(spamhist, hamhist, hamcut, spamcut):
     spamok = 0
     spamunknown = 0
     spamnok = 0
