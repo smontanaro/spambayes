@@ -70,7 +70,10 @@ def print_spamcounts(tokens, db, use_re):
             continue
         seen.add(t)
 
-        sc, hc = db.get(t, (0, 0))
+        try:
+            sc, hc = db.get(t, (0, 0))
+        except ValueError:
+            _, sc, hc = db.get(t, (0, 0, 0))
         if sc == hc == 0:
             continue
 
