@@ -891,6 +891,32 @@ defaults = {
      IMAP_FOLDER, DO_NOT_RESTORE),
   ),
 
+  "imapserver" : (
+    ("username", "Username", "",
+     """The username to use when logging into the SpamBayes IMAP server.""",
+     IMAP_ASTRING, DO_NOT_RESTORE),
+
+    ("password", "Password", "",
+     """The password to use when logging into the SpamBayes IMAP server.""",
+     IMAP_ASTRING, DO_NOT_RESTORE),
+
+    ("port", "IMAP Listen Port", 143,
+     """The port to serve the SpamBayes IMAP server on.""",
+     PORT, RESTORE),
+
+    ("spam_directory", "Spam directory", "imapserver-spam",
+     """The directory to store spam messages in.""",
+     PATH, DO_NOT_RESTORE),
+    
+    ("ham_directory", "Ham directory", "imapserver-ham",
+     """The directory to store ham messages in.""",
+     PATH, DO_NOT_RESTORE),
+    
+    ("unsure_directory", "Unsure directory", "imapserver-unsure",
+     """The directory to store unsure messages in.""",
+     PATH, DO_NOT_RESTORE),
+  ),
+ 
   "globals" : (
     ("verbose", "Verbose", False,
      """""",

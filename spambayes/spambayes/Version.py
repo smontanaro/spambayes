@@ -72,6 +72,15 @@ using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
 using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
+        "IMAP Server" : {
+            "Version":          0.01,
+            "Description":      "SpamBayes IMAP Server Alpha1",
+            "Date":             "September 2003",
+            "InterfaceVersion":             0.02,
+            "InterfaceDescription":        "SpamBayes IMAP Filter Web Interface Alpha2",
+            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
+using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+        },
     },
 }
 

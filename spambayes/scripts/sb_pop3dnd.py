@@ -2,8 +2,7 @@
 
 from __future__ import generators
 
-"""
-Overkill (someone *please* come up with something to call this script!)
+"""POP3DND - provides drag'n'drop training ability for POP3 clients.
 
 This application is a twisted cross between a POP3 proxy and an IMAP
 server.  It sits between your mail client and your POP3 server (like any
@@ -132,7 +131,7 @@ from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_version_string
 from spambayes.ServerUI import ServerUserInterface
 from spambayes.UserInterface import UserInterfaceServer
-from pop3proxy import POP3ProxyBase, State, _addressPortStr, _recreateState
+from sb_server import POP3ProxyBase, State, _addressPortStr, _recreateState
 
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it
@@ -927,7 +926,10 @@ def run():
 
     # Let the user know what they are using...
     print get_version_string("IMAP Server")
-    print "and engine %s.\n" % (get_version_string(),)
+    print get_version_string("POP3 Proxy")
+    print "and engine %s," % (get_version_string(),)
+    from twisted.copyright import version as twisted_version
+    print "with twisted version %s.\n" % (twisted_version,)
 
     # setup everything
     app = setup()
