@@ -91,7 +91,7 @@ __all__ = ['OptionsClass',
            'SERVER', 'PORT', 'EMAIL_ADDRESS',
            'PATH', 'VARIABLE_PATH', 'FILE', 'FILE_WITH_PATH',
            'IMAP_FOLDER', 'IMAP_ASTRING',
-           'RESTORE', 'DO_NOT_RESTORE',
+           'RESTORE', 'DO_NOT_RESTORE', 'IP_LIST',
           ]
 
 MultiContainerTypes = (types.TupleType, types.ListType)
@@ -688,10 +688,11 @@ BOOLEAN = (False, True)
 SERVER = r"([\w\.\-]+(:[\d]+)?)"  # in the form server:port
 PORT = r"[\d]+"
 EMAIL_ADDRESS = r"[\w\-\.]+@[\w\-\.]+"
-PATH = r"[\w \$\.\-~:\\/\*\@\=]+"
+PATH = r"[\w \$\.\-~:\\/\*]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
+IP_LIST = r"\*|localhost|((\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5]),?)+"
 # IMAP seems to allow any character at all in a folder name,
 # but we want to use the comma as a delimiter for lists, so
 # we don't allow this.  If anyone has folders with commas in the

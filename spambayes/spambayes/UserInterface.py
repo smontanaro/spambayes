@@ -100,8 +100,18 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
-        return options["html_ui", "allow_remote_connections"] or \
-               clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
+        remoteIP = clientSocket.getpeername()[0]
+        trustedIPs = options["html_ui", "allow_remote_connections"]
+
+        if trustedIPs == "*" or remoteIP == clientSocket.getsockname()[0]:
+           return True
+
+        trustedIPs = trustedIPs.replace('.', '\.').replace('*', '([01]?\d\d?|2[04]\d|25[0-5])')
+        for trusted in trustedIPs.split(','):
+          if re.search("^" + trusted + "$", remoteIP):
+             return True
+
+        return False
 
     def _getHTMLClone(self):
         """Gets a clone of the HTML, with the footer timestamped, and

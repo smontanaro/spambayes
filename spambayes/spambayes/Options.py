@@ -802,9 +802,14 @@ defaults = {
      """""",
      BOOLEAN, RESTORE),
 
-    ("allow_remote_connections", "Allow remote connections", False,
-     """""",
-     BOOLEAN, RESTORE),
+    ("allow_remote_connections", "Allowed remote connections", "localhost",
+     """Enter a list of trusted IPs, separated by commas. Remote
+     connections from any of them will be allowed. You can trust any
+     IP using a single '*' as field value. You can also trust ranges of
+     IPs using the '*' character as a wildcard (for instance 192.168.0.*).
+     The localhost IP will always be trusted. Type 'localhost' in the
+     field to trust this only address.""",
+     IP_LIST, RESTORE),
 
     ("display_to", "Display To: in message review", False,
      """When reviewing messages via the web user interface, you are

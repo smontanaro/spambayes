@@ -85,6 +85,7 @@ parm_ini_map = (
     ('pop3proxy',           'cache_messages'),
     ('pop3proxy',           'no_cache_bulk_ham'),
     ('html_ui',             'display_to'),
+    ('html_ui',             'allow_remote_connections'),
     ('Header Options',      None),
     ('pop3proxy',           'notate_to'),
     ('pop3proxy',           'notate_subject'),
