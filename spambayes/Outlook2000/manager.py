@@ -756,7 +756,6 @@ class BayesManager:
 
     def ShowManager(self):
         import dialogs
-        # Need to get the plugin hwnd
         dialogs.ShowDialog(0, self, self.config, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
