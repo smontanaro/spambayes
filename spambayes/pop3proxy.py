@@ -646,7 +646,7 @@ class UserInterface(Dibbler.HTTPPlugin):
 
         try:
             sections = email.Header.decode_header(field)
-        except binascii.Error:
+        except (binascii.Error, email.Errors.HeaderParseError):
             sections = [(field, None)]
         field = ' '.join([text for text, unused in sections])
         if len(field) > limit:
