@@ -61,12 +61,10 @@ Known Problems
   of the field is "Integer" (the last option), NOT "Number".  This is only
   necessary for you to *see* the score, not for the scoring to work.
 
-* Filtering an Exchange Server public store appears to not work (is this 
-  still true?)
-
 * Sean reports bad output saving very large classifiers in training.py.
   Somewhere over 4MB, they seem to stop working.  Mark's hasn't got
-  that big yet - just over 2MB and going strong.
+  that big yet - 3.8 MB, then he moved to the bsddb database - all with
+  no problems.
 
 Misc Comments
 ===========
