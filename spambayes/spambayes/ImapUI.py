@@ -42,7 +42,7 @@ except NameError:
     True, False = 1, 0
 
 import re
-import urllib
+import cgi
 
 import UserInterface
 from spambayes.Options import options, optionsPathname
@@ -266,7 +266,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         del folderTable.folderRow
         firstRow = True
         for folder in available_folders:
-            folder = urllib.quote(folder)
+            folder = cgi.escape(folder)
             folderRow = self.html.configTable.folderRow.clone()
             if firstRow:
                 folderRow.helpCell = options.doc(section, option)
