@@ -187,14 +187,19 @@ class DBDictClassifier(classifier.Classifier):
         self.db.sync()
 
     def _wordinfoget(self, word):
-        ret = self.wordinfo.get(word)
-        if not ret:
+        # Note an explicit None in the dict means the word
+        # has previously been deleted, but the DB has not been saved,
+        # so therefore should not be re-fecthed.
+        try:
+            return self.wordinfo[word]
+        except KeyError:
+            ret = None
             r = self.db.get(word)
             if r:
                 ret = self.WordInfoClass()
                 ret.__setstate__(r)
                 self.wordinfo[word] = ret
-        return ret
+            return ret
 
     # _wordinfoset is the same
 
