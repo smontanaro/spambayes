@@ -291,6 +291,13 @@ then all you need to do to train is move examples of mail into the
 appropriate folders, via your mail client (for example, move mail that was
 not classified as spam into (one of) the folder(s) that you specified as
 a spam training folder in the steps above.
+
+Note that training, even without any classifying, using the IMAP filter,
+means that your messages will be recreated (i.e. the old one is marked for
+deletion and a new copy is made) on the server.  The messages will be
+identical to the original, except that they will include an additional
+header, so that SpamBayes can keep track of which messages have already
+been processed.
                                            
 
 Command-line training

@@ -482,7 +482,9 @@ on Windows, so his approach to building the zip file is at the end.
    below) then commit your edits.
  o Checkout the 'spambayes' module twice, once with Windows line endings
    and once with Unix line endings (I use WinCVS for this, using "Admin /
-   Preferences / Globals / Checkout text files with the Unix LF".
+   Preferences / Globals / Checkout text files with the Unix LF".  If you
+   use TortoiseCVS, like Tony, then the option is on the Options tab in
+   the checkout dialog).
  o Change spambayes/__init__.py to contain the new version number but don't
    commit it yet, just in case something goes wrong.
  o In the Windows checkout, run "python setup.py sdist --formats zip"
