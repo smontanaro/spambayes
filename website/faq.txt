@@ -398,8 +398,8 @@ about finding this directory, see the `backup question`_.
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
 
 
-Why is the enable filter button is grayed out?
----------------------------------------------------------
+Why is the enable filter button grayed out?
+-------------------------------------------
 
 You need to have done these things to enable that button:
 
