@@ -70,7 +70,7 @@ class Stats:
             # then record it as a false neg.
             if score < self.config.filter.unsure_threshold:
                 self.num_deleted_spam_fn += 1
-    def GetStats(self, session_only=False):
+    def GetStats(self, session_only=False, decimal_points=1):
         """Return a description of the statistics.
 
         If session_only is True, then only a description of the statistics
@@ -80,6 +80,9 @@ class Stats:
         Users probably care most about persistent statistics, so present
         those by default.  If session-only stats are desired, then a
         special call to here can be made.
+
+        The percentages will be accurate to the given number of decimal
+        points.
         """
         num_seen = self.num_ham + self.num_spam + self.num_unsure
         if not session_only:
@@ -119,10 +122,19 @@ class Stats:
         del format_dict["chunks"]
         format_dict.update(dict(perc_spam=perc_spam, perc_ham=perc_ham,
                                 perc_unsure=perc_unsure, num_seen=num_seen))
-        push("SpamBayes has processed %(num_seen)d messages - " \
-             "%(num_ham)d (%(perc_ham).0f%%) good, " \
-             "%(num_spam)d (%(perc_spam).0f%%) spam " \
-             "and %(num_unsure)d (%(perc_unsure).0f%%) unsure" % format_dict)
+        format_dict["perc_ham_s"] = "%%(perc_ham).%df%%(perc)s" \
+                                    % (decimal_points,)
+        format_dict["perc_spam_s"] = "%%(perc_spam).%df%%(perc)s" \
+                                     % (decimal_points,)
+        format_dict["perc_unsure_s"] = "%%(perc_unsure).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc"] = "%"
+        push(("SpamBayes has processed %(num_seen)d messages - " \
+             "%(num_ham)d (%(perc_ham_s)s) good, " \
+             "%(num_spam)d (%(perc_spam_s)s) spam " \
+             "and %(num_unsure)d (%(perc_unsure_s)s) unsure" \
+             % format_dict) % format_dict)
+
         if num_recovered_good:
             push("%(num_recovered_good)d message(s) were manually " \
                  "classified as good (with %(num_recovered_good_fp)d " \
