@@ -262,10 +262,7 @@ class Hammie:
 
         """
 
-        if hasattr(msg, "readlines"):
-            msg = email.message_from_file(msg)
-        elif not hasattr(msg, "add_header"):
-            msg = email.message_from_string(msg)
+        msg = mboxutils.get_message(msg)
         prob, clues = self._scoremsg(msg, True)
         if prob < ham_cutoff:
             disp = options.header_ham_string
