@@ -271,7 +271,7 @@ class UserInterface(BaseUserInterface):
                        re.escape(options["Headers",
                                          "evidence_header_name"]),
                        re.DOTALL)
-    sc_re = re.compile("%s:(.*)\n" % \
+    sc_re = re.compile("%s:\s*([\d.]+)" % \
                        re.escape(options["Headers", "score_header_name"]))
 
     def _fillCluesTable(self, clues):
