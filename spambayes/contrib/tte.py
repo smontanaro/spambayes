@@ -31,15 +31,27 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 -o sect:opt:val -
           Set [sect, opt] in the options database to val.
 
-Note that the -c command line argument isn't quite as benign as it might
-first appear.  Since the tte protocol trains on the same number of ham and
-spam messages, if you use the output of one run as input into a later run
-you will almost certainly train on fewer messages than before since the two
+Note: The -c command line argument isn't quite as benign as it might first
+appear.  Since the tte protocol trains on the same number of ham and spam
+messages, if you use the output of one run as input into a later run you
+will almost certainly train on fewer messages than before since the two
 files will probably not have the same number of messages.  The extra
 messages in the longer file will be ignored in future runs until you add
 more messages to the shorter file.
 
-For more detail on the notion of training to exhaustion see Gary Robinson's blog:
+Note: Adding messages which train correctly won't affect anything other than
+adding more ham or spam to the respective training pile.  To force such
+messages to have an effect you should set your ham_cutoff and spam_cutoff
+values closer to 0.0 and 1.0 than your normal settings during scoring.  For
+example, if your normal ham_cutoff and spam_cutoff values are 0.2 and 0.8,
+you might run %(prog)s like
+
+    %(prog)s -o Categorization:ham_cutoff:0.05 \
+        -o Categorization:spam_cutoff:0.95 \
+        [ other args ]
+
+For more detail on the notion of training to exhaustion see Gary Robinson's
+blog:
 
     http://www.garyrobinson.net/2004/02/spam_filtering_.html
 """
@@ -97,7 +109,7 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict):
 
         except StopIteration:
             pass
-            
+
         delta = datetime.datetime.now()-start
         seconds = delta.seconds + delta.microseconds/1000000
 
