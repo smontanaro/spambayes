@@ -28,7 +28,7 @@ TD:navtitle 		{ color:	#f4a560;
 
 IMG			{ border:	0;	 }
 
-TABLE.sidebar { background-image:  url("./images/gutter.png"); }
+TABLE.sidebar,TD.sidebar { background-image:  url("./images/gutter.png"); }
 
 TD.normalSidebar a:link { color: #222222;  }
 TD.normalSidebar a:visited { color: #333333;  }
