@@ -21,7 +21,7 @@ def filter_message(msg, mgr, all_actions=True):
         attr_prefix = "unsure"
     else:
         disposition = "No"
-        attr_prefix = None
+        attr_prefix = "ham"
 
     ms = mgr.message_store
     try:

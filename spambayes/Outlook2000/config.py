@@ -187,7 +187,7 @@ defaults = {
         _("""Any message with a Spam score greater than or equal to this value
         will be considered spam, and processed accordingly."""),
         REAL, RESTORE),
-    ("spam_action", _("The action to take for new spam"), "Moved",
+    ("spam_action", _("The action to take for new spam"), FILTER_ACTION[1],
         _("""The action that should be taken as Spam messages arrive."""),
         FILTER_ACTION, RESTORE),
     ("spam_mark_as_read", _("Should filtered spam also be marked as 'read'"), False,
@@ -212,6 +212,17 @@ defaults = {
         FILTER_ACTION, RESTORE),
     ("unsure_mark_as_read", _("Should filtered uncertain message also be marked as 'read'"), False,
         _("""Determines if unsure messages are marked as 'Read' as they are
+        filtered.  See 'spam_mark_as_read' for more details."""),
+        BOOLEAN, RESTORE),
+    (FolderIDOption,
+     "ham_folder_id", _("The folder to which good messages are moved"), None,
+        _("""The folder SpamBayes moves or copies good messages to."""),
+        FOLDER_ID, DO_NOT_RESTORE),
+    ("ham_action", _("The action to take for new good messages"), FILTER_ACTION[0],
+        _("""The action that should be taken as good messages arrive."""),
+        FILTER_ACTION, RESTORE),
+    ("ham_mark_as_read", _("Should filtered good message also be marked as 'read'"), False,
+        _("""Determines if good messages are marked as 'Read' as they are
         filtered.  See 'spam_mark_as_read' for more details."""),
         BOOLEAN, RESTORE),
     ("enabled", _("Is filtering enabled?"), False,
