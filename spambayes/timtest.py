@@ -476,6 +476,57 @@ def tokenize_word(word, _len=len):
             # XXX this info has greater benefit.
             yield "skip:%c %d" % (word[0], n // 10 * 10)
 
+# Generate tokens for:
+#    Content-Type
+#        and its type= param
+#    Content-Dispostion
+#        and its filename= param
+#    Content-Transfer-Encoding
+#    all the charsets
+#
+# This has huge benefit for the f-n rate, and virtually none on the f-p rate,
+# although it does reduce the variance of the f-p rate across different
+# training sets (really marginal msgs, like a brief HTML msg saying just
+# "unsubscribe me", are almost always tagged as spam now; before they were
+# right on the edge, and now the multipart/alternative pushes them over it
+# more consistently).
+#
+# XXX I put all of this in as one chunk.  I don't know which parts are
+# XXX most effective; it could be that some parts don't help at all.  But
+# XXX given the nature of the c.l.py tests, it's not surprising that the
+# XXX     'content-type:text/html'
+# XXX token is now the single most powerful spam indicator (== makes it
+# XXX into the nbest list most often).  What *is* a little surprising is
+# XXX that this doesn't push more mixed-type msgs into the f-p camp --
+# XXX unlike looking at *all* HTML tags, this is just one spam indicator
+# XXX instead of dozens, so relevant msg content can cancel it out.
+def crack_content_xyz(msg):
+    x = msg.get_type()
+    if x is not None:
+        yield 'content-type:' + x.lower()
+
+    x = msg.get_param('type')
+    if x is not None:
+        yield 'content-type/type:' + x.lower()
+
+    for x in msg.get_charsets(None):
+        if x is not None:
+            yield 'charset:' + x.lower()
+
+    x = msg.get('content-disposition')
+    if x is not None:
+        yield 'content-disposition:' + x.lower()
+
+    fname = msg.get_filename()
+    if fname is not None:
+        for x in fname.lower().split('/'):
+            for y in x.split('.'):
+                yield 'filename:' + y
+
+    x = msg.get('content-transfer-encoding:')
+    if x is not None:
+        yield 'content-transfer-encoding:' + x.lower()
+
 def tokenize(string):
     # Create an email Message object.
     try:
@@ -492,12 +543,19 @@ def tokenize(string):
     # XXX job is trivial.  Only some "safe" header lines are included here,
     # XXX where "safe" is specific to my sorry <wink> corpora.
 
+    # Content-{Transfer-Encoding, Type, Disposition} and their params.
+    t = ''
+    for x in msg.walk():
+        for w in crack_content_xyz(x):
+            yield t + w
+        t = '>'
+
     # Subject:
     # Don't ignore case in Subject lines; e.g., 'free' versus 'FREE' is
     # especially significant in this context.  Experiment showed a small
     # but real benefit to keeping case intact in this specific context.
-    subj = msg.get('subject', '')
-    for w in subject_word_re.findall(subj):
+    x = msg.get('subject', '')
+    for w in subject_word_re.findall(x):
         for t in tokenize_word(w):
             yield 'subject:' + t
 
@@ -509,8 +567,8 @@ def tokenize(string):
     # Reply-To:
     for field in ('from',):# 'reply-to',):
         prefix = field + ':'
-        subj = msg.get(field, '-None-')
-        for w in subj.lower().split():
+        x = msg.get(field, 'none').lower()
+        for w in x.split():
             for t in tokenize_word(w):
                 yield prefix + t
 
@@ -525,8 +583,8 @@ def tokenize(string):
     #              sets.
     for field in ('x-mailer',):
         prefix = field + ':'
-        subj = msg.get(field, '-None-')
-        yield prefix + ' '.join(subj.lower().split())
+        x = msg.get(field, 'none').lower()
+        yield prefix + ' '.join(x.split())
 
     # Organization:
     # Oddly enough, tokenizing this doesn't make any difference to results.
