@@ -1,0 +1,41 @@
+Title: SpamBayes: Server side solutions
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h1>SpamBayes server-side</h1>
+
+<p>This page includes notes from users that have successfully managed to
+get SpamBayes working server-side.</p>
+
+<h2>postfix notes from Jonathan St-Andre</h2>
+<p>SpamBayes has been installed on one of our MX (running postfix) and
+is filtering all inbound emails for the whole company (~1000 employees,
+~35000 incoming emails daily). The server is a dual PIII 933MHz with
+512MB of memory and the load is pretty low (it's almost overkill).</p>
+
+<p>According to the feedback I received from our users, it seems that
+it tags approximately 90% (for some it goes up to 95%) of the spam
+correctly. The rest of the spam is tagged as unsure. No false positives.
+The filter hasn't received too much spam training either, yet. Efficiency
+has been improving slowly, as we keep training it.</p>
+
+<p>Here's a quick howto:
+<ol>
+<li>Create the DB by training with a mailbox of ham and a mailbox of spam.
+I put the DB in /var/spambayes/hammie.db (as a DBM store).</li>
+<li>In master.cf, the smtp line has been changed for the following two lines:<br />
+<pre>
+smtp      inet  n       -       n       -       -       smtpd
+  -o content_filter=spambayes:
+</pre>
+and the following two lines were added at the end of the file:<br />
+<pre>
+spambayes unix  -       n       n       -       -       pipe
+  user=nobody argv=/usr/local/bin/hammiewrapper.sh $sender $recipient
+</pre></li>
+<li>Here's what the hammiewrapper.sh file looks like:<br />
+<pre>
+#!/bin/sh
+/usr/bin/hammiefilter.py -d /var/spambayes/hammie.db -f | /usr/sbin/sendmail -f $*
+</pre></li>
+</ol>

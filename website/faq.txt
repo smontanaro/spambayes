@@ -818,8 +818,11 @@ filtering concept.  If you are certain that *all* of your users would agree
 on what is spam and what is not, then this might work for you, but otherwise
 you really have to have individual databases for each user.  Either way, you
 should be able to modify spambayes easily enough to fit into your setup.
-Please let the list know if you do have success in this area, and we'll
-update this answer.
+Some people have in fact done this and have been kind enough to donate `notes
+about how they have gone about it`_.  If you also do this but in some other
+way, please let us know so that we can add to the information.
+
+.. _notes about how they have gone about it: server_side.html
 
 
 Forget tokenizing words - you should use character n-grams!
