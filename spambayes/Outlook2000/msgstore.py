@@ -71,7 +71,9 @@ class MsgStoreMsg:
         
 # Our MAPI implementation
 import warnings
-warnings.filterwarnings("ignore", category=FutureWarning, append=1)
+if sys.version_info >= (2, 3):
+    # sick off the new hex() warnings!
+    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
 
 from win32com.client import Dispatch, constants
 from win32com.mapi import mapi
