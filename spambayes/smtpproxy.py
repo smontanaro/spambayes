@@ -212,7 +212,7 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
                 splitCommand = self.request.strip().split(":", 1)
             else:
                 splitCommand = self.request.strip().split(None, 1)
-            self.command = splitCommand[0].upper()
+            self.command = splitCommand[0]
             self.args = splitCommand[1:]
 
         if self.inData == True:
@@ -323,7 +323,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         return (address[sep:end], address[start:end],)
 
     def onTransaction(self, command, args):
-        handler = self.handlers.get(command, self.onUnknown)
+        handler = self.handlers.get(command.upper(), self.onUnknown)
         return handler(command, args)
 
     def onProcessData(self, data):
