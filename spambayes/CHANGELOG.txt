@@ -2,6 +2,7 @@
 
 Release 1.1a1
 =============
+Anthony Baxter    05/11/2003  Spell-checked all the HTML and txt files <wink>
 Tony Meyer        30/10/2003  Implement [ 827138 ] Can't display clues/tokens/source for a trained message
 Richie Hindle     15/10/2003  Increased the auth-digest login timeout from one minute to twenty.
 Neale Pickett     15/10/2003  Modified muttrc and spambayes.el that actually work with what's being shipped :)
@@ -127,7 +128,7 @@ Tony Meyer     01/09/2003  Added [ 796832 ] Word query should show all words sta
 Tony Meyer     01/09/2003  Fix for [ 797316 ] Extra CRLF to SMTP server causes garbage error.
 Richie Hindle  31/08/2003  The web UI's Shutdown command, and stopping the pop3proxy_service, now wait for any open proxy connections to finish before exiting the process.
 Richie Hindle  31/08/2003  X-Spambayes-Exception headers now contain a traceback as well as the exception.
-Richie Hindle  29/08/2003  Fix the yellow colour of the header boxes in the web interface in strict browers (i.e. not IE ;)
+Richie Hindle  29/08/2003  Fix the yellow colour of the header boxes in the web interface in strict browsers (i.e. not IE ;)
 Tony Meyer     28/08/2003  smtpproxy: try a bit harder to proxy the exact command if we aren't going anything with it, and try to match it more closely even if we are.
 Mark Hammond   27/08/2003  Outlook: all menu sub-items are now temporary.
 Mark Hammond   27/08/2003  Fix [ 776808 ] Expanding toolbar crashes outlook
