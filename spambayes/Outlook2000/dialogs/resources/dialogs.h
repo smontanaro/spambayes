@@ -86,19 +86,16 @@
 #define IDC_USE_DELAY1                  1064
 #define IDC_USE_DELAY2                  1065
 #define IDC_TAB                         1068
-#define IDC_BUTTON1                     1069
 #define IDC_BACK_BTN                    1069
-#define IDC_BUT_WIZARD                  1069
-#define IDC_SHOW_DATA_FOLDER            1069
-#define IDC_ABOUT_BTN                   1070
-#define IDC_BUT_RESET                   1070
-#define IDC_DEL_SPAM_RS                 1071
-#define IDC_RECOVER_RS                  1072
+#define IDC_BUT_WIZARD                  1070
+#define IDC_SHOW_DATA_FOLDER            1071
+#define IDC_ABOUT_BTN                   1072
+#define IDC_BUT_RESET                   1073
+#define IDC_DEL_SPAM_RS                 1074
+#define IDC_RECOVER_RS                  1075
 #define IDC_HIDDEN                      1076
 #define IDC_FORWARD_BTN                 1077
 #define IDC_PAGE_PLACEHOLDER            1078
-#define IDC_EDIT2                       1080
-#define IDC_EDIT3                       1081
 #define IDC_BUT_PREPARATION             1081
 #define IDC_FOLDER_HAM                  1083
 #define IDC_BUT_UNTRAINED               1088
@@ -110,7 +107,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1089
+#define _APS_NEXT_CONTROL_VALUE         1090
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

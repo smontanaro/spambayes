@@ -156,7 +156,10 @@ class RCParser:
                     n = lex.get_token()
                     i = int(lex.get_token())
                     self.ids[n] = i
-                    self.names[i] = n
+                    if self.names.has_key(i):
+                        print "Duplicate id",i,"for",n,"is", self.names[i]
+                    else:
+                        self.names[i] = n
                     if self.next_id<=i:
                         self.next_id = i+1
 
