@@ -20,7 +20,7 @@ Usage:
             -h          : help
             -v          : verbose mode
             -p          : security option to prompt for imap password,
-                          rather than look in options.imap_password
+                          rather than look in options["imap", "password"]
             -e y/n      : expunge/purge messages on exit (y) or not (n)
             -i debuglvl : a somewhat mysterious imaplib debugging level
             -l minutes  : period of time between filtering operations
@@ -72,6 +72,9 @@ To Do:
       running (like pop3proxy, for example) and periodically checked for
       any new messages to process (with the RECENT command).  The period
       could be an option.  This is partially done with the -l operand.
+    o Mail flagged with /Deleted shouldn't be filtered.
+    o The flags should be copied along with the message (especially
+      the /Seen flag, but all of them, really).
     o Suggestions?
 """
 
@@ -308,10 +311,10 @@ class IMAPFolder(object):
                 msg.addSBHeaders(prob, clues)
 
                 cls = msg.GetClassification()
-                if cls == options.header_ham_string:
+                if cls == options["Hammie", "header_ham_string"]:
                     # we leave ham alone
                     pass
-                elif cls == options.header_spam_string:
+                elif cls == options["Hammie", "header_spam_string"]:
                     msg.MoveTo(spamfolder)
                 else:
                     msg.MoveTo(unsurefolder)
@@ -320,23 +323,25 @@ class IMAPFolder(object):
             
 class IMAPFilter(object):
     def __init__(self, classifier):
-        self.spam_folder = IMAPFolder(options.imap_spam_folder)
-        self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
+        self.spam_folder = IMAPFolder(options["imap", "spam_folder"])
+        self.unsure_folder = IMAPFolder(options["imap", "unsure_folder"])
 
         self.classifier = classifier
         
     def Train(self):
-        if options.verbose:
+        if options["globals", "verbose"]:
             t = time.time()
 
-        if options.imap_ham_train_folders != "":
-            ham_training_folders = options.imap_ham_train_folders.split()
+        if options["imap", "ham_train_folders"] != "":
+            ham_training_folders = \
+                                 options["imap", "ham_train_folders"].split()
             for fol in ham_training_folders:
                 folder = IMAPFolder(fol)
                 num_ham_trained = folder.Train(self.classifier, False)
 
-        if options.imap_spam_train_folders != "":
-            spam_training_folders = options.imap_spam_train_folders.split()
+        if options["imap", "spam_train_folders"] != "":
+            spam_training_folders = \
+                                  options["imap", "spam_train_folders"].split()
             for fol in spam_training_folders:
                 folder = IMAPFolder(fol)
                 num_spam_trained = folder.Train(self.classifier, True)
@@ -344,19 +349,19 @@ class IMAPFilter(object):
         if num_ham_trained or num_spam_trained:
             self.classifier.store()
         
-        if options.verbose:
+        if options["globals", "verbose"]:
             print "Training took %s seconds, %s messages were trained" \
                   % (time.time() - t, num_ham_trained + num_spam_trained)
 
     def Filter(self):
-        if options.verbose:
+        if options["globals", "verbose"]:
             t = time.time()
             
-        for filter_folder in options.imap_filter_folders.split():
+        for filter_folder in options["imap", "filter_folders"].split():
             folder = IMAPFolder(filter_folder, False)
             folder.Filter(self.classifier, self.spam_folder, self.unsure_folder)
  
-        if options.verbose:
+        if options["globals", "verbose"]:
             print "Filtering took", time.time() - t, "seconds."
 
  
@@ -368,11 +373,11 @@ def run():
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    bdbname = options.pop3proxy_persistent_storage_file
-    useDBM = options.pop3proxy_persistent_use_database
+    bdbname = options["pop3proxy", "persistent_storage_file"]
+    useDBM = options["pop3proxy", "persistent_use_database"]
     doTrain = False
     doClassify = False
-    doExpunge = options.imap_expunge
+    doExpunge = options["imap", "expunge"]
     imapDebug = 0
     sleepTime = 0
     promptForPass = 0
@@ -394,7 +399,7 @@ def run():
         elif opt == '-c':
             doClassify = True
         elif opt == '-v':
-            options.verbose = True
+            options["globals", "verbose"] = True
         elif opt == '-e':
             if arg == 'y':
                 doExpunge = True
@@ -412,11 +417,11 @@ def run():
     if promptForPass:
         pwd = getpass()
     else:
-        pwd = options.imap_password
+        pwd = options["imap", "password"]
 
     bdbname = os.path.expanduser(bdbname)
     
-    if options.verbose:
+    if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),
     
     if useDBM:
@@ -424,23 +429,23 @@ def run():
     else:
         classifier = storage.PickledClassifier(bdbname)
 
-    if options.verbose:
+    if options["globals", "verbose"]:
         print "Done."            
                 
-    imap = IMAPSession(options.imap_server, options.imap_port, \
-                       imapDebug)
+    imap = IMAPSession(options["imap", "server"],
+                       options["imap", "port"], imapDebug)
 
     imap_filter = IMAPFilter(classifier)
 
     while True:
-        imap.login(options.imap_username, pwd)
+        imap.login(options["imap", "username"], pwd)
 
         if doTrain:
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print "Training"
             imap_filter.Train()
         if doClassify:
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print "Classifying"
             imap_filter.Filter()
 
