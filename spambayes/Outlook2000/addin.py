@@ -61,6 +61,28 @@ except pythoncom.com_error, (hr, msg, exc, arg):
         print "Please install CDO then attempt this registration again."
     sys.exit(1)
 
+# Something that should be in win32com in some form or another.
+def CastTo(ob, target):
+  """'Cast' a COM object to another type"""
+  if hasattr(target, "index"): # string like
+    # for now, we assume makepy for this to work.
+    if not ob.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+      ob = gencache.EnsureDispatch(ob)
+    if not ob.__class__.__dict__.get("CLSID"):
+      raise ValueError, "Must be a makepy-able object for this to work"
+    clsid = ob.CLSID
+    mod = gencache.GetModuleForCLSID(clsid)
+    # Get the 'root' module.
+    mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID, mod.MajorVersion, mod.MinorVersion)
+    # Find the CLSID of the target
+    # XXX - should not be looking in VTables..., but no general map currently exists
+    target_clsid = mod.VTablesNamesToIIDMap.get(target)
+    mod = gencache.GetModuleForCLSID(target_clsid)
+    target_class = getattr(mod, target)
+    # resolve coclass to interface
+    target_class = getattr(target_class, "default_interface", target_class)
+    return target_class(ob) # auto QI magic happens
+
 # Whew - we seem to have all the COM support we need - let's rock!
 
 class ButtonEvent:
@@ -89,6 +111,37 @@ class FolderItemsEvent:
         else:
             print "Spam filtering is disabled - ignoring new message"
 
+def ShowClues(mgr, app):
+    sel = app.ActiveExplorer().Selection
+    if sel.Count == 0:
+        win32ui.MessageBox("No items are selected", "No selection")
+        return
+    if sel.Count > 1:
+        win32ui.MessageBox("Please select a single item", "Large selection")
+        return
+
+    item = sel.Item(1)
+    if item.Class != constants.olMail:
+        win32ui.MessageBox("This function can only be performed on mail items", "Not a mail message")
+        return
+
+    mapi_message = mgr.mapi.GetMessage(item.EntryID)
+    headers = mapi_message.Fields[0x7D001E].Value
+    headers = headers.encode('ascii', 'replace')
+    body = mapi_message.Text.encode('ascii', 'replace')
+    text = headers + body
+    prob, clues = mgr.hammie.score(text, evidence=True)
+    
+    new_msg = app.CreateItem(0)
+    body = "<h2>Calculated Probability: %.2f</h2><br>" % (prob,)
+    body += "<pre>" + mgr.hammie.formatclues(clues, "<br>") + "</pre>"
+    new_msg.Subject = "Spam Clues: " + item.Subject
+    # Stupid outlook always switches to RTF :( Work-around
+##    new_msg.Body = body
+    new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
+    # Attach the source message to it
+    new_msg.Attachments.Add(item, constants.olEmbeddeditem, DisplayName="SPAM")
+    new_msg.Display()
 
 class OutlookAddin:
     _com_interfaces_ = ['_IDTExtensibility2']
@@ -101,6 +154,7 @@ class OutlookAddin:
     def __init__(self):
         self.folder_hooks = {}
         self.application = None
+        self.buttons = []
 
     def OnConnection(self, application, connectMode, addin, custom):
         print "SpamAddin - Connecting to Outlook"
@@ -117,13 +171,29 @@ class OutlookAddin:
         if activeExplorer is not None:
             bars = activeExplorer.CommandBars
             toolbar = bars.Item("Standard")
-            item = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            # Add a pop-up menu to the toolbar
+            popup = toolbar.Controls.Add(Type=constants.msoControlPopup, Temporary=True)
+            popup.Caption="Anti-Spam"
+            popup.TooltipText = "Anti-Spam filters and functions"
+            popup.Enabled = True
+            popup = CastTo(popup, "CommandBarPopup")
+            
+            item = popup.Controls.Add(Type=constants.msoControlButton, Temporary=True)
             # Hook events for the item
-            item = self.toolbarButton = DispatchWithEvents(item, ButtonEvent)
+            item = DispatchWithEvents(item, ButtonEvent)
+            item.Init(ShowClues, (self.manager, application))
+            item.Caption="Show spam clues for current message"
+            item.Enabled = True
+            self.buttons.append(item)
+
+            item = popup.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            # Hook events for the item
+            item = DispatchWithEvents(item, ButtonEvent)
             item.Init(manager.ShowManager, (self.manager,))
-            item.Caption="Anti-Spam"
+            item.Caption="Options..."
             item.TooltipText = "Define anti-spam filters"
             item.Enabled = True
+            self.buttons.append(item)
 
         self.FiltersChanged()
 
@@ -162,6 +232,7 @@ class OutlookAddin:
             self.manager.Save()
             self.manager.Close()
             self.manager = None
+        self.buttons = None
 
     def OnAddInsUpdate(self, custom):
         print "SpamAddin - OnAddInsUpdate", custom
@@ -169,6 +240,7 @@ class OutlookAddin:
         print "SpamAddin - OnStartupComplete", custom
     def OnBeginShutdown(self, custom):
         print "SpamAddin - OnBeginShutdown", custom
+
 
 def RegisterAddin(klass):
     import _winreg
