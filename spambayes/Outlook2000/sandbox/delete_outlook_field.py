@@ -48,10 +48,10 @@ def _FindFolderEID(name):
     folder_eid = exchange.HrMAPIFindFolderEx(store, "\\", name)
     return mapi.HexFromBin(folder_eid)
 
-def DeleteField(folder, name):
+def DeleteField_Outlook(folder, name):
     name = name.lower()
     entries = folder.Items
-    num_outlook = num_mapi = 0
+    num_outlook = 0
     entry = entries.GetFirst()
     while entry is not None:
         up = entry.UserProperties
@@ -63,6 +63,9 @@ def DeleteField(folder, name):
                 entry.Save()
                 break
         entry = entries.GetNext()
+    return num_outlook
+
+def DeleteField_MAPI(folder, name):
     # OK - now try and wipe the field using MAPI.
     mapi_msgstore = _FindDefaultMessageStore()
     mapi_folder = mapi_msgstore.OpenEntry(mapi.BinFromHex(folder.EntryID),
@@ -73,7 +76,7 @@ def DeleteField(folder, name):
     prop_ids = PR_ENTRYID,
     table.SetColumns(prop_ids, 0)
     propIds = mapi_folder.GetIDsFromNames(((mapi.PS_PUBLIC_STRINGS,name),), 0)
-    del_from_folder = False
+    num_mapi = 0
     if PROP_TYPE(propIds[0])!=PT_ERROR:
         assert propIds[0] == PROP_TAG( PT_UNSPECIFIED, PROP_ID(propIds[0]))
         while 1:
@@ -93,13 +96,23 @@ def DeleteField(folder, name):
                     if  hr == 0:
                         item.SaveChanges(mapi.MAPI_DEFERRED_ERRORS)
                         num_mapi += 1
+    return num_mapi
+
+def DeleteField_Folder(folder, name):
+    mapi_msgstore = _FindDefaultMessageStore()
+    mapi_folder = mapi_msgstore.OpenEntry(mapi.BinFromHex(folder.EntryID),
+                                          None,
+                                          mapi.MAPI_MODIFY | mapi.MAPI_DEFERRED_ERRORS)
+    propIds = mapi_folder.GetIDsFromNames(((mapi.PS_PUBLIC_STRINGS,name),), 0)
+    num_mapi = 0
+    if PROP_TYPE(propIds[0])!=PT_ERROR:
         hr, vals = mapi_folder.GetProps(propIds)
         if hr==0: # We actually have it
             hr, probs = mapi_folder.DeleteProps(propIds)
             if  hr == 0:
                 mapi_folder.SaveChanges(mapi.MAPI_DEFERRED_ERRORS)
-                del_from_folder = True
-    return num_outlook, num_mapi, del_from_folder
+                return 1
+    return 0
 
 def CountFields(folder):
     fields = {}
@@ -138,6 +151,9 @@ Usage: %s [-f foldername] [-f foldername] [-d] [-s] [FieldName ...]
 -d - Delete the named fields
 -s - Show message subject and field value for all messages with field
 If no options given, prints a summary of field names in the folders
+--no-outlook - Don't delete via the Outlook UserProperties API
+--no-mapi - Don't delete via the extended MAPI API
+--no-folder - Don't attempt to delete the field from the folder itself
 
 Folder name must be a hierarchical 'path' name, using '\\'
 as the path seperator.  If the folder name begins with a
@@ -155,13 +171,16 @@ subfolder in your default store.
 def main():
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "dsf:")
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "dsf:",
+                                   ["no-mapi", "no-outlook", "no-folder"])
     except getopt.error, e:
         print e
         print
         usage()
         sys.exit(1)
     delete = show = False
+    do_mapi = do_outlook = do_folder = True
     folder_names = []
     for opt, opt_val in opts:
         if opt == "-d":
@@ -170,6 +189,13 @@ def main():
             show = True
         elif opt == "-f":
             folder_names.append(opt_val)
+        elif opt == "--no-mapi":
+            do_mapi = False
+        elif opt == "--no-outlook":
+            do_outlook = False
+        elif opt == "--no-folder":
+            do_folder = False
+
         else:
             print "Invalid arg"
             return
@@ -195,13 +221,18 @@ def main():
                 ShowFields(folder, field_name)
             if delete:
                 print "Deleting field", field_name
-                num_ol, num_mapi, did_folder = DeleteField(folder, field_name)
-                print "Deleted", num_ol, "field instances from Outlook"
-                print "Deleted", num_mapi, "field instances via MAPI"
-                if did_folder:
-                    print "Deleted property from folder"
-                else:
-                    print "Could not find property to delete in the folder"
+                if do_outlook:
+                    num = DeleteField_Outlook(folder, field_name)
+                    print "Deleted", num, "field instances from Outlook"
+                if do_mapi:
+                    num = DeleteField_MAPI(folder, field_name)
+                    print "Deleted", num, "field instances via MAPI"
+                if do_folder:
+                    num = DeleteField_Folder(folder, field_name)
+                    if num:
+                        print "Deleted property from folder"
+                    else:
+                        print "Could not find property to delete in the folder"
 
 ##        item = folder.Items.Add()
 ##        props = item.UserProperties
