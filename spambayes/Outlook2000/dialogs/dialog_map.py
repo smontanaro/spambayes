@@ -341,6 +341,7 @@ dialog_map = {
         (CloseButtonProcessor,  "IDCANCEL"),
         (wiz.ConfigureWizardProcessor, "IDC_FORWARD_BTN IDC_BACK_BTN IDC_PAGE_PLACEHOLDER",
          """IDD_WIZARD_WELCOME IDD_WIZARD_FOLDERS_WATCH IDD_WIZARD_FOLDERS_REST
+         IDD_WIZARD_FOLDERS_TRAIN IDD_WIZARD_TRAIN
          IDD_WIZARD_FINISHED_UNCONFIGURED IDD_WIZARD_FINISHED_UNTRAINED
          """,
          WizardFinish),
@@ -350,13 +351,26 @@ dialog_map = {
         (RadioButtonProcessor,    "IDC_BUT_PREPARATION", "Wizard.preparation"),
         ),
     "IDD_WIZARD_FOLDERS_REST": (
-        ),
+        (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
+                                      "Wizard.spam_folder_id", "Wizard.spam_folder_name"),
+        (wiz.EditableFolderIDProcessor,"IDC_FOLDER_UNSURE IDC_BROWSE_UNSURE",
+                                      "Wizard.unsure_folder_id", "Wizard.unsure_folder_name"),
+    ),
     "IDD_WIZARD_FOLDERS_WATCH": (
         (wiz.WatchFolderIDProcessor,"IDC_FOLDER_WATCH IDC_BROWSE_WATCH",
                                     "Wizard.watch_folder_ids"),
-        ),
+    ),
+    "IDD_WIZARD_FOLDERS_TRAIN": (
+        (FolderIDProcessor,"IDC_FOLDER_HAM IDC_BROWSE_HAM",
+                                    "Wizard.train_ham_ids"),
+        (FolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
+                                    "Wizard.train_spam_ids"),
+        
+    ),
+    "IDD_WIZARD_TRAIN" : {
+    },
     "IDD_WIZARD_FINISHED_UNCONFIGURED": (
-        ),
+    ),
     "IDD_WIZARD_FINISHED_UNTRAINED": (
-        ),
+    ),
 }
