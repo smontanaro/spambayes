@@ -627,9 +627,14 @@ class MAPIMsgStoreFolder:
 
     def IsReceiveFolder(self, msg_class = "IPM.Note"):
         # Is this folder the nominated "receive folder" for its store?
-        mapi_store = self.msgstore._GetMessageStore(self.id[0])
-        eid, ret_class = mapi_store.GetReceiveFolder(msg_class, 0)
-        return mapi_store.CompareEntryIDs(eid, self.id[1])
+        try:
+            mapi_store = self.msgstore._GetMessageStore(self.id[0])
+            eid, ret_class = mapi_store.GetReceiveFolder(msg_class, 0)
+            return mapi_store.CompareEntryIDs(eid, self.id[1])
+        except pythoncom.com_error:
+            # Error getting the receive folder from the store (or maybe  our
+            # store - but that would be insane!).  Either way, we can't be it!
+            return False
 
     def CreateFolder(self, name, comments = None, type = None,
                      open_if_exists = False, flags = None):
