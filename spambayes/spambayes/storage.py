@@ -212,11 +212,12 @@ class DBDictClassifier(classifier.Classifier):
             return self.wordinfo[word]
         except KeyError:
             ret = None
-            r = self.db.get(word)
-            if r:
-                ret = self.WordInfoClass()
-                ret.__setstate__(r)
-                self.wordinfo[word] = ret
+            if self.changed_words.get(word) is not WORD_DELETED:
+                r = self.db.get(word)
+                if r:
+                    ret = self.WordInfoClass()
+                    ret.__setstate__(r)
+                    self.wordinfo[word] = ret
             return ret
 
     def _wordinfoset(self, word, record):
