@@ -304,10 +304,9 @@ class OutlookAddin:
         new_hooks = {}
         for msgstore_folder in self.manager.message_store.GetFolderGenerator(
                     folder_ids, include_sub):
-            eid = msgstore_folder.GetOutlookEntryID()
-            existing = self.folder_hooks.get(eid)
+            existing = self.folder_hooks.get(msgstore_folder.id)
             if existing is None or existing.__class__ != HandlerClass:
-                folder = self.application.Session.GetFolderFromID(*eid)
+                folder = msgstore_folder.GetOutlookItem()
                 name = folder.Name.encode("mbcs", "replace")
                 try:
                     new_hook = DispatchWithEvents(folder.Items, HandlerClass)
@@ -316,11 +315,11 @@ class OutlookAddin:
                     new_hook = None
                 if new_hook is not None:
                     new_hook.Init(folder, self.application, self.manager)
-                    new_hooks[eid] = new_hook
-                    self.manager.EnsureOutlookFieldsForFolder(eid)
+                    new_hooks[msgstore_folder.id] = new_hook
+                    self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
                     print "AntiSpam: Watching for new messages in folder", name
             else:
-                new_hooks[eid] = existing
+                new_hooks[msgstore_folder.id] = existing
         return new_hooks
 
     def OnDisconnection(self, mode, custom):

@@ -218,14 +218,6 @@ class MAPIMsgStore(MsgStore):
                                     "Unknown - temp message", -1)
         return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, unread)
 
-##    # Currently no need for this
-##    def GetOutlookObjectFromID(self, eid):
-##        if self.outlook is None:
-##            from win32com.client import Dispatch
-##            self.outlook = Dispatch("Outlook.Application")
-##        return self.outlook.Session.GetItemFromID(mapi.HexFromBin(eid))
-
-
 _MapiTypeMap = {
     type(0.0): PT_DOUBLE,
     type(0): PT_I4,
@@ -249,13 +241,13 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                                                 mapi.HexFromBin(self.id[0]),
                                                 mapi.HexFromBin(self.id[1]))
 
-    def GetOutlookEntryID(self):
-        # Return EntryID, StoreID - we use this order as it is the same as
-        # Session.GetItemFromID() uses - thus:
-        # ids = me.GetOutlookEntryID()
-        # session.GetItemFromID(*ids)
-        # should work.
-        return mapi.HexFromBin(self.id[1]), mapi.HexFromBin(self.id[0])
+    def GetID(self):
+        return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
+
+    def GetOutlookItem(self):
+        hex_item_id = mapi.HexFromBin(self.id[1])
+        hex_store_id = mapi.HexFromBin(self.id[0])
+        return self.msgstore.outlook.Session.GetFolderFromID(hex_item_id, hex_store_id)
 
     def GetMessageGenerator(self):
         folder = self.msgstore._OpenEntry(self.id)
@@ -299,13 +291,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                                      mapi.HexFromBin(self.id[0]),
                                      mapi.HexFromBin(self.id[1]))
 
-    def GetOutlookEntryID(self):
-        # Return EntryID, StoreID - we use this order as it is the same as
-        # Session.GetItemFromID() uses - thus:
-        # ids = me.GetOutlookEntryID()
-        # session.GetItemFromID(*ids)
-        # should work.
-        return mapi.HexFromBin(self.id[1]), mapi.HexFromBin(self.id[0])
+    def GetID(self):
+        return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
+
+    def GetOutlookItem(self):
+        hex_item_id = mapi.HexFromBin(self.id[1])
+        store_hex_id = mapi.HexFromBin(self.id[0])
+        return self.msgstore.outlook.Session.GetItemFromID(hex_item_id, hex_store_id)
 
     def _GetPropFromStream(self, prop_id):
         try:
