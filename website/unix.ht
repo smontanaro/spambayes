@@ -47,3 +47,51 @@ on Unix systems.
   <li> If you're a Unix weenie using a Mac OS X system, this page is
   probably more appropriate than the <a href="mac.html">Mac page</a>.
 </ol>
+
+<h2>exmh</h2>
+
+<P>The following short guide will help you set up a new message menu on
+exmh - this adds a menu containing "Train as Spam" and "Train as Ham"
+options.</P>
+
+<ol>
+  <li> First of all, create the directory <tt>~/.tk/exmh</tt> if you 
+  haven't already done so. Put the following file (I call mine spambayes.tcl)
+  in there:</li>
+<pre>
+proc SB_SpamTrain { } {
+    global exmh msg mhProfile 
+    Ftoc_Iterate line {
+        set msgid [ Ftoc_MsgNumber $line ]
+        eval {MhExec hammie.py -d -s $mhProfile(path)/$exmh(folder)/$msgid } 
+    }
+}
+
+proc SB_HamTrain { } {
+    global exmh msg mhProfile 
+    Ftoc_Iterate line {
+        set msgid [ Ftoc_MsgNumber $line ]
+        eval {MhExec hammie.py -d -g $mhProfile(path)/$exmh(folder)/$msgid } 
+    }
+}
+</pre> 
+
+  <li>Then run 'wish' or 'tclsh', and enter the following command:</li>
+<pre>
+auto_mkindex ~/.tk/exmh *.tcl
+</pre>
+
+  <li>Next, we hook up the commands that we just created. Shut down your exmh
+  and edit <tt>~/.exmh/exmh-defaults</tt>. Add the following entries:</li>
+<pre>
+*Mops.umenulist: spam
+*Mops.spam.text: S-B
+*Mops.spam.m.entrylist: trainspam trainham 
+*Mops.spam.m.l_trainspam: Train as Spam
+*Mops.spam.m.c_trainspam: SB_SpamTrain
+*Mops.spam.m.l_trainham: Train as Ham
+*Mops.spam.m.c_trainham: SB_HamTrain
+</pre>
+
+  <LI>Restart exmh, and you're done.</LI>
+</ol>
