@@ -6,6 +6,12 @@ from manager import GetManager
 NUM_BUCKETS = 10
 DEFAULT_DIRECTORY = "..\\testtools\\Data"
 
+import re
+mime_header_re = re.compile(r"""
+    ^ content- (type | transfer-encoding) : [^\n]* \n
+    ([ \t] [^\n]* \n)*  # suck up adjacent continuation lines
+""", re.VERBOSE | re.MULTILINE | re.IGNORECASE)
+
 # Return # of msgs in folder (a MAPIMsgStoreFolder).
 def count_messages(folder):
     result = 0
@@ -32,6 +38,54 @@ def BuildBuckets(manager, num_buckets):
     dirs = ["Set%d" % i for i in range(1, num_buckets + 1)]
     return num_spam, num_ham, dirs
 
+# Return the text of msg (a MAPIMsgStoreMsg object) as a string.
+# There are subtleties, alas.
+def get_text(msg):
+    email_object = msg.GetEmailPackageObject()
+    try:
+        # Don't use str(msg) instead -- that inserts an information-
+        # free "Unix From" line at the top of each msg.
+        return email_object.as_string()
+
+    except:
+        # Fudge.  GetEmailPackageObject() strips MIME headers by default.
+        # I'm not exactly sure why, but I have some spam with what looks to
+        # be ill-formed MIME, such that the email pkg's .as_string() (or
+        # str() -- same thing, really) gets fatally confused when the MIME
+        # headers are stripped, dying with an internal
+        #
+        #    string payload expected: <type 'list'>
+        #
+        # TypeError.  Ignore the exception and try again.
+        pass
+
+    # This is what our ShowClues() does, and that's never had a problem
+    # getting a string from these problem messages.
+    email_object = msg.GetEmailPackageObject(strip_mime_headers=False)
+    text = email_object.as_string()
+
+    # If we leave the Content-Type and Content-Transfer-Encoding headers in
+    # now, the email package can get confused when it tries to parse this
+    # string.  So, alas, strip 'em by hand.
+    i = text.find('\n\n')  # boundary between headers and body
+    if i < 0:
+        # no body
+        i = len(text) - 2
+    headers, body = text[:i+2], text[i+2:]
+    ##print 'before:\n', text
+    headers = mime_header_re.sub('', headers) # remove troublesome headers
+    text = headers + body
+    ##print 'after:\n', text
+
+    # A sanity check, to make sure the email pkg can still parse this mess.
+    # If it can't, it will raise some exception.  I haven't seen this
+    # happen yet.  Getting into this section is rare (less than 1% of my spam
+    # so far), so the expense doesn't bother me.
+    import email
+    email.message_from_string(text)
+
+    return text
+
 # Export the messages from the folders in folder_ids, as text files, into
 # the subdirectories whose names are given in buckets, under the directory
 # 'root' (which is .../Ham or .../Spam).  Each message is placed in a
@@ -49,9 +103,7 @@ def _export_folders(manager, root, buckets, folder_ids, include_sub):
             this_dir = os.path.join(root,  choice(buckets))
             # filename is the EID.txt
             try:
-                # Don't use str(msg) instead -- that inserts an information-
-                # free "Unix From" line at the top of each msg.
-                msg_text = message.GetEmailPackageObject().as_string()
+                msg_text = get_text(message)
             except KeyboardInterrupt:
                 raise
             except:
