@@ -1156,7 +1156,6 @@ class Option(object):
                         # with as special cases
                         test_str = str(v0) + sep + str(v1)
                         test_tuple = self._split_values(test_str)
-                        print test_tuple, v0, v1
                         if test_tuple[0] == str(v0) and \
                            test_tuple[1] == str(v1) and \
                            len(test_tuple) == 2:
@@ -1354,7 +1353,7 @@ class OptionsClass(object):
                           (opt, sect, filename)
                 else:
                     if self.multiple_values_allowed(sect, opt):
-                        value = tuple(value.split(' '))
+                        value = tuple(value.split())
                     self.set(sect, opt, self.convert(sect, opt, value))
 
     # not strictly necessary, but convenient shortcuts to self._options
