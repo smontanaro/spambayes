@@ -48,7 +48,8 @@ class MessageTest(unittest.TestCase):
         self.msg = email.message_from_string(spam1, _class=Message)
 
     def test_persistent_state(self):
-        self.assertEqual(self.msg.stored_attributes, ['c', 't'])
+        self.assertEqual(self.msg.stored_attributes, ['c', 't',
+                                                      'date_modified'])
 
     def test_initialisation(self):
         self.assertEqual(self.msg.id, None)
@@ -568,8 +569,7 @@ class MessageInfoBaseTest(unittest.TestCase):
                    for att in msg.stored_attributes]
         db_version = dict(self.db.db[msg.id])
         correct_version = dict(correct)
-        self.assertEqual(db_version["date_modified"], time.time())
-        del db_version["date_modified"]
+        correct_version["date_modified"], time.time()
         self.assertEqual(db_version, correct_version)
 
     def _fake_store(self):
