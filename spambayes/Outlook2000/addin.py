@@ -2,6 +2,7 @@
 
 import sys, os
 import warnings
+import traceback
 
 try:
     True, False
@@ -653,32 +654,41 @@ class OutlookAddin:
         self.application = None
 
     def OnConnection(self, application, connectMode, addin, custom):
+        # Handle failures during initialization so that we are not
+        # automatically disabled by Outlook.
+        # Our error reporter is in the "manager" module, so we get that first
         print "SpamAddin - Connecting to Outlook"
-        self.application = application
-
-        # Create our bayes manager
         import manager
-        self.manager = manager.GetManager(application)
-        assert self.manager.addin is None, "Should not already have an addin"
-        self.manager.addin = self
-
-        explorers = application.Explorers
-        # and Explorers events so we know when new explorers spring into life.
-        self.explorers_events = WithEvents(explorers, ExplorersEvent)
-        self.explorers_events.Init(self.manager)
-        # And hook our UI elements to all existing explorers
-        for i in range(explorers.Count):
-            explorer = explorers.Item(i+1)
-            self.explorers_events._DoNewExplorer(explorer, True)
-
-        if self.manager.config.filter.enabled:
-            self.FiltersChanged()
-            try:
-                self.ProcessMissedMessages()
-            except:
-                print "Error processing missed messages!"
-                import traceback
-                traceback.print_exc()
+        try:
+            self.application = application
+            self.manager = None # if we die while creating it!
+            # Create our bayes manager
+            self.manager = manager.GetManager(application)
+            assert self.manager.addin is None, "Should not already have an addin"
+            self.manager.addin = self
+    
+            explorers = application.Explorers
+            # and Explorers events so we know when new explorers spring into life.
+            self.explorers_events = WithEvents(explorers, ExplorersEvent)
+            self.explorers_events.Init(self.manager)
+            # And hook our UI elements to all existing explorers
+            for i in range(explorers.Count):
+                explorer = explorers.Item(i+1)
+                self.explorers_events._DoNewExplorer(explorer, True)
+    
+            if self.manager.config.filter.enabled:
+                self.FiltersChanged()
+                try:
+                    self.ProcessMissedMessages()
+                except:
+                    print "Error processing missed messages!"
+                    traceback.print_exc()
+        except:
+            print "Error connecting to Outlook!"
+            traceback.print_exc()
+            manager.ReportError(
+                "There was an error initializing the SpamBayes addin\r\n\r\n"
+                "Please re-start Outlook and try again.")
 
     def ProcessMissedMessages(self):
         # This could possibly spawn threads if it was too slow!
@@ -743,7 +753,7 @@ class OutlookAddin:
                     new_hook.Init(folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
                     self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
-                    print "AntiSpam: Watching for new messages in folder", name
+                    print "AntiSpam: Watching for new messages in folder ", name
             else:
                 new_hooks[msgstore_folder.id] = existing
         return new_hooks

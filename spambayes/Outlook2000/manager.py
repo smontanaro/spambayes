@@ -77,6 +77,17 @@ def import_core_spambayes_stuff(ini_filename):
 class ManagerError(Exception):
     pass
 
+# Report a message to the user - should only be used for pretty serious errors
+# hence we also print a traceback.
+# Module level function so we can report errors creating the manager
+def ReportError(message, title = None):
+    import traceback
+    print "ERROR:", message
+    traceback.print_exc()
+    if title is None:
+        title = "SpamBayes Anti-Spam plugin"
+    win32ui.MessageBox(message, title)
+
 # Function to "safely" save a pickle, only overwriting
 # the existing file after a successful write.
 def SavePickle(what, filename):
@@ -183,16 +194,9 @@ class BayesManager:
         self.LoadBayes()
         self.message_store = msgstore.MAPIMsgStore(outlook)
 
-    # Report a message to the user - should only be used for pretty serious errors
-    # hence we also print a traceback.
     def ReportError(self, message, title = None):
-        import traceback
-        print "ERROR:", message
-        traceback.print_exc()
-        if title is None:
-            title = "SpamBayes Anti-Spam plugin"
-        win32ui.MessageBox(message, title)
-    
+        ReportError(message, title)
+
     # Report a super-serious startup error to the user.
     # This should only be used when SpamBayes was previously working, but a
     # critical error means we are probably not working now.
