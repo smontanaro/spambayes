@@ -23,7 +23,7 @@ class Message(email.Message.Message):
             if k.lower() == hdr:
                 self._headers[i] = (k, newval)
 
-class Parser(email.Parser.Parser):
+class Parser(email.Parser.HeaderParser):
     def __init__(self):
         email.Parser.Parser.__init__(self, Message)
 
