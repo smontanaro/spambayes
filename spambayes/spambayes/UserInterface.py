@@ -70,6 +70,7 @@ import binascii
 import cgi
 import mailbox
 import types
+import StringIO
 
 import PyMeldLite
 import Dibbler
