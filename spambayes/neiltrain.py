@@ -7,41 +7,18 @@ import sys
 import os
 import mailbox
 import email
+
 import classifier
 import cdb
+import mboxutils
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 from tokenizer import tokenize
 
-def getmbox(msgs):
-    """Return an iterable mbox object"""
-    def _factory(fp):
-        try:
-            return email.message_from_file(fp)
-        except email.Errors.MessageParseError:
-            return ''
-
-    if msgs.startswith("+"):
-        import mhlib
-        mh = mhlib.MH()
-        mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]),
-                                 _factory)
-    elif os.path.isdir(msgs):
-        # XXX Bogus: use an MHMailbox if the pathname contains /Mail/,
-        # else a DirOfTxtFileMailbox.
-        if msgs.find("/Mail/") >= 0:
-            mbox = mailbox.MHMailbox(msgs, _factory)
-        else:
-            mbox = DirOfTxtFileMailbox(msgs, _factory)
-    else:
-        fp = open(msgs)
-        mbox = mailbox.PortableUnixMailbox(fp, _factory)
-    return mbox
-
 def train(bayes, msgs, is_spam):
     """Train bayes with all messages from a mailbox."""
-    mbox = getmbox(msgs)
+    mbox = mboxutils.getmbox(msgs)
     for msg in mbox:
         bayes.learn(tokenize(msg), is_spam, False)
 
