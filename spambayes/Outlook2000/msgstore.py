@@ -153,6 +153,7 @@ class MAPIMsgStore:
     MsgStoreException = MsgStoreException
     NotFoundException = NotFoundException
     ReadOnlyException = ReadOnlyException
+    ObjectChangedException = ObjectChangedException
     
     def __init__(self, outlook = None):
         self.outlook = outlook
