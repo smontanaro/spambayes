@@ -194,8 +194,12 @@ class TabProcessor(ControlProcessor):
 
 
 def ShowAbout(window):
+    """Opens the SpamBayes documentation in a browser"""
     window.manager.ShowHtml("about.html")
 def ShowDataFolder(window):
+    """Uses Windows Explorer to show where SpamBayes data and configuration
+    files are stored
+    """
     import os
     os.startfile(window.manager.windows_data_directory)
 
@@ -415,8 +419,8 @@ dialog_map = {
         (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20),
         (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Filter.timer_only_receive_folders"),
-        (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSTIC"),
         (CommandButtonProcessor,  "IDC_SHOW_DATA_FOLDER", ShowDataFolder, ()),
+        (DialogCommand,         "IDC_BUT_SHOW_DIAGNOSTICS", "IDD_DIAGNOSTIC"),
         ),
     "IDD_DIAGNOSTIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),

@@ -70,9 +70,9 @@
 #define IDC_STATUS1                     1043
 #define IDC_STATUS2                     1044
 #define IDC_BUT_CLEARALL2               1045
-#define IDC_BUT_NEW                     1045
-#define IDC_MARK_SPAM_AS_READ           1048
-#define IDC_SAVE_SPAM_SCORE             1050
+#define IDC_BUT_NEW                     1046
+#define IDC_MARK_SPAM_AS_READ           1047
+#define IDC_SAVE_SPAM_SCORE             1048
 #define IDC_MARK_UNSURE_AS_READ         1051
 #define IDC_ADVANCED_BTN                1055
 #define IDC_DELAY1_SLIDER               1056
@@ -96,18 +96,19 @@
 #define IDC_HIDDEN                      1076
 #define IDC_FORWARD_BTN                 1077
 #define IDC_PAGE_PLACEHOLDER            1078
+#define IDC_SHOW_DATA_FOLDER2           1079
+#define IDC_BUT_SHOW_DIAGNOSTICS        1080
 #define IDC_BUT_PREPARATION             1081
 #define IDC_FOLDER_HAM                  1083
 #define IDC_BUT_UNTRAINED               1088
 #define IDC_BUT_TRAIN                   1089
-#define IDC_CHECK1                      1090
 #define IDC_BUT_TIMER_ENABLED           1091
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        124
+#define _APS_NEXT_RESOURCE_VALUE        125
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1092
 #define _APS_NEXT_SYMED_VALUE           101
