@@ -49,7 +49,7 @@ def ReportError(message, title = None):
     if title is None: title = "SpamBayes"
     _DoMessage(message, title, win32con.MB_ICONEXCLAMATION)
 
-def ReportInformtation(message, title = None):
+def ReportInformation(message, title = None):
     if title is None: title = "SpamBayes"
     _DoMessage(message, title, win32con.MB_ICONINFORMATION)
 

@@ -631,6 +631,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # During experimenting/playing/debugging, it is possible
             # that the source folder == dest folder - restore to
             # the inbox in this case.
+            subject = msgstore_message.GetSubject()
             restore_folder = msgstore_message.GetRememberedFolder()
             if restore_folder is None or \
                msgstore_message.GetFolder() == restore_folder:
@@ -638,7 +639,6 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                 restore_folder = inbox_folder
 
             # Must train before moving, else we lose the message!
-            subject = msgstore_message.GetSubject()
             print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
             TrainAsHam(msgstore_message, self.manager)
             # Do the new message state if necessary.
@@ -691,7 +691,6 @@ class ExplorerWithEvents:
 
     def SetupUI(self):
         manager = self.manager
-        activeExplorer = self
         assert self.toolbar is None, "Should not yet have a toolbar"
 
         # Add our "Delete as ..." and "Recover from" buttons
