@@ -168,7 +168,10 @@ def make_socket(server_options, file):
             if e[0] == errno.EAGAIN:
                 # baaah
                 pass
-            elif e[0] == errno.ENOENT:
+            elif e[0] == errno.ENOENT or not os.path.exists(file):
+                # We need to check os.path.exists for use on operating systems that
+                # never return ENOENT; linux 2.2.
+                #
                 # no such file.... no such server. create one.
                 no_server_count += 1
                 if no_server_count>4:
