@@ -9,6 +9,7 @@ utility.  Users may use it (via pop3proxy.py) to customize the options in
 the bayescustomize.ini file.
 
 To Do:
+    o Replace some of the test options with radio buttons/checkboxes.
     o Suggestions?
 
 """
@@ -51,6 +52,8 @@ parm_ini_map = \
     'p3addid':      ('pop3proxy',       'pop3proxy_add_mailid_to'),
     'p3stripid':    ('pop3proxy',       'pop3proxy_strip_incoming_mailids'),
     'p3prob':       ('pop3proxy',       'pop3proxy_include_prob'),
+    'p3thermostat': ('pop3proxy',       'pop3proxy_include_thermostat'),
+    'p3evidence':   ('pop3proxy',       'pop3proxy_include_evidence'),
     'smtpservers':  ('smtpproxy',       'smtpproxy_servers'),
     'smtpports':    ('smtpproxy',       'smtpproxy_ports'),
     'smtpham':      ('smtpproxy',       'smtpproxy_ham_address'),
@@ -96,15 +99,15 @@ page_layout = \
          header and filter mail based on that information.  To
          accomodate these kind of mail clients, the Notate To: can be
          checked, which will add "spam", "ham", or "unsure" to the
-         recipient list.  Notate Subject: will add the same to the
-         start of the mail subject line.  A filter rule can then use
-         to see if one of these words (followed by a comma) is in the
-         this information in filter rules to route the mail to an
-         appropriate folder, or take whatever other action is
-         supported and appropriate for the mail classification."""),
+         recipient list.  A filter rule can then use this to see if
+         one of these words (followed by a comma) is in the recipient
+         list, and route the mail to an appropriate folder, or take
+         whatever other action is supported and appropriate for the
+         mail classification."""),
 
        ("p3notatesub", "Notate Subject",
-         ""),
+         """This option will add the same information as Notate to:,
+         but to the start of the mail subject line."""),
 
        ("p3cachemsg", "Cache Messages",
          """You can disable the pop3proxy caching of messages.  This
@@ -142,6 +145,20 @@ page_layout = \
          probability into each mail.  If you can view headers with your
          mailer, then you can see this information, which can be interesting
          and even instructive if you're a serious spambayes junkie."""),
+        
+        ("p3thermostat", "Add spam level header",
+         """You can have spambayes insert a header with the calculated spam
+         probability, expressed as a number of '*'s, into each mail (the more
+         '*'s, the higher the probability it is spam). If your mailer
+         supports it, you can use this information to fine tune your
+         classification of ham/spam, ignoring the classification given."""),
+        
+        ("p3evidence", "Add evidence header",
+         """You can have spambayes insert a header into mail, with the
+         evidence that it used to classify that message (a collection of
+         words with ham and spam probabilities).  If you can view headers
+         with your mailer, then this may give you some insight as to why
+         a particular message was scored in a particular way."""),
 
     )),
 
@@ -452,15 +469,37 @@ def editInput(parms):
         errmsg += """<li>Add Spam Probability Header: must be "True" or "False".</li>\n"""
     
     try:
+        prob = parms['p3thermostat']
+    except KeyError:
+        if options.pop3proxy_include_thermostat:
+            prob = "True"
+        else:
+            prob = "False"
+            
+    if not prob == "True" and not prob == "False":
+        errmsg += """<li>Add Spam Level Header: must be "True" or "False".</li>\n"""
+    
+    try:
+        prob = parms['p3evidence']
+    except KeyError:
+        if options.pop3proxy_include_evidence:
+            prob = "True"
+        else:
+            prob = "False"
+            
+    if not prob == "True" and not prob == "False":
+        errmsg += """<li>Add Spam Evidence Header: must be "True" or "False".</li>\n"""
+    
+    try:
         aid = parms['p3addid']
     except KeyError:
-        if options.pop3proxy_add_mailid_to:
-            aid = "True"
-        else:
-            aid = "False"
+        aid = options.pop3proxy_add_mailid_to
             
-    if not aid == "True" and not aid == "False":
-        errmsg += """<li>Add Id Tag: must be "True" or "False".</li>\n"""
+    if not aid == "" and not aid == "body" \
+       and not aid == "header" and not aid == "body header" \
+       and not aid == "header body":
+        errmsg += """<li>Add Id Tag: must be "",
+        "body", "header", "body header", or "header body".</li>\n"""
 
     try:
         sid = parms['p3stripid']

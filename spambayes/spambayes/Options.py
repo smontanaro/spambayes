@@ -390,6 +390,11 @@ pop3proxy_persistent_storage_file: hammie.db
 pop3proxy_notate_to: False
 pop3proxy_notate_subject: False
 pop3proxy_include_prob: False
+pop3proxy_prob_header_name: X-Spambayes-Spam-Probability
+pop3proxy_include_thermostat: False
+pop3proxy_thermostat_header_name: X-Spambayes-Level
+pop3proxy_include_evidence: False
+pop3proxy_evidence_header_name: X-Spambayes-Evidence
 pop3proxy_cache_messages: True
 # valid options for pop3proxy_add_mailid_to include
 # "", "header", "body", and "header body"
@@ -511,6 +516,11 @@ all_options = {
                   'pop3proxy_notate_to' : boolean_cracker,
                   'pop3proxy_notate_subject' : boolean_cracker,
                   'pop3proxy_include_prob' : boolean_cracker,
+                  'pop3proxy_prob_header_name' : string_cracker,
+                  'pop3proxy_include_thermostat' : boolean_cracker,
+                  'pop3proxy_thermostat_header_name' : string_cracker,
+                  'pop3proxy_include_evidence' : boolean_cracker,
+                  'pop3proxy_evidence_header_name' : string_cracker,
                   'pop3proxy_cache_messages' : boolean_cracker,
                   'pop3proxy_add_mailid_to' : string_cracker,
                   'pop3proxy_mailid_header_name' : string_cracker,

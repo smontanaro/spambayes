@@ -480,7 +480,9 @@ class BayesProxy(POP3ProxyBase):
             ok, messageText = response.split('\n', 1)
 
             # Now find the spam disposition and add the header.
-            prob = state.bayes.spamprob(tokenizer.tokenize(messageText))
+            (prob, clues) = state.bayes.spamprob\
+                            (tokenizer.tokenize(messageText),
+                             evidence=True)
             if prob < options.ham_cutoff:
                 disposition = options.header_ham_string
                 if command == 'RETR':
@@ -501,24 +503,35 @@ class BayesProxy(POP3ProxyBase):
 
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             messageName = state.getNewMessageName()
-            id_header = ""
+            headers += '\r\n%s: %s\r\n' % (options.hammie_header_name,
+                                           disposition)
             if command == 'RETR' and not state.isTest:
                 if options.pop3proxy_add_mailid_to.find("header") != -1:
-                    id_header = options.pop3proxy_mailid_header_name \
+                    headers += options.pop3proxy_mailid_header_name \
                             + ": " + messageName + "\r\n"
                 if options.pop3proxy_add_mailid_to.find("body") != -1:
                     body = body[:len(body)-3] + \
                            options.pop3proxy_mailid_header_name + ": " \
                             + messageName + "\r\n.\r\n"
             else:
-                id_header = options.hammie_header_name + "-ID: Test\r\n"
+                headers += options.hammie_header_name + "-ID: Test\r\n"
 
             if options.pop3proxy_include_prob:
-                header = '%s: %s, %s\r\n' % (options.hammie_header_name,
-                                             disposition, prob)
-            else:
-                header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
-            headers = headers + "\n" + header + id_header + "\r\n"
+                headers += '%s: %s\r\n' % (options.pop3proxy_prob_header_name,
+                                           prob)
+            if options.pop3proxy_include_thermostat:
+                thermostat = '**********'
+                headers += '%s: %s\r\n' % \
+                          (options.pop3proxy_thermostat_header_name,
+                           thermostat[int(prob*10):])
+            if options.pop3proxy_include_evidence:
+                headers += options.pop3proxy_evidence_header_name + ": "
+                headers += "; ".join(["%r: %.2f" % (word, prob)
+                         for word, score in clues
+                         if (word[0] == '*' or
+                             score <= options.clue_mailheader_cutoff or
+                             score >= 1.0 - options.clue_mailheader_cutoff)])
+            headers += "\r\n"
             
             if options.pop3proxy_notate_to \
                 and disposition == options.header_spam_string:
