@@ -295,7 +295,7 @@ class UserInterface(BaseUserInterface):
 
         # Attempt to convert the content from a DBX file to a standard mbox
         if file:
-          content = self._convertOutlookExpressToMbox(content)
+          content = self._convertToMbox(content)
 
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
@@ -328,12 +328,13 @@ class UserInterface(BaseUserInterface):
         self.write(self._buildTrainBox())
         self._writePostamble()
 
-    def _convertOutlookExpressToMbox(self, content):
-        """Check if the uploaded mailbox file is an Outlook Express DBX one.
-
+    def _convertToMbox(self, content):
+        """Check if the given buffer is in a non-mbox format, and convert it
+        into mbox format if so.  If it's already an mbox, return it unchanged.
+        
+        Currently, the only supported non-mbox format is Outlook Express DBX.
         In such a case we use the module oe_mailbox to convert the DBX
-        content into a standard mbox file. When the file is not a DBX one,
-        this method returns the original content. Testing if the file is a
+        content into a standard mbox file.  Testing if the file is a
         DBX one is very quick (just a matter of checking the first few
         bytes), and should not alter the overall performance."""
 
@@ -433,7 +434,8 @@ class UserInterface(BaseUserInterface):
 
         form = self.html.upload.clone()
         del form.submit_classify
-        return self._buildBox("Train on a given message", 'message.gif', form)
+        return self._buildBox("Train on a message, mbox file or dbx file",
+                              'message.gif', form)
 
     def reReadOptions(self):
         """Called by the config page when the user saves some new options,
