@@ -74,13 +74,13 @@ class install_scripts(parent):
         return parent.run(self)
 
 import distutils.command.sdist
-parent = distutils.command.sdist.sdist
-class sdist(parent):
+sdist_parent = distutils.command.sdist.sdist
+class sdist(sdist_parent):
     """Like the standard sdist, but also prints out MD5 checksums and sizes
     for the created files, for convenience."""
     def run(self):
         import md5
-        retval = parent.run(self)
+        retval = sdist_parent.run(self)
         for archive in self.get_archive_files():
             data = file(archive, "rb").read()
             print '\n', archive, "\n\tMD5:", md5.md5(data).hexdigest()
