@@ -80,6 +80,13 @@ def _CreateFolder(manager, name, comment):
         return None
     
 def CommitWizardConfig(manager, wc):
+    # If the user want to manually configure, then don't do anything
+    if wc.wizard.preparation == 2: # manually configure
+        import dialogs
+        dialogs.ShowDialog(0, manager, manager.config, "IDD_MANAGER")
+        manager.SaveConfig()
+        return
+
     # Create the ham and spam folders, if necessary.
     manager.config.filter.watch_folder_ids = wc.filter.watch_folder_ids
     if wc.filter.spam_folder_id:
@@ -103,10 +110,7 @@ def CommitWizardConfig(manager, wc):
     manager.wizard_classifier_data = None
     if wiz_cd:
         manager.classifier_data.Adopt(wiz_cd)
-    if wc.wizard.preparation == 2: # manually configure
-        import dialogs
-        dialogs.ShowDialog(0, manager, manager.config, "IDD_MANAGER")
-    elif wc.wizard.will_train_later:
+    if wc.wizard.will_train_later:
         # User cancelled, but said they will sort their mail for us.
         # don't save the config - this will force the wizard up next time
         # outlook is started.
