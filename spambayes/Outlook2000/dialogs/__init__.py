@@ -35,6 +35,8 @@ def LoadDialogs(rc_name = "dialogs.rc"):
             # Need to generate the dialog.
             print "Generating %s from %s" % (py_name, rc_name)
             rc2py.convert(rc_name, py_name)
+            if mod is not None:
+                reload(mod)
     if mod is None:
         mod = __import__(mod_name)
         mod = sys.modules[mod_name]
