@@ -143,28 +143,29 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
                 sys.stdout.write("\r%5d" % nmsgs)
                 sys.stdout.flush()
 
-                for ham in hams:
-                    score = store.spamprob(tokenize(ham))
-                    selector = ham["message-id"] or ham["subject"]
-                    if score > ham_cutoff and selector is not None:
-                        if verbose:
-                            print >> sys.stderr, "miss ham: %.6f %s" % (
-                                score, selector)
-                        hmisses += 1
-                        tdict[ham["message-id"]] = True
-                        store.learn(tokenize(ham), False)
+                for (ham, spam) in map(None, hams, spams):
+                    if ham is not None:
+                        score = store.spamprob(tokenize(ham))
+                        selector = ham["message-id"] or ham["subject"]
+                        if score > ham_cutoff and selector is not None:
+                            if verbose:
+                                print >> sys.stderr, "miss ham: %.6f %s" % (
+                                    score, selector)
+                            hmisses += 1
+                            tdict[ham["message-id"]] = True
+                            store.learn(tokenize(ham), False)
 
-                for spam in spams:
-                    score = store.spamprob(tokenize(spam))
-                    selector = (spam["message-id"] or
-                                spam["subject"])
-                    if score < spam_cutoff and selector is not None:
-                        if verbose:
-                            print >> sys.stderr, "miss spam: %.6f %s" % (
-                                score, selector)
-                        smisses += 1
-                        tdict[spam["message-id"]] = True
-                        store.learn(tokenize(spam), True)
+                    if spam is not None:
+                        score = store.spamprob(tokenize(spam))
+                        selector = (spam["message-id"] or
+                                    spam["subject"])
+                        if score < spam_cutoff and selector is not None:
+                            if verbose:
+                                print >> sys.stderr, "miss spam: %.6f %s" % (
+                                    score, selector)
+                            smisses += 1
+                            tdict[spam["message-id"]] = True
+                            store.learn(tokenize(spam), True)
 
         except StopIteration:
             pass
