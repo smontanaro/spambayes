@@ -1,0 +1,161 @@
+
+=======================================
+Integrating Spambayes with mail systems
+=======================================
+
+General
+-------
+
+Spambayes in a tool used to segregate unwanted (spam) mail from the mail you
+want (ham).  Before Spambayes can be your spam filter of choice you need to
+train it on representative samples of email you receive.  After it's been
+trained, you use Spambayes to classify new mail according to its spamminess
+and hamminess qualities.
+
+To train Spambayes, you need to save your incoming email for awhile,
+segregating it into two piles, known spam and known ham (ham is our nickname
+for good mail).  It's best to train on recent email, because your interests
+and the nature of what spam looks like change over time.  Once you've
+collected a fair portion of each (anything is better than nothing, but it
+helps to have a couple hundred of each), you can tell Spambayes, "Here's my
+ham and my spam".  It will then process that mail and save information about
+different patterns which appear in ham and spam.  That information is then
+used during the filtering stage.
+
+When Spambayes filters your email, it compares each unclassified message
+against the information it saved from training and makes a decision about
+whether it thinks the message qualifies as ham or spam, or if it's unsure
+about how to classify the message.
+
+In the sections below, are gathered notes about how Spambayes can be
+integrated into your mail processing system.  As a general requirement, you
+must have a recent version of Python installed on your computer, version
+2.2.1 or later.  (Don't ask about backporting it to earlier versions of
+Python.  It's almost a certainty this won't happen.)  If you need to install
+Python on your system, check the Python download page for the version
+appropriate to your computer:
+
+    http://www.python.org/download/
+
+
+Training
+--------
+
+Given a pair of Unix mailbox format files (each message starts with a line
+which begins with 'From '), one containing nothing but spam and the other
+containing nothing but ham, you can train Spambayes using a command like
+
+    hammie.py -g ~/tmp/newham -s ~/tmp/newspam
+
+The above command is Unix-centric.  In other environments it's likely that a
+less command-line-oriented tool will be available in the near future.
+
+
+Windows
+-------
+
+TBD.
+
+
+Unix/Linux
+----------
+
+Unlike Windows, there are too many combinations of mail reading tools (mutt,
+pine, Eudora, ...) and mail transport and delivery tools (sendmail, exim,
+procmail, qmail, ...) to attempt to be exhaustive about how to integrate
+Spambayes into your environment at this time.  This section just documents
+some of what's possible.
+
+
+Procmail
+--------
+
+Many people on Unix-like systems have procmail available as an optional or
+as the default local delivery agent.  Integrating Spambayes checking with
+Procmail is straightforward.  Once you've trained Spambayes on your
+collection of know ham and spam, you can use the hammie.py script to
+classify incoming mail like so:
+
+    :0 fw:hamlock
+    | /usr/local/bin/hammie.py -f -d -p $HOME/hammie.db
+
+The above Procmail recipe tells it to run /usr/local/bin/hammie.py in filter
+mode (-f), and to use the training results stored in the dbm-style file
+~/hammie.db.  While hammie.py is runnning, Procmail uses the lock file
+hamlock to prevent multiple invocations from stepping on each others' toes.
+(It's not strictly necessary in this case since no files on-disk are
+modified, but Procmail will still complain if you don't specify a lock
+file.)
+
+The result of running hammie.py in filter mode is that Procmail will use the
+output from the run as the mail message for further processing downstream.
+Hammie.py inserts an X-Hammie-Disposition header in the output message which
+looks like
+
+    X-Hammie-Disposition: No; 0.00; '*H*': 1.00; '*S*': 0.00; 'python': 0.00;
+	'linux,': 0.01; 'desirable': 0.01; 'cvs,': 0.01; 'perl.': 0.02;
+	...
+
+You can then use this to segregate your messages into various inboxes, like
+so:
+
+    :0
+    * ^X-Hammie-Disposition: Yes
+    spam
+
+    :0
+    * ^X-Hammie-Disposition: Unsure
+    unsure
+
+The first recipe catches all messages which hammie.py classified as spam.
+The second catches all messages about which it was unsure.  The combination
+allows you to isolate spam from your good mail and tuck away messages it was
+unsure about so you can scan them more closely.
+
+
+X/Emacs+VM
+----------
+
+Emacs and XEmacs both come with VM, one of a choice of several Emacs-based
+mail packages.  Emacs is extensible using Emacs Lisp or Pymacs.  This
+extensibility allows you to easily segregate your incoming mail for training
+purposes.  Here's one such example.  If you place the following code in your
+~/.vm file:
+
+    (defun copy-to-spam ()
+      (interactive)
+      (vm-save-message (expand-file-name "~/tmp/newspam"))
+      (vm-undelete-message 1))
+
+    (defun copy-to-nonspam ()
+      (interactive)
+      (vm-save-message (expand-file-name "~/tmp/newham"))
+      (vm-undelete-message 1))
+
+    (define-key vm-mode-map "ls" 'copy-to-spam)
+    (define-key vm-summary-mode-map "ls" 'copy-to-spam)
+    (define-key vm-mode-map "lh" 'copy-to-nonspam)
+    (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
+
+'ls' will save a copy of the current message to ~/tmp/newspam and 'lh' will
+save a copy of the current message to ~/tmp/newham.  You can then use those
+files later as arguments to hammie.py for training.
+
+
+Things to watch out for
+-----------------------
+
+While Spambayes does an excellent job of classifying incoming mail, it is
+only as good as the data on which it was trained.  Here are some tips to
+help you create a good training set:
+
+ * Don't use old mail.  The characteristics of your email change over time,
+   sometimes subtly, sometimes dramatically, so it's best to use very recent
+   mail to train Spambayes.  If you've abandoned an email address in the
+   past because it was getting spammed heavily, there are probably some
+   clues in mail sent to your old address which would bias Spambayes.
+
+ * Check and recheck your training collections.  While you are manually
+   classifying mail as spam or ham, it's easy to make a mistake and toss a
+   message or ten in the wrong file.  Such miscategorized mail will throw
+   off the classifier.
