@@ -22,3 +22,11 @@ results of these ideas.
 
 - A token indicating the ratio of hapax legomena to previously seen
   tokens in the message.
+
+- Punctuation sometimes gets inserted in otherwise spammy words or phrases,
+  e.g.: "Ch-eck ou=t ou-r sel)ection _of grea)t R_X -emgffj".  It might be
+  helpful to try stripping punctuation.  (Idea from Paul Sorenson)
+
+- Similarly, some letters get replaced by numbers, e.g.: "V1agra" instead of
+  "Viagra".  Mapping numbers to suitable letters might help in some
+  situations.
