@@ -1082,21 +1082,21 @@ The readme says that I can delete the files after doing "setup.py install", but 
 --------------------------------------------------------------------------------------------------------------------------------------------
 
 This is a mistake in either the readme or setup.py in the 1.0a6 release.
-It's fixed for the next release, so that pop3proxy_service.py and
+It's fixed in the 1.0a7 release, so that pop3proxy_service.py and
 pop3proxy_tray.py will also be installed to the Python scripts directory
 (if you are running Windows).
-For the moment, you just have to copy those files manually, or just not
-delete them, and run them from the expanded archive location.
 
 
 I can't train via the web interface in 1.0a6!
 ---------------------------------------------
 
-There is a known problem with the 1.0a6 release, which is fixed in CVS,
-and so fixed for the next release.  Basically you can't use the database
-after making any changes via the web interface configuration pages.
+There is a known problem with the 1.0a6 release, which is fixed in 1.0a7.
+Download the newer release from the download page.
+
+To workaround the problem if you're stuck on 1.0a6: you can't use the 
+database after making any changes via the web interface configuration pages.
 To work around this, either restart SpamBayes after using the configuration
-pages, or use 1.0a5 until the next release comes out.
+pages, or upgrade to 1.0a7.
 
 The '500' error you receive will end with "Object does not support item
 assignment".  It may also show up on other pages than the review messages
@@ -1122,7 +1122,8 @@ message from Tim Peters about why you need to test your idea :) Note that as
 a general rule, we've found that with the tokenizer, "stupid beats smart"
 - that is, very specialized tokenizer behavior usually produces worse
 results than a more general approach that just generates tokens and throws
-them at the classifier.
+them at the classifier. See also the file NEWTRICKS.txt in the source
+distribution - we're filing neat ideas here.
 
 
 Are there plans to develop a server-side SpamBayes solution?

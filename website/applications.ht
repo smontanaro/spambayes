@@ -28,7 +28,7 @@ For more on this, see the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cg
 <h4>Availability</h4>
 <p>Mark has packaged together <a href="windows.html">an installer for the plugin</a>.
 Go to the <a href="windows.html">Windows page</a> for more.</p>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_filter">sb_filter.py</a></h3>
@@ -43,7 +43,7 @@ Currently it focusses on running sb_filter via procmail. </p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="sb_server">sb_server.py</a></h3>
@@ -58,7 +58,7 @@ sb_server can also be used with the sb_upload.py script as a procmail (or simila
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="imap">sb_imapfilter.py</a></h3>
@@ -73,7 +73,7 @@ See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spamb
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="mboxtrain">sb_mboxtrain.py</a></h3>
@@ -89,7 +89,7 @@ seen previously.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="notesfilter">sb_notesfilter.py</a></h3>
@@ -107,5 +107,5 @@ caution.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha6 release.</a></p>
+<p><a href="download.html">Download the alpha7 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>

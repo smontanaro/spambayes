@@ -3,12 +3,12 @@ Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
 <h2>Source Releases</h2>
-<p>The sixth (and final alpha) pre-release of version 1.0 of the SpamBayes project is available.
-Download version 1.0a6 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.
+<p>The seventh alpha pre-release of version 1.0 of the SpamBayes project is available.
+Download version 1.0a7 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.
 </p>
 
-<p>The primary goal of this pre-release is to shake out any packaging, installation, or integration issues that might be lurking.
-In particular, the script names were changed for this release, and the options code was cleaned up a lot.
+<p>This release is primarily to shake out a few bugs on the way to a 1.0
+release. 
 Version 1.0 is now in 'feature freeze', so, while we will continue to resolve any bugs, no new features will be added.  This means
 that a beta, and then final, release for version 1.0 is not too far off.  New features <b>will</b> be added to the 1.1a1 release.
 Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
