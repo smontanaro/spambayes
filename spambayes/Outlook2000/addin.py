@@ -287,7 +287,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
                 use_timer = False
             elif start_delay < 0.4 or interval < 0.4:
                 too = "too often"
-            elif start_delay > 30 or interval > 30:
+            elif start_delay > 60 or interval > 60:
                 too = "too infrequently"
             if too:
                 print "*" * 50
@@ -462,7 +462,8 @@ def ShowClues(mgr, explorer):
     # Score when the message was classified - this will hopefully help
     # people realise that it may not necessarily be the same, and will
     # help diagnosing any 'wrong' scoring reported.
-    original_score = msgstore_message.GetField(mgr.config.general.field_score_name)
+    original_score = 100 * msgstore_message.GetField(\
+        mgr.config.general.field_score_name)
     if original_score >= mgr.config.filter.spam_threshold:
         original_class = "spam"
     elif original_score >= mgr.config.filter.unsure_threshold:
@@ -474,7 +475,7 @@ def ShowClues(mgr, explorer):
         push("This message has not been filtered.")
     else:
         push("When this message was last filtered, it was classified " \
-             "as %s (it scored %d%%)." % (original_class, original_score*100))
+             "as %s (it scored %d%%)." % (original_class, original_score))
     # Report whether this message has been trained or not.
     push("<br>\n")
     trained_as = mgr.classifier_data.message_db.get(msgstore_message.searchkey)
@@ -687,8 +688,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
                                     self.manager.score(msgstore_message))
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
-                print "Moving and spam training message '%s' - " % (subject,),
-                TrainAsSpam(msgstore_message, self.manager, save_db = False)
+            print "Moving and spam training message '%s' - " % (subject,),
+            TrainAsSpam(msgstore_message, self.manager, save_db = False)
             # Do the new message state if necessary.
             try:
                 if new_msg_state == "Read":
@@ -750,8 +751,8 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                 self.manager.stats.RecordManualClassification(True,
                                         self.manager.score(msgstore_message))
                 # Must train before moving, else we lose the message!
-                    print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
-                    TrainAsHam(msgstore_message, self.manager, save_db = False)
+                print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
+                TrainAsHam(msgstore_message, self.manager, save_db = False)
                 # Do the new message state if necessary.
                 try:
                     if new_msg_state == "Read":
