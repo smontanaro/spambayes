@@ -50,7 +50,7 @@ Warnings:
       available.  These are flagged with the /Deleted flag so that you know
       that they can be removed.  Your mailer may not show these messages
       by default, but there should be an option to do so.  *However*, if
-      your mailer automatically purges/expunges (i.e. permantently deletes)
+      your mailer automatically purges/expunges (i.e. permanently deletes)
       mail flagged as such, *or* if you set the imap_expunge option to
       True, then this mail will be irretrievably lost.
     
@@ -192,7 +192,8 @@ class IMAPMessage(message.SBHeaderMessage):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
         time_stamp = self.extractTime()
-        msgstr = re.sub('([^\r])\n', r'\1\r\n', self.as_string())
+        #msgstr = re.sub('([^\r])\n', r'\1\r\n', self.as_string())
+        msgstr = self.as_string()
         
         response = imap.append(self.folder.name, None,
                                time_stamp, msgstr)
@@ -364,6 +365,7 @@ class IMAPFilter(object):
 
  
 def run():
+    global imap
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'htcvpl:e:i:d:D:')
     except getopt.error, msg:
