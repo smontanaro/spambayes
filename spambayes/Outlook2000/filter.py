@@ -26,6 +26,7 @@ def filter_message(msg, mgr, all_actions=True):
         attr_prefix = "ham"
         msg.c = mgr.bayes_options["Headers", "header_ham_string"][0]
     mgr.classifier_data.message_db.store_msg(msg)
+    mgr.classifier_data.dirty = True
 
     ms = mgr.message_store
     try:
