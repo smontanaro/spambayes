@@ -3,20 +3,10 @@
 
 import sys, os
 sb_top_dir = os.path.abspath(os.path.dirname(os.path.join(__file__, "../../../..")))
-try:
-    import classifier
-except ImportError:
-    sys.path.append(sb_top_dir)
-
-try:
-    import pop3proxy_service
-except ImportError:
-    sys.path.append(os.path.join(sb_top_dir, "windows"))
-    
-try:
-    import addin
-except ImportError:
-    sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
+sys.path.append(sb_top_dir)
+sys.path.append(os.path.join(sb_top_dir, "windows"))
+sys.path.append(os.path.join(sb_top_dir, "scripts"))
+sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
 
 # ModuleFinder can't handle runtime changes to __path__, but win32com uses them,
 # particularly for people who build from sources.  Hook this in.
@@ -40,6 +30,9 @@ import py2exe
 
 class py2exe_options:
     bitmap_resources = [(1000, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp"))]
+    icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
+                      (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico")),
+    ]
     packages = "spambayes.resources"
     excludes = "win32ui,pywin" # pywin is a package, and still seems to be included.
 
@@ -47,7 +40,7 @@ class py2exe_options:
 # command line every single time.
 if len(sys.argv)==1:
     sys.argv = [sys.argv[0], "py2exe"]
-   
+
 setup(name="SpamBayes",
       packages = ["spambayes.resources"],
       # We implement a COM object.
@@ -55,5 +48,7 @@ setup(name="SpamBayes",
       # A service
       service=["pop3proxy_service"],
       # A console exe for debugging
-      console=[os.path.join(sb_top_dir, "pop3proxy.py")],
+      console=[os.path.join(sb_top_dir, "scripts", "sb_server.py")],
+      # The taskbar
+      windows=[os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py")],
 )
