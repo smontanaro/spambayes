@@ -338,6 +338,21 @@ persistent_storage_file: hammie.db
 # (quick to train on huge amounts of messages). Set this to True to use a
 # database by default.
 persistent_use_database: False
+
+[pop3proxy]
+# pop3proxy settings - pop3proxy also respects the options in the Hammie
+# section, with the exception of the extra header details at the moment.
+# The only mandatory option is pop3proxy_server_name, eg. pop3.my-isp.com,
+# but that can come from the command line - see "pop3proxy -h".
+pop3proxy_server_name: ""
+pop3proxy_server_port: 110
+pop3proxy_port: 110
+pop3proxy_cache_use_gzip: True
+pop3proxy_cache_expiry_days: 7
+
+[html_ui]
+html_ui_port: 8880
+html_ui_launch_browser: False
 """
 
 int_cracker = ('getint', None)
@@ -407,7 +422,15 @@ all_options = {
                'hammie_debug_header': boolean_cracker,
                'hammie_debug_header_name': string_cracker,
                },
-
+    'pop3proxy': {'pop3proxy_server_name': string_cracker,
+                  'pop3proxy_server_port': int_cracker,
+                  'pop3proxy_port': int_cracker,
+                  'pop3proxy_cache_use_gzip': boolean_cracker,
+                  'pop3proxy_cache_expiry_days': int_cracker,
+                  },
+    'html_ui': {'html_ui_port': int_cracker,
+                'html_ui_launch_browser': boolean_cracker,
+                },
 }
 
 def _warn(msg):
