@@ -1153,7 +1153,18 @@ class OutlookAddin:
                 if new_hook is not None:
                     new_hook.Init(msgstore_folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
-                    self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
+                    try:
+                        self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
+                    except:
+                        # An exception checking that Outlook's folder has a
+                        # 'spam' field is not fatal, nor really even worth
+                        # telling the user about, nor even worth a traceback
+                        # (as it is likely a COM error).
+                        print "ERROR: Failed to check folder '%s' for " \
+                              "Spam field" % name
+                        etype, value, tb = sys.exc_info()
+                        tb = None # dont want it, and nuke circular ref
+                        traceback.print_exception(etype, value, tb)
                     print "SpamBayes: Watching for new messages in folder ", name
             else:
                 new_hooks[msgstore_folder.id] = existing
@@ -1208,20 +1219,42 @@ class OutlookAddin:
     def OnBeginShutdown(self, custom):
         pass
 
-def RegisterAddin(klass):
-    # prints to help debug binary install issues.
+def _DoRegister(klass, root):
     import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER,
+    key = _winreg.CreateKey(root,
                             "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
     _winreg.SetValueEx(subkey, "Description", 0, _winreg.REG_SZ, "SpamBayes anti-spam tool")
     _winreg.SetValueEx(subkey, "FriendlyName", 0, _winreg.REG_SZ, "SpamBayes")
+
+def RegisterAddin(klass):
+    import _winreg
+    # Try and register twice - once in HKLM, and once in HKCU.  This seems
+    # to help roaming profiles, etc.  Once registered, it is both registered
+    # on this machine for the current user (even when they roam, assuming it
+    # has been installed on the remote machine also) and for any user on this
+    # machine.
+    try:
+        _DoRegister(klass, _winreg.HKEY_LOCAL_MACHINE)
+    except WindowsError:
+        # But they may not have the rights to install there.
+        pass
+    # We don't catch exception registering just for this user though
+    # that is fatal!
+    _DoRegister(klass, _winreg.HKEY_CURRENT_USER)
     print "Registration complete."
 
 def UnregisterAddin(klass):
     import _winreg
+    try:
+        _winreg.DeleteKey(_winreg.HKEY_LOCAL_MACHINE,
+                          "Software\\Microsoft\\Office\\Outlook\\Addins\\" \
+                          + klass._reg_progid_)
+    except WindowsError:
+        pass
+    # and again for current user.
     try:
         _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER,
                           "Software\\Microsoft\\Office\\Outlook\\Addins\\" \
