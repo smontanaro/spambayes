@@ -209,7 +209,7 @@ def mbox_train(h, path, is_spam, force):
                                  "may be corrupted.")
             raise
 
-    fcntl.lockf(f, fcntl.LOCK_UN)
+    fcntl.flock(f, fcntl.LOCK_UN)
     f.close()
     if loud:
         sys.stdout.write("\r%6d" % counter)
