@@ -43,11 +43,11 @@ versions = {
             "Download Page": "http://starship.python.net/crew/mhammond/spambayes"
         },
         "POP3 Proxy" : {
-            "Version":          0.1,
-            "Description":      "SpamBayes POP3 Proxy Beta1",
-            "Date":             "May 2003",
-            "InterfaceVersion":            0.02,
-            "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha2",
+            "Version":          0.2,
+            "Description":      "SpamBayes POP3 Proxy Beta2",
+            "Date":             "September 2003",
+            "InterfaceVersion":            0.03,
+            "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha3",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
 using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
