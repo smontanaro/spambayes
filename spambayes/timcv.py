@@ -67,14 +67,29 @@ def drive(nsets):
         spamstream = msgs.SpamStream(s, [s])
 
         if i > 0:
-            # Forget this set.
-            d.untrain(hamstream, spamstream)
+            if options.build_each_classifier_from_scratch:
+                # Build a new classifier from the other sets.
+                d.new_classifier()
+
+                hname = "%s-%d, except %d" % (hamdirs[0], nsets, i+1)
+                h2 = hamdirs[:]
+                del h2[i]
+
+                sname = "%s-%d, except %d" % (spamdirs[0], nsets, i+1)
+                s2 = spamdirs[:]
+                del s2[i]
+
+                d.train(msgs.HamStream(hname, h2), msgs.SpamStream(sname, s2))
+
+            else:
+                # Forget this set.
+                d.untrain(hamstream, spamstream)
 
         # Predict this set.
         d.test(hamstream, spamstream)
         d.finishtest()
 
-        if i < nsets - 1:
+        if i < nsets - 1 and not options.build_each_classifier_from_scratch:
             # Add this set back in.
             d.train(hamstream, spamstream)
 

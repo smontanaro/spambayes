@@ -172,6 +172,20 @@ save_histogram_pickles: False
 spam_directories: Data/Spam/Set%d
 ham_directories: Data/Ham/Set%d
 
+[CV Driver]
+# A cross-validation driver takes N ham+spam sets, and builds N classifiers,
+# training each on N-1 sets, and the predicting against the set not trained
+# on.  By default, it does this in a clever way, learning *and* unlearning
+# sets as it goes along, so that it never needs to train on N-1 sets in one
+# gulp after the first time.  However, that can't always be done:  in
+# particular, the central-limit schemes can't unlearn incrementally, and can
+# learn incrementally only via a form of cheating whose bad effects overall
+# aren't yet known.
+# So when desiring to run a central-limit test, set
+# build_each_classifier_from_scratch to true.  This gives correct results,
+# but runs much slower than a CV driver usually runs.
+build_each_classifier_from_scratch: False
+
 [Classifier]
 # The maximum number of extreme words to look at in a msg, where "extreme"
 # means with spamprob farthest away from 0.5.  150 appears to work well
@@ -279,6 +293,8 @@ all_options = {
                    'compute_best_cutoffs_from_histograms': boolean_cracker,
                    'best_cutoff_fp_weight': float_cracker,
                   },
+    'CV Driver': {'build_each_classifier_from_scratch': boolean_cracker,
+                 },
     'Classifier': {'max_discriminators': int_cracker,
                    'robinson_probability_x': float_cracker,
                    'robinson_probability_s': float_cracker,
