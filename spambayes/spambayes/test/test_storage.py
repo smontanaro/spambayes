@@ -151,7 +151,7 @@ class DBStorageTestCase(_StorageTestBase):
         sys.stderr = StringIO.StringIO()
         try:
             try:
-                open_storage(db_name, True)
+                open_storage(db_name, "dbm")
             except SystemExit:
                 pass
             else:
