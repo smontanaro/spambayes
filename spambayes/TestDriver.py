@@ -61,7 +61,7 @@ class Hist:
         self.sumsq += other.sumsq
         return self
 
-    def display(self, WIDTH=60):
+    def display(self, WIDTH=61):
         from math import sqrt
         if self.n > 0:
             mean = self.sum / self.n
@@ -80,7 +80,7 @@ class Hist:
         print "* =", hunit, "items"
 
         ndigits = len(str(biggest))
-        format = "%6.2f %" + str(ndigits) + "d"
+        format = "%5.1f %" + str(ndigits) + "d"
 
         for i in range(len(self.buckets)):
             n = self.buckets[i]
