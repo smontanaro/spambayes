@@ -38,9 +38,10 @@ download/Version.cfg: $(VERSION_PY)
 local_install:
 	-cd apps; $(MAKE) install
 	-cd download ; $(MAKE) install
+	-cd sigs; $(MAKE) install
 
 subdirs:
 	cd apps; $(MAKE) 
-	cd download ; $(MAKE) 
-
+	cd download ; $(MAKE)
+	cd sigs ; $(MAKE)
 
