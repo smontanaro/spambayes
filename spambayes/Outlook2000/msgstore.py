@@ -250,14 +250,25 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # This is finally reliable.  The only messages this now fails for
         # are for "forwarded" messages, where the forwards are actually
         # in an attachment.  Later.
+
+        # Note:  There's no distinction made here between msgs that have
+        # been received, and, e.g., msgs that were sent and moved from the
+        # Sent Items folder.  It would be good not to train on the latter,
+        # since it's simply not received email.  An article on the web said
+        # the distinction can't be made with 100% certainty, but that a good
+        # heuristic is to believe that a msg has been received iff at least
+        # one of these properties has a sensible value:
+        #     PR_RECEIVED_BY_EMAIL_ADDRESS
+        #     PR_RECEIVED_BY_NAME
+        #     PR_RECEIVED_BY_ENTRYID
+        #     PR_TRANSPORT_MESSAGE_HEADERS
         self._EnsureObject()
         prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY_A, MYPR_BODY_HTML_A
         hr, data = self.mapi_object.GetProps(prop_ids,0)
-        headers = data[0][1]
         headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
-        return headers + "\n" + html + "\n" + body
+        return "%s\n%s\n%s" % (headers, html, body)
 
     def _EnsureObject(self):
         if self.mapi_object is None:
