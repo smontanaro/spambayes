@@ -724,26 +724,28 @@ class BayesManager:
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
         
-    def ShowHtml(self,fileName):
+    def ShowHtml(self,url):
         """Displays the main SpamBayes documentation in your Web browser"""
-        import sys, os
-        if hasattr(sys, "frozen"):
-            # Same directory as to the executable.
-            fname = os.path.join(os.path.dirname(sys.argv[0]),
-                                    fileName)
-        else:
-            # (ie, main Outlook2000) dir
-            fname = os.path.join(os.path.dirname(__file__),
-                                    fileName)
-        fname = os.path.abspath(fname)
+        import sys, os, urllib
+        if urllib.splittype(url)[0] is None: # just a file spec
+            if hasattr(sys, "frozen"):
+                # Same directory as to the executable.
+                fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                        url)
+            else:
+                # (ie, main Outlook2000) dir
+                fname = os.path.join(os.path.dirname(__file__),
+                                        url)
+            fname = os.path.abspath(fname)
+            if not os.path.isfile(fname):
+                self.ReportError("Can't find "+url)
+                return
+            url = fname
+        # else assume it is valid!
         from dialogs import SetWaitCursor
-        if os.path.isfile(fname):
-            SetWaitCursor(1)
-            os.startfile(fname)
-            SetWaitCursor(0)
-        else:
-            print "Cant find ",fileName," - fix messagebox"
-            #self.MessageBox("Can't find "+fileName)
+        SetWaitCursor(1)
+        os.startfile(url)
+        SetWaitCursor(0)
 
 _mgr = None
 
