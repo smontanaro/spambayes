@@ -1420,6 +1420,44 @@ in our experience, SpamBayes does a pretty good job at correctly classifying
 those too (given good training).
 
 
+I already have a POP3 proxy so how can I use sb_server?
+-------------------------------------------------------
+
+The solution here is to chain the proxies together.  SpamBayes (sb_server)
+doesn't really care where in the chain it is, although some of the other
+proxies (often anti-virus software like Norton Anti-Virus or AVG) sometimes
+do.
+
+The easiest solution is to leave your other proxy set up exactly as it was
+before SpamBayes.  Then look in your email client to see what port it is
+using (it'll probably be connecting to "localhost" or "127.0.0.1"), and set
+SpamBayes to collect mail from localhost on that port, rather than from
+your mail server, and forward to localhost (on any free port).  This means
+that mail arrives at your mail server, then goes through your other proxy,
+then through SpamBayes, then arrives at your mail client.  This has been
+found to work with AVG, for example.
+
+Some proxies, however, may force your mail client (e.g. Outlook Express) to
+get mail from a particular place (IIRC, some flavours of Norton do this).
+In this case, you need to leave your mail client set up as it is, and change
+the settings of your other proxy instead.  So get the proxy to get mail from
+localhost (on any free port) and have SpamBayes get mail from the mail
+server and forward to localhost (on the port you set up the other proxy
+goes through SpamBayes, then through your other proxy, then arrives at your
+mail client.
+
+You should be able to chain more than two proxies together with a similar
+process, if necessary.
+
+How do you know which one you should use? Trial and error, basically.  I'd
+suggest trying the first solution first, as it is the most straightforward,
+but if you find that your mail client keeps 'magically' changing back to
+the original settings, you'll probably need to use the second one.  If
+you can't manage to get either one working, be sure to email the mailing
+list asking for help - with any many details as possible, including what
+you have already tried.
+
+
 Development
 ===========
 
