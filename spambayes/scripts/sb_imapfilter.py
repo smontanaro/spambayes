@@ -267,9 +267,10 @@ class IMAPSession(BaseIMAP):
             # a bit of a hack, but we really need to know if this is
             # the case
             if self.folder_delimiter == ',':
-                print """WARNING: Your imap server uses commas as the folder
-                delimiter.  This may cause unpredictable errors."""
-            folders.append(fol[m.end()+5:-1])
+                print "WARNING: Your imap server uses a comma as the " \
+                      "folder delimiter.  This may cause unpredictable " \
+                      "errors."
+            folders.append(fol[m.end()+4:].strip('"'))
         folders.sort()
         return folders
 
