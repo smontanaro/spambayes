@@ -315,10 +315,13 @@ Outlook Plugin
 What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
-The 002 installer for the binary has a number of problems with various
+The 002 installer for the binary had a number of problems with various
 versions of Outlook/Windows.  However, to our knowledge, the 003 installer
-should work with any combination of Windows/Outlook versions.  Please
-let us know if this is not the case.
+should work with any combination of Windows/Outlook versions.  Please let us
+know if this is not the case.  The `troubleshooting guide`_ for the Outlook
+plugin contains the most up-to-date help for working around known problems.
+
+.. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain
 
 
 Do I have to have Python installed to use Spambayes with Outlook?
