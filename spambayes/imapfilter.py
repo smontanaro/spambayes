@@ -228,7 +228,7 @@ class IMAPSession(BaseIMAP):
                     imap.close()
             # We *always* use SELECT and not EXAMINE, because this
             # speeds things up considerably.
-            response = self.select(folder, False)
+            response = self.select(folder, None)
             if response[0] != "OK":
                 print "Invalid response to select %s:\n%s" % (folder,
                                                               response)
