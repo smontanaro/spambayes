@@ -223,8 +223,8 @@ BEGIN
                     14
     LTEXT           "SpamBayes needs to know what folders are used to receive new messages.  In most cases, this will be your Inbox, but you may also specify additional folders to be watched for spam.",
                     IDC_STATIC,20,21,247,25
-    LTEXT           "The following folders will be watched for new messages",
-                    IDC_STATIC,20,90,247,13
+    LTEXT           "The following folders will be watched for new messages.  Use the Browse button to change the list, or Next if the list of folders is correct.",
+                    IDC_STATIC,20,79,247,20
     LTEXT           "If you use the Outlook rule wizard to move messages into folders, you may like to select these folders in addition to your inbox.",
                     IDC_STATIC,20,51,241,20
     EDITTEXT        IDC_FOLDER_WATCH,20,100,195,48,ES_MULTILINE | 
@@ -519,8 +519,8 @@ BEGIN
     CONTROL         "",IDC_STATIC_HAM,"Static",SS_LEFTNOWORDWRAP | 
                     SS_CENTERIMAGE | SS_SUNKEN,11,21,175,12
     PUSHBUTTON      "&Browse...",IDC_BROWSE_HAM,192,20,50,14
-    LTEXT           "Folders with spam or other junk messages.",IDC_STATIC,11,
-                    36,171,9
+    LTEXT           "Folders with spam or other junk messages.",IDC_STATIC,
+                    11,36,171,9
     CONTROL         "Static",IDC_STATIC_SPAM,"Static",SS_LEFTNOWORDWRAP | 
                     SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,11,46,174,12
     PUSHBUTTON      "Brow&se...",IDC_BROWSE_SPAM,192,46,50,14
@@ -534,14 +534,14 @@ BEGIN
     LTEXT           "training status training status training status training status training status training status training status ",
                     IDC_PROGRESS_TEXT,75,89,149,17
     GROUPBOX        "Incremental Training",IDC_STATIC,4,117,244,87
-    CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox",
+    CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox.",
                     IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,127,204,18
     LTEXT           "Clicking Recover From Spam should",IDC_STATIC,10,148,
                     115,10
     COMBOBOX        IDC_RECOVER_RS,127,145,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Train that a message is spam when it is moved to the spam folder",
+    CONTROL         "Train that a message is spam when it is moved to the spam folder.",
                     IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,163,204,16
     LTEXT           "Clicking Delete as Spam should",IDC_STATIC,10,183,104,
