@@ -603,8 +603,8 @@ def tokenize_word(word, _len=len):
 #        and its filename= param
 #    all the charsets
 #
-# This has huge benefit for the f-n rate, and virtually none on the f-p rate,
-# although it does reduce the variance of the f-p rate across different
+# This has huge benefit for the f-n rate, and virtually no effect on the f-p
+# rate, although it does reduce the variance of the f-p rate across different
 # training sets (really marginal msgs, like a brief HTML msg saying just
 # "unsubscribe me", are almost always tagged as spam now; before they were
 # right on the edge, and now the multipart/alternative pushes them over it
