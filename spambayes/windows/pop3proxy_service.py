@@ -117,7 +117,7 @@ class Service(win32serviceutil.ServiceFramework):
         from spambayes.Options import optionsPathname
         extra = " as user '%s', using config file '%s'" \
                 % (win32api.GetUserNameEx(2).encode("mbcs"),
-                   optionsPathname.encode("mbcs"))
+                   optionsPathname)
         import servicemanager
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
