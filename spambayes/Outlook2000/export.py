@@ -25,7 +25,7 @@ def BuildBuckets(manager):
                                            config.training.ham_include_sub):
         num_ham += count_messages(folder)
 
-    num_buckets = min(num_ham, num_spam)/ FILES_PER_DIRECTORY
+    num_buckets = min(num_ham, num_spam) // FILES_PER_DIRECTORY
     dirs = []
     for i in range(num_buckets):
         dirs.append("Set%d" % (i+1,))
