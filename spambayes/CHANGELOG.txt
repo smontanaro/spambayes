@@ -1,5 +1,6 @@
 Alpha Release 5
 ===============
+Tony Meyer     01/09/2003  Fix for [ 797316 ] Extra CRLF to smtp server causes garbage error.
 Richie Hindle  31/08/2003  The web UI's Shutdown command, and stopping the pop3proxy_service, now wait for any open proxy connections to finish before exiting the process.
 Richie Hindle  31/08/2003  X-Spambayes-Exception headers now contain a traceback as well as the exception.
 Richie Hindle  29/08/2003  Fix the yellow colour of the header boxes in the web interface in strict browers (i.e. not IE ;)

@@ -64,6 +64,9 @@ POP3 Proxy / SMTP Proxy / POP3 Proxy Service
  o The POP3 proxy should now work with fetchmail.
  o You can once again specify local addresses as well as ports for the
    POP3 proxy to listen on (was broken in 1.0a3 and 1.0a4).
+ o A bug with the SMTP proxy that would show up in some cases as an
+   "unrecognised command" error the mail client (particularly Eudora)
+   was fixed.
 
 IMAP Filter
 -----------
@@ -107,7 +110,7 @@ Transition
 ==========
 If you are transitioning from a version older than 1.0a4, please also
 read the notes in the previous release notes (accessible from
-<>).
+<http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
  o If you were previously using the 'dumbdbm' storage method (you will
    have files called "hammie.db.dat", "hamie.db.dir" and "hammie.db.bak",
@@ -140,7 +143,7 @@ The following bugs tracked via the Sourceforge system were fixed:
 776808, 795749, 787251, 790051, 743131, 779319, 785389, 786952, 788495,
 790406, 788008, 787296, 788002, 780612, 784323, 784296, 780819, 780801,
 779049, 765912, 777026, 777165, 693387, 690418, 719586, 769346, 761499,
-769346, 773452, 765042, 760062, 768162, 768221
+769346, 773452, 765042, 760062, 768162, 768221, 797776, 797316
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:
