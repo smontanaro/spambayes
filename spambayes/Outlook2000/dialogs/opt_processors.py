@@ -317,14 +317,14 @@ class FolderIDProcessor(OptionControlProcessor):
         names = []
         for eid in ids:
             if eid is not None:
-                folder = mgr.message_store.GetFolder(eid)
-                if folder is None:
-                    name = "<unknown folder>"
-                else:
+                try:
+                    folder = mgr.message_store.GetFolder(eid)
                     if self.use_fqn:
                         name = folder.GetFQName()
                     else:
                         name = folder.name
+                except mgr.message_store.MsgStoreException:
+                    name = "<unknown folder>"
                 names.append(name)
         win32gui.SetWindowText(self.GetControl(), self.name_joiner.join(names))
 
