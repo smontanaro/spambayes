@@ -8,6 +8,7 @@
 #define IDD_FILTER_NOW                  104
 #define IDD_FOLDER_SELECTOR             105
 #define IDD_ADVANCED                    106
+#define IDD_STATISTICS                  107
 #define IDD_GENERAL                     108
 #define IDD_FILTER_SPAM                 110
 #define IDD_FILTER_UNSURE               111

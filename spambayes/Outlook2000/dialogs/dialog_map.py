@@ -403,7 +403,7 @@ dialog_map = {
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         (TabProcessor,            "IDC_TAB",
                                   """IDD_GENERAL IDD_FILTER IDD_TRAINING
-                                  IDD_ADVANCED"""),
+                                  IDD_STATISTICS IDD_ADVANCED"""),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
     "IDD_GENERAL": (
@@ -472,6 +472,9 @@ dialog_map = {
          "not change the message,mark the message as read,mark the message as unread"),
 
     ),
+    "IDD_STATISTICS" : (
+        (StatsProcessor,        "IDC_STATISTICS"),
+        ),
     "IDD_ADVANCED" : (
         (BoolButtonProcessor,   "IDC_BUT_TIMER_ENABLED", "Filter.timer_enabled",
                                 """IDC_DELAY1_TEXT IDC_DELAY1_SLIDER
@@ -480,7 +483,6 @@ dialog_map = {
         (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20, 60),
         (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20, 60),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Filter.timer_only_receive_folders"),
-        (StatsProcessor,        "IDC_STATISTICS"),
         (CommandButtonProcessor,  "IDC_SHOW_DATA_FOLDER", ShowDataFolder, ()),
         (DialogCommand,         "IDC_BUT_SHOW_DIAGNOSTICS", "IDD_DIAGNOSTIC"),
         ),

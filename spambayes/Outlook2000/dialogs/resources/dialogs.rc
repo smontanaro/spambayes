@@ -51,9 +51,16 @@ BEGIN
     CONTROL         "Enable background filtering",IDC_BUT_TIMER_ENABLED,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,12,162,10
     PUSHBUTTON      "Diagnostics...",IDC_BUT_SHOW_DIAGNOSTICS,171,190,70,14
-    GROUPBOX        "Statistics",IDC_STATIC,7,125,234,58
+END
+
+IDD_STATISTICS DIALOGEX 0, 0, 248, 209
+STYLE DS_SETFONT | WS_CHILD
+CAPTION "Statistics"
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "Statistics",IDC_STATIC,7,3,234,201
     LTEXT           "some stats\nand some more\nline 3\nline 4\nline 5",
-                    IDC_STATISTICS,12,134,223,43,SS_SUNKEN
+                    IDC_STATISTICS,12,12,223,186
 END
 
 IDD_MANAGER DIALOGEX 0, 0, 275, 260
