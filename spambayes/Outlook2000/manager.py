@@ -456,9 +456,14 @@ class BayesManager:
             self.classifier_data.InitNew()
         s_thres = self.config.filter.spam_threshold
         u_thres = self.config.filter.unsure_threshold
+        fp_cost = bayes_options["TestDriver", "best_cutoff_fp_weight"]
+        fn_cost = bayes_options["TestDriver", "best_cutoff_fn_weight"]
+        unsure_cost = bayes_options["TestDriver",
+                                    "best_cutoff_unsure_weight"]
         mdb = self.classifier_data.message_db
         self.stats = bayes_stats.Stats(s_thres, u_thres, mdb, "ham",
-                                       "unsure", "spam")
+                                       "unsure", "spam", fp_cost, fn_cost,
+                                       unsure_cost)
 
     # Logging - this should be somewhere else.
     def LogDebug(self, level, *args):
