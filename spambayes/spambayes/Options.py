@@ -884,7 +884,10 @@ defaults = {
      PORT, RESTORE),
 
     ("launch_browser", "Launch browser", False,
-     """""",
+     """If this option is set, then whenever sb_server or sb_imapfilter is
+     started the default web browser will be opened to the main web
+     interface page.  Use of the -b switch when starting from the command
+     line overrides this option.""",
      BOOLEAN, RESTORE),
 
     ("allow_remote_connections", "Allowed remote connections", "localhost",
