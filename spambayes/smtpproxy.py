@@ -1,14 +1,50 @@
 #!/usr/bin/env python
 
-"""A SMTP proxy that works with pop3proxy.py, and monitors mail
-sent to two particular addresses.  Mail to these addresses is blocked,
-a spambayes id is extracted from them, and the original messages are
-trained on (from the Corpus cache).  You point smtpproxy at your SMTP
-server, and configure your email client to send mail through the proxy
-then forward/bounce any incorrectly classified messages to the ham/spam
-training address. To use, run pop3proxy and enter appropriate values for
-the smtp proxy options.  All options are found in the [pop3proxy] and
-[smtpproxy] sections of the configuration file.
+"""A SMTP proxy to train a Spambayes database.
+
+You point SMTP Proxy at your SMTP server(s) and configure your email
+client(s) to send mail through the proxy (i.e. usually this means you use
+localhost as the outgoing server).
+
+To setup, enter appropriate values in your Spambayes configuration file in
+the "SMTP Proxy" section (in particular: "remote_servers", "listen_ports",
+and "use_cached_message").  This configuration can also be carried out via
+the web user interface offered by POP3 Proxy and IMAP Filter.
+
+To use, simply forward/bounce mail that you wish to train to the
+appropriate address (defaults to spambayes_spam@localhost and
+spambayes_ham@localhost).  All other mail is sent normally.
+(Note that IMAP Filter and POP3 Proxy users should not execute this script;
+launching of SMTP Proxy will be taken care of by those applicatons).
+
+There are two main forms of operation.  With both, mail to two
+(user-configurable) email addresses is intercepted by the proxy (and is
+*not* sent to the SMTP server) and used as training data for a Spambayes
+database.  All other mail is simply relayed to the SMTP server.
+
+If the "use_cached_message" option is False, the proxy uses the message
+sent as training data.  This option is suitable for those not using
+POP3 Proxy or IMAP Filter, or for those that are confident that their
+mailer will forward/bounce messages in an unaltered form.
+
+If the "use_cached_message" option is True, the proxy examines the message
+for a unique spambayes identification number.  It then tries to find this
+message in the pop3proxy caches and on the imap servers.  It then retrieves
+the message from the cache/server and uses *this* as the training data.
+This method is suitable for those using POP3 Proxy and/or IMAP Filter, and
+avoids any potential problems with the mailer altering messages before
+forwarding/bouncing them.
+
+Usage:
+    smtpproxy [options]
+
+	note: option values with spaces must be enclosed in double quotes
+
+        options:
+            -d  dbname  : pickled training database filename
+            -D  dbname  : dbm training database filename
+            -h          : help
+            -v          : verbose mode
 """
 
 # This module is part of the spambayes project, which is Copyright 2002-3
@@ -33,20 +69,6 @@ todo = """
    work, but I don't really know.  Richie Hindle suggested something along
    these lines back in September '02.
    
- o It would be nice if the proxy could email a confirmation message
-   back to the mail client.  Something along the lines of "yes, I
-   trained message id xxx with subject xxx as sp/ham".  This would
-   be an option, of course, and it would be nice to be able to set
-   it to be sent every time, or as a x days/hours digest.
-   
- o Clean up the above documentation ;)
- 
- o We could change things so that if this script is executed, then
-   the proxy operates independantly of pop3proxy.  The options would be
-   the same, but instead of extracting an id and using that to find a
-   message in pop3proxy's cache, it trains on the text of whatever is
-   sent to it.  This (hopefully) will allow use by mailers like procmail.
-
  o Suggestions?
 
 Testing:
@@ -105,23 +127,33 @@ Mozilla Mail 1.2.1 Forward (inline, html)                  *1    *
 is set, and if view all headers is true.
 """
 
+import string
+import re
+import socket
+import asyncore
+import asynchat
+import getopt
+import sys
+import os
+
 from spambayes import Dibbler
-from spambayes.tokenizer import get_message, textparts
+from spambayes import storage
+from spambayes.message import message_from_string
+from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
 from pop3proxy import _addressPortStr, ServerLineReader
 from pop3proxy import _addressAndPort, proxyListeners
-import string, re
-import socket, asyncore, asynchat
 
 class SMTPProxyBase(Dibbler.BrighterAsyncChat):
     """An async dispatcher that understands SMTP and proxies to a SMTP
     server, calling `self.onTransaction(command, args)` for each
-    transaction.  self.onTransaction() should
-    return the command to pass to the proxied server - the command
-    can be the verbatim command or a processed version of it.  The
-    special command 'KILL' kills it (passing a 'QUIT' command to the
-    server).
+    transaction.
+
+    self.onTransaction() should return the command to pass to
+    the proxied server - the command can be the verbatim command or a
+    processed version of it.  The special command 'KILL' kills it (passing
+    a 'QUIT' command to the server).
     """
 
     def __init__(self, clientSocket, serverName, serverPort):
@@ -138,17 +170,13 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
                                              self.onServerLine)
 
     def onTransaction(self, command, args):
-        """Overide this.  Takes the raw command and
-        returns the (possibly processed) command to pass to the
-        email client.
-        """
+        """Overide this.  Takes the raw command and returns the (possibly
+        processed) command to pass to the email client."""
         raise NotImplementedError
 
     def onProcessData(self, data):
-        """Overide this.  Takes the raw data and
-        returns the (possibly processed) data to pass back to the
-        email client.
-        """
+        """Overide this.  Takes the raw data and returns the (possibly
+        processed) data to pass back to the email client."""
         raise NotImplementedError
 
     def onServerLine(self, line):
@@ -178,9 +206,6 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             self.command = self.args = ''
         else:
             # A proper command.
-            # some commands (MAIL FROM and RCPT TO) split on ':'
-            # others (HELO, RSET, ...) split on ' '
-            # is there a nicer way of doing this?
             if self.request[:10].upper() == "MAIL FROM:":
                 splitCommand = self.request.strip().split(":", 1)
             elif self.request[:8].upper() == "RCPT TO:":
@@ -204,6 +229,11 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             cooked = self.onTransaction(self.command, self.args)
             if cooked is not None:
                 self.serverSocket.push(cooked + '\r\n')
+                if options["globals", "verbose"]:
+                    # XXX debugging information
+                    # XXX remove this once the problems are sorted out
+                    print "pulled", self.request
+                    print "pushed", cooked + '\r\n'
         self.command = self.args = self.request = ''
 
     def onResponse(self):
@@ -220,12 +250,12 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
 
 class BayesSMTPProxyListener(Dibbler.Listener):
     """Listens for incoming email client connections and spins off
-    BayesSMTPProxy objects to serve them.
-    """
+    BayesSMTPProxy objects to serve them."""
 
-    def __init__(self, serverName, serverPort, proxyPort, state):
-        proxyArgs = (serverName, serverPort, state)
-        Dibbler.Listener.__init__(self, proxyPort, BayesSMTPProxy, proxyArgs)
+    def __init__(self, serverName, serverPort, proxyPort, trainer):
+        proxyArgs = (serverName, serverPort, trainer)
+        Dibbler.Listener.__init__(self, proxyPort, BayesSMTPProxy,
+                                  proxyArgs)
         print 'SMTP Listener on port %s is proxying %s:%d' % \
                (_addressPortStr(proxyPort), serverName, serverPort)
 
@@ -234,34 +264,25 @@ class BayesSMTPProxy(SMTPProxyBase):
     """Proxies between an email client and a SMTP server, inserting
     judgement headers.  It acts on the following SMTP commands:
 
-     o HELO:
-     o MAIL FROM:
-     o RSET:
-     o QUIT:
-        o These all just forward the verbatim command to the proxied
-          server for processing.
-     
     o RCPT TO:
-        o Checks if the recipient address matches the key ham, spam
-          or shutdown addresses, and if so notes this and does not
-          forward a command to the proxied server.  In all other cases
-          simply passes on the verbatim command.
+        o Checks if the recipient address matches the key ham or spam
+          addresses, and if so notes this and does not forward a command to
+          the proxied server.  In all other cases simply passes on the
+          verbatim command.
 
      o DATA:
         o Notes that we are in the data section.  If (from the RCPT TO
           information) we are receiving a ham/spam message to train on,
-          then do not forward the command on.  Otherwise forward
-          verbatim.
+          then do not forward the command on.  Otherwise forward verbatim.
+
+    Any other commands are merely passed on verbatim to the server.          
     """
 
-    def __init__(self, clientSocket, serverName, serverPort, state):
+    def __init__(self, clientSocket, serverName, serverPort, trainer):
         SMTPProxyBase.__init__(self, clientSocket, serverName, serverPort)
-        self.handlers = {'HELO': self.onHelo, 'RCPT TO': self.onRcptTo,
-                         'MAIL FROM': self.onMailFrom, 'RSET': self.onRset,
-                         'QUIT': self.onQuit, 'DATA': self.onData}
-        self.state = state
-        self.state.totalSessions += 1
-        self.state.activeSessions += 1
+        self.handlers = {'RCPT TO': self.onRcptTo, 'DATA': self.onData,
+                         'MAIL FROM': self.onMailFrom}
+        self.trainer = trainer
         self.isClosed = False
         self.train_as_ham = False
         self.train_as_spam = False
@@ -275,15 +296,10 @@ class BayesSMTPProxy(SMTPProxyBase):
             # without waiting for the response.
             self.close()
 
-    def recv(self, size):
-        data = SMTPProxyBase.recv(self, size)
-        return data
-
     def close(self):
         # This can be called multiple times by async.
         if not self.isClosed:
             self.isClosed = True
-            self.state.activeSessions -= 1
             SMTPProxyBase.close(self)
 
     def stripAddress(self, address):
@@ -299,10 +315,8 @@ class BayesSMTPProxy(SMTPProxyBase):
             return address
 
     def splitTo(self, address):
-        """
-        Return 'address' as undressed (host, fulladdress) tuple.
-        Handy for use with TO: addresses.
-        """
+        """Return 'address' as undressed (host, fulladdress) tuple.
+        Handy for use with TO: addresses."""
         start = string.index(address, '<') + 1
         sep = string.index(address, '@') + 1
         end = string.index(address, '>')
@@ -314,36 +328,26 @@ class BayesSMTPProxy(SMTPProxyBase):
 
     def onProcessData(self, data):
         if self.train_as_spam:
-            self.train(data, True)
+            self.trainer.train(data, True)
             self.train_as_spam = False
             return ""
         elif self.train_as_ham:
-            self.train(data, False)
+            self.trainer.train(data, False)
             self.train_as_ham = False
             return ""
         return data
-
-    def onHelo(self, command, args):
-        rv = command
-        for arg in args:
-            rv += ' ' + arg
-        return rv
-
-    def onMailFrom(self, command, args):
-        rv = command + ':'
-        for arg in args:
-            rv += ' ' + arg
-        return rv
 
     def onRcptTo(self, command, args):
         toHost, toFull = self.splitTo(args[0])
         if toFull == options["smtpproxy", "spam_address"]:
             self.train_as_spam = True
+            self.train_as_ham = False
             self.blockData = True
             self.push("250 OK\r\n")
             return None
         elif toFull == options["smtpproxy", "ham_address"]:
             self.train_as_ham = True
+            self.train_as_spam = False
             self.blockData = True
             self.push("250 OK\r\n")
             return None
@@ -364,36 +368,34 @@ class BayesSMTPProxy(SMTPProxyBase):
             rv += ' ' + arg
         return rv
 
-    def onRset(self, command, args):
-        rv = command
-        for arg in args:
-            rv += ' ' + arg
-        return rv
-
-    def onQuit(self, command, args):
-        rv = command
-        for arg in args:
-            rv += ' ' + arg
+    def onMailFrom(self, command, args):
+        """Just like the default handler, but has the necessary colon."""
+        rv = "%s:%s" % (command, ' '.join(args))
         return rv
 
     def onUnknown(self, command, args):
         """Default handler."""
-        rv = command
-        for arg in args:
-            rv += ' ' + arg
+        rv = "%s %s" % (command, ' '.join(args))
         return rv
 
-    def extractSpambayesID(self, data):
-        msg = get_message(data)
 
-        # the nicest MUA is one that forwards the header intact
-        id = msg.get(options["pop3proxy", "mailid_header_name"])
+class SMTPTrainer(object):
+    def __init__(self, classifier, state=None, imap=None):
+        self.classifier = classifier
+        self.state = state
+        self.imap = imap
+    
+    def extractSpambayesID(self, data):
+        msg = message_from_string(data)
+
+        # The nicest MUA is one that forwards the header intact.
+        id = msg.get(options["Headers", "mailid_header_name"])
         if id is not None:
             return id
 
-        # some MUAs will put it in the body somewhere
-        # other MUAs will put it in an attached MIME message
-        id = self._find_id_in_text(str(msg))
+        # Some MUAs will put it in the body somewhere, while others will
+        # put it in an attached MIME message.
+        id = self._find_id_in_text(msg.as_string())
         if id is not None:
             return id
 
@@ -411,94 +413,164 @@ class BayesSMTPProxy(SMTPProxyBase):
                 return id
         return None
 
+    header_pattern = re.escape(options["Headers", "mailid_header_name"])
+    # A MUA might enclose the id in a table, thus the convoluted re pattern
+    # (Mozilla Mail does this with inline html)
+    header_pattern += r":\s*(\</th\>\s*\<td\>\s*)?([\d\-]+)"
+    header_re = re.compile(header_pattern)
+
     def _find_id_in_text(self, text):
-        id_location = text.find(options["pop3proxy", "mailid_header_name"])
-        if id_location == -1:
+        mo = self.header_re.search(text)
+        if mo is None:
             return None
-        else:
-            # A MUA might enclose the id in a table
-            # (Mozilla Mail does this with inline html)
-            s = re.compile(options["pop3proxy", "mailid_header_name"] + \
-                           ':[\s]*</th>[\s]*<td>[\s]*')
-            if s.search(text[id_location:]) is not None:
-                id_location += s.search(text[id_location:]).end()
-                s = re.compile('[\d-]+</td>')
-                id_end = s.search(text[id_location:]).end() + id_location
-            else:
-                id_location += len(options["pop3proxy",
-                                           "mailid_header_name"]) + 2
-                s = re.compile('[\w -]+[\\r]?\\n')
-                id_end = s.search(text[id_location:]).end() + id_location
-            id = text[id_location:id_end]
-            s = re.compile('</td>')
-            if s.search(id) is not None:
-                id = s.split(id)[0]
-            s = re.compile('[\\r]?\\n')
-            if s.search(id) is not None:
-                id = s.split(id)[0]
-            return id
+        return mo.group(2)
 
     def train(self, msg, isSpam):
-        id = self.extractSpambayesID(msg)
+        try:
+            use_cached = options["smtpproxy", "use_cached_message"]
+        except KeyError:
+            use_cached = True
+        if use_cached:
+            id = self.extractSpambayesID(msg)
+            if id is None:
+                print "Could not extract id"
+                return
+            self.train_cached_message(id, isSpam)
+        # Otherwise, train on the forwarded/bounced message.
+        msg = sbheadermessage_from_string(msg)
+        id = msg.setIdFromPayload()
+        msg.delSBHeaders()
         if id is None:
-            print "Could not extract id"
-            return
-        if options["globals", "verbose"]:
-            if isSpam == True:
-                print "Training %s as spam" % id
-            else:
-                print "Training %s as ham" % id
-        if self.state.unknownCorpus.get(id) is not None:
-            sourceCorpus = self.state.unknownCorpus
-        elif self.state.hamCorpus.get(id) is not None:
-            sourceCorpus = self.state.hamCorpus
-        elif self.state.spamCorpus.get(id) is not None:
-            sourceCorpus = self.state.spamCorpus
+            # No id, so we don't have any reliable method of remembering
+            # information about this message, so we just assume that it
+            # hasn't been trained before.  We could generate some sort of
+            # checksum for the message and use that as an id (this would
+            # mean that we didn't need to store the id with the message)
+            # but that might be a little unreliable.
+            self.classifier.learn(msg.asTokens(), isSpam)
         else:
-            # message doesn't exist in any corpus
-            print "Non-existant message"
-            return
+            if msg.GetTrained() == (not isSpam):
+                self.classifier.unlearn(msg.asTokens(), not isSpam)
+                msg.RememberTrained(None)
+            if msg.GetTrained() is None:
+                self.classifier.learn(msg.asTokens(), isSpam)
+                msg.RememberTrained(isSpam)
+
+    def train_cached_message(self, id, isSpam):
+        if not self.train_message_in_pop3proxy_cache(id, isSpam) and \
+           not self.train_message_on_imap_server(id, isSpam):
+            print "Could not find message (%s); perhaps it was " + \
+                  "deleted from the POP3Proxy cache or the IMAP " + \
+                  "server." % (id, )
+
+    def train_message_in_pop3proxy_cache(self, id, isSpam):
+        if self.state is None:
+            return False
+        sourceCorpus = None
+        for corpus in [self.state.unknownCorpus, self.state.hamCorpus,
+                       self.state.spamCorpus]:
+            if corpus.get(id) is not None:
+                sourceCorpus = corpus
+                break
+        if corpus is None:
+            return False
         if isSpam == True:
             targetCorpus = self.state.spamCorpus
         else:
             targetCorpus = self.state.hamCorpus
         targetCorpus.takeMessage(id, sourceCorpus)
-        self.state.bayes.store()
+        self.classifier.store()
+
+    def train_message_on_imap_server(self, id, isSpam):
+        if self.imap is None:
+            return False
+        msg = self.imap.FindMessage(id)
+        if msg is None:
+            return False
+        if msg.GetTrained() == (not isSpam):
+            msg.get_substance()
+            msg.delSBHeaders()
+            self.classifier.unlearn(msg.asTokens(), not isSpam)
+            msg.RememberTrained(None)
+        if msg.GetTrained() is None:
+            msg.get_substance()
+            msg.delSBHeaders()
+            self.classifier.learn(msg.asTokens(), isSpam)
+            msg.RememberTrained(isSpam)
 
 def LoadServerInfo():
     # Load the proxy settings
     servers = []
     proxyPorts = []
-    if options["smtpproxy", "servers"]:
-        for server in options["smtpproxy", "servers"]:
+    if options["smtpproxy", "remote_servers"]:
+        for server in options["smtpproxy", "remote_servers"]:
             server = server.strip()
             if server.find(':') > -1:
                 server, port = server.split(':', 1)
             else:
                 port = '25'
             servers.append((server, int(port)))
-    if options["smtpproxy", "ports"]:
-        splitPorts = options["smtpproxy", "ports"]
+    if options["smtpproxy", "listen_ports"]:
+        splitPorts = options["smtpproxy", "listen_ports"]
         proxyPorts = map(_addressAndPort, splitPorts)
     if len(servers) != len(proxyPorts):
-        print "smtpproxy_servers & smtpproxy_ports are different lengths!"
+        print "smtpproxy:remote_servers & smtpproxy:listen_ports are " + \
+              "different lengths!"
         sys.exit()
     return servers, proxyPorts    
 
-def CreateProxies(servers, proxyPorts, state):
+def CreateProxies(servers, proxyPorts, trainer):
     """Create BayesSMTPProxyListeners for all the given servers."""
+    # allow for old versions of pop3proxy
+    if not isinstance(trainer, SMTPTrainer):
+        trainer = SMTPTrainer(trainer.bayes, trainer)
     for (server, serverPort), proxyPort in zip(servers, proxyPorts):
-        listener = BayesSMTPProxyListener(server, serverPort, proxyPort, state)
+        listener = BayesSMTPProxyListener(server, serverPort, proxyPort,
+                                          trainer)
         proxyListeners.append(listener)
 
 def main():
-    """Runs the proxy forever or until a 'KILL' command is received or
-    someone hits Ctrl+Break."""
-    from pop3proxy import state
+    """Runs the proxy until a 'KILL' command is received or someone hits
+    Ctrl+Break."""
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hvd:D:')
+    except getopt.error, msg:
+        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        sys.exit()
+
+    bdbname = options["Storage", "persistent_storage_file"]
+    useDBM = options["Storage", "persistent_use_database"]
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print >>sys.stderr, __doc__
+            sys.exit()
+        elif opt == '-d':
+            useDBM = False
+            bdbname = arg
+        elif opt == '-D':
+            useDBM = True
+            bdbname = arg
+        elif opt == '-v':
+            options["globals", "verbose"] = True
+
+    bdbname = os.path.expanduser(bdbname)
+    
+    if options["globals", "verbose"]:
+        print "Loading database %s..." % (bdbname),
+    
+    if useDBM:
+        classifier = storage.DBDictClassifier(bdbname)
+    else:
+        classifier = storage.PickledClassifier(bdbname)
+
+    if options["globals", "verbose"]:
+        print "Done."            
+
     servers, proxyPorts = LoadServerInfo()
-    CreateProxies(servers, proxyPorts, state)
+    trainer = SMTPTrainer(classifier)
+    CreateProxies(servers, proxyPorts, trainer)
     Dibbler.run()
 
 if __name__ == '__main__':
     main()
-    
