@@ -10,7 +10,7 @@ Classes:
 Abstract:
     A corpus is defined as a set of messages that share some common
     characteristic relative to spamness.  Examples might be spam, ham,
-    unsure, or untrained, or "bayes rating between .4 and .6.  A
+    unsure, or untrained, or "bayes rating between .4 and .6".  A
     corpus is a collection of messages.  Corpus is a dictionary that
     is keyed by the keys of the messages within it.  It is iterable,
     and observable.  Observers are notified when a message is added
@@ -70,7 +70,7 @@ Abstract:
 To Do:
     o Suggestions?
 
-    '''
+'''
 
 # This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
@@ -150,7 +150,7 @@ class Corpus:
         '''Add a message to the in-memory cache'''
         # This method should probably not be overridden
         key = message.key()
-
+        
         if options["globals", "verbose"]:
             print 'placing %s in corpus cache' % (key)
 
