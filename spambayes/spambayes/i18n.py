@@ -37,9 +37,13 @@ from gettext import translation, NullTranslations
 ##           es                  <-- generic language data
 ##               DIALOGS
 ##               LC_MESSAGES
+##               __init__.py     <-- resourcepackage __init__.py
+##              ui.html          <-- web interface translation
 ##           es_ES               <-- specific language/country data.
 ##               DIALOGS         <-- resource dialogs
 ##               LC_MESSAGES     <-- gettext messages files
+##               __init__.py     <-- resourcepackage __init__.py
+##              ui.html          <-- web interface translation
 ##           zn
 ##           zn_TW
 ##       Outlook2000
@@ -110,7 +114,7 @@ class LanguageManager:
 
     def _install_gettext(self):
         """Set the gettext specific environment."""
-        lang = translation("outlook_addin", self.local_dir,
+        lang = translation("messages", self.local_dir,
                             self.current_langs_codes, fallback=True)
         lang.install()
 
