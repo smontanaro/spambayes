@@ -459,7 +459,7 @@ defaults = {
     ("messageinfo_storage_file", "Message information file name", "spambayes.messageinfo.db",
      """Spambayes builds a database of information about messages
      that it has already seen and trained or classified.  This
-     database is used to ensure that these messages are retrained
+     database is used to ensure that these messages are not retrained
      or reclassified (unless specifically requested to).  This option
      specifies the name of the database file.  If you don't give a
      full pathname, the name will be taken to be relative to the current
