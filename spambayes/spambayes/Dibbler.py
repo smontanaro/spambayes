@@ -409,19 +409,23 @@ class _HTTPHandler(BrighterAsyncChat):
                     # it go.
                     eType, eValue, eTrace = sys.exc_info()
                     if eType == SystemExit:
-                        # Let any existing connections close down first.  This
-                        # has happened when all we have left are Listeners and
-                        # _HTTPHandlers (including this one and any others
-                        # that are using keep-alive; no others can be actually
-                        # doing any work because *we're* the one doing the
-                        # work).
-                        def isProtected(dispatcher):
-                            return not (isinstance(dispatcher, Listener) or
-                                        isinstance(dispatcher, _HTTPHandler))
+                        # Close all the listeners so that no further incoming
+                        # connections appear.
+                        contextMap = self._context._map
+                        for dispatcher in contextMap.values():
+                            if isinstance(dispatcher, Listener):
+                                dispatcher.close()
                         
-                        map = self._context._map
-                        while len(filter(isProtected, map.values())) > 0:
-                            asyncore.poll(timeout=1, map=map)
+                        # Let any existing connections close down first.  This
+                        # has happened when all we have left are _HTTPHandlers
+                        # (this one plus any others that are using keep-alive;
+                        # none of the others can be actually doing any work
+                        # because *we're* the one doing the work).
+                        def isProtected(dispatcher):
+                            return not isinstance(dispatcher, _HTTPHandler)
+                        
+                        while len(filter(isProtected, contextMap.values())) > 0:
+                            asyncore.poll(timeout=1, map=contextMap)
                         
                         raise SystemExit
                         
