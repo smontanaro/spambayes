@@ -294,13 +294,32 @@ class IMAPFolder(object):
         response = imap.fetch("1:" + total_messages, "(UID FLAGS)")
         r = re.compile(r"[0-9]+ \(UID ([0-9]+) FLAGS \(([\\\w]*)\)\)")
         uids = []
-        for i in response[1]:
-            mo = r.match(i)
-            if mo is not None:
-                # We are not interested in messages marked as deleted
-                if mo.group(2).lower() != "\\deleted":
-                    uids.append(mo.group(1))
+        for resp in response[1]:
+            data = self._extract_fetch_data(resp)
+            if data.has_key("FLAGS"):
+                if data["FLAGS"].lower().find("\\deleted") == -1:
+                    # We are interested in messages not marked as deleted
+                    uids.append(data["UID"])
+            else:
+                uids.append(data["UID"])
         return uids
+
+    def _extract_fetch_data(self, response):
+        '''Extract data from the response given to an IMAP FETCH command.'''
+        data = {}
+        # the first item will always be the message number
+        mo = re.match(r"([0-9]+) \(?([\w\\\(\) ]*)\)?", response)
+        if mo is None:
+            print """IMAP server gave strange fetch response.  Please
+            report this as a bug."""
+        else:
+            data["message_number"] = mo.group(1)
+            response = mo.group(2)
+        mo = re.findall(r"([\w]+) \(?([\w\\]+)\)?", response)
+        for key, val in mo:
+            data[key] = val
+        return data
+        
 
     def __getitem__(self, key):
         '''Return message matching the given uid'''
