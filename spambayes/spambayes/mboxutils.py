@@ -30,22 +30,28 @@ import re
 
 class DirOfTxtFileMailbox:
 
-    """Mailbox directory consisting of .txt and .lorien files."""
+    """Directory of files each assumed to contain an RFC-822 message.
+
+    Subdirectories are traversed recursively.
+    """
 
     def __init__(self, dirname, factory):
-        self.names = (glob.glob(os.path.join(dirname, "*.txt")) +
-                      glob.glob(os.path.join(dirname, "*.lorien")))
+        self.names = glob.glob(os.path.join(dirname, "*"))
         self.names.sort()
         self.factory = factory
 
     def __iter__(self):
         for name in self.names:
-            try:
-                f = open(name)
-            except IOError:
-                continue
-            yield self.factory(f)
-            f.close()
+            if os.path.isdir(name):
+                for mbox in DirOfTxtFileMailbox(name, self.factory):
+                    yield mbox
+            else:
+                try:
+                    f = open(name)
+                except IOError:
+                    continue
+                yield self.factory(f)
+                f.close()
 
 def _cat(seqs):
     for seq in seqs:
