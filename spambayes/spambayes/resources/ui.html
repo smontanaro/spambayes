@@ -154,10 +154,10 @@ a:hover { color: #6040ff }
 <p class="uiHtmlHeader">reviewTable</p>
 
     <span id="reviewtable">
-    <p>These are emails that you can use to
-    train the classifier.  Check the appropriate button for
-    each email, then click 'Train' below.  'Defer' leaves the
-    message here, to be trained on later.  Click one of the
+    <p>These are emails that you can use to train the
+    classifier.  Check the appropriate button for each email,
+    then click 'Train' below.  'Defer' leaves the message
+    here, to be trained on later.  Click one of the
     Discard / Defer / Ham / Spam headers to check all of the
     buttons in that section in one go.</p>
 
@@ -313,12 +313,41 @@ a:hover { color: #6040ff }
 
     <span id="configFormContent">
     <TABLE id="configTable" border="0" cellpadding="0">
-    <TR id="configRow1">
+    <TR id="configTextRow1">
         <TD align="right" nowrap='1'>
             <span id="label">Label</span>:&nbsp;
         </TD>
         <TD>
-            <INPUT type="text" size="26" id="input" name="from_parm_ini_map"/>
+            <input type="text" size="26" id="input" name="from_parm_ini_map"/>
+        </TD>
+        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' rowspan='100' valign='top'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    <TR id="configRbRow1">
+        <TD align="right" nowrap='1'>
+            <span id="label">Label</span>:&nbsp;
+        </TD>
+        <TD>
+            <input type="radio" id="inputT" value="True" name="from_parm_ini_map"/>True
+            &nbsp;&nbsp;
+            <input type="radio" id="inputF" value="False" name="from_parm_ini_map"/>False
+        </TD>
+        <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' rowspan='100' valign='top'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    <TR id="configCbRow1">
+        <TD align="right" nowrap='1'>
+            <span id="label">Label</span>:&nbsp;
+        </TD>
+        <TD width='110'>
+            <div id="input">
+                <input type="checkbox" id="input_box" value="value" name="from_parm_ini_map"/>
+                <span id="val_label">Value Label</span>&nbsp;
+            </div>
         </TD>
         <TD id='helpSpacer' rowspan='100'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
         <TD id='helpCell' rowspan='100' valign='top'>

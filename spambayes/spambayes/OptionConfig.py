@@ -9,7 +9,13 @@ utility.  Users may use it (via pop3proxy.py) to customize the options in
 the bayescustomize.ini file.
 
 To Do:
-    o Replace some of the test options with radio buttons/checkboxes.
+    o Checkboxes need a default value (i.e. what to set the option as
+      when no boxes are checked).  This needs to be thought about and
+      then implemented.  add_id is an example of what it does at the
+      moment.
+    o The values check could be much more generic.  Acceptable values are
+      (mostly) already in the code, so they can be tested against, in a
+      loop, rather than lots of individual, specific, pieces of code.
     o Suggestions?
 
 """
@@ -20,6 +26,8 @@ To Do:
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 # Blame for bugs caused by using Dibbler: Richie Hindle <richie@entrian.com>
+# Blame for bugs caused by the radio buttons / checkboxes: Tony Meyer
+# <ta-meyer@ihug.co.nz>
 
 try:
     True, False
@@ -68,10 +76,11 @@ noRestore = ('pop3proxy_servers', 'pop3proxy_ports', 'pop3_notate_to',
 
 # This governs the order in which the options appear on the configurator
 # page, and the headings and help text that are used.
+# The field type may be "text", "rb" (radio button), or "cb" (checkbox)
 page_layout = \
 (
     ("POP3 Options",
-    (   ("p3servers", "Servers",
+    (   ("p3servers", "Servers", "text", None,
          """The Spambayes POP3 proxy intercepts incoming email and classifies
          it before sending it on to your email client.  You need to specify
          which POP3 server(s) you wish it to intercept - a POP3 server
@@ -84,7 +93,7 @@ page_layout = \
          address, you should now put the address of the machine running
          Spambayes."""),
 
-        ("p3ports", "Ports",
+        ("p3ports", "Ports", "text", None,
          """Each POP3 server that is being monitored must be assigned to a
          'port' in the Spambayes POP3 proxy.  This port must be different for
          each monitored server, and there <strong>must</strong> be a port for
@@ -92,7 +101,7 @@ page_layout = \
          client to use this port.  If there are multiple servers, you must
          specify the same number of ports as servers, separated by commas."""),
          
-        ("p3notateto", "Notate To",
+        ("p3notateto", "Notate To", "rb", ("True", "False"),
          """Some email clients (Outlook Express, for example) can only
          set up filtering rules on a limited set of headers.  These
          clients cannot test for the existence/value of an arbitrary
@@ -105,11 +114,11 @@ page_layout = \
          whatever other action is supported and appropriate for the
          mail classification."""),
 
-       ("p3notatesub", "Notate Subject",
+       ("p3notatesub", "Notate Subject", "rb", ("True", "False"),
          """This option will add the same information as Notate to:,
          but to the start of the mail subject line."""),
 
-       ("p3cachemsg", "Cache Messages",
+       ("p3cachemsg", "Cache Messages", "rb", ("True", "False"),
          """You can disable the pop3proxy caching of messages.  This
          will make the proxy a bit faster, and make it use less space
          on your hard drive.  The proxy uses its cache for reviewing
@@ -117,8 +126,11 @@ page_layout = \
          be able to do further training unless you re-enable it.
          Thus, you should only turn caching off when you are satisfied
          with the filtering that Spambayes is doing for you."""),
+    )),
 
-        ("p3addid", "Add id tag",
+    ("Header Options",
+    (   ("p3addid", "Add id tag", "cb",
+         ("header", "body"),
          """If you wish to be able to find a specific message (via the 'find'
          box on the <a href="home">home</a> page), or use the SMTP proxy to
          train, you will need to know the unique id of each message.  If your
@@ -127,11 +139,9 @@ page_layout = \
          is in the headers of incoming mail.  Unfortunately, some mail clients
          do not offer these capabilities.  For these clients, you will need to
          have the id added to the body of the message.  If you are not sure,
-         the safest option is to use both.  Valid options include neither
-         the header nor the body (leave this blank), header only ("header"),
-         body only ("body"), or both ("header body")."""),
+         the safest option is to use both."""),
 
-        ("p3stripid", "Strip incoming ids",
+        ("p3stripid", "Strip incoming ids", "rb", ("True", "False"),
          """If you receive messages from other spambayes users, you might
          find that incoming mail (generally replies) already has an id,
          particularly if they have set the id to appear in the body (see
@@ -140,30 +150,29 @@ page_layout = \
          the correct id to find a message.  This option strips all spambayes
          ids from incoming mail."""),
 
-        ("p3prob", "Add spam probability header",
+        ("p3prob", "Add spam probability header", "rb", ("True", "False"),
          """You can have spambayes insert a header with the calculated spam
          probability into each mail.  If you can view headers with your
          mailer, then you can see this information, which can be interesting
          and even instructive if you're a serious spambayes junkie."""),
         
-        ("p3thermostat", "Add spam level header",
+        ("p3thermostat", "Add spam level header", "rb", ("True", "False"),
          """You can have spambayes insert a header with the calculated spam
          probability, expressed as a number of '*'s, into each mail (the more
          '*'s, the higher the probability it is spam). If your mailer
          supports it, you can use this information to fine tune your
          classification of ham/spam, ignoring the classification given."""),
         
-        ("p3evidence", "Add evidence header",
+        ("p3evidence", "Add evidence header", "rb", ("True", "False"),
          """You can have spambayes insert a header into mail, with the
          evidence that it used to classify that message (a collection of
          words with ham and spam probabilities).  If you can view headers
          with your mailer, then this may give you some insight as to why
          a particular message was scored in a particular way."""),
-
     )),
 
     ("SMTP Options",
-    (   ("smtpservers", "Servers",
+    (   ("smtpservers", "Servers", "text", None,
          """The Spambayes SMTP proxy intercepts outgoing email - if you have
          sent it to one of the addresses below, it is examined for an id and
          the message corresponding to that id is trained as ham/spam.  All
@@ -178,7 +187,7 @@ page_layout = \
          address, you should now put the address of the machine running
          Spambayes."""),
 
-        ("smtpports", "Ports",
+        ("smtpports", "Ports", "text", None,
          """Each SMTP server that is being monitored must be assigned to a
          'port' in the Spambayes SMTP proxy.  This port must be different for
          each monitored server, and there <strong>must</strong> be a port for
@@ -186,7 +195,7 @@ page_layout = \
          client to use this port.  If there are multiple servers, you must
          specify the same number of ports as servers, separated by commas."""),
          
-        ("smtpham", "Ham Address",
+        ("smtpham", "Ham Address", "text", None,
          """When a message is received that you wish to train on (for example,
          one that was incorrectly classified), you need to forward or bounce
          it to one of two special addresses so that the SMTP proxy can identify
@@ -194,7 +203,7 @@ page_layout = \
          address.  You will want to use an address that is <strong>not</strong>
          a valid email address, like ham@nowhere.nothing."""),
 
-        ("smtpspam", "Spam Address",
+        ("smtpspam", "Spam Address", "text", None,
          """As with Ham Address above, but the address that you need to forward
          or bounce mail that you wish to train as spam.  You will want to use
          an address that is <strong>not</strong> a valid email address, like
@@ -202,7 +211,7 @@ page_layout = \
     )),
 
     ("Statistics Options",
-    (   ("hamcutoff", "Ham Cutoff",
+    (   ("hamcutoff", "Ham Cutoff", "text", None, 
          """Spambayes gives each email message a spam probability between
          0 and 1. Emails below the Ham Cutoff probability are classified
          as Ham. Larger values will result in more messages being
@@ -210,13 +219,13 @@ page_layout = \
          actually <i>are</i> ham. This value should be between 0 and 1,
          and should be smaller than the Spam Cutoff."""),
 
-        ("spamcutoff", "Spam Cutoff",
+        ("spamcutoff", "Spam Cutoff", "text", None,
          """Emails with a spam probability above the Spam Cutoff are
          classified as Spam - just like the Ham Cutoff but at the other
          end of the scale.  Messages that fall between the two values
          are classified as Unsure."""),
 
-        ("dbname", "Database filename",
+        ("dbname", "Database filename", "text", None,
          """Spambayes builds a database of information that it gathers
          from incoming emails and from you, the user, to get better and
          better at classifying your email.  This option specifies the
@@ -307,10 +316,14 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             # Get a clone of the config table and a clone of each example row,
             # then blank out the example rows to make way for the real ones.
             configTable = self.html.configTable.clone()
-            configRow1 = configTable.configRow1.clone()
+            configTextRow1 = configTable.configTextRow1.clone()
+            configRbRow1 = configTable.configRbRow1.clone()
+            configCbRow1 = configTable.configCbRow1.clone()
             configRow2 = configTable.configRow2.clone()
             blankRow = configTable.blankRow.clone()
-            del configTable.configRow1
+            del configTable.configTextRow1
+            del configTable.configRbRow1
+            del configTable.configCbRow1
             del configTable.configRow2
             del configTable.blankRow
 
@@ -318,17 +331,50 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             # labelled input control for each one, populated with the current
             # value.
             isFirstRow = True
-            for name, label, unusedHelp in values:
-                newConfigRow1 = configRow1.clone()
-                newConfigRow2 = configRow2.clone()
+            for name, label, fldtype, validInput, unusedHelp in values:
                 currentValue = bcini.get(parm_ini_map[name][PIMapSect], \
                                          parm_ini_map[name][PIMapOpt])
 
+                # Populate the rows with the details and add them to the table.
+                if fldtype == "text":
+                   newConfigRow1 = configTextRow1.clone()
+                   newConfigRow1.label = label
+                   newConfigRow1.input.name = name
+                   newConfigRow1.input.value = currentValue
+                elif fldtype == "rb":
+                   newConfigRow1 = configRbRow1.clone()
+                   newConfigRow1.label = label
+                   newConfigRow1.inputT.name = name
+                   newConfigRow1.inputF.name = name
+                   if currentValue == "True":
+                      newConfigRow1.inputT.checked = "checked"
+                   elif currentValue == "False":
+                      newConfigRow1.inputF.checked = "checked"
+                elif fldtype == "cb":
+                   newConfigRow1 = configCbRow1.clone()
+                   newConfigRow1.label = label
+                   blankOption = newConfigRow1.input.clone()
+                   firstOpt = True
+                   i = 0
+                   for val in validInput:
+                      newOption = blankOption.clone()
+                      newOption.val_label = val
+                      newOption.input_box.name = name + '-' + str(i)
+                      i += 1
+                      newOption.input_box.value = val
+                      if val in currentValue.split():
+                         newOption.input_box.checked = "checked"
+                      if firstOpt:
+                         newConfigRow1.input = newOption
+                         firstOpt = False
+                      else:
+                         newConfigRow1.input += newOption
+                    
                 # If this is the first row, insert the help text in a cell
                 # with a `rowspan` that covers all the rows.
                 if isFirstRow:
                     entries = []
-                    for unusedName, topic, help in values:
+                    for name, topic, type, vals, help in values:
                         entries.append("<p><b>%s: </b>%s</p>" % (topic, help))
                     newConfigRow1.helpSpacer = '&nbsp;' * 10
                     newConfigRow1.helpCell = '\n'.join(entries)
@@ -336,10 +382,7 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
                     del newConfigRow1.helpSpacer
                     del newConfigRow1.helpCell
 
-                # Populate the rows with the details and add them to the table.
-                newConfigRow1.label = label
-                newConfigRow1.input.name = name
-                newConfigRow1.input.value = currentValue
+                newConfigRow2 = configRow2.clone()
                 newConfigRow2.currentValue = currentValue
                 configTable += newConfigRow1 + newConfigRow2 + blankRow
                 isFirstRow = False
@@ -391,6 +434,18 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
 
 
 def editInput(parms):
+    # This is really a bit of a kludge, and a nicer solution would
+    # be most welcome.  Most especially, note that this will fall
+    # apart if there are more than 9 checkboxes in an option, or
+    # if "-" appears as the second-to-last character in an option
+    # value
+    for name, value in parms.items():
+       if name[-2:-1] == '-':
+          if parms.has_key(name[:-2]):
+             parms[name[:-2]] += ' ' + value
+          else:
+             parms[name[:-2]] = value
+          del parms[name]
 
     errmsg = ''
 
@@ -493,7 +548,8 @@ def editInput(parms):
     try:
         aid = parms['p3addid']
     except KeyError:
-        aid = options.pop3proxy_add_mailid_to
+        parms['p3addid'] = "" # checkboxes need a default!
+        aid = parms['p3addid']
             
     if not aid == "" and not aid == "body" \
        and not aid == "header" and not aid == "body header" \
