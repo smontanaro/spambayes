@@ -5,6 +5,7 @@ import sys
 import mailbox
 import email.Parser
 import email.Message
+import email.Generator
 import getopt
 
 def unheader(msg, pat):
@@ -50,18 +51,18 @@ def deSA(msg):
                     continue
                 elif at_start:
                     at_start = 0
-                else:
-                    newbody.append(line)
+                newbody.append(line)
             msg.set_payload("\n".join(newbody))
     unheader(msg, "X-Spam-")
 
 def process_mailbox(f, dosa=1, pats=None):
+    gen = email.Generator.Generator(sys.stdout, maxheaderlen=0)
     for msg in mailbox.PortableUnixMailbox(f, Parser().parse):
         if pats is not None:
             unheader(msg, pats)
         if dosa:
             deSA(msg)
-        print msg
+        gen(msg, unixfrom=1)
 
 def usage():
     print >> sys.stderr, "usage: unheader.py [ -p pat ... ] [ -s ]"
