@@ -22,3 +22,9 @@ mkzip.py - ???
 spamcounts.py - print spam and ham counts and spam probability for a
 messages for for select tokens
 
+sb_bnfilter.py - alternative to sb_filter that avoids re-initialising
+spambayes for consecutive requests using a short-lived server process.
+This is intended to give the performance advantages of sb_xmlrpcserver,
+without the administrative complications.
+
+sb_bnserver.py - component of sb_bnfilter.py
