@@ -72,6 +72,9 @@ import mailbox
 import types
 import StringIO
 
+import oe_mailbox
+from time import gmtime, strftime
+
 import PyMeldLite
 import Version
 import Dibbler
@@ -288,6 +291,10 @@ class UserInterface(BaseUserInterface):
         content = file or text
         isSpam = (which == 'Train as Spam')
 
+        # Attempt to convert the content from a DBX file to a standard mbox
+        if file:
+          content = self._convertOutlookExpressToMbox(content)
+
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
 
@@ -318,6 +325,56 @@ class UserInterface(BaseUserInterface):
         self.write("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
         self.write(self._buildTrainBox())
         self._writePostamble()
+
+    def _convertOutlookExpressToMbox(self, content):
+        """Check if the uploaded mailbox file is an Outlook Express DBX one.
+
+        In such a case we use the module oe.mailbox to convert the DBX
+        content into a standard mbox file. When the file is not a DBX one,
+        this method returns the original content. Testing if the file is a
+        DBX one is very quick (just a matter of checking the first few
+        bytes), and should not alter the overall performance."""
+
+        dbxStream = StringIO.StringIO(content)
+        header = oe.mailbox.dbxFileHeader(dbxStream)
+
+        if header.isValid() and header.isMessages():
+            file_info_len = oe.mailbox.dbxFileHeader.FH_FILE_INFO_LENGTH
+            fh_entries = oe.mailbox.dbxFileHeader.FH_ENTRIES
+            fh_ptr = oe.mailbox.dbxFileHeader.FH_TREE_ROOT_NODE_PTR
+            
+            info = oe.mailbox.dbxFileInfo(dbxStream,
+                                          header.getEntry(file_info_len))
+            entries = header.getEntry(fh_entries)
+            address = header.getEntry(fh_ptr)
+            
+            if address and entries:
+                tree = oe.mailbox.dbxTree(dbxStream, address, entries)
+                dbxBuffer = ""
+
+                for i in range(entries):
+                    address = tree.getValue(i)
+                    messageInfo = oe.mailbox.dbxMessageInfo(dbxStream,
+                                                            address)
+
+                    if messageInfo.isIndexed(\
+                        oe.mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS):
+                        address = oe.mailbox.dbxMessageInfo.MI_MESSAGE_ADDRESS
+                        messageAddress = \
+                                       messageInfo.getValueAsLong(address)
+                        message = oe.mailbox.dbxMessage(dbxStream,
+                                                        messageAddress)
+
+                        # This fakes up a from header to conform to mbox
+                        # standards.  It would be better to extract this
+                        # data from the message itself, as this will
+                        # result in incorrect tokens.
+                        dbxBuffer += "From spambayes@spambayes.org %s\n%s" \
+                                     % (strftime("%a %b %d %H:%M:%S MET %Y",
+                                                 gmtime()), message.getText())
+                content = dbxBuffer
+        dbxStream.close()
+        return content
 
     def _convertUploadToMessageList(self, content):
         """Returns a list of raw messages extracted from uploaded content.
