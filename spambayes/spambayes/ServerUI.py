@@ -56,7 +56,6 @@ parm_ini_map = (
     ('Statistics Options',  None),
     ('Categorization',      'ham_cutoff'),
     ('Categorization',      'spam_cutoff'),
-    ('Classifier',          'experimental_ham_spam_imbalance_adjustment'),
 )
 
 

@@ -104,7 +104,6 @@ parm_ini_map = (
 # advanced configuration page.
 adv_map = (
     ('Statistics Options',  None),
-    ('Classifier',          'experimental_ham_spam_imbalance_adjustment'),
     ('Classifier',          'max_discriminators'),
     ('Classifier',          'minimum_prob_strength'),
     ('Classifier',          'unknown_word_prob'),

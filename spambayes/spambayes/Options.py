@@ -363,7 +363,7 @@ defaults = {
      the counting estimates are believed 100%, even to the extent of
      assigning certainty (0 or 1) to a word that has appeared in only ham
      or only spam.  This is a disaster.
-     
+
      As unknown_word_strength tends toward infintity, all probabilities
      tend toward unknown_word_prob.  All reports were that a value near 0.4
      worked best, so this does not seem to be corpus-dependent.""",
@@ -410,10 +410,12 @@ defaults = {
     # this option will go away (and become the default), but people *with*
     # strong imbalance need to test it first.\
     # LATER:  this option sucked, creating more problems than it solved.
-    # XXX The code in classifier.py is gone now.  How can we get rid of
-    # XXX the option gracefully?
+    # It's deprecated, and the support code has gone away.
+    # XXX The "x-" prefix can't be "X-" instead, else it's considered
+    # XXX an invalid option instead of a deprecated one.  That behavior
+    # XXX doesn't match the OptionsClass comments.
 
-    ("experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
+    ("x-experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
      """If your training database has significantly more ham than
      spam, or vice versa, you may start seeing an increase in incorrect
      classifications (messages put in the wrong category, not just marked
@@ -950,7 +952,7 @@ defaults = {
      """The port to serve the SpamBayes IMAP server on.""",
      PORT, RESTORE),
   ),
- 
+
   "globals" : (
     ("verbose", "Verbose", False,
      """""",
@@ -1012,7 +1014,7 @@ def load_options():
         if alts:
             options.merge_files(alts)
             optionsPathname = os.path.abspath(alts[-1])
-    
+
     if not optionsPathname:
         optionsPathname = os.path.abspath('bayescustomize.ini')
         if sys.platform.startswith("win") and \
