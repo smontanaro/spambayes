@@ -5,7 +5,7 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with either Python 2.2.3, Python 2.3 (currently in beta), 
+<p>This project works with either Python 2.2.3, Python 2.3, 
 or on the bleeding edge of python code,
 available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
 sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
@@ -15,7 +15,7 @@ the latest <a href="http://mimelib.sf.net">email package</a>. You can get
 this from  
 <a href="http://sourceforge.net/project/showfiles.php?group_id=25568">sourceforge</a> (you'll need version 2.4.3 or later).
 </p>
-<p>The spambayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>, or from the <a href="download.html">download</a> page.
+<p>The SpamBayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>, or from the <a href="download.html">download</a> page.
 </p>
 
 <h2>I just want to make suggestions</h2>
@@ -29,15 +29,33 @@ or even most cases.</p>
 available as links from the <a href="docs.html">documentation</a> page.
 
 <h3>So what needs to be done</h3>
-<p>Currently (July) work is now being focused on improving deployment
-of the system (actually building the applications and the code so that
-Tim's sister &lt;wink&gt; can use the system), with the aim of eventually
-putting out a beta (or even full!) release.  There is still a certain
-amount of interest in finding additional things that are beneficial to
-the tokenizer, although most people are pretty happy with how it works
-at the moment. The combining scheme is now pretty solid and pretty amazing.
-The other big body of work is monitoring the bug reports and feature requests
-that come in and trying to resolve those.</p>
+<p>In July 2004, the final 1.0 release was made.  As a result, there are
+now two focuses.  We would like to resolve any outstanding bugs in the 1.0
+release, so that a 1.0.1 release (containing only bug fixes) can be
+released.  At the same time, work has begun on a 1.1 release, which will
+contain much more than just bug releases.</p>
+
+<p>Each developer has their own pet ideas that they'd like to implement for
+1.1, but there are a few general areas that you could work on if you're
+stuck for ideas:</p>
+<ul>
+<li>Internationalisation.  A small number of people have expressed
+interest in translating the SpamBayes documentation and user interfaces
+into other languages.  We're very happy for this to happen, but areas
+of the code need to be cleaned up to make this easier (and then there's
+the actual translation work).</li>
+<li>Database backend.  The majority of SpamBayes users use the bsddb
+support included with Python (a few use a pickled Python dict, and even
+fewer use the experimental mySQL/postgreSQL support).  The bsddb
+solution is problematic, in that users' databases sometimes get
+corrupted, but we don't know what causes that.  The general consensus
+is that (unless a bsddb expert comes along) we should move to an
+alternative database backend - perhaps ZOE/ZODB.  Work on this would
+be appreciated by many.</li>
+</ul>
+
+<p>The other big body of work is monitoring the bug reports and feature
+requests that come in and trying to resolve those.</p>
 
 <h2>Collecting training data</h2>
 <p>One of the tricky problems is collecting a set of data that's 
