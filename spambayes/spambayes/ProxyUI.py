@@ -61,10 +61,13 @@ except NameError:
 import re
 import time
 import bisect
+import cgi
 
 import tokenizer
 import UserInterface
 from Options import options
+import spambayes.mboxutils
+from email.Iterators import typed_subpart_iterator
 
 global state
 
@@ -344,7 +347,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             # Parse the message, get the judgement header and build a message
             # info object for each message.
             cachedMessage = sourceCorpus[key]
-            message = mboxutils.get_message(cachedMessage.getSubstance())
+            message = spambayes.mboxutils.get_message(cachedMessage.getSubstance())
             judgement = message[options.hammie_header_name]
             if judgement is None:
                 judgement = options.header_unsure_string
