@@ -207,9 +207,9 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
         else:
             # A proper command.
             if self.request[:10].upper() == "MAIL FROM:":
-                splitCommand = self.request.strip().split(":", 1)
+                splitCommand = self.request.split(":", 1)
             elif self.request[:8].upper() == "RCPT TO:":
-                splitCommand = self.request.strip().split(":", 1)
+                splitCommand = self.request.split(":", 1)
             else:
                 splitCommand = self.request.strip().split(None, 1)
             self.command = splitCommand[0]
@@ -229,6 +229,8 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             cooked = self.onTransaction(self.command, self.args)
             if cooked is not None:
                 self.serverSocket.push(cooked + '\r\n')
+                print "pulled: '%s'" % self.request
+                print "pushed: '%s'" % cooked
         self.command = self.args = self.request = ''
 
     def onResponse(self):
@@ -348,10 +350,7 @@ class BayesSMTPProxy(SMTPProxyBase):
             return None
         else:
             self.blockData = False
-        rv = command + ':'
-        for arg in args:
-            rv += ' ' + arg
-        return rv
+        return "%s:%s" % (command, ' '.join(args))
         
     def onData(self, command, args):
         self.inData = True
@@ -370,8 +369,7 @@ class BayesSMTPProxy(SMTPProxyBase):
 
     def onUnknown(self, command, args):
         """Default handler."""
-        rv = "%s %s" % (command, ' '.join(args))
-        return rv
+        return self.request
 
 
 class SMTPTrainer(object):
