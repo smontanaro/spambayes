@@ -101,13 +101,13 @@ class Service(win32serviceutil.ServiceFramework):
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         self.event_stopping.set()
-        sb_server.stop(sb_server.state)        
+        sb_server.stop()        
 
     def SvcDoRun(self):
         import servicemanager
         # Setup our state etc
         try:
-            sb_server.prepare(state=sb_server.state)
+            sb_server.prepare()
         except sb_server.AlreadyRunningException:
             msg = "The SpamBayes proxy service could not be started, as "\
                   "another SpamBayes server is already running on this machine"
@@ -168,7 +168,7 @@ class Service(win32serviceutil.ServiceFramework):
     def ServerThread(self):
         try:
             try:
-                sb_server.start(sb_server.state)
+                sb_server.start()
             except SystemExit:
                 # user requested shutdown
                 print "pop3proxy service shutting down due to user request"

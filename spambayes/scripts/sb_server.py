@@ -673,6 +673,7 @@ class State:
 
     def prepare(self):
         # If we can, prevent multiple servers from running at the same time.
+        assert self.platform_mutex is None, "Should not already have the mutex"
         self.platform_mutex = open_platform_mutex()
     
         # Do whatever we've been asked to do...
@@ -831,9 +832,8 @@ def _recreateState():
     # And get a new one going.
     state = State()
 
-    prepare(state)
+    prepare()
     _createProxies(state.servers, state.proxyPorts)
-    
     return state
 
 def main(servers, proxyPorts, uiPort, launchUI):
@@ -845,7 +845,7 @@ def main(servers, proxyPorts, uiPort, launchUI):
     httpServer.register(proxyUI)
     Dibbler.run(launchBrowser=launchUI)
 
-def prepare(state):
+def prepare():
     state.prepare()
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
@@ -858,7 +858,7 @@ def prepare(state):
     # setup info for the web interface
     state.buildServerStrings()
 
-def start(state):
+def start():
     # kick everything off
     assert state.prepared, "starting before preparing state"
     try:
@@ -866,7 +866,7 @@ def start(state):
     finally:
         state.close()
 
-def stop(state):
+def stop():
     # Shutdown as though through the web UI.  This will save the DB, allow
     # any open proxy connections to complete, etc.
     from urllib import urlopen, urlencode
@@ -924,13 +924,13 @@ def run():
             state.proxyPorts = [('', 110)]
 
         try:
-            prepare(state=state)
+            prepare()
         except AlreadyRunningException:
             print  >>sys.stderr, \
                    "ERROR: The proxy is already running on this machine."
             print  >>sys.stderr, "Please stop the existing proxy and try again"
             return
-        start(state=state)
+        start()
 
     else:
         print >>sys.stderr, __doc__

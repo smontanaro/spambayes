@@ -391,7 +391,7 @@ class MainWindow(object):
     def OnExit(self):
         if self.started and not self.use_service:
             try:
-                sb_server.stop(sb_server.state)
+                sb_server.stop()
             except:
                 print "Error stopping proxy at shutdown"
                 traceback.print_exc()
@@ -404,7 +404,7 @@ class MainWindow(object):
     def _ProxyThread(self):
         self.started = True
         try:
-            sb_server.start(sb_server.state)
+            sb_server.start()
         finally:
             self.started = False
             self.have_prepared_state = False
@@ -428,7 +428,7 @@ class MainWindow(object):
             if verbose: print "Doing 'Start' internally"
             if not self.have_prepared_state:
                 try:
-                    sb_server.prepare(state=sb_server.state)
+                    sb_server.prepare()
                     self.have_prepared_state = True
                 except sb_server.AlreadyRunningException:
                     msg = "The proxy is already running on this " \
@@ -460,7 +460,7 @@ class MainWindow(object):
                     use_service = False
             if not use_service:
                 if verbose: print "Stopping local server"
-                sb_server.stop(sb_server.state)
+                sb_server.stop()
         except:
             print "There was an error stopping the server"
             traceback.print_exc()
