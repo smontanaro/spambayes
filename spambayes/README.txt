@@ -26,6 +26,10 @@ Tester.py
     instance, and keeps track of right/wrong percentages, and lists
     of false positives and false negatives.
 
+hammie.py
+    A spamassassin-like filter which uses timtoken (below) and
+    classifier (above).  Needs to be made faster, especially for writes.
+
 mboxtest.py
     A concrete test driver like timtest.py (see below), but working
     with a pair of mailbox files rather than the specialized timtest
