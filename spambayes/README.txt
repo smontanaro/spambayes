@@ -54,21 +54,6 @@ tokenizer.py
     working on <wink>.  Generates a token stream from a message, which
     the classifier trains on or predicts against.
 
-Tester.py
-    A test-driver class that feeds streams of msgs to a classifier
-    instance, and keeps track of right/wrong percentages, and lists
-    of false positives and false negatives.
-
-TestDriver.py
-    A flexible higher layer of test helpers, building on Tester above.
-    For example, it's usable for building simple test drivers, NxN test
-    grids, and N-fold cross validation drivers.  See also rates.py and
-    cmp.py below.
-
-msgs.py
-    Some simple classes to wrap raw msgs, and to produce streams of
-    msgs.  The test drivers use these.
-
 chi2.py
     A collection of statistics functions.
 
@@ -102,6 +87,24 @@ neilfilter.py
      |python2.3 spambayes/neilfilter.py wordprobs.cdb Maildir/ Mail/Spam/
 
 
+Test Driver Core
+================
+Tester.py
+    A test-driver class that feeds streams of msgs to a classifier
+    instance, and keeps track of right/wrong percentages, and lists
+    of false positives and false negatives.
+
+TestDriver.py
+    A flexible higher layer of test helpers, building on Tester above.
+    For example, it's usable for building simple test drivers, NxN test
+    grids, and N-fold cross-validation drivers.  See also rates.py,
+    cmp.py, and table.py below.
+
+msgs.py
+    Some simple classes to wrap raw msgs, and to produce streams of
+    msgs.  The test drivers use these.
+
+
 Concrete Test Drivers
 =====================
 mboxtest.py
@@ -112,7 +115,7 @@ timcv.py
     An N-fold cross-validating test driver.  Assumes "a standard" data
         directory setup (see below)) rather than the specialized mboxtest
         setup.
-    N classifiers are built
+    N classifiers are built.
     1 run is done with each classifier.
     Each classifier is trained on N-1 sets, and predicts against the sole
         remaining set (the set not used to train the classifier).
@@ -148,6 +151,10 @@ cmp.py
     of all the f-p and f-n rates side-by-side, along with who won which
     (etc), the change in total # of unique false positives and negatives,
     and the change in average f-p and f-n rates.
+
+table.py
+    Summarizes the high-order bits from any number of summary files,
+    in a compact table.
 
 fpfn.py
     Given one or more TestDriver output files, prints list of false
@@ -195,16 +202,6 @@ runtest.sh
     currently asking for.  The idea is, if you have a standard directory
     structure (below), you can run this thing, go have some tea while it
     works, then paste the output to the spambayes list for good karma.
-
-
-Experimental Files
-==================
-cvcost.py
-    A program that analyzes the output of timcv.py (the final histograms)
-    and optimizes the cost of handling the mail body by defining a "ham"
-    zone, a "spam" zone and a "grey" zone. It can be tuned by choosing
-    pseudo-realistic costs to handle a fp, a fn and to handle a message
-    in the grey zone.
 
 
 Standard Test Data Setup

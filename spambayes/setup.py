@@ -16,7 +16,9 @@ setup(
            'mboxtest.py',
            'neiltrain.py',
            'cmp.py',
-           'rates.py'],
+           'table.py',
+           'rates.py',
+          ],
   py_modules=['classifier',
               'tokenizer',
               'hammie',
@@ -24,5 +26,6 @@ setup(
               'Options',
               'Tester',
               'TestDriver',
-              'mboxutils']
+              'mboxutils',
+             ]
   )
