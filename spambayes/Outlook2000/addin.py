@@ -428,6 +428,21 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                 # And if the DB can save itself incrementally, do it now
                 self.manager.SaveBayesPostIncrementalTrain()
 
+def ShowAbout(mgr):
+    mgr.ShowHtml("about.html")
+    
+def ShowSpamBayesWebsite(mgr):
+    os.startfile("http://spambayes.sourceforge.net/")
+def ShowFAQ(mgr):
+    os.startfile("http://spambayes.sourceforge.net/faq.html")
+def ShowFAQ(mgr):
+    os.startfile("http://spambayes.sourceforge.net/faq.html")
+def ShowBugTracker(mgr):
+    os.startfile("http://sourceforge.net/tracker/?group_id=61702&atid=498103")
+    
+def ShowTroubleshooting(mgr):
+    mgr.ShowHtml("docs/troubleshooting.html")
+    
 # Event function fired from the "Show Clues" UI items.
 def ShowClues(mgr, explorer):
     from cgi import escape
@@ -788,6 +803,51 @@ class ExplorerWithEvents:
                            Enabled=True,
                            Visible=True,
                            Tag = "SpamBayesCommand.CheckVersion")
+            helpPopup = self._AddControl(
+                            popup,
+                            constants.msoControlPopup,
+                            None, None,
+                            Caption="Help",
+                            TooltipText = "SpamBayes help documents",
+                            Enabled = True,
+                            Tag = "SpamBayesCommand.HelpPopup")
+            if helpPopup is not None:
+                helpPopup = CastTo(helpPopup, "CommandBarPopup")
+                self._AddControl(helpPopup,
+                               constants.msoControlButton,
+                               ButtonEvent, (ShowAbout, self.manager,),
+                               Caption="About SpamBayes",
+                               Enabled=True,
+                               Visible=True,
+                               Tag = "SpamBayesCommand.Help.ShowAbout")
+                self._AddControl(helpPopup,
+                               constants.msoControlButton,
+                               ButtonEvent, (ShowTroubleshooting, self.manager,),
+                               Caption="Troubleshooting Guide",
+                               Enabled=True,
+                               Visible=True,
+                               Tag = "SpamBayesCommand.Help.ShowTroubleshooting")
+                self._AddControl(helpPopup,
+                               constants.msoControlButton,
+                               ButtonEvent, (ShowSpamBayesWebsite, self.manager,),
+                               Caption="SpamBayes Website",
+                               Enabled=True,
+                               Visible=True,
+                               Tag = "SpamBayesCommand.Help.ShowSpamBayes Website")
+                self._AddControl(helpPopup,
+                               constants.msoControlButton,
+                               ButtonEvent, (ShowFAQ, self.manager,),
+                               Caption="Frequently Asked Questions",
+                               Enabled=True,
+                               Visible=True,
+                               Tag = "SpamBayesCommand.Help.ShowFAQ")
+                self._AddControl(helpPopup,
+                               constants.msoControlButton,
+                               ButtonEvent, (ShowBugTracker, self.manager,),
+                               Caption="SpamBayes Bug Tracker",
+                               Enabled=True,
+                               Visible=True,
+                               Tag = "SpamBayesCommand.Help.BugTacker")
         # If we are running from Python sources, enable a few extra items
         if not hasattr(sys, "frozen"):
             self._AddControl(popup,

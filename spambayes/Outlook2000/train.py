@@ -97,8 +97,10 @@ def train_folder(f, isspam, mgr, progress):
     print "Checked", num, "in folder", f.name, "-", num_added, "new entries found."
 
 # Called back from the dialog to do the actual training.
-def trainer(mgr, progress, rebuild, rescore = True):
+def trainer(mgr, progress):
     config = mgr.config
+    rebuild = config.training.rebuild
+    rescore = config.training.rescore
 
     if not config.training.ham_folder_ids or not config.training.spam_folder_ids:
         progress.error("You must specify at least one spam, and one good folder")

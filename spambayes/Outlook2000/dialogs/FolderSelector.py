@@ -1,12 +1,19 @@
 from __future__ import generators
 
-from pywin.mfc import dialog
+import sys, os
 import win32con
 import commctrl
-import win32ui
 import win32api
+import win32gui
 
-from DialogGlobals import *
+import struct, array
+
+import dlgutils
+
+def INDEXTOSTATEIMAGEMASK(i): # from new commctrl.h
+    return i << 12
+IIL_UNCHECKED = 1
+IIL_CHECKED = 2
 
 try:
     True, False
@@ -55,7 +62,7 @@ import pythoncom
 
 def _BuildFoldersMAPI(manager, folder_spec):
     # This is called dynamically as folders are expanded.
-    win32ui.DoWaitCursor(1)
+    dlgutils.SetWaitCursor(1)
     folder = manager.message_store.GetFolder(folder_spec.folder_id).OpenEntry()
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
@@ -93,7 +100,7 @@ def _BuildFoldersMAPI(manager, folder_spec):
             # entire tree is going to fail, or just this folder
             print "** Unable to open child folder - ignoring"
             print details
-    win32ui.DoWaitCursor(0)
+    dlgutils.SetWaitCursor(0)
     return children
 
 def BuildFolderTreeMAPI(session, ignore_ids):
@@ -122,48 +129,78 @@ def BuildFolderTreeMAPI(session, ignore_ids):
         root.children.append(spec)
     return root
 
+# Helpers for the ugly win32 structure packing/unpacking
+def _GetMaskAndVal(val, default, mask, flag):
+    if val is None:
+        return mask, default
+    else:
+        mask |= flag
+        return mask, val
+
+def PackTVINSERTSTRUCT(parent, insertAfter, tvitem):
+    tvitem_buf, extra = PackTVITEM(*tvitem)
+    tvitem_buf = tvitem_buf.tostring()
+    format = "ii%ds" % len(tvitem_buf)
+    return struct.pack(format, parent, insertAfter, tvitem_buf), extra
+
+def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
+    extra = [] # objects we must keep references to
+    mask = 0
+    mask, hitem = _GetMaskAndVal(hitem, 0, mask, commctrl.TVIF_HANDLE)
+    mask, state = _GetMaskAndVal(state, 0, mask, commctrl.TVIF_STATE)
+    if not mask & commctrl.TVIF_STATE:
+        stateMask = 0
+    mask, text = _GetMaskAndVal(text, None, mask, commctrl.TVIF_TEXT)
+    mask, image = _GetMaskAndVal(image, 0, mask, commctrl.TVIF_IMAGE)
+    mask, selimage = _GetMaskAndVal(selimage, 0, mask, commctrl.TVIF_SELECTEDIMAGE)
+    mask, citems = _GetMaskAndVal(citems, 0, mask, commctrl.TVIF_CHILDREN)
+    mask, param = _GetMaskAndVal(param, 0, mask, commctrl.TVIF_PARAM)
+    if text is None:
+        text_addr = text_len = 0
+    else:
+        text_buffer = array.array("c", text+"\0")
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    format = "iiiiiiiiii"
+    buf = struct.pack(format,
+                      mask, hitem,
+                      state, stateMask,
+                      text_addr, text_len, # text
+                      image, selimage,
+                      citems, param)
+    return array.array("c", buf), extra
+
+def UnpackLVITEM(buffer):
+    item_mask, item_hItem, item_state, item_stateMask, \
+        item_textptr, item_cchText, item_image, item_selimage, \
+        item_cChildren, item_param = struct.unpack("10i", buffer)
+
+    if item_textptr:
+        text = win32gui.PyGetString(item_textptr)
+    else:
+        text = None
+    # Todo - translate items without the mask bit set to None
+    return item_hItem, item_state, item_stateMask, \
+        text, item_image, item_selimage, \
+        item_cChildren, item_param
+
+def UnpackLVNOTIFY(lparam):
+    format = "iiii40s40s"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    hwndFrom, id, code, action, buf_old, buf_new \
+          = struct.unpack(format, buf)
+    item_old = UnpackLVITEM(buf_old)
+    item_new = UnpackLVITEM(buf_new)
+    return hwndFrom, id, code, action, item_old, item_new
+
 #########################################################################
 ## The dialog itself
 #########################################################################
+import dlgcore
 
-# IDs for controls we use.
-IDC_STATUS1 = win32ui.IDC_PROMPT1
-IDC_STATUS2 = win32ui.IDC_PROMPT2
-IDC_BUTTON_SEARCHSUB = win32ui.IDC_BUTTON1
-IDC_BUTTON_CLEARALL = win32ui.IDC_BUTTON2
-IDC_LIST_FOLDERS = win32ui.IDC_LIST1
-
-class FolderSelector(dialog.Dialog):
-    style = (win32con.DS_MODALFRAME |
-             win32con.WS_POPUP |
-             win32con.WS_VISIBLE |
-             win32con.WS_CAPTION |
-             win32con.WS_SYSMENU |
-             win32con.DS_SETFONT)
-    cs = win32con.WS_CHILD | win32con.WS_VISIBLE
-    treestyle = (cs |
-                 win32con.WS_BORDER |
-                 commctrl.TVS_HASLINES |
-                 commctrl.TVS_LINESATROOT |
-                 commctrl.TVS_CHECKBOXES |
-                 commctrl.TVS_HASBUTTONS |
-                 commctrl.TVS_DISABLEDRAGDROP |
-                 commctrl.TVS_SHOWSELALWAYS)
-    dt = [
-        # Dialog itself.
-        ["", (0, 0, 247, 215), style, None, (8, "MS Sans Serif")],
-        # Children
-        [STATIC,          "&Folders:",          -1,                   (7,   7,  47,  9), cs ],
-        ["SysTreeView32", None,                 IDC_LIST_FOLDERS,     (7,  21, 172, 140), treestyle | win32con.WS_TABSTOP],
-        [BUTTON,          '',                   IDC_BUTTON_SEARCHSUB, (7,  167, 126,  9), cs | win32con.BS_AUTOCHECKBOX | win32con.WS_TABSTOP],
-        [STATIC,          "",                   IDC_STATUS1,          (7,  180, 220,  9), cs ],
-        [STATIC,          "",                   IDC_STATUS2,          (7,  194, 220,  9), cs ],
-        [BUTTON,         'OK',                  win32con.IDOK,        (190, 21,  50, 14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
-        [BUTTON,         'Cancel',              win32con.IDCANCEL,    (190, 39,  50, 14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
-        [BUTTON,         'C&lear All',          IDC_BUTTON_CLEARALL,  (190, 58,  50, 14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
-    ]
-
-    def __init__ (self, manager, selected_ids=None,
+FolderSelector_Parent = dlgcore.TooltipDialog
+class FolderSelector(FolderSelector_Parent):
+    def __init__ (self, parent, manager, selected_ids=None,
                               single_select=False,
                               checkbox_state=False,
                               checkbox_text=None,
@@ -173,11 +210,13 @@ class FolderSelector(dialog.Dialog):
                                                 PR_IPM_SENTMAIL_ENTRYID,
                                                 PR_IPM_OUTBOX_ENTRYID)
                                     ):
+        FolderSelector_Parent.__init__(self, parent, manager.dialog_parser, "IDD_FOLDER_SELECTOR")
         assert not single_select or selected_ids is None or len(selected_ids)<=1
-        dialog.Dialog.__init__ (self, self.dt)
         self.single_select = single_select
         self.next_item_id = 1
         self.item_map = {}
+        self.timer_id = None
+        self.imageList = None
 
         self.select_desc_noun = desc_noun
         self.select_desc_noun_suffix = desc_noun_suffix
@@ -226,7 +265,7 @@ class FolderSelector(dialog.Dialog):
                     state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
                 mask = commctrl.TVIS_STATEIMAGEMASK
             item_id = self._MakeItemParam(child)
-            hitem = self.list.InsertItem(hParent, 0,
+            insert_buf, extras = PackTVINSERTSTRUCT(hParent, 0,
                                          (None,
                                           state,
                                           mask,
@@ -235,16 +274,23 @@ class FolderSelector(dialog.Dialog):
                                           bitmapSel,
                                           cItems,
                                           item_id))
+            hitem = win32gui.SendMessage(self.list, commctrl.TVM_INSERTITEM,
+                                         0, insert_buf)
+
             # If this folder is in the list of ones we need to expand
             # to show pre-selected items, then force expand now.
             if self.InIDs(child.folder_id, self.expand_ids):
-                self.list.Expand(hitem, commctrl.TVE_EXPAND)
+                win32gui.SendMessage(self.list,
+                                     commctrl.TVM_EXPAND,
+                                     commctrl.TVE_EXPAND, hitem)
             # If single-select, and this is ours, select it
             # (multi-select uses check-boxes, not selection)
             if (self.single_select and
                     self.selected_ids and
                     self.InIDs(child.folder_id, self.selected_ids)):
-                self.list.SelectItem(hitem)
+                win32gui.SendMessage(self.list,
+                                     commctrl.TVM_SELECTITEM,
+                                     commctrl.TVGN_CARET, hitem)
 
     def _DetermineFoldersToExpand(self):
         folders_to_expand = []
@@ -258,21 +304,32 @@ class FolderSelector(dialog.Dialog):
                 folder = parent
         return folders_to_expand
 
+    def _GetLVItem(self, h):
+        text_buffer = "\0" * 1024
+        buffer, extra = PackTVITEM(h, 0, 0, text_buffer, None, None, None, -1)
+        win32gui.SendMessage(self.list, commctrl.TVM_GETITEM,
+                                0, buffer.buffer_info()[0])
+        return UnpackLVITEM(buffer.tostring())
+
     def _YieldChildren(self, h):
         try:
-            h = self.list.GetNextItem(h, commctrl.TVGN_CHILD)
-        except win32ui.error:
-            h = None
-        while h is not None:
-            info = self.list.GetItem(h)
-            spec = self.item_map[info[7]]
+            h = win32gui.SendMessage(self.list, commctrl.TVM_GETNEXTITEM,
+                                     commctrl.TVGN_CHILD, h)
+        except win32gui.error:
+            h = 0
+        while h:
+            info = self._GetLVItem(h)
+            item_param = info[-1]
+            spec = self.item_map[item_param]
+
             yield info, spec
             # Check children
             for info, spec in self._YieldChildren(h):
                 yield info, spec
             try:
-                h = self.list.GetNextItem(h, commctrl.TVGN_NEXT)
-            except win32ui.error:
+                h = win32gui.SendMessage(self.list, commctrl.TVM_GETNEXTITEM,
+                                         commctrl.TVGN_NEXT, h)
+            except win32gui.error:
                 h = None
 
     def _YieldAllChildren(self):
@@ -283,10 +340,11 @@ class FolderSelector(dialog.Dialog):
             # If single-select, the checked state is not used, just the
             # selected state.
             try:
-                h = self.list.GetSelectedItem()
-            except win32ui.error:
+                h = win32gui.SendMessage(self.list, commctrl.TVM_GETSELECTEDITEM,
+                                         commctrl.TVGN_CARET, h)
+            except win32gui.error:
                 return
-            info = self.list.GetItem(h)
+            info = self._GetLVItem(h)
             spec = self.item_map[info[7]]
             yield info, spec
             return # single-hit yield.
@@ -296,64 +354,101 @@ class FolderSelector(dialog.Dialog):
             if checked:
                 yield info, spec
 
-    def OnInitDialog (self):
+    def GetSelectedIDs(self):
+        try:
+            self.GetDlgItem("IDC_LIST_FOLDERS")
+        except win32gui.error: # dialog dead!
+            return self.selected_ids, self.checkbox_state
+        ret = []
+        for info, spec in self._YieldCheckedChildren():
+            ret.append(spec.folder_id)
+        check = win32gui.SendMessage(self.GetDlgItem("IDC_BUT_SEARCHSUB"),
+                                     win32con.BM_GETCHECK, 0, 0)
+        return ret, check != 0
+
+    # Message processing
+#    def GetMessageMap(self):
+    
+    def OnInitDialog (self, hwnd, msg, wparam, lparam):
+        FolderSelector_Parent.OnInitDialog(self, hwnd, msg, wparam, lparam)
         caption = "%s folder" % (self.select_desc_noun,)
         if not self.single_select:
             caption += "(s)"
-        self.SetWindowText(caption)
-        self.SetDlgItemText(IDC_BUTTON_SEARCHSUB, self.checkbox_text)
+        win32gui.SendMessage(hwnd, win32con.WM_SETTEXT, 0, caption)
+        self.SetDlgItemText("IDC_BUT_SEARCHSUB", self.checkbox_text)
+        child = self.GetDlgItem("IDC_BUT_SEARCHSUB")
         if self.checkbox_state is None:
-            self.GetDlgItem(IDC_BUTTON_SEARCHSUB).ShowWindow(win32con.SW_HIDE)
+            win32gui.ShowWindow(child, win32con.SW_HIDE)
         else:
-            self.GetDlgItem(IDC_BUTTON_SEARCHSUB).SetCheck(self.checkbox_state)
-        self.list = self.GetDlgItem(win32ui.IDC_LIST1)
+            win32gui.SendMessage(child, win32con.BM_SETCHECK, self.checkbox_state)
+        self.list = self.GetDlgItem("IDC_LIST_FOLDERS")
 
-        self.HookNotify(self.OnTreeItemExpanding, commctrl.TVN_ITEMEXPANDING)
-        self.HookNotify(self.OnTreeItemSelChanged, commctrl.TVN_SELCHANGED)
-        self.HookNotify(self.OnTreeItemClick, commctrl.NM_CLICK)
-        self.HookNotify(self.OnTreeItemDoubleClick, commctrl.NM_DBLCLK)
-        self.HookCommand(self.OnClearAll, IDC_BUTTON_CLEARALL)
-
-        bitmapID = win32ui.IDB_HIERFOLDERS
+        fname = os.path.join(os.path.dirname(__file__), "resources/folders.bmp")
         bitmapMask = win32api.RGB(0,0,255)
-        self.imageList = win32ui.CreateImageList(bitmapID, 16, 0, bitmapMask)
-        self.list.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
+        self.imageList = win32gui.ImageList_LoadImage(0, fname,
+                                                        16, 0,
+                                                        bitmapMask,
+                                                        win32con.IMAGE_BITMAP,
+                                                        win32con.LR_LOADFROMFILE)
+        win32gui.SendMessage( self.list,
+                                commctrl.TVM_SETIMAGELIST,
+                                commctrl.TVSIL_NORMAL, self.imageList )
         if self.single_select:
             # Remove the checkbox style from the list for single-selection
-            style = win32api.GetWindowLong(self.list.GetSafeHwnd(),
+            style = win32api.GetWindowLong(self.list,
                                            win32con.GWL_STYLE)
             style = style & ~commctrl.TVS_CHECKBOXES
-            win32api.SetWindowLong(self.list.GetSafeHwnd(),
+            win32api.SetWindowLong(self.list,
                                    win32con.GWL_STYLE,
                                    style)
             # Hide "clear all"
-            self.GetDlgItem(IDC_BUTTON_CLEARALL).ShowWindow(win32con.SW_HIDE)
+            child = self.GetDlgItem("IDC_BUT_CLEARALL")
+            win32gui.ShowWindow(child, win32con.SW_HIDE)
 
         # Extended MAPI version of the tree.
         # Build list of all ids to expand - ie, list includes all
         # selected folders, and all parents.
-        win32ui.DoWaitCursor(1)
+        dlgutils.SetWaitCursor(1)
         self.expand_ids = self._DetermineFoldersToExpand()
         tree = BuildFolderTreeMAPI(self.manager.message_store.session, self.exclude_prop_ids)
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # Only use this while creating dialog.
         self.expand_ids = [] # Only use this while creating dialog.
         self._UpdateStatus()
-        win32ui.DoWaitCursor(0)
+        dlgutils.SetWaitCursor(0)
 
-        return dialog.Dialog.OnInitDialog (self)
 
-    def OnDestroy(self, msg):
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        import timer
+        if self.timer_id is not None:
+            timer.kill_timer(self.timer_id)
         self.item_map = None
-        return dialog.Dialog.OnDestroy(self, msg)
+        win32gui.ImageList_Destroy(self.imageList)
+        FolderSelector_Parent.OnDestroy(self, hwnd, msg, wparam, lparam)
 
-    def OnClearAll(self, id, code):
+    def OnCommand(self, hwnd, msg, wparam, lparam):
+        FolderSelector_Parent.OnCommand(self, hwnd, msg, wparam, lparam)
+        id = win32api.LOWORD(wparam)
+        id_name = self._GetIDName(id)
+        code = win32api.HIWORD(wparam)
+        
         if code == win32con.BN_CLICKED:
-            for info, spec in self._YieldCheckedChildren():
-                state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
-                mask = commctrl.TVIS_STATEIMAGEMASK
-                self.list.SetItemState(info[0], state, mask)
-            self._UpdateStatus()
+            # Button clicks
+            if id == win32con.IDOK:
+                self.selected_ids, self.checkbox_state = self.GetSelectedIDs()
+                win32gui.EndDialog(hwnd, id)
+            elif id == win32con.IDCANCEL:
+                win32gui.EndDialog(hwnd, id)
+            elif id_name == "IDC_BUT_CLEARALL":
+                for info, spec in self._YieldCheckedChildren():
+                    state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
+                    mask = commctrl.TVIS_STATEIMAGEMASK
+                    buf, extra = PackTVITEM(info[0], state, mask,
+                                            None, None, None, None, None)
+                    win32gui.SendMessage(self.list, commctrl.TVM_SETITEM,
+                                         0, buf)
+
+        self._UpdateStatus()
 
     def _DoUpdateStatus(self, id, timeval):
         try:
@@ -369,71 +464,61 @@ class FolderSelector(dialog.Dialog):
                                                 num_checked)
             if num_checked != 1:
                 status_string += "s"
-            self.SetDlgItemText(IDC_STATUS1, status_string)
-            self.SetDlgItemText(IDC_STATUS2, "; ".join(names))
+            self.SetDlgItemText("IDC_STATUS1", status_string)
+            self.SetDlgItemText("IDC_STATUS2", "; ".join(names))
         finally:
             import timer
+            self.timer_id = None
             timer.kill_timer(id)
 
     def _UpdateStatus(self):
         import timer
-        timer.set_timer (0, self._DoUpdateStatus)
+        if self.timer_id is not None:
+            timer.kill_timer(self.timer_id)
+        self.timer_id = timer.set_timer (0, self._DoUpdateStatus)
 
-    def OnOK(self):
-        self.selected_ids, self.checkbox_state = self.GetSelectedIDs()
-        return self._obj_.OnOK()
-    def OnCancel(self):
-        return self._obj_.OnCancel()
-
-    def OnTreeItemDoubleClick(self,(hwndFrom, idFrom, code), extra):
-        if idFrom != IDC_LIST_FOLDERS: return None
-        if self.single_select: # Only close on double-click for single-select
-            self.OnOK()
-        return 0
-
-    def OnTreeItemClick(self,(hwndFrom, idFrom, code), extra):
-        if idFrom != IDC_LIST_FOLDERS: return None
-        self._UpdateStatus()
-        return 0
-
-    def OnTreeItemExpanding(self,(hwndFrom, idFrom, code), extra):
-        if idFrom != IDC_LIST_FOLDERS: return None
-        action, itemOld, itemNew, pt = extra
-        if action == 1: return 0 # contracting, not expanding
-
-        itemHandle = itemNew[0]
-        info = self.list.GetItem(itemHandle)
-        folderSpec = self.item_map[info[7]]
-        if folderSpec.children is None:
-            folderSpec.children = _BuildFoldersMAPI(self.manager, folderSpec)
-            self._InsertSubFolders(itemHandle, folderSpec)
-        return 0
-
-    def OnTreeItemSelChanged(self,(hwndFrom, idFrom, code), extra):
-        if idFrom != IDC_LIST_FOLDERS: return None
-        action, itemOld, itemNew, pt = extra
-        self._UpdateStatus()
-        return 1
-
-    def GetSelectedIDs(self):
-        try:
-            self.GetDlgItem(IDC_LIST_FOLDERS)
-        except win32ui.error: # dialog dead!
-            return self.selected_ids, self.checkbox_state
-        ret = []
-        for info, spec in self._YieldCheckedChildren():
-            ret.append(spec.folder_id)
-        return ret, self.GetDlgItem(IDC_BUTTON_SEARCHSUB).GetCheck() != 0
+    def OnNotify(self, msg, hwnd, wparam, lparam):
+        FolderSelector_Parent.OnNotify(self, hwnd, msg, wparam, lparam)
+        format = "iii"
+        buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+        hwndFrom, id, code = struct.unpack(format, buf)
+        code += 0x4f0000 # hrm - wtf - commctrl uses this, and it works with mfc.  *sigh*
+        id_name = self._GetIDName(id)
+        if id_name == "IDC_LIST_FOLDERS":
+            if code == commctrl.NM_CLICK:
+                self._UpdateStatus()
+            elif code == commctrl.NM_DBLCLK:
+                if self.single_select: # Only close on double-click for single-select
+                    self.OnOK()
+            elif code == commctrl.TVN_ITEMEXPANDING:
+                ignore, ignore, ignore, action, itemOld, itemNew = \
+                                            UnpackLVNOTIFY(lparam)
+                if action == 1: return 0 # contracting, not expanding
+                itemHandle = itemNew[0]
+                info = itemNew
+                folderSpec = self.item_map[info[7]]
+                if folderSpec.children is None:
+                    folderSpec.children = _BuildFoldersMAPI(self.manager, folderSpec)
+                    self._InsertSubFolders(itemHandle, folderSpec)
+            elif code == commctrl.TVN_SELCHANGED:
+                self._UpdateStatus()
 
 def Test():
     import sys, os
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
     import manager
+    mgr = manager.GetManager()
+    if mgr.dialog_parser is None:
+        import dialogs
+        mgr.dialog_parser = dialogs.LoadDialogs()
+
     ids = []
-    d=FolderSelector(manager.GetManager(), ids, single_select = False)
-    d.DoModal()
+    d=FolderSelector(0, mgr, ids, single_select = False)
+    if d.DoModal() != win32con.IDOK:
+        print "Cancelled"
+        return
     ids, include_sub = d.GetSelectedIDs()
-    d=FolderSelector(manager.GetManager(), ids, single_select = False)
+    d=FolderSelector(0, mgr, ids, single_select = False, checkbox_state = include_sub)
     d.DoModal()
 
 if __name__=='__main__':

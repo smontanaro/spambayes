@@ -98,22 +98,22 @@ original folder.</li>
 Note that in all cases, as you take corrective action on the mail, the
 system is also trained.&nbsp; This makes it less likely that another
 similar mail will be incorrectly classified in the future.<br>
-<br>
+<br />
 <h2><a name="Installing_and_Configuring"></a>Installing and Configuring
 the plugin</h2>
 If you download the installer version of this plugin (ie, you
-downloaded a .EXE file you use to install), then everthing is installed
+downloaded a .EXE file you use to install), then everything is installed
 and just needs to be configured.&nbsp; If you downloaded the sourcecode
 version of the plugin, please view README.txt for installation
-instructions.<br>
-Configuring the plugin requires the following steps:<br>
+instructions.<br />
+Configuring the plugin requires the following steps:<br/><br/>
 <table cellpadding="2" cellspacing="2" border="0"
  style="text-align: left; width: 100%;">
   <tbody>
     <tr>
       <td style="vertical-align: top;">
       <ol>
-        <li>Confirm the plugin is installed:<br>
+        <li style="margin-bottom: 1em;">Confirm the plugin is installed:<br/>
 Start Outlook, select your Inbox, then look at your Outlook
 toolbar.&nbsp; Just below the standard Toolbar, you should see a new
 toolbar with a <span style="font-style: italic;">SpamBayes</span>
@@ -121,50 +121,52 @@ dropdown button.&nbsp; If this button appears, then the plugin is
 correctly installed and ready to use.&nbsp; If the button does not
 appear, please see <a href="docs/troubleshooting.html">the
 troubleshooting guide</a>.</li>
-        <li>Create <span style="font-style: italic;">Spam</span> and <span
- style="font-style: italic;">Unsure</span> folders<br>
+        <li style="margin-bottom: 1em;">Create <span style="font-style: italic;">
+        Spam</span> and <span style="font-style: italic;">Unsure</span> folders<br />
 Use the normal Outlook functions to create two new folders.&nbsp; These
 can be named anything you like, and can appear anywhere in the folder
 hierarchy you choose - however, it is recommended you call them
 something like <span style="font-style: italic;">Spam</span> and <span
  style="font-style: italic;">Possible Spam</span>.</li>
-        <li>Manually create initial training data<br>
+        <li style="margin-bottom: 1em;">Manually create initial training data<br/>
 Go through your <span style="font-style: italic;">Inbox, Deleted Items</span>
 and any other folders likely to have spam, and move as much as possible
 to the new Spam folder you just created.&nbsp; Try and get as much Spam
 out of your inbox as possible, as your inbox will form the initial set
 of good messages we train on.&nbsp; Don't worry too much about missing
 one or two spam - the system is likely to find them for you as we
-rescore your existing email.<br>
+rescore your existing email.<br/><br/>
 If your Inbox is so full of Spam you don't know where to start, you may
 like to create a temporary folder for the purposes of training your
 good messages.&nbsp; Copy some examples of your good messages to this
 new folder (roughly the same number as Spam you are training on is
 best) and nominate this temporary folder instead of your Inbox.&nbsp;
-Once trained, you can dispose of this folder.<br>
-        </li>
-        <li>Configure and Train SpamBayes<br>
+Once trained, you can dispose of this folder.</li>
+        <li style="margin-bottom: 1em;">Configure and Train SpamBayes<br/>
 Now we have our folders setup with some initial training data, we can
 configure the plugin.&nbsp; From the <span style="font-style: italic;">SpamBayes</span>
 button on the toolbar select <span style="font-style: italic;">SpamBayes
 Manager...</span>&nbsp; This will display the main dialog, as shown to
 the right.</li>
-        <li>Select Train Now, and the training dialog, also shown to
+        <li style="margin-bottom: 1em;">Select Train Now, and the training dialog, also shown to
 the right will appear.&nbsp; You will need to select your Inbox as the
 folder for good messages, and your new Spam folder as the source of
 junk messages.&nbsp; Ensure that <span style="font-style: italic;">Score
 messages after training</span> is selected, so we can see how effective
-our Inbox cleanup was.<br>
-        </li>
-        <li>Click on the Train Now button, and a progress indicator
+our Inbox cleanup was.</li>
+        <li style="margin-bottom: 1em;">Click on the Train Now button, and a progress indicator
 will be displayed as your messages are trained and scored.&nbsp; When
 finished, close the training window to return
 to the SpamBayes window.</li>
       </ol>
       </td>
       <td style="vertical-align: top;"><img
- src="docs/images/manager.jpg" title="" alt="Anti-Spam manager"
- style="width: 369px; height: 335px;"><br>
+ src="docs/images/manager-select.jpg" title="" alt="SpamBayes Toolbar"
+ style="width: 354px; height: 138px;"><br>
+      <div style="text-align: center;">The SpamBayes Toolbar<br>
+      <br>
+      <img src="docs/images/manager.jpg" title="" alt="SpamBayes manager"
+ style="width: 369px; height: 352px;"><br>
       <div style="text-align: center;">The SpamBayes Manager dialog<br>
       <br>
       <img src="docs/images/training.jpg" title="" alt=""

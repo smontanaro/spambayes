@@ -1,9 +1,9 @@
-# Base class for an "async" dialog.
-from pywin.mfc import dialog
-import win32con
-import commctrl
-import win32ui
-import win32api
+# An async command processor
+from dlgutils import *
+import win32gui, win32api, win32con, commctrl
+import win32process
+
+import processors
 
 try:
     True, False
@@ -16,9 +16,6 @@ IDC_START = 1100
 IDC_PROGRESS = 1101
 IDC_PROGRESS_TEXT = 1102
 
-def MAKELPARAM(low, high):
-    return ((0x0000FFFF & high) << 16) | (0x0000FFFF & low)
-
 MYWM_SETSTATUS = win32con.WM_USER+11
 MYWM_SETWARNING = win32con.WM_USER+12
 MYWM_SETERROR = win32con.WM_USER+13
@@ -26,10 +23,10 @@ MYWM_FINISHED = win32con.WM_USER+14
 
 # This is called from another thread - hence we need to jump through hoops!
 class _Progress:
-    def __init__(self, dlg):
-        self.hprogress = dlg.GetDlgItem(IDC_PROGRESS).GetSafeHwnd()
-        self.hdlg = dlg.GetSafeHwnd()
-        self.dlg = dlg
+    def __init__(self, processor):
+        self.hdlg = processor.window.hwnd
+        self.hprogress = processor.GetControl(processor.statusbar_id)
+        self.processor = processor
         self.stopping = False
         self.total_control_ticks = 100
         self.current_stage = 0
@@ -87,63 +84,89 @@ class _Progress:
             text = stage_name + ": " + text
         return text
     def set_status(self, text):
-        self.dlg.progress_status = self._get_stage_text(text)
+        self.processor.progress_status = self._get_stage_text(text)
         win32api.PostMessage(self.hdlg, MYWM_SETSTATUS)
     def warning(self, text):
-        self.dlg.progress_warning = self._get_stage_text(text)
+        self.processor.progress_warning = self._get_stage_text(text)
         win32api.PostMessage(self.hdlg, MYWM_SETWARNING)
     def error(self, text):
-        self.dlg.progress_error = self._get_stage_text(text)
+        self.processor.progress_error = self._get_stage_text(text)
         win32api.PostMessage(self.hdlg, MYWM_SETERROR)
     def request_stop(self):
         self.stopping = True
     def stop_requested(self):
         return self.stopping
 
-
-class AsyncDialogBase(dialog.Dialog):
-    def __init__ (self, dt):
-        dialog.Dialog.__init__ (self, dt)
+class AsyncCommandProcessor(processors.CommandButtonProcessor):
+    def __init__(self, window, control_ids, func, start_text, stop_text, disable_ids):
+        processors.CommandButtonProcessor.__init__(self, window, control_ids[:1], func, ())
         self.progress_status = ""
         self.progress_error = ""
         self.progress_warning = ""
         self.running = False
+        self.statusbar_id = control_ids[1]
+        self.statustext_id = control_ids[2]
+        self.process_start_text = start_text
+        self.process_stop_text = stop_text
+        dids = self.disable_while_running_ids = []
+        for id in disable_ids.split():
+            dids.append(window.manager.dialog_parser.ids[id])
 
-    def OnInitDialog(self):
-        self.GetDlgItem(IDC_PROGRESS).ShowWindow(win32con.SW_HIDE)
-        self.HookMessage(self.OnProgressStatus, MYWM_SETSTATUS)
-        self.HookMessage(self.OnProgressError, MYWM_SETERROR)
-        self.HookMessage(self.OnProgressWarning, MYWM_SETWARNING)
-        self.HookMessage(self.OnFinished, MYWM_FINISHED)
-        self.HookCommand(self.OnStart, IDC_START)
-        return dialog.Dialog.OnInitDialog (self)
+    def Init(self):
+        win32gui.ShowWindow(self.GetControl(self.statusbar_id), win32con.SW_HIDE)
+        self.SetStatusText("")
 
-    def OnFinished(self, msg):
-        self.seen_finished = True
-        wasCancelled = msg[2]
+    def GetMessages(self):
+        return [MYWM_SETSTATUS, MYWM_SETWARNING, MYWM_SETERROR, MYWM_FINISHED]
+
+    def SetEnabledStates(self, enabled):
         for id in self.disable_while_running_ids:
-            self.GetDlgItem(id).EnableWindow(1)
+            win32gui.EnableWindow(self.GetControl(id), enabled)
 
-        self.SetDlgItemText(IDC_START, self.process_start_text)
-        self.GetDlgItem(IDC_PROGRESS).ShowWindow(win32con.SW_HIDE)
+    def OnMessage(self, msg, wparam, lparam):
+        if msg == MYWM_SETSTATUS:
+            self.OnProgressStatus(wparam, lparam)
+        elif msg == MYWM_SETWARNING:
+            self.OnProgressWarning(wparam, lparam)
+        elif msg == MYWM_SETERROR:
+            self.OnProgressError(wparam, lparam)
+        elif msg == MYWM_FINISHED:
+            self.OnFinished(wparam, lparam)
+        else:
+            raise RuntimeError, "Not one of my messages??"
+    
+    def OnFinished(self, wparam, lparam):
+        self.seen_finished = True
+        wasCancelled = wparam
+        self.SetEnabledStates(True)
+
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
+                             0, self.process_start_text)
+        win32gui.ShowWindow(self.GetControl(self.statusbar_id), win32con.SW_HIDE)
         if wasCancelled:
-            self.SetDlgItemText(IDC_PROGRESS_TEXT, "Cancelled")
+            self.SetStatusText("Cancelled")
 
-    def OnProgressStatus(self, msg):
-        self.SetDlgItemText(IDC_PROGRESS_TEXT, self.progress_status)
+    def SetStatusText(self, text):
+        win32gui.SendMessage(self.GetControl(self.statustext_id),
+                                win32con.WM_SETTEXT,
+                                0, text)
+        
+    def OnProgressStatus(self, wparam, lparam):
+        self.SetStatusText(self.progress_status)
 
-    def OnProgressError(self, msg):
-        self.SetDlgItemText(IDC_PROGRESS_TEXT, self.progress_error)
-        self.MessageBox(self.progress_error)
+    def OnProgressError(self, wparam, lparam):
+        self.SetStatusText(self.progress_error)
+        win32gui.MessageBox(self.window.hwnd,
+                            self.progress_error, "SpamBayes",
+                            win32con.MB_OK | win32con.MB_ICONEXCLAMATION)
         if not self.running and not self.seen_finished:
-            self.OnFinished( (0,0,0) )
+            self.OnFinished(0,0)
 
-    def OnProgressWarning(self, msg):
+    def OnProgressWarning(self, wparam, lparam):
         pass
-
-    def OnStart(self, id, code):
-        if id == IDC_START:
-            self.StartProcess()
+    
+    def OnClicked(self, id):
+        self.StartProcess()
 
     def StartProcess(self):
         if self.running:
@@ -154,11 +177,14 @@ class AsyncDialogBase(dialog.Dialog):
             progress=_Progress(self)
             # Now screw around with the control states, restored when
             # the thread terminates.
-            for id in self.disable_while_running_ids:
-                self.GetDlgItem(id).EnableWindow(0)
-            self.SetDlgItemText(IDC_START, self.process_stop_text)
-            self.SetDlgItemText(IDC_PROGRESS_TEXT, "")
-            self.GetDlgItem(IDC_PROGRESS).ShowWindow(win32con.SW_SHOW)
+            self.SetEnabledStates(False)
+            win32gui.SendMessage(self.GetControl(),
+                                 win32con.WM_SETTEXT,
+                                 0, self.process_stop_text)
+            win32gui.SendMessage(self.GetControl(self.statustext_id),
+                                 win32con.WM_SETTEXT, 0, "")
+            win32gui.ShowWindow(self.GetControl(self.statusbar_id),
+                                win32con.SW_SHOW)
             # Local function for the thread target that notifies us when finished.
             def thread_target(h, progress):
                 try:
@@ -170,7 +196,7 @@ class AsyncDialogBase(dialog.Dialog):
                     import win32process, win32api
                     THREAD_PRIORITY_BELOW_NORMAL=-1
                     win32process.SetThreadPriority(win32api.GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL)
-                    self._DoProcess()
+                    self.func( self.window.manager, progress)
                 finally:
                     win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())
                     self.running = False
@@ -178,8 +204,9 @@ class AsyncDialogBase(dialog.Dialog):
 
             # back to the program :)
             import threading
-            t = threading.Thread(target=thread_target, args =(self.GetSafeHwnd(), progress))
+            t = threading.Thread(target=thread_target, args =(self.window.hwnd, progress))
             t.start()
+
 
 if __name__=='__main__':
     # Test my "multi-stage" code
@@ -208,4 +235,4 @@ if __name__=='__main__':
     p.set_max_ticks(1000)
     for i in range(1000):
         p.tick()
-
+    print "Done!"

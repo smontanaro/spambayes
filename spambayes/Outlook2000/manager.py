@@ -6,6 +6,7 @@ import sys
 import errno
 import shutil
 import traceback
+import operator
 import win32api, win32con, win32ui
 
 import win32com.client
@@ -198,6 +199,7 @@ class BayesManager:
         self.verbose = verbose
         self.stats = Stats()
         self.outlook = outlook
+        self.dialog_parser = None
 
         import_early_core_spambayes_stuff()
 
@@ -687,32 +689,61 @@ class BayesManager:
             self.ReportErrorOnce(msg)
             raise
 
+    def GetDisabledReason(self):
+        # Gets the reason why the plugin can not be enabled.
+        # If return is None, then it can be enabled (and indeed may be!)
+        # Otherwise return is the string reason
+        nspam = self.bayes.nspam
+        nham = self.bayes.nham
+        config = self.config.filter
+        # For the sake of getting reasonable results, let's insist
+        # on 5 spam and 5 ham messages before we can allow filtering
+        # to be enabled.
+        min_ham = 5
+        min_spam = 5
+        ok_to_enable = operator.truth(config.watch_folder_ids)
+        if not ok_to_enable:
+            return "You must define folders to watch for new messages"
+        
+        ok_to_enable = nspam >= min_spam and nham >= min_ham
+        if not ok_to_enable:
+            return "There must be %d good and %d spam messages\n" \
+                   "trained before filtering can be enabled" \
+                   % (min_ham, min_spam)
+
+        ok_to_enable = operator.truth(config.spam_folder_id)
+        if not ok_to_enable:
+            return "You must define the folder to receive your certain spam"
+
+        return None
+
     def ShowManager(self):
-        def do_train(dlg):
-            import train
-            import dialogs.TrainingDialog
-            d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
-            d.DoModal()
-
-        def do_filter(dlg):
-            import filter
-            import dialogs.FilterDialog
-            d = dialogs.FilterDialog.FilterNowDialog(dlg.mgr, filter.filterer)
-            d.DoModal()
-
-        def define_filter(dlg):
-            import filter
-            import dialogs.FilterDialog
-            d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, filter.filterer)
-            d.DoModal()
-            if dlg.mgr.addin is not None:
-                dlg.mgr.addin.FiltersChanged()
-
-        import dialogs.ManagerDialog
-        d = dialogs.ManagerDialog.ManagerDialog(self, do_train, do_filter, define_filter)
-        d.DoModal()
+        import dialogs
+        # Need to get the plugin hwnd
+        dialogs.ShowDialog(0, self, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
+        
+    def ShowHtml(self,fileName):
+        """Displays the main SpamBayes documentation in your Web browser"""
+        import sys, os
+        if hasattr(sys, "frozen"):
+            # Same directory as to the executable.
+            fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                    fileName)
+        else:
+            # (ie, main Outlook2000) dir
+            fname = os.path.join(os.path.dirname(__file__),
+                                    fileName)
+        fname = os.path.abspath(fname)
+        from dialogs import SetWaitCursor
+        if os.path.isfile(fname):
+            SetWaitCursor(1)
+            os.startfile(fname)
+            SetWaitCursor(0)
+        else:
+            print "Cant find ",fileName," - fix messagebox"
+            #self.MessageBox("Can't find "+fileName)
 
 _mgr = None
 
