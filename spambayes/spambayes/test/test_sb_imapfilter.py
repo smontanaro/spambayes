@@ -14,19 +14,38 @@ sb_test_support.fix_sys_path()
 
 from spambayes import Dibbler
 from spambayes.Options import options
+from spambayes.classifier import Classifer
 from sb_imapfilter import BadIMAPResponseError
-from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder
+from spambayes.message import message_from_string
+from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder, IMAPFilter
 
 IMAP_PORT = 8143
 IMAP_USERNAME = "testu"
 IMAP_PASSWORD = "testp"
-IMAP_FOLDER_LIST = ["INBOX", "unsure", "ham_to_train", "spam"]
+IMAP_FOLDER_LIST = ["INBOX", "unsure", "ham_to_train", "spam",
+                    "spam_to_train"]
+# Must be different.
+SB_ID_1 = "test@spambayes.invalid"
+SB_ID_2 = "14102004"
 # Key is UID.
-IMAP_MESSAGES = {101 : """Subject: Test\r\n\r\nBody test.""",
-                 102 : """Subject: Test2\r\n\r\nAnother body test.""",
-                 # 103 is taken from Anthony's email torture test
-                 # (the test_zero-length-boundary file).
-                 103 : """Received: from noisy-2-82-67-182-141.fbx.proxad.net(82.67.182.141)
+IMAP_MESSAGES = {
+    # 101 should be valid and have a MessageID header, but no
+    # X-Spambayes-MessageID header.
+    101 : """Subject: Test\r
+Message-ID: <%s>\r
+\r
+Body test.""" % (SB_ID_1,),
+    # 102 should be valid and have both a MessageID header and a
+    # X-Spambayes-MessageID header.
+    102 : """Subject: Test2\r
+Message-ID: <%s>\r
+%s: %s\r
+\r
+Another body test.""" % (SB_ID_1, options["Headers", "mailid_header_name"],
+                         SB_ID_2),
+    # 103 is taken from Anthony's email torture test (the
+    # test_zero-length-boundary file).
+    103 : """Received: from noisy-2-82-67-182-141.fbx.proxad.net(82.67.182.141)
  via SMTP by mx1.example.com, id smtpdAAAzMayUR; Tue Apr 27 18:56:48 2004
 Return-Path: " Freeman" <XLUPSYGSHLBAPN@runbox.com>
 Received: from  rly-xn05.mx.aol.com (rly-xn05.mail.aol.com [172.20.83.138]) by air-xn02.mail.aol.com (v98.10) with ESMTP id MAILINXN22-6504043449c151; Tue, 27 Apr 2004 16:57:46 -0300
@@ -56,9 +75,17 @@ OVERNIGHT,to US and INTERNATIONAL</strong>
 ---
 
 """,
-                 }
+    # 104 should be valid and have neither a MessageID header nor a
+    # X-Spambayes-MessageID header.
+    104 : """Subject: Test2\r
+\r
+Yet another body test.""",
+    }
 # Map of ID -> UID
-IMAP_UIDS = {1 : 101, 2: 102, 3:103}
+IMAP_UIDS = {1 : 101, 2: 102, 3:103, 4:104}
+
+# Messages that are UNDELETED
+UNDELETED_IDS = (1,2)
 
 class TestListener(Dibbler.Listener):
     """Listener for TestIMAP4Server.  Works on port 8143, to co-exist
@@ -87,19 +114,37 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                          'LOGIN' : self.onLogin,
                          'SELECT' : self.onSelect,
                          'FETCH' : self.onFetch,
+                         'SEARCH' : self.onSearch,
                          'UID' : self.onUID,
+                         'APPEND' : self.onAppend,
+                         'STORE' : self.onStore,
                          }
         self.push("* OK [CAPABILITY IMAP4REV1 AUTH=LOGIN] " \
                   "localhost IMAP4rev1\r\n")
         self.request = ''
+        self.next_id = 0
+        self.in_literal = (0, None)
 
     def collect_incoming_data(self, data):
         """Asynchat override."""
-        self.request = self.request + data
+        if self.in_literal[0] > 0:
+            # Also add the line breaks.
+            self.request = "%s\r\n%s" % (self.request, data)
+        else:
+            self.request = self.request + data
 
     def found_terminator(self):
         """Asynchat override."""
         global FAIL_NEXT
+
+        if self.in_literal[0] > 0:
+            if len(self.request) >= self.in_literal[0]:
+                self.push(self.in_literal[1](self.request,
+                                             *self.in_literal[2]))
+                self.in_literal = (0, None)
+                self.request = ''
+            return
+        
         id, command = self.request.split(None, 1)
 
         if FAIL_NEXT:
@@ -146,6 +191,10 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
         return "%s%s\r\n%s OK LIST completed\r\n" % \
                (base[2:], base.join(IMAP_FOLDER_LIST), id)
 
+    def onStore(self, id, command, args, uid=False):
+        # We ignore flags.
+        return "%s OK STORE completed\r\n" % (id,)
+
     def onSelect(self, id, command, args, uid=False):
         exists = "* %d EXISTS" % (len(IMAP_MESSAGES),)
         recent = "* 0 RECENT"
@@ -157,6 +206,51 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
         complete = "%s OK [READ-WRITE] SELECT completed" % (id,)
         return "%s\r\n" % ("\r\n".join([exists, recent, uidv, next_uid,
                                         flags, perm_flags, complete]),)
+
+    def onAppend(self, id, command, args, uid=False):
+        # Only stores for this session.
+        folder, args = args.split(None, 1)
+        # We ignore the folder.
+        if ')' in args:
+            flags, args = args.split(')', 1)
+            flags = flags[1:]
+            # We ignore the flags.
+        unused, date, args = args.split('"', 2)
+        # We ignore the date.
+        if '{' in args:
+            # A literal.
+            size = int(args[2:-1])
+            self.in_literal = (size, self.appendLiteral, (id,))
+            return "+ Ready for argument\r\n"
+        # Strip off the space at the front.
+        return self.appendLiteral(args[1:], id)
+
+    def appendLiteral(self, message, command_id):
+        while True:
+            id = self.next_id
+            self.next_id += 1
+            if id not in IMAP_MESSAGES:
+                break
+        IMAP_MESSAGES[id] = message
+        return "* APPEND %s\r\n%s OK APPEND succeeded\r\n" % \
+               (id, command_id)
+
+    def onSearch(self, id, command, args, uid=False):
+        args = args.upper()
+        results = ()
+        if "UNDELETED" in args:
+            for msg_id in UNDELETED_IDS:
+                if uid:
+                    results += (IMAP_UIDS[msg_id],)
+                else:
+                    results += (msg_id,)
+        if uid:
+            command_string = "UID " + command
+        else:
+            command_string = command
+        return "%s\r\n%s OK %s completed\r\n" % \
+               ("* SEARCH " + ' '.join([str(r) for r in results]), id,
+                command_string)
 
     def onFetch(self, id, command, args, uid=False):
         msg_nums, msg_parts = args.split(None, 1)
@@ -181,6 +275,22 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                 response[msg].append(("FETCH (BODY[] {%s}" %
                                      (len(IMAP_MESSAGES[msg_uid])),
                                      IMAP_MESSAGES[msg_uid]))
+        if "RFC822.HEADER" in msg_parts:
+            for msg in msg_nums:
+                if uid:
+                    msg_uid = int(msg)
+                else:
+                    msg_uid = IMAP_UIDS[int(msg)]
+                msg_text = IMAP_MESSAGES[msg_uid]
+                headers, unused = msg_text.split('\r\n\r\n', 1)
+                response[msg].append(("FETCH (RFC822.HEADER {%s}" %
+                                      (len(headers),), headers))
+        if "FLAGS INTERNALDATE" in msg_parts:
+            # We make up flags & dates.
+            for msg in msg_nums:
+                response[msg].append('FETCH (FLAGS (\Seen \Deleted) '
+                                     'INTERNALDATE "27-Jul-2004 13:1'
+                                     '1:56 +1200')
         for msg in msg_nums:
             try:
                 simple = " ".join(response[msg])
@@ -199,7 +309,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
     def onUID(self, id, command, args, uid=False):
         actual_command, args = args.split(None, 1)
         handler = self.handlers.get(actual_command, self.onUnknown)
-        return handler(id, command, args, uid=True)
+        return handler(id, actual_command, args, uid=True)
 
     def onUnknown(self, id, command, args, uid=False):
         """Unknown IMAP4 command."""
@@ -420,6 +530,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
 class IMAPFolderTest(BaseIMAPFilterTest):
     def setUp(self):
         BaseIMAPFilterTest.setUp(self)
+        self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
         self.folder = IMAPFolder("testfolder", self.imap)
 
     def test_cmp(self):
@@ -429,14 +540,53 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         self.assertNotEqual(self.folder, folder3)
         
     def test_iter(self):
-        # XXX To-do
-        pass
+        keys = self.folder.keys()
+        for msg in self.folder:
+            msg = msg.get_full_message()
+            msg_correct = message_from_string(IMAP_MESSAGES[int(keys[0])])
+            id_header_name = options["Headers", "mailid_header_name"]
+            if msg_correct[id_header_name] is None:
+                msg_correct[id_header_name] = msg.id
+            self.assertEqual(msg.as_string(), msg_correct.as_string())
+            keys = keys[1:]
+
     def test_keys(self):
-        # XXX To-do
-        pass
-    def test_getitem(self):
-        # XXX To-do
-        pass
+        keys = self.folder.keys()
+        # We get back UIDs, not IDs, so convert to check.
+        correct_keys = [str(IMAP_UIDS[id]) for id in UNDELETED_IDS]
+        self.assertEqual(keys, correct_keys)
+
+    def test_getitem_new_style(self):
+        # 101 already has a suitable (new style) id, so it should
+        # not be recreated.
+        id_header_name = options["Headers", "mailid_header_name"]
+        msg1 = self.folder[101]
+        self.assertEqual(msg1.id, SB_ID_1)
+        msg1 = msg1.get_full_message()
+        msg1_correct = message_from_string(IMAP_MESSAGES[101])
+        self.assertNotEqual(msg1[id_header_name], None)
+        msg1_correct[id_header_name] = SB_ID_1
+        self.assertEqual(msg1.as_string(), msg1_correct.as_string())
+
+    def test_getitem_old_style(self):
+        # 102 already has a suitable (old style) id, so it should
+        # not be recreated.  We should be sure to use the old id,
+        # rather than the new one, too, for backwards compatibility.
+        id_header_name = options["Headers", "mailid_header_name"]
+        msg2 = self.folder[102]
+        self.assertEqual(msg2.id, SB_ID_2)
+        msg2 = msg2.get_full_message()
+        self.assertNotEqual(msg2[id_header_name], None)
+        self.assertEqual(msg2.as_string(), IMAP_MESSAGES[102])
+
+    def test_getitem_new_id(self):
+        # 104 doesn't have an id, so should be recreated with one.
+        id_header_name = options["Headers", "mailid_header_name"]
+        msg3 = self.folder[104]
+        self.assertNotEqual(msg3[id_header_name], None)
+        msg_correct = message_from_string(IMAP_MESSAGES[104])
+        msg_correct[id_header_name] = msg3.id
+        self.assertEqual(msg3.as_string(), msg_correct.as_string())
 
     def test_generate_id(self):
         print "\nThis test takes slightly over a second."
@@ -462,6 +612,14 @@ class IMAPFolderTest(BaseIMAPFilterTest):
 
 
 class IMAPFilterTest(BaseIMAPFilterTest):
+    def setUp(self):
+        BaseIMAPFilterTest.setUp(self)
+        self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+        classifier = Classifier()
+        self.filter = IMAPFilter(classifier)
+        options["imap", "ham_train_folders"] = ("ham_to_train",)
+        options["imap", "spam_train_folders"] = ("spam_to_train",)
+
     def test_Train(self):
         # XXX To-do
         pass
