@@ -9,9 +9,11 @@ Where:
     -h
         show usage and exit
     -g PATH
-        mbox or directory of known good messages (non-spam)
+        mbox or directory of known good messages (non-spam) to train on.
     -s PATH
-        mbox or directory of known spam messages
+        mbox or directory of known spam messages to train on.
+    -u PATH
+        mbox of unknown messages.  A ham/spam decision is reported for each.
     -p FILE
         use file as the persistent store.  loads data from this file if it
         exists, and saves data to this file at the end.  Default: hammie.db
@@ -178,8 +180,8 @@ class DirOfTxtFileMailbox:
             f.close()
 
 
-def train(bayes, msgs, is_spam):
-    """Train bayes with all messages from a mailbox."""
+def getmbox(msgs):
+    """Return an iterable mbox object given a file/directory/folder name."""
     def _factory(fp):
         try:
             return email.message_from_file(fp)
@@ -189,7 +191,8 @@ def train(bayes, msgs, is_spam):
     if msgs.startswith("+"):
         import mhlib
         mh = mhlib.MH()
-        mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]))
+        mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]),
+                                 _factory)
     elif os.path.isdir(msgs):
         # XXX Bogus: use an MHMailbox if the pathname contains /Mail/,
         # else a DirOfTxtFileMailbox.
@@ -200,7 +203,11 @@ def train(bayes, msgs, is_spam):
     else:
         fp = open(msgs)
         mbox = mailbox.PortableUnixMailbox(fp, _factory)
+    return mbox
 
+def train(bayes, msgs, is_spam):
+    """Train bayes with all messages from a mailbox."""
+    mbox = getmbox(msgs)
     i = 0
     for msg in mbox:
         i += 1
@@ -211,6 +218,11 @@ def train(bayes, msgs, is_spam):
         bayes.learn(tokenize(str(msg)), is_spam, False)
     print
 
+def formatclues(clues, sep="; "):
+    """Format the clues into something readable."""
+    # XXX Maybe sort by prob first?
+    return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
+
 def filter(bayes, input, output):
     """Filter (judge) a message"""
     msg = email.message_from_file(input)
@@ -220,9 +232,28 @@ def filter(bayes, input, output):
     else:
         disp = "Yes"
     disp += "; %.2f" % prob
-    disp += "; " + "; ".join(map(lambda x: "%s: %.2f" % (`x[0]`, x[1]), clues))
+    disp += "; " + formatclues(clues)
     msg.add_header("X-Spam-Disposition", disp)
     output.write(str(msg))
+
+def score(bayes, msgs):
+    """Score (judge) all messages from a mailbox."""
+    # XXX The reporting needs work!
+    mbox = getmbox(msgs)
+    i = 0
+    spams = hams = 0
+    for msg in mbox:
+        i += 1
+        prob, clues = bayes.spamprob(tokenize(str(msg)), True)
+        isspam = prob >= 0.9
+        print "%6d %4.2f %1s" % (i, prob, isspam and "S" or "."),
+        if isspam:
+            spams += 1
+            print formatclues(clues)
+        else:
+            hams += 1
+            print
+    print "Total %d spam, %d ham" % (spams, hams)
 
 def usage(code, msg=''):
     if msg:
@@ -233,7 +264,7 @@ def usage(code, msg=''):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:u:')
     except getopt.error, msg:
         usage(1, msg)
 
@@ -241,7 +272,7 @@ def main():
         usage(0, "No options given")
 
     pck = "hammie.db"
-    good = spam = None
+    good = spam = unknown = None
     do_filter = usedb = False
     for opt, arg in opts:
         if opt == '-h':
@@ -256,6 +287,8 @@ def main():
             usedb = True
         elif opt == "-f":
             do_filter = True
+        elif opt == '-u':
+            unknown = arg
     if args:
         usage(1)
 
@@ -293,6 +326,9 @@ def main():
 
     if do_filter:
         filter(bayes, sys.stdin, sys.stdout)
+
+    if unknown:
+        score(bayes, unknown)
 
 if __name__ == "__main__":
     main()
