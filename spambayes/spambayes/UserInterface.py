@@ -526,7 +526,7 @@ class UserInterface(BaseUserInterface):
                     fn = storage.get_pathname_option("Storage",
                                                      "ham_cache")
                 storage.ensureDir(fn)
-                if self.gzipCache:
+                if options["Storage", "cache_use_gzip"]:
                     factory = FileCorpus.GzipFileMessageFactory()
                 else:
                     factory = FileCorpus.FileMessageFactory()
