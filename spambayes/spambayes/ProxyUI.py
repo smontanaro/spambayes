@@ -84,7 +84,7 @@ parm_ini_map = (
     ('pop3proxy',           'listen_ports'),
     ('pop3proxy',           'cache_messages'),
     ('Header Options',      None),
-    ('Headers',             'notate_to'),
+    ('pop3proxy',           'notate_to'),
     ('pop3proxy',           'notate_subject'),
     ('Headers',             'include_score'),
     ('Headers',             'include_thermostat'),
@@ -470,8 +470,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         errmsg = UserInterface.UserInterface.verifyInput(self, parms)
         
         # check for equal number of pop3servers and ports
-        slist = list(parms['pop3proxy_servers'])
-        plist = list(parms['pop3proxy_ports'])
+        slist = list(parms['pop3proxy_remote_servers'])
+        plist = list(parms['pop3proxy_listen_ports'])
         if len(slist) != len(plist):
             errmsg += '<li>The number of POP3 proxy ports specified ' + \
                       'must match the number of servers specified</li>\n'
@@ -487,8 +487,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 pass
 
         # check for equal number of smtpservers and ports
-        slist = list(parms['smtpproxy_servers'])
-        plist = list(parms['smtpproxy_ports'])
+        slist = list(parms['smtpproxy_remote_servers'])
+        plist = list(parms['smtpproxy_listen_ports'])
         if len(slist) != len(plist):
             errmsg += '<li>The number of SMTP proxy ports specified ' + \
                       'must match the number of servers specified</li>\n'

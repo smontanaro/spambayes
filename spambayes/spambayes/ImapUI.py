@@ -77,7 +77,7 @@ parm_map = (
     ('imap',                  'password'),
     ('imap',                  'use_ssl'),
     ('Header Options',        None),
-    ('Headers',               'notate_to'),
+    ('pop3proxy',               'notate_to'),
     ('pop3proxy',             'notate_subject'),
     ('Headers',               'include_score'),
     ('Headers',               'include_thermostat'),
