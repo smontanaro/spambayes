@@ -341,7 +341,7 @@ class SBHeaderMessage(Message):
         self[options['Headers','classification_header_name']] = disposition
 
         if options['Headers','include_score']:
-            disp = str(prob)
+            disp = ("%."+str(options["Headers", "header_score_digits"])+"f") % prob
             if options["Headers", "header_score_logarithm"]:
                 if prob<=0.005 and prob>0.0:
                     x=-math.log10(prob)
