@@ -68,7 +68,7 @@ To Do:
 # Foundation license.
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
-__credits__ = "Mark Hammond, Tony Meyers, all the spambayes contributors."
+__credits__ = "Mark Hammond, Tony Meyer, all the spambayes contributors."
 
 from __future__ import generators
 
@@ -93,11 +93,13 @@ from cStringIO import StringIO
 from spambayes import dbmstorage
 import shelve
 
+# XXX Tim, what do you want to do here?  This
+# XXX recurses infinately at the moment
 # Make shelve use binary pickles by default.
-oldShelvePickler = shelve.Pickler
-def binaryDefaultPickler(f, binary=1):
-    return oldShelvePickler(f, binary)
-shelve.Pickler = binaryDefaultPickler
+#oldShelvePickler = shelve.Pickler
+#def binaryDefaultPickler(f, binary=1):
+#    return oldShelvePickler(f, binary)
+#shelve.Pickler = binaryDefaultPickler
 
 
 class MessageInfoDB:
@@ -154,11 +156,25 @@ class Message(email.Message.Message):
             return None
 
         return self.id
+
+    def changeID(self, id):
+        # We cannot re-set an id (see below).  However there are
+        # occasionally times when the id for a message will change,
+        # for example, on an IMAP server (or possibly an exchange
+        # server), the server may change the ids that we are using
+        # We enforce that this must be an explicit *change* rather
+        # than simply re-setting, by having this as a separate
+        # function
+        if not self.id:
+            raise ValueError, "MsgID has not been set, cannot be changed"
+        self._setId(id)
     
     def setId(self, id):
         if self.id:
             raise ValueError, "MsgId has already been set, cannot be changed"
-            
+        self._setId(id)
+
+    def _setId(self, id):    
         # we should probably enforce type(id) is StringType.
         # the database will insist upon it, but at that point, it's harder
         # to diagnose
@@ -273,6 +289,19 @@ class Message(email.Message.Message):
         self.t = 'h'
         self.modified()
         
+    def isTrndAs(self, isSpam):
+        if self.t == 'h' and not isSpam:
+            return True
+        if self.t == 's' and isSpam:
+            return True
+        return False
+
+    def trndAs(self, isSpam):
+        if isSpam:
+            self.t = 's'
+        else:
+            self.t = 'h'
+
     def notTrained(self):
         self.t = None
         self.modified()
