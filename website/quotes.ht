@@ -1,0 +1,59 @@
+Title: SpamBayes: Bayesian anti-spam classifier written in Python.
+Author-Email: SpamBayes@python.org
+Author: SpamBayes
+
+
+<h2>What people are saying about us</h2>
+
+<p>
+<i>Thanks to this remarkable open source duo, I am ready to declare victory on spam.</i><br/>
+Jon Udell, May 2003, in <a href="http://weblog.infoworld.com/udell/2003/05/08.html#a684">his weblog</a>,
+<p/>
+
+<p>
+<i>Results, for me, were immediate and spectacular. SpamBayes nailed a number
+of spams that SpamAssassin let through</i><br/>
+Jon Udell again, in a
+<a href="http://www.infoworld.com/article/03/05/16/20TCspam_1.html?s=tc">two page InfoWorld article</a>
+</p>
+
+<p>
+<i>And efficient it is. After a just bit of training, the SpamBayes Outlook Addin detects junk mail reliably.</i><br/>
+Review by Heinz Tschabitscher at <a href="http://email.about.com/cs/outlookaddonrev/gr/spambayes_ol.htm">email.about.com</a>
+</p>
+
+<p>
+<i>Probably the best plug-in for Outlook out there.</i><br/>
+Review by <a href="http://www.arstechnica.com/ask-ars/2003/anti-spam/page2.html">arstechnica.com</a>
+</p>
+
+<p>
+<i>If you're an Outlook user, free SpamBayes does a more effective job than a number of filtering programs you have to pay for</i><br/>
+Review at <a href="http://www.soundingline.com/contents_current_issue.htm">soundingline.com</a>
+</p>
+
+
+<h2>What we are saying about us</h2>
+<p>
+OK, maybe quotes from the SpamBayes developers aren't quite as objective, but 
+they are amusing!
+</p>
+
+<p>
+<i>The performance on my real-life email is nothing short of amazing! ...I 
+didn't realize it before, but this stuff is cool &lt;wink&gt;</i><br/>
+Tim Peters as he 
+<a href="http://mail.python.org/pipermail/spambayes/2002-October/001114.html">tries a very early Outlook addin on his personal mail</a>
+</p>
+
+<p>
+<i>So, anyone who runs windows and Outlook feel like taking this on?</i><br/>
+Innocent words from Anthony Baxter
+<a href="http://mail.python.org/pipermail/spambayes/2002-September/000593.html">goading Mark Hammond into building an Outlook addin</a>
+</p>
+
+<p>
+<i>I followed up too :) I have a working Outlook Addin in place.</i><br/>
+Mark Hammod 
+<a href="http://mail.python.org/pipermail/spambayes/2002-September/000631.html">uttering words he is likely to regret for years to come</a>
+</p>
