@@ -384,6 +384,17 @@ On other versions of Windows, this will probably be:
 Note that this folder may be hidden.
 
 
+Can I share/move my training data from one computer to another?
+---------------------------------------------------------------
+
+Yes.  All you have to do is move the data directory between the computers.
+You will probably want to ignore the 'ini' files, as each computer will
+need its own configuration, and move only the 'db' files.  For information
+about finding this directory, see the `backup question`_.
+
+.. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
+
+
 Using Spambayes
 ===============
 
