@@ -178,6 +178,15 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+try:
+    "".rstrip("abc")
+except TypeError:
+    # rstrip(chars) requires Python 2.2.2 or higher.  Apart from that
+    # we probably work with Python 2.2 (and say we do), so provide the
+    # ability to do this for that case.
+    RSTRIP_CHARS_AVAILABLE = False
+else:
+    RSTRIP_CHARS_AVAILABLE = True
 
 class BrighterAsyncChat(asynchat.async_chat):
     """An asynchat.async_chat that doesn't give spurious warnings on
@@ -593,7 +602,18 @@ class _HTTPHandler(BrighterAsyncChat):
         of current time plus 20 minutes. This means the nonce will expire 20
         minutes from now."""
         timeString = time.asctime(time.localtime(time.time() + 20*60))
-        return base64.encodestring(timeString).rstrip('\n=')
+        if RSTRIP_CHARS_AVAILABLE:
+            return base64.encodestring(timeString).rstrip('\n=')
+        else:
+            # Python pre 2.2.2, so can't do a rstrip(chars).  Do it
+            # manually instead.
+            def rstrip(s, chars):
+                if not s:
+                    return s
+                if s[-1] in chars:
+                    return rstrip(s[:-1])
+                return s
+            return rstrip(base64.encodestring(timeString), '\n=')
 
     def _isValidNonce(self, nonce):
         """Check if the specified nonce is still valid. A nonce is invalid
