@@ -5,7 +5,6 @@
 # * Start the service (Use Control Panel etc, or
 #   "pop3proxy_service.py start".  Check the event
 #   log should anything go wrong.
-# * Service should display 
 # * To debug the service: "pop3proxy_service.py debug"
 #   Service then runs in the command prompt, showing all
 #   print statements.
@@ -44,7 +43,7 @@ from ntsecuritycon import *
 class Service(win32serviceutil.ServiceFramework):
     _svc_name_ = "pop3proxy"
     _svc_display_name_ = "SpamBayes pop3proxy Service"
-    _svc_deps_ =  ['tcpip']
+    _svc_deps_ =  ['tcpip'] # We depend on the tcpip service.
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.event_stop = threading.Event()
