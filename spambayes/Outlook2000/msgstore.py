@@ -421,11 +421,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def GetEmailPackageObject(self):
         import email
-        # XXX If this was originally a MIME msg, we're hosed at this point --
-        # the boundary tag in the headers doesn't exist in the body, and
-        # the msg is simply ill-formed.  The miserable hack here simply
-        # squashes the text part (if any) and the HTML part (if any) together,
-        # and strips MIME info from the original headers.
         text = self._GetMessageText()
         try:
             msg = email.message_from_string(text)
