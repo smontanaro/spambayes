@@ -182,19 +182,19 @@ in here, but for the moment, just have these:
 hammiefilter created in the first step).
 
 Once you've trained SpamBayes on your
-collection of know ham and spam, you can use the hammie.py script to
+collection of know ham and spam, you can use the sb_filter.py script to
 classify incoming mail like so:
 
     :0 fw:hamlock
-    | /usr/local/bin/hammie.py -f -d -p $HOME/.hammie.db
+    | /usr/local/bin/sb_filter.py
 
-The above Procmail recipe tells it to run /usr/local/bin/hammie.py in filter
-mode (-f), and to use the training results stored in the dbm-style file
-~/hammie.db.  While hammie.py is runnning, Procmail uses the lock file
-hamlock to prevent multiple invocations from stepping on each others' toes.
-(It's not strictly necessary in this case since no files on-disk are
-modified, but Procmail will still complain if you don't specify a lock
-file.)
+The above Procmail recipe tells it to run /usr/local/bin/sb_filter.py.
+Since no command line arguments are given, it relies on the options file
+specified by the BAYESCUSTOMIZE variable for all parameters.  While
+sb_filter.py is runnning, Procmail uses the lock file hamlock to prevent
+multiple invocations from stepping on each others' toes.  (It's not strictly
+necessary in this case since no files on-disk are modified, but Procmail
+will still complain if you don't specify a lock file.)
 
 The result of running hammie.py in filter mode is that Procmail will use the
 output from the run as the mail message for further processing downstream.
@@ -283,7 +283,7 @@ Given a pair of Unix mailbox format files (each message starts with a line
 which begins with 'From '), one containing nothing but spam and the other
 containing nothing but ham, you can train Spambayes using a command like
 
-    hammie.py -g ~/tmp/newham -s ~/tmp/newspam
+    sb_mboxtrain.py -g ~/tmp/newham -s ~/tmp/newspam
 
 The above command is command-line-centric (eg. unix, or Windows command
 prompt).  You can also use the web interface for training as detailed above.
