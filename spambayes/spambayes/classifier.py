@@ -410,6 +410,7 @@ class Classifier:
 
             self._wordinfoset(word, record)
 
+        self._post_training()
 
     def _remove_msg(self, wordstream, is_spam):
         self.probcache = {}    # nuke the prob cache
@@ -436,6 +437,14 @@ class Classifier:
                 else:
                     self._wordinfoset(word, record)
 
+        self._post_training()
+
+    def _post_training(self):
+        """This is called after training on a wordstream.  Subclasses might
+        want to ensure that their databases are in a consistent state at
+        this point.  Introduced to fix bug #797890."""
+        pass
+    
     def _getclues(self, wordstream):
         mindist = options.minimum_prob_strength
         unknown = options.unknown_word_prob

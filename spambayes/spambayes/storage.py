@@ -213,10 +213,19 @@ class DBDictClassifier(classifier.Classifier):
         # Reset the changed word list.
         self.changed_words = {}
         # Update the global state, then do the actual save.
+        self._write_state_key()
+        self.db.sync()
+        
+    def _write_state_key(self):
         self.db[self.statekey] = (classifier.PICKLE_VERSION,
                                   self.nspam, self.nham)
-        self.db.sync()
 
+    def _post_training(self):
+        """This is called after training on a wordstream.  We ensure that the
+        database is in a consistent state at this point by writing the state
+        key."""
+        self._write_state_key()
+    
     def _wordinfoget(self, word):
         if isinstance(word, unicode):
             word = word.encode("utf-8")
