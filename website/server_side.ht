@@ -122,3 +122,10 @@ not like the way our system tags the emails, he does not have to set up his
 Outlook rules. But, we've had a good response from the users who are using
 their Rules. They're willing to put up with one or two mis-classified emails
 in order to have 95% of their junk email not in their Inbox.</p>
+
+<h2>Setting up Server-Side Spam filtering for IMAP</h2>
+<p>Dave Abrahams has put together
+<a href="http://www.boost-consulting.com/writing/server-side.html">
+notes explaining how he set up server-side filtering with SpamBayes and
+an IMAP server</a>, using imapfilter.py (now sb_imapfilter.py) and
+hammiefilter.py (now sb_filter.py).</p>
