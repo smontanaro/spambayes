@@ -196,11 +196,11 @@ class Message(email.Message.Message):
 
     def GetClassification(self):
         if self.c == 's':
-            return options['hammie','header_spam_string']
+            return options['Hammie','header_spam_string']
         if self.c == 'h':
-            return options['hammie','header_ham_string']
+            return options['Hammie','header_ham_string']
         if self.c == 'u':
-            return options['hammie','header_unsure_string']
+            return options['Hammie','header_unsure_string']
 
         return None
 
@@ -208,11 +208,11 @@ class Message(email.Message.Message):
         # this must store state independent of options settings, as they
         # may change, which would really screw this database up
 
-        if cls == options['hammie','header_spam_string']:
+        if cls == options['Hammie','header_spam_string']:
             self.c = 's'
-        elif cls == options['hammie','header_ham_string']:
+        elif cls == options['Hammie','header_ham_string']:
             self.c = 'h'
-        elif cls == options['hammie','header_unsure_string']:
+        elif cls == options['Hammie','header_unsure_string']:
             self.c = 'u'
         else:
             raise ValueError, \
@@ -257,14 +257,14 @@ class SBHeaderMessage(Message):
         '''Add hammie header, and remember message's classification.  Also,
         add optional headers if needed.'''
         
-        if prob < options['hammie','ham_cutoff']:
-            disposition = options['hammie','header_ham_string']
-        elif prob > options['hammie','spam_cutoff']:
-            disposition = options['hammie','header_spam_string']
+        if prob < options['Categorization','ham_cutoff']:
+            disposition = options['Hammie','header_ham_string']
+        elif prob > options['Categorization','spam_cutoff']:
+            disposition = options['Hammie','header_spam_string']
         else:
-            disposition = options['hammie','header_unsure_string']
+            disposition = options['Hammie','header_unsure_string']
         self.RememberClassification(disposition)
-        self[options['hammie','header_name']] = disposition
+        self[options['Hammie','header_name']] = disposition
         
         if options['pop3proxy','include_prob']:
             self[options['pop3proxy','prob_header_name']] = prob
@@ -278,8 +278,8 @@ class SBHeaderMessage(Message):
             evd = "; ".join(["%r: %.2f" % (word, score)
              for word, score in clues
              if (word[0] == '*' or
-                 score <= options['hammie','clue_mailheader_cutoff'] or
-                 score >= 1.0 - options['hammie','clue_mailheader_cutoff'])])
+                 score <= options['Hammie','clue_mailheader_cutoff'] or
+                 score >= 1.0 - options['Hammie','clue_mailheader_cutoff'])])
             self[options['pop3proxy','evidence_header_name']] = evd
         
         if options['pop3proxy','add_mailid_to'].find("header") != -1:
@@ -293,9 +293,9 @@ class SBHeaderMessage(Message):
 #                    + messageName + "\r\n.\r\n"
 
     def delSBHeaders(self):
-        del self[options['hammie','header_name']]
+        del self[options['Hammie','header_name']]
         del self[options['pop3proxy','mailid_header_name']]
-        del self[options['hammie','header_name' + "-ID"]]  # test mode header
+        del self[options['Hammie','header_name' + "-ID"]]  # test mode header
         del self[options['pop3proxy','prob_header_name']]
         del self[options['pop3proxy','thermostat_header_name']]
         del self[options['pop3proxy','evidence_header_name']]
