@@ -24,7 +24,7 @@ def suck(f):
             break
         if not line.startswith('Training'):
             # A line with an f-p rate and an f-n rate.
-            p, n = map(float, f.readline().split())
+            p, n = map(float, line.split())
             fps.append(p)
             fns.append(n)
 
