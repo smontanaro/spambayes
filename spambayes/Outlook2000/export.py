@@ -13,6 +13,10 @@ def count_messages(folder):
         result += 1
     return result
 
+# Return triple (num_spam_messages,
+#                num_ham_messages,
+#                ["Set1", "Set2", ...])
+# where the list contains one entry for each bucket.
 def BuildBuckets(manager):
     store = manager.message_store
     config = manager.config
@@ -26,9 +30,10 @@ def BuildBuckets(manager):
         num_ham += count_messages(folder)
 
     num_buckets = min(num_ham, num_spam) // FILES_PER_DIRECTORY
-    dirs = []
-    for i in range(num_buckets):
-        dirs.append("Set%d" % (i+1,))
+    if num_buckets == 0:
+        num_buckets = 1
+
+    dirs = ["Set%d" % i for i in range(1, num_buckets + 1)]
     return num_spam, num_ham, dirs
 
 def ChooseBucket(buckets):
