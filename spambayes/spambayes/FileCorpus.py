@@ -206,19 +206,42 @@ class FileMessage(Corpus.Message):
 
     def load(self):
         '''Read the Message substance from the file'''
-
+        # This is a tricky one!  Some people might have a combination
+        # of gzip and non-gzip messages, especially when they first
+        # change to or from gzip.  They should be able to see (but
+        # not create) either type, so a FileMessage load needs to be
+        # able to load gzip messages, even though it is a FileMessage
+        # subclass (GzipFileMessage) that adds the ability to store
+        # messages gzipped.  If someone can think of a classier (pun
+        # intended) way of doing this, be my guest.
         if options["globals", "verbose"]:
             print 'loading', self.file_name
 
         pn = self.pathname()
+
         try:
-            fp = open(pn, 'rb')
+            fp = gzip.open(pn, 'rb')
         except IOError, e:
             if e.errno != errno.ENOENT:
                 raise
         else:
-            self.setSubstance(fp.read())
-            fp.close()
+            try:
+                self.setSubstance(fp.read())
+            except IOError, e:
+                if str(e) == 'Not a gzipped file':
+                    # We've probably got both gzipped messages and
+                    # non-gzipped messages, and need to work with both.
+                    fp.close()
+                    try:
+                        fp = open(self.pathname(), 'rb')
+                    except IOError, e:
+                        if e.errno != errno.ENOENT:
+                            raise
+                    else:
+                        self.setSubstance(fp.read())
+                        fp.close()
+            else:
+                fp.close()
 
     def store(self):
         '''Write the Message substance to the file'''
@@ -298,25 +321,6 @@ class FileMessageFactory(Corpus.MessageFactory):
 
 class GzipFileMessage(FileMessage):
     '''Message that persists as a zipped file system artifact.'''
-
-    def load(self):
-        '''Read the Message substance from the file'''
-
-        if options["globals", "verbose"]:
-            print 'loading', self.file_name
-
-        pn = self.pathname()
-
-        try:
-            fp = gzip.open(pn, 'rb')
-        except IOError, e:
-            if e.errno != errno.ENOENT:
-                raise
-        else:
-            self.setSubstance(fp.read())
-            fp.close()
-
-
     def store(self):
         '''Write the Message substance to the file'''
 
