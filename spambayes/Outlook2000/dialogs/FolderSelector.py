@@ -53,6 +53,8 @@ from win32com.mapi.mapitags import *
 import pythoncom
 
 def _BuildFoldersMAPI(manager, folder_id):
+    # This is called dynamically as folders are expanded.
+    win32ui.DoWaitCursor(1)
     folder = manager.message_store.GetFolder(folder_id).OpenEntry()
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
@@ -77,6 +79,7 @@ def _BuildFoldersMAPI(manager, folder_id):
             else:
                 spec.children = None # Flag as "not yet built"
             children.append(spec)
+    win32ui.DoWaitCursor(0)
     return children
 
 def BuildFolderTreeMAPI(session):
@@ -310,12 +313,14 @@ class FolderSelector(dialog.Dialog):
         # Extended MAPI version of the tree.
         # Build list of all ids to expand - ie, list includes all
         # selected folders, and all parents.
+        win32ui.DoWaitCursor(1)
         self.expand_ids = self._DetermineFoldersToExpand()
         tree = BuildFolderTreeMAPI(self.manager.message_store.session)
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # Only use this while creating dialog.
         self.expand_ids = [] # Only use this while creating dialog.
         self._UpdateStatus()
+        win32ui.DoWaitCursor(0)
 
         return dialog.Dialog.OnInitDialog (self)
 
