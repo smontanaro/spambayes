@@ -20,6 +20,8 @@ To do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
+from __future__ import generators
+
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "All the Spambayes folk."
 
