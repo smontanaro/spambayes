@@ -41,7 +41,7 @@ def open_best(*args):
         if sys.version_info >= (2,3):
             funcs.insert(0, open_dbhash)
     else:
-        funcs = [open_db3hash, open_dbhash, open_gdbm]
+        funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
     for f in funcs:
         try:
             return f(*args)
