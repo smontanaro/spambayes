@@ -155,10 +155,10 @@ class TabProcessor(ControlProcessor):
         self.currentPageIndex = -1
         self.currentPageHwnd = None
         self.addPage(0, "IDD_GENERAL", "General")
-        self.addPage(1, "IDD_FILTER_SPAM", "Spam")
-        self.addPage(2, "IDD_FILTER_UNSURE", "Possible Spam")
-        self.addPage(3, "IDD_FILTER_NOW", "Filter Now")
-        self.addPage(4, "IDD_TRAINING", "Training")
+        self.addPage(1, "IDD_TRAINING", "Training")
+        self.addPage(2, "IDD_FILTER_SPAM", "Spam")
+        self.addPage(3, "IDD_FILTER_UNSURE", "Possible Spam")
+        self.addPage(4, "IDD_FILTER_NOW", "Filter Now")
         self.addPage(5, "IDD_ADVANCED", "Advanced")
         self.switchToPage(0)
     def OnNotify(self, nmhdr, wparam, lparam):
