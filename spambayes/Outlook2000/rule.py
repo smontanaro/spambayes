@@ -6,8 +6,8 @@ class Rule:
     def __init__(self):
         self.name = "New Rule"
         self.enabled = True
-        self.min = 0.0
-        self.max = 0.9
+        self.min = 30
+        self.max = 80
         self.action = "None"
         self.flag_message = True
         self.write_field = True
@@ -26,15 +26,16 @@ class Rule:
         if self.action != "None":
             if not self.folder_id:
                 return "You must specify a folder for 'Move' or 'Copy'"
-            if self._GetFolder(mgr) is None:
+            if mgr.message_store.GetFolder(self.folder_id) is None:
                 return "Can not locate the destination folder"
         if self.write_field and not self.write_field_name:
             return "You must specify the field name to create"
 
-    def Act(self, mgr, msg, prob):
+    def Act(self, mgr, msg, score):
         if mgr.verbose > 1:
-            print "Rule '%s': %.2f->%.2f (%.2f) (%s)" % (self.name, self.min, self.max, prob, repr(msg))
-        if prob < self.min or prob > self.max:
+            print "Rule '%s': %d->%d (%d) (%s)" % (
+                  self.name, self.min, self.max, score, repr(msg))
+        if score < self.min or score > self.max:
             return False
 
 ##        if self.flag_message:
@@ -43,7 +44,7 @@ class Rule:
 ##            dirty = True
 
         if self.write_field:
-            msg.SetField(self.write_field_name, prob)
+            msg.SetField(self.write_field_name, score)
             msg.Save()
 
         if self.action == "None":

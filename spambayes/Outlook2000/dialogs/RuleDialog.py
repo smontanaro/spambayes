@@ -64,8 +64,8 @@ class RuleDialog(dialog.Dialog):
     def OnInitDialog(self):
         rule = self.rule
         self.SetDlgItemText(IDC_RULE_NAME, rule.name)
-        self.SetDlgItemText(IDC_EDIT_LOW, "%.2f" % rule.min)
-        self.SetDlgItemText(IDC_EDIT_HIGH, "%.2f" % rule.max)
+        self.SetDlgItemText(IDC_EDIT_LOW, "%d" % rule.min)
+        self.SetDlgItemText(IDC_EDIT_HIGH, "%d" % rule.max)
         self.GetDlgItem(IDC_FLAG).SetCheck(rule.flag_message)
         self.GetDlgItem(IDC_WRITE_FIELD).SetCheck(rule.write_field)
         edit = self.GetDlgItem(IDC_FIELD_NAME)
@@ -136,7 +136,7 @@ class RuleDialog(dialog.Dialog):
             slider = self.GetDlgItem(IDC_SLIDER_LOW)
             assert slider.GetSafeHwnd() == lParam
             idc_edit = IDC_EDIT_LOW
-        self.SetDlgItemText(idc_edit, "%.2f" % (slider.GetPos() / 100.0))
+        self.SetDlgItemText(idc_edit, "%d" % slider.GetPos())
 
     def _InitSlider(self, idc_slider, idc_edit):
         slider = self.GetDlgItem(idc_slider)
@@ -152,15 +152,15 @@ class RuleDialog(dialog.Dialog):
             fval = float(edit.GetWindowText())
         except ValueError:
             return
-        slider.SetPos(int(fval*100))
+        slider.SetPos(int(fval))
 
     def _CheckEdit(self, idc, rule, attr):
         try:
             val = float(self.GetDlgItemText(idc))
-            if val < 0 or val > 1.0:
+            if val < 0 or val > 100:
                 raise ValueError
         except ValueError:
-            self.MessageBox("Please enter a number between 0 and 1")
+            self.MessageBox("Please enter a number between 0 and 100")
             self.GetDlgItem(idc).SetFocus()
             return False
         setattr(rule, attr, val)
@@ -192,8 +192,8 @@ if __name__=='__main__':
     class Rule:
         def __init__(self):
             self.name = "My Rule"
-            self.min = 0.1
-            self.max = 0.9
+            self.min = 10
+            self.max = 90
             self.action = "Move"
             self.flag_message = True
             self.write_field = True

@@ -178,12 +178,36 @@ class BayesManager:
             self.message_store.Close()
             self.message_store = None
 
-    def score(self, msg, evidence=False):
+    def score(self, msg, evidence=False, scale=True):
+        """Score a msg.
+
+        If optional arg evidence is specified and true, the result is a
+        two-tuple
+
+            score, clues
+
+        where clues is a list of the (word, spamprob(word)) pairs that
+        went into determining the score.  Else just the score is returned.
+
+        If optional arg scale is specified and false, the score is a float
+        in 0.0 (ham) thru 1.0 (spam).  Else (the default), the score is
+        scaled into an integer from 0 (ham) thru 100 (spam).
+        """
+
         email = msg.GetEmailPackageObject()
-        # As Tim suggested in email, score should move to range(100)
-        # This is probably a good place to do it - anyone who wants the real
-        # float value can look at the "clues"
-        return self.bayes.spamprob(bayes_tokenize(email), evidence)
+        result = self.bayes.spamprob(bayes_tokenize(email), evidence)
+        if not scale:
+            return result
+        # For sister-friendliness, multiply score by 100 and round to an int.
+        if evidence:
+            score, the_evidence = result
+        else:
+            score = result
+        score = int(round(score * 100.0))
+        if evidence:
+            return score, the_evidence
+        else:
+            return score
 
 _mgr = None
 

@@ -128,9 +128,9 @@ def ShowClues(mgr, app):
         return
 
     msgstore_message = mgr.message_store.GetMessage(item.EntryID)
-    prob, clues = mgr.score(msgstore_message, evidence=True)
+    score, clues = mgr.score(msgstore_message, evidence=True, scale=False)
     new_msg = app.CreateItem(0)
-    body = ["<h2>Spam Score: %g</h2><br>" % prob]
+    body = ["<h2>Spam Score: %g</h2><br>" % score]
     push = body.append
     # Format the clues.
     push("<PRE>\n")

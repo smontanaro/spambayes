@@ -295,6 +295,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def SetField(self, prop, val):
         self._EnsureObject()
+        print "after ensure object"
+        print type(prop), prop, type(0)
         if type(prop)!=type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             propIds = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
