@@ -8,7 +8,7 @@ def main():
         print "Please set INSTALLER to point to the McMillan installer path"
         return 1
 
-    this_dir = os.path.dirname(__file__)
+    this_dir = os.path.abspath(os.path.dirname(__file__))
     if os.path.exists(os.path.join(this_dir, "buildspambayes_addin")):
         shutil.rmtree(os.path.join(this_dir, "buildspambayes_addin"))
     if os.path.exists(os.path.join(this_dir, "dist")):
