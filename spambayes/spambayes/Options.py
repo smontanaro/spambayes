@@ -910,6 +910,16 @@ defaults = {
      is classified as unsure?""",
      ("ham", "spam", "discard", "defer"), RESTORE),
 
+    ("ham_discard_level", "Ham Discard Level", 0.0,
+     """Hams scoring less than this percentage will default to being
+        discarded in the training interface (they won't be trained).""",
+     REAL, RESTORE),
+
+    ("spam_discard_level", "Spam Discard Level", 100.0,
+     """Spams scoring more than this percentage will default to being 
+        discarded in the training interface (they won't be trained).""",
+     REAL, RESTORE),
+
     ("http_authentication", "HTTP Authentication", "None",
      """This option lets you choose the security level of the web interface.
      When selecting Basic or Digest, the user will be prompted a login and a

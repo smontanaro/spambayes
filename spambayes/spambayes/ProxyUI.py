@@ -138,6 +138,8 @@ adv_map = (
     ('html_ui',             'default_ham_action'),
     ('html_ui',             'default_spam_action'),
     ('html_ui',             'default_unsure_action'),
+    ('html_ui',             'ham_discard_level'),
+    ('html_ui',             'spam_discard_level'),
     ('html_ui',             'allow_remote_connections'),
     ('html_ui',             'http_authentication'),
     ('html_ui',             'http_user_name'),
@@ -289,11 +291,18 @@ class ProxyUserInterface(UserInterface.UserInterface):
             unused, unused, messageInfo.received = \
                     self._getTimeRange(self._keyToTimestamp(key))
             row = self.html.reviewRow.clone()
+            score = float(messageInfo.score.rstrip('%'))
             if label == 'Spam':
-                r_att = getattr(row, options["html_ui",
+                if score > options["html_ui", "spam_discard_level"]:
+                    r_att = getattr(row, 'discard')
+                else:
+                    r_att = getattr(row, options["html_ui",
                                            "default_spam_action"])
             elif label == 'Ham':
-                r_att = getattr(row, options["html_ui",
+                if score < options["html_ui", "ham_discard_level"]:
+                    r_att = getattr(row, 'discard')
+                else:
+                    r_att = getattr(row, options["html_ui",
                                            "default_ham_action"])
             else:
                 r_att = getattr(row, options["html_ui",
