@@ -1,4 +1,7 @@
 # rc2py.py
+# This module is part of the spambayes project, which is Copyright 2003
+# The Python Software Foundation and is covered by the Python Software
+# Foundation license.
 __author__="Adam Walker"
 __doc__=""""
 Converts an .rc windows resource source file into a python source file
