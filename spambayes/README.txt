@@ -128,6 +128,8 @@ cleanarch
 unheader.py
     A script to remove unwanted headers from an mbox file.  This is mostly
     useful to delete headers which incorrectly might bias the results.
+    In default mode, this is similar to 'spamassassin -d', but much, much
+    faster.
 
 loosecksum.py
     A script to calculate a "loose" checksum for a message.  See the text of
