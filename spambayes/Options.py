@@ -151,10 +151,9 @@ pickle_basename: class
 save_histogram_pickles: False
 
 # default locations for timcv and timtest - these get the set number 
-# appended.
+# interpolated.
 spam_directories: Data/Spam/Set%d
 ham_directories: Data/Ham/Set%d
-
 
 [Classifier]
 # Fiddling these can have extreme effects.  See classifier.py for comments.
