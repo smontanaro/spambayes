@@ -31,7 +31,7 @@ the <a href="">python-dev</a> list, but then moved to the
 </ul>
 
 <h2>CVS commit messages</h2>
-<p>Tim Peter's has whacked a whole lot of useful information into CVS
+<p>Tim Peters has whacked a whole lot of useful information into CVS
 commit messages. As the project was moved from an obscure corner of the
 python CVS tree, there's actually two sources of CVS commits.</p>
 
@@ -51,13 +51,20 @@ python CVS tree, there's actually two sources of CVS commits.</p>
 <h2>Glossary</h2>
 <p>A useful(?) glossary of terminology</p>
 <dl>
-<dt>ham<dd>a non-spam. an email that is wanted by the user.
-<dt>f-n<dd>false negative
-<dt>f-p<dd>false positive
+<dt>spam<dd>broadly speaking: any email that's not wanted by the
+    end-user.  More specifically: unsolicited bulk email; email
+    that you do not want and did not ask for, and was sent to
+    a whole bunch of people by automated means at the same time
+    it was sent to you.  This definition deliberately excludes viruses
+    and those stupid jokes sent to you by your Aunt Tillie.
+    
+<dt>ham<dd>the opposite of spam; not necessarily email that you want or
+    that you asked for, just anything that's not unsolicited bulk email.
 <dt>false negative<dd>a spam that's incorrectly classified as ham.
 <dt>false positive<dd>a ham that's incorrectly classified as spam.
+<dt>f-n, FN<dd>(abbrev.) false negative
+<dt>f-p, FP<dd>(abbrev.) false positive
 
-<dt>spam<dd>an email that's not wanted by the end-user.
 </dl>
 
 
