@@ -172,10 +172,8 @@ class Message(email.Message.Message):
 
     def _force_CRLF(self, data):
         """Make sure data uses CRLF for line termination.
-
-        Nicked the regex from smtplib.quotedata.
         """
-        return re.sub(r'(?:\r\n|\n|\r(?!\n))', '\r\n', data)
+        return re.sub(r'\r\n|\r|\n', '\r\n', data)
 
     def as_string(self):
         # The email package stores line endings in the "internal" Python
