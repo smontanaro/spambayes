@@ -579,11 +579,16 @@ class OptionsClass(object):
         '''Convert value from the appropriate type to a string.'''
         return self._options[sect, opt].unconvert()
 
-    def get(self, sect, opt):
+    def get_option(self, sect, opt):
         '''Get an option.'''
         if self.conversion_table.has_key((sect, opt)):
             sect, opt = self.conversion_table[sect, opt]
-        return self._options[sect, opt].get()
+        return self._options[sect, opt]
+    def get(self, sect, opt):
+        '''Get an option value.'''
+        if self.conversion_table.has_key((sect, opt)):
+            sect, opt = self.conversion_table[sect, opt]
+        return self.get_option(sect, opt).get()
 
     def __getitem__(self, key):
         return self.get(key[0], key[1])
