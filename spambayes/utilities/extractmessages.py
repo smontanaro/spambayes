@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
 """
-Extract messages which share extreme tokens with message(s) on cmd line
+Extract messages which contain given features
 
-usage %(prog)s [ -h ] -d mapfile [ -f feature [ -S file ] [ -H file ] file ...
+usage: %(prog)s [ options ]
 
-If no features are given on the command line, one or more files containing
-messages with X-Spambayes-Evidence headers must be present.
-
--d mapfile - specify file which holds feature mapping information
+-d mapfile - specify file which holds feature mapping information (required)
 
 -S file - output spam message file
 
@@ -17,6 +14,10 @@ messages with X-Spambayes-Evidence headers must be present.
 -f feature - specify feature to locate (may be given more than once)
 
 -h - print this documentation and exit
+
+At least one of either the -H or -S flags must be given on the command line.
+If no features are given on the command line with the -f flag, one or more
+files containing messages with X-Spambayes-Evidence headers must be given.
 """
 
 import sys
@@ -25,7 +26,6 @@ import re
 import cPickle as pickle
 
 from spambayes.mboxutils import getmbox
-from spambayes.tokenizer import tokenize
 
 prog = sys.argv[0]
 
@@ -34,8 +34,8 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-def extractmessages(mapdb, hamfile, spamfile, features):
-    """tokenize messages in f and extract messages with tokens to match"""
+def extractmessages(features, mapdb, hamfile, spamfile):
+    """extract messages which contain given features"""
     i = 0
     hamids = {}
     spamids = {}
@@ -86,7 +86,7 @@ def main(args):
         return 1
 
     mapfile = spamfile = hamfile = None
-    features = []
+    features = set()
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -98,7 +98,7 @@ def main(args):
         elif opt in ("-S", "--spamfile"):
             spamfile = arg
         elif opt in ("-f", "--feature"):
-            features.append(arg)
+            features.add(arg)
 
     if hamfile is None and spamfile is None:
         usage("At least one of -S or -H are required")
@@ -127,7 +127,7 @@ def main(args):
                 evidence = re.sub(r"\s+", " ", evidence)
                 features = [e.rsplit(": ", 1)[0]
                               for e in evidence.split("; ")[2:]]
-                features = [eval(f) for f in features]
+                features = set([eval(f) for f in features])
         if not features:
             usage("No X-Spambayes-Evidence headers found")
             return 1
@@ -137,7 +137,7 @@ def main(args):
     if hamfile is not None:
         hamfile = file(hamfile, "w")
 
-    extractmessages(mapd, hamfile, spamfile, features)
+    extractmessages(features, mapd, hamfile, spamfile)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
