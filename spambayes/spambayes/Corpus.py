@@ -117,7 +117,7 @@ class Corpus:
 
         self.observers.append(observer)
 
-    def addMessage(self, message):
+    def addMessage(self, message, observer_flags=None):
         '''Add a Message to this corpus'''
 
         if options["globals", "verbose"]:
@@ -131,9 +131,9 @@ class Corpus:
             # even though right now the only observable events are
             # training related
             if hasattr(obs, "onAddMessage"):
-                obs.onAddMessage(message)
+                obs.onAddMessage(message, observer_flags)
 
-    def removeMessage(self, message):
+    def removeMessage(self, message, observer_flags=None):
         '''Remove a Message from this corpus'''
         key = message.key()
         if options["globals", "verbose"]:
@@ -144,7 +144,7 @@ class Corpus:
         for obs in self.observers:
             # see comments in event loop in addMessage
             if hasattr(obs, "onRemoveMessage"):
-                obs.onRemoveMessage(message)
+                obs.onRemoveMessage(message, observer_flags)
 
     def cacheMessage(self, message):
         '''Add a message to the in-memory cache'''
@@ -272,7 +272,8 @@ class ExpiryCorpus:
             if msg.createTimestamp() < time.time() - self.expireBefore:
                 if options["globals", "verbose"]:
                     print 'message %s has expired' % (msg.key())
-                self.removeMessage(msg)
+                from spambayes.storage import NO_TRAINING_FLAG
+                self.removeMessage(msg, observer_flags=NO_TRAINING_FLAG)
 
 
 class MessageFactory:
