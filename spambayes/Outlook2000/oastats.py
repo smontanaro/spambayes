@@ -43,9 +43,9 @@ class Stats:
                            perc_unsure=perc_unsure, num_seen = num_seen)
         format_dict.update(self.__dict__)
         push("SpamBayes has processed %(num_seen)d messages - " \
-             "%(num_ham)d (%(perc_ham)d%%) good, " \
-             "%(num_spam)d (%(perc_spam)d%%) spam " \
-             "and %(num_unsure)d (%(perc_unsure)d%%) unsure" % format_dict)
+             "%(num_ham)d (%(perc_ham).0f%%) good, " \
+             "%(num_spam)d (%(perc_spam).0f%%) spam " \
+             "and %(num_unsure)d (%(perc_unsure).0f%%) unsure" % format_dict)
         if self.num_recovered_good:
             push("%(num_recovered_good)d message(s) were manually " \
                  "classified as good (with %(num_recovered_good_fp)d " \
