@@ -189,7 +189,7 @@ class DBDictClassifier(classifier.Classifier):
                 val = self.wordinfo[key]
                 self.db[key] = val.__getstate__()
             elif flag is WORD_DELETED:
-                assert word not in self.wordinfo, \
+                assert key not in self.wordinfo, \
                        "Should not have a wordinfo for words flagged for delete"
                 # Word may be deleted before it was ever written.
                 try:
