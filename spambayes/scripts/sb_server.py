@@ -302,11 +302,12 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         self.request = ''
 
     def onResponse(self):
-        # We don't support pipelining, so if the command is CAPA and the
-        # response includes PIPELINING, hack out that line of the response.
-        if self.command == 'CAPA':
-            pipelineRE = r'(?im)^PIPELINING[^\n]*\n'
-            self.response = re.sub(pipelineRE, '', self.response)
+        # There are some features, tested by clients using CAPA,
+        # that we don't support.  We strip them from the CAPA
+        # response here, so that the client won't use them.
+        for unsupported in ['PIPELINING', 'STLS', ]:
+            unsupportedLine = r'(?im)^%s[^\n]*\n' % (unsupported,)
+            self.response = re.sub(unsupportedLine, '', self.response)
 
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
@@ -915,7 +916,7 @@ def run():
     global state
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbpsd:p:l:u:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbd:p:l:u:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -927,6 +928,8 @@ def run():
             sys.exit()
         elif opt == '-b':
             state.launchUI = True
+        # '-p' and '-d' are handled by the storage.database_type call
+        # below, in case you are wondering why they are missing.
         elif opt == '-l':
             state.proxyPorts = [_addressAndPort(arg)]
         elif opt == '-u':
