@@ -14,9 +14,9 @@
 ## Author: Neale Pickett <neale@woozle.org>
 ##
 
-"""Usage: %(program)s [OPTION]...
+"""Usage: %(program)s [options] [filenames]
 
-[OPTION] is one of:
+Options can one or more of:
     -h
         show usage and exit
     -x
@@ -45,6 +45,30 @@
 
 All options marked with '*' operate on stdin.  Only those processing options
 marked with '+' send a modified message to stdout.
+
+If no filenames are given on the command line, standard input will be
+processed as a single message.  If one or more filenames are given on the
+command line, each will be processed according to the following rules:
+
+    * If the filename is '-', standard input will be processed as a single
+      message (may only be usefully given once).
+
+    * If the filename starts with '+' it will be processed as an MH folder.
+
+    * If the filename is a directory and it contains a subdirectory named
+      'cur', it will be processed as a Maildir.
+
+    * If the filename is a directory and it contains a subdirectory named
+      'Mail', it will be processed as an MH Mailbox.
+
+    * If the filename is a directory and not a Maildir nor an MH Mailbox, it
+      will be processed as a Mailbox directory consisting of just .txt and
+      .lorien files.
+
+    * Otherwise, the filename is treated as a Unix-style mailbox (messages
+      begin on a line starting with 'From ').
+
+Output is always to standard output as a Unix-style mailbox.
 """
 
 import os
@@ -194,10 +218,18 @@ def main():
     if actions == []:
         actions = [h.filter]
 
-    msg = mboxutils.get_message(sys.stdin)
-    for action in actions:
-        action(msg)
-    sys.stdout.write(msg.as_string(unixfrom=(msg.get_unixfrom() is not None)))
+    if not args:
+        args = ["-"]
+    for fname in args:
+        mbox = mboxutils.getmbox(fname)
+        for msg in mbox:
+            for action in actions:
+                action(msg)
+                if args == ["-"]:
+                    unixfrom = msg.get_unixfrom() is not None
+                else:
+                    unixfrom = True
+                sys.stdout.write(msg.as_string(unixfrom=unixfrom))
 
 if __name__ == "__main__":
     main()
