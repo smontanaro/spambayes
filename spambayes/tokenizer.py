@@ -8,6 +8,7 @@ import email.Message
 import email.Errors
 import re
 import math
+import time
 from sets import Set
 
 from Options import options
@@ -838,6 +839,15 @@ def crack_urls(text):
 
 class Tokenizer:
 
+    date_hms_re = re.compile(r' (?P<hour>[0-9][0-9]):'
+                             r'(?P<minute>[0-9][0-9]):'
+                             r'(?P<second>[0-9][0-9]) ')
+
+    date_formats = ("%a, %d %b %Y %H:%M:%S (%Z)",
+                    "%a, %d %b %Y %H:%M:%S %Z",
+                    "%d %b %Y %H:%M:%S (%Z)",
+                    "%d %b %Y %H:%M:%S %Z")
+
     def __init__(self):
         if options.basic_header_tokenize:
             self.basic_skip = [re.compile(s)
@@ -981,6 +991,31 @@ class Tokenizer:
                     if m:
                         for tok in breakdown(m.group(1).lower()):
                             yield 'received:' + tok
+
+        # Date:
+        if options.generate_time_buckets:
+            for header in msg.get_all("date", ()):
+                mat = self.date_hms_re.search(header)
+                # return the time in Date: headers arranged in
+                # six-minute buckets
+                if mat is not None:
+                    h = int(mat.group('hour'))
+                    bucket = int(mat.group('minute')) // 10
+                    yield 'time:%02d:%d' % (h, bucket)
+
+        if options.extract_dow:
+            for header in msg.get_all("date", ()):
+                # extract the day of the week
+                for fmt in self.date_formats:
+                    try:
+                        timetuple = time.strptime(header, fmt)
+                    except ValueError:
+                        pass
+                    else:
+                        yield 'dow:%d' % timetuple[6]
+                else:
+                    # if nothing matches, declare the Date: header invalid
+                    yield 'dow:invalid'
 
         # Message-Id:  This seems to be a small win and should not
         # adversely affect a mixed source corpus so it's always enabled.

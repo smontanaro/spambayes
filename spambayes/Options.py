@@ -90,6 +90,13 @@ mine_received_headers: False
 # broken.
 generate_long_skips: True
 
+# Generate tokens which resemble the posting time in 6-minute buckets:
+# int((h*60+m)/10).
+generate_time_buckets: False
+
+# Extract day of the week tokens from the Date: header.
+extract_dow: False
+
 # If true, replace high-bit characters (ord(c) >= 128) and control characters
 # with question marks.  This allows non-ASCII character strings to be
 # identified with little training and small database burden.  It's appropriate
@@ -283,6 +290,8 @@ all_options = {
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'generate_long_skips': boolean_cracker,
+                  'extract_dow': boolean_cracker,
+                  'generate_time_buckets': boolean_cracker,
                   'mine_received_headers': boolean_cracker,
                   'check_octets': boolean_cracker,
                   'octet_prefix_size': int_cracker,
