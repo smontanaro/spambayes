@@ -148,18 +148,19 @@ class FilterStatusProcessor(ControlProcessor):
                                    unsure_text)
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                              0, filter_status)
+
 class TabProcessor(ControlProcessor):
+    def __init__(self, window, control_ids, page_ids):
+        ControlProcessor.__init__(self, window, control_ids)
+        self.page_ids = page_ids.split()
+        
     def Init(self):
         self.pages = {}
         self.currentPage = None
         self.currentPageIndex = -1
         self.currentPageHwnd = None
-        self.addPage(0, "IDD_GENERAL", "General")
-        self.addPage(1, "IDD_TRAINING", "Training")
-        self.addPage(2, "IDD_FILTER_SPAM", "Spam")
-        self.addPage(3, "IDD_FILTER_UNSURE", "Possible Spam")
-        self.addPage(4, "IDD_FILTER_NOW", "Filter Now")
-        self.addPage(5, "IDD_ADVANCED", "Advanced")
+        for index, page_id in enumerate(self.page_ids):
+            self.addPage(index, page_id, caption_map[page_id])
         self.switchToPage(0)
     def OnNotify(self, nmhdr, wparam, lparam):
         # this does not appear to be in commctrl module
@@ -227,11 +228,26 @@ class DialogCommand(ButtonProcessor):
 from async_processor import AsyncCommandProcessor
 import filter, train
 
+# This sucks a little, but the captions for the dialogs aren't in the
+# rc script for property pages.
+# A human language map may also be nice :)
+caption_map = {
+    "IDD_GENERAL" : "General",
+    "IDD_TRAINING": "Training",
+    "IDD_FILTER_SPAM": "Spam",
+    "IDD_FILTER_UNSURE": "Possible Spam",
+    "IDD_FILTER_NOW": "Filter Now",
+    "IDD_ADVANCED": "Advanced",
+}
+
 dialog_map = {
     "IDD_MANAGER" : (
         (ImageProcessor,          "IDC_LOGO_GRAPHIC"),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
-        (TabProcessor,            "IDC_TAB"),
+        (TabProcessor,            "IDC_TAB",
+                                  """IDD_GENERAL IDD_TRAINING IDD_FILTER_SPAM
+                                  IDD_FILTER_UNSURE IDD_FILTER_NOW
+                                  IDD_ADVANCED"""),
         (VersionStringProcessor,  "IDC_VERSION"),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
