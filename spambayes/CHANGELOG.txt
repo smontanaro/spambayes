@@ -1,5 +1,16 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
+Final Release 1
+===============
+Tony Meyer        03/05/2004  Temporary fix for [ 941596 ] sb_imapfilter.py not adding headers / moving messages
+Tony Meyer        03/05/2004  imapfilter: catch any exceptions, not just email.Errors
+Tony Meyer        03/05/2004  NotesFilter: Incorrect (old?) function name for opening a storage object.
+Mark Hammond      29/04/2004  Outlook: Change the default pushbutton in the "filter now" dialog to be the start button, and make ESC work as cancel.
+Skip Montanaro    28/04/2004  tte.py: add -R/--reverse flag to iterate over the mailboxes in reverse
+Tony Meyer        25/04/2004  If the move_trained_[ham|spam]_to_folder options were used, this would wipe out the SpamBayes headers.  Fix that.
+Tony Meyer        25/04/2004  Update message.py for the newer way that the persistent_use_database option works.
+Tony Meyer        23/04/2004  Fix [ 940155 ] Data Folder location
+
 Beta Release 1
 ==============
 Kenny Pitt        07/04/2004  Fix some problems with the [851785] fix

@@ -10,24 +10,14 @@ Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.  You should also read the "Incompatible
 changes" section.
 
-New in Beta Release 1
-=====================
+New in Release 1.0
+==================
 
 --------------------------
 ** Incompatible changes **
 --------------------------
 
- o The 'flat' or interchange format used by the sb_dbexpimp.py script has
-   changed to CSV (comma-separated-values, as popularised by Microsoft
-   Excel), rather than the old '`' separated format.  If you have any
-   existing files in the old format, you should use the old 1.0a9 script to
-   convert these back to a pickle (or some other format), and then use the
-   new script to convert them to CSV (if desired).  This change should
-   alleviate problems with some unicode characters in the database, and
-   make it easier for other programs (such as Excel) to use the exported
-   database.
-
-There should be no other incompatible changes (from 1.0a9) in this release.
+There should be no incompatible changes (from 1.0b1) in this release.
 
 
 -------------------
@@ -36,76 +26,34 @@ There should be no other incompatible changes (from 1.0a9) in this release.
 
 Outlook Plugin
 --------------
- o Various minor improvements.
-
-POP3 Proxy / SMTP Proxy
------------------------
- o Fix an error that stopped the SMTP proxy working at all in many cases.
-
-Web Interface
--------------
- o The pre-filled out bug reports have been simplified somewhat, and
-   the readability of the resulting message has been improved.
- o If a single choice was made for the "Notate To" or "Notate Subject"
-   options, the configuration page would in future present that option
-   with radio buttons instead of checkboxes, meaning that the option
-   could not be turned off, and that adding an extra choice could not be
-   made.  This has been fixed.
- o Messages stored in the cache directories are 'expired' after a certain
-   number of days, to save space.  This occurs when launching sb_server
-   and when executing a POP3 USER command (for those that have very long
-   running instances of sb_server).  When a message was due to expire on
-   the USER command check (rather than on launch), sb_server would
-   incorrectly attempt to (un)train the message, resulting in a loss of
-   training data or a "can't find this file" error, depending on whether
-   the message was in memory.  This is now fixed.
-
-POP3 Proxy Service / POP3 Proxy Tray Application
-------------------------------------------------
- o The POP3 Proxy service was left out of the 1.0a9 installer, although
-   it was present in the source archive.  This has been corrected.
+ o Default buttons in some dialogs have been corrected.
 
 IMAP Filter
 -----------
- o The filter better handles invalid messages.
- o The filter should leave the "Seen" status of messages alone with
-   more IMAP servers than previously.
-
-sb_filter
----------
- o Improved speed when using sb_filter.py to process an entire mailbox.
-
-Tokenizer
----------
- o Collect all potential MTA complaints, not just sendmail's
-   "may be forged".
+ o The code that allows the filter to keep going when a message cannot
+   be parsed correctly has been strengthened.  If the filter crashed
+   with a "TypeError" when processing some messages, this should fix
+   that problem.
+ o If the move_trained_[ham|spam]_to_folder options were used, this
+   would wipe out the SpamBayes headers.  This is now fixed.
 
 General
 -------
- o Added new flags and results data to the contrib/tte.py script.
- o Added a new script - sb_bnfilter.py, which works like sb_filter
-   but avoids startup overhead (like sb_xmlrpcserver.py aims to, but
-   without as much administration work).
+ o Added -R/--reverse flag to tte.py
+ o Fix an error that stopped the notes filter working at all in many cases.
 
 
 Transition
 ==========
-If you are transitioning from a version older than 1.0a9, please also
+If you are transitioning from a version older than 1.0b1, please
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
-
- o To take advantage of improvements in the tokenizing engine at the core
-   of SpamBayes, you may wish to do a full retrain; this is not necessary,
-   however.
-
-See also the changes listed in "Incompatible changes" at the top of
-this document.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-    851785, 906581, 737967, 895606
+    940155, 941596
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -117,15 +65,12 @@ Feature Requests Added
 No feature requests tracked via the Sourceforge system were added for this
 release.
 
+
 Patches integrated
 ===================
-The following patches tracked via the Sourceforge system were integrated
-for this release:
-    797579, 848311
+No patches tracked via the Sourceforge system were integrated for this
+release.
 
-A url containing the details of these feature requests can be made by
-appending the request number to this url:
-http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498105&aid=
 
 Newly Deprecated Options
 ========================
@@ -144,8 +89,9 @@ receive warnings in your log file or console window.  We recommend that you
 examine this output every time you upgrade SpamBayes to ensure that you are
 not using any newly deprecated options.
 
-Discussion of why any particular option has been deprecated can be found in
-the spambayes-dev archives (at <http://mail.python.org/pipermail/spambayes-dev>).
+Discussion regarding the deprecation of any particular option can be found
+in the spambayes-dev archives (at
+<http://mail.python.org/pipermail/spambayes-dev>).
 
 No options have been deprecated in this release.
 
