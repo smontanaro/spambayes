@@ -210,7 +210,7 @@ class Classifier:
         h_cut = options["Categorization", "ham_cutoff"]
         s_cut = options["Categorization", "spam_cutoff"]
 
-        # Get the raw score.        
+        # Get the raw score.
         prob, clues = self.chi2_spamprob(wordstream, True)
 
         # If necessary, enhance it with the tokens from whatever is

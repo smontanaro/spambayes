@@ -223,7 +223,7 @@ def main():
     if write_clipboard:
         stream_name = tempfile.mktemp("spambayes")
         stream = open(stream_name, "w")
-        
+
     if not folder_name:
         folder_name = "Inbox" # Assume this exists!
 

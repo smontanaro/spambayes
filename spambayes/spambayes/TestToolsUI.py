@@ -90,7 +90,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         testtools_ini_map += (('Testing Options', None),
                               ('TestToolsUI', 'source'),
                               ('TestToolsUI', 'n'),)
-        
+
         option_choice = self._buildConfigPageBody(\
             configTable, testtools_ini_map)
         option_choice.action_page.action = "cvresults"
@@ -223,7 +223,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
                 if os.path.splitext(os.path.basename(dbx))[0].lower() in \
                    ["deleted items", "drafts", "folders",
                     "offline", "outbox", "pop3uidl",]:
-                  continue
+                    continue
                 elif dbx.lower().find("spam") == -1:
                     spamdirs.append(dbx)
                 else:
@@ -292,7 +292,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         cerr = sys.stderr
         sys.stdout = StringIO.StringIO()
         sys.stderr = StringIO.StringIO()
-        
+
         interesting = filter(lambda line: line.startswith('-> '), ifile)
         ifile.close()
 

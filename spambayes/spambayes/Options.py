@@ -185,7 +185,7 @@ defaults = {
      tokens for the message.  This should be particularly effective
      for messages that contain only a single URL and no other text.""",
      BOOLEAN, RESTORE),
-    
+
     ("x-cache_expiry_days", "Number of days to store URLs in cache", 7,
      """(EXPERIMENTAL) This is the number of days that local cached copies
      of the text at the URLs will be stored for.""",

@@ -440,11 +440,11 @@ def convertToMbox(content):
         file_info_len = dbxFileHeader.FH_FILE_INFO_LENGTH
         fh_entries = dbxFileHeader.FH_ENTRIES
         fh_ptr = dbxFileHeader.FH_TREE_ROOT_NODE_PTR
-        
+
         info = dbxFileInfo(dbxStream, header.getEntry(file_info_len))
         entries = header.getEntry(fh_entries)
         address = header.getEntry(fh_ptr)
-        
+
         if address and entries:
             tree = dbxTree(dbxStream, address, entries)
             dbxBuffer = ""
@@ -479,7 +479,7 @@ def OEStoreRoot():
         # where the dbx files are stored (I presume they are in the
         # same format).
         raise NotImplementedError
-    
+
     reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, "")
     user_index = 0
     while True:
@@ -505,7 +505,7 @@ def OEStoreRoot():
             except win32api.error:
                 break
             identity_index += 1
-            
+
             subkey_name = "%s\\%s\\%s" % (user_name, identity_name,
                                           "Software\\Microsoft\\Outlook " \
                                           "Express\\5.0")
@@ -601,7 +601,7 @@ if __name__ == '__main__':
         print "Please enter a directory with dbx files."
         sys.exit()
 
-    MAILBOX_DIR = args[0]  
+    MAILBOX_DIR = args[0]
 
     files = [os.path.join(MAILBOX_DIR, file) for file in \
              os.listdir(MAILBOX_DIR) if os.path.splitext(file)[1] == '.dbx']

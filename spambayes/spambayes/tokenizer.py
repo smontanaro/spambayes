@@ -1036,7 +1036,7 @@ class SlurpingURLStripper(URLStripper):
         URLStripper.__init__(self)
         self.setup_done = False
         self.do_slurp = True
-        
+
     def setup(self):
         # Can't import this at the top because it's circular.
         # XXX Someone smarter than me, please figure out the right
@@ -1060,7 +1060,7 @@ class SlurpingURLStripper(URLStripper):
         else:
             # Build a new opener without any proxy information.
             opener = urllib2.build_opener(urllib2.HTTPHandler)
-         
+
         # Install it
         urllib2.install_opener(opener)
 
@@ -1141,7 +1141,7 @@ class SlurpingURLStripper(URLStripper):
         if not (options["URLRetriever", "x-slurp_urls"] and \
            self.do_slurp):
             return tokens
-        
+
         # We don't want to do this recursively and check URLs
         # on webpages, so we have this little cheat.
         self.do_slurp = False
@@ -1200,7 +1200,7 @@ class SlurpingURLStripper(URLStripper):
         # retrieving it from the network, and get it from there, instead.
         url_key = URL_KEY_RE.sub('_', url)
         cached_message = self.urlCorpus.get(url_key)
-        
+
         if cached_message is None:
             # We're going to ignore everything that isn't text/html,
             # so we might as well not bother retrieving anything with
@@ -1209,7 +1209,7 @@ class SlurpingURLStripper(URLStripper):
             if parts[-1] in ('jpg', 'gif', 'png', 'css', 'js'):
                 self.bad_urls["url:non_html"] += (url,)
                 return ["url:non_html"]
-            
+
             try:
                 if options["globals", "verbose"]:
                     print >>sys.stderr, "Slurping", url
@@ -1221,7 +1221,7 @@ class SlurpingURLStripper(URLStripper):
                     return ["url:http_" + mo.group(1)]
                 self.bad_urls["url:unknown_error"] += (url,)
                 return ["url:unknown_error"]
-            
+
             # Anything that isn't text/html is ignored
             content_type = f.info().get('content-type')
             if content_type is None or \

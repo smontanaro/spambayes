@@ -460,7 +460,7 @@ class FolderSelector(FolderSelector_Parent):
                                     None, None, None, None, None)
             win32gui.SendMessage(self.list, commctrl.TVM_SETITEM,
                                  0, buf)
-        
+
     def _CheckSelectionsValid(self, is_close = False):
         if self.in_check_selections_valid:
             return
