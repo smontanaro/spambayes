@@ -1,12 +1,12 @@
 ;
-; Inno Setup 4.x setup file for the Spambayes Binaries
+; Inno Setup 5.x setup file for the SpamBayes Binaries
 ;
 
 [Setup]
 ; Version specific constants
-AppVerName=SpamBayes 1.0rc1
-AppVersion=0.992
-OutputBaseFilename=spambayes-1.0rc1
+AppVerName=SpamBayes 1.1a1
+AppVersion=1.1a1
+OutputBaseFilename=spambayes-1.1a1
 ; Normal constants.  Be careful about changing 'AppName'
 AppName=SpamBayes
 DefaultDirName={pf}\SpamBayes
@@ -20,7 +20,8 @@ Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
-Source: "py2exe\dist\bin\python23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\mscvr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
@@ -48,6 +49,10 @@ Source: "py2exe\dist\docs\sb_server\*.*"; DestDir: "{app}\docs\sb_server"; Check
 ; unregistration.
 [Run]
 Filename: "{app}\bin\outlook_addin_register.exe"; StatusMsg: "Registering Outlook Addin"; Check: InstallingOutlook;
+; Possibly register for all users (unregister removes this if it is present, so we don't need
+; a special case for that). We do both a single-user registration and then the all-user, because
+; that keeps the script much simpler, and it doesn't do any harm.
+Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHINE"; StatusMsg: "Registering Outlook Addin for all users"; Check: OutlookAllUsers;
 [UninstallRun]
 Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin";Check: InstallingOutlook;
 
@@ -240,4 +245,152 @@ end;
 function SkipCurPage(CurPage: Integer): Boolean;
 begin
   Result := (CurPage = wpSelectTasks) and (not InstallProxy);
+end;
+
+
+var
+  InstallOutlook, InstallProxy: Boolean;
+  WarnedNoOutlook, WarnedBoth : Boolean;
+  ComponentsPage: TInputQueryWizardPage;
+
+procedure InitializeWizard;
+begin
+  { Create the pages }
+
+  ComponentsPage := CreateInputQueryPage(wpWelcome,
+    'Personal Information', 'Who are you?',
+    'Please specify your name and the company for whom you work, then click Next.');
+  UserPage.Add('Name:', False);
+  UserPage.Add('Company:', False);
+
+  UsagePage := CreateInputOptionPage(UserPage.ID,
+    'Personal Information', 'How will you use My Program?',
+    'Please specify how you would like to use My Program, then click Next.',
+    True, False);
+  UsagePage.Add('Light mode (no ads, limited functionality)');
+  UsagePage.Add('Sponsored mode (with ads, full functionality)');
+  UsagePage.Add('Paid mode (no ads, full functionality)');
+
+  { Set default values, using settings that were stored last time if possible }
+
+  UserPage.Values[0] := GetPreviousData('Name', ExpandConstant('{sysuserinfoname}'));
+  UserPage.Values[1] := GetPreviousData('Company', ExpandConstant('{sysuserinfoorg}'));
+
+  case GetPreviousData('UsageMode', '') of
+    'light': UsagePage.SelectedValueIndex := 0;
+    'sponsored': UsagePage.SelectedValueIndex := 1;
+    'paid': UsagePage.SelectedValueIndex := 2;
+  else
+    UsagePage.SelectedValueIndex := 1;
+  end;
+
+  DataDirPage.Values[0] := GetPreviousData('DataDir', '');
+end;
+
+procedure RegisterPreviousData(PreviousDataKey: Integer);
+var
+  UsageMode: String;
+begin
+  { Store the settings so we can restore them next time }
+  SetPreviousData(PreviousDataKey, 'Name', UserPage.Values[0]);
+  SetPreviousData(PreviousDataKey, 'Company', UserPage.Values[1]);
+  case UsagePage.SelectedValueIndex of
+    0: UsageMode := 'light';
+    1: UsageMode := 'sponsored';
+    2: UsageMode := 'paid';
+  end;
+  SetPreviousData(PreviousDataKey, 'UsageMode', UsageMode);
+  SetPreviousData(PreviousDataKey, 'DataDir', DataDirPage.Values[0]);
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  { Skip pages that shouldn't be shown }
+  if (PageID = LightMsgPage.ID) and (UsagePage.SelectedValueIndex <> 0) then
+    Result := True
+  else if (PageID = KeyPage.ID) and (UsagePage.SelectedValueIndex <> 2) then
+    Result := True
+  else
+    Result := False;
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  I: Integer;
+begin
+  { Validate certain pages before allowing the user to proceed }
+  if CurPageID = UserPage.ID then begin
+    if UserPage.Values[0] = '' then begin
+      MsgBox('You must enter your name.', mbError, MB_OK);
+      Result := False;
+    end else begin
+      if DataDirPage.Values[0] = '' then
+        DataDirPage.Values[0] := 'C:\' + UserPage.Values[0];
+      Result := True;
+    end;
+  end else if CurPageID = KeyPage.ID then begin
+    { Just to show how 'OutputProgress' pages work.
+      Always use a try..finally between the Show and Hide calls as shown below. }
+    ProgressPage.SetText('Authorizing registration key...', '');
+    ProgressPage.SetProgress(0, 0);
+    ProgressPage.Show;
+    try
+      for I := 0 to 10 do begin
+        ProgressPage.SetProgress(I, 10);
+        Sleep(100);
+      end;
+    finally
+      ProgressPage.Hide;
+    end;
+    if KeyPage.Values[0] = 'inno' then
+      Result := True
+    else begin
+      MsgBox('You must enter a valid registration key. (Hint: The key is "inno".)', mbError, MB_OK);
+      Result := False;
+    end;
+  end else
+    Result := True;
+end;
+
+function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo,
+  MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;
+var
+  S: String;
+begin
+  { Fill the 'Ready Memo' with the normal settings and the custom settings }
+  S := '';
+  S := S + 'Personal Information:' + NewLine;
+  S := S + Space + UserPage.Values[0] + NewLine;
+  if UserPage.Values[1] <> '' then
+    S := S + Space + UserPage.Values[1] + NewLine;
+  S := S + NewLine;
+
+  S := S + 'Usage Mode:' + NewLine + Space;
+  case UsagePage.SelectedValueIndex of
+    0: S := S + 'Light mode';
+    1: S := S + 'Sponsored mode';
+    2: S := S + 'Paid mode';
+  end;
+  S := S + NewLine + NewLine;
+
+  S := S + MemoDirInfo + NewLine;
+  S := S + Space + DataDirPage.Values[0] + ' (personal data files)' + NewLine;
+
+  Result := S;
+end;
+
+function GetUser(Param: String): String;
+begin
+  { Return a user value }
+  { Could also be split into separate GetUserName and GetUserCompany functions }
+  if Param = 'Name' then
+    Result := UserPage.Values[0]
+  else if Param = 'Company' then
+    Result := UserPage.Values[1];
+end;
+
+function GetDataDir(Param: String): String;
+begin
+  { Return the selected DataDir }
+  Result := DataDirPage.Values[0];
 end;
