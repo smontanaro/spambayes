@@ -34,6 +34,13 @@ href="applications.html#pop3">pop3proxy.py</a>.
 <p>If your mail program fetches mail using IMAP, then you should run
 <a href="applications.html#imap">imapfilter.py</a>.
 
+<h2>Training</h2>
+
+<p>See the <a
+href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">Hammie
+integration guide</a> for a detailed discussion of the many training options
+on Unix systems.
+
 <h2>Notes</h2>
 
 <ol>
