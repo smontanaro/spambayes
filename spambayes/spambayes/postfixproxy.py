@@ -6,9 +6,10 @@ Proxy class used to insert Spambayes training between two Postfix servers.
 For details, see <http://www.postfix.org/SMTPD_PROXY_README.html>.
 """
 
+import os
 import smtpd
 import email.Parser
-from spambayes import Options, hammie
+from spambayes import Options, hammie, storage
 
 __all__ = ['SpambayesProxy']
 
@@ -63,13 +64,12 @@ class SpambayesProxy(smtpd.PureProxy):
         except:
             pass
         else:
-            prob, msg = self.h.score_and_filter(msg)
+            msg.add_header("X-Peer", peer[0])
+            prob, data = self.h.score_and_filter(msg)
             if prob >= self.spam_cutoff:
                 self.push('503 Error: probable spam')
-                self.log_message(msg)
+                self.log_message(data)
                 return
-            msg.add_header("X-Peer", peer[0])
-            data = str(msg)
 
         refused = self._deliver(mailfrom, rcpttos, data)
         # TBD: what to do with refused addresses?
