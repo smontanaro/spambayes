@@ -144,11 +144,20 @@ class RCParser:
         The "names" member contains the dictionary of name->id
         """
         hFileName = rcFileName[:-2]+"h"
+        if not os.path.exists(hFileName):
+            # Translated dialogs don't need their own copy of dialogs.h,
+            # so look for one in this directory if there isn't one in the
+            # expected place.
+            # This will only work with Python > 2.2 and as source, but
+            # it shouldn't ever be run by binary users, so that shoudln't
+            # matter.
+            hFileName = os.path.join(os.path.dirname(__file__),
+                                     os.path.basename(hFileName))
         try:
             h = open(hFileName, "rU")
             self.parseH(h)
             h.close()
-        except OSError:
+        except IOError:
             print "No .h file. ignoring."
         f = open(rcFileName)
         self.open(f)

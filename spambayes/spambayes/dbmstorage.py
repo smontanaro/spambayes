@@ -16,7 +16,10 @@ def open_db3hash(*args):
 def open_dbhash(*args):
     """Open a bsddb hash.  Don't use this on Windows, unless Python 2.3 or
     greater is used, in which case bsddb3 is actually named bsddb."""
-    import bsddb
+    try:
+        import bsddb
+    except ImportError:
+        import bsddb3 as bsddb
     return bsddb.hashopen(*args)
 
 def open_gdbm(*args):

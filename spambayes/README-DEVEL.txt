@@ -642,9 +642,6 @@ There are four translation tasks:
    into (e.g. 'en_UK', 'es', 'de_DE').  If you do not have a GUI tool to
    edit the dialogs, simply open the dialogs.rc file in a text editor,
    manually change the appropriate strings, and save the file as above.
-   Ensure that a copy of the dialogs.h file is also copied across to the
-   'spambayes\languages\{lang_code}\DIALOGS' directory (this does not
-   need any translation).
 
    Once the dialogs are translated, you need to use the rc2py.py utility
    to create the i18n_dialogs.py file.  For example, in the

@@ -2,6 +2,25 @@
 
 Release 1.1a1
 =============
+Tony Meyer        04/01/2005  If we are reloading the options, optionsPathname will already be set, so if we are  a windows user using the default pathname, the object won't be reloaded.  Fix so a reload is always done.
+Tony Meyer        04/01/2005  rcparser.py: Look for dialogs.h in this directory if it isn't with dialogs.rc.
+Tony Meyer        04/01/2005  Add initial French and Spanish translations.
+Tony Meyer        03/01/2005  Implement part of [ 753708 ] Support POP over SSL
+Tony Meyer        02/01/2005  UserInterface.py: cgi.escape the configuration filename
+Skip Montanaro    02/01/2005  tte.py: When running through the messages that haven't been kept for training, delete messages that score properly.
+Tony Meyer        29/12/2004  Outlook: Report the last modified date in the "show clues" message.
+Kenny Pitt        24/12/2004  New version numbering scheme.
+Tony Meyer        23/12/2004  Outlook: Enlarge the Manager dialog and add a control to set the ham folder. 
+Tony Meyer        23/12/2004  Provide constants for the persistent ham/spam/unsure stings for the messageinfo db.
+Kenny Pitt        23/12/2004  Add a button on the Statistics tab to reset the Outlook statistics.  Also display the date when the statistics were last reset.
+Tony Meyer        22/12/2004  Make Dibbler.py compatible with Python 2.2.1.
+Tony Meyer        22/12/2004  FileCorpus.py: Don't use the strict keyword arg as it is deprecated.
+Tony Meyer        22/12/2004  Add _() wrappers around appropriate strings in spambayes/ and scripts/.
+Tony Meyer        22/12/2004  i18n.py: Add a function to load the ui.html file appropriate for the language.
+Tony Meyer        22/12/2004  Merge the Outlook2000.oastats.Stats class and the spambayes.Stats.Stats class.
+Tony Meyer        22/12/2004  Store a stats start date in the message database, so that we can 'reset' the statistics without removing the whole message database.
+Tony Meyer        22/12/2004  Allow message.Messages to have their id specified on creation.  Also allow specification of the messageinfo_db.
+Kenny Pitt        21/12/2004  sb_server: Fix a bug with the new style of checking the +OK on a RETR.
 Tony Meyer        20/12/2004  Allow Outlook users to select their storage method in exactly the same way as other users can.
 Tony Meyer        20/12/2004  Outlook: add a wrapper for the ZODB (FileStorage) storage class.
 Tony Meyer        20/12/2004  Outlook: Remove some checks that no longer need to be done (that the messageinfo db has the  same length as the tokens db).

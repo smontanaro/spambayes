@@ -555,28 +555,30 @@ class SBHeaderMessage(Message):
                             page
         """
         subject = self["Subject"]
-        ham = options["Headers", "header_ham_string"] + ','
-        spam = options["Headers", "header_spam_string"] + ','
-        unsure = options["Headers", "header_unsure_string"] + ','
-        if options["Headers", "notate_subject"]:
-            for disp in (ham, spam, unsure):
-                if subject.startswith(disp):
-                    self.replace_header("Subject", subject[len(disp):])
-                    # Only remove one, maximum.
-                    break
+        if subject:
+            ham = options["Headers", "header_ham_string"] + ','
+            spam = options["Headers", "header_spam_string"] + ','
+            unsure = options["Headers", "header_unsure_string"] + ','
+            if options["Headers", "notate_subject"]:
+                for disp in (ham, spam, unsure):
+                    if subject.startswith(disp):
+                        self.replace_header("Subject", subject[len(disp):])
+                        # Only remove one, maximum.
+                        break
         to = self["To"]
-        ham = "%s@spambayes.invalid," % \
-              (options["Headers", "header_ham_string"],)
-        spam = "%s@spambayes.invalid," % \
-               (options["Headers", "header_spam_string"],)
-        unsure = "%s@spambayes.invalid," % \
-                 (options["Headers", "header_unsure_string"],)
-        if options["Headers", "notate_to"]:
-            for disp in (ham, spam, unsure):
-                if to.startswith(disp):
-                    self.replace_header("To", to[len(disp):])
-                    # Only remove one, maximum.
-                    break
+        if to:
+            ham = "%s@spambayes.invalid," % \
+                  (options["Headers", "header_ham_string"],)
+            spam = "%s@spambayes.invalid," % \
+                   (options["Headers", "header_spam_string"],)
+            unsure = "%s@spambayes.invalid," % \
+                     (options["Headers", "header_unsure_string"],)
+            if options["Headers", "notate_to"]:
+                for disp in (ham, spam, unsure):
+                    if to.startswith(disp):
+                        self.replace_header("To", to[len(disp):])
+                        # Only remove one, maximum.
+                        break
 
     def currentSBHeaders(self):
         """Return a dictionary containing the current values of the

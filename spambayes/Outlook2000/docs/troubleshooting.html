@@ -4,12 +4,27 @@
   <meta http-equiv="content-type"
  content="text/html; charset=ISO-8859-1">
   <title>Troubleshooting the SpamBayes Outlook plugin</title>
+<link rel='stylesheet' type="text/css" href="style.css" title="Intended style" />
 </head>
 <body>
+
+<table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="380"><img src="images/sblogo.jpg" title=""
+ alt="Logo" style="width: 380px; height: 77px;"></td>
+<!-- use background instead of styles to avoid mozilla bug 167262 --> <td
+ background="images/span.jpg">&nbsp;</td>
+      <td width="78"><img src="images/python.jpg"
+ style="width: 78px; height: 77px;"></td>
+    </tr>
+</table>
+
 <h1>Troubleshooting the SpamBayes Outlook addin</h1>
-This is a list of common problems, and hopefully their solutions.&nbsp;
-Please feel free to suggest additional topics.&nbsp; Currently, we have
-the following problems listed:<br>
+
+<p>This is a list of common problems, and hopefully their solutions.
+Please feel free to suggest additional topics. Currently, we have
+the following problems listed:</p>
+
 <ul>
   <li><a href="#NoToolbar">Toolbar items appear, but fail to work</a></li>
   <li><a href="#Error_during_load">Addin loads with an error message</a></li>
@@ -24,387 +39,391 @@ users on the machine</a><br>
   </li>
   <li><a href="#All_other_problems">All other problems</a></li>
 </ul>
-Some other resources that may be useful in tracking down any problems:<br>
+
+<p>Some other resources that may be useful in tracking down any problems:
+</p>
+
 <ul>
-  <li>There is an <a href="http://spambayes.sourceforge.net/faq.html">online
-FAQ for SpamBayes</a> with lots of information, including a section <a
- href="http://spambayes.sourceforge.net/faq.html#outlook-plugin">specific
+<li>There is an <a href="http://spambayes.sourceforge.net/faq.html">online
+FAQ for SpamBayes</a> with lots of information, including a section
+<a href="http://spambayes.sourceforge.net/faq.html#outlook-plugin">specific
 to the Outlook addin</a>.</li>
-  <li>The <a
- href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD">latest
+<li>The
+<a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD">latest
 online version of this document</a> may have information added since
 release.</li>
-  <li>The online <a
- href="http://spambayes.sourceforge.net/apps/outlook/bugs.html">Frequently
+<li>The online
+<a href="http://spambayes.sourceforge.net/apps/outlook/bugs.html">Frequently
 Reported Outlook Bugs</a> list has the most common problems people are
 experiencing, and links to more information about the bug.</li>
+<li>Check to see that you are using the most recent version - it is
+possible that your problem has been fixed in a newer release.  You should
+be able to check for newer versions by selecting <tt>Check for new
+version</tt> from the SpamBayes menu - otherwise, you can visit the
+<a href="http://spambayes.org">SpamBayes website</a> and check there.</li>
 </ul>
-If you must send someone a mail about SpamBayes, <a href="#mail">please
-read this first</a>.<br>
-<hr style="width: 100%; height: 2px;">
-<h2><a name="NoToolbar"></a>Toolbar items appear, but fail to work</h2>
-If the toolbar items fail to work, we are facing one of two problems.<br>
+
+<p>If you must send someone a mail about SpamBayes,
+<a href="#mail">please read this first</a>.</p>
+
+<h2><a name="NoToolbar">Toolbar items appear, but fail to work</a></h2>
+<p>If the toolbar items fail to work, we are facing one of two problems.
+</p>
 <ul>
-  <li>The addin has failed to load.&nbsp; In this case, along with the
+<li>The addin has failed to load. In this case, along with the
 toolbars failing to work, SpamBayes will not be filtering or scoring
-any messages.&nbsp; To fix this, see the <a href="#Addin_doesnt_load">Addin
+any messages. To fix this, see the <a href="#Addin_doesnt_load">Addin
 doesn't load instructions</a>.</li>
-</ul>
-<ul>
-  <li>If the addin has loaded (ie, is filtering and scoring mail) but
+<li>If the addin has loaded (ie, is filtering and scoring mail) but
 the toolbar items don't, we have struck a common problem with the
-toolbars.&nbsp; Follow the instructions below.<br>
-  </li>
+toolbars. Follow the instructions below.</li>
 </ul>
-First we will try deleting the toolbar, and if that fails, completely
-reset all Outlook toolbars.&nbsp; Perform the following steps.<br>
+
+<p>First we will try deleting the toolbar, and if that fails, completely
+reset all Outlook toolbars. Perform the following steps:</p>
 <ul>
   <li>Right-click on any Outlook toolbar, and select Customize.</li>
-  <li>In the dialog that appears, ensure the <span
- style="font-style: italic;">Toolbars</span> tab is selected, locate
-SpamBayes in the list of
-toolbars, and select it.</li>
-  <li>Click on the Delete button.&nbsp; Outlook will ask for
-confirmation that you want to delete the SpamBayes toolbar.&nbsp;
-Select OK.</li>
-  <li>Close the customize dialog.&nbsp; The SpamBayes toolbar no longer
-appear.</li>
-  <li>Restart Outlook.&nbsp; SpamBayes will re-create the toolbar.</li>
-</ul>
-If all else fails, you can completely reset the Outlook toolbars by
-removing the file <span style="font-style: italic;">\Documents and
-Settings\{username}\Application Data\Microsoft\Outlook\outcmd.dat</span>.&nbsp;
-Although this is undocumented by Microsoft, we have never heard reports
-of problems.&nbsp; If you are paranoid, simply rename this file so that
-you have a copy.&nbsp; This has solved all toolbar problems for
-everyone who has reported one!<br>
-<h2><a name="Error_during_load"></a>Addin loads with an error message</h2>
-In this case, when you start Outlook you receive a message indicating
-that SpamBayes could not be initialized.<br>
-This means that SpamBayes has loaded, but struck an error during
-initialization.&nbsp; If the information in the error message does not
-indicate the nature of the error, please <a href="#ReportABug">report
-a bug</a> (making sure you <a href="#CheckLog">attach the log file</a>)<br>
-<h2><a name="Addin_doesnt_load"></a>Addin doesn't load</h2>
-If you start Outlook but there was no error message, the SpamBayes
-toolbar items do not work and new messages have no Spam score or
-filtering applied, then the plugin has probably become disabled.<br>
-<ul>
-  <li><a href="#CheckLog">Check the log file</a>.&nbsp; If a log file
-for this session exists, then see if it contains an error.&nbsp; If
-not, check the date and time of the log - it is probably a log from the
-last time it did work, so is no help to us.&nbsp; If a log does exist,
-please <a href="#ReportABug">report a bug.</a><br>
+  <li>In the dialog that appears, ensure the <tt>Toolbars</tt> tab is
+  selected, locate SpamBayes in the list of toolbars, and select it.</li>
+  <li>Click on the Delete button. Outlook will ask for confirmation that
+  you want to delete the SpamBayes toolbar. Select OK.</li>
+  <li>Close the customize dialog. The SpamBayes toolbar no longer appear.
   </li>
+  <li>Restart Outlook. SpamBayes will re-create the toolbar.</li>
 </ul>
+
+<p>If all else fails, you can completely reset the Outlook toolbars by
+removing the file
+<tt>\Documents and Settings\{username}\Application Data\Microsoft\Outlook\outcmd.dat</tt>
+Although this is undocumented by Microsoft, we have never heard reports
+of problems. If you are paranoid, simply rename this file so that you have
+a copy.</p>
+
+<h2><a name="Error_during_load">Addin loads with an error message</a></h2>
+
+<p>In this case, when you start Outlook you receive a message indicating
+that SpamBayes could not be initialized.</p>
+
+<p>This means that SpamBayes has loaded, but struck an error during
+initialization. If the information in the error message does not indicate
+the nature of the error, please <a href="#ReportABug">report a bug</a>
+(making sure you <a href="#CheckLog">attach the log file</a>).</p>
+
+<h2><a name="Addin_doesnt_load">Addin doesn't load</a></h2>
+<p>If you start Outlook but there was no error message, the SpamBayes
+toolbar items do not work and new messages have no spam score or
+filtering applied, then the plugin has probably become disabled.</p>
+
 <ul>
+  <li><a href="#CheckLog">Check the log file</a>. If a log file
+for this session exists, then see if it contains an error. If
+not, check the date and time of the log - it is probably a log from the
+last time it did work, so is no help to us. If a log does exist,
+please <a href="#ReportABug">report a bug.</a></li>
   <li>Check that Outlook shows the addin as enabled.</li>
-</ul>
-<ol>
+  <p>If you are running from source code, the addin will not appear in the
+  steps below. Please re-register the addin, as per the README.txt file.</p>
   <ol>
-    <li>Start Outlook, and select <span style="font-style: italic;">Tools</span>-&gt;<span
- style="font-style: italic;">Options</span> to display the main Options
-dialog.</li>
-    <li>Select the tab labeled <span style="font-style: italic;">Other</span>,
-then click on the <span style="font-style: italic;">Advanced</span>
-button.</li>
-    <li>Click on the <span style="font-style: italic;">COM Add-Ins</span>
-button.</li>
+    <li>Start Outlook, and select <tt>Options</tt> from the <tt>Tools</tt>
+    menu to display the main Options dialog.</li>
+    <li>Select the tab labeled <tt>Other</tt>, then click on the
+    <tt>Advanced</tt> button.</li>
+    <li>Click on the <tt>COM Add-Ins</tt> button.</li>
     <li>If the SpamBayes addin is not listed, then SpamBayes should be
-reinstalled (Note that running <span style="font-style: italic;">regsvr32.exe
-outlook_addin.dll</span> or <span style="font-style: italic;">
-outlook_addin_register.exe</span> from the SpamBayes directory may also
-solve this problem).</li>
+    reinstalled (Note that running <tt>regsvr32.exe outlook_addin.dll</tt>
+    or <tt>bin\outlook_addin_register.exe</tt> from the SpamBayes directory
+    may also solve this problem).</li>
     <li>If the SpamBayes addin is listed but not checked, then simply
-check it and close the dialog.</li>
-  </ol>
-</ol>
-<ul>
-  <li>If you are running <strong>Outlook XP/2002/2003</strong>,
-you may find that if you go back to the dialog, the addin will still be
-unselected.&nbsp; In this case, perform the following:</li>
-</ul>
-<ol>
+    check it and close the dialog.</li>
+    <li>If you are running <strong>Outlook XP/2002/2003</strong>,
+    you may find that if you go back to the dialog, the addin will still be
+    unselected. In this case, perform the following:</li>
   <ol>
-    <li>Go to <span style="font-style: italic;">Help-&gt;About
-Microsoft Outlook</span>.&nbsp; <br>
-    </li>
-    <li>Click the Disabled Items button. <br>
-    </li>
-    <li>Select SpamBayes.&nbsp;</li>
+    <li>Select <tt>About Microsoft Outlook</tt> from the <tt>Help</tt>
+    menu.</li>
+    <li>Click the Disabled Items button.</li>
+    <li>Select SpamBayes.</li>
     <li>Click Enable.</li>
     <li>Restart Outlook.</li>
   </ol>
 </ol>
-If you are running from source code, the addin will not appear in the
-above steps.&nbsp; Please re-register the
-addin, as per the README.txt file.
+<p>If none of that works, please <a href="#ReportABug">report a bug.</a></p>
+
+<h2><a name="Messages_fail_to_filter">Messages fail to filter</a></h2>
+<p>This is when messages arrive, but have no <tt>spam</tt> field value.
+Note that this is different from
+<a href="#Messages_have_incorrect_or_unexpected">a message having an
+incorrect or unexpected spam value</a>. This is for messages that have a
+completely blank spam score. To resolve this:</p>
 <ul>
-</ul>
-If none of that works, I am stumped!
-<ol>
-  <ol>
-  </ol>
-</ol>
-<ul>
-</ul>
-<h2><a name="Messages_fail_to_filter"></a>Messages fail to filter</h2>
-This is when messages arrive, but have no <span
- style="font-style: italic;">Spam</span> field.&nbsp; Note that this is
-different from a message having an incorrect or unexpected Spam value -
-that case is covered next.&nbsp; This is for messages that have a
-completely blank spam score.&nbsp; To resolve this:<br>
-<ul>
-  <li>Check that filtering is enabled.&nbsp; Select the SpamBayes
-manager, then ensure the button Enable Filtering is checked.&nbsp; If
-you are unable to select this button due to insufficient training
-information, please review the <a
- href="../about.html##Installing_and_Configuring">initial configuration
-documentation for information on training</a>.</li>
+  <li>Check that filtering is enabled. Select the SpamBayes Manager, then
+  ensure the button Enable Filtering is checked. If you are unable to
+  select this button due to insufficient training information, please
+  review the <a href="../about.html#Installing_and_Configuring">initial
+  configuration documentation for information on training</a>.</li>
   <li>If only the occasional message fails to filter, then it is likely
-that the message is in a format we don't understand.&nbsp; There is
-almost certainly an error listed in the log file.&nbsp; Please <a
- href="#ReportABug">report a bug</a>, attaching both the <a
- href="#CheckLog">log file</a> and the message that caused the error.</li>
-  <li>If all messages fail to filter, we have a more serious problem,
-but again, please <a href="#ReportABug">report
-a bug</a>, attaching the <a href="#CheckLog">log
-file.</a></li>
+  that the message is in a format we don't understand. There is almost
+  certainly an error listed in the log file. Please
+  <a href="#ReportABug">report a bug</a>, attaching both the
+  <a href="#CheckLog">log file</a> and the message that caused the error.
+  </li>
+  <li>If all messages fail to filter, we have a more serious problem but
+  again, please <a href="#ReportABug">report a bug</a>, attaching the
+  <a href="#CheckLog">log file.</a></li>
 </ul>
-<h2><a name="Messages_have_incorrect_or_unexpected"></a>Messages have
-incorrect or unexpected Spam values</h2>
-This is when filtering appears to work OK, except that the spam values
-are wrong.&nbsp; To resolve this<br>
+
+<h2><a name="Messages_have_incorrect_or_unexpected">Messages have
+incorrect or unexpected spam values</a></h2>
+
+<p>This is when filtering appears to work OK, except that the spam values
+are wrong. To resolve this:</p>
+
 <ul>
   <li>If the messages are all scoring as "unsure", with a score of 0.5,
-then you may have lost your training database.&nbsp; From the <span
- style="font-style: italic;">SpamBayes manager </span>dropdown, check
-how many spam and ham have been loaded by the system.&nbsp; If this
-number is very low (like zero!) then you probably need to perform a
-full
-re-train of your database.</li>
+  then you may have lost your training database. From the
+  <tt>SpamBayes Manager</tt> dropdown, check how many spam and good
+  messages have been loaded by the system. If this number is very low
+  (like zero!) then you probably need to perform a full re-train of your
+  database.</li>
   <li>If the messages have apparently random, but unexpected scores,
-then there are two possibilities; either SpamBayes is simply behaving
-what appears to be strangely, but really is correctly, or that some of
-the spam payload is invisible to SpamBayes.&nbsp; In both cases,
-perform
-the following:</li>
+  then there are two possibilities; either SpamBayes is simply behaving
+  what appears to be strangely, but really is correctly, or that some of
+  the spam payload is invisible to SpamBayes. In both cases, perform the
+  following:</li>
   <ul>
     <li>Ensure the message is selected in the Outlook preview pane, and
-from the <span style="font-style: italic;">SpamBayes manager</span>
-dropdown, select <span style="font-style: italic;">Show Spam clues for
-current message</span>.&nbsp; This should open a new mail message with
-the clues.</li>
-    <li>Part of the clues shows the body of the spam message.&nbsp; If
+from the <tt>SpamBayes Manager</tt> dropdown, select <tt>Show Spam clues
+for current message</tt>. This should open a new mail message with the
+clues.</li>
+    <li>Part of the clues shows the body of the spam message. If
 this message correctly shows the spam text, then it is likely SpamBayes
-is behaving correctly.&nbsp; In this case, you may wish to mail the
+is behaving correctly. In this case, you may wish to mail the
 clues to the SpamBayes mailing list for help in decoding the clues, but
 it is likely that SpamBayes is behaving correctly given your current
-training data.<br>
-    </li>
+training data.</li>
     <li>If it appears that part of the spam payload is missing, then
 you have probably stumbled across a bug - please mail the clues to the
 mailing list.</li>
   </ul>
 </ul>
-<h2><a name="ResetConfiguration"></a>Resetting SpamBayes configuration</h2>
-In some cases, it may become necessary to reset your SpamBayes
-configuration, especially if your configuration becomes invalid.&nbsp;
+
+<h2><a name="ResetConfiguration">Resetting SpamBayes configuration</a></h2>
+
+<p>In some cases, it may become necessary to reset your SpamBayes
+configuration, especially if your configuration becomes invalid.
 SpamBayes attempts to detect this situation, but doesn't always get it
-right.&nbsp; This section details where critical configuration files
-are stored.<br>
-SpamBayes stores all configuration data in <a
- href="#LocateDataDirectory">your data directory</a>.&nbsp; The
-configuration information is stored in a file called <span
- style="font-style: italic;">[profile name].ini</span>, where <span
- style="font-style: italic;">profile name</span> is the name of your
-Microsoft Outlook profile.&nbsp; The default profile name is usually <span
- style="font-style: italic;">Outlook</span>
-or <span style="font-style: italic;">Microsoft Outlook&nbsp; Internet
-Settings</span>, but Outlook can be configured to use any number of
-profiles, with any name.<br>
-Note that in this directory, you will also find a file named <span
- style="font-style: italic;">default_bayes_customize.ini</span> - this
-file <span style="font-weight: bold;">is not </span>used to configure
-the Outlook side of SpamBayes - look for any other .ini files in that
-directory.<br>
-If you delete the configuration file, SpamBayes will be completely
-reset.&nbsp; Note you will not lose your training data, only your
-configuration information.&nbsp; The next time you start Outlook, the
+right. This section details where critical configuration files
+are stored - <a href="configuration.html">more detailed information</a> is
+also available.</p>
+
+<p>SpamBayes stores all configuration data in
+<a href="#LocateDataDirectory">your data directory</a>. The configuration
+information is stored in a file called <tt>[profile name].ini</tt>,
+where <tt>profile name</tt> is the name of your Microsoft Outlook profile.
+The default profile name is usually <tt>Outlook</tt> or <tt>Microsoft
+Outlook Internet Settings</tt>, but Outlook can be configured to use any
+number of profiles, with any name.</p>
+
+<p>Note that, in this directory, you may also find a file named
+<tt>default_bayes_customize.ini</tt> - this file <strong>is not</strong>
+used to configure the Outlook side of SpamBayes - look for any other .ini
+files in that directory.</p>
+
+<p>If you delete the configuration file, SpamBayes will be completely
+reset. <em>Note you will not lose your training data, only your
+configuration information</em>. The next time you start Outlook, the
 SpamBayes configuration wizard should appear, guiding you through the
-configuration process<br>
-Your training data is also stored in this directory, but in files with
-a <span style="font-style: italic;">.db</span> extension.&nbsp; If you
-ever want to delete your training information, remove the two <span
- style="font-style: italic;">.db</span> files in this directory.<br>
-You may like to consider backing up this directory.<br>
-<h2><a name="register-all-users"></a>SpamBayes is not available for all
-users on the machine.</h2>
-When SpamBayes is installed, by default it is available only for the
-user who installed it.&nbsp; This is to allow SpamBayes to appear in
-Microsoft Outlook's Com-Addin list, and therefore able to be activated
-and de-activated by the user inside Outlook.<br>
-It is possible to register the addin so it is available to all users on
+configuration process</p>
+
+<p>Your training data is also stored in this directory, but in files with
+a <tt>.db</tt> extension. If you ever want to delete your training
+information, remove the two <tt>.db</tt> files in this directory.</p>
+
+<p>You may like to consider backing up this directory.</p>
+
+<h2><a name="register-all-users">SpamBayes is not available for all
+users on the machine.</a></h2>
+
+<p>When SpamBayes is installed, by default it is available only for the
+user who installed it. This is to allow SpamBayes to appear in
+Microsoft Outlook's COM-Addin list, and therefore able to be activated
+and de-activated by the user inside Outlook.</p>
+
+<p>It is possible to register the addin so it is available to all users on
 a particular machine, which can be useful in enterprise arrangements
-where users have 'roaming profiles'<br>
-To register SpamBayes in this way, you must log on as a user with
+where users have 'roaming profiles'.</p>
+
+<p>To register SpamBayes in this way, you must log on as a user with
 permissions to modify the system registry, then execute the command
-(obviously with the correct path substituted):<br>
-<span style="font-style: italic;">&nbsp;&nbsp;&nbsp;
-"c:\Program Files\SpamBayes\bin\outlook_addin_register.exe" hkey_local_machine</span><br>
-If you <a href="#CheckLog">check the installation log</a> after
-performing such an install, you should see the following messages:<br>
-<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registered:
-SpamBayes.OutlookAddin </span><br style="font-style: italic;">
-<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registration
-complete.</span><br style="font-style: italic;">
-<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registration (in
-HKEY_LOCAL_MACHINE) complete.</span><br style="font-style: italic;">
-Note the last line, which does not exist when registration is performed
-only for the current user.&nbsp; Once you have performed this
+(with the correct path substituted):</p>
+
+<p><tt>"c:\Program Files\SpamBayes\bin\outlook_addin_register.exe" hkey_local_machine</tt></p>
+
+<p>Note that the double-quotes in the above command are significant (and
+should be typed).  Because "Program Files" has a space in it, you
+<strong>must</strong> surround the entire command name with quotes.
+Otherwise, you'll get an error something like:</p>
+
+<p><tt>'c:\Program' is not recognized as an internal or external command, operable program or batch file.</tt></p>
+
+<p>If you <a href="#CheckLog">check the installation log</a> after
+performing such an install, you should see the following messages:</p>
+
+<p><tt>Registered: SpamBayes.OutlookAddin<br />
+Registration complete.<br />
+Registration (in HKEY_LOCAL_MACHINE) complete.</tt></p>
+
+<p>Note the last line, which does not exist when registration is performed
+only for the current user. Once you have performed this
 registration, the Addin will be available for all users - but as noted
-above, it will no longer appear in Outlook's Com-Addin list.<br>
-<h2><a name="All_other_problems"></a>All other problems</h2>
-If you are simply unsure about what SpamBayes is doing, please <a
- href="#mail">send a
-mail to the </a><a href="#mail">SpamBayes mailing
-list</a>
-with as much information as possible.&nbsp; If you are fairly sure you
-have struck a bug, then please <a href="#ReportABug">report it</a>.&nbsp;
-Please do not mail any of the contributors directly.<br>
-<hr style="width: 100%; height: 2px;">
-<h2>Process Descriptions<br>
-</h2>
-This explains some of the processes above in more detail.<br>
-<h3><a name="InstallationType"></a>Determine your installation type.</h3>
-If you are running from Python source code, and installed Python, plus
-SpamBayes as separate components, then you are running the <span
- style="font-style: italic;">source code version</span>.&nbsp; If you
-downloaded an installer .EXE file, then you are running the <span
- style="font-style: italic;">binary version</span>.<br>
-<h3><a name="CheckLog"></a>Check the log file</h3>
-<a href="#InstallationType">Determine your installation type</a>.&nbsp;
+above, it will no longer appear in Outlook's COM-Addin list.</p>
+
+<h2><a name="All_other_problems">All other problems</a></h2>
+
+<p>If you are simply unsure about what SpamBayes is doing, please
+<a href="#mail">send a mail to the </a><a href="#mail">SpamBayes mailing
+list</a> with as much information as possible. If you are fairly sure you
+have struck a bug, then please <a href="#ReportABug">report it</a>.
+<strong>Please do not mail any of the contributors directly</strong>.</p>
+
+<h2>Process Descriptions</h2>
+
+<p>This explains some of the processes above in more detail.</p>
+
+<h3><a name="InstallationType">Determine your installation type.</a></h3>
+
+<p>If you are running from Python source code, and installed Python, plus
+SpamBayes as separate components, then you are running the <tt>source code
+version</tt>. If you downloaded an installer .exe file, then you are
+running the <tt>binary version</tt>.</p>
+
+<h3><a name="CheckLog">Check the log file</a></h3>
+
+<p><a href="#InstallationType">Determine your installation type</a>.
 If you are running the source code version, then please see README.txt
-in the Outlook2000 directory.<br>
-If you are running the binary version, the simplest way to get hold of
-the most recent log is to:
+in the Outlook2000 directory.</p>
+
+<p>If you are running the binary version, the simplest way to get hold of
+the most recent log is to:</p>
 <ol>
-<li>Open the SpamBayes Manager dialog (from the SpamBayes toolbar)</li>
-<li>Click the Advanced tab.</li>
-<li>Click the Diagnostics button.</li>
-<li>Click the View log button.</li>
+<li>Open the <tt>SpamBayes Manager</tt> dialog (from the SpamBayes
+toolbar).</li>
+<li>Click the <tt>Advanced</tt> tab.</li>
+<li>Click the <tt>Diagnostics</tt> button.</li>
+<li>Click the <tt>View log</tt> button.</li>
 </ol>
-To find the log manually, you'll need to find your Windows temp directory,
-into which the SpamBayes addin writes the log. This directory is generally
-<span style="font-style: italic;">\WINDOWS\TEMP</span> for Windows 9x,
-or <span style="font-style: italic;">\Documents and
-Settings\{username}\Local
-Settings\Temp</span> for Windows 2000/XP.<br>
-<br>
-Note that by default, in Windows 2000 and XP, Windows Explorer will not
-show the <span style="font-style: italic;">Local Settings</span>
-directory, as it is hidden.&nbsp; You can convince Windows Explorer to
-show this directory (and therefore allow you to see the <span
- style="font-style: italic;">Temp</span> directory under it by doing
-either:<br>
+
+<p>To find the log manually, you'll need to find your Windows temp
+directory, into which the SpamBayes addin writes the log. This directory is
+generally <tt>\WINDOWS\TEMP</tt> for Windows 95, 98 and ME, or
+<tt>\Documents and Settings\{username}\Local Settings\Temp</tt> for
+Windows 2000/XP.</p>
+
+<p>Note that by default, in Windows 2000 and XP, Windows Explorer will not
+show the <tt>Local Settings</tt> directory. You can convince Windows
+Explorer to show this directory (and therefore allow you to see the
+<tt>Temp</tt> directory under it) by doing either:</p>
 <ul>
-  <li>Select the folder <span style="font-style: italic;">\Documents
-and Settings\{username}</span>.&nbsp; This directory should be
-reflected in the Address Bar.&nbsp; In the Address Bar, simply type at
-the end "\Local Settings" (thereby giving that full path name), and
-press <span style="font-style: italic;">Enter</span>.&nbsp; Explorer
-will then show this folder.</li>
+  <li>Select the folder <tt>\Documents and Settings\{username}</tt>.</li>
+  <p>This directory should be reflected in the Address Bar.</p>
+  <li>In the Address Bar, simply type, at the end, <tt>\Local Settings</tt>
+  (thereby giving the full path name), and press <tt>Enter</tt>.</li>
+  <p>Windows Explorer will then show this folder.</p>
 </ul>
-or
+<p>or</p>
 <ul>
-  <li>Select <span style="font-style: italic;">Tools-&gt;Folder Options</span>,
-select the <span style="font-style: italic;">View</span> tab, and in
-the list, select <span style="font-style: italic;">Show hidden files
-and folders</span>.&nbsp; Select OK.&nbsp; This folder will now be
-visible.&nbsp; You may like to then reset this option back to the
-default value.<br>
-  </li>
+  <li>Select <tt>Folder Options</tt> from the <tt>Tools</tt> menu.</li>
+  <li>Select the <tt>View</tt> tab.</li>
+  <li>In the list, select <tt>Show hidden files and folders</tt>.</li>
+  <li>Select OK.<li>
+  <p>This folder will now be visible. You may like to then reset this
+  option back to the default value.</p>
 </ul>
-The log file for the
-most recent execution of Outlook is named <span
- style="font-style: italic;">spambayes1.log</span>, the second most
-recent is named <span style="font-style: italic;">spambayes2.log</span>,
-and so on for the four previous runs.&nbsp; You can view this file with
-notepad.&nbsp; Usually, you will simply see
-messages which indicate that SpamBayes is doing its job; however
-in some cases there will be errors in this file.&nbsp; If there are
-errors, please <a href="#ReportABug">report a bug</a>.<br>
+
+<p>The log file for the most recent execution of Outlook is named
+<tt>spambayes1.log</tt>, the second most recent is named
+<tt>spambayes2.log</tt>, and so on for the four previous runs. You can view
+this file with <tt>Notepad</tt>. Usually, you will simply see messages
+which indicate that SpamBayes is doing its job; however in some cases there
+will be errors in this file. If there are errors, please
+<a href="#ReportABug">report a bug</a>.</p>
+
 <h4>If the log file is very large</h4>
-This probably means that SpamBayes failed to process a large number of
-(or a few, large) emails.&nbsp; In that case, please perform the
-following steps:<br>
+
+<p>This probably means that SpamBayes failed to process a large number of
+(or a few, large) emails. In that case, please perform the following steps:
+</p>
 <ul>
-  <li>Ensure all messages in your watch folders are marked as read</li>
-  <li>Restart Outlook (use <span style="font-style: italic;">Exit and
-Sign off</span> if it is in your <span style="font-style: italic;">File</span>
-menu)</li>
+  <li>Ensure all messages in your watch folders are marked as read.</li>
+  <li>Restart Outlook (use <tt>Exit and Sign off</tt> if it is in your
+  <tt>File</tt> menu)</li>
   <li>Send yourself a test message, and wait for it to arrive.</li>
   <li>Exit Outlook.</li>
 </ul>
-You should have a new log file containing the error when classifying
-the test message.&nbsp; If no error occurs processing the test message,
-the previous large log file will still exist (see above).&nbsp; Either
+
+<p>You should have a new log file containing the error when classifying
+the test message. If no error occurs processing the test message,
+the previous large log file will still exist (see above). Either
 edit the file using a text editor to extract just the error
-information, or zip it up.&nbsp; If you don't know what that means,
-please send a mail.<br>
-<h3><a name="LocateDataDirectory"></a>Locating your Data Directory</h3>
-SpamBayes stores all configuration and database information in a single
-directory.&nbsp; By default, this directory is located under the user's
-<span style="font-style: italic;">Application Data</span>
-directory.&nbsp; You can locate this directory by
-using the <span style="font-style: italic;">Show Data Folder</span>
-button on the <span style="font-style: italic;">Advanced</span> tab of
-the main SpamBayes Manager dialog.<br>
-If you need to locate it by hand, on
-Windows NT/2000/XP, it will probably be <span
- style="font-style: italic;">C:\Documents
-and Settings\[username]\Application Data\Spambayes</span>, or on other
-versions of Windows it will probably be <span
- style="font-style: italic;">C:\Windows\Application Data\Spambayes</span>.&nbsp;
-Note that the <span style="font-style: italic;">Application Data </span>folder
-may be hidden, so Windows
+information, or zip it up. If you don't know what that means,
+please <a href="#mail">send a mail</a>.</p>
+
+<h3><a name="LocateDataDirectory">Locating your Data Directory</a></h3>
+
+<p>SpamBayes stores all configuration and database information in a single
+directory. By default, this directory is located under the user's
+<tt>Application Data</tt> directory. You can locate this directory by
+using the <tt>Show Data Folder</tt> button on the <tt>Advanced</tt> tab of
+the main SpamBayes Manager dialog.</p>
+
+<p>If you need to locate it by hand, on Windows NT/2000/XP, it will
+probably be
+<tt>C:\Documents and Settings\{username}\Application Data\Spambayes</tt>,
+or on other versions of Windows it will probably be
+<tt>C:\Windows\Application Data\Spambayes</tt>.Note that the
+<tt>Application Data</tt> folder may be hidden, so Windows
 Explorer may not show it by default, but you can enter the path into
-the Address Bar and Explorer will open it.<br>
-Note that by modifying the configuration files, you can tell SpamBayes
-to store this data in any directory, so it is possible your data is
-being stored elsewhere - contact your network administrator if this
-appear to be the case.
+the Address Bar and Explorer will open it.</p>
+
+<p>Note that by <a href="configuration.html">modifying the configuration
+files</a>, you can tell SpamBayes to store this data in any directory, so
+it is possible your data is being stored elsewhere - contact your network
+administrator if this appears to be the case.
+
 <h3>Report a bug</h3>
-All SpamBayes bugs are maintained in <a
- href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">this
-page at sourceforge</a>.&nbsp; Please have a check of the bugs already
-reported to see if your bug has already been reported.&nbsp; If not,
-open a new bug, making sure to set the Category to <span
- style="font-style: italic;">Outlook</span>.&nbsp; Please ensure you
-attach the <a href="#CheckLog">log file</a> to the bug.<br>
-If you are unsure about the bug, or need any assistance, please <a
- href="#mail">send a
-mail</a>.<br>
-<br>
-<h3><a name="mail"></a>Send a mail</h3>
-If all else fails, you may want to send someone a mail.,&nbsp; Please
-make sure you have read this document thoroughly before doing do.<br>
-Your mail should be sent to the <a href="mailto:spambayes@python.org">SpamBayes
-mailing
-list (spambayes@python.org)</a>&nbsp; <span style="font-weight: bold;">Please
-do not mail any of the contributors directly</span> (see "good karma"
-below).<br>
-Please ensure this mail contains:<br>
+
+<p>All SpamBayes bugs are maintained in on <a
+ href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">a
+page at sourceforge</a>. <em>Please have a check of the bugs already
+reported to see if your bug has already been reported</em>. If not,
+open a new bug, making sure to set the Category to <tt>Outlook</tt>. Please
+ensure you attach the <a href="#CheckLog">log file</a> to the bug.</p>
+
+<p>If you are unsure about the bug, or need any assistance, please
+<a href="#mail">send a mail</a>.</p>
+
+<h3><a name="mail">Send a mail</a></h3>
+
+<p>If all else fails, you may want to send someone a mail. Please
+make sure you have read this document thoroughly before doing do.</p>
+
+<p>Your mail should be sent to the
+<a href="mailto:spambayes@python.org">SpamBayes mailing list
+(spambayes@python.org)</a>. <strong>Please do not mail any of the
+contributors directly!</strong> (see "good karma" below).</p>
+
+<p>Please ensure this mail contains:</p>
 <ul>
-  <li>the version of Windows you are using</li>
-  <li>the version of SpamBayes</li>
+  <li>the version of Windows you are using,</li>
+  <li>the version of SpamBayes,</li>
   <li>any log files.</li>
 </ul>
-If you also mention that you read this trouble-shooting guide and are
-still stuck, then you will be more likely to get answered!&nbsp; (And
-if you can <a href="http://mail.python.org/mailman/listinfo/spambayes">subscribe
-to this mailing list</a> and help answer other questions, good karma
-will come your way!)<br>
-<br>
+
+<p>If you also mention that you read this trouble-shooting guide and are
+still stuck, then you will be more likely to get answered! (And
+if you can
+<a href="http://mail.python.org/mailman/listinfo/spambayes">subscribe
+to this mailing list</a> and help answer other questions, and good karma
+will come your way!)</p>
 </body>
 </html>

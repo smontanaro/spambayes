@@ -11,7 +11,6 @@
 #define IDD_STATISTICS                  107
 #define IDD_GENERAL                     108
 #define IDD_FILTER_SPAM                 110
-#define IDD_FILTER_UNSURE               111
 #define IDD_DIAGNOSTIC                  113
 #define IDD_WIZARD                      114
 #define IDD_WIZARD_WELCOME              115
@@ -59,9 +58,7 @@
 #define IDC_FOLDER_UNSURE               1033
 #define IDC_BROWSE_UNSURE               1034
 #define IDC_TRAINING_STATUS             1035
-#define IDC_FOLDER_HAM                  1098
 #define IDC_FOLDER_NAMES                1036
-#define IDC_BROWSE_HAM                  1099
 #define IDC_BROWSE                      1037
 #define IDC_FOLDER_WATCH                1038
 #define IDC_BROWSE_WATCH                1039
@@ -111,7 +108,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        128
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1100
+#define _APS_NEXT_CONTROL_VALUE         1098
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1175,6 +1175,10 @@ def load_options():
     options = OptionsClass()
     options.load_defaults(defaults)
 
+    # Maybe we are reloading.
+    if optionsPathname:
+        options.merge_file(optionsPathname)
+
     alternate = None
     if hasattr(os, 'getenv'):
         alternate = os.getenv('BAYESCUSTOMIZE')

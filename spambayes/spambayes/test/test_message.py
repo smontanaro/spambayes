@@ -467,13 +467,13 @@ class SBHeaderMessageTest(unittest.TestCase):
             for disp in (self.ham, self.spam, self.unsure):
                 # Add a notation to the header
                 header = self.msg[headername]
-                self.assert_(disp not in header)
+                self.assertEqual(header.find(disp), -1)
                 options["Headers", "notate_%s" % (headername,)] = \
                                    (self.ham, self.unsure, self.spam)
                 prob = {self.ham:self.g_prob, self.spam:self.s_prob,
                         self.unsure:self.u_prob}[disp]
                 self.msg.addSBHeaders(prob, self.clues)
-                self.assert_(disp in self.msg[headername])
+                self.assertNotEqual(self.msg[headername].find(disp), -1)
                 # Remove it
                 self.msg.delNotations()
                 self.assertEqual(self.msg[headername], header)
@@ -485,40 +485,55 @@ class SBHeaderMessageTest(unittest.TestCase):
             for disp in (self.ham, self.spam, self.unsure):
                 # Add a notation to the header
                 header = self.msg[headername]
-                self.assert_(disp not in header)
+                self.assertEqual(header.find(disp), -1)
                 options["Headers", "notate_%s" % (headername,)] = ()
                 prob = {self.ham:self.g_prob, self.spam:self.s_prob,
                         self.unsure:self.u_prob}[disp]
                 self.msg.addSBHeaders(prob, self.clues)
-                self.assert_(disp not in self.msg[headername])
+                self.assertEqual(self.msg[headername].find(disp), -1)
                 # Remove it
                 self.msg.delNotations()
                 self.assertEqual(self.msg[headername], header)
 
-    def test_delNotations_only_once(self):
-        # Check that only one disposition is removed, even if more than
-        # one is present.
+    def test_delNotations_no_header(self):
+        # Check that it works if there is no subject/to header.
         for headername in ["subject", "to"]:
             for disp in (self.ham, self.spam, self.unsure):
-                # Add a notation to the header
-                header = self.msg[headername]
-                self.assert_(disp not in header)
+                del self.msg[headername]
                 options["Headers", "notate_%s" % (headername,)] = \
                                    (self.ham, self.unsure, self.spam)
-                prob = {self.ham:self.g_prob, self.spam:self.s_prob,
-                        self.unsure:self.u_prob}[disp]
-                self.msg.addSBHeaders(prob, self.clues)
-                self.assert_(disp in self.msg[headername])
-                header2 = self.msg[headername]
-                # Add a second notation
-                self.msg.addSBHeaders(prob, self.clues)
-                self.assert_(disp in
-                             self.msg[headername].replace(disp, "", 1))
-                # Remove it
                 self.msg.delNotations()
-                self.assertEqual(self.msg[headername], header2)
-                # Restore for next time round the loop
-                self.msg.replace_header(headername, header)
+                self.assertEqual(self.msg[headername], None)
+
+    def test_delNotations_only_once_subject(self):
+        self._test_delNotations_only_once("subject")
+
+    def test_delNotations_only_once_to(self):
+        self._test_delNotations_only_once("to")
+        
+    def _test_delNotations_only_once(self, headername):
+        # Check that only one disposition is removed, even if more than
+        # one is present.
+        for disp in (self.ham, self.spam, self.unsure):
+            # Add a notation to the header
+            header = self.msg[headername]
+            self.assertEqual(header.find(disp), -1)
+            options["Headers", "notate_%s" % (headername,)] = \
+                               (self.ham, self.unsure, self.spam)
+            prob = {self.ham:self.g_prob, self.spam:self.s_prob,
+                    self.unsure:self.u_prob}[disp]
+            self.msg.addSBHeaders(prob, self.clues)
+            self.assertNotEqual(self.msg[headername].find(disp), -1)
+            header2 = self.msg[headername]
+            # Add a second notation
+            self.msg.addSBHeaders(prob, self.clues)
+            self.assertNotEqual(self.msg[headername].\
+                                replace(disp, "", 1).find(disp), -1)
+            # Remove it
+            self.msg.delNotations()
+            self.assertEqual(self.msg[headername], header2)
+            # Restore for next time round the loop
+            self.msg.replace_header(headername, header)
 
 
 class MessageInfoBaseTest(unittest.TestCase):
@@ -719,12 +734,25 @@ class UtilitiesTest(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    for cls in (MessageTest,
-                SBHeaderMessageTest,
-                MessageInfoPickleTest,
-                MessageInfoDBTest,
-                UtilitiesTest,
-               ):
+    classes = (MessageTest,
+               SBHeaderMessageTest,
+               MessageInfoPickleTest,
+               UtilitiesTest,
+               )
+    from spambayes import dbmstorage
+    try:
+        dbmstorage.open_best()
+    except dbmstorage.error:
+        print "Skipping MessageInfoDBTest - no dbm module available"
+        from spambayes import message
+        def always_pickle():
+            return "__test.pik", "pickle"
+        message.database_type = always_pickle
+    except TypeError:
+        # We need an argument, so TypeError will be raised
+        # when it *is* available.
+        classes += (MessageInfoDBTest,)
+    for cls in classes:
         suite.addTest(unittest.makeSuite(cls))
     return suite
 

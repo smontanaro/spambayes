@@ -1,61 +1,154 @@
 This file covers the major changes between each release.  For more details,
 the reader is referred to the changelog (CHANGELOG.TXT in the main directory
-of the archive), or for extreme details, to the check-ins archive (see
-<http://mail.python.org/pipermail/spambayes-checkins>)
+of the source archive), or for extreme details, to the check-ins archive
+(see <http://mail.python.org/pipermail/spambayes-checkins>).
                                                                    
 Changes are broken into sections, so that it's easier for you to find the
 changes that are relevant to you.
 
 Any actions necessary to move to this release from the previous release are
-noted in the "Transition" section.  You should also read the "Incompatible
-changes" section.
+noted in the "Incompatible changes and Transitioning" section.
 
-New in 1.0 Release Candiate 1
-=============================
+Note that this is an alpha release, intended for those willing to try out
+very cutting edge software.  It is likely that there are a few unresolved
+bugs with this release.  If you would rather wait for a more stable release
+to have the new features here, please continue to use 1.0.2 until 1.1 final
+is released.
 
---------------------------
-** Incompatible changes **
---------------------------
+New in 1.1 Alpha 1
+==================
 
-There should be no incompatible changes (from 1.0b1) in this release.
+
+--------------------------------------------
+** Incompatible changes and Transitioning **
+--------------------------------------------
+
+There should be no incompatible changes (from 1.0.2) in this release.
+If you are transitioning from a version older than 1.0.2, please
+read the notes in the previous release notes (accessible from
+<http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
 
 -------------------
 ** Other changes **
 -------------------
 
-Outlook Plugin
---------------
- o Default buttons in some dialogs have been corrected.
-
-IMAP Filter
------------
- o The code that allows the filter to keep going when a message cannot
-   be parsed correctly has been strengthened.  If the filter crashed
-   with a "TypeError" when processing some messages, this should fix
-   that problem.
- o If the move_trained_[ham|spam]_to_folder options were used, this
-   would wipe out the SpamBayes headers.  This is now fixed.
-
 General
 -------
- o Added -R/--reverse flag to tte.py
- o Fix an error that stopped the notes filter working at all in many cases.
- o sb_filter and sb_bnfilter now better handle messages that fail to
-   correctly parse.
+ o Localisations (translations of the user interface) of SpamBayes are
+   now available.  1.1 includes French and Spanish translations - many
+   thanks to the translators for their efforts.  If you would like to
+   add a translation in a new language (or dialect), please contact the
+   SpamBayes development team at spambayes-dev@python.org.  For Windows
+   users, SpamBayes will use the same language as the operating system
+   is set to use (if available).  This can be overridden (or set, for
+   non-Windows users) via the configuration file.
+ o The version number scheme has been improved and simplified.
+ o Many more unittests have been added.  For the end user, this should
+   mean that changes in later versions are much less likely to break
+   existing functionality.
+ o New storage types are available: CDBClassifier (uses a CDB database,
+   similar to that used by CdbClassifier, but not identical),
+   ZODBClassifier (uses a ZODB FileStorage object) and ZEOClassifier
+   (connects to a ZEO server).
+ o The "use bigrams" option is no longer experimental, although is still
+   off by default.
 
+Outlook Plugin
+--------------
+ o The Manager dialog is enlarged (at least 800x600 resolution is needed
+   to view it - 640x480 users will need to continue with 1.0.2) and
+   enhanced to (among other things) include a new "Statistics" tab.
+ o Enhance the "Show Clues" message.  This now includes information about
+   the last time the message was trained or classified.
+ o For messages received from a local Exchange server, which have no
+   Internet headers, we now generate more (and better) headers from the
+   available message properties.
+ o Statistics are vastly improved.  More statistics are reported, and
+   these are persistent across Outlook sessions.  The statistics may
+   be 'reset' so that they are calculated from a specified date and time.
+ o Enable movement/copying of ham (good) messages, like the existing
+   functionality for unsure/spam messages.
+ o The "Delete As Spam" button is now simply "Spam", and the
+   "Recover From Spam" button simply "Not Spam".
+ o Notification sounds can now be set.
+ o The SpamBayes menu now includes an "Empty Spam Folder" option.
+ o Outlook users can now use a variety of different underlying database
+   storage methods, in the same fashion as non-Outlook users.
 
-Transition
-==========
-If you are transitioning from a version older than 1.0b1, please
-read the notes in the previous release notes (accessible from
-<http://sourceforge.net/project/showfiles.php?group_id=61702>).
+POP3 Proxy (sb_server.py)
+-------------------------
+ o POP over SSL is partially available.  The connection from the mail
+   client to sb_server still cannot be over SSL, but the connection
+   from sb_server to the mail server can be.  The latter is more likely
+   to be at risk (as it is more likely to be non-local), so is the
+   more important, as well as the easier to implement.
+ o "Subject" (and "To") notations are removed from messages before display
+   in the review pages and before training such messages.
+ o The "To" header notations are in a new form, which is correctly an
+   email address.
+ o A particular type of malformed message (one with no header-body
+   separator) would pass through SpamBayes without classification, or
+   a X-Spambayes-Exception header.  This is no longer the case.
+
+Web interface (sb_server.py and sb_imapfilter.py)
+-------------------------------------------------
+ o Improve the "More Statistics" page.  More statistics are reported, and
+   the statistics may be 'reset' so that they are calculated from a
+   specified date and time.
+ o A new option "Use bigrams" is available from the Advanced Configuration
+   page.
+ o Various minor fixes and improvements.
+
+IMAP Filter (sb_imapfilter.py)
+------------------------------
+ o Use the "Message-ID" header as the SpamBayes ID (when possible).  This
+   means that the IMAP filter should not need to rewrite nearly as many
+   messages (hopefully, should need to rewrite no ham messages), and should
+   also work faster and more reliably.
+ o A ham folder may now be specified, like the spam and unsure folders.
+ o Continue on (skipping) if a folder is unable to be acccesed for training
+   or filtering.
+ o Many minor fixes and improvements.
+
+sb_pop3dnd.py
+-------------
+Many improvements.  Should now be useable.  Binary now included.  Tray
+app now included.
+ o Spam classification and spam training have been separated out into
+   separate folders.
+ o No longer uses the web interface.  Configuration is available via
+   a dialog, training is via drag and drop between IMAP folders, and
+   information is provided in the "Inbox" IMAP folder.
+
+New
+---
+ o Andrew Dalke's sb_culler.py script (an updated version) is now
+   included in the source distribution.
+ o The new hammie2cdb.py script converts standard spambayes.Storage
+   databases into cdb databases usable by CdbClassifier.
+ o The new postfixproxy.py script is a proxy filter for use with
+   PostFix 2.1's content filter functionality.
+ o The new pycksum.py script is a fuzzy checksum program.
+
+Other
+-----
+ o The sb_upload.py script's help string has been improved, and the
+   -n (--null) command line option now works.  The script is now also
+   to train as well as upload.
+ o The tte.py script has had many improvements, including Python 2.3
+   compatibility, addition of a --ratio flag, deletion of correctly
+   scoring messages, an improved scoring algorithm, and improved
+   detection of whether a message is a miss or not.
+ o A version of sb_bnfilter that is implemented in C (for speed) is
+   now available.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-    940155, 941596, 918157
+  1078923, 1022848, 831864, 922063, 1051081, 903905, 1036601, 790757,
+  944109, 959937, 943852, 941639, 986353, 990700, 933473, 981970, 1071319
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -66,78 +159,40 @@ Feature Requests Added
 ======================
 No feature requests tracked via the Sourceforge system were added for this
 release.
+870524, 940547, 715248, 938992, 1039057, 909088, 887984, 753708, 848365
 
 
 Patches integrated
 ===================
 No patches tracked via the Sourceforge system were integrated for this
 release.
+1052816, 962693, 831941, 858925, 800671
 
 
-Newly Deprecated Options
-========================
+Deprecated Options
+==================
 
-Since 1.0a9, SpamBayes has had a method of noting options that are
-deprecated and which will not be available in future releases (it is
-likely that options will only be deprecated for one release before being
-removed).  Deprecated options will not be offered in the graphical
-interfaces (Outlook plugin and web interface), and will be listed in
-the "What's New" file (this file) for each release.
-
-Deprecated options have the same name as previously, but now begin with
-"x-" (so "extract_dow" is now "x-extract_dow").  You can continue to use
-the original name (e.g. "extract_dow") in your configuration file, but will
-receive warnings in your log file or console window.  We recommend that you
-examine this output every time you upgrade SpamBayes to ensure that you are
-not using any newly deprecated options.
-
-Discussion regarding the deprecation of any particular option can be found
-in the spambayes-dev archives (at
-<http://mail.python.org/pipermail/spambayes-dev>).
-
-No options have been deprecated in this release.
-
-The following options are still deprecated and will be removed in the near
-future, unless testing indicates otherwise:
-  o [Tokenizer] generate_time_buckets
-  o [Tokenizer] extract_dow
-  o [Classifier] experimental_ham_spam_imbalance_adjustment
+No options are currently deprecated.
 
 
-New Experimental Options
-========================
+Experimental Options
+====================
 
-Since 1.0a9, SpamBayes has had a method of noting options that are
-experimental and which may be removed or made permanent in future releases
-(many experimental options will only be experimental for one release before
-being removed or fully integrated).  Experimental options are not exposed
-by the Outlook plugin, and are listed on a separate
-"Experimental Configuration" page in the web interface.  The options will
-be listed in the "What's New" file (this file) for each release.
+We would like to remind users about our set of experimental options.  These
+are options which we believe may be of benefit to users, but have not been
+tested throughly enough to warrent full inclusion.  We would greatly
+appreciate feedback from users willing to try these options out as to their
+perceived benefit.  Both source code and binary users (including Outlook)
+can try these options out.
 
-Experimental options begin with "x-" (as do deprecated options).  If you
-start using an experimental option and it later becomes permanent you can
-continue to use the "x-" name in your configuration file, but will
-receive warnings in your log file or console window.  We recommend that you
-examine this output every time you upgrade SpamBayes to ensure that you are
-using the correct name for all options.
+More information about the experimental options and how to enable them
+can be found at:
+  http://spambayes.org/experimental.html
 
-Discussion of why experimental options and results from using them can be
-found in the spambayes-dev archives (at
-<http://mail.python.org/pipermail/spambayes-dev>).  Ideally, we would like
-users to test these options out on their mail and let us know the results.
-This can be as simple as turning on the option and emailing
-spambayes@python.org with anecdotal results after a period of time, or the
-full testtools scripts can be used.  For details about using these, please
-read the "README-DEVEL.txt" file that comes with the SpamBayes source
-archive.
-
-Experimental options are always turned off by default.
-
-No experimental options have been added in this release.
-
-Experimental options that are currently available (which we invite you to
-try out and report back your results) include:
+If you have any queries about the experimental options, please email
+spambayes@python.org and we will try and answer them.
+                                                          
+Experimental options that are currently available include:
   o [Tokenizer] x-search_for_habeas_headers
   o [Tokenizer] x-reduce_habeas_headers
     These generate tokens based on the Habeas headers (see

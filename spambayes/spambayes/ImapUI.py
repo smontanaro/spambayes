@@ -105,6 +105,7 @@ adv_map = (
     ('html_ui',               'http_authentication'),
     ('html_ui',               'http_user_name'),
     ('html_ui',               'http_password'),
+    ('globals',               'language'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):

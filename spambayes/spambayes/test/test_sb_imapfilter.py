@@ -10,6 +10,7 @@ import thread
 import imaplib
 import unittest
 import asyncore
+import StringIO
 
 import sb_test_support
 sb_test_support.fix_sys_path()
@@ -528,6 +529,39 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         self.assertEqual(data['5']["FLAGS"], flags)
         self.assertEqual(data['5']["UID"], uid)
         self.assertEqual(data['5']["RFC822.HEADER"], headers)
+
+    def _counter(self, size):
+        self._count += 1
+        return self._imap_file_read(size)
+    def test_safe_read(self):
+        # Ensure that safe_read only gets self.imap.MAXIMUM_SAFE_READ bytes
+        # at a time, and that it does collect everything.
+        # Setup a fake file to read from.
+        saved_file = self.imap.file
+        self.imap.file = StringIO.StringIO()
+        self.imap.file.write("".join(IMAP_MESSAGES.values()*10))
+        self.imap.file.seek(0)
+        try:
+            # First check when the size is less than the maximum.
+            self.assertEqual(len(self.imap.read(\
+                self.imap.MAXIMUM_SAFE_READ-1)),
+                             self.imap.MAXIMUM_SAFE_READ-1)
+            # Check when the size is more than the maximum.
+            self.assertEqual(len(self.imap.read(\
+                self.imap.MAXIMUM_SAFE_READ+1)),
+                             self.imap.MAXIMUM_SAFE_READ+1)
+            # Check that the read is called once when the size is smaller.
+            self._count = 0
+            self._imap_file_read = self.imap.file.read
+            self.imap.file.read = self._counter
+            self.imap.read(self.imap.MAXIMUM_SAFE_READ-1)
+            self.assertEqual(self._count, 1)
+            # Check that the read is called twice when the size is larger.
+            self._count = 0
+            self.imap.read(self.imap.MAXIMUM_SAFE_READ+1)
+            self.assertEqual(self._count, 2)
+        finally:
+            self.imap.file = saved_file
 
 
 class IMAPMessageTest(BaseIMAPFilterTest):

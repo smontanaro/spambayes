@@ -42,15 +42,12 @@ Examples:
         sb_imapfilter -t -p bayes.db
 
 Warnings:
-    o This is beta software.  While we are reasonably confident that it
-      should work as designed, there is a lot of difference between IMAP
-      servers, and we can only test with a few.  We never delete mail,
-      unless you use the -e/purge option, but we do mark a lot as deleted,
-      and your mail client might remove that for you.  We try to only mark
-      as deleted once the moved/altered message is correctly saved, but
-      things might go wrong.  We *strongly* recommend that you try this
-      script out on mail that you can recover from somewhere else, at least
-      at first.
+    o We never delete mail, unless you use the -e/purge option, but we do
+      mark a lot as deleted, and your mail client might remove that for
+      you.  We try to only mark as deleted once the moved/altered message
+      is correctly saved, but things might go wrong.  We *strongly*
+      recommend that you try this script out on mail that you can recover
+      from somewhere else, at least at first.
 """
 
 todo = """
@@ -64,7 +61,7 @@ todo = """
     o Suggestions?
 """
 
-# This module is part of the SpamBayes project, which is Copyright 2002-4
+# This module is part of the SpamBayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -160,6 +157,14 @@ class IMAPSession(BaseIMAP):
         # we want to *change* folders.  This functionality is used by
         # both IMAPMessage and IMAPFolder.
         self.current_folder = None
+
+        # We override the base read so that we only read a certain amount
+        # of data at a time.  OS X and Python has problems with getting 
+        # large amounts of memory at a time, so maybe this will be a way we
+        # can work around that (I don't know, and don't have a mac to test,
+        # but we need to try something).
+        self._read = self.read
+        self.read = self.safe_read
 
     def readline_timeout(self):
         """Read line from remote, possibly timing out."""
@@ -395,6 +400,20 @@ class IMAPSession(BaseIMAP):
                 else:
                     data[num] = msg_data
         return data
+
+    # Maximum amount of data that will be read at any one time.
+    MAXIMUM_SAFE_READ = 4096
+    def safe_read(self, size):
+        """Read data from remote, but in manageable sizes."""
+        data = []
+        while size > 0:
+            if size < self.MAXIMUM_SAFE_READ:
+                to_collect = size
+            else:
+                to_collect = self.MAXIMUM_SAFE_READ
+            data.append(self._read(to_collect))
+            size -= self.MAXIMUM_SAFE_READ
+        return "".join(data)
 
 
 class IMAPMessage(message.SBHeaderMessage):
