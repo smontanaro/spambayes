@@ -51,18 +51,9 @@ except NameError:
     _ = lambda arg: arg
 
 class Stats(object):
-    def __init__(self, spam_threshold, unsure_threshold, messageinfo_db,
-                 ham_string, unsure_string, spam_string, fp_cost, fn_cost,
-                 unsure_cost):
+    def __init__(self, options, messageinfo_db):
         self.messageinfo_db = messageinfo_db
-        self.spam_threshold = spam_threshold
-        self.unsure_threshold = unsure_threshold
-        self.ham_string = ham_string
-        self.unsure_string = unsure_string
-        self.spam_string = spam_string
-        self.fp_cost = fp_cost
-        self.fn_cost = fn_cost
-        self.unsure_cost = unsure_cost
+        self.options = options
         # Reset session stats.
         self.Reset()
         # Load persistent stats.
@@ -86,9 +77,9 @@ class Stats(object):
             self.messageinfo_db.set_statistics_start_date(self.from_date)
 
     def RecordClassification(self, score):
-        if score >= self.spam_threshold:
+        if score >= self.options["Categorization", "spam_cutoff"]:
             self.num_spam += 1
-        elif score >= self.unsure_threshold:
+        elif score >= self.options["Categorization", "ham_cutoff"]:
             self.num_unsure += 1
         else:
             self.num_ham += 1
@@ -98,13 +89,13 @@ class Stats(object):
             self.num_trained_ham += 1
             # If we are recovering an item that is in the "spam" threshold,
             # then record it as a "false positive"
-            if old_score > self.spam_threshold:
+            if old_score > self.options["Categorization", "spam_cutoff"]:
                 self.num_trained_ham_fp += 1
         else:
             self.num_trained_spam += 1
             # If we are deleting as Spam an item that was in our "good"
             # range, then record it as a false negative.
-            if old_score < self.unsure_threshold:
+            if old_score < self.options["Categorization", "ham_cutoff"]:
                 self.num_trained_spam_fn += 1
 
     def CalculatePersistentStats(self):
@@ -127,25 +118,28 @@ class Stats(object):
 
             # Skip ones that are too old.
             if self.from_date and m.date_modified and \
-               m.date_modified > self.from_date:
+               m.date_modified < self.from_date:
                 continue
 
             classification = m.GetClassification()
             trained = m.GetTrained()
             
-            if classification == self.spam_string:
+            if classification == self.options["Headers",
+                                              "header_spam_string"]:
                 # Classified as spam.
                 totals["num_spam"] += 1
                 if trained == False:
                     # False positive (classified as spam, trained as ham)
                     totals["num_trained_ham_fp"] += 1
-            elif classification == self.ham_string:
+            elif classification == self.options["Headers",
+                                                "header_ham_string"]:
                 # Classified as ham.
                 totals["num_ham"] += 1
                 if trained == True:
                     # False negative (classified as ham, trained as spam)
                     totals["num_trained_spam_fn"] += 1
-            elif classification == self.unsure_string:
+            elif classification == self.options["Headers",
+                                                "header_unsure_string"]:
                 # Classified as unsure.
                 totals["num_unsure"] += 1
                 if trained == False:
@@ -233,12 +227,16 @@ class Stats(object):
                          data["num_unsure_trained_spam"]) / \
                          data["total_spam"]
 
-        data["total_cost"] = data["num_trained_ham_fp"] * self.fp_cost + \
-                             data["num_trained_spam_fn"] * self.fn_cost + \
-                             data["num_unsure"] * self.unsure_cost
+        fp_cost = self.options["TestDriver", "best_cutoff_fp_weight"]
+        fn_cost = self.options["TestDriver", "best_cutoff_fn_weight"]
+        unsure_cost = self.options["TestDriver",
+                                   "best_cutoff_unsure_weight"]
+        data["total_cost"] = data["num_trained_ham_fp"] * fp_cost + \
+                             data["num_trained_spam_fn"] * fn_cost + \
+                             data["num_unsure"] * unsure_cost
         # If there was no filtering done, what would the cost have been?
         # (Assuming that any spam in the inbox earns the cost of a fn)
-        no_filter_cost = data["num_spam"] * self.fn_cost
+        no_filter_cost = data["num_spam"] * fn_cost
         data["cost_savings"] = no_filter_cost - data["total_cost"]
 
         return data
