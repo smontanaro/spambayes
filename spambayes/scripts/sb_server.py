@@ -187,8 +187,33 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         self.isClosing = False      # Has the server closed the socket?
         self.seenAllHeaders = False # For the current RETR or TOP
         self.startTime = 0          # (ditto)
+
+        if not self.onIncomingConnection(clientSocket):
+            # We must refuse this connection, so pass an error back
+            # to the mail client.
+            self.push("-ERR Connection not allowed\r\n")
+            self.close_when_done()
+            return
+
         self.serverSocket = ServerLineReader(serverName, serverPort,
                                              self.onServerLine)
+
+    def onIncomingConnection(self, clientSocket):
+        """Checks the security settings."""
+        # Stolen from UserInterface.py
+
+        remoteIP = clientSocket.getpeername()[0]
+        trustedIPs = options["pop3proxy", "allow_remote_connections"]
+
+        if trustedIPs == "*" or remoteIP == clientSocket.getsockname()[0]:
+            return True
+
+        trustedIPs = trustedIPs.replace('.', '\.').replace('*', '([01]?\d\d?|2[04]\d|25[0-5])')
+        for trusted in trustedIPs.split(','):
+            if re.search("^" + trusted + "$", remoteIP):
+                return True
+
+        return False
 
     def onTransaction(self, command, args, response):
         """Overide this.  Takes the raw request and the response, and

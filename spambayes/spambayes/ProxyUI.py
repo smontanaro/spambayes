@@ -143,6 +143,8 @@ adv_map = (
     ('html_ui',             'http_authentication'),
     ('html_ui',             'http_user_name'),
     ('html_ui',             'http_password'),
+    ('pop3proxy',           'allow_remote_connections'),
+    ('smtpproxy',           'allow_remote_connections'),
 )
 
 class ProxyUserInterface(UserInterface.UserInterface):

@@ -794,23 +794,34 @@ defaults = {
      client to use this port.  If there are multiple servers, you must
      specify the same number of ports as servers, separated by commas.""",
      SERVER, DO_NOT_RESTORE),
+
+    ("allow_remote_connections", "Allowed remote connections", "localhost",
+     """Enter a list of trusted IPs, separated by commas. Remote POP
+     connections from any of them will be allowed. You can trust any
+     IP using a single '*' as field value. You can also trust ranges of
+     IPs using the '*' character as a wildcard (for instance 192.168.0.*).
+     The localhost IP will always be trusted. Type 'localhost' in the
+     field to trust this only address.""",
+     IP_LIST, RESTORE),
   ),
 
   "smtpproxy" : (
     ("remote_servers", "Remote Servers", (),
-     """The Spambayes SMTP proxy intercepts outgoing email - if you
-     forward mail to one of the addresses below, it is examined for an id
-     and the message corresponding to that id is trained as ham/spam.  All
-     other mail is sent along to your outgoing mail server.  You need to
-     specify which SMTP server(s) you wish it to intercept - a SMTP server
-     address typically looks like "smtp.myisp.net".  If you use more than
-     one server, simply separate their names with commas.  You can get
-     these server names from your existing email configuration, or from
-     your ISP or system administrator.  If you are using Web-based email,
-     you can't use the Spambayes SMTP proxy (sorry!).  In your email
-     client's configuration, where you would normally put your SMTP server
-     address, you should now put the address of the machine running
-     Spambayes.""",
+     """Use of the SMTP proxy is optional - if you would rather just train
+     via the web interface, or the pop3dnd or mboxtrain scripts, then you
+     can safely leave this option blank.  The Spambayes SMTP proxy
+     intercepts outgoing email - if you forward mail to one of the
+     addresses below, it is examined for an id and the message
+     corresponding to that id is trained as ham/spam.  All other mail is
+     sent along to your outgoing mail server.  You need to specify which
+     SMTP server(s) you wish it to intercept - a SMTP server address
+     typically looks like "smtp.myisp.net".  If you use more than one
+     server, simply separate their names with commas.  You can get these
+     server names from your existing email configuration, or from your ISP
+     or system administrator.  If you are using Web-based email, you can't
+     use the Spambayes SMTP proxy (sorry!).  In your email client's
+     configuration, where you would normally put your SMTP server address,
+     you should now put the address of the machine running SpamBayes.""",
      SERVER, DO_NOT_RESTORE),
 
     ("listen_ports", "SpamBayes Ports", (),
@@ -820,7 +831,21 @@ defaults = {
      each monitored server.  Again, you need to configure your email
      client to use this port.  If there are multiple servers, you must
      specify the same number of ports as servers, separated by commas.""",
-     PORT, DO_NOT_RESTORE),
+     SERVER, DO_NOT_RESTORE),
+
+    ("allow_remote_connections", "Allowed remote connections", "localhost",
+     """Enter a list of trusted IPs, separated by commas. Remote SMTP
+     connections from any of them will be allowed. You can trust any
+     IP using a single '*' as field value. You can also trust ranges of
+     IPs using the '*' character as a wildcard (for instance 192.168.0.*).
+     The localhost IP will always be trusted. Type 'localhost' in the
+     field to trust this only address.  Note that you can unwittingly
+     turn a SMTP server into an open proxy if you open this up, as
+     connections to the server will appear to be from your machine, even
+     if they are from a remote machine *through* your machine, to the
+     server.  We do not recommend opening this up fully (i.e. using '*').
+     """,
+     IP_LIST, RESTORE),
 
     ("ham_address", "Train as ham address", "spambayes_ham@localhost",
      """When a message is received that you wish to train on (for example,
