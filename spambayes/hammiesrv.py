@@ -27,7 +27,7 @@ import getopt
 import sys
 import traceback
 import xmlrpclib
-import hammie
+from spambayes import hammie
 
 try:
     True, False

@@ -1,6 +1,9 @@
 from Options import options, all_options, \
      boolean_cracker, float_cracker, int_cracker, string_cracker
-from sets import Set
+try: 
+    from sets import Set
+except ImportError:
+    from spambayes.compatsets import Set
 
 all_options["Score"] = {'max_ham': float_cracker,
                         'min_spam': float_cracker,

@@ -5,8 +5,8 @@ from ZODB.PersistentList import PersistentList
 from Persistence import Persistent
 from BTrees.OOBTree import OOBTree
 
-import classifier
-from tokenizer import tokenize
+from spambayes import classifier
+from spambayes.tokenizer import tokenize
 
 from pspam.folder import Folder
 from pspam.options import options

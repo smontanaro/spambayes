@@ -17,9 +17,17 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# Work out our "application directory", which is
+# the directory of our main .py/.dll/.exe file we
+# are running from.
 try:
     if hasattr(sys, "frozen"):
-        this_filename = os.path.abspath(sys.argv[0])
+        if sys.frozen == "dll":
+            import win32api
+            this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
+        else:
+            # Don't think we will ever run as a .EXE, but...
+            this_filename = os.path.abspath(sys.argv[0])
     else:
         this_filename = os.path.abspath(__file__)
 except NameError: # no __file__
@@ -35,14 +43,14 @@ def import_core_spambayes_stuff(ini_filename):
 
     os.environ["BAYESCUSTOMIZE"] = ini_filename
     try:
-        import classifier
+        from spambayes import classifier
     except ImportError:
         parent = os.path.abspath(os.path.join(os.path.dirname(this_filename),
                                               ".."))
         sys.path.insert(0, parent)
 
-    import classifier
-    from tokenizer import tokenize
+    from spambayes import classifier
+    from spambayes.tokenizer import tokenize
     bayes_classifier = classifier
     bayes_tokenize = tokenize
 
@@ -53,8 +61,9 @@ class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
         self.addin = None
         self.verbose = verbose
+        self.application_directory = os.path.dirname(this_filename)
         if not os.path.isabs(config_base):
-            config_base = os.path.join(os.path.dirname(this_filename),
+            config_base = os.path.join(self.application_directory,
                                        config_base)
         config_base = os.path.abspath(config_base)
         self.ini_filename = config_base + "_bayes_customize.ini"
@@ -224,9 +233,15 @@ class BayesManager:
 
     def SaveBayes(self):
         bayes = self.bayes
+        # Try and work out where this count sometimes goes wrong.
+        if bayes.nspam + bayes.nham != len(self.message_db):
+            print "WARNING: Bayes database has %d messages, " \
+                  "but training database has %d" % \
+                  (bayes.nspam + bayes.nham, len(self.message_db))
+
         if self.verbose:
-            print ("Saving bayes database with %d spam and %d good messages" %
-                   (bayes.nspam, bayes.nham))
+            print "Saving bayes database with %d spam and %d good messages" %\
+                   (bayes.nspam, bayes.nham)
             print " ->", self.bayes_filename
         cPickle.dump(bayes, open(self.bayes_filename,"wb"), 1)
         if self.verbose:

@@ -51,7 +51,7 @@ class Sidebar:
     def __start_table(self):
         print '<!-- start of sidebar table -->'
         print '<table width="100%" border="0" cellspacing="0" cellpadding="3"'
-        print '       bgcolor="%s">' % self.get_bgcolor()
+        print 'class="sidebar"       bgcolor="%s">' % self.get_bgcolor()
 
     def __finish(self):
         print '</table><!-- end of sidebar table -->'
@@ -63,12 +63,10 @@ class Sidebar:
                 # category header
                 if done_one:
                     # get some separation between header and last item
-                    print '<tr><td bgcolor="%s">&nbsp;' % (
-                        self.get_lightshade())
+                    print '<tr><td %s>&nbsp;' % (self.getSidebarNormalAttrs())
                 else:
                     done_one = 1
-                print '<tr><td bgcolor="%s"><b><font color="%s">' % (
-                    self.get_darkshade(), self.get_bgcolor())
+                print '<tr><td %s>'% ( self.getSidebarHeaderAttrs()) 
                 print item
                 print '</font></b></td></tr>'
             else:
@@ -81,7 +79,7 @@ class Sidebar:
                     s = text
                 else:
                     s = '<a href="%s">%s</a>' % (url, text)
-                print '<tr><td bgcolor="%s">' % self.get_lightshade()
+                print '<tr><td %s >' % (self.getSidebarNormalAttrs())
                 print '%s%s' % (s, extra)
                 print '</td></tr>'
 

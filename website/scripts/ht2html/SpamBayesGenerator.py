@@ -15,12 +15,12 @@ from LinkFixer import LinkFixer
 
 
 sitelinks = [
-    ('%(rootdir)s/',           'Home'),
     ('http://sourceforge.net/projects/spambayes/',      'SF Project Page'),
     ]
 
+class SpamBayesSidebar(Sidebar): pass
 
-class SpamBayesGenerator(Skeleton, Sidebar, Banner):
+class SpamBayesGenerator(Skeleton, SpamBayesSidebar, Banner):
     AUTHOR = 'spambayes@python.org'
 
     def __init__(self, file, rootdir, relthis):
@@ -42,7 +42,7 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
          src="http://sourceforge.net/sflogo.php?group_id=31674&type=1"></div>
 ''' % self.__d))
         self.__linkfixer.massage(p.sidebar, self.__d)
-        Sidebar.__init__(self, p.sidebar)
+        SpamBayesSidebar.__init__(self, p.sidebar)
         #
         # fix up our site links, no relthis because the site links are
         # relative to the root of our web pages
@@ -79,7 +79,7 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
     def get_sidebar(self):
         if self.__parser.get('wide-page', 'no').lower() == 'yes':
             return None
-        return Sidebar.get_sidebar(self)
+        return SpamBayesSidebar.get_sidebar(self)
 
     def get_banner(self):
         return Banner.get_banner(self)
@@ -93,7 +93,7 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
         return '''
 <center>
     <a href="http://www.student.virginia.edu/~improv/games/findthespam.html">
-    <img alt="" border="0" src="%(rootdir)s/pics/banner.png"></a></center>''' % \
+    <img alt="" border="0" src="%(rootdir)s/images/logo.png"></a></center>''' % \
     self.__d 
 
     def get_corner_bgcolor(self):
@@ -118,15 +118,22 @@ class SpamBayesGenerator(Skeleton, Sidebar, Banner):
                 # there is no wide body
                 self.__body = text
 
+    def getSidebarNormalAttrs(self):
+        return 'class="normalSidebar" background="images/gutter.png"'
+    def getSidebarHeaderAttrs(self):
+        return 'class="headerSidebar" background="images/gutter-hi.png"'
+
     # python.org color scheme overrides
     def get_lightshade(self):
-        return '#c7c7d7'
+        "used in sidebar normal items"
+        return ''
 
     def get_mediumshade(self):
-        return '#867272'
+        return ''
 
     def get_darkshade(self):
-        return '#635d5d'
+        "used in sidebar header items"
+        return ''
 
     def get_charset(self):
         return 'iso-8859-1'

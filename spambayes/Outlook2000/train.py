@@ -33,7 +33,7 @@ def train_message(msg, is_spam, mgr, rescore=False):
     # in the correct category.  Catch your own damn exceptions.
     # If re-classified AND rescore = True, then a new score will
     # be written to the message (so the user can see some effects)
-    from tokenizer import tokenize
+    from spambayes.tokenizer import tokenize
 
     was_spam = mgr.message_db.get(msg.searchkey)
     if was_spam == is_spam:
@@ -56,6 +56,27 @@ def train_message(msg, is_spam, mgr, rescore=False):
         filter.filter_message(msg, mgr, all_actions = False)
 
     return True
+
+# Untrain a message.
+# Return: None == not previously trained
+#         True == was_spam
+#         False == was_ham
+def untrain_message(msg, mgr):
+    from spambayes.tokenizer import tokenize
+    stream = msg.GetEmailPackageObject()
+    if been_trained_as_spam(msg, mgr):
+        assert not been_trained_as_ham(msg, mgr), "Can't have been both!"
+        mgr.bayes.unlearn(tokenize(stream), True)
+        del mgr.message_db[msg.searchkey]
+        mgr.bayes_dirty = True
+        return True
+    if been_trained_as_ham(msg, mgr):
+        assert not been_trained_as_spam(msg, mgr), "Can't have been both!"
+        mgr.bayes.unlearn(tokenize(stream), False)
+        del mgr.message_db[msg.searchkey]
+        mgr.bayes_dirty = True
+        return False
+    return None
 
 def train_folder(f, isspam, mgr, progress):
     num = num_added = 0

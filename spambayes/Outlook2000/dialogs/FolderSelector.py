@@ -110,15 +110,21 @@ def BuildFolderTreeMAPI(session):
     return root
 
 ## <sob> - An Outlook object model version
+import pythoncom
 def _BuildFolderTreeOutlook(session, parent):
     children = []
     for i in range(parent.Folders.Count):
         folder = parent.Folders[i+1]
-        spec = FolderSpec((folder.StoreID, folder.EntryID),
-                          folder.Name.encode("mbcs", "replace"))
-        if folder.Folders:
-            spec.children = _BuildFolderTreeOutlook(session, folder)
-        children.append(spec)
+        try:
+            spec = FolderSpec((folder.StoreID, folder.EntryID),
+                              folder.Name.encode("mbcs", "replace"))
+        except pythoncom.error:
+            # Something strange with this folder - just ignore it
+            spec = None
+        if spec is not None:
+            if folder.Folders:
+                spec.children = _BuildFolderTreeOutlook(session, folder)
+            children.append(spec)
     return children
 
 def BuildFolderTreeOutlook(session):

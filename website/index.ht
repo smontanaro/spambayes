@@ -1,32 +1,125 @@
 Title: SpamBayes: Bayesian anti-spam classifier written in Python.
-Author-Email: spambayes@python.org
-Author: spambayes
+Author-Email: SpamBayes@python.org
+Author: SpamBayes
 
 <H2>What is SpamBayes?</h2>
 <p>
-This project is developing a Bayesian anti-spam classifier, initially
-based on the work of <a href="http://www.paulgraham.com/spam.html">Paul Graham.</a>
+The SpamBayes 
+project is working on developing a <a href="docs.html#glossary">Bayesian</a> 
+anti-spam filter, initially based on the work of 
+<a href="http://www.paulgraham.com/spam.html">Paul Graham.</a> 
+
+The major difference between this and other, similar projects 
+is the emphasis on testing newer approaches to scoring messages.
+
+While most anti-spam projects are still working with the 
+original graham algorithm, we found that a number of alternate methods 
+yielded a more useful response.
+
+This is documented on the <a href="background.html">background</a> page.
 </p>
 
-<p>Code is currently available 
-<a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a> - 
-note that it's not yet 
-suitable for non-technical end-users, but for people interested 
-in experimenting.
+<h2>That's great, but what's SpamBayes?</h2>
+<h3>(the non-technical hand-waving answer)</h3>
+
+<p>SpamBayes will attempt to classify incoming email messages as 'spam', 
+'ham' (good, non-spam email) or 'unsure'. This means you can have spam 
+or unsure messages automatically filed away in a different mail folder,
+where it won't interrupt your email reading. First SpamBayes must be 
+<a href="docs.html#glossary">trained</a> by each user to identify spam 
+and ham.
+
+Essentially, you show SpamBayes a pile of email that you like (ham)
+and a pile you don't like (spam).
+
+SpamBayes will then analyze the piles for clues as to what makes the
+spam and ham different. For example; different words, differences in the
+mailer headers and content style. The system then uses these clues to
+examine new messages.</p>
+
+<p>For instance, the word "Nigeria" appears often in spam, so 
+you could use a spam filter which identifies anything with that word in 
+It as spam. But what if your business involves writing a guidebook on 
+Nigerian Wildlife Conservation? 
+Clearly a more flexible approach is necessary.
+
+Additionally spammers 
+will adapt their content over time and will no longer use the word 
+"Nigeria" (or the words "Lose Weight Fast", or any number of other 
+common lines). Ideally the software will be able to adapt as the spam changes.
 </p>
+
+<p>So, that
+is what SpamBayes does. It compares the spam and the ham
+and calculates probabilities. For instance, for me, the word "weight"
+almost never occurs in legitimate email, but it occurs all the time in
+'lose weight fast' spam. 
+
+SpamBayes can then look at incoming email, extract the most significant 
+clues and combine the probabilities to produce an overall rating of 
+"spamminess". It flags the messages so that your mailer can handle 
+the different message types. You might set it up so that ham goes 
+straight through untouched, spam goes to a folder that you ignore (or
+delete without checking) and the unsure messages go to another folder
+which you can review for errors.</p>
+
+<h2>How is SpamBayes different?</h2>
+<p>There are a number of <a href="related.html">similar projects</a>
+to SpamBayes - most are just using the original Paul Graham algorithm.
+Examining the Graham technique with careful testing showed that it did a
+remarkably good job, but there was considerable room for improvement. 
+(See the <a href="background.html">background</a> page for more.)</p>
+
+
+<p>The SpamBayes team tinkered with new
+algorithms, tweaking existing algorithms, and, most importantly, did
+enormous test runs, slamming tens of thousands of messages against
+each other, in an attempt to quantify whether or
+not a change to the system was beneficial.</p> 
+
+<p>The new algorithm is
+a combination of work from Gary Robinson and Tim Peters, and provides
+not just a 'spam' and 'ham' rating, but also an 'unsure' rating, for
+those messages where it can't work out how to rate the message.</p>
+
+<p>See the <a href="background.html">background</a> page for more, well,
+background.</p>
+
+
+<p>The code is currently available 
+<a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a> - 
+note that it's not quite yet suitable for non-technical end-users, but 
+for people interested in experimenting. There's also a <a href="download/spambayes-nightly.tar.gz">nightly snapshot</a> available for download.
+</p>
+
 <p>
 There are now a couple of end-user applications available for those
 excited by the bleeding edge - these are detailed on the 
 <a href="applications.html">Applications</a> page.
 </p>
 
+<p>At the moment, these packages require CVS access to install, 
+but we're currently working on packaging these up for easy end-user 
+use - stay tuned!</p>
+
 <h2>Mailing list</h2>
 <p>There are currently two mailing lists of interest:</p>
 <ul>
 <li>
-The discussion list <a href="http://mail.python.org/mailman-21/listinfo/spambayes">spambayes</a>
+The discussion list <a href="http://mail.python.org/mailman-21/listinfo/spambayes">spambayes</a> (there's a search interface on the <a href="docs.html">documentation</a> page.)
 <li>
 CVS commit messages go to the list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-checkins">spambayes-checkins</a>.
 </ul>
 
 
+<h2>Credits</h2>
+<p>Most of the heavy lifting on this project was done by Tim Peters, with
+the cast of spambayes obsessive-compulsives providing ideas, heckling, and
+testing. Gary Robinson provided a lot of the serious maths and theory, as
+well as his essay on "how to do it better" (see the 
+<a href="background.html">background</a> page for a link). Rob Hooft 
+also contributed maths/stats clues.
+Mark Hammond amazed the world with the Outlook2000 plug-in,
+and Rich Hindle, Neale Pickett, Tim Stone worked on the end-user applications.</p>
+<p>(Thanks also to Rachel Holkner for turning Anthony's gibberish into something
+closer to actual English, although all mistakes are Anthony's.)</p>

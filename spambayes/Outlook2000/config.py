@@ -13,6 +13,10 @@ class _ConfigurationContainer:
     def __init__(self, **kw):
         self.__dict__.update(kw)
 
+    def __setattr__(self, attr, val):
+        if not self.__dict__.has_key(attr):
+            raise AttributeError, attr
+        self.__dict__[attr] = val
     # Crap state-loading code so when we load an early version of the pickle
     # any attributes in the new version are considered defaults.
     # XXX - I really really want a better scheme than pickles etc here :(
@@ -41,8 +45,7 @@ class _ConfigurationContainer:
 
 class ConfigurationRoot(_ConfigurationContainer):
     def __init__(self):
-        _ConfigurationContainer.__init__(self)
-        self.training = _ConfigurationContainer(
+        training = _ConfigurationContainer(
             ham_folder_ids = [],
             ham_include_sub = False,
             spam_folder_ids = [],
@@ -52,7 +55,7 @@ class ConfigurationRoot(_ConfigurationContainer):
             # Train as stuff dragged into spam folders.
             train_manual_spam = True,
             )
-        self.filter = _ConfigurationContainer(
+        filter = _ConfigurationContainer(
             watch_folder_ids = [],
             watch_include_sub = False,
             spam_folder_id = None,
@@ -63,14 +66,19 @@ class ConfigurationRoot(_ConfigurationContainer):
             unsure_action = "Nothing",
             enabled = False,
             )
-        self.filter_now = _ConfigurationContainer(
+        filter_now = _ConfigurationContainer(
             folder_ids = [],
             include_sub = False,
             only_unread = False,
             only_unseen = True,
             action_all = True,
             )
-        self.field_score_name = "Spam"
+        field_score_name = "Spam"
+        _ConfigurationContainer.__init__(self,
+                                         training=training,
+                                         filter=filter,
+                                         filter_now = filter_now,
+                                         field_score_name = field_score_name)
 
 if __name__=='__main__':
     print "Please run 'manager.py'"

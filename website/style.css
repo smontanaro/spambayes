@@ -4,6 +4,7 @@
 BODY      		{ background:	white;
 	  		  color:	#484848; 
 			  margin-right: 15%;
+font-family: geneva, verdana, arial, "ms sans serif", sans-serif; 
 }
 
 A:link    		{ color: 	#645460; }
@@ -11,6 +12,8 @@ A:visited 		{ color: 	#303030; }
 A:active  		{ color: 	#ff9933; }
 
 P:footer  		{ font-size:	x-small; }
+P.todo  { font-style: italic ; }
+P.note  { font-style: italic ; margin-left: 5%; margin-right: 5%; }
 
 TABLE:navigation	{ width:	100%;
 			  border:	0;	 }
@@ -20,7 +23,18 @@ TABLE:navigation TR	{ background:	white;
 
 TD:navtitle 		{ color:	#f4a560;
 			  font-size:	xx-large;
-			  text-style:	bold;	 }
+			  font-weight:	bold;	 }
 
 IMG			{ border:	0;	 }
+
+TABLE.sidebar { background-image:  url("./images/gutter.png"); }
+
+TD.normalSidebar a:link { color: #222222;  }
+TD.normalSidebar a:visited { color: #333333;  }
+TD.normalSidebar a:active { color: #449944;  }
+TD.normalSidebar a:hover { color: #005500; }
+
+TD.headerSidebar {  color: #222222; 
+                    font-weight: bold;}
+
 

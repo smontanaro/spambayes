@@ -13,22 +13,22 @@ header.  Usage:
 
         options:
             -z      : Runs a self-test and exits.
-            -t      : Runs a test POP3 server on port 8110 (for testing).
+            -t      : Runs a fake POP3 server on port 8110 (for testing).
             -h      : Displays this help message.
 
-            -p FILE : use the named data file
-            -d      : the file is a DBM file rather than a pickle
+            -p FILE : use the named database file
+            -d      : the database is a DBM file rather than a pickle
             -l port : proxy listens on this port number (default 110)
             -u port : User interface listens on this port number
                       (default 8880; Browse http://localhost:8880/)
             -b      : Launch a web browser showing the user interface.
 
         All command line arguments and switches take their default
-        values from the [Hammie], [pop3proxy] and [html_ui] sections
-        of bayescustomize.ini.
+        values from the [pop3proxy] and [html_ui] sections of
+        bayescustomize.ini.
 
 For safety, and to help debugging, the whole POP3 conversation is
-written out to _pop3proxy.log for each run.
+written out to _pop3proxy.log for each run, if options.verbose is True.
 
 To make rebuilding the database easier, uploaded messages are appended
 to _pop3proxyham.mbox and _pop3proxyspam.mbox.
@@ -39,7 +39,7 @@ to _pop3proxyham.mbox and _pop3proxyspam.mbox.
 # Foundation license.
 
 __author__ = "Richie Hindle <richie@entrian.com>"
-__credits__ = "Tim Peters, Neale Pickett, all the spambayes contributors."
+__credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
 
 try:
     True, False
@@ -55,6 +55,8 @@ Web training interface:
  o Functional tests.
  o Review already-trained messages, and purge them.
  o Put in a link to view a message (plain text, html, multipart...?)
+   Include a Reply link that launches the registered email client, eg.
+   mailto:tim@fourstonesExpressions.com?subject=Re:%20pop3proxy&body=Hi%21%0D
  o Keyboard navigation (David Ascher).  But aren't Tab and left/right
    arrow enough?
  o [Francois Granger] Show the raw spambrob number close to the buttons
@@ -98,6 +100,7 @@ Code quality:
  o Eventually, pull the common HTTP code from pop3proxy.py and Entrian
    Debugger into a library.
  o Cope with the email client timing out and closing the connection.
+ o Lose the trailing dot from cached messages.
 
 
 Info:
@@ -129,14 +132,25 @@ POP3 command in a conversion is STAT or LIST, which tells you how many
 mails there are - it wouldn't know the answer, and finding out could
 take weeks over a modem - I've already had problems with clients timing
 out while the proxy was downloading stuff from the server).
+
+Adam's idea: add checkboxes to a Google results list for "Relevant" /
+"Irrelevant", then submit that to build a search including the
+highest-scoring tokens and excluding the lowest-scoring ones.
 """
 
-import os, sys, re, operator, errno, getopt, string, cStringIO, time, bisect
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+
+import os, sys, re, operator, errno, getopt, string, time, bisect
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
-import mailbox, storage, tokenizer, mboxutils
-from FileCorpus import FileCorpus, FileMessageFactory, GzipFileMessageFactory
+import mailbox, email.Header
+from spambayes import storage, tokenizer, mboxutils
+from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
+from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from email.Iterators import typed_subpart_iterator
-from Options import options
+from spambayes.Options import options
 
 # HEADER_EXAMPLE is the longest possible header - the length of this one
 # is added to the size of each message.
@@ -159,7 +173,8 @@ class Listener(asyncore.dispatcher):
         s.setblocking(False)
         self.set_socket(s, socketMap)
         self.set_reuse_addr()
-        print "%s listening on port %d." % (self.__class__.__name__, port)
+        if options.verbose:
+            print "%s listening on port %d." % (self.__class__.__name__, port)
         self.bind(('', port))
         self.listen(5)
 
@@ -213,10 +228,11 @@ class ServerLineReader(BrighterAsyncChat):
         try:
             self.connect((serverName, serverPort))
         except socket.error, e:
-            print >>sys.stderr, "Can't connect to %s:%d: %s" % \
-                                (serverName, serverPort, e)
-            self.close()
+            error = "Can't connect to %s:%d: %s" % (serverName, serverPort, e)
+            print >>sys.stderr, error
+            self.lineCallback('-ERR %s\r\n' % error)
             self.lineCallback('')   # "The socket's been closed."
+            self.close()
 
     def collect_incoming_data(self, data):
         self.request = self.request + data
@@ -303,7 +319,7 @@ class POP3ProxyBase(BrighterAsyncChat):
         elif self.command in ['RETR', 'TOP']:
             return True
         elif self.command in ['LIST', 'UIDL']:
-            return len(args) == 0
+            return len(self.args) == 0
         else:
             # Assume that an unknown command will get a single-line
             # response.  This should work for errors and for POP-AUTH,
@@ -381,6 +397,7 @@ class BayesProxyListener(Listener):
     def __init__(self, serverName, serverPort, proxyPort):
         proxyArgs = (serverName, serverPort)
         Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
+        print 'Listener on port %d is proxying %s:%d' % (proxyPort, serverName, serverPort)
 
 
 class BayesProxy(POP3ProxyBase):
@@ -421,8 +438,9 @@ class BayesProxy(POP3ProxyBase):
 
     def send(self, data):
         """Logs the data to the log file."""
-        state.logFile.write(data)
-        state.logFile.flush()
+        if options.verbose:
+            state.logFile.write(data)
+            state.logFile.flush()
         try:
             return POP3ProxyBase.send(self, data)
         except socket.error:
@@ -434,8 +452,9 @@ class BayesProxy(POP3ProxyBase):
     def recv(self, size):
         """Logs the data to the log file."""
         data = POP3ProxyBase.recv(self, size)
-        state.logFile.write(data)
-        state.logFile.flush()
+        if options.verbose:
+            state.logFile.write(data)
+            state.logFile.flush()
         return data
 
     def close(self):
@@ -557,6 +576,7 @@ class UserInterfaceListener(Listener):
 
     def __init__(self, uiPort, socketMap=asyncore.socket_map):
         Listener.__init__(self, uiPort, UserInterface, (), socketMap=socketMap)
+        print 'User interface url is http://localhost:%d' % (uiPort)
 
 
 # Until the user interface has had a wider audience, I won't pollute the
@@ -598,7 +618,8 @@ class UserInterface(BrighterAsyncChat):
     #    this: "... name='n' value='v' ..." even if there is no default
     #    value.  This is so that setFieldValue can set the value.
 
-    header = """<html><head><title>Spambayes proxy: %s</title>
+    header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+             <html><head><title>Spambayes proxy: %s</title>
              <style>
              body { font: 90%% arial, swiss, helvetica; margin: 0 }
              table { font: 90%% arial, swiss, helvetica }
@@ -614,6 +635,7 @@ class UserInterface(BrighterAsyncChat):
                                border-bottom: 1px solid #808080;
                                font-weight: bold }
              .sectionbody { padding: 1em }
+             .reviewheaders a { color: #000000 }
              .stripe_on td { background: #f4f4f4 }
              </style>
              </head>\n"""
@@ -663,10 +685,11 @@ class UserInterface(BrighterAsyncChat):
              using the <a href='review'>Review messages</a> page."""
 
     reviewHeader = """<p>These are untrained emails, which you can use to
-                   train the classifier.  Check the Discard / Defer / Ham /
-                   Spam buttton for each email, then click 'Train' below.
-                   (Defer leaves the message here, to be trained on
-                   later.)</p>
+                   train the classifier.  Check the appropriate button for
+                   each email, then click 'Train' below.  'Defer' leaves the
+                   message here, to be trained on later.  Click one of the
+                   Discard / Defer / Ham / Spam headers to check all of the
+                   buttons in that section in one go.</p>
                    <form action='review' method='GET'>
                        <input type='hidden' name='prior' value='%d'>
                        <input type='hidden' name='next' value='%d'>
@@ -683,9 +706,36 @@ class UserInterface(BrighterAsyncChat):
                    <table class='messagetable' cellpadding='0' cellspacing='0'>
                    """
 
-    reviewSubheader = """<tr><td><b>Messages classified as %s:</b></td>
-                          <td><b>From:</b></td>
-                          <td><b>Discard / Defer / Ham / Spam</b></td></tr>"""
+    onReviewHeader = \
+    """<script type='text/javascript'>
+    function onHeader(type, switchTo)
+    {
+        if (document.forms && document.forms.length >= 2)
+        {
+            form = document.forms[1];
+            for (i = 0; i < form.length; i++)
+            {
+                splitName = form[i].name.split(':');
+                if (splitName.length == 3 && splitName[1] == type &&
+                    form[i].value == switchTo.toLowerCase())
+                {
+                    form[i].checked = true;
+                }
+            }
+        }
+    }
+    </script>
+    """
+
+    reviewSubheader = \
+        """<tr><td><b>Messages classified as %s:</b></td>
+          <td><b>From:</b></td>
+          <td class='reviewheaders' nowrap><b>
+              <a href='javascript: onHeader("%s", "Discard");'>Discard</a> /
+              <a href='javascript: onHeader("%s", "Defer");'>Defer</a> /
+              <a href='javascript: onHeader("%s", "Ham");'>Ham</a> /
+              <a href='javascript: onHeader("%s", "Spam");'>Spam</a>
+          </b></td></tr>"""
 
     upload = """<form action='%s' method='POST'
                 enctype='multipart/form-data'>
@@ -748,7 +798,7 @@ class UserInterface(BrighterAsyncChat):
                 contentType, pdict = cgi.parse_header(contentTypeHeader)
                 if contentType == 'multipart/form-data':
                     # multipart/form-data - probably a file upload.
-                    bodyFile = cStringIO.StringIO(body)
+                    bodyFile = StringIO.StringIO(body)
                     params.update(cgi.parse_multipart(bodyFile, pdict))
                 else:
                     # A normal x-www-form-urlencoded.
@@ -810,7 +860,7 @@ class UserInterface(BrighterAsyncChat):
         if name == 'Home':
             homeLink = name
         else:
-            homeLink = "<a href='home'>Home</a> > %s" % name
+            homeLink = "<a href='home'>Home</a> &gt; %s" % name
         if showImage:
             image = "<img src='helmet.gif' align='absmiddle'>&nbsp;"
         else:
@@ -832,7 +882,12 @@ class UserInterface(BrighterAsyncChat):
 
     def trimAndQuote(self, field, limit, quote=False):
         """Trims a string, adding an ellipsis if necessary, and
-        HTML-quotes it."""
+        HTML-quotes it.  Also pumps it through email.Header.decode_header,
+        which understands charset sections in email headers - I suspect
+        this will only work for Latin character sets, but hey, it works for
+        Francois Granger's name.  8-)"""
+        sections = email.Header.decode_header(field)
+        field = ' '.join([text for text, _ in sections])
         if len(field) > limit:
             field = field[:limit-3] + "..."
         return cgi.escape(field, quote)
@@ -883,7 +938,7 @@ class UserInterface(BrighterAsyncChat):
             class SimpleMessage:
                 def __init__(self, fp):
                     self.guts = fp.read()
-            contentFile = cStringIO.StringIO(content)
+            contentFile = StringIO.StringIO(content)
             mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
             messages = map(lambda m: m.guts, mbox)
         else:
@@ -969,13 +1024,13 @@ class UserInterface(BrighterAsyncChat):
         # Return the keys and their date.
         return keys, date, prior, start, end
 
-    def appendMessages(self, lines, keyedMessages, judgement):
+    def appendMessages(self, lines, keyedMessages, label):
         """Appends the lines of a table of messages to 'lines'."""
         buttons = \
-             """<input type='radio' name='classify:%s' value='discard'>&nbsp;
-                <input type='radio' name='classify:%s' value='defer' %s>&nbsp;
-                <input type='radio' name='classify:%s' value='ham' %s>&nbsp;
-                <input type='radio' name='classify:%s' value='spam' %s>"""
+          """<input type='radio' name='classify:%s:%s' value='discard'>&nbsp;
+             <input type='radio' name='classify:%s:%s' value='defer' %s>&nbsp;
+             <input type='radio' name='classify:%s:%s' value='ham' %s>&nbsp;
+             <input type='radio' name='classify:%s:%s' value='spam' %s>"""
         stripe = 0
         for key, message in keyedMessages:
             # Parse the message and get the relevant headers and the first
@@ -1001,17 +1056,20 @@ class UserInterface(BrighterAsyncChat):
 
             # Output the table row for this message.
             defer = ham = spam = ""
-            if judgement == options.header_spam_string:
+            if label == 'Spam':
                 spam='checked'
-            elif judgement == options.header_ham_string:
+            elif label == 'Ham':
                 ham='checked'
-            elif judgement == options.header_unsure_string:
+            elif label == 'Unsure':
                 defer='checked'
             subject = "<span title=\"%s\">%s</span>" % (text, subject)
-            radioGroup = buttons % (key, key, defer, key, ham, key, spam)
+            radioGroup = buttons % (label, key,
+                                    label, key, defer,
+                                    label, key, ham,
+                                    label, key, spam)
             stripeClass = ['stripe_on', 'stripe_off'][stripe]
             lines.append("""<tr class='%s'><td>%s</td><td>%s</td>
-                            <td><center>%s</center></td></tr>""" % \
+                            <td align='center'>%s</td></tr>""" % \
                             (stripeClass, subject, from_, radioGroup))
             stripe = stripe ^ 1
 
@@ -1023,7 +1081,7 @@ class UserInterface(BrighterAsyncChat):
         numDeferred = 0
         for key, value in params.items():
             if key.startswith('classify:'):
-                id = key.split(':', 1)[1]
+                id = key.split(':')[2]
                 if value == 'spam':
                     targetCorpus = state.spamCorpus
                 elif value == 'ham':
@@ -1102,16 +1160,18 @@ class UserInterface(BrighterAsyncChat):
                 priorState = 'disabled'
             if not next:
                 nextState = 'disabled'
-            lines = [self.reviewHeader % (prior, next, priorState, nextState)]
-            for header, type in ((options.header_spam_string, 'Spam'),
-                                 (options.header_ham_string, 'Ham'),
-                                 (options.header_unsure_string, 'Unsure')):
+            lines = [self.onReviewHeader,
+                     self.reviewHeader % (prior, next, priorState, nextState)]
+            for header, label in ((options.header_spam_string, 'Spam'),
+                                  (options.header_ham_string, 'Ham'),
+                                  (options.header_unsure_string, 'Unsure')):
                 if keyedMessages[header]:
                     lines.append("<tr><td>&nbsp;</td><td></td><td></td></tr>")
-                    lines.append(self.reviewSubheader % type)
-                    self.appendMessages(lines, keyedMessages[header], header)
+                    lines.append(self.reviewSubheader %
+                                 (label, label, label, label, label))
+                    self.appendMessages(lines, keyedMessages[header], label)
 
-            lines.append("""<tr><td></td><td></td><td align='middle'>&nbsp;<br>
+            lines.append("""<tr><td></td><td></td><td align='center'>&nbsp;<br>
                             <input type='submit' value='Train'></td></tr>""")
             lines.append("</table></form>")
             content = "\n".join(lines)
@@ -1141,15 +1201,15 @@ class UserInterface(BrighterAsyncChat):
     def onWordquery(self, params):
         word = params['word']
         word = word.lower()
-        try:
-            wi = state.bayes.wordinfo[word]
+        wi = state.bayes._wordinfoget(word)
+        if wi:
             members = wi.__dict__
             members['spamprob'] = state.bayes.probability(wi)
             info = """Number of spam messages: <b>%(spamcount)d</b>.<br>
                    Number of ham messages: <b>%(hamcount)d</b>.<br>
                    Probability that a message containing this word is spam:
                    <b>%(spamprob)f</b>.<br>""" % members
-        except KeyError:
+        else:
             info = "%r does not appear in the database." % word
 
         query = self.setFieldValue(self.wordQuery, 'word', params['word'])
@@ -1168,7 +1228,8 @@ class State:
         and are then overridden by the command-line processing code in the
         __main__ code below."""
         # Open the log file.
-        self.logFile = open('_pop3proxy.log', 'wb', 0)
+        if options.verbose:
+            self.logFile = open('_pop3proxy.log', 'wb', 0)
 
         # Load up the old proxy settings from Options.py / bayescustomize.ini
         # and give warnings if they're present.   XXX Remove these soon.
@@ -1260,13 +1321,17 @@ class State:
             # Create/open the Corpuses.
             map(ensureDir, [self.spamCache, self.hamCache, self.unknownCache])
             if self.gzipCache:
-                messageFactory = GzipFileMessageFactory()
+                factory = GzipFileMessageFactory()
             else:
-                messageFactory = FileMessageFactory()
-            self.messageFactory = messageFactory
-            self.spamCorpus = FileCorpus(messageFactory, self.spamCache)
-            self.hamCorpus = FileCorpus(messageFactory, self.hamCache)
-            self.unknownCorpus = FileCorpus(messageFactory, self.unknownCache)
+                factory = FileMessageFactory()
+            age = options.pop3proxy_cache_expiry_days*24*60*60
+            self.spamCorpus = ExpiryFileCorpus(age, factory, self.spamCache)
+            self.hamCorpus = ExpiryFileCorpus(age, factory, self.hamCache)
+            self.unknownCorpus = FileCorpus(factory, self.unknownCache)
+
+            # Expire old messages from the trained corpuses.
+            self.spamCorpus.removeExpiredMessages()
+            self.hamCorpus.removeExpiredMessages()
 
             # Create the Trainers.
             self.spamTrainer = storage.SpamTrainer(self.bayes)
@@ -1519,7 +1584,7 @@ def test():
 # __main__ driver.
 # ===================================================================
 
-if __name__ == '__main__':
+def run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'htdbzp:l:u:')
@@ -1580,3 +1645,6 @@ if __name__ == '__main__':
 
     else:
         print >>sys.stderr, __doc__
+
+if __name__ == '__main__':
+    run()

@@ -1,0 +1,98 @@
+Alex's spambayes filter scripts
+-------------------------------
+
+I've finally started using spambayes for my incoming mail filtering.
+I've got a slightly unusual setup, so I had to write a couple scripts
+to deal with the nightly retraining...
+
+First off, let me describe how I've got things set up.  I am an
+avid (and rather religious) MH user, so my mail folders are of
+course stored in the MH format (directories full of single-message
+files, where the filenames are numbers indicating ordering in the
+folder).  I've got four mail folders of interest for this discussion:
+everything, spam, newspam, and inbox.
+
+When mail arrives, it is classified, then immediately copied in the
+everything folder.  If it was classified as spam or ham, it is
+trained as such, reinforcing the classification.  Then, if it was
+labeled as spam, it goes into the newspam folder; otherwise it
+goes into my inbox.
+
+When I read my mail (from inbox or newspam), I move any confirmed
+spam into my spam folder; ham may be deleted.  (Of course, I still
+have a copy of my ham in the everything folder.)
+
+Every night, I run a complete retraining (from cron at 2:10am);
+it trains on all mail in the everything folder that is less than
+4 months old.  If a given message has an identical copy in the spam
+or newspam folder, then it is trained as spam; otherwise it is
+trained as ham.  This does mean that unread unsures will be
+treated as ham for up to a day; there's few enough of them that
+I don't care.  The four-month age limit will have the effect of
+expiring old mail out of the training set, which will keep the
+database size fairly manageable (it's currently just under 10 meg,
+with 6 days to go until I have 4 months of data).
+
+The retraining generates a little report for me each night,
+showing a graph of my ham and spam levels over time.  Here's
+a sample:
+
+| Scanning spamdir (/home/cashew/popiel/Mail/spam):
+| Scanning spamdir (/home/cashew/popiel/Mail/newspam):
+| Scanning everything
+| sshsshsshsshsshsshsshshsshshshshsshshshshshshsshsshshsshssshsshshsshshsshshs
+| sshshshshsshshsshshshshshssshshshsshsshsshshshshshshsshshhshshsshshshshssshs
+| sshshsssshs
+|   154
+|   152|                                                             
+|   144|                                                             
+|   136|                                                             
+|   128|                                                   h         
+|   120|                                                   h      s  
+|   112|                             s       ss     ss s   h   s  ss 
+|   104|                             ss      ss     ss sHs h   s  ss 
+|    96|                           s ss   s  sH  s  ss sHs h  Sss ss 
+|    88|                    h  ss  s sss ss  sH sss ssssHHhS sSsssss 
+|    80|                 s sSH ss ssssss sssssH HssssHsHHHSS sSsssss 
+|    72|                 ssHSH ssssssssssssHHsHSHssHsHsHHHSSssSsssss 
+|    64|      s  s  s s sHsHSHsssssssHsHsssHHsHSHssHsHsHHHSSssSsssss 
+|    56|   s sss ss sssssHHHSHsHsssHsHHHHssHHsHSHHsHHHsHHHSSsHSsssss 
+|    48|   ssssssssssssssHHHSHHHHssHsHHHHHsHHsHSHHsHHHsHHHSSsHSssHsss
+|    40|   ssssssssssHsHHHHHSHHHHHsHsHHHHHHHHHHSHHsHHHHHHHSSsHSHsHHss
+|    32|   ssHHssHsssHHHHHHHSHHHHHHHsHHHHHHHHHHSHHsHHHHHHHSSHHSHHHHHs
+|    24|   ssHHHHHHHsHHHHHHHSHHHHHHHsHHHHHHHHHHSHHHHHHHHHHSSHHSHHHHHs
+|    16|   HsHHHHHHHHHHHHHHHSHHHHHHHHHHHHHHHHHHSHHHHHHHHHHSSHHSHHHHHs
+|     8|   HHHHHHHHHHHHHHHHHSHHHHHHHHHHHHHHHHHHSHHHHHHHHHHSSHHSHHHHHH
+|     0|SSSUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU
+|      +------------------------------------------------------------
+| 
+| Total: 6441 ham, 9987 spam (60.79% spam)
+| 
+| real    7m45.049s
+| user    5m38.980s
+| sys     0m39.170s
+
+At the top of the output it mentions what it's scanning, and has a
+long line of s and h indicating progress (so it doesn't look hung
+if you run it by hand).
+
+Below is a set of overlaid bar graphs; s is for spam, h is for ham,
+u is unsure.  The shorter bars are in front and capitalized.  In
+the example, I have very few days where I have more ham than spam.
+
+Finally, there's the amount of time it took to run the retraining.
+
+My scripts are:
+  bulkgraph.py
+    read and train on messages, and generate the graph
+
+  bulktrain.sh
+    wrapper for bulkgraph.py, times the process and moves databases around
+
+  procmailrc
+    a slightly edited version of my .procmailrc file
+
+When I actually use this, I put bulkgraph.py and bulktrain.py in
+the root of my spambayes tree.  Minor tweaks would probably make
+this unnecessary, but as a python newbie I don't know what they
+are off the top of my head, and I can't be bothered to find out. ;-)

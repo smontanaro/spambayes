@@ -430,7 +430,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # in an attachment.  Later.
         # Note we *dont* look in plain text attachments, which we arguably
         # should.
-        import mboxutils
+        from spambayes import mboxutils
 
         self._EnsureObject()
         prop_ids = (PR_TRANSPORT_MESSAGE_HEADERS_A,

@@ -1,0 +1,36 @@
+MAILDIR=/home/cashew/popiel/Mail
+HOME=/home/cashew/popiel
+
+# Classify message (up here so all copies have the classification)
+:0fw:
+| /usr/bin/python2.2 $HOME/spambayes/active/spambayes/hammiefilter.py
+# And trust the classification
+:0Hc:
+* ^X-Spambayes-Classification: ham
+| /usr/bin/python2.2 $HOME/spambayes/active/spambayes/hammiefilter.py -g
+:0Hc:
+* ^X-Spambayes-Classification: spam
+| /usr/bin/python2.2 $HOME/spambayes/active/spambayes/hammiefilter.py -s
+
+
+# Save all mail for analysis
+:0c:
+everything/.
+
+
+# Block spam
+:0H:
+* ^Content-Type:.*text/html
+newspam/.
+:0H:
+* ^X-Spambayes-Classification: spam
+newspam/.
+
+# Put mail from myself in outbox
+:0H:
+* ^From:.*popiel\@wolfskeep
+outbox/.
+
+# Everything else is presumably good
+:0:
+inbox/.

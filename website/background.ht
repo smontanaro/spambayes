@@ -1,5 +1,6 @@
 Title: SpamBayes: Background Reading
 Author-Email: spambayes@python.org
+Author: spambayes
 
 <h1>Background Reading</h1>
 
@@ -12,43 +13,96 @@ Paul Graham's <a href="http://www.paulgraham.com/spam.html">A Plan for Spam.</a>
 <a href="http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html">interesting essay</a>
 suggesting some improvements to Graham's original approach.
 </ul>
-<p><i>more links? mail anthony at interlink.com.au</i></p>
+<p><i>more links? mail 
+<a href="mailto:anthony@interlink.com.au">anthony@interlink.com.au</a></i></p>
 
 <h2>Overall Approach</h2>
-<b>Please note that I (Anthony) am writing this based on memory and
-limited understanding of some of the subtler points of the maths. Gentle
-corrections are welcome, or even encouraged.</b>
+<p class="note"><b>Please note that I (Anthony) am writing this based on memory and limited understanding of some of the subtler points of the maths. Gentle corrections are welcome, or even encouraged.</b></p>
+
 <h3>Tokenizing</h3>
 <p>The architecture of the spambayes system has a couple of distinct 
 parts. The first, and most obvious, is the <i>tokenizer</i>. This takes
-a mail message and breaks it up into a series of tokens. At the moment
-it splits words out of the text parts of a message, there's a variety
-of header tokenization that goes on as well. The code in tokenizer.py
-and the comments in the Tokenizer section of Options.py contain more 
-information about various approaches to tokenizing.</p>
+a mail message and breaks it up into a series of tokens (words). At the 
+moment it splits words out of the text parts of a message, stripping out 
+various HTML snippets and other bits of junk, such as images. In addition,
+there's a variety of mail header interpretation and tokenization that goes 
+on as well. The code in tokenizer.py and the comments in the Tokenizer 
+section of Options.py contain more information about various approaches 
+to tokenizing, as well as various things that have been tried and found 
+to make little or no difference.</p>
+
+<p>Because the original tests of the system mixed a ham corpus from
+a high-volume mailing list with a spam corpus from a different source,
+email header lines were ignored completely at first (they contained too
+many consistent clues about which source a message came from).  As a
+result, this project tried much harder than most to find ways to extract
+useful information from message bodies.  For example, special
+tokenizing of embedded URLs was one of the first things tried, and
+instantly cut the false negative rate in half.  In the end, testing
+showed that very good classifiers can be gotten by looking only at
+message bodies, or by looking only at message headers.  Looking at both
+does best, of course.</p>
+
+<!-- correlation of clues, ... -->
 
 <h3>Combining and Scoring</h3>
+
 <p>The next part of the system is the scoring and combining part. This
 is where the hairy mathematics and statistics come in. </p>
-<p>Initially we started with Paul Graham's original combining scheme - 
+<!-- basic overview goes here -->
+<p>Initially we started with Paul Graham's original combining scheme -
+a "Naive Bayes" scheme, of sorts - 
 this has a number of "magic numbers" and "fuzz factors" built into it. 
-The Graham combining scheme has a number of problems, aside from the
+<p>The Graham combining scheme has a number of problems, aside from the
 magic in the internal fudge factors - it tends to produce scores of 
-either 1 or 0, and there's a very small middle ground in between - it 
+either 1 (definite spam) or 0 (definite ham), and there's a very small 
+middle ground in between - it 
 doesn't often claim to be "unsure", and gets it wrong because of this. 
+The following plot shows the problem: </p>
+<p class="note"><b>Note:</b>In each of these plots, the X 
+axis shows the 'score' of the message, scaled to 0-100. 
+(where 0 is "definitely ham", and 100 is "definitely spam"), and
+the Y axis shows the number of messages with that score (scaled 
+logarithmically). Note also that the plots aren't from the same data
+set :-( but are "typical" plots that you'd see from a given technique.
+One day, if I have enough time, I'll go back and re-do all the plots
+using a single fixed data set.</p> 
+<p><img src="images/graham_graph.png"/></p>
+<p>In this plot, you can see that most of the spam gets scores near to
+100, while most of the ham gets scores near to 0. This is all good. 
+Unfortunately, there's also a significant number of hams that score
+close to 100, and spams close to 0 - which means the system is not just scoring
+them wrong, but it's completely confident in its (wrong) score. (Note that the difference isn't as apparent as it could be - it's a logarithmic scale graph!)
+</p>
+<p class="todo">Add more here - cancellation disease, fudge factors, &c</p>
+
+<p>Gary Robinson's 
+<a href="http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html">essay</a> turned up around this time, and Gary turned up on the mailing
+list a short time after that.</p>
+<P>Gary's initial technique produced scoring like this plot:</P>
+<IMG src="images/robinson_graph.png"/> 
+<P>This produces a <i>very</i> different result - but this plot shows
+a different issue - there's a large overlap between the ham scores and
+spam scores. Choosing the best 'cutoff' value for "everything higher than this
+is spam" turned out to be an incredibly delicate operation, and was 
+highly dependent on the user's data.</P>
+<p>
 There's a number of discussions back and forth between Tim Peters and 
 Gary Robinson on this subject in the mailing list archives - I'll try 
 and put links to the relevant threads at some point.</p>
 <p>Gary produced a number of alternative approaches to combining and
 scoring word probabilities. The initial one, after much back and forth
-in the mailing list, is in the code today as 'gary_combining'. A couple
-of other approaches, using the Central Limit Theorem, were also tried.
+in the mailing list, is in the code today as 'gary_combining', and is
+the second plot, above.. A couple
+of other approaches, using the <a href="http://www.statisticalengineering.com/central_limit_theorem.htm">Central Limit Theorem</a> (or <a href="http://mathworld.wolfram.com/CentralLimitTheorem.html">this, for the serious math geeks</a>), were also tried.</p>
+<p class="todo">todo: do some plots for these</p>
+<P>
 They produced interesting output - but histograms of the ham and spam
-distributions had a disturbingly large overlap in the middle. There was
+distributions still had a disturbingly large overlap in the middle. There was
 also an issue with incremental training and untraining of messages that
 made it harder to use in the "real world". These two central limit 
 approaches were dropped after Tim, Gary and Rob Hooft produced a combining
-scheme using chi-squared probabilities. This is now the default combining
+scheme using <a href="http://mathworld.wolfram.com/Chi-SquaredDistribution.html">chi-squared probabilities</a>. This is now the default combining
 scheme. </p>
 <p>The chi-squared approach produces two numbers - a "ham probability" ("*H*")
 and a "spam probability" ("*S*"). A typical spam will have a high *S*
@@ -59,15 +113,45 @@ know what this message is".
 Some messages can even have both a high *H* and a high *S*, telling you 
 basically that the message looks very much like ham, but also very much 
 like spam. In this case spambayes is also unsure where the message 
-should be classified, and the final score will be near 0.5.</p>
+should be classified, and the final score will be near 0.5. The following plot 
+shows this quite clearly. It also shows the quite dramatic results we get 
+from this technique.</p>
+<img src="images/chi2_graph.png"/>
 
 <p>So at the end of the processing, you end up 
 with three possible results - "Spam", "Ham", or "Unsure". It's possible to
 tweak the high and low cutoffs for the Unsure window - this trades off 
-unsure messages vs possible false positives or negatives.</P>
+unsure messages vs possible false positives or negatives. In the chi-squared
+results, the "unsure" window can be quite large, and still result in very small numbers of "unsure" messages. </P>
+
+<p>A remarkable property of chi-combining is that people have generally
+been sympathetic to its "Unsure" ratings:  people usually agree that
+messages classed Unsure really are hard to categorize.  For example,
+commercial HTML email from a company you do business with is quite likely
+to score as Unsure the first time the system sees such a message from
+a particular company.  Spam and commercial email both use the language
+and devices of advertising heavily, so it's hard to tell them apart.
+Training quickly teaches the system all sorts of things about the
+commerical email you want, though, ranging from which company sent it
+and how they addressed you, to the kinds of products and services it's
+offering.</p>
 
 <h3>Training</h3>
-<p>TBD</p>
+<p class="todo">TBD</p>
+
+<h3>Testing</h3>
+<p class="todo">TBD, describe test setup</p>
+<p>One big difference between spambayes and many other open source projects is
+that there's a large amount of testing done. Before any change to the tokenizer
+or the algorithms was checked in, it was necessary to show that the change 
+actually produced an improvement. Many fine ideas that <i>seemed</i> like 
+they should make a positive difference to the results actually turned out to
+have no impact, or even made things worse. About the only "general rule" that
+kept showing up was <font size="+1">Stupid beats smart.</font> That is, a
+fiddly and delicate piece of tokenization magic would often produce worse
+results than something that just took a brute force "just grab everything"
+approach. </p>
+<p>
 
 <h2>Mailing list archives</h2>
 <p>There's a lot of background on what's been tried available from

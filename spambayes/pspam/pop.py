@@ -28,7 +28,11 @@ POP3 is documented in RFC 1939.
 
 import SocketServer
 import asyncore
-import cStringIO
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+
 import email
 import re
 import socket
@@ -189,7 +193,7 @@ class POP3RequestHandler(SocketServer.StreamRequestHandler):
                  % (cmd, multiline, firstline.strip()))
         if multiline:
             # Collect the entire response as one string
-            resp = cStringIO.StringIO()
+            resp = StringIO.StringIO()
             while 1:
                 line = self.pop_rfile.readline()
                 resp.write(line)
