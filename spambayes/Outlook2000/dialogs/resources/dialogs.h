@@ -100,6 +100,8 @@
 #define IDC_FOLDER_HAM                  1083
 #define IDC_BUT_UNTRAINED               1088
 #define IDC_BUT_TRAIN                   1089
+#define IDC_CHECK1                      1090
+#define IDC_BUT_TIMER_ENABLED           1091
 
 // Next default values for new objects
 // 
@@ -107,7 +109,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1090
+#define _APS_NEXT_CONTROL_VALUE         1092
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

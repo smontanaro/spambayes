@@ -33,22 +33,25 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Advanced"
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
-    GROUPBOX        "Filter timer",IDC_STATIC,7,0,234,104
+    GROUPBOX        "Filter timer",IDC_STATIC,7,3,234,117
     CONTROL         "",IDC_DELAY1_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_TOP | WS_TABSTOP,16,18,148,22
-    LTEXT           "Processing start delay",IDC_STATIC,14,9,101,8
-    EDITTEXT        IDC_DELAY1_TEXT,165,25,40,14,ES_AUTOHSCROLL
-    LTEXT           "seconds",IDC_STATIC,208,27,28,8
+                    TBS_TOP | WS_TABSTOP,16,36,148,22
+    LTEXT           "Processing start delay",IDC_STATIC,16,26,101,8
+    EDITTEXT        IDC_DELAY1_TEXT,165,39,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,208,41,28,8
     CONTROL         "",IDC_DELAY2_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_TOP | WS_TABSTOP,16,60,148,22
-    LTEXT           "Delay between new mail check",IDC_STATIC,14,47,101,8
-    EDITTEXT        IDC_DELAY2_TEXT,165,69,40,14,ES_AUTOHSCROLL
-    LTEXT           "seconds",IDC_STATIC,207,69,28,8
-    CONTROL         "Timer only applies to Inbox",IDC_INBOX_TIMER_ONLY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,89,104,10
-    LTEXT           "I'm not here. Don't Right Click me.",IDC_HIDDEN,165,118,
+                    TBS_TOP | WS_TABSTOP,16,73,148,22
+    LTEXT           "Delay between new mail check",IDC_STATIC,16,62,101,8
+    EDITTEXT        IDC_DELAY2_TEXT,165,79,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,207,82,28,8
+    CONTROL         "Only for folders that receive new mail",
+                    IDC_INBOX_TIMER_ONLY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,100,217,10
+    LTEXT           "I'm not here. Don't Right Click me.",IDC_HIDDEN,172,128,
                     69,46
-    PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,7,108,60,14
+    PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,16,127,60,14
+    CONTROL         "Enable background filtering?",IDC_BUT_TIMER_ENABLED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,12,162,10
 END
 
 IDD_MANAGER DIALOGEX 0, 0, 275, 260
@@ -343,6 +346,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 241
+        VERTGUIDE, 16
         BOTTOMMARGIN, 174
     END
 

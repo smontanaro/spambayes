@@ -408,6 +408,10 @@ dialog_map = {
         
     ),
     "IDD_ADVANCED" : (
+        (BoolButtonProcessor,   "IDC_BUT_TIMER_ENABLED", "Filter.timer_enabled",
+                                """IDC_DELAY1_TEXT IDC_DELAY1_SLIDER
+                                   IDC_DELAY2_TEXT IDC_DELAY2_SLIDER
+                                   IDC_INBOX_TIMER_ONLY"""),
         (EditNumberProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Filter.timer_start_delay", 0, 10, 20),
         (EditNumberProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Filter.timer_interval", 0, 10, 20),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Filter.timer_only_receive_folders"),
