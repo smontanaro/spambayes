@@ -372,7 +372,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # This is finally reliable.  The only messages this now fails for
         # are for "forwarded" messages, where the forwards are actually
         # in an attachment.  Later.
-        # Oh - and for multipart/signed messages <frown>
+        # Note we *dont* look in plain text attachments, which we arguably
+        # should.
         import mboxutils
 
         self._EnsureObject()
@@ -404,8 +405,53 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if not html and not body:
             # Only ever seen this for "multipart/signed" messages, so
             # without any better clues, just handle this.
-            # Find all attachments with PR_ATTACH_MIME_TAG_A=multipart/signed
-            pass
+            # Find all attachments with
+            # PR_ATTACH_MIME_TAG_A=multipart/signed
+            table = self.mapi_object.GetAttachmentTable(0)
+            restriction = (mapi.RES_PROPERTY,   # a property restriction
+                           (mapi.RELOP_EQ,      # check for equality
+                            PR_ATTACH_MIME_TAG_A,   # of the given prop
+                            (PR_ATTACH_MIME_TAG_A, "multipart/signed")))
+            rows = mapi.HrQueryAllRows(table,
+                                       (PR_ATTACH_NUM,), # columns to get
+                                       restriction,    # only these rows
+                                       None,    # any sort order is fine
+                                       0)       # any # of results is fine
+            if len(rows) == 0:
+                pass # Nothing we can fetch :(
+            else:
+                if len(rows) > 1:
+                    print "WARNING: Found %d rows with multipart/signed" \
+                          "- using first only" % len(rows)
+                row = rows[0]
+                (attach_num_tag, attach_num), = row
+                assert attach_num_tag != PT_ERROR, \
+                       "Error fetching attach_num prop"
+                # Open the attachment
+                attach = self.mapi_object.OpenAttach(attach_num,
+                                                   None,
+                                                   mapi.MAPI_DEFERRED_ERRORS)
+                prop_ids = (PR_ATTACH_DATA_BIN,)
+                hr, data = attach.GetProps(prop_ids, 0)
+                attach_body = self._GetPotentiallyLargeStringProp(
+                    prop_ids[0], data[0])
+                # What we seem to have here now is a *complete* multi-part
+                # mime message - that Outlook must have re-constituted on
+                # the fly immediately after pulling it apart! - not unlike
+                # exactly what we are doing ourselves right here - putting
+                # it into a message object, so we can extract the text, so
+                # we can stick it back into another one.  Ahhhhh.
+                import email
+                msg = email.message_from_string(attach_body)
+                assert msg.is_multipart()
+                sub = msg.get_payload(0)
+                body = sub.get_payload()
+
+        if not html and not body:
+            # MarkH has only ever seen this when it is indeed true!
+            # (generally as the message has an attachment and nothing else)
+            print "Couldn't find any useful body for message '%s'" \
+                  % (self.GetField(PR_SUBJECT_A),)
 
         return "%s\n%s\n%s" % (headers, html, body)
 
