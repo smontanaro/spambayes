@@ -235,7 +235,7 @@ class Driver:
         for e in newfneg:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
-            printmsg(e, prob, clues, 1000)
+            printmsg(e, prob, clues)
 
         if options.show_best_discriminators:
             print
