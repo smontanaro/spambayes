@@ -12,7 +12,6 @@ except NameError:
 def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
     prob = mgr.score(msg)
-    mgr.stats.RecordClassification(prob)
     prob_perc = prob * 100
     if prob_perc >= config.spam_threshold:
         disposition = "Yes"
@@ -27,18 +26,39 @@ def filter_message(msg, mgr, all_actions=True):
     ms = mgr.message_store
     try:
         try:
+            # Save the score
+            # Catch msgstore exceptions, as failing to save the score need
+            # not be fatal - it may still be possible to perform the move.
             if config.save_spam_info:
-                # Save the score
-                # Catch this exception, as failing to save the score need not
-                # be fatal - it may still be possible to perform the move.
-                msg.SetField(mgr.config.general.field_score_name, prob)
-                # and the ID of the folder we were in when scored.
-                # (but only if we want to perform all actions)
-                # Note we must do this, and the Save, before the
-                # filter, else the save will fail.
-                if all_actions:
-                    msg.RememberMessageCurrentFolder()
-                msg.Save()
+                # The object can sometimes change underneath us (most
+                # noticably Hotmail, but reported in other cases too).
+                # Retry 3 times handling ObjectChanged exception.
+                # Why 3?  Why not!
+                for i in range(3):
+                    try:
+                        msg.SetField(mgr.config.general.field_score_name, prob)
+                        # and the ID of the folder we were in when scored.
+                        # (but only if we want to perform all actions)
+                        # Note we must do this, and the Save, before the
+                        # filter, else the save will fail.
+                        if all_actions:
+                            msg.RememberMessageCurrentFolder()
+                        msg.Save()
+                        break
+                    except ms.ObjectChangedException:
+                        # Someone has changed the message underneath us.
+                        # The general solution is to re-open the message, and
+                        # try again.  We reach into our knowledge of the
+                        # message to force this.
+                        mgr.LogDebug(1, "Got ObjectChanged changed - " \
+                                        "trying again...")
+                        msg.dirty = False
+                        msg.mapi_object = None # cause it to be re-fetched.
+                else:
+                    # Give up trying to save the score.
+                    mgr.LogDebug(0, "Got ObjectChanged 3 times in a row - " \
+                                    "giving up!")
+                    msg.dirty = False
         except ms.ReadOnlyException:
             # read-only message - not much we can do!
             # Clear dirty flag anyway
@@ -82,6 +102,7 @@ def filter_message(msg, mgr, all_actions=True):
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 
+        mgr.stats.RecordClassification(prob)
         return disposition
     except:
         print "Failed filtering message!", msg
