@@ -712,10 +712,9 @@ class State:
                 big = "spam"
                 small = "ham"
             if big is not None:                
-                self.warning = "%s\nWarning: you have much more %s than %s - " \
+                self.warning = "Warning: you have much more %s than %s - " \
                                "SpamBayes works best with approximately even " \
-                               "numbers of ham and spam." % (db_status, big,
-                                                             small)
+                               "numbers of ham and spam." % (big, small)
             else:
                 self.warning = ""
         elif nspam > 0 or nham > 0:
