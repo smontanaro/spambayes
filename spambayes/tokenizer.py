@@ -947,6 +947,22 @@ def crack_urls(text):
 
     return ''.join(new_text), clues
 
+# Scan HTML for constructs often seen in viruses and worms.
+# <script  </script
+# <iframe  </iframe
+# src=cid:
+# height=0  width=0
+
+virus_re = re.compile(r"""
+    < /? \s* (?: script | iframe) \b
+|   \b src= ['"]? cid:
+|   \b (?: height | width) = ['"]? 0
+""", re.VERBOSE)
+
+def find_html_virus_clues(text):
+    for bingo in virus_re.findall(text):
+        yield bingo
+
 class Tokenizer:
 
     date_hms_re = re.compile(r' (?P<hour>[0-9][0-9]):'
@@ -1218,6 +1234,9 @@ class Tokenizer:
             text, tokens = crack_urls(text)
             for t in tokens:
                 yield t
+
+            for t in find_html_virus_clues(text):
+                yield "virus:%s" % t
 
             # Remove HTML/XML tags.  Also &nbsp;.
             if (part.get_content_type() == "text/plain" or
