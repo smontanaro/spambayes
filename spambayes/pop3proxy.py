@@ -92,7 +92,6 @@ import os, sys, re, errno, getopt, time, traceback, socket, cStringIO
 from thread import start_new_thread
 from email.Header import Header
 
-import smtpproxy
 import spambayes.message
 from spambayes import Dibbler
 from spambayes import storage
@@ -738,6 +737,7 @@ def prepare(state):
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
+    import smtpproxy
     servers, proxyPorts = smtpproxy.LoadServerInfo()
     smtpproxy.CreateProxies(servers, proxyPorts, state)
 
@@ -749,9 +749,13 @@ def start(state):
     main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
 
 def stop(state):
-    state.bayes.store()
-    # should we be calling socket.shutdown(2) and close_when_done() for each
-    # BayesProxy object?
+    # Shutdown as though through the web UI.  This will save the DB, allow
+    # any open proxy connections to complete, etc.
+    from urllib2 import urlopen
+    from urllib import urlencode
+    urlopen('http://localhost:%d/save' % state.uiPort,
+            urlencode({'how': 'Save & shutdown'})).read()
+
 
 # ===================================================================
 # __main__ driver.
