@@ -345,7 +345,7 @@ def main():
 
     # Use SpamBayes to identify spam.  Make a local copy then
     # delete from the server.
-    h = hammie.open("cull.spambayes", False, "r")
+    h = hammie.open("cull.spambayes", "dbm", "r")
     filters.add(IsSpam(h, 0.90), AppendFile("spam.mbox"))
 
     # These are my POP3 accounts.  (or not ;)
