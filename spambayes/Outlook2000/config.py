@@ -294,6 +294,15 @@ if __name__=='__main__':
     c.filter.filter_now = True
     print "Filter_now from container is finally", c.filter.filter_now
     print "Only unread is", c.filter_now.only_unread
+    v = r"/foo/bar"
+    c.general.data_directory=v
+    if c.general.data_directory!=v: print "Bad directory!", c.general.data_directory
+    v = r"c:\test directory\some sub directory"
+    c.general.data_directory=v
+    if c.general.data_directory!=v: print "Bad directory!", c.general.data_directory
+    v = r"\\server\c$"
+    c.general.data_directory=v
+    if c.general.data_directory!=v: print "Bad directory!", c.general.data_directory
     options.update_file("delme.cfg")
     print "Created 'delme.cfg'"
 
