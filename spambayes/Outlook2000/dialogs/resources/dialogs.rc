@@ -597,12 +597,12 @@ BEGIN
                     TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,52,165,22
     EDITTEXT        IDC_EDIT_CERTAIN,184,53,51,14,ES_AUTOHSCROLL
     LTEXT           "and these messages should be:",IDC_STATIC,13,72,107,10
-    COMBOBOX        IDC_ACTION_CERTAIN,13,83,55,40,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_ACTION_CERTAIN,12,83,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,75,85,31,10
+    LTEXT           "to folder",IDC_STATIC,71,85,28,10
     CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,120,83,59,14
+                    WS_GROUP,102,83,77,14
     PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,83,50,14
     GROUPBOX        "Possible Spam",IDC_STATIC,6,117,235,81
     LTEXT           "To be considered uncertain, a message must score at least",
@@ -613,10 +613,10 @@ BEGIN
     LTEXT           "and these messages should be:",IDC_STATIC,12,155,107,10
     COMBOBOX        IDC_ACTION_UNSURE,12,166,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,74,169,31,10
+    LTEXT           "to folder",IDC_STATIC,71,169,27,10
     CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,119,166,59,14
+                    WS_GROUP,102,166,77,14
     PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,166,50,14
     CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,100,81,10
