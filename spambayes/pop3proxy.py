@@ -905,6 +905,8 @@ class UserInterface(Dibbler.HTTPPlugin):
             row.subject.title = messageInfo.bodySummary
             row.subject.href="view?key=%s&corpus=%s" % (key, label)
             row.from_ = messageInfo.fromHeader
+            subj = cgi.escape(messageInfo.subjectHeader)
+            row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
             row = str(row).replace('TYPE', label).replace('KEY', key)
             table += row
@@ -1083,11 +1085,7 @@ class UserInterface(Dibbler.HTTPPlugin):
             self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
         self._writePostamble()
 
-    def onClassify(self, file, text, which):
-        """Classify an uploaded or pasted message."""
-        message = file or text
-        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
-
+    def _buildCluesTable(self, message, subject=None):
         cluesTable = self.html.cluesTable.clone()
         cluesRow = cluesTable.cluesRow.clone()
         del cluesTable.cluesRow   # Delete dummy row to make way for real ones
@@ -1098,7 +1096,31 @@ class UserInterface(Dibbler.HTTPPlugin):
 
         results = self.html.classifyResults.clone()
         results.probability = probability
-        results.cluesBox = self._buildBox("Clues:", 'status.gif', cluesTable)
+        if subject is None:
+            heading = "Clues:"
+        else:
+            heading = "Clues for: " + subject
+        results.cluesBox = self._buildBox(heading, 'status.gif', cluesTable)
+        return results
+
+    def onShowclues(self, key, subject):
+        """Show clues for a message - linked from the Review page."""
+        self._writePreamble("Message clues", parent=('review', 'Review'))
+        message = state.unknownCorpus.get(key).getSubstance()
+        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
+        if message:
+            results = self._buildCluesTable(message, subject)
+            del results.classifyAnother
+            self.write(results)
+        else:
+            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
+        self._writePostamble()
+
+    def onClassify(self, file, text, which):
+        """Classify an uploaded or pasted message."""
+        message = file or text
+        message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
+        results = self._buildCluesTable(message)
         results.classifyAnother = self._buildClassifyBox()
         self._writePreamble("Classify")
         self.write(results)
