@@ -1,3 +1,24 @@
+"""
+This takes incremental.py output and outputs a file to be
+used to create a graph (by default by plotmtv).
+
+Options:
+  -h                 Display this message.
+  -r [report type]   Output this type of report.
+                     Currently supported: "error", "counts"
+                     Defaults to "error".
+  -s [number]        Span of days to average counts over.
+                     If not specified then culmulative counts are
+                     output (this is the default).
+  -f [file]          Input file (if not specified, stdin is used)
+  -c                 Rather than outputting in plotmtv format,
+                     where each line is described separately,
+                     output each line in a separate column, which
+                     is easier to create an Excel graph from.
+  -s [sep]           If -c is used, then this is the column
+                     separator (defaults to comma).
+"""
+
 import sys
 import getopt
 
@@ -16,17 +37,7 @@ nspam_right = []
 nspam_wrong = []
 nspam_unsure = []
 
-def line(vals):
-    global span
-    for k in range(0, len(vals)):
-        n = vals[k]
-        if span and k - span >= 0:
-            n -= vals[k - span]
-        print '%d %d' % (k, n)
-    print
-
-
-def outputset():
+def outputset(Output):
     global report
     global span
     global set
@@ -50,61 +61,61 @@ def outputset():
         title = "Cumulative"
 
     if report == "counts":
-        print '$ Data=Curve2d name="%s Counts"' % (title)
-        print '% linetype=1 linelabel="ham_tested" markertype=0 linecolor=0'
-        line(nham_tested)
-        print '% linetype=1 linelabel="ham_trained" markertype=0 linecolor=1'
-        line(nham_trained)
-        print '% linetype=1 linelabel="ham_right" markertype=0 linecolor=2'
-        line(nham_right)
-        print '% linetype=1 linelabel="ham_wrong" markertype=0 linecolor=3'
-        line(nham_wrong)
-        print '% linetype=1 linelabel="ham_unsure" markertype=0 linecolor=4'
-        line(nham_unsure)
-        print '% linetype=1 linelabel="spam_tested" markertype=0 linecolor=5'
-        line(nspam_tested)
-        print '% linetype=1 linelabel="spam_trained" markertype=0 linecolor=6'
-        line(nspam_trained)
-        print '% linetype=1 linelabel="spam_right" markertype=0 linecolor=7'
-        line(nspam_right)
-        print '% linetype=1 linelabel="spam_wrong" markertype=0 linecolor=8'
-        line(nspam_wrong)
-        print '% linetype=1 linelabel="spam_unsure" markertype=0 linecolor=9'
-        line(nspam_unsure)
+        Output.output_title(title)
+        color = 0
+        for data, label in [(nham_tested, "ham_tested"),
+                            (nham_trained, "ham_trained"),
+                            (nham_right, "ham_right"),
+                            (nham_wrong, "ham_wrong"),
+                            (nham_unsure, "ham_unsure"),
+                            (nspam_tested, "spam_tested"),
+                            (nspam_trained, "spam_trained"),
+                            (nspam_right, "spam_right"),
+                            (nspam_wrong, "spam_wrong"),
+                            (nspam_unsure, "spam_unsure"),
+                            ]:
+            Output.add_line(data, linelabel=label, linecolor=color)
+            color += 1
+        Output.output()
 
     if report == "error":
-        print '$ Data=Curve2d'
-        print '% toplabel="%s Error Rates"' % (title)
-        print '% ymax=5'
-        print '% xlabel="Days"'
-        print '% ylabel="Percent"'
-        print '% linetype=1 linelabel="fp" markertype=0 linecolor=0'
-        for k in range(0, len(nham_wrong)):
+        Output.output_title(title)
+        Output.line_title(linelabel="fp", linecolor=0)
+        for k in xrange(len(nham_wrong)):
             n = nham_wrong[k]
             d = nham_tested[k]
             if span and k - span >= 0:
                 n -= nham_wrong[k - span]
                 d -= nham_tested[k - span]
-            print '%d %f' % (k, (n * 100.0 / (d or 1)))
-        print
-        print '% linetype=1 linelabel="fn" markertype=0 linecolor=1'
-        for k in range(0, len(nspam_wrong)):
+            Output.add_line(k, (n * 100.0 / (d or 1)))
+
+        Output.line_title(linelabel="fn", linecolor=1)
+        for k in xrange(len(nspam_wrong)):
             n = nspam_wrong[k]
             d = nspam_tested[k]
             if span and k - span >= 0:
                 n -= nspam_wrong[k - span]
                 d -= nspam_tested[k - span]
-            print '%d %f' % (k, (n * 100.0 / (d or 1)))
-        print
-        print '% linetype=1 linelabel="unsure" markertype=0 linecolor=2'
-        for k in range(0, len(nspam_unsure)):
+            Output.add_line(k, (n * 100.0 / (d or 1)))
+
+        Output.line_title(linelabel="unsure", linecolor=2)            
+        for k in xrange(len(nspam_unsure)):
             n = nham_unsure[k] + nspam_unsure[k]
             d = nham_tested[k] + nspam_tested[k]
             if span and k - span >= 0:
                 n -= nham_unsure[k - span] + nspam_unsure[k - span]
                 d -= nham_tested[k - span] + nspam_tested[k - span]
-            print '%d %f' % (k, (n * 100.0 / (d or 1)))
-        print
+            Output.add_line(k, (n * 100.0 / (d or 1)))
+
+        Output.line_title(linelabel="training_is_ham", linecolor=3)
+        for k in xrange(len(nspam_unsure)):
+            n = nham_trained[k]
+            d = nham_trained[k] + nspam_trained[k]
+            if span and k - span >= 0:
+                n -= nham_trained[k - span]
+                d -= nham_trained[k - span] + nspam_trained[k - span]
+            Output.add_line(k, (n * 100.0 / (d or 1)))
+        Output.output()
 
     set = ""
     nham_tested = []
@@ -117,6 +128,86 @@ def outputset():
     nspam_right = []
     nspam_wrong = []
     nspam_unsure = []
+
+class SetOutputter(object):
+    """Class to output set data in the correct format."""
+    def __init__(self, sep=',', immediate_print=False):
+        self.sep = sep
+        self.immediate_print = immediate_print
+        self.reset()
+
+    def output_title(self, title):
+        if self.immediate_print:
+            title = '$ Data=Curve2d name="%s Counts"' % (title)
+        print title
+        if not self.immediate_print:
+            print self.sep.join(["group", "ham_tested", "ham_trained",
+                                 "ham_right", "ham_wrong", "ham_unsure",
+                                 "spam_tested", "spam_trained",
+                                 "spam_right", "spam_wrong",
+                                 "spam_unsure"])
+
+    def add_line(self, vals, linetype=1, linelabel="", markertype=0,
+                 linecolor=0):
+        if self.immediate_print:
+            print
+            print '%% linetype=%d linelabel="%s" markertype=%d linecolor=%s' % \
+                  (linetype, linelabel, markertype, linecolor)
+        for k in xrange(len(vals)):
+            n = vals[k]
+            if span and k - span >= 0:
+                n -= vals[k - span]
+            if self.lines.has_key(k):
+                self.lines[k].append(str(n))
+            else:
+                self.lines[k] = [str(n)]
+            if self.immediate_print:
+                print '%d %d' % (k, n)
+
+    def output(self):
+        if not self.immediate_print:
+            keys = self.lines.keys()
+            keys.sort()
+            for k in keys:
+                vals = [str(k)]
+                vals.extend(self.lines.get(k, []))
+                print self.sep.join(vals)
+        else:
+            print
+        self.reset()
+
+    def reset(self):
+        self.lines = {}
+
+class ErrorSetOutputter(SetOutputter):
+    """Class to output set error data in the correct format."""
+    def output_title(self, title):
+        if self.immediate_print:
+            print '$ Data=Curve2d'
+            print '%% toplabel="%s Error Rates"' % (title)
+            print '% ymax=5'
+            print '% xlabel="Days"'
+            print '% ylabel="Percent"'
+        else:
+            print title
+            print self.sep.join(["group", "fp", "fn", "unsure",
+                                 "training_is_ham"])
+
+    def line_title(self, linetype=1, linelabel="", markertype=0,
+                   linecolor=0):
+        if self.immediate_print:
+            print '\n%% linetype=%d linelabel="%s" markertype=%d ' \
+                  'linecolor=%d' % (linetype, linelabel, markertype,
+                                    linecolor)
+
+    def add_line(self, k, v):
+        if self.immediate_print:
+            print '%d %f' % (k, v)
+        else:
+            if self.lines.has_key(k):
+                self.lines[k].append(str(v))
+            else:
+                self.lines[k] = [str(v)]
 
 def main():
     global report
@@ -133,25 +224,47 @@ def main():
     global nspam_wrong
     global nspam_unsure
 
-    opts, args = getopt.getopt(sys.argv[1:], 's:r:')
+    filename = None
+    sep = ','
+    all_together = False
+    opts, args = getopt.getopt(sys.argv[1:], 's:r:f:hcs:')
     for opt, arg in opts:
         if opt == '-s':
             span = int(arg)
-        if opt == '-r':
+        elif opt == '-r':
             report = arg
+        elif opt == '-f':
+            filename = arg
+        elif opt == '-c':
+            all_together = True
+        elif opt == '-s':
+            sep = arg
+        elif opt == '-h':
+            print __doc__
+            sys.exit()
 
     if report not in ("error", "counts"):
         print >> sys.stderr, "Unrecognized report type"
         sys.exit(1)
 
+    if report == "counts":
+        Output = SetOutputter(sep, not all_together)
+    elif report == "error":
+        Output = ErrorSetOutputter(sep, not all_together)
+
+    if filename:
+        source = file(filename)
+    else:
+        source = sys.stdin
+
     while 1:
-        line = sys.stdin.readline()
+        line = source.readline()
         if line == "":
             break
         if line.endswith("\n"):
             line = line[:-1]
         if line.startswith("Set "):
-            outputset()
+            outputset(Output)
             set = line[4:]
         if len(line) > 0 and (line[0] in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')):
             vals = line.split(" ")
@@ -166,7 +279,7 @@ def main():
             nspam_wrong.append(int(vals[8]))
             nspam_unsure.append(int(vals[9]))
 
-    outputset()
+    outputset(Output)
 
 if __name__ == "__main__":
     main()
