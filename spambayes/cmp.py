@@ -69,11 +69,21 @@ def dump(p1s, p2s):
         print "%-4s %2d times" % (t, alltags.count(t))
     print
 
+def windowsfy(fn):
+    import os
+    if os.path.exists(fn + '.txt'):
+        return fn + '.txt'
+    else:
+        return fn
 
 print f1n, '->', f2n
 
-fp1, fn1, fptot1, fntot1, fpmean1, fnmean1 = suck(file(f1n + '.txt'))
-fp2, fn2, fptot2, fntot2, fpmean2, fnmean2 = suck(file(f2n + '.txt'))
+
+f1n = windowsfy(f1n)
+f2n = windowsfy(f2n)
+
+fp1, fn1, fptot1, fntot1, fpmean1, fnmean1 = suck(file(f1n))
+fp2, fn2, fptot2, fntot2, fpmean2, fnmean2 = suck(file(f2n))
 
 print
 print "false positive percentages"
