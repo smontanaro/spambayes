@@ -98,6 +98,7 @@ import email
 import email.Message
 import email.Parser
 import email.Header
+import email.Generator
 
 from spambayes import storage
 from spambayes import dbmstorage
@@ -354,15 +355,17 @@ class Message(email.Message.Message):
         """Make sure data uses CRLF for line termination."""
         return CRLF_RE.sub('\r\n', data)
 
-    def as_string(self, unixfrom=False):
+    def as_string(self, unixfrom=False, mangle_from_=True):
         # The email package stores line endings in the "internal" Python
         # format ('\n').  It is up to whoever transmits that information to
         # convert to appropriate line endings (according to RFC822, that is
         # \r\n *only*).  imaplib *should* take care of this for us (in the
         # append function), but does not, so we do it here
         try:
-            return self._force_CRLF(\
-                email.Message.Message.as_string(self, unixfrom))
+            fp = StringIO.StringIO()
+            g = email.Generator.Generator(fp, mangle_from_=mangle_from_)
+            g.flatten(self, unixfrom)
+            return self._force_CRLF(fp.getvalue())
         except TypeError:
             parts = []
             for part in self.get_payload():
