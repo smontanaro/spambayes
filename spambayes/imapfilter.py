@@ -174,10 +174,11 @@ class IMAPMessage(message.SBHeaderMessage):
         # When we create a new copy of a message, we need to specify
         # a timestamp for the message.  If the message has a date header
         # we use that.  Otherwise, we use the current time.
-        try:
+        message_date = self["Date"]
+        if message_date is not None:
             return imaplib.Time2Internaldate(\
-                       time.mktime(parsedate(self["Date"])))
-        except KeyError:
+                       time.mktime(parsedate(message_date)))
+        else:
             return imaplib.Time2Internaldate(time.time())
 
     def MoveTo(self, dest):
