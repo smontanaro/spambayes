@@ -10,6 +10,13 @@ pop3proxy.py.  The STAT, LIST, RETR, and TOP commands are intercepted
 to change the number of bytes the client is told to expect and/or to
 insert the spam header.
 
+The proxy can connect to any real POP3 server.  It parses the USER
+command to figure out the address of the real server.  It expects the
+USER argument to follow this format user@server[:port].  For example,
+if you configure your POP client to send USER jeremy@example.com:111.
+It will connect to a server on port 111 at example.com and send it the
+command USER jeremy.
+
 XXX A POP3 server sometimes adds the number of bytes in the +OK
 response to some commands when the POP3 spec doesn't require it to.
 In those case, the proxy does not re-write the number of bytes.  I
@@ -40,14 +47,15 @@ from pspam.options import options
 HEADER = "X-Spambayes: %5.3f\r\n"
 HEADER_SIZE = len(HEADER % 0.0)
 
+VERSION = 0.1
+
 class POP3ProxyServer(SocketServer.ThreadingTCPServer):
 
     allow_reuse_address = True
 
-    def __init__(self, addr, handler, classifier, real_server, log, zodb):
+    def __init__(self, addr, handler, classifier, log, zodb):
         SocketServer.ThreadingTCPServer.__init__(self, addr, handler)
         self.classifier = classifier
-        self.pop_server = real_server
         self.log = log
         self.zodb = zodb
 
@@ -72,10 +80,39 @@ class LogWrapper:
 class POP3RequestHandler(SocketServer.StreamRequestHandler):
     """Act as proxy between POP client and server."""
 
-    def connect_pop(self):
+    def read_user(self):
+        # XXX This could be cleaned up a bit.
+        line = self.rfile.readline()
+        if line == "":
+            return False
+        parts = line.split()
+        if parts[0] != "USER":
+            self.wfile.write("-ERR Invalid command; must specify USER first")
+            return False
+        user = parts[1]
+        i = user.rfind("@")
+        username = user[:i]
+        server = user[i+1:]
+        i = server.find(":")
+        if i == -1:
+            server = server, 110
+        else:
+            port = int(server[i+1:])
+            server = server[:i], port
+        zLOG.LOG("POP3", zLOG.INFO, "Got connect for %s" % repr(server))
+        self.connect_pop(server)
+        self.pop_wfile.write("USER %s\r\n" % username)
+        resp = self.pop_rfile.readline()
+        # As long the server responds OK, just swallow this reponse.
+        if resp.startswith("+OK"):
+            return True
+        else:
+            return False
+
+    def connect_pop(self, pop_server):
         # connect to the pop server
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(self.server.pop_server)
+        s.connect(pop_server)
         self.pop_rfile = LogWrapper(self.server.log, s.makefile("rb"))
         # the write side should be unbuffered
         self.pop_wfile = LogWrapper(self.server.log, s.makefile("wb", 0))
@@ -89,7 +126,11 @@ class POP3RequestHandler(SocketServer.StreamRequestHandler):
                  "Connection from %s" % repr(self.client_address))
         self.server.zodb.sync()
         self.sess_retr_count = 0
-        self.connect_pop()
+        self.wfile.write("+OK pspam/pop %s\r\n" % VERSION)
+        # First read the USER command to get the real server's name
+        if not self.read_user():
+            zLOG.LOG("POP3", zLOG.INFO, "Did not get valid USER")
+            return
         try:
             self.handle_pop()
         finally:
@@ -264,7 +305,6 @@ def main():
     server = POP3ProxyServer(('', options.proxy_port),
                              POP3RequestHandler,
                              profile.classifier,
-                             (options.server, options.server_port),
                              log,
                              conn,
                              )
