@@ -28,7 +28,7 @@ import socket
 import email
 
 DB_FILE = os.path.expanduser(DB_FILE)
-if not os.environ['BAYESCUSTOMIZE']:
+if not os.environ.has_key('BAYESCUSTOMIZE'):
     os.environ['BAYESCUSTOMIZE'] = os.path.expanduser(OPTION_FILE)
 
 from spambayes import mboxutils
