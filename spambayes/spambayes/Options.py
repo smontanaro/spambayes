@@ -23,6 +23,7 @@ except NameError:
     def bool(val):
         return not not val
 
+import re
 
 __all__ = ['options']
 
@@ -563,7 +564,8 @@ alternate = None
 if hasattr(os, 'getenv'):
     alternate = os.getenv('BAYESCUSTOMIZE')
 if alternate:
-    filenames = alternate.split()
+    r = re.compile(r'(.*?\.ini) *',re.IGNORECASE)
+    filenames = r.findall(alternate)
     options.mergefiles(filenames)
     optionsPathname = os.path.abspath(filenames[-1])
 else:
