@@ -21,11 +21,11 @@ Where:
 """
 
 import os
-import SimpleXMLRPCServer
 import getopt
 import sys
 import traceback
 import xmlrpclib
+import SimpleXMLRPCServer
 
 from spambayes import hammie, Options
 from spambayes.storage import open_storage
@@ -37,6 +37,10 @@ except NameError:
     True, False = 1, 0
 
 
+class ReusableSimpleXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+    allow_reuse_address = True
+
+
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 class XMLHammie(hammie.Hammie):
@@ -45,7 +49,7 @@ class XMLHammie(hammie.Hammie):
             msg = msg.data
         except AttributeError:
             pass
-        return xmlrpclib.Binary(hammie.Hammie.score(self, msg, *extra))
+        return hammie.Hammie.score(self, msg, *extra)
 
     def filter(self, msg, *extra):
         try:
@@ -93,8 +97,9 @@ def main():
     bayes = open_storage(dbname, usedb)
     h = XMLHammie(bayes)
 
-    server = SimpleXMLRPCServer.SimpleXMLRPCServer((ip, port),
-                                                   SimpleXMLRPCServer.SimpleXMLRPCRequestHandler)
+    server = ReusableSimpleXMLRPCServer(
+        (ip, port),
+        SimpleXMLRPCServer.SimpleXMLRPCRequestHandler)
     server.register_instance(h)
     server.serve_forever()
 
