@@ -1308,7 +1308,7 @@ class State:
             self.hamCorpus = ExpiryFileCorpus(age, factory,
                                               options.pop3proxy_ham_cache,
                                               '[0123456789]*', cacheSize=20)
-            self.unknownCorpus = FileCorpus(factory,
+            self.unknownCorpus = ExpiryFileCorpus(age, factory,
                                             options.pop3proxy_unknown_cache,
                                             '[0123456789]*', cacheSize=20)
 
