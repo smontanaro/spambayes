@@ -5,7 +5,7 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with either Python 2.2.3, Python 2.3, 
+<p>This project works with Python 2.2, Python 2.3, Python 2.4, 
 or on the bleeding edge of python code,
 available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
 sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
@@ -13,45 +13,59 @@ likely to do so.</p>
 <p>If you're running Python 2.2 or 2.2.1, you'll need to separately fetch
 the latest <a href="http://mimelib.sf.net">email package</a>. You can get
 this from  
-<a href="http://sourceforge.net/project/showfiles.php?group_id=25568">sourceforge</a> (you'll need version 2.4.3 or later).
+<a href="http://sourceforge.net/project/showfiles.php?group_id=25568">sourceforge</a>
+(you'll need version 2.4.3 or later - version 3.0 or later is recommended).
 </p>
+
 <p>The SpamBayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>, or from the <a href="download.html">download</a> page.
 </p>
 
 <h2>I just want to make suggestions</h2>
+
 <p>Excellent! Note though, that this project takes a very results-oriented
 approach to code changes - if the change doesn't produce an improvement in
 results from various test corpuses, it's not going to get very far. </p>
+
 <p>Note that a lot of "intuitive" approaches and ideas end up making 
 things <i>worse</i>, not better - it seems that stupid beats smart in many
 or even most cases.</p>
+
 <p>There's a bunch of documentation on things that have already been tried
 available as links from the <a href="docs.html">documentation</a> page.
 
 <h3>So what needs to be done</h3>
-<p>In July 2004, the final 1.0 release was made.  As a result, there are
-now two focuses.  We would like to resolve any outstanding bugs in the 1.0
-release, so that a 1.0.1 release (containing only bug fixes) can be
-released.  At the same time, work has begun on a 1.1 release, which will
-contain much more than just bug releases.</p>
+<p>1.0 was released in July 2004, and was followed up by a bugfix 1.0.1
+release in November 2004.  We intend to fix as many remaining bugs with the
+1.0.x branch as is practical and hope to release 1.0.2 towards the end of
+January 2005.  This is likely to be the final release in the 1.0.x line,
+unless there are unforeseen problems with the 1.0.2 or 1.1 releases.</p>
 
-<p>Each developer has their own pet ideas that they'd like to implement for
-1.1, but there are a few general areas that you could work on if you're
-stuck for ideas:</p>
+<p>Since May 2004, work has been carried out on a 1.1 release, which
+includes many improvements, as well as bug fixes, compared to the 1.0.x
+branch.  We hope to release 1.1a1 for public testing at the end of January
+2005, to be followed by at least one more alpha, at least one beta, and
+at least one release candidate.  We hope that a stable 1.1 release will
+be made in April 2005, although this date is certainly not fixed.</p>
+
+<p>The 1.1 line will be frozen for non-bugfix changes from the first
+beta release (probably early March 2005).  Many of the changes desired
+by the developers have been implemented, or partly so, but there is
+still time for further improvement.  <strong>There is no time limit on
+implementing bug fixes</strong>.</p>
+
+<p>Some key work that is in progress for 1.1, which you could assist
+with (particularly in testing) includes:</p>
 <ul>
 <li>Internationalisation.  A small number of people have expressed
 interest in translating the SpamBayes documentation and user interfaces
-into other languages.  We're very happy for this to happen, but areas
-of the code need to be cleaned up to make this easier (and then there's
-the actual translation work).</li>
+into other languages.</li>
 <li>Database backend.  The majority of SpamBayes users use the bsddb
 support included with Python (a few use a pickled Python dict, and even
 fewer use the experimental mySQL/postgreSQL support).  The bsddb
 solution is problematic, in that users' databases sometimes get
-corrupted, but we don't know what causes that.  The general consensus
-is that (unless a bsddb expert comes along) we should move to an
-alternative database backend - perhaps ZOE/ZODB.  Work on this would
-be appreciated by many.</li>
+corrupted, but we don't know what causes that.  New backends, particularly
+ZODB/ZEO, have been added, and the SQL backends improved.</li>
+<li>Improvement in the unit testing suite.</li>
 </ul>
 
 <p>The other big body of work is monitoring the bug reports and feature
@@ -59,7 +73,7 @@ requests that come in and trying to resolve those.</p>
 
 <h2>Collecting training data</h2>
 <p>One of the tricky problems is collecting a set of data that's 
-"good enough". There's a few collections of spam out on the net - note
+&quot;good enough&quot; There's a few collections of spam out on the net - note
 though, that using spam and ham from different sources often leads to 
 the classifier picking up on these clues -- for instance, a different
 set of hostnames in the Received: headers. 
