@@ -149,9 +149,8 @@ defaults = {
 
     ("mine_received_headers", "Mine the received headers", False,
      """A lot of clues can be gotten from IP addresses and names in
-     Received: headers.  Again this can give spectacular results for bogus
-     reasons if your test corpora are from different sources. Else set this
-     to true.""",
+     Received: headers.  This can give spectacular results for bogus
+     reasons if your corpora are from different sources.""",
      BOOLEAN, RESTORE),
 
     ("address_headers", "Address headers to mine", ("from",),
@@ -193,7 +192,7 @@ defaults = {
      """Extract day of the week tokens from the Date: header.""",
      BOOLEAN, RESTORE),
 
-    ("replace_nonascii_chars", "", False,
+    ("replace_nonascii_chars", "Replace non-ascii characters", False,
      """If true, replace high-bit characters (ord(c) >= 128) and control
      characters with question marks.  This allows non-ASCII character
      strings to be identified with little training and small database
@@ -392,9 +391,9 @@ defaults = {
 
   "Classifier": (
     ("max_discriminators", "Maximum number of extreme words", 150,
-     """The maximum number of extreme words to look at in a msg, where
-     "extreme" means with spamprob farthest away from 0.5.  150 appears to
-     work well across all corpora tested.""",
+     """The maximum number of extreme words to look at in a message, where
+     "extreme" means with spam probability farthest away from 0.5.  150
+     appears to work well across all corpora tested.""",
      INTEGER, RESTORE),
 
     ("unknown_word_prob", "Unknown word probability", 0.5,
@@ -402,17 +401,17 @@ defaults = {
      unknown_word_prob is essentially the probability given to a word that
      has never been seen before.  Nobody has reported an improvement via
      moving it away from 1/2, although Tim has measured a mean spamprob of
-     a bit over 0.5 (0.51-0.55) in 3 well-trained classifiers.
-
-     uknown_word_strength adjusts how much weight to give the prior
-     assumption relative to the probabilities estimated by counting.  At 0,
-     the counting estimates are believed 100%, even to the extent of
-     assigning certainty (0 or 1) to a word that has appeared in only ham
-     or only spam.  This is a disaster.""",
+     a bit over 0.5 (0.51-0.55) in 3 well-trained classifiers.""",
      REAL, RESTORE),
 
     ("unknown_word_strength", "Unknown word strength", 0.45,
-     """As unknown_word_strength tends toward infintity, all probabilities
+     """This adjusts how much weight to give the prior
+     assumption relative to the probabilities estimated by counting.  At 0,
+     the counting estimates are believed 100%, even to the extent of
+     assigning certainty (0 or 1) to a word that has appeared in only ham
+     or only spam.  This is a disaster.
+     
+     As unknown_word_strength tends toward infintity, all probabilities
      tend toward unknown_word_prob.  All reports were that a value near 0.4
      worked best, so this does not seem to be corpus-dependent.""",
      REAL, RESTORE),
@@ -467,7 +466,7 @@ defaults = {
     # strong imbalance need to test it first.
 
     ("experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
-     """If your training database has significantly (3 times) more ham than
+     """If your training database has significantly more ham than
      spam, or vice versa, you may start seeing an increase in incorrect
      classifications (messages put in the wrong category, not just marked
      as unsure). If so, this option allows you to compensate for this, at
@@ -507,10 +506,10 @@ defaults = {
   # value for each of these options in a configuration file that gets
   # loaded by the appropriate application only.
   "Storage" : (
-    ("persistent_use_database", "", True,
-     """hammiefilter can use either a database (quick to score one message)
+    ("persistent_use_database", "Use database for storage", True,
+     """SpamBayes can use either a database (quick to score one message)
      or a pickle (quick to train on huge amounts of messages). Set this to
-     True to use a database by default.""",
+     use a database by default.""",
      BOOLEAN, RESTORE),
 
     ("persistent_storage_file", "Storage file name", "hammie.db",
@@ -578,7 +577,7 @@ defaults = {
      INTEGER, RESTORE),
 
     ("header_score_logarithm", "Augment score with logarithm", False,
-     """Set this to "True", to augment scores of 1.00 or 0.00 by a
+     """Set this option to augment scores of 1.00 or 0.00 by a
      logarithmic "one-ness" or "zero-ness" score (basically it shows the
      "number of zeros" or "number of nines" next to the score value).""",
      BOOLEAN, RESTORE),
@@ -673,23 +672,29 @@ defaults = {
      SERVER, DO_NOT_RESTORE),
 
     ("cache_use_gzip", "Use gzip", False,
-     """""",
+     """Use gzip to compress the cache.""",
      BOOLEAN, RESTORE),
 
     ("cache_expiry_days", "Days before cached messages expire", 7,
-     """""",
+     """Messages will be expired from the cache after this many days.
+     After this time, you will no longer be able to train on these messages
+     (note this does not effect the copy of the message that you have in
+     your mail client).""",
      INTEGER, RESTORE),
 
     ("spam_cache", "Spam cache directory", "pop3proxy-spam-cache",
-     """""",
+     """Directory that SpamBayes should cache spam in.  If this does
+     not exist, it will be created.""",
      PATH, DO_NOT_RESTORE),
 
     ("ham_cache", "Ham cache directory", "pop3proxy-ham-cache",
-     """""",
+     """Directory that SpamBayes should cache ham in.  If this does
+     not exist, it will be created.""",
      PATH, DO_NOT_RESTORE),
 
     ("unknown_cache", "Unknown cache directory", "pop3proxy-unknown-cache",
-     """""",
+     """Directory that SpamBayes should cache unclassified messages in.
+     If this does not exist, it will be created.""",
      PATH, DO_NOT_RESTORE),
 
     ("notate_to", "Notate to", (),

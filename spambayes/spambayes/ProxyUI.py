@@ -82,29 +82,58 @@ parm_ini_map = (
     ('POP3 Proxy Options',  None),
     ('pop3proxy',           'remote_servers'),
     ('pop3proxy',           'listen_ports'),
-    ('pop3proxy',           'cache_messages'),
-    ('pop3proxy',           'no_cache_bulk_ham'),
-    ('pop3proxy',           'no_cache_large_messages'),
     ('html_ui',             'display_to'),
     ('html_ui',             'allow_remote_connections'),
     ('Header Options',      None),
     ('pop3proxy',           'notate_to'),
     ('pop3proxy',           'notate_subject'),
-    ('Headers',             'include_score'),
-    ('Headers',             'include_thermostat'),
-    ('Headers',             'include_evidence'),
     ('SMTP Proxy Options',  None),
     ('smtpproxy',           'remote_servers'),
     ('smtpproxy',           'listen_ports'),
     ('smtpproxy',           'ham_address'),
     ('smtpproxy',           'spam_address'),
+    ('smtpproxy',           'use_cached_message'),
     ('Storage Options',  None),
     ('Storage',             'persistent_storage_file'),
     ('Storage',             'messageinfo_storage_file'),
+    ('pop3proxy',           'cache_messages'),
+    ('pop3proxy',           'no_cache_bulk_ham'),
+    ('pop3proxy',           'no_cache_large_messages'),
     ('Statistics Options',  None),
     ('Categorization',      'ham_cutoff'),
     ('Categorization',      'spam_cutoff'),
+)
+
+# Like the above, but hese are the options that will be offered on the
+# advanced configuration page.
+adv_map = (
+    ('Statistics Options',  None),
     ('Classifier',          'experimental_ham_spam_imbalance_adjustment'),
+    ('Classifier',          'max_discriminators'),
+    ('Classifier',          'minimum_prob_strength'),
+    ('Classifier',          'unknown_word_prob'),
+    ('Classifier',          'unknown_word_strength'),
+    ('Header Options',      None),
+    ('Headers',             'include_score'),
+    ('Headers',             'header_score_digits'),
+    ('Headers',             'header_score_logarithm'),
+    ('Headers',             'include_thermostat'),
+    ('Headers',             'include_evidence'),
+    ('Headers',             'clue_mailheader_cutoff'),
+    ('Storage Options',     None),
+    ('Storage',             'persistent_use_database'),
+    ('pop3proxy',           'cache_expiry_days'),
+    ('pop3proxy',           'cache_use_gzip'),
+    ('pop3proxy',           'ham_cache'),
+    ('pop3proxy',           'spam_cache'),
+    ('pop3proxy',           'unknown_cache'),
+    ('Tokenising Options',  None),
+    ('Tokenizer',           'extract_dow'),
+    ('Tokenizer',           'generate_time_buckets'),
+    ('Tokenizer',           'mine_received_headers'),
+    ('Tokenizer',           'replace_nonascii_chars'),
+    ('Tokenizer',           'summarize_email_prefixes'),
+    ('Tokenizer',           'summarize_email_suffixes'),
 )
 
 class ProxyUserInterface(UserInterface.UserInterface):
@@ -113,7 +142,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def __init__(self, proxy_state, state_recreator):
         global state
         UserInterface.UserInterface.__init__(self, proxy_state.bayes,
-                                             parm_ini_map)
+                                             parm_ini_map, adv_map)
         state = proxy_state
         self.state_recreator = state_recreator # ugly
         self.app_for_version = "POP3 Proxy"
@@ -484,11 +513,14 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Recreate the state.
         state = self.state_recreator()
 
-    def verifyInput(self, parms):
+    def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
         # Most of the work here is done by the parent class, but
         # we have a few extra checks
-        errmsg = UserInterface.UserInterface.verifyInput(self, parms)
+        errmsg = UserInterface.UserInterface.verifyInput(self, parms, pmap)
+
+        if pmap == adv_map:
+          return errmsg
 
         # check for equal number of pop3servers and ports
         slist = list(parms['pop3proxy_remote_servers'])

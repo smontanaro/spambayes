@@ -20,6 +20,7 @@ These currently include:
   onTrain - train a message or mbox
   onSave - save the database and possibly shutdown
   onConfig - present the appropriate configuration page
+  onAdvancedconfig - present the appropriate advanced configuration page
 
 To Do:
 
@@ -79,7 +80,7 @@ import PyMeldLite
 import Version
 import Dibbler
 import tokenizer
-from Options import options, optionsPathname, defaults
+from Options import options, optionsPathname, defaults, OptionsClass
 
 IMAGES = ('helmet', 'status', 'config',
           'message', 'train', 'classify', 'query')
@@ -225,12 +226,13 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 class UserInterface(BaseUserInterface):
     """Serves the HTML user interface."""
 
-    def __init__(self, bayes, config_parms=()):
+    def __init__(self, bayes, config_parms=(), adv_parms=()):
         """Load up the necessary resources: ui.html and helmet.gif."""
         global classifier
         BaseUserInterface.__init__(self)
         classifier = bayes
         self.parm_ini_map = config_parms
+        self.advanced_options_map = adv_parms
 
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
@@ -438,7 +440,25 @@ class UserInterface(BaseUserInterface):
         or restores the defaults."""
         pass
 
+    def onAdvancedconfig(self):
+        html = self._buildConfigPage(self.advanced_options_map)
+        html.title = 'Home &gt; Advanced Configuration'
+        html.pagename = '&gt; Advanced Configuration'
+        html.adv_button.name.value = "Back to basic configuration"
+        html.adv_button.action = "config"
+        html.config_submit.value = "Save advanced options"
+        html.restore.value = "Restore advanced options defaults"
+        self.writeOKHeaders('text/html')
+        self.write(html)
+
     def onConfig(self):
+        html = self._buildConfigPage(self.parm_ini_map)
+        html.title = 'Home &gt; Configure'
+        html.pagename = '&gt; Configure'
+        self.writeOKHeaders('text/html')
+        self.write(html)
+
+    def _buildConfigPage(self, parm_map):
         # Start with an empty config form then add the sections.
         html = self._getHTMLClone()
         # "Save and Shutdown" is confusing here - it means "Save database"
@@ -451,10 +471,10 @@ class UserInterface(BaseUserInterface):
         section = None
 
         # Loop though the sections.
-        for sect, opt in self.parm_ini_map:
+        for sect, opt in parm_map:
             # We need a string to use as the html key that we can change to
             # and from the sect, opt pair.  We like irony, so we use '_' as
-            # the delimiter <wink>
+            # the delimiter <wink>.
             if opt is None:
                 if configTable is not None and section is not None:
                     # Finish off the box for this section and add it
@@ -559,18 +579,19 @@ class UserInterface(BaseUserInterface):
         if section is not None:
             section.boxContent = configTable
             html.configFormContent += section
-        html.title = 'Home &gt; Configure'
-        html.pagename = '&gt; Configure'
-        self.writeOKHeaders('text/html')
-        self.write(html)
+        return html
 
     def onChangeopts(self, **parms):
         if parms.has_key("how"):
+            if parms["how"] == "Save advanced options":
+                pmap = self.advanced_options_map
+            else:
+                pmap = self.parm_ini_map
             del parms["how"]
         html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
-        errmsg = self.verifyInput(parms)
+        errmsg = self.verifyInput(parms, pmap)
 
         if errmsg != '':
             html.mainContent.heading = "Errors Detected"
@@ -583,7 +604,7 @@ class UserInterface(BaseUserInterface):
 
         for name, value in parms.items():
             sect, opt = name.split('_', 1)
-            if (sect, opt) in self.parm_ini_map:
+            if (sect, opt) in pmap:
                 options.set(sect, opt, value)
             # If a section name has an underscore in it (like html_ui)
             # the split won't work the first time
@@ -604,7 +625,10 @@ class UserInterface(BaseUserInterface):
         self.write(html)
 
     def onRestoredefaults(self, how):
-        self.restoreConfigDefaults()
+        if how == "Restore advanced options defaults":
+            self.restoreConfigDefaults(self.advanced_options_map)
+        else:
+            self.restoreConfigDefaults(self.parm_ini_map)
         self.reReadOptions()
 
         html = self._getHTMLClone()
@@ -618,7 +642,7 @@ class UserInterface(BaseUserInterface):
         self.writeOKHeaders('text/html')
         self.write(html)
 
-    def verifyInput(self, parms):
+    def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
         # Most of the work here is done by the options class, but
         # we may have a few extra checks that are beyond its capabilities
@@ -635,7 +659,7 @@ class UserInterface(BaseUserInterface):
                     parms[name[:-2]] = (value,)
                 del parms[name]
 
-        for sect, opt in self.parm_ini_map:
+        for sect, opt in pmap:
             if opt is None:
                 nice_section_name = sect
                 continue
@@ -671,21 +695,17 @@ class UserInterface(BaseUserInterface):
 
         return errmsg
 
-    def restoreConfigDefaults(self):
-        # note that the behaviour of this function has subtly changed
+    def restoreConfigDefaults(self, parm_map):
+        # note that the behaviour of this function has subtly changed:
         # previously options were removed from the config file, now the
         # config file is updated to match the defaults
-        c = ConfigParser()
-        d = StringIO(defaults)
-        c.readfp(d)
-        del d
+        d = OptionsClass()
+        d.load_defaults(defaults)
 
         # Only restore the settings that appear on the form.
-        for section, option in self.parm_ini_map:
+        for section, option in parm_map:
             if option is not None:
                 if not options.no_restore(section, option):
-                    options.set(section, option, c.get(section,option))
+                    options.set(section, option, d.get(section,option))
 
-        op = open(optionsPathname, "r")
-        options.update_file(op)
-        op.close()
+        options.update_file(optionsPathname)

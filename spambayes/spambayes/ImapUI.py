@@ -69,18 +69,39 @@ parm_map = (
     ('Header Options',        None),
     ('pop3proxy',             'notate_to'),
     ('pop3proxy',             'notate_subject'),
-    ('Headers',               'include_score'),
-    ('Headers',               'include_thermostat'),
-    ('Headers',               'include_evidence'),
-    ('pop3proxy',             'add_mailid_to'),
-    ('pop3proxy',             'strip_incoming_mailids'),
     ('Storage Options',       None),
     ('Storage',               'persistent_storage_file'),
     ('Storage',               'messageinfo_storage_file'),
     ('Statistics Options',    None),
     ('Categorization',        'ham_cutoff'),
     ('Categorization',        'spam_cutoff'),
-    ('Classifier',            'experimental_ham_spam_imbalance_adjustment'),
+)
+
+# Like the above, but hese are the options that will be offered on the
+# advanced configuration page.
+adv_map = (
+    ('Statistics Options',  None),
+    ('Classifier',          'experimental_ham_spam_imbalance_adjustment'),
+    ('Classifier',          'max_discriminators'),
+    ('Classifier',          'minimum_prob_strength'),
+    ('Classifier',          'unknown_word_prob'),
+    ('Classifier',          'unknown_word_strength'),
+    ('Header Options',      None),
+    ('Headers',             'include_score'),
+    ('Headers',             'header_score_digits'),
+    ('Headers',             'header_score_logarithm'),
+    ('Headers',             'include_thermostat'),
+    ('Headers',             'include_evidence'),
+    ('Headers',             'clue_mailheader_cutoff'),
+    ('Storage Options',     None),
+    ('Storage',             'persistent_use_database'),
+    ('Tokenising Options',  None),
+    ('Tokenizer',           'extract_dow'),
+    ('Tokenizer',           'generate_time_buckets'),
+    ('Tokenizer',           'mine_received_headers'),
+    ('Tokenizer',           'replace_nonascii_chars'),
+    ('Tokenizer',           'summarize_email_prefixes'),
+    ('Tokenizer',           'summarize_email_suffixes'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):
@@ -94,7 +115,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
             parm_list = list(parm_map)
             parm_list.remove(("imap", "use_ssl"))
             parm_map = tuple(parm_list)
-        UserInterface.UserInterface.__init__(self, cls, parm_map)
+        UserInterface.UserInterface.__init__(self, cls, parm_map, adv_map)
         classifier = cls
         self.imap = imap
         self.imap_pwd = pwd
