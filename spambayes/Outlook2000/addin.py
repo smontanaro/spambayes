@@ -138,7 +138,7 @@ def TrainAsHam(msgstore_message, manager, rescore = True):
         if rescore:
             import filter
             filter.filter_message(msgstore_message, manager, all_actions = False)
-            
+
     else:
         print "already was trained as good"
     assert train.been_trained_as_ham(msgstore_message, manager.classifier_data)
@@ -170,7 +170,7 @@ def ProcessMessage(msgstore_message, manager):
             manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!" \
                              % msgstore_message.subject)
             return
-    
+
         if HaveSeenMessage(msgstore_message, manager):
             # Already seen this message - user probably moving it back
             # after incorrect classification.
@@ -190,7 +190,7 @@ def ProcessMessage(msgstore_message, manager):
                     # re-classifying (and in fact it may simply be the Outlook
                     # rules moving the item.
                     need_train = manager.config.filter.unsure_threshold < prop * 100
-    
+
                 if need_train:
                     TrainAsHam(msgstore_message, manager)
                 else:
@@ -454,11 +454,15 @@ def ShowClues(mgr, explorer):
     # least we know how to exploit it!
     body = ["<h2>Spam Score: %d%% (%g)</h2><br>" % (round(score*100), score)]
     push = body.append
-    # Format the clues.
+    # Format the # ham and spam trained on.
+    c = mgr.GetClassifier()
     push("<PRE>\n")
+    push("#  ham trained on: %6d\n" % c.nham)
+    push("# spam trained on: %6d\n" % c.nspam)
+    push("\n")
+    # Format the clues.
     push("word                                spamprob         #ham  #spam\n")
     format = " %-12g %8s %6s\n"
-    c = mgr.GetClassifier()
     fetchword = c.wordinfo.get
     for word, prob in clues:
         record = fetchword(word)
@@ -670,7 +674,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                    msgstore_message.GetFolder() == restore_folder:
                     print "Unable to determine source folder for message '%s' - restoring to Inbox" % (subject,)
                     restore_folder = inbox_folder
-    
+
                 # Must train before moving, else we lose the message!
                 print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
                 TrainAsHam(msgstore_message, self.manager)
@@ -1156,7 +1160,7 @@ class OutlookAddin:
             self.manager = manager.GetManager(application)
             assert self.manager.addin is None, "Should not already have an addin"
             self.manager.addin = self
-    
+
             # Only now will the import of "spambayes.Version" work, as the
             # manager is what munges sys.path for us.
             from spambayes.Version import get_version_string
