@@ -28,6 +28,13 @@ __credits__ = "Tim Stone, All the Spambayes folk."
 # with different imap servers having different naming styles
 # a list is retrieved via imap.list()
 
+# IMAPFolder objects get created all over the place, and don't persist
+# at all.  It would probably be good to change this, especially if
+# the filter doesn't run just once
+
+# All the imap responses should be checked - [0] should be "OK"
+# otherwise an error will occur and who knows what will happen
+
 try:
     True, False
 except NameError:
@@ -47,13 +54,13 @@ from spambayes import tokenizer, storage, message
 # global IMAPlib object
 imap = None
 
-class IMAPMessage(message.Message):
-    # response checking is necessary throughout this class
+class IMAPMessage(message.HeaderMessage):
     def __init__(self, folder_id, folder_name, message_id):
         message.Message.__init__(self)
         self.setId(message_id)
         self.folder_id = folder_id
         self.folder_name = folder_name
+        self.previous_folder = None
 
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
@@ -62,38 +69,33 @@ class IMAPMessage(message.Message):
         # just use the current time.
         return imaplib.Time2Internaldate(time.time())
 
-    def Update(self):
+    def MoveTo(self, dest):
+        # The move just changes where we think we are,
+        # and we do an actual move on save (to avoid doing
+        # this more than once)
+        if self.previous_folder is not None:
+            self.previous_folder = self.folder_name
+        self.folder_name = dest
+
+    def Save(self):
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
         response = imap.append(self.folder_name, None,
                                self.extractTime(), self.get_payload())
-        response = imap.select(self.folder_name, False)
-        response = imap.uid("STORE", self.getId(), "+FLAGS.SILENT",
-                                 "(\\Deleted)")
         # we need to update the uid, as it will have changed
+        # XXX there will be problems here if the message *has not*
+        # XXX changed, as the message to be deleted will be found first
+        # XXX (if they are in the same folder)
         response = imap.uid("SEARCH", "(TEXT)", self.get_payload())
-        self.changeId(response[1][0])
-
-    def Delete(self):
-        self._selectFolder(self.folder_name, False)
-        response = imap.uid("STORE", self.getId(), "+FLAGS.SILENT",
-                            "(\\Deleted)")
-        self._check(response, "uid store")
-
-        # XXX there should actually be a delete from the msgid database here...
-        self.notTrained()
-        self.notClassified()
-
-    def Append(self):
-        response = imap.append(self.folder_name, None,
-                               self.getId(),
-                               self.get_payload())
-        self._check(response, "append")
-
-
+        old_id = self.id
+        self.id = response[1][0]
+        if self.previous_folder is not None:
+            response = imap.select(self.previous_folder, False)
+            self.previous_folder = None
+        # this line is raising an error, but WHY?
+        #response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
 
 class IMAPFolder(object):
-    # response checking is necessary throughout this class
     def __init__(self, folder_name, readOnly=True):
         self.name = folder_name
         # Convert folder name to a uid
@@ -146,14 +148,43 @@ class IMAPFolder(object):
         msg.setPayload(messageText)
         return msg
        
+    def Train(self, classifier, isSpam):
+        '''Train folder as spam/ham'''
+        for msg in self:
+            if msg.GetTrained() == isSpam:
+                classifier.unlearn(msg.asTokens(), not isSpam)
+                # Once the message has been untrained, it's training memory
+                # should reflect that on the off chance that for some reason
+                # the training breaks, which happens on occasion (the
+                # tokenizer is not yet perfect)
+                msg.RememberTrained(None)
+
+            if msg.GetTrained() is not None:
+                classifier.learn(msg.asTokens(), isSpam)
+                msg.RememberTrained(isSpam)
+
+    def FilterMessage(self, msg):
+        if msg.GetClassification() == options.header_ham_string:
+            # we leave ham alone
+            pass
+        elif msg.GetClassification() == options.header_spam_string:
+            msg.MoveTo(options.imap_spam_folder)
+        else:
+            msg.MoveTo(options.imap_unsure_folder)
+
+    def Filter(self, classifier):
+        for msg in self:
+            (prob, clues) = classifier.spamprob(msg.asTokens(), evidence=True)
+            # add headers and remember classification
+            msg.addSBHeaders(prob, clues)
+            self.FilterMessage(msg)
+            msg.Save()
+
 
 class IMAPFilter(object):
     def __init__(self):
         global imap
         imap = imaplib.IMAP4(options.imap_server, options.imap_port)
-        
-        self.spam_folder = IMAPFolder(options.imap_spam_folder)
-        self.unsure_folder = IMAPFolder(options.imap_unsure_folder)
         
         if options.verbose:
             print "Loading database...",
@@ -166,36 +197,9 @@ class IMAPFilter(object):
         if options.verbose:
             print "Done."
 
-    def _check(self, response, command):
-        if response[0] != "OK":
-            print "Invalid response to %s:\n%s" % (command, response)
-            sys.exit(-1)
-
-    def _selectFolder(self, name, read_only):
-        folder = imap.select(name, read_only)
-        self._check(folder, 'select')
-        return folder
-
     def Login(self):
+        '''Log in to the IMAP server'''
         lgn = imap.login(options.imap_username, options.imap_password)
-        self._check(lgn, 'login')
-
-    def TrainFolder(self, folder_name, isSpam):
-        folder = IMAPFolder(folder_name)
-        for msg in folder:
-            # XXX I've rewritten this logic.  It looks a bit strange,
-            # because of the msg.notTrained call immediately before the
-            # test for isTrained, but this is safer.  Once the message has
-            # been untrained, it's training memory should reflect that
-            # on the off chance that for some reason the training breaks,
-            # which happens on occasion (the tokenizer is not yet perfect)
-            if msg.isTrndAs(not isSpam):
-                self.classifier.unlearn(msg.asTokens(), not isSpam)
-                msg.notTrained()
-
-            if not msg.isTrained():
-                self.classifier.learn(msg.asTokens(), isSpam)
-                msg.trndAs(isSpam)
 
     def Train(self):
         if options.verbose:
@@ -203,11 +207,13 @@ class IMAPFilter(object):
         if options.imap_ham_train_folders != "":
             ham_training_folders = options.imap_ham_train_folders.split()
             for fol in ham_training_folders:
-                self.TrainFolder(fol, False)
+                folder = IMAPFolder(fol)
+                folder.Train(self.classifier, False)
         if options.imap_spam_train_folders != "":
             spam_training_folders = options.imap_spam_train_folders.split(' ' )
             for fol in spam_training_folders:
-                self.TrainFolder(fol, True)
+                folder = IMAPFolder(fol)
+                folder.Train(self.classifier, True)
         self.classifier.store()
         if options.verbose:
             print "Training took", time.time() - t, "seconds."
@@ -217,78 +223,21 @@ class IMAPFilter(object):
             t = time.time()
         for filter_folder in options.imap_filter_folders.split():
             folder = IMAPFolder(filter_folder, False)
-            for msg in folder:
-                (prob, clues) = self.classifier.spamprob(msg.asTokens(),
-                                                         evidence=True)
-                # add headers and remember classification
-                msg.addSBHeaders(prob, clues)
-                # XXX updating is disabled for the moment
-                # msg.Update()
-                self._filterMessage(msg)
+            folder.Filter(self.classifier)
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
 
     def Logout(self):
-        # sign off
+        '''Log out of the IMAP server'''
         if options.imap_expunge:
             imap.expunge()
         imap.logout()
-
-    def _moveMessage(self, old_msg, dest):
-        # The IMAP copy command makes an alias, not a whole new
-        # copy, so what we need to do (sigh) is create a new message
-        # in the correct folder, and delete the old one
-        # XXX (someone tell me if this is wrong)
-
-        # XXX I've redone this logic to use the IMAPMessage class.  It
-        # may be a bit of overkill, but it allows us to maintain the
-        # proper training and classification memory for the message
-        # as it's moved
-        
-        #response = imap.uid("FETCH", old_msg.getId(), "(RFC822)")
-        #self._check(response, 'uid fetch')
-        #msg = message.Message()
-        #msg.setPayload(response[1][0][1])
-        
-        msg = IMAPMessage(dest.uid, dest.folder_name, None)
-        msg.setId(msg.extractTime())  # this is kinda silly
-        msg.copy(old_msg)
-        
-        #response = imap.uid("SEARCH", "(TEXT)", msg.get_payload())
-        #self._check(response, "search")
-        #self.changeId(response[1][0])
-
-        #response = imap.append(dest.folder_name, None,
-        #                       msg.getId(),
-        #                       msg.get_payload())
-        #self._check(response, "append")
-
-        msg.Append()        
-
-        #self._selectFolder(old_msg.folder_name, False)
-        #response = imap.uid("STORE", old_msg.getId(), "+FLAGS.SILENT",
-        #                    "(\\Deleted)")
-        #self._check(response, "uid store")
-        
-        old_msg.Delete()
-
-    def _filterMessage(self, msg):
-        if msg.isClsfdHam():
-            # we leave ham alone
-            print "untouched"
-            pass
-        elif msg.isClsfdSpam():
-            #XXX I actually think move should be a method on IMAPMessage
-            #but I'm running out of time.
-            self._moveMessage(msg, self.spam_folder)
-        else:
-            self._moveMessage(msg, self.unsure_folder)
 
 if __name__ == '__main__':
     options.verbose = True
     imap_filter = IMAPFilter()
 #    imap_filter.imap.debug = 10
     imap_filter.Login()
-    imap_filter.Train()
+    #imap_filter.Train()
     imap_filter.Filter()
     imap_filter.Logout()
