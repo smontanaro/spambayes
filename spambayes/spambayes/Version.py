@@ -48,12 +48,20 @@ versions = {
         },
         "POP3 Proxy" : {
             "Version":          0.2,
+            "BinaryVersion":    0.1,
             "Description":      "SpamBayes POP3 Proxy Beta2",
             "Date":             "September 2003",
             "InterfaceVersion":            0.03,
             "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha3",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
 using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+            "Full Description Binary":
+                                """%(Description)s, Binary version %(BinaryVersion)s (%(Date)s),
+using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+            # Note this means we can change the download page later, and old
+            # versions will still go to the new page.
+            # We may also like to have a "Release Notes Page" item later?
+            "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "Lotus Notes Filter" : {
             "Version":          0.01,

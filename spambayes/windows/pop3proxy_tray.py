@@ -24,6 +24,19 @@ import os
 import sys
 import webbrowser
 import thread
+import traceback
+
+# This should just be imported from dialogs.dlgutils, but
+# I'm not sure that we can import from the Outlook2000
+# directory, because I don't think it gets installed.
+##from spambayes.Outlook2000.dialogs.dlgutils import SetWaitCursor
+def SetWaitCursor(wait):
+    import win32gui, win32con
+    if wait:
+        hCursor = win32gui.LoadCursor(0, win32con.IDC_WAIT)
+    else:
+        hCursor = win32gui.LoadCursor(0, 0)
+    win32gui.SetCursor(hCursor)
 
 import win32con
 from win32api import *
@@ -99,8 +112,9 @@ class MainWindow(object):
                                   1025 : ("-", None),
                                   1026 : ("View information ...", self.OpenInterface),
                                   1027 : ("Configure ...", self.OpenConfig),
+                                  1027 : ("Check for latest version", self.CheckVersion),
                                   1028 : ("-", None),
-                                  1029 : ("Exit SpamBayes", self.OnExit),
+                                  1099 : ("Exit SpamBayes", self.OnExit),
                                   }
         message_map = {
             win32con.WM_DESTROY: self.OnDestroy,
@@ -259,6 +273,41 @@ class MainWindow(object):
     def OpenConfig(self):		
         webbrowser.open_new("http://localhost:%d/config" % \
                             (options["html_ui", "port"],))
+
+    def CheckVersion(self):
+        # Stolen, with few modifications, from addin.py
+        from spambayes.Version import get_version_string, \
+             get_version_number, fetch_latest_dict
+        if hasattr(sys, "frozen"):
+            version_number_key = "BinaryVersion"
+            version_string_key = "Full Description Binary"
+        else:
+            version_number_key = "Version"
+            version_string_key = "Full Description"
+
+        app_name = "POP3 Proxy"
+        cur_ver_string = get_version_string(app_name, version_string_key)
+        cur_ver_num = get_version_number(app_name, version_number_key)
+
+        try:
+            SetWaitCursor(1)
+            latest = fetch_latest_dict()
+            SetWaitCursor(0)
+            latest_ver_string = get_version_string(app_name, version_string_key,
+                                                   version_dict=latest)
+            latest_ver_num = get_version_number(app_name, version_number_key,
+                                                version_dict=latest)
+        except:
+            print "Error checking the latest version"
+            traceback.print_exc()
+            return
+
+        print "Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num)
+        if latest_ver_num > cur_ver_num:
+            url = get_version_string(app_name, "Download Page", version_dict=latest)
+            # Offer to open up the url
+##                os.startfile(url)
+      
 
 def main():
 	w = MainWindow()
