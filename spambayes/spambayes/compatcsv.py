@@ -20,7 +20,7 @@ class reader:
         return self
 
     def next(self):
-        return self.parse_line(self.fp.next())
+        return self.parse_line(self.fp.readline())
 
     def parse_line(self, line):
         """parse the line.
@@ -39,7 +39,7 @@ class reader:
                 match = re.match('"(.*?)"[^"]', line)
                 if match is None:
                     # embedded newline
-                    line = line + self.fp.next()
+                    line = line + self.fp.readline()
                     continue
                 else:
                     field = match.group(1)
@@ -63,7 +63,7 @@ class reader:
                 except UnicodeError:
                     field = unicode(field, "utf-8")
                 result.append(field)
-                line = line[len(field)+len(match.group(2))]
+                line = line[len(field)+len(match.group(2)):]
         return result
 
 class writer:
