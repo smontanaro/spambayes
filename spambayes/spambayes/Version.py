@@ -21,23 +21,23 @@ LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
 # Foundation license.
 versions = {
     # Non app specific - changed when "spambayes\*" changes significantly
-    "Version":          0.2,
+    "Version":          0.3,
     "Description":      "SpamBayes Engine",
-    "Date":             "July 2003",
+    "Date":             "January 2004",
     "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
     # Sub-dict for application specific version strings.
     "Apps": {
         "sb_filter" : {
-            "Version":          0.1,
+            "Version":          0.2,
             "Description":      "SpamBayes Command Line Filter",
-            "Date":             "January 2003",
+            "Date":             "February 2004",
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
-            "Version":          0.85,
-            "BinaryVersion":    0.85,
+            "Version":          0.9,
+            "BinaryVersion":    0.9,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "December 2003",
+            "Date":             "February 2004",
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
             "Full Description Binary":
                                 "%(Description)s Binary Version %(BinaryVersion)s (%(Date)s)",
@@ -47,45 +47,35 @@ versions = {
             "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "POP3 Proxy" : {
-            "Version":          0.3,
-            "BinaryVersion":    0.2,
+            "Version":          0.4,
+            "BinaryVersion":    0.4,
             "Description":      "SpamBayes POP3 Proxy",
-            "Date":             "December 2003",
-            "InterfaceVersion":            0.03,
-            "InterfaceDescription":        "POP3 Proxy Web Interface",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
+            "Date":             "February 2004",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
             "Full Description Binary":
-                                """%(Description)s Binary Version %(BinaryVersion)s (%(Date)s),
-using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
+                                """%(Description)s Binary Version %(BinaryVersion)s (%(Date)s)""",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
             "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "Lotus Notes Filter" : {
-            "Version":          0.01,
+            "Version":          0.02,
             "Description":      "SpamBayes Lotus Notes Filter",
-            "Date":             "March 2003",
+            "Date":             "February 2004",
             "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "IMAP Filter" : {
-            "Version":          0.1,
+            "Version":          0.2,
             "Description":      "SpamBayes IMAP Filter",
-            "Date":             "September 2003",
-            "InterfaceVersion":            0.02,
-            "InterfaceDescription":        "IMAP Filter Web Interface",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
+            "Date":             "February 2004",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
         },
         "IMAP Server" : {
-            "Version":          0.01,
+            "Version":          0.02,
             "Description":      "SpamBayes IMAP Server",
-            "Date":             "September 2003",
-            "InterfaceVersion":             0.02,
-            "InterfaceDescription":        "IMAP Server Web Interface",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
+            "Date":             "January 2004",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
         },
     },
 }
