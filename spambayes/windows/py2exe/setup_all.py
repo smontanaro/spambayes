@@ -98,6 +98,10 @@ sb_server = dict(
     dest_base = "bin/sb_server",
     script = os.path.join(sb_top_dir, "scripts", "sb_server.py")
 )
+sb_pop3dnd = dict(
+    dest_base = "bin/sb_pop3dnd",
+    script = os.path.join(sb_top_dir, "scripts", "sb_pop3dnd.py")
+)
 sb_upload = dict(
     dest_base = "bin/sb_upload",
     script = os.path.join(sb_top_dir, "scripts", "sb_upload.py")
@@ -145,7 +149,7 @@ setup(name="SpamBayes",
       # A service
       service=[service],
       # console exes for debugging
-      console=[sb_server, sb_upload, outlook_dump_props],
+      console=[sb_server, sb_upload, outlook_dump_props, sb_pop3dnd],
       # The taskbar
       windows=[pop3proxy_tray, outlook_addin_register, autoconfigure],
       # and the misc data files
