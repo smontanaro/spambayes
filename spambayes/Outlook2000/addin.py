@@ -4,6 +4,10 @@ import sys, os
 import warnings
 import traceback
 
+# *sigh* - this is for the binary installer, and for the sake of one line
+# that is implicit anyway, I gave up
+import encodings
+
 try:
     True, False
 except NameError:
@@ -64,18 +68,18 @@ except win32api.error:
     # Want to move to logging module later, so for now, we
     # hack together a simple logging strategy.
     if hasattr(sys, "frozen"):
-        dir = win32api.GetTempPath()
+        temp_dir = win32api.GetTempPath()
         for i in range(3,0,-1):
-            try: os.unlink(os.path.join(dir, "spambayes%d.log" % (i+1)))
+            try: os.unlink(os.path.join(temp_dir, "spambayes%d.log" % (i+1)))
             except os.error: pass
             try:
                 os.rename(
-                    os.path.join(dir, "spambayes%d.log" % i),
-                    os.path.join(dir, "spambayes%d.log" % (i+1))
+                    os.path.join(temp_dir, "spambayes%d.log" % i),
+                    os.path.join(temp_dir, "spambayes%d.log" % (i+1))
                     )
             except os.error: pass
         # Open this log, as unbuffered so crashes still get written.
-        sys.stdout = open(os.path.join(dir,"spambayes1.log"), "wt", 0)
+        sys.stdout = open(os.path.join(temp_dir,"spambayes1.log"), "wt", 0)
         sys.stderr = sys.stdout
     else:
         import win32traceutil
