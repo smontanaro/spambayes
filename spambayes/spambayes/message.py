@@ -211,6 +211,12 @@ if options["Storage", "persistent_use_database"] is True or \
 elif options["Storage", "persistent_use_database"] is False or \
      options["Storage", "persistent_use_database"] == "pickle":
     msginfoDB = MessageInfoPickle(message_info_db_name)
+else:
+    # Ah - now, what?  Maybe the user has mysql or pgsql or zeo,
+    # or some other newfangled thing!  We don't know what to do
+    # in that case, so just use a pickle, since it's the safest
+    # option.
+    msginfoDB = MessageInfoPickle(message_info_db_name)
 
 class Message(email.Message.Message):
     '''An email.Message.Message extended for Spambayes'''
@@ -276,7 +282,14 @@ class Message(email.Message.Message):
         # convert to appropriate line endings (according to RFC822, that is
         # \r\n *only*).  imaplib *should* take care of this for us (in the
         # append function), but does not, so we do it here
-        return self._force_CRLF(email.Message.Message.as_string(self, unixfrom))
+        try:
+            return self._force_CRLF(\
+                email.Message.Message.as_string(self, unixfrom))
+        except TypeError:
+            parts = []
+            for part in self.get_payload():
+                parts.append(email.Message.Message.as_string(part, unixfrom))
+            return self._force_CRLF("\n".join(parts))
 
     def modified(self):
         if self.id:    # only persist if key is present
