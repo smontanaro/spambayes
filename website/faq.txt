@@ -470,6 +470,7 @@ put up with the little envelope, sorry.
 
 How can I configure SpamBayes to delete spam rather than moving it?
 -------------------------------------------------------------------
+
 Sorry, but you can't.  However, Outlook has an excellent "auto-archive" 
 facility which can be used to the same effect - simply configure
 auto-archive to periodically delete your Spam folder.
@@ -480,6 +481,7 @@ require you to perform a full re-train.
 
 Will "Show Spam Clues" notify a spammer that I opened their message?
 --------------------------------------------------------------------
+
 We think not (but we don't have the source code to Outlook to check
 for sure).  In general, there are 2 ways spammers can determine this;
 the first is via an automatic 'Read Receipt' (but this is unusual, as
