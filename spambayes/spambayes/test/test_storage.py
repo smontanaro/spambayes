@@ -7,6 +7,7 @@ import cStringIO as StringIO
 import sb_test_support
 sb_test_support.fix_sys_path()
 
+from spambayes.storage import ZODBClassifier, CDBClassifier
 from spambayes.storage import DBDictClassifier, PickledClassifier
 
 class _StorageTestBase(unittest.TestCase):
@@ -18,9 +19,50 @@ class _StorageTestBase(unittest.TestCase):
         self.classifier = self.StorageClass(self.db_name)
 
     def tearDown(self):
+        self.classifier.close()
         self.classifier = None
         if os.path.isfile(self.db_name):
             os.remove(self.db_name)
+
+    def testLoadAndStore(self):
+        # Simple test to verify that putting data in the db, storing and
+        # then loading gives back the same data.
+        c = self.classifier
+        c.learn(["some", "simple", "tokens"], True)
+        c.learn(["some", "other"], False)
+        c.learn(["ones"], False)
+        c.store()
+        c.close()
+        del self.classifier
+        self.classifier = self.StorageClass(self.db_name)
+        self._checkAllWordCounts((("some", 1, 1),
+                                  ("simple", 0, 1),
+                                  ("tokens", 0, 1),
+                                  ("other", 1, 0),
+                                  ("ones", 1, 0)), False)
+        self.assertEqual(self.classifier.nham, 2)
+        self.assertEqual(self.classifier.nspam, 1)
+
+    def testCounts(self):
+        # Check that nham and nspam are correctedly adjusted.
+        c = self.classifier
+        count = 30
+        for i in xrange(count):
+            c.learn(["tony"], True)
+            self.assertEqual(c.nspam, i+1)
+            self.assertEqual(c.nham, 0)
+        for i in xrange(count):
+            c.learn(["tony"], False)
+            self.assertEqual(c.nham, i+1)
+            self.assertEqual(c.nspam, count)
+        for i in xrange(count):
+            c.unlearn(["tony"], True)
+            self.assertEqual(c.nham, count)
+            self.assertEqual(c.nspam, count-i-1)
+        for i in xrange(count):
+            c.unlearn(["tony"], False)
+            self.assertEqual(c.nham, count-i-1)
+            self.assertEqual(c.nspam, 0)
 
     def _checkWordCounts(self, word, expected_ham, expected_spam):
         assert word
@@ -130,10 +172,6 @@ class PickleStorageTestCase(_StorageTestBase):
 class DBStorageTestCase(_StorageTestBase):
     StorageClass = DBDictClassifier
 
-    def tearDown(self):
-        self.classifier.db.close()
-        _StorageTestBase.tearDown(self)
-
     def _fail_open_best(self, *args):
         from spambayes import dbmstorage
         raise dbmstorage.error("No dbm modules available!")
@@ -145,29 +183,55 @@ class DBStorageTestCase(_StorageTestBase):
         db_name = tempfile.mktemp("nodbmtest")
         DBDictClassifier_load = DBDictClassifier.load
         DBDictClassifier.load = self._fail_open_best
-        # Redirect sys.stderr, as open_storage() prints a msg to stderr.
-        # Then it does sys.exit(), which we catch.
-        sys_stderr = sys.stderr
-        sys.stderr = StringIO.StringIO()
+        print "This test will print out an error, which can be ignored."
         try:
-            try:
-                open_storage(db_name, "dbm")
-            except SystemExit:
-                pass
-            else:
-                self.fail("expected SystemExit from open_storage() call")
+            self.assertRaises(SystemExit, open_storage, (db_name, "dbm"))
         finally:
             DBDictClassifier.load = DBDictClassifier_load
-            sys.stderr = sys_stderr
 
         if os.path.isfile(db_name):
             os.remove(db_name)
 
+class CDBStorageTestCase(_StorageTestBase):
+    StorageClass = CDBClassifier
+
+class ZODBStorageTestCase(_StorageTestBase):
+    StorageClass = ZODBClassifier
+
 def suite():
     suite = unittest.TestSuite()
-    for cls in (PickleStorageTestCase,
-                DBStorageTestCase,
-               ):
+    clses = (PickleStorageTestCase,
+             CDBStorageTestCase,
+             )
+    try:
+        import gdbm
+    except ImportError:
+        gdbm = None
+    if sys.platform != "win32" or sys.version_info > (2,3):
+        try:
+            import bsddb
+        except ImportError:
+            bsddb = None
+    else:
+        bsddb = None
+    try:
+        import bsddb3
+    except ImportError:
+        bsddb3 = None
+
+    if gdbm or bsddb or bsddb3:
+        clses += (DBStorageTestCase,)
+    else:
+        print "Skipping dbm tests, no dbm module available"
+
+    try:
+        import ZODB
+    except ImportError:
+        print "Skipping ZODB tests, ZODB not available"
+    else:
+         clses += (ZODBStorageTestCase,)
+        
+    for cls in clses:
         suite.addTest(unittest.makeSuite(cls))
     return suite
 
