@@ -85,6 +85,7 @@ setup(
              'scripts/sb_unheader.py',
              'scripts/sb_upload.py',
              'scripts/sb_xmlrpcserver.py',
+             'scripts/sb_chkopts.py',
             ],
     packages = [
         'spambayes',

@@ -9,162 +9,138 @@ probably only interest developers, and one for everything else.
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 5
+New in Alpha Release 6
 ======================
 
 --------------------------
 ** Incompatible changes **
 --------------------------
 
-The values taken by some options have changed, so if you're upgrading from a
-previous version, you may need to update your configuration file (.spambayesrc
-or bayescustomize.ini)
+There are two major changes in this release, which *will* effect you if you
+are upgrading from an older version:
 
- o allow_remote_connections now takes a list of allowed IP addresses, or the
-   word 'localhost', or an asterisk (meaning all connections are accepted).
- o notate_to and notate_subject now take a comma-separated list of one or
-   more of 'spam', 'ham' and 'unsure', allowing you to control which classes
-   of message are notated.
+ o The scripts have all moved (in the archive), and their names have been
+   changed.  If you run "setup.py install", it will offer to remove the old
+   ones for you, which we recommend.  In the archive, the scripts are all
+   in a 'scripts' directory, and all the scripts start with the "sb_"
+   prefix, to avoid clashing with similiarly named scripts from other
+   packages.  Some name changes go further - "pop3proxy" is now named
+   "sb_server", "hammiefilter" is now named "sb_filter", "hammiecli" is now
+   named "sb_client", "hammiesrv" is now named "sb_xmlrpcserver", "proxytee"
+   is now named "sb_upload", and the experimental "overkill" script is now
+   named "sb_pop3dnd".
+
+If you were previously using the "hammie.py" script, you will notice that
+it is no longer available.  We recommend that you use either "sb_filter"
+(probably with "sb_mboxtrain"), or use "sb_server" and "sb_upload".  If you
+wish to continue as you were, you can use the "hammie.py" module, which
+will be installed in the "spambayes" package directory, in the same way you
+used the old "hammie.py" script.
+
+ o All the backwards compatibility code for options which changed names has
+   been removed, which means that you *must* use the correct (new) names.
+   A script (sb_chkopts) is provided which, if you run it, will inform you
+   if you have any invalid names (if will not output anything if there are
+   no problems).
+
+In addition, the values taken by some options have changed, so if you're
+upgrading from a previous version, you may need to update your configuration
+file (.spambayesrc or bayescustomize.ini)
+
+ o The options to put the classification in the subject or recipient list
+   (notate_to and notate_subject) have moved from the "pop3proxy" section
+   to the "Headers" section.
+ o All the "pop3proxy" storage options (where the cache is stored, the
+   number of days before messages expire, and so on) have moved to the
+   "Storage" section.
+ o The "hammie" debug header options have been removed, and you should use
+   the "Headers" evidence header options instead.
+
+Note that pop3proxy (sb_server) and imapfilter users can simply use the web
+interface to check their options and correct any that are wrong.  All
+incorrectlly named options in the configuration file will be removed.
 
 Outlook Plugin
 --------------
- o Added a diagnostics dialog with functions to make it easier for users to
-   help developers track down and fix bugs.
- o Added a 'timer' method of determining when to filter mail that should work
-   better with Outlook's rule system.
- o Added a button on the Advanced tab of the dialog to display the SpamBayes
-   data folder.
- o Moved "Filter Now" to an item on the drop down menu on the toolbar.
- o Items that can be filtered and trained include "IPM.Note" (normal messages)
-   and "IPM.Anti-Virus*" (virus alerts by some software).
- o Changed the default filter action to "move" (instead of "untouched").
- o Added a Wizard to assist with initial configuration (this will present
-   itself when necessary).
- o Changed to allow filtering to be enabled, even if no training has been done.
- o Added a "New Folder" button to the folder selector dialog.
- o Massive changes to the dialog system (which should fix some problems),
-   including changing the configuration dialog to a tabbed interface.
- o "Show Clues" now shows the percentage, as well as the raw score.
- o Added a "Help" menu to the drop down menu, with various information.
- o Added the ability to check for the latest version via an item on the drop
-   down menu.
- o Hopefully, the "unread flag" issue is now fixed.
- o Fixed many problems with working on systems where English is not the
-   default language, or where profile names have non-English characters.
+ o Change the default for the ham/spam imbalance adjustment option to
+   False - this should make misclassifications for those with large
+   imbalances easier to understand.  Note that we recommend roughly equal
+   numbers of ham and spam are trained.
+ o Add a warning for those with highly imbalanced ham and spam.
+ o Improved the 'Show Clues' results page.
+ o When we fail to add the 'Spam' field to a read-only store (eg, hotmail),
+   complain less loudly.
 
-POP3 Proxy / SMTP Proxy / POP3 Proxy Service
---------------------------------------------
- o Fixed "assert hamcount <= nham" problem.
- o Starting and stopping the POP3 Proxy service (for Windows NT, Windows
-   2000 and Windows XP users) has been improved.  Most noticeably, this
-   means that the SMTP Proxy will start (if it is needed) as well.
- o Improve the "notate to" and "notate subject" options, so that ham and
-   unsure messages can also be (optionally) notated in these fields.
- o Add the ability to skip caching messages that are over a (user
-   configurable) size, so that you can keep the size of the cache
-   directories smaller, once these messages are correctly classified.
- o Added the ability to skip caching messages that have a precedence of
-   "bulk" (most mailing list messages), so that you can keep the size
-   of the cache directories (and review list) smaller, once these messages
-   are correctly classified.
- o Fixed the "ASCII decoding error" problem.
- o The SMTP proxy tries harder to pass on the command formatted exactly
-   as it was given.  This should make it more reliable.
- o Add the ability to have the SMTP proxy train on the message sent to it,
-   rather than looking up the id in the cache (which is still possible, and
-   generally the better option).
- o Removed the ability to add the SpamBayes identification number to the
-   body of messages (it can still be added as a header).
- o The review messages page now puts unsure messages at the top.
- o The POP3 proxy should now work with fetchmail.
- o You can once again specify local addresses as well as ports for the
-   POP3 proxy to listen on (was broken in 1.0a3 and 1.0a4).
- o A bug with the SMTP proxy that would show up in some cases as an
-   "unrecognised command" error the mail client (particularly Eudora)
-   was fixed.
+POP3 Proxy / SMTP Proxy
+-----------------------
+ o If running Windows, and have the win32 extensions installed, and a
+   configuration file cannot be found, then default to placing it in the
+   "Application Data" directory (as defined by Windows).  Also default to
+   storing the caches and databases in this directory.
+ o Correctly save and close the database when changing options.  This
+   fixes a bug for those using gdbm databases.
+
+Web Interface
+-------------
+ o Place a threshold on the number of items displayed per section in the
+   review page.
+ o Correctly display the proxy data when it is specified on the command
+   line.
+
+POP3 Proxy Service / POP3 Proxy Tray Application
+------------------------------------------------
+
+ o The POP3 proxy tray application (for Windows users), which quietly
+   appeared in the 1.0a5 release, should be ready for use.  If you have
+   the service installed, it will attempt to use that; if you do not,
+   it will start up sb_server for you.
+ o As the service starts, it reports the username and configuration file
+   that it is using.
+ o Added a version check option to the tray application.
+ o Improved logged for both the service and the tray application.
 
 IMAP Filter
 -----------
- o If you didn't use the -p switch to enter your password
-   interactively, imapfilter would try and get it from the options,
-   but if it wasn't there yet (because you hadn't done the setup yet),
-   it would crash.  This is now fixed.
+ o Correctly handle IMAP servers that (wrongly) fail to put folder names
+   in quotation marks
+ o Count all messages being classified instead of just the ones from the
+   last folder.
+ o Handle a folder name as a literal when presenting a list to choose from.
+ o Handle imap servers that do not pass a blank result line for an empty
+   search.
+ o Fix IMAP over SSL.
 
 General
 -------
- o Added the ability to store the SpamBayes database in a mySQL or
-   postreSGL database table (currently supported by hammiefilter and
-   the POP3 proxy).
- o Removed the ability to use the 'dumbdbm' as the storage method.
-   (See the FAQ for reasons why).
- o We now allow the '@' and '=' characters in paths.
- o Added a simple n-way classifier using a cascade of binary SpamBayes
-   classifiers.
- o Added version information to the web interface.
- o Fixed the yellow colour of the header boxes in the web interface.
- o Fixed restoring defaults from the web interface.
- o Added a missing line break in the status pane on the web interface
-   when there are no proxies configured.
- o Prevent the "Show clues" links on the web interface's training page
-   from word-wrapping and making all the table rows two lines high.
- o You can now put "*" at the end of a word in the "Word Query" box
-   on the web interface, and have it show you the first ten words,
-   and how many words there are in total, in the database that start with
-   that word.
- o The web interface now supports HTTP-Auth.
- o Added a new script (code-named 'overkill.py') which enables
-   'drag and drop' training for POP3 users.  This is currently still in
-   the experimental stage, and anyone interested in trying it out should
-   enquire on the SpamBayes mailing list
-   (<http://mail.python.org/pipermail/spambayes>).
+ o Add a new file: NEWTRICKS.TXT to record ideas that have and haven't
+   been tried.  If you would like to add to this, please submit a patch
+   via the Sourceforge system.
+ o Change the default to tokenizer the "To", "CC", "Reply-To", "Sender",
+   and "From" address headers, rather than just "From".
+ o Fix the database opening code so that hammie* again works with both
+   dbm and pickles.
+ o Minor performance boosts to hammiebulk and mboxtrain.
 
 Developer
 ---------
- o Created a directory for test suites, including a storage.py test.
- o An empty 'allowed values' now allows an empty string.
- o Add a get_option method, so an option instance itself can be fetched.
- o Support fetching the "latest" set of version data from the spambayes
-   web site.
+ o Add a close method to the various storage classes.
+ o Removed the gary_combining option and code.
 
 Transition
 ==========
-If you are transitioning from a version older than 1.0a4, please also
+If you are transitioning from a version older than 1.0a5, please also
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
- o If you were previously using the 'dumbdbm' storage method (you will
-   have files called "hammie.db.dat", "hamie.db.dir" and "hammie.db.bak",
-   rather than one file called "hammie.db"), then you will need to
-   change to using either a pickle (please see the FAQ:
-   <http://spambayes.org/faq.html>), bsddb, gdbm, or one of the new SQL
-   based storage methods.  The 'dumbdbm' storage method resulting in
-   many databases being corrupted, and was never the best choice for
-   storage, in any case.  Although you can use the dbExpImp.py script
-   to convert your database to your new storage system, we recommend
-   that you retrain from scratch, as it is most likely that your
-   database has been corrupted.
- o If you were using the options to notate the "To" or "Subject" headers
-   with the message's classification, you will need to update your
-   configuration file, as the format for these options have changed.
- o The ability to add the SpamBayes id to the message body has been
-   removed, which means that Outlook Express users can no longer use
-   the SMTP proxy and have it retrieve messages from the cache.  These
-   users can use the SMTP proxy by training on the forwarded message
-   itself, but this is not recommended, as clues in the message will have
-   changed (the "From" address will be yours, for example).  At this time,
-   you will have to use the web interface for training, although there is
-   the possibility of 'drag and drop' training being added in a release in
-   the near future.
+Other than the changes listed in "Incompatible changes" at the top of
+this document, there are no known transition issues.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-776808, 795749, 787251, 790051, 743131, 779319, 785389, 786952, 788495,
-790406, 788008, 787296, 788002, 780612, 784323, 784296, 780819, 780801,
-779049, 765912, 777026, 777165, 693387, 690418, 719586, 769346, 761499,
-769346, 773452, 765042, 760062, 768162, 768221, 797776, 797316, 796996,
-797890, 788845 
+803501, 802545, 802347, 801952, 798362, 800555, 806632, 795145, 806238, 
+805351
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:
@@ -173,20 +149,11 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-The following feature requests tracked via the Sourceforge system were
-added:
-789916, 698036, 796832, 791319
-
-A url containing the details of these feature requests can be made by
-appending the request number to this url:
-http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498106&aid=
+No feature requests tracked via the Sourceforge system were added for this
+release.
 
 
 Patches integrated
 ===================
-The following patches tracked via the Sourceforge system were integrated:
-791254, 790615, 788001, 769981, 791393
-
-A url containing the details of these feature requests can be made by
-appending the request number to this url:
-http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498105&aid=
+No patches tracked via the Sourceforge system were integrated for this
+release.

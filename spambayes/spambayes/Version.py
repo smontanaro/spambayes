@@ -27,6 +27,8 @@ versions = {
     "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
     # Sub-dict for application specific version strings.
     "Apps": {
+        # Should this be here?  I'm not sure that anything uses it, and the
+        # hammie.py script is gone.  A sb_filter version might be better.
         "Hammie" : {
             "Version":          0.1,
             "Description":      "SpamBayes command line tool (Hammie) Beta1",
@@ -47,9 +49,9 @@ versions = {
             "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "POP3 Proxy" : {
-            "Version":          0.2,
+            "Version":          0.3,
             "BinaryVersion":    0.1,
-            "Description":      "SpamBayes POP3 Proxy Beta2",
+            "Description":      "SpamBayes POP3 Proxy Beta3",
             "Date":             "September 2003",
             "InterfaceVersion":            0.03,
             "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha3",
@@ -70,14 +72,14 @@ using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
         },
         "SMTP Proxy" : {
-            "Version":          0.02,
-            "Description":      "SpamBayes SMTP Proxy Alpha2",
+            "Version":          0.1,
+            "Description":      "SpamBayes SMTP Proxy Beta1",
             "Date":             "September 2003",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
         },
         "IMAP Filter" : {
-            "Version":          0.02,
-            "Description":      "SpamBayes IMAP Filter Alpha2",
+            "Version":          0.1,
+            "Description":      "SpamBayes IMAP Filter Beta1",
             "Date":             "September 2003",
             "InterfaceVersion":            0.02,
             "InterfaceDescription":        "SpamBayes IMAP Filter Web Interface Alpha2",
