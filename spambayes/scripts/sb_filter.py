@@ -76,7 +76,7 @@ import os
 import sys
 import getopt
 from spambayes import hammie, Options, mboxutils, storage
-from spambayes.Version import get_version_string
+from spambayes.Version import get_current_version
 
 try:
     True, False
@@ -125,8 +125,8 @@ def examples():
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     # Include version info in usage
-    print >> sys.stderr, get_version_string("sb_filter")
-    print >> sys.stderr, "    with engine %s" % get_version_string()
+    v = get_current_version()
+    print >> sys.stderr, v.get_long_version("SpamBayes Command Line Filter")
     print >> sys.stderr
     
     if msg:

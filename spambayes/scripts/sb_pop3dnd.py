@@ -100,7 +100,7 @@ from spambayes.Stats import Stats
 from spambayes.Options import options
 from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
-from spambayes.Version import get_version_string
+from spambayes.Version import get_current_version
 from sb_server import POP3ProxyBase, State, _addressPortStr, _recreateState
 
 def ensureDir(dirname):
@@ -1020,9 +1020,8 @@ def run():
             options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
-    print get_version_string("IMAP Server")
-    print get_version_string("POP3 Proxy")
-    print get_version_string()
+    v = get_current_version()
+    print v.get_long_version()
     from twisted.copyright import version as twisted_version
     print "Twisted version %s.\n" % (twisted_version,)
 

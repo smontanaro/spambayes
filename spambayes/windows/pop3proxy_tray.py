@@ -506,43 +506,42 @@ class MainWindow(object):
 
     def CheckVersion(self):
         # Stolen, with few modifications, from addin.py
-        from spambayes.Version import get_version_string, \
-             get_version_number, fetch_latest_dict
-        if hasattr(sys, "frozen"):
-            version_number_key = "BinaryVersion"
-            version_string_key = "Full Description Binary"
-        else:
-            version_number_key = "Version"
-            version_string_key = "Full Description"
+        from spambayes.Version import get_current_version, get_version, \
+                get_download_page, fetch_latest_dict
 
         app_name = "POP3 Proxy"
-        cur_ver_string = get_version_string(app_name, version_string_key)
-        cur_ver_num = get_version_number(app_name, version_number_key)
+        app_display_name = "SpamBayes POP3 Proxy"
+        ver_current = get_current_version()
+        cur_ver_string = ver_current.get_long_version(app_display_name)
 
         try:
             SetWaitCursor(1)
             latest = fetch_latest_dict()
             SetWaitCursor(0)
-            try:
-                latest_ver_string = get_version_string(app_name, version_string_key,
-                                                       version_dict=latest)
-                latest_ver_num = get_version_number(app_name, version_number_key,
-                                                    version_dict=latest)
-            except KeyError:
-                # "Full Description Binary" not in the version currently on the web
-                latest_ver_string = "0.1"
-                latest_ver_num = 0.1
+            ver_latest = get_version(app_name, version_dict=latest)
+            latest_ver_string = ver_latest.get_long_version(app_display_name)
         except:
             self.ShowMessage("Error checking the latest version")
             traceback.print_exc()
             return
 
-        self.ShowMessage("Current version is %s, latest is %s." % \
-                         (cur_ver_string, latest_ver_string))
-        if latest_ver_num > cur_ver_num:
-            url = get_version_string(app_name, "Download Page", version_dict=latest)
-            # Offer to open up the url
-##                os.startfile(url)
+        ver_message = "Current version is %s.\r\n" \
+                      "Latest version is %s.\r\n\r\n" % \
+                      (cur_ver_string, latest_ver_string)
+        if ver_latest == ver_current:
+            ver_message += "Your are running the latest downloadable version."
+        elif ver_current > ver_latest:
+            ver_message += "Your current version is newer than the latest " \
+                           "downloadable version."
+        else:
+            ver_message += "There is a newer version available.  You may " \
+                           "download the updated version from:\r\n"
+            url = get_download_page(app_name, version_dict=latest)
+            ver_message += url
+        self.ShowMessage(ver_message)
+        # It would be nice to offer to open up the url if there is a
+        # newer version, but we don't do that yet.
+##          os.startfile(url)
 
     def ShowMessage(self, msg):
         MessageBox(self.hwnd, msg, "SpamBayes", win32con.MB_OK)

@@ -60,14 +60,13 @@ class StatsProcessor(ControlProcessor):
 
 class VersionStringProcessor(ControlProcessor):
     def Init(self):
-        from spambayes.Version import get_version_string
+        from spambayes.Version import get_current_version
         import sys
-        version_key = "Full Description"
-        if hasattr(sys, "frozen"):
-            version_key += " Binary"
-        version_string = get_version_string("Outlook", version_key)
-        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
-                             0, version_string)
+        v = get_current_version()
+        vstring = v.get_long_version("SpamBayes Outlook Addin")
+        if not hasattr(sys, "frozen"):
+            vstring += " from source"
+        win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0, vstring)
 
     def GetPopupHelpText(self, cid):
         return "The version of SpamBayes running"

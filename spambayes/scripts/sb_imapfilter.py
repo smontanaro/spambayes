@@ -103,7 +103,7 @@ from spambayes.Options import options, get_pathname_option
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
-from spambayes.Version import get_version_string
+from spambayes.Version import get_current_version
 
 from imaplib import IMAP4
 from imaplib import Time2Internaldate
@@ -1022,8 +1022,8 @@ def run():
     bdbname, useDBM = storage.database_type(opts)
 
     # Let the user know what they are using...
-    print get_version_string("IMAP Filter")
-    print "and engine %s.\n" % (get_version_string(),)
+    v = get_current_version();
+    print "%s.\n" % (v.get_long_version("SpamBayes IMAP Filter"),)
 
     if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),

@@ -161,7 +161,8 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         clone = self.html.clone()
         timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
         clone.footer.timestamp = timestamp
-        clone.footer.version = Version.get_version_string(self.app_for_version)
+        v = Version.get_current_version()
+        clone.footer.version = v.get_long_version(self.app_for_version)
         if help_topic:
             clone.helplink.href = "help?topic=%s" % (help_topic,)
         return clone
@@ -939,7 +940,8 @@ class UserInterface(BaseUserInterface):
         self._writePreamble("Send Help Message", ("help", "Help"))
         report = self.html.bugreport.clone()
         # Prefill the report
-        sb_ver = Version.get_version_string(self.app_for_version)
+        v = Version.get_current_version()
+        sb_ver = v.get_long_version(self.app_for_version)
         if hasattr(sys, "frozen"):
             sb_type = "binary"
         else:
@@ -1041,7 +1043,8 @@ class UserInterface(BaseUserInterface):
             # even if they're not subscribed to the list.
             outer['CC'] = from_addr
             outer['From'] = from_addr
-            outer['X-Mailer'] = Version.get_version_string(self.app_for_version)
+            v = Version.get_current_version()
+            outer['X-Mailer'] = v.get_long_version(self.app_for_version)
             outer.preamble = self._wrap(message)
             # To guarantee the message ends with a newline
             outer.epilogue = ''

@@ -118,7 +118,7 @@ from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options, get_pathname_option
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
-from spambayes.Version import get_version_string
+from spambayes.Version import get_current_version
 
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
@@ -989,8 +989,8 @@ def run():
     state.DBName, state.useDB = storage.database_type(opts)
 
     # Let the user know what they are using...
-    print get_version_string("POP3 Proxy")
-    print "and engine %s.\n" % (get_version_string(),)
+    v = get_current_version()
+    print "%s\n" % (v.get_long_version("SpamBayes POP3 Proxy"),)
 
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.

@@ -44,6 +44,7 @@ import timer, thread
 from dialogs.dlgutils import SetWaitCursor
 
 toolbar_name = "SpamBayes"
+ADDIN_DISPLAY_NAME = "SpamBayes Outlook Addin"
 
 # If we are not running in a console, redirect all print statements to the
 # win32traceutil collector.
@@ -591,26 +592,19 @@ def EmptySpamFolder(mgr):
             traceback.print_exc()
 
 def CheckLatestVersion(manager):
-    from spambayes.Version import get_version_string, get_version_number, fetch_latest_dict
-    if hasattr(sys, "frozen"):
-        version_number_key = "BinaryVersion"
-        version_string_key = "Full Description Binary"
-    else:
-        version_number_key = "Version"
-        version_string_key = "Full Description"
+    from spambayes.Version import get_current_version, get_version, \
+            get_download_page, fetch_latest_dict
 
     app_name = "Outlook"
-    cur_ver_string = get_version_string(app_name, version_string_key)
-    cur_ver_num = get_version_number(app_name, version_number_key)
+    ver_current = get_current_version()
+    cur_ver_string = ver_current.get_long_version(ADDIN_DISPLAY_NAME)
 
     try:
         SetWaitCursor(1)
         latest = fetch_latest_dict()
         SetWaitCursor(0)
-        latest_ver_string = get_version_string(app_name, version_string_key,
-                                               version_dict=latest)
-        latest_ver_num = get_version_number(app_name, version_number_key,
-                                            version_dict=latest)
+        ver_latest = get_version(app_name, version_dict=latest)
+        latest_ver_string = ver_latest.get_long_version(ADDIN_DISPLAY_NAME)
     except:
         print "Error checking the latest version"
         traceback.print_exc()
@@ -621,9 +615,9 @@ def CheckLatestVersion(manager):
         )
         return
 
-    print "Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num)
-    if latest_ver_num > cur_ver_num:
-        url = get_version_string(app_name, "Download Page", version_dict=latest)
+    print "Current version is %s, latest is %s." % (str(ver_current), str(ver_latest))
+    if ver_latest > ver_current:
+        url = get_download_page(app_name, version_dict=latest)
         msg = _("You are running %s\r\n\r\nThe latest available version is %s" \
                 "\r\n\r\nThe download page for the latest version is\r\n%s" \
                 "\r\n\r\nWould you like to visit this page now?") \
@@ -1281,12 +1275,11 @@ class OutlookAddin:
 
             # Only now will the import of "spambayes.Version" work, as the
             # manager is what munges sys.path for us.
-            from spambayes.Version import get_version_string
-            version_key = "Full Description"
-            if hasattr(sys, "frozen"): version_key += " Binary"
-            print "%s starting (with engine %s)" % \
-                    (get_version_string("Outlook", version_key),
-                     get_version_string())
+            from spambayes.Version import get_current_version
+            v = get_current_version()
+            vstring = v.get_long_version(ADDIN_DISPLAY_NAME)
+            if not hasattr(sys, "frozen"): vstring += " from source"
+            print vstring
             major, minor, spack, platform, ver_str = win32api.GetVersionEx()
             print "on Windows %d.%d.%d (%s)" % \
                   (major, minor, spack, ver_str)

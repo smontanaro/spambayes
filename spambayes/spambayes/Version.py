@@ -10,108 +10,220 @@ The makefile process for the website will execute this as a script, which
 will generate the "ConfigParser" version for the web.
 """
 
+import string, re
+from types import StringType
+
+try:
+    _
+except NameError:
+    _ = lambda arg: arg
+
 # See bug 806238: urllib2 fails in Outlook new-version chk.
 # A reason for why the spambayes.org URL fails is given in a comment there.
 #LATEST_VERSION_HOME="http://www.spambayes.org/download/Version.cfg"
 # The SF URL instead works for Tim and xenogeist.
 LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
+DEFAULT_DOWNLOAD_PAGE="http://spambayes.sourceforge.net/windows.html"
 
-# This module is part of the spambayes project, which is Copyright 2002-4
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
+
 versions = {
-    # Non app specific - changed when "spambayes\*" changes significantly
-    "Version":          0.3,
-    "Description":      "SpamBayes Engine",
-    "Date":             "January 2004",
-    "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
-    # Sub-dict for application specific version strings.
+    # Note this means we can change the download page later, and old
+    # versions will still go to the new page.
+    # We may also like to have a "Release Notes Page" item later?
+    "Download Page": DEFAULT_DOWNLOAD_PAGE,
+
+    # Sub-dict for generating sub-sections in the cfg file that are compatible
+    # with the update checking in older versions of SpamBayes.
     "Apps": {
-        "sb_filter" : {
-            "Version":          0.3,
-            "Description":      "SpamBayes Command Line Filter",
-            "Date":             "April 2004",
-            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
-        },
         "Outlook" : {
-            # Note these version numbers currently don't appear in the
-            # "description" strings below - they just need to increment
-            # so automated version checking works.
-            # 0.99 indicates '1.0b/rc/' so will go 0.992 etc, until a real
-            # 1.0, which can get 1.0 :)
-            "Version":          0.992,
-            "BinaryVersion":    0.992,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "May 2004",
-            "Full Description": "%(Description)s Version 1.0rc1 (%(Date)s)",
-            "Full Description Binary":
-                                "%(Description)s Binary Version 1.0rc1 (%(Date)s)",
-            # Note this means we can change the download page later, and old
-            # versions will still go to the new page.
-            # We may also like to have a "Release Notes Page" item later?
-            "Download Page": "http://spambayes.sourceforge.net/windows.html"
         },
         "POP3 Proxy" : {
-            # Note these version numbers also currently don't appear in the
-            # "description" strings below - see above
-            "Version":          0.6,
-            "BinaryVersion":    0.6,
             "Description":      "SpamBayes POP3 Proxy",
-            "Date":             "May 2004",
-            "Full Description": """%(Description)s Version 1.0rc1 (%(Date)s)""",
-            "Full Description Binary":
-                                """%(Description)s Binary Version 1.0rc1 (%(Date)s)""",
-            # Note this means we can change the download page later, and old
-            # versions will still go to the new page.
-            # We may also like to have a "Release Notes Page" item later?
-            "Download Page": "http://spambayes.sourceforge.net/windows.html"
-        },
-        "Lotus Notes Filter" : {
-            "Version":          0.02,
-            "Description":      "SpamBayes Lotus Notes Filter",
-            "Date":             "February 2004",
-            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
-        },
-        "IMAP Filter" : {
-            "Version":          0.4,
-            "Description":      "SpamBayes IMAP Filter",
-            "Date":             "May 2004",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
-        },
-        "IMAP Server" : {
-            "Version":          0.02,
-            "Description":      "SpamBayes IMAP Server",
-            "Date":             "January 2004",
-            "Full Description": """%(Description)s Version %(Version)s (%(Date)s)""",
         },
     },
 }
 
-def get_version_string(app = None,
-                       description_key = "Full Description",
-                       version_dict = None):
-    """Get a pretty version string, generally just to log or show in a UI"""
-    if version_dict is None: version_dict = versions
-    if app is None:
-        dict = version_dict
-    else:
-        dict = version_dict["Apps"][app]
-    return dict[description_key] % dict
+def get_version(app = None,
+                version_dict = None):
+    """Get SBVersion object based on the version info in the supplied dict."""
+    ver = SBVersion()  # get default version
+    if version_dict is not None:
+        dict = version_dict  # default to top level dictionary
+        if app is not None:
+            # attempt to get a sub-dict for the specific app
+            try:
+                dict = version_dict["Apps"][app]
+            except KeyError:
+                pass
+        try:
+            version = dict["Version"]
+            # KLUDGE: Perform some bizarre magic to try to figure out if we
+            # have an old-format float version instead of a new-format string
+            # and massage it into a string format that will compare properly
+            # in update checks.
+            try:
+                ver_num = float(version)
+                # Version converted successfully to a float, which means it
+                # may be an old-format version number.  Old convention was to
+                # use 1.01 to represent "1.0.1", so check to see if there is
+                # more than one digit following the decimal.
+                dot = version.find('.')
+                ver_frac_part = version[dot+1:]
+                if len(ver_frac_part) > 1:
+                    # Use the first digit of the fractional part as the minor
+                    # version and the rest as the patch version.
+                    version = version[0:dot] + '.' + ver_frac_part[0] + '.' + ver_frac_part[1:]
+            except ValueError:
+                pass
+            ver = SBVersion(version, version_dict["Date"])
+        except KeyError:
+            pass
+    return ver
 
-def get_version_number(app = None,
-                       version_key = "Version",
-                       version_dict = None):
-    """Get a version number, as a float.  This would primarily be used so some
-    app or extension can determine if we are later than a specific version
-    of either the engine or a specific app.
-    Maybe YAGNI.
-    """
+def get_download_page(app = None,
+                      version_dict = None):
     if version_dict is None: version_dict = versions
-    if app is None:
-        dict = version_dict
-    else:
-        dict = version_dict["Apps"][app]
-    return dict[version_key]
+    dict = version_dict  # default to top level dictionary
+    if app is not None:
+        # attempt to get a sub-dict for the specific app
+        try:
+            dict = version_dict["Apps"][app]
+        except KeyError:
+            pass
+    try:
+        return dict["Download Page"]
+    except KeyError:
+        # "Download Page" key not found so it may be an old-format dictionary.
+        # Just use the default download page.
+        return DEFAULT_DOWNLOAD_PAGE
+
+def get_current_version():
+    return SBVersion()
+
+#============================================================================
+
+# The SBVersion class is a modified version of the StrictVersion class from
+# the "distutils" module.  It has been adapted to handle an "rc" pre-release
+# designation for release candidates, and to store the version data in the
+# format of the sys.version_info tuple.  A date string may also be provided
+# that will be included in the long format of the version string.  The
+# default version and date info is read from the metadata in the "spambayes"
+# module __init__.py file.
+
+class SBVersion:
+
+    """Version numbering for SpamBayes releases.
+    A version number consists of two or three dot-separated numeric
+    components, with an optional "pre-release" tag on the end.  The
+    pre-release tag consists of the designations 'a' (for alpha),
+    'b' (for beta), or 'rc' (for release candidate) followed by a number.
+    If the numeric components of two version numbers are equal, then one
+    with a pre-release tag will always be deemed earlier (lesser) than
+    one without.
+
+    The following are valid version numbers (shown in the order that
+    would be obtained by sorting according to the supplied cmp function):
+
+        0.4       0.4.0  (these two are equivalent)
+        0.4.1
+        0.5a1
+        0.5b3
+        0.5
+        0.9.6
+        1.0
+        1.0.4a3
+        1.0.4b1
+        1.0.4rc2
+        1.0.4
+
+    The following are examples of invalid version numbers:
+
+        1
+        2.7.2.2
+        1.3.a4
+        1.3pl1
+        1.3c4
+
+    A date may also be associated with the version, typically to track the
+    date when the release was made public.  The date is specified as a string,
+    and is only used in formatting the long version of the version string.
+    """
+
+    def __init__(self, vstring=None, date=None):
+        import spambayes
+        if vstring:
+            self.parse(vstring)
+        else:
+            self.parse(spambayes.__version__)
+        if date:
+            self.date = date
+        else:
+            self.date = spambayes.__date__
+
+    def __repr__ (self):
+        return "%s('%s', '%s')" % (self.__class__.__name__, str(self), self.date)
+
+    version_re = re.compile(r'^(\d+) \. (\d+) (\. (\d+))? (([ab]|rc)(\d+))?$',
+                            re.VERBOSE)
+
+    def parse(self, vstring):
+        match = self.version_re.match(vstring)
+        if not match:
+            raise ValueError, "invalid version number '%s'" % vstring
+
+        (major, minor, patch, prerelease, prerelease_num) = \
+            match.group(1, 2, 4, 6, 7)
+
+        if not patch:
+            patch = "0"
+            
+        if not prerelease:
+            releaselevel = "final"
+            serial = 0
+        else:
+            serial = string.atoi(prerelease_num)
+            if prerelease == "a":
+                releaselevel = "alpha"
+            elif prerelease == "b":
+                releaselevel = "beta"
+            elif prerelease == "rc":
+                releaselevel = "candidate"
+        self.version_info = tuple(map(string.atoi, [major, minor, patch]) + \
+                                  [releaselevel, serial])
+
+    def __str__(self):
+        if self.version_info[2] == 0:
+            vstring = string.join(map(str, self.version_info[0:2]), '.')
+        else:
+            vstring = string.join(map(str, self.version_info[0:3]), '.')
+
+        releaselevel = self.version_info[3][0]
+        if releaselevel != 'f':
+            if releaselevel == 'a':
+                prerelease = "a"
+            elif releaselevel == 'b':
+                prerelease = "b"
+            elif releaselevel == 'c':
+                prerelease = "rc"
+            vstring = vstring + prerelease + str(self.version_info[4])
+
+        return vstring
+
+    def __cmp__(self, other):
+        if isinstance(other, StringType):
+            other = SBVersion(other)
+
+        return cmp(self.version_info, other.version_info)
+
+    def get_long_version(self, app_name = None):
+        if app_name is None: app_name = "SpamBayes"
+        return _("%s Version %s (%s)") % (app_name, str(self), self.date)
+
+#============================================================================
 
 # Utilities to check the "latest" version of an app.
 # Assumes that a 'config' version of this file exists at the given URL
@@ -127,7 +239,7 @@ except AttributeError: # No SafeConfigParser!
 def fetch_latest_dict(url=LATEST_VERSION_HOME):
     if MySafeConfigParser is None:
         raise RuntimeError, \
-              "Sorry, but only Python 2.3 can trust remote config files"
+              "Sorry, but only Python 2.3+ can trust remote config files"
 
     import urllib2
     from spambayes.Options import options
@@ -162,18 +274,26 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
             target_dict = apps_dict.setdefault(sect, {})
         for opt in cfg.options(sect):
             val = cfg.get(sect, opt)
-            # some butchering
-            try:
-                val = float(val)
-            except ValueError:
-                pass
             target_dict[opt] = val
     return ret_dict
 
 # Utilities for generating a 'config' version of this file.
 # The output of this should exist at the URL above.
-def _make_cfg_section(stream, key, this_dict):
-    stream.write("[%s]\n" % key)
+compat_apps = {
+    "Outlook" : {
+        "Description":      "SpamBayes Outlook Addin",
+    },
+    "POP3 Proxy" : {
+        "Description":      "SpamBayes POP3 Proxy",
+    },
+}
+shared_cfg_opts = {
+    # Note this means we can change the download page later, and old
+    # versions will still go to the new page.
+    # We may also like to have a "Release Notes Page" item later?
+    "Download Page": "http://spambayes.sourceforge.net/windows.html",
+}
+def _write_cfg_opts(stream, this_dict):
     for name, val in this_dict.items():
         if type(val)==type(''):
             val_str = repr(val)[1:-1]
@@ -186,26 +306,55 @@ def _make_cfg_section(stream, key, this_dict):
             val_str = None
         if val_str is not None:
             stream.write("%s:%s\n" % (name, val_str))
+def _make_compatible_cfg_section(stream, key, ver, this_dict):
+    stream.write("[%s]\n" % key)
+    # We need to create a float representation of the current version that
+    # sort correctly in older versions that used a float version number.
+    ver_num = float(ver.version_info[0])
+    ver_num += float(ver.version_info[1] * 0.1)
+    ver_num += float(ver.version_info[2] * 0.01)
+    releaselevel = ver.version_info[3][0]
+    if releaselevel == 'a':
+        prerelease_offset = 0.001 - (float(ver.version_info[4]) * 0.00001)
+    elif releaselevel == 'b':
+        prerelease_offset = 0.0005 - (float(ver.version_info[4]) * 0.00001)
+    elif releaselevel == 'c':
+        prerelease_offset = 0.0001 - (float(ver.version_info[4]) * 0.00001)
+    else:
+        prerelease_offset = 0.0
+    ver_num -= prerelease_offset
+    stream.write("Version:%s\n" % str(ver_num))
+    stream.write("BinaryVersion:%s\n" % str(ver_num))
+    stream.write("Date:%s\n" % ver.date)
+    _write_cfg_opts(stream, this_dict)
+    desc_str = "%%(Description)s Version %s (%%(Date)s)" % str(ver)
+    stream.write("Full Description:%s\n" % desc_str)
+    stream.write("Full Description Binary:%s\n" % desc_str)
+    _write_cfg_opts(stream, versions)
+    stream.write("\n")
+def _make_cfg_section(stream, ver):
+    stream.write("[SpamBayes]\n")
+    stream.write("Version:%s\n" % str(ver))
+    stream.write("Date:%s\n" % ver.date)
+    _write_cfg_opts(stream, versions)
     stream.write("\n")
 
 def make_cfg(stream):
     stream.write("# This file is generated from spambayes/Version.py" \
                  " - do not edit\n")
-    _make_cfg_section(stream, "SpamBayes", versions)
-    for appname in versions["Apps"]:
-        _make_cfg_section(stream, appname, versions["Apps"][appname])
+    ver = get_current_version()
+    _make_cfg_section(stream, ver)
+    for appname in compat_apps:
+        _make_compatible_cfg_section(stream, appname, ver, versions["Apps"][appname])
 
 def main(args):
     import sys
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
-    print "SpamBayes engine version:", get_version_string()
-    # Enumerate applications
-    print
-    print "Application versions:"
-    for app in versions["Apps"]:
-        print "\n%s: %s" % (app, get_version_string(app))
+        
+    v_this = get_current_version()
+    print "Current version:", v_this.get_long_version()
 
     print
     print "Fetching the lastest version information..."
@@ -217,13 +366,9 @@ def main(args):
         traceback.print_exc()
         sys.exit(1)
 
+    v_latest = get_version(version_dict=latest_dict)
     print
-    print "SpamBayes engine version:", get_version_string(version_dict=latest_dict)
-    # Enumerate applications
-    print
-    print "Application versions:"
-    for app in latest_dict["Apps"]:
-        print "\n%s: %s" % (app, get_version_string(app, version_dict=latest_dict))
+    print "Latest version:", v_latest.get_long_version()
 
 if __name__=='__main__':
     import sys

@@ -127,7 +127,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         self.imap = imap
         self.imap_pwd = pwd
         self.imap_logged_in = False
-        self.app_for_version = "IMAP Filter"
+        self.app_for_version = "SpamBayes IMAP Filter"
         self.imap_session_class = imap_session_class
 
     def onHome(self):

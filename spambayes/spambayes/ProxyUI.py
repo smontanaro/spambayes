@@ -168,7 +168,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                              proxy_state.stats)
         state = proxy_state
         self.state_recreator = state_recreator # ugly
-        self.app_for_version = "POP3 Proxy"
+        self.app_for_version = "SpamBayes POP3 Proxy"
         self.previous_sort = None
         if not proxy_state.can_stop:
             self.html._readonly = False
