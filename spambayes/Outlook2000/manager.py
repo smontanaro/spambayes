@@ -97,7 +97,7 @@ class BayesManager:
             if self.verbose > 1:
                 print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
-        except (AttributeError, ImportError):
+        except (AttributeError, ImportError, IOError):
             ret = _ConfigurationRoot()
             if self.verbose > 1:
                 print ("FAILED to load configuration from '%s "
