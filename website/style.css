@@ -38,4 +38,8 @@ TD.normalSidebar a:hover { color: #005500; }
 TD.headerSidebar {  color: #222222; 
                     font-weight: bold;}
 
+/* used in the windows/outlook compatibility matrix */
+TD.unknown {
+  background: #ddddff;
+}
 
