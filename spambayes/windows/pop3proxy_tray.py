@@ -523,10 +523,15 @@ class MainWindow(object):
             SetWaitCursor(1)
             latest = fetch_latest_dict()
             SetWaitCursor(0)
-            latest_ver_string = get_version_string(app_name, version_string_key,
-                                                   version_dict=latest)
-            latest_ver_num = get_version_number(app_name, version_number_key,
-                                                version_dict=latest)
+            try:
+                latest_ver_string = get_version_string(app_name, version_string_key,
+                                                       version_dict=latest)
+                latest_ver_num = get_version_number(app_name, version_number_key,
+                                                    version_dict=latest)
+            except KeyError:
+                # "Full Description Binary" not in the version currently on the web
+                latest_ver_string = "0.1"
+                latest_ver_num = 0.1
         except:
             self.ShowMessage("Error checking the latest version")
             traceback.print_exc()
