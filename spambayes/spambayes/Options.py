@@ -99,6 +99,7 @@ except NameError:
         return not not val
 
 import re
+import types
 
 # These are handy references to commonly used regex/tuples defining
 # permitted values. Although the majority of options use one of these,
@@ -1118,40 +1119,126 @@ class Option(object):
     
     def is_valid(self, value):
         '''Check if this is a valid value for this option.'''
-        if self.allowed_values is None:
-            return False
-        if type(self.allowed_values) == type((0,1)):
-            if self.multiple and value is None:
-                return True
-            if type(value) == type((0,1)):
-                if self.multiple:
-                    for v in value:
-                        if not v in self.allowed_values:
-                            return False
-                    return True
-                return False
+        
+# XXX This test is in the original code, but makes no sense....
+#        if self.allowed_values is None:
+#            return False
+
+        if self.multiple:
+            return self.is_valid_multiple(value)
+        else:
+            return self.is_valid_single(value)
+
+    def is_valid_multiple(self, value):
+
+        if value is None or value == "":
+            # always allow a multiple value option to be set to nothing
+            return True
+
+        tv = type(value)
+        
+        if tv in types.StringTypes:
+            if type(self.allowed_values) in types.StringTypes:
+                # allowed value is a regex, use it to make value into a tuple
+                vals = self._split_values(value)
             else:
-               if value in self.allowed_values:
-                   return True
-               return False
-        elif type(self.allowed_values) == type(""):
+                # allowed value is a tuple, make vals a tuple
+                vals = (value,)
+        elif tv == types.TupleType or tv == type(Set()):
+            # value is being passed in as a tuple or a Set.  In this case,
+            # allowed values *must* be a tuple, because a regex can only
+            # execute against a string.  This condition indicates a
+            # programming error.
+            if not type(self.allowed_values) == types.TupleType:
+                raise TypeError, \
+"""Attempt to set multiple value option %s with an allowed_values regex
+to a tuple or Set value.""" % (self.name)
+            else:
+                vals = values
+        else:
+            # here we're setting a multiple value option to a value
+            # that is contained in other than a string, a tuple, or a set.
+            raise TypeError, \
+"""Attempt to set multiple value option %s to a value that is not a string,
+tuple, or Set.""" % (self.name)
+        
+        # at this point, vals is a tuple or a Set.  If length is zero,
+        # then it's likely that the allowed_values regex did not find
+        # any matches.  At any rate, this is not an allowed value, but
+        # it is not an exception.
+
+        if len(vals) == 0:
+            return False
+
+        if type(self.allowed_values) == types.TupleType:
+            # if self.allowed_values is not a tuple, then it is
+            # a regex, and if there are no matches, the length
+            # check above will catch the error
+            for v in vals:
+                if not v in self.allowed_values:
+                    return False
+            # here, all elements of the vals tuple are in allowed_values
+            return True
+
+        # if we've made it this far, then the allowed_values is a regex
+        # that matched value at least once
+        return True
+
+
+    def is_valid_single(self, value):
+        if type(self.allowed_values) == types.TupleType:
+            if value in self.allowed_values:
+                return True
+            else:
+                return False
+        else:
+            avals = self._split_values(value)
+            # in this case, allowed_values must be a regex, and
+            # _split_values must match once and only once
+            if len(avals) == 1:
+                return True
+            else:
+                # either no match or too many matches
+                return False
+            
+# ****** replaced code, temporarily retained for reference
+#        if type(self.allowed_values) == type((0,1)):
+#            if self.multiple and value is None:
+#                return True
+#            if type(value) == type((0,1)):
+#                if self.multiple:
+#                    for v in value:
+#                        if not v in self.allowed_values:
+#                            return False
+#                    return True
+#                return False
+#            else:
+#               if value in self.allowed_values:
+#                   return True
+#               return False
+            
+#        elif type(self.allowed_values) == type(""):
             # this is a complete hack - something better needs to
             # be worked out for sets, but I don't have time just now.
-            import types
-            if type(value) == type(Set()):
-                return True
-            if self.multiple and value == "":
-                return True
-            vals = self._split_values(value)
-            if len(vals) == 0:
-                return False
-            elif len(vals) > 1 and not self.multiple:
-                return False
-            return True
+#            import types
+#            if type(value) == type(Set()):
+#                return True
+#            if self.multiple and value == "":
+#                return True
+#            vals = self._split_values(value)
+#            if len(vals) == 0:
+#                return False
+#            elif len(vals) > 1 and not self.multiple:
+#                return False
+#            return True
 
     def _split_values(self, value):
         # do the regex mojo here
-        r = re.compile(self.allowed_values)
+        try:
+            r = re.compile(self.allowed_values)
+        except:
+            print self.allowed_values
+            raise
         s = str(value)
         i = 0
         vals = ()
