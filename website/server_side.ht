@@ -39,3 +39,84 @@ spambayes unix  -       n       n       -       -       pipe
 /usr/bin/hammiefilter.py -d /var/spambayes/hammie.db -f | /usr/sbin/sendmail -f $*
 </pre></li>
 </ol>
+
+<h2>qmail notes from Michael Martinez</h2>
+<p>SpamBayes is installed on our agency's smtp / MX gateway. This machine runs Redhat
+Linux 7.1, qmail 1.03, qmail-scanner 1.16, and hbedv's <em>Antivir</em>. Incoming mail is
+accepted by tcpserver and handed off to qmail-scanner. Qmail-scanner runs the virus
+software (<em>antivir</em>) and hands the message to qmail. Qmail accepts local delivery
+on all domain-bound email. This email is delivered to <b>~alias/.qmail-default</b>.
+(This is a standard configuration for qmail).</p>
+
+<p><b>~alias/.qmail-default</b> pipes each email through Spambayes. The .qmail-default
+is set up as follows:<br />
+
+<pre>
+| /usr/local/spambayes/hammiefilter.py -d /usr/local/spambayes/.hammiedb | qmail-remote MSServer.csrees.usda.gov "$SENDER" $DEFAULT@csrees.usda.gov
+</pre>
+</p>
+ 
+<p>The permissions for the /usr/local/spambayes directory are set with the following command:<br />
+<pre>chown –R qmailq.qmail /usr/local/spambayes</pre>
+</p> 
+
+<p>As shown above, there are two pipes. The first pipes it through Spambayes.
+The second pipes it through qmail's remote delivery mechanism, which delivers
+the email to our Exchange Server.</p>
+
+<p>Delivered emails are filtered on a per-user basis in Outlook by setting
+the Rules to detect the Spambayes tag in the message header. If the tag
+reads <b>Spambayes-Classification: spam</b> then the email is either deleted
+or placed in the user's Spam folder. If it reads <b>Spambayes-Classification: unsure</b>
+then it's placed in the user's Unsure folder. If it reads <b>Spambayes-Classification: ham</b>
+then nothing special is done – it is delivered to the user's Inbox as normal.</p>
+ 
+<p>The user is given the choice of whether to set up his rules or not.</p>
+
+<p>Training of Spambayes is done in the following manner: our users are
+given my email address and are told that, if they like, they may send
+emails to me that they consider spam, or that end up being mis-classified
+by the system. I created two directories:<br />
+
+<pre>
+/usr/local/spambayes/training/spamdir
+/usr/local/spambayes/training/hamdir
+</pre>
+</p>
+ 
+<p>The emails sent to me by the users are retrieved from the qmail archive
+and placed into the appropriate directory.  When I'm ready to do a training
+(which I do once or twice a month), I run the following commands: <br />
+
+<ol>
+<li>I use a simple script to insert a blank From: line at the top of each email</li>
+<li>I use a simple script to remove the qmail-scanner header from the bottom of each email.</li>
+<li>uuencoded attachments are removed</li>
+<li><pre>cat /usr/local/spambayes/training/spamdir/* >> /usr/local/spambayes/training/spam</pre></li>
+<li><pre>cat /usr/local/spambayes/training/hamdir/* >> /usr/local/spambayes/training/ham </pre></li>
+<li><pre>/usr/local/spambayes/mboxtrain –d /usr/local/spambayes/.hammiedb –g /usr/local/spambayes/training/ham –s /usr/local/spambayes/training/spam</pre>
+(This last step can be run without shutting down qmail.)</li>
+</ol>
+</p>
+
+<p>Most of the time, emails that are sent to me are clearly discernible as
+to whether they are spam or not. Occasionally there is an email that is
+borderline, or that one person considers spam but others don't. This is
+usually things like newsletter subscriptions or religious forums. In this
+case, I follow my own rule that if there is at least one person in the
+agency who needs or wants to receive this type of email, and as long as it
+is non-offensive, work-related, or there are a lot of people in the agency
+who have an interest in the topic, then I will either train it as ham, or,
+if it's already being tagged ham, leave it. An example of this are emails
+that discuss religious topics. There are a lot of people in this agency who
+are subscribed to religious discussion groups, so in my mind, it's good
+practice to make sure these messages are not tagged spam.</p>
+
+<p>The above system works well on several levels. It's manageable because
+there's a central location for training and tagging spam (the smtp server).
+It's manageable also because our IT PC Support staff does not have to install
+SpamBayes on each PC nor train all of our users on its use. If a user does
+not like the way our system tags the emails, he does not have to set up his
+Outlook rules. But, we've had a good response from the users who are using
+their Rules. They're willing to put up with one or two mis-classified emails
+in order to have 95% of their junk email not in their Inbox.</p>
