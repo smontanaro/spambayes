@@ -47,7 +47,7 @@ Warnings:
       about using it.
     o By default, the filter does *not* delete, modify or move any of your
       mail.  Due to quirks in how imap works, new versions of your mail are
-      modified and placed in new folders, but there originals are still
+      modified and placed in new folders, but the originals are still
       available.  These are flagged with the /Deleted flag so that you know
       that they can be removed.  Your mailer may not show these messages
       by default, but there should be an option to do so.  *However*, if
@@ -62,12 +62,29 @@ To Do:
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
-    o We should check if the spam and unsure folders exist before filtering.
-    o IMAP over SSL would be nice. (isbg has an example of how to do this)
+    o IMAP over SSL would be nice.  imaplib in Python 2.3 has an SSL class
+      that we could inherit from
     o Develop a test script, like testtools/pop3proxytest.py that runs
       through some tests (perhaps with a *real* imap server, rather than
       a dummy one).  This would make it easier to carry out the tests
       against each server whenever a change is made.
+    o The RFC says that "unique identifiers persist across sessions", but
+      also that "[i]f unique identifiers from an earlier session fail to
+      persist to this session...".  This strikes me as fairly inconsistent.
+      If the uid does not persist, then we will end up re-training/filtering
+      the message, but I'm not sure what can be done about that.  There is
+      mention of the UID validity value, which each folder has.  If the uids
+      fail to persist, then this value will increase.  The RFC doesn't say
+      if this is the *only* time it will increase, though.  I'm not sure
+      if this value is of any use to us or not; it's worth keeping in mind,
+      though.
+    o IMAP supports authentication via other methods than the plain-text
+      password method that we are using at the moment.  Neither of the
+      servers I have access to offer any alternative method, however.  If
+      someone's does, then it would be nice to offer this.
+    o Usernames should be able to be literals as well as quoted strings.
+      This might help if the username/password has special characters like
+      accented characters.
     o Suggestions?
 """
 
@@ -109,7 +126,7 @@ imap = None
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
-# A flag can have any character in the ascii range 32-127
+# A flag can have any character in the ascii range 32-126
 # except for (){ %*"\
 FLAG_CHARS = ""
 for i in range(32, 127):
@@ -257,7 +274,6 @@ class IMAPMessage(message.SBHeaderMessage):
         if self.previous_folder is None:
             self.previous_folder = self.folder
             self.folder = dest
-        self.modified()
 
     def Save(self):
         # we can't actually update the message with IMAP
@@ -440,6 +456,8 @@ class IMAPFilter(object):
         if options["imap", "ham_train_folders"] != "":
             ham_training_folders = options["imap", "ham_train_folders"]
             for fol in ham_training_folders:
+                # Select the folder to make sure it exists
+                imap.SelectFolder(fol)
                 if options['globals', 'verbose']:
                     print "   Training ham folder %s" % (fol)
                 folder = IMAPFolder(fol)
@@ -451,6 +469,8 @@ class IMAPFilter(object):
         if options["imap", "spam_train_folders"] != "":
             spam_training_folders = options["imap", "spam_train_folders"]
             for fol in spam_training_folders:
+                # Select the folder to make sure it exists
+                imap.SelectFolder(fol)
                 if options['globals', 'verbose']:
                     print "   Training spam folder %s" % (fol)
                 folder = IMAPFolder(fol)
@@ -469,8 +489,14 @@ class IMAPFilter(object):
     def Filter(self):
         if options["globals", "verbose"]:
             t = time.time()
+
+        # Select the spam folder and unsure folder to make sure they exist
+        imap.SelectFolder(self.spam_folder)
+        imap.SelectFolder(self.unsure_folder)
             
         for filter_folder in options["imap", "filter_folders"]:
+            # Select the folder to make sure it exists
+            imap.SelectFolder(filter_folder)
             folder = IMAPFolder(filter_folder, False)
             folder.Filter(self.classifier, self.spam_folder,
                           self.unsure_folder)

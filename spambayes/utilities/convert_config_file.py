@@ -13,8 +13,9 @@ the current working directory.  You may override this with the "-f" option.
 
 The "-v" option produces verbose output, and "-h" produces this text.
 
-For safety, a backup of the old configuration file is saved with a ".bak"
-suffix - note that if a file by this name already exists, it is replaced.
+For safety, a backup of the old configuration file is saved with a
+".backup" suffix - note that if a file by this name already exists, this
+does not occur.
 
 Note that around options that change blank lines might move - there isn't
 really an easy way around this, but it's easily fixed by hand, and if you
@@ -73,9 +74,11 @@ def run():
     else:
         print filename, "does not exist; exiting."
         sys.exit(-1)
-    if verbose:
-        print "Copying file", filename, "to", filename + ".bak"
-    shutil.copyfile(filename, filename + ".bak")
+    backup_name = filename + ".backup"
+    if not os.path.exists(backup_name):
+        if verbose:
+            print "Copying file", filename, "to", backup_name
+        shutil.copyfile(filename, backup_name)
     if verbose:
         print "Updating..."
     o.update_file(filename)

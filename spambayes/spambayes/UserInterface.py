@@ -37,11 +37,8 @@ User interface improvements:
    webbrowser?
  o Save the stats (num classified, etc.) between sessions.
  o "Reload database" button.
- o Checkboxes need a default value (i.e. what to set the option as
-   when no boxes are checked).  This needs to be thought about and
-   then implemented.  add_id is an example of what it does at the
-   moment.
-
+ o Displaying options should be done with the locale format function
+   rather than str().
  o Suggestions?
 
 """

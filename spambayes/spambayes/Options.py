@@ -31,6 +31,8 @@ To Do:
    allowing invalid options in configuration files
  o Find a regex expert to come up with *good* patterns for domains,
    email addresses, and so forth.
+ o str(Option) should really call Option.unconvert since this is what
+   it does.  Try putting that in and running all the tests.
  o [See also the __issues__ string.]
  o Suggestions?
 
@@ -110,6 +112,16 @@ FILE_WITH_PATH = PATH
 # names, please let us know and we'll figure out something else.
 # ImapUI.py prints out a warning if this is the case.
 IMAP_FOLDER = r"[^,]+"
+
+# IMAP's astring should also be valid in the form:
+#   "{" number "}" CRLF *CHAR8
+#   where number represents the number of CHAR8 octets
+# but this is too complex for us at the moment.
+IMAP_ASTRING = ""
+for i in range(1, 128):
+    if not chr(i) in ['"', '\\', '\n', '\r']:
+        IMAP_ASTRING += chr(i)
+IMAP_ASTRING = r"\"?\\?[" + re.escape(IMAP_ASTRING) + r"]+\"?"
 
 # Similarly, each option must specify whether it should be reset to
 # this value on a "reset to defaults" command.  Most should, but with some
@@ -885,7 +897,7 @@ defaults = {
      funkyguy. If you are using multiple imap servers, or multiple accounts
      on the same server, please see the comments regarding the server
      value.""",
-     r"[\w]+", DO_NOT_RESTORE),
+     IMAP_ASTRING, DO_NOT_RESTORE),
 
     ("password", "Password", (),
      """That is that password that you use to log into your imap server.
@@ -895,7 +907,7 @@ defaults = {
      I've just freaked you out, don't panic <wink>.  You can leave this
      blank and use the -p command line option to imapfilter.py and you will
      be prompted for your password.""",
-     r"[\w]+", DO_NOT_RESTORE),
+     IMAP_ASTRING, DO_NOT_RESTORE),
 
     ("expunge", "Purge//Expunge", False,
      """Permanently remove *all* messages flagged with //Deleted on logout.
@@ -937,6 +949,7 @@ class Option(object):
         self.allowed_values = allowed
         self.restore = restore
         self.value = None
+        self.delimiter = None
 
     def display_name(self):
         '''A name for the option suitable for display to a user.'''
@@ -1060,23 +1073,46 @@ class Option(object):
 
     def convert(self, value):
         '''Convert value from a string to the appropriate type.'''
+        svt = type(self.value)
+        if svt == type(value):
+            # already the correct type
+            return value
         if self.is_boolean():
             if str(value) == "True" or value == 1:
                 return True
             elif str(value) == "False" or value == 0:
                 return False
             raise TypeError, self.name + " must be True or False"
-        svt = type(self.value)
-        if svt == type(value):
+        if self.multiple_values_allowed():
+            # This will fall apart if the allowed_value is a tuple,
+            # but not a homogenous one...
+            if type(self.allowed_values) in types.StringTypes:
+                vals = list(self._split_values(value))
+            else:
+                vals = value.split()
+            if len(self.default_value) > 0:
+                to_type = type(self.default_value[0])
+            else:
+                to_type = types.StringType
+            for i in range(0, len(vals)):
+                vals[i] = self._convert(vals[i], to_type)
+            return tuple(vals)
+        else:
+            return self._convert(value, svt)
+        raise TypeError, self.name + " has an invalid type."
+
+    def _convert(self, value, to_type):
+        '''Convert an int, float or string to the specified type.'''
+        if to_type == type(value):
             # already the correct type
             return value
-        if svt == types.IntType:
+        if to_type == types.IntType:
             return locale.atoi(value)
-        if svt == types.FloatType:
+        if to_type == types.FloatType:
             return locale.atof(value)
-        if svt in types.StringTypes and svt in types.StringTypes:
-            return value
-        raise TypeError, self.name + " has an invalid type."
+        if to_type in types.StringTypes:
+            return str(value)
+        raise TypeError, "Invalid type."
 
     def unconvert(self):
         '''Convert value from the appropriate type to a string.'''
@@ -1090,14 +1126,47 @@ class Option(object):
             else:
                 return "False"
         if type(self.value) == types.TupleType:
+            if len(self.value) == 0:
+                return ""
+            if len(self.value) == 1:
+                v = self.value[0]
+                if type(v) == types.FloatType:
+                    return locale.str(self.value[0])
+                return str(v)
             # We need to separate out the items
-            # We use a character that is invalid as the separator
-            # so that it will reparse correctly
             strval = ""
-            # XXX fix this
-            sep = ' '
+            # We use a character that is invalid as the separator
+            # so that it will reparse correctly.  We could try all
+            # characters, but we make do with this set of commonly
+            # used ones - note that the first one that works will
+            # be used.  Perhaps a nicer solution than this would be
+            # to specifiy a valid delimiter for all options that
+            # can have multiple values.  Note that we have None at
+            # the end so that this will crash and die if none of
+            # the separators works <wink>
+            if self.delimiter is None:
+                if type(self.allowed_values) == types.TupleType:
+                    self.delimiter = ' '
+                else:
+                    v0 = self.value[0]
+                    v1 = self.value[1]
+                    for sep in [' ', ',', ':', ';', '/', '\\', None]:
+                        # we know at this point that len(self.value) is at
+                        # least two, because len==0 and len==1 were dealt
+                        # with as special cases
+                        test_str = v0 + sep + v1
+                        test_tuple = self._split_values(test_str)
+                        if test_tuple[0] == v0 and test_tuple[1] == v1 and \
+                           len(test_tuple) == 2:
+                            break
+                    # cache this so we don't always need to do the above
+                    self.delimiter = sep
             for v in self.value:
-                strval += v + sep
+                if type(v) == types.FloatType:
+                    v = locale.str(v)
+                else:
+                    v = str(v)
+                strval += v + self.delimiter
             strval = strval[:-1] # trailing seperator
         else:
             # Otherwise, we just hope str() will do the job
