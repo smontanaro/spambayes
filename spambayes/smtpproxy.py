@@ -40,9 +40,9 @@ the smtpproxy can extract the id from the body of the message, if it
 is there.
                                                         Header	Body
 *** Windows 2000 MUAs ***
-Eudora 5.2 Forward					                       *     *
-Eudora 5.2 Redirect					   	                         *
-Netscape Messenger (4.7) Forward (inline) 		           *     *
+Eudora 5.2 Forward                                         *     *
+Eudora 5.2 Redirect                                              *
+Netscape Messenger (4.7) Forward (inline)                  *     *
 Netscape Messenger (4.7) Forward (quoted) Plain      	         *
 Netscape Messenger (4.7) Forward (quoted) HTML      	         *
 Netscape Messenger (4.7) Forward (quoted) Plain & HTML       	 *       
@@ -74,7 +74,14 @@ Calypso 3 Forward                                                *
 Calypso 3 Redirect                                         *     *
 Becky! 2.05.10 Forward                                           *
 Becky! 2.05.10 Redirect                                          *
-Becky! 2.05.10 Redirect as attachment                      *     * 
+Becky! 2.05.10 Redirect as attachment                      *     *
+Mozilla Mail 1.2.1 Forward (attachment)                    *     *
+Mozilla Mail 1.2.1 Forward (inline, plain)                 *1    *
+Mozilla Mail 1.2.1 Forward (inline, plain & html)          *1    *
+Mozilla Mail 1.2.1 Forward (inline, html)                  *1    *
+
+*1 The header method will only work if auto-include original message
+is set, and if view all headers is true.
 """
 
 from spambayes import Dibbler
@@ -83,7 +90,7 @@ from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
 from pop3proxy import _addressPortStr, ServerLineReader
 from pop3proxy import _addressAndPort, proxyListeners
-import string
+import string, re
 import socket, asyncore, asynchat
 
 class SMTPProxyBase(Dibbler.BrighterAsyncChat):
@@ -389,9 +396,25 @@ class BayesSMTPProxy(SMTPProxyBase):
         if id_location == -1:
             return None
         else:
-            id_location += len(options.pop3proxy_mailid_header_name) + 2
-            id_end = text.find('\r\n', id_location)
+            # A MUA might enclose the id in a table
+            # (Mozilla Mail does this with inline html)
+            s = re.compile(options.pop3proxy_mailid_header_name + \
+                           ':[\s]*</th>[\s]*<td>[\s]*')
+            if s.search(text[id_location:]) is not None:
+                id_location += s.search(text[id_location:]).end()
+                s = re.compile('[\d-]+</td>')
+                id_end = s.search(text[id_location:]).end() + id_location
+            else:
+                id_location += len(options.pop3proxy_mailid_header_name) + 2
+                s = re.compile('[\w -]+[\\r]?\\n')
+                id_end = s.search(text[id_location:]).end() + id_location
             id = text[id_location:id_end]
+            s = re.compile('</td>')
+            if s.search(id) is not None:
+                id = s.split(id)[0]
+            s = re.compile('[\\r]?\\n')
+            if s.search(id) is not None:
+                id = s.split(id)[0]
             return id
 
     def train(self, msg, isSpam):
