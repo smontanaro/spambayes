@@ -129,7 +129,10 @@ class IMAPMessage(message.SBHeaderMessage):
         # a timestamp for the message.  Ideally, this would be the
         # timestamp from the message itself, but for the moment, we
         # just use the current time.
-        return imaplib.Time2Internaldate(time.time())
+        try:
+            return self["Date"]
+        except KeyError:
+            return imaplib.Time2Internaldate(time.time())
 
     def MoveTo(self, dest):
         # The move just changes where we think we are,
