@@ -16,33 +16,31 @@ will generate the "ConfigParser" version for the web.
 # The SF URL instead works for Tim and xenogeist.
 LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-4
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 versions = {
     # Non app specific - changed when "spambayes\*" changes significantly
     "Version":          0.2,
-    "Description":      "SpamBayes Beta2",
+    "Description":      "SpamBayes Engine",
     "Date":             "July 2003",
-    "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+    "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
     # Sub-dict for application specific version strings.
     "Apps": {
-        # Should this be here?  I'm not sure that anything uses it, and the
-        # hammie.py script is gone.  A sb_filter version might be better.
-        "Hammie" : {
+        "sb_filter" : {
             "Version":          0.1,
-            "Description":      "SpamBayes command line tool (Hammie) Beta1",
+            "Description":      "SpamBayes Command Line Filter",
             "Date":             "January 2003",
-            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
             "Version":          0.85,
             "BinaryVersion":    0.85,
             "Description":      "SpamBayes Outlook Addin",
             "Date":             "December 2003",
-            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
             "Full Description Binary":
-                                "%(Description)s, Binary version %(BinaryVersion)s (%(Date)s)",
+                                "%(Description)s Binary Version %(BinaryVersion)s (%(Date)s)",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
@@ -51,15 +49,15 @@ versions = {
         "POP3 Proxy" : {
             "Version":          0.3,
             "BinaryVersion":    0.2,
-            "Description":      "SpamBayes POP3 Proxy Beta3",
+            "Description":      "SpamBayes POP3 Proxy",
             "Date":             "December 2003",
             "InterfaceVersion":            0.03,
-            "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha3",
-            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+            "InterfaceDescription":        "POP3 Proxy Web Interface",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
+using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
             "Full Description Binary":
-                                """%(Description)s, Binary version %(BinaryVersion)s (%(Date)s),
-using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+                                """%(Description)s Binary Version %(BinaryVersion)s (%(Date)s),
+using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
             # Note this means we can change the download page later, and old
             # versions will still go to the new page.
             # We may also like to have a "Release Notes Page" item later?
@@ -67,33 +65,27 @@ using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
         "Lotus Notes Filter" : {
             "Version":          0.01,
-            "Description":      "SpamBayes Lotus Notes Filter Alpha1",
+            "Description":      "SpamBayes Lotus Notes Filter",
             "Date":             "March 2003",
-            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
-        },
-        "SMTP Proxy" : {
-            "Version":          0.1,
-            "Description":      "SpamBayes SMTP Proxy Beta1",
-            "Date":             "September 2003",
-            "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
+            "Full Description": "%(Description)s Version %(Version)s (%(Date)s)",
         },
         "IMAP Filter" : {
             "Version":          0.1,
-            "Description":      "SpamBayes IMAP Filter Beta1",
+            "Description":      "SpamBayes IMAP Filter",
             "Date":             "September 2003",
             "InterfaceVersion":            0.02,
-            "InterfaceDescription":        "SpamBayes IMAP Filter Web Interface Alpha2",
-            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+            "InterfaceDescription":        "IMAP Filter Web Interface",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
+using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
         },
         "IMAP Server" : {
             "Version":          0.01,
-            "Description":      "SpamBayes IMAP Server Alpha1",
+            "Description":      "SpamBayes IMAP Server",
             "Date":             "September 2003",
             "InterfaceVersion":             0.02,
-            "InterfaceDescription":        "SpamBayes IMAP Server Web Interface Alpha2",
-            "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
-using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+            "InterfaceDescription":        "IMAP Server Web Interface",
+            "Full Description": """%(Description)s Version %(Version)s (%(Date)s),
+using %(InterfaceDescription)s Version %(InterfaceVersion)s""",
         },
     },
 }
@@ -206,12 +198,12 @@ def main(args):
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
-    print "SpamBayes version is:", get_version_string()
+    print "SpamBayes engine version:", get_version_string()
     # Enumerate applications
     print
     print "Application versions:"
     for app in versions["Apps"]:
-        print "%s: %s" % (app, get_version_string(app))
+        print "\n%s: %s" % (app, get_version_string(app))
 
     print
     print "Fetching the lastest version information..."
@@ -224,12 +216,12 @@ def main(args):
         sys.exit(1)
 
     print
-    print "SpamBayes version is:", get_version_string(version_dict=latest_dict)
+    print "SpamBayes engine version:", get_version_string(version_dict=latest_dict)
     # Enumerate applications
     print
     print "Application versions:"
     for app in latest_dict["Apps"]:
-        print "%s: %s" % (app, get_version_string(app, version_dict=latest_dict))
+        print "\n%s: %s" % (app, get_version_string(app, version_dict=latest_dict))
 
 if __name__=='__main__':
     import sys
