@@ -1,4 +1,5 @@
 recursive-include spambayes/resources *.html *.psp *.gif
+recursive-include spambayes/src *.c
 recursive-include spambayes *.py *.txt
 recursive-include pspam *.py *.txt *.ini *.sh
 recursive-include contrib *.py *.sh *.txt *.el *rc
