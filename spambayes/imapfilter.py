@@ -399,7 +399,7 @@ if __name__ == '__main__':
         print "Done."            
                 
     imap_filter = IMAPFilter(classifier, imapDebug)
-    print sleepTime
+
     while 1:
         if doTrain:
             if options.verbose:
