@@ -125,6 +125,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
 
     def onHome(self):
         """Serve up the homepage."""
+        state.buildStatusStrings()
         stateDict = self.classifier.__dict__.copy()
         stateDict["warning"] = ""
         stateDict.update(self.classifier.__dict__)

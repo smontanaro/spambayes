@@ -157,6 +157,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
     def onHome(self):
         """Serve up the homepage."""
+        state.buildStatusStrings()
         stateDict = state.__dict__.copy()
         stateDict.update(state.bayes.__dict__)
         statusTable = self.html.statusTable.clone()

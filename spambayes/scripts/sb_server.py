@@ -687,20 +687,9 @@ class State:
         self.serversString = ', '.join(serverStrings)
         self.proxyPortsString = ', '.join(map(_addressPortStr, self.proxyPorts))
 
-    def createWorkers(self):
-        """Using the options that were initialised in __init__ and then
-        possibly overridden by the driver code, create the Bayes object,
-        the Corpuses, the Trainers and so on."""
-        print "Loading database...",
-        if self.isTest:
-            self.useDB = True
-            options["Storage", "persistent_storage_file"] = \
-                        '_pop3proxy_test.pickle'   # This is never saved.
-        filename = options["Storage", "persistent_storage_file"]
-        filename = os.path.expanduser(filename)
-        self.bayes = storage.open_storage(filename, self.useDB)
-
-        # Status message
+    def buildStatusStrings(self):
+        """Build the status message(s) to display on the home page of the
+        web interface."""
         nspam = self.bayes.nspam
         nham = self.bayes.nham
         if nspam > 10 and nham > 10:
@@ -725,6 +714,21 @@ class State:
             self.warning = "Database has no training information.  SpamBayes " \
                            "will classify all messages as 'unsure', " \
                            "ready for you to train."
+
+    def createWorkers(self):
+        """Using the options that were initialised in __init__ and then
+        possibly overridden by the driver code, create the Bayes object,
+        the Corpuses, the Trainers and so on."""
+        print "Loading database...",
+        if self.isTest:
+            self.useDB = True
+            options["Storage", "persistent_storage_file"] = \
+                        '_pop3proxy_test.pickle'   # This is never saved.
+        filename = options["Storage", "persistent_storage_file"]
+        filename = os.path.expanduser(filename)
+        self.bayes = storage.open_storage(filename, self.useDB)
+
+        self.buildStatusStrings()
 
         # Don't set up the caches and training objects when running the self-test,
         # so as not to clutter the filesystem.
