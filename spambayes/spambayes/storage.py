@@ -185,10 +185,10 @@ class DBDictClassifier(classifier.Classifier):
         # lock while we copy and reset self.changed_words would be appropriate.
         # For now, just do it the naive way.
         for key, flag in self.changed_words.items():
-            if flag == WORD_CHANGED:
+            if flag is WORD_CHANGED:
                 val = self.wordinfo[key]
                 self.db[key] = val.__getstate__()
-            elif flag == WORD_DELETED:
+            elif flag is WORD_DELETED:
                 assert word not in self.wordinfo, \
                        "Should not have a wordinfo for words flagged for delete"
                 # Word may be deleted before it was ever written.
