@@ -38,13 +38,19 @@ class Stats:
         store.close()
     def Store(self):
         # Update totals, and save that.
+        should_store = False
         for stat in ["num_ham", "num_spam", "num_unsure",
                      "num_deleted_spam", "num_deleted_spam_fn",
                      "num_recovered_good", "num_recovered_good_fp",]:
-            self.totals[stat] += getattr(self, stat)
-        store = open(self.stored_statistics_fn, 'wb')
-        pickle.dump(self.totals, store)
-        store.close()
+            count = getattr(self, stat)
+            self.totals[stat] += count
+            if count != 0:
+                # One of the totals changed, so we need to store the updates.
+                should_store = True
+        if should_store:
+            store = open(self.stored_statistics_fn, 'wb')
+            pickle.dump(self.totals, store)
+            store.close()
         # Reset, or the reporting for the remainder of this session will be
         # incorrect.
         self.Reset()

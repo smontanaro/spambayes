@@ -1136,10 +1136,11 @@ class ExplorerWithEvents:
             self.OnFolderSwitch()
 
     def OnClose(self):
-        self.manager.LogDebug(3, "OnClose", self)
+        self.manager.LogDebug(3, "Explorer window closing", self)
         self.explorers_collection._DoDeadExplorer(self)
         self.explorers_collection = None
         self.toolbar = None
+        self.manager.stats.Store() # save stats
         self.close() # disconnect events.
 
     def OnBeforeFolderSwitch(self, new_folder, cancel):
