@@ -161,7 +161,6 @@ def make_HammieFilter():
     # from the sb_filter script.
     from spambayes import Options
     path = os.path.split(Options.__file__)[0]+'/../scripts'
-    print >> sys.stderr, path
     if path not in sys.path:
         sys.path.append(path)
     from sb_filter import HammieFilter
