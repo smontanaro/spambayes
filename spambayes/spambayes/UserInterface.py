@@ -66,8 +66,11 @@ except NameError:
     True, False = 1, 0
 
 import re
+import os
+import sys
 import time
 import email
+import smtplib
 import binascii
 import cgi
 import mailbox
@@ -82,6 +85,7 @@ import Version
 import Dibbler
 import tokenizer
 from spambayes import Stats
+from spambayes import Version
 from Options import options, optionsPathname, defaults, OptionsClass
 
 IMAGES = ('helmet', 'status', 'config', 'help',
@@ -251,6 +255,7 @@ class UserInterface(BaseUserInterface):
         self.classifier = bayes
         self.parm_ini_map = config_parms
         self.advanced_options_map = adv_parms
+        self.app_for_version = None # subclasses must fill this in
 
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
@@ -925,3 +930,150 @@ class UserInterface(BaseUserInterface):
         stats = self._buildBox("Statistics", None, "<br/><br/>".join(stats))
         self.write(stats)
         self._writePostamble()
+
+    def onBugreport(self):
+        """Create a message to post to spambayes@python.org that hopefully
+        has enough information for us to help this person with their
+        problem."""
+        self._writePreamble("Send Help Message", ("help", "Help"))
+        report = self.html.bugreport.clone()
+        # Prefill the report
+        sb_ver = Version.get_version_string(self.app_for_version)
+        if hasattr(sys, "frozen"):
+            sb_type = "binary"
+        else:
+            sb_type = "source"
+        py_ver = sys.version
+        try:
+            # Use "Windows" instead of "nt" or people might be confused.
+            os_name = "Windows %d.%d.%d.%d (%s)" % sys.getwindowsversion()
+        except AttributeError:
+            # Not available in non-Windows, or pre 2.3
+            os_name = os.name
+        report.message_body = "I am using %s (%s), with version %s of " \
+                              "Python; my operating system is %s.  I have " \
+                              "trained %d ham and %d spam.\n\nThe problem " \
+                              "I am having is [DESCRIBE YOUR PROBLEM HERE] " \
+                              % (sb_ver, sb_type, py_ver, os_name,
+                                 self.classifier.nham, self.classifier.nspam)
+        domain_guess = options["pop3proxy", "remote_servers"][0]
+        for pre in ["pop.", "pop3.", "mail.",]:
+            if domain_guess.startswith(pre):
+                domain_guess = domain_guess[len(pre):]
+        report.from_addr.value = "[YOUR EMAIL ADDRESS]@%s" % (domain_guess,)
+        report.cc_addr.value = report.from_addr.value
+        report.subject.value = "Problem with %s" % (self.app_for_version,)
+        # If the user has a log file, attach it.
+        try:
+            import win32api
+        except ImportError:
+            pass
+        else:
+            if hasattr(sys, "frozen"):
+                temp_dir = win32api.GetTempPath()
+                for name in ["SpamBayesService", "SpamBayesServer",]:
+                    for i in xrange(3):
+                        pn = os.path.join(temp_dir, "%s%d.log" % (name,
+                                                                  (i+1)))
+                        if os.path.exists(pn):
+                            # I can't seem to set a default value for a
+                            # "File" input type, so have to change it to
+                            # "Text" if one is found.
+                            report.file.type = "text"
+                            report.file.value = pn
+                            # For the moment, just attach the first one
+                            # we find.
+                            break
+                    if report.file.value:
+                        break
+
+        self.write(report)
+        self._writePostamble()
+
+    def onSubmitreport(self, from_addr, to_addr, cc_addr, message,
+                       subject, attach):
+        """Send the help message/bug report to the specified address."""
+        # For guessing MIME type based on file name extension
+        import mimetypes
+
+        from email import Encoders
+        from email.Message import Message
+        from email.MIMEBase import MIMEBase
+        from email.MIMEAudio import MIMEAudio
+        from email.MIMEMultipart import MIMEMultipart
+        from email.MIMEImage import MIMEImage
+        from email.MIMEText import MIMEText
+
+        if not self._verifyEnteredDetails(from_addr, cc_addr, message):
+            self._writePreamble("Error", ("help", "Help"))
+            self.write(self._buildBox("Error", "status.gif",
+                                      "You must fill in the details that " \
+                                      "describe your specific problem " \
+                                      "before you can send the message."))
+        else:
+            self._writePreamble("Sent", ("help", "Help"))
+            mailer = smtplib.SMTP(options["smtpproxy", "remote_servers"][0])
+
+            # Create the enclosing (outer) message
+            outer = MIMEMultipart()
+            outer['Subject'] = subject
+            outer['To'] = to_addr
+            if cc_addr:
+                outer['CC'] = cc_addr
+            outer['From'] = from_addr
+            outer.preamble = message
+            # To guarantee the message ends with a newline
+            outer.epilogue = ''
+
+            # Guess the content type based on the file's extension.
+            ctype, encoding = mimetypes.guess_type(attach)
+            if ctype is None or encoding is not None:
+                # No guess could be made, or the file is encoded (compressed),
+                # so use a generic bag-of-bits type.
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+            if maintype == 'text':
+                fp = open(attach)
+                # Note: we should handle calculating the charset
+                msg = MIMEText(fp.read(), _subtype=subtype)
+                fp.close()
+            elif maintype == 'image':
+                fp = open(attach, 'rb')
+                msg = MIMEImage(fp.read(), _subtype=subtype)
+                fp.close()
+            elif maintype == 'audio':
+                fp = open(attach, 'rb')
+                msg = MIMEAudio(fp.read(), _subtype=subtype)
+                fp.close()
+            else:
+                fp = open(attach, 'rb')
+                msg = MIMEBase(maintype, subtype)
+                msg.set_payload(fp.read())
+                fp.close()
+                # Encode the payload using Base64
+                Encoders.encode_base64(msg)
+            # Set the filename parameter
+            msg.add_header('Content-Disposition', 'attachment',
+                           filename=os.path.basename(attach))
+            outer.attach(msg)
+            msg = MIMEText(message)
+            outer.attach(msg)
+
+            recips = []
+            for r in [to_addr, cc_addr]:
+                if r:
+                    recips.append(r)
+            mailer.sendmail(from_addr, recips, outer.as_string())
+            self.write("Sent message.  Please do not send again, or " \
+                       "refresh this page!")
+        self._writePostamble()
+
+    def _verifyEnteredDetails(self, from_addr, cc_addr, message):
+        """Ensure that the user didn't just send the form message, and
+        at least changed the fields."""
+        if from_addr.startswith("[YOUR EMAIL ADDRESS]") or \
+           cc_addr.startswith("[YOUR EMAIL ADDRESS]"):
+            return False
+        if message.endswith("[DESCRIBE YOUR PROBLEM HERE]"):
+            return False
+        return True

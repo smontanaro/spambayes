@@ -120,10 +120,69 @@ a:hover { color: #6040ff }
             <img id='icon' src='help.gif' width='40' height='40'/>&nbsp;
         </td>
         <td id="helptext" class='sectionbody'>
-        If you have fully exhausted all your ideas, then you can
-        <a href="http://spambayes.org/contact.html">contact
-        the SpamBayes team</a>.
+        Sorry, there isn't any specific help available for that section.
+    </td></tr>
+    <tr>
+        <td valign='top' class='sectionbody' width='20'>&nbsp;</td>
+        <td id="aboutbugreport" class='sectionbody'>
+        If you believe you may have found a bug in SpamBayes, or are
+        at a loss as to how you can proceed, you can ask the SpamBayes
+        mailing list for assistance.  Note that the members of this list
+        are volunteers that answer questions in their free time, so an
+        answer to your question might take a little while to appear.  If
+        you are quite certain that you have found a bug, then you're
+        probably better off submitting this via the <a href="http://sourceforge.net/tracker/?group_id=61702">
+        SourceForge tracking system</a>, as sometimes things get lost on
+        the list, particularly in busy times or when the latest virus is
+        flooding the net with bogus messages.<br />&nbsp;<br />
+        There is certain information which people need to know in order to
+        suggest how you might fix any problems.  To help make sure that you
+        have all this information, SpamBayes can <a href="bugreport">create
+        a help message</a> for you.  If you choose to email the list without
+        using this, please ensure that you have all the pertinent information.
+        (Otherwise your response is likely to be "please tell us ...").
     </td></tr></table>
+</div>
+
+<hr/>
+<p class="uiHtmlHeader">A pre-filled-in 'help' message</p>
+
+<div id="bugreport">
+    <form action="submitreport" method="GET">
+        <!-- Mail things that we could offer, but won't, for the moment at
+        least:
+            <input name="reply-to" size="30" value="ta-meyer@ihug.co.nz" style="width: 265px" tabindex="6" />
+            <input name="bcc" size="30" value="" style="width: 265px" tabindex="6" />
+            <select name="priority">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+            </select>
+        -->
+        <table class='sectiontable' cellspacing='0'>
+        <tr><td class='sectionheading' colspan='2'>Send Help Message</td></tr>
+        <tr><td class='sectionbody'>From:</td><td class='sectionbody'>
+            <input type="text" name="from_addr" size="30" id="from_addr" value="ta-meyer@ihug.co.nz" style="width: 265px" tabindex="0" />
+        </td></tr>
+        <tr><td class='sectionbody'>To:</td><td class='sectionbody'>
+            <input name="to_addr" size="30" id="to_addr" value="spambayes@python.org" style="width: 265px" tabindex="1" />
+        </td></tr>
+        <tr><td class='sectionbody'>CC:</td><td class='sectionbody'>
+            <input name="cc_addr" size="30" id="cc_addr" value="" style="width: 265px" tabindex="2" />
+        </td></tr>
+        <tr><td class='sectionbody'>Subject:</td><td class='sectionbody'>
+            <input name="subject" size="28" id="subject" value="Problem with sb_server" style="width: 300px" tabindex="3" />
+        </td></tr>
+        <tr><td class='sectionbody'>Message:</td><td class='sectionbody'>
+            <textarea wrap="physical" name="message" id="message_body" cols="60" rows="10" style="width: 450px" tabindex="4"></textarea>
+        </td></tr>
+        <tr><td class='sectionbody'>Attach Log file:</td><td class='sectionbody'>
+            <input type="file" name="attach" size="60" id="file" tabindex="7" value="" />
+        </td></tr>
+        <tr><td class='sectionbody' colspan='2' style="text-align:center">
+            <input type="submit" value="Send"/>
+        </td></tr>
+        </table>
+    </form>
 </div>
 
 <hr/>
