@@ -3,7 +3,7 @@
 # XXX As this code is, option names must be unique across ini sections,
 # XXX and must not conflict with OptionsClass method names.
 
-import sys
+import sys, os
 import StringIO
 import ConfigParser
 from sets import Set
@@ -241,5 +241,9 @@ d = StringIO.StringIO(defaults)
 options.mergefilelike(d)
 del d
 
-options.mergefiles(['bayescustomize.ini'])
+alternate = os.getenv('BAYESCUSTOMIZE')
+if alternate:
+    options.mergefiles(alternate.split())
+else:
+    options.mergefiles(['bayescustomize.ini'])
 
