@@ -287,7 +287,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
 
 def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify):
-    bayes = storage.open_database(bdbname, useDBM)
+    bayes = storage.open_storage(bdbname, useDBM)
 
     try:
         fp = open("%s.sbindex" % (ldbname), 'rb')
