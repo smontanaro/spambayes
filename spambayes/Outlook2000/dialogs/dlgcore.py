@@ -82,7 +82,7 @@ class Dialog:
         return self.dialog_parser.names.get(cid, str(cid))
 
     def CreateWindow(self):
-        self._DoCreate(win32gui.CreateDialogIndirect)
+        return self._DoCreate(win32gui.CreateDialogIndirect)
 
     def DoModal(self):
         return self._DoCreate(win32gui.DialogBoxIndirect)
@@ -151,6 +151,9 @@ class TooltipDialog(Dialog):
     def OnActivate(self, hwnd, msg, wparam, lparam):
         self.tt.HideTooltip()
 
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        self.tt.HideTooltip()
+        
     def OnHelp(self, hwnd, msg, wparam, lparam):
         format = "iiiiiii"
         buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
@@ -227,6 +230,7 @@ class ProcessorDialog(TooltipDialog):
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         #print "OnDestroy"
+        TooltipDialog.OnDestroy(self, hwnd, msg, wparam, lparam)
         self.command_processors = None
         self.all_processors = None
         self.processor_message_map = None
@@ -272,7 +276,7 @@ class ProcessorDialog(TooltipDialog):
         if handler is None:
             print "Ignoring OnNotify for", self._GetIDName(idFrom)
             return
-        handler.OnNotify( (hwndFrom, idFrom, code), wparam, lparam)
+        return handler.OnNotify( (hwndFrom, idFrom, code), wparam, lparam)
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
         TooltipDialog.OnCommand(self, hwnd, msg, wparam, lparam)
@@ -283,3 +287,17 @@ class ProcessorDialog(TooltipDialog):
             return
 
         self.ApplyHandlingOptionValueError(handler.OnCommand, wparam, lparam)
+
+class ProcessorPage(ProcessorDialog):
+    def __init__(self, parent, manager, idd, option_handlers):
+        ProcessorDialog.__init__(self, parent, manager, idd,option_handlers)
+    def OnInitDialog(self, hwnd, msg, wparam, lparam):
+        self.hwnd = hwnd
+        # The hardcoded values are a bit of a hack.
+        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 1, 24, 0, 0, win32con.SWP_NOSIZE)
+        self.LoadAllControls()
+    def CreateWindow(self):
+        # modeless. Pages should have the WS_CHILD window style
+        message_map = self.GetMessageMap()
+        return win32gui.CreateDialogIndirect(self.hinst, self.template, self.parent, message_map)
+
