@@ -4,6 +4,7 @@ This is an automated response to an email message you sent to the
 spambayes@python.org mailing list.  Please read this message carefully to
 see if it answers your question(s).
 
+
 What is Spambayes?
 ------------------
 
@@ -15,6 +16,7 @@ website:
 
     http://spambayes.sf.net/
 
+
 Will Spambayes run on my system/in my environment?
 --------------------------------------------------
 
@@ -22,24 +24,19 @@ Yes, though which tools you use and the amount of work necessary to get
 started will vary depending on your computing platform, email client and how
 you get mail from a mail server.
 
+
 I'm having trouble installing Spambayes.  Help!
 -----------------------------------------------
 
-There are known problems installing the Outlook plug-in on some combinations
-of Windows and Outlook.  Consult
+There were problems installing the Outlook plug-in on some combinations of
+Windows and Outlook for early versions of the plug-in.  Version 003 seems to
+install properly with all combinations of Windows and Outlook which have
+been tried so far.
+
+More information about Spambayes and Windows can be found at
 
     http://spambayes.sf.net/windows.html
 
-for information about these problems.
-
-People who are not using the binary installer for the Outlook plugin should
-consult
-
-    http://spambayes.sf.net/download.html
-
-to see what versions of Python will work with Spambayes.
-
-For other installation issues, please file a bug report (see below).
 
 I found a bug.
 --------------
@@ -53,6 +50,7 @@ it will get missed.  Filing a bug report also provides a single place to
 collect all the data related to the bug, making it easier to put all the
 pieces together which are necessary to fix the underlying problem.
 
+
 Subscribing to the Spambayes mailing list.
 ------------------------------------------
 
@@ -62,4 +60,9 @@ earlier threads on the Python developers' mailing list.  You can subscribe
 to the Spambayes mailing list using the form at
 
     http://mail.python.org/mailman/listinfo/spambayes
+
+Before asking a question on the list, please take a moment and check the
+frequently asked questions page:
+
+    http://spambayes.sourceforge.net/faq.html
 
