@@ -1,4 +1,4 @@
-"""OptionsCore
+"""OptionsClass
 
 Classes:
     Option - Holds information about an option
