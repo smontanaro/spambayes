@@ -768,7 +768,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                 self.manager.stats.RecordTraining(True,
                                         self.manager.score(msgstore_message))
                 msgstore_message.t = False
-                self.manager.classifier_data.message_db.store_msg(msg)
+                self.manager.classifier_data.message_db.store_msg(msgstore_message)
                 self.manager.classifier_data.dirty = True
                 # Must train before moving, else we lose the message!
                 print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
