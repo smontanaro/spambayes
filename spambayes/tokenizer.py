@@ -1065,7 +1065,7 @@ class Tokenizer:
             for header in msg.get_all("date", ()):
                 mat = self.date_hms_re.search(header)
                 # return the time in Date: headers arranged in
-                # six-minute buckets
+                # 10-minute buckets
                 if mat is not None:
                     h = int(mat.group('hour'))
                     bucket = int(mat.group('minute')) // 10

@@ -96,8 +96,8 @@ generate_long_skips: True
 #
 skip_max_word_size: 12
 
-# Generate tokens which resemble the posting time in 6-minute buckets:
-# int((h*60+m)/10).
+# Generate tokens which resemble the posting time in 10-minute buckets:
+#     'time:'  hour  ':'  minute//10
 generate_time_buckets: False
 
 # Extract day of the week tokens from the Date: header.
@@ -157,8 +157,6 @@ show_histograms: True
 # The idea is that if something scores < hamc, it's called ham; if
 # something scores >= spamc, it's called spam; and everything else is
 # called 'I am not sure' -- the middle ground.
-#
-# Note that cvcost.py does a similar analysis.
 #
 # Note:  You may wish to increase nbuckets, to give this scheme more cutoff
 # values to analyze.
