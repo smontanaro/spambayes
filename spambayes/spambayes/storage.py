@@ -669,11 +669,10 @@ def open_storage(data_source_name, useDB=True, mode=None):
         if str(e) == "No dbm modules available!":
             # We expect this to hit a fair few people, so warn them nicely,
             # rather than just printing the trackback.
-            print >> sys.stderr, "You do not have a dbm module available " \
+            print >> sys.stderr, "\nYou do not have a dbm module available " \
                   "to use.  You need to either use a pickle (see the FAQ)" \
                   ", use Python 2.3 (or above), or install a dbm module " \
                   "such as bsddb (see http://sf.net/projects/pybsddb)."
-            import sys
             sys.exit()
 
 
