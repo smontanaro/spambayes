@@ -1,6 +1,7 @@
 from __future__ import generators
 # Utilities for our sandbox
 
+import os
 import pythoncom
 from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
@@ -9,6 +10,7 @@ from win32com.client import Dispatch
 
 class MAPIDriver:
     def __init__(self, read_only = False):
+        old_cwd = os.getcwd()
         mapi.MAPIInitialize(None)
         logonFlags = (mapi.MAPI_NO_MAIL |
                       mapi.MAPI_EXTENDED |
@@ -19,6 +21,7 @@ class MAPIDriver:
         else:
             self.mapi_flags = mapi.MAPI_DEFERRED_ERRORS | mapi.MAPI_BEST_ACCESS
         self.outlook = None
+        os.chdir(old_cwd)
 
     def _GetMAPIFlags(self, mapi_flags = None):
         if mapi_flags is None:
