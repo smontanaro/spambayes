@@ -28,16 +28,11 @@ except ImportError:
 from distutils.core import setup
 import py2exe
 
-class Options:
-    def __init__(self, **kw):
-        self.__dict__.update(kw)
-
-# py2exe_options is a global name found by py2exe
-py2exe_options = Options(
+py2exe_options = dict(
     packages = "spambayes.resources,encodings",
     excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
     includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
-    dll_excludes = ["dapi.dll", "mapi32.dll"],
+    dll_excludes = "dapi.dll,mapi32.dll",
     lib_dir = "lib",
     typelibs = [
         ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0),
@@ -58,7 +53,7 @@ outlook_bmp_resources = [
 ]
 
 # These are just objects passed to py2exe
-outlook_addin = Options(
+outlook_addin = dict(
     modules = ["addin"],
     dest_base = "outlook/spambayes_addin",
     bitmap_resources = outlook_bmp_resources,
@@ -68,20 +63,24 @@ outlook_addin = Options(
 #    script = os.path.join(sb_top_dir, r"Outlook2000\manager.py"),
 #    bitmap_resources = outlook_bmp_resources,
 #)
-outlook_dump_props = Options(
+outlook_dump_props = dict(
     script = os.path.join(sb_top_dir, r"Outlook2000\sandbox\dump_props.py"),
     dest_base = "outlook/outlook_dump_props",
 )
 
-service = Options(
+service = dict(
     dest_base = "proxy/pop3proxy_service",
     modules = ["pop3proxy_service"]
 )
-sb_server = Options(
+sb_server = dict(
     dest_base = "proxy/sb_server",
     script = os.path.join(sb_top_dir, "scripts", "sb_server.py")
 )
-pop3proxy_tray = Options(
+sb_upload = dict(
+    dest_base = "proxy/sb_upload",
+    script = os.path.join(sb_top_dir, "scripts", "sb_upload.py")
+)
+pop3proxy_tray = dict(
     dest_base = "proxy/pop3proxy_tray",
     script = os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py"),
     icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
@@ -110,9 +109,10 @@ setup(name="SpamBayes",
       # A service
       service=[service],
       # console exes for debugging
-      console=[sb_server, outlook_dump_props],
+      console=[sb_server, sb_upload, outlook_dump_props],
       # The taskbar
       windows=[pop3proxy_tray],
       # and the misc data files
       data_files = outlook_data_files + proxy_data_files,
+      options = {"py2exe" : py2exe_options},
 )
