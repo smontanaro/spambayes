@@ -92,6 +92,7 @@ Gimmicks:
 import os, sys, re, errno, getopt, time, traceback
 import socket
 from thread import start_new_thread
+from email.Header import Header
 
 import spambayes.message
 from spambayes import Dibbler
@@ -460,12 +461,21 @@ class BayesProxy(POP3ProxyBase):
                 # This is one case where an unqualified 'except' is OK, 'cos
                 # anything's better than destroying people's email...
                 eType, eValue, eTraceback = sys.exc_info()
+                headerName = 'X-Spambayes-Exception'
                 file, line, func, code = traceback.extract_tb(eTraceback)[-1]
+
+                # Build the header.
                 details = "%s(%s) in %s() at %s line %d: %s" % \
                            (eType, eValue, func, file, line, code)
-                exceptionHeader = 'X-Spambayes-Exception: %s\r\n' % details
+                header = Header(details, header_name=headerName,
+                                         continuation_ws='\t')
+
+                # Insert the header, fixing up the fact that email.Header
+                # splits the lines using \n rather than \r\n (and being
+                # paranoid about that possibly changing in the future).
                 headers, body = re.split(r'\n\r?\n', messageText, 1)
-                headers = headers + "\n" + exceptionHeader + "\r\n"
+                fixed = str(header).replace('\r\n', '\n').replace('\n', '\r\n')
+                headers += "\n%s: %s\r\n\r\n" % (headerName, fixed)
                 messageText = headers + body
 
             # Restore the +OK and the full POP3 \r\n.\r\n terminator.  We
