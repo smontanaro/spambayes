@@ -366,8 +366,8 @@ class BayesManager:
             return
             
         folder = msgstore_folder.GetOutlookItem()
-        self.LogDebug(2, "Checking folder '%s' for our field '%s'" \
-                  % (self.config.general.field_score_name,folder.Name.encode("mbcs", "replace")))
+        self.LogDebug(2, "Checking folder '%s' for field '%s'" \
+                  % (folder.Name.encode("mbcs", "replace"), self.config.general.field_score_name))
         items = folder.Items
         item = items.GetFirst()
         while item is not None:
@@ -515,9 +515,9 @@ class BayesManager:
         try:
             try:
                 old_config = cPickle.load(f)
-            except IOError, details:
+            except:
                 print "FAILED to load old pickle"
-                print details
+                traceback.print_exc()
                 msg = "There was an error loading your old\r\n" \
                       "SpamBayes configuration file.\r\n\r\n" \
                       "It is likely that you will need to re-configure\r\n" \
@@ -601,9 +601,9 @@ class BayesManager:
 
     def SaveConfig(self):
         print "Saving configuration ->", self.config_filename
+        assert self.config and self.options, "Have no config to save!"
         if self.verbose > 1:
             self.options.display()
-        assert self.config and self.options, "Have no config to save!"
         self.options.update_file(self.config_filename)
 
     def Save(self):
