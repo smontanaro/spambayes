@@ -119,8 +119,8 @@ class IMAPMessage(message.Message):
     '''IMAP Message base class.'''
     __implements__ = (IMessage,)
 
-    def __init__(self, date=None):
-        message.Message.__init__(self)
+    def __init__(self, date=None, message_db=None):
+        message.Message.__init__(self, message_info_db=message_db)
         # We want to persist more information than the generic
         # Message class.
         self.stored_attributes.extend(["date", "deleted", "flagged",
@@ -288,9 +288,9 @@ class IMAPMessage(message.Message):
 
 class DynamicIMAPMessage(IMAPMessage):
     """An IMAP Message that may change each time it is loaded."""
-    def __init__(self, func):
+    def __init__(self, func, mdb):
         date = imaplib.Time2Internaldate(time.time())[1:-1]
-        IMAPMessage.__init__(self, date)
+        IMAPMessage.__init__(self, date, mdb)
         self.func = func
         self.load()
     def load(self):
@@ -302,13 +302,13 @@ class DynamicIMAPMessage(IMAPMessage):
             self[header] = value.strip()
 
 
-class IMAPFileMessage(IMAPMessage, FileCorpus.FileMessage):
+class IM.APFileMessage(IMAPMessage, FileCorpus.FileMessage):
     '''IMAP Message that persists as a file system artifact.'''
 
-    def __init__(self, file_name=None, directory=None):
+    def __init__(self, file_name=None, directory=None, mdb=None):
         """Constructor(message file name, corpus directory name)."""
         date = imaplib.Time2Internaldate(time.time())[1:-1]
-        IMAPMessage.__init__(self, date)
+        IMAPMessage.__init__(self, date, mdb)
         FileCorpus.FileMessage.__init__(self, file_name, directory)
         self.id = file_name
 
@@ -537,14 +537,25 @@ class SpambayesMailbox(IMAPMailbox):
 
 class SpambayesInbox(SpambayesMailbox):
     """A special mailbox that holds status messages from SpamBayes."""
-    def __init__(self, id):
+    def __init__(self, id, message_db):
         IMAPMailbox.__init__(self, "INBOX", "spambayes", id)
+        self.mdb = message_db
         self.UID_validity = id
         self.nextUID = 1
         self.unseen_count = 0
         self.recent_count = 0
         self.storage = {}
         self.createMessages()
+        s_thres = options["Categorization", "spam_cutoff"]
+        u_thres = options["Categorization", "ham_cutoff"]
+        fp_cost = options["TestDriver", "best_cutoff_fp_weight"]
+        fn_cost = options["TestDriver", "best_cutoff_fn_weight"]
+        unsure_cost = options["TestDriver", "best_cutoff_unsure_weight"]
+        h_string = options["Headers", "header_ham_string"]
+        s_string = options["Headers", "header_spam_string"]
+        u_string = options["Headers", "header_unsure_string"]
+        self.stats = Stats(s_thres, u_thres, message_db, h_string, u_string,
+                           s_string, fp_cost, fn_cost, unsure_cost)
 
     def buildStatusMessage(self, body=False, headers=False):
         """Build a message containing the current status message.
@@ -595,8 +606,6 @@ class SpambayesInbox(SpambayesMailbox):
             if body:
                 msg.append('\r\n')
         if body:
-            s = Stats()
-            s.CalculateStats()
             msg.extend(s.GetStats(use_html=False))
         return "\r\n".join(msg)
 
@@ -611,9 +620,9 @@ class SpambayesInbox(SpambayesMailbox):
         msg = email.message_from_string(about, _class=IMAPMessage)
         msg.date = date
         self.addMessage(msg)
-        msg = DynamicIMAPMessage(self.buildStatusMessage)
+        msg = DynamicIMAPMessage(self.buildStatusMessage, self.mdb)
         self.addMessage(msg)
-        msg = DynamicIMAPMessage(self.buildStatisticsMessage)
+        msg = DynamicIMAPMessage(self.buildStatisticsMessage, self.mdb)
         self.addMessage(msg)
         # XXX Add other messages here, for example
         # XXX help and other documentation.
@@ -911,6 +920,9 @@ class IMAPState(State):
         if not hasattr(self, "DBName"):
             self.DBName, self.useDB = storage.database_type([])
         self.bayes = storage.open_storage(self.DBName, self.useDB)
+        if not hasattr(self, "MBDName"):
+            self.MDBName, self.useMDB = message.database_type()
+        self.mdb = message.open_storage(self.MDBName, self.useMDB)
         self.buildStatusStrings()
 
     def buildServerStrings(self):
@@ -942,7 +954,7 @@ def prepare():
     spam_train_cache = os.path.join(options["Storage", "ham_cache"], "..",
                                     "spam_to_train")
     spam_train_box = SpambayesMailbox("TrainAsSpam", 3, spam_train_cache)
-    inbox = SpambayesInbox(4)
+    inbox = SpambayesInbox(4, state.mdb)
 
     spam_trainer = Trainer(spam_train_box, True)
     ham_trainer = Trainer(ham_train_box, False)
