@@ -1291,7 +1291,7 @@ class Tokenizer:
                             yield 'received:' + tok
 
         # Date:
-        if options["Tokenizer", "generate_time_buckets"]:
+        if options["Tokenizer", "x-generate_time_buckets"]:
             for header in msg.get_all("date", ()):
                 mat = self.date_hms_re.search(header)
                 # return the time in Date: headers arranged in
@@ -1301,7 +1301,7 @@ class Tokenizer:
                     bucket = int(mat.group('minute')) // 10
                     yield 'time:%02d:%d' % (h, bucket)
 
-        if options["Tokenizer", "extract_dow"]:
+        if options["Tokenizer", "x-extract_dow"]:
             for header in msg.get_all("date", ()):
                 # extract the day of the week
                 for fmt in self.date_formats:
