@@ -142,8 +142,8 @@ def ShowClues(mgr, app):
     # Now the raw text of the message, as best we can
     push("<h2>Message Stream:</h2><br>")
     push("<PRE>\n")
-    txt = msgstore_message.GetEmailPackageObject().as_string()
-    push(escape(txt, True))
+    msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
+    push(escape(msg.as_string(), True))
     push("</PRE>\n")
     body = ''.join(body)
 
@@ -152,7 +152,8 @@ def ShowClues(mgr, app):
 ##    new_msg.Body = body
     new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
     # Attach the source message to it
-    new_msg.Attachments.Add(item, constants.olByValue, DisplayName="Original Message")
+    new_msg.Attachments.Add(item, constants.olByValue,
+                            DisplayName="Original Message")
     new_msg.Display()
 
 class OutlookAddin:

@@ -42,7 +42,7 @@ class MsgStoreFolder:
 class MsgStoreMsg:
     def __init__(self):
         self.unread = False
-    def GetEmailPackageObject(self):
+    def GetEmailPackageObject(self, strip_mime_headers=True):
         # Return a "read-only" Python email package object
         # "read-only" in that changes will never be reflected to the real store.
         raise NotImplementedError
@@ -274,7 +274,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if self.mapi_object is None:
             self.mapi_object = self.msgstore.mapi_msgstore.OpenEntry(self.id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
 
-    def GetEmailPackageObject(self):
+    def GetEmailPackageObject(self, strip_mime_headers=True):
         import email
         # XXX If this was originally a MIME msg, we're hosed at this point --
         # the boundary tag in the headers doesn't exist in the body, and
@@ -287,10 +287,21 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         except:
             print "FAILED to create email.message from: ", `text`
             raise
-        if msg.has_key('content-type'):
-            del msg['content-type']
-        if msg.has_key('content-transfer-encoding'):
-            del msg['content-transfer-encoding']
+
+        if strip_mime_headers:
+            # If we're going to pass this to a scoring function, the MIME
+            # headers must be stripped, else the email pkg will run off
+            # looking for MIME boundaries that don't exist.  The charset
+            # info from the original MIME armor is also lost, and we don't
+            # want the email pkg to try decoding the msg a second time
+            # (assuming Outlook is in fact already decoding text originally
+            # in base64 and quoted-printable).
+            # We want to retain the MIME headers if we're just displaying
+            # the msg stream.
+            if msg.has_key('content-type'):
+                del msg['content-type']
+            if msg.has_key('content-transfer-encoding'):
+                del msg['content-transfer-encoding']
         return msg
 
     def SetField(self, prop, val):
