@@ -94,6 +94,10 @@ POP3 Proxy Service / POP3 Proxy Tray Application
    appeared in the 1.0a5 release, should be ready for use.  If you have
    the service installed, it will attempt to use that; if you do not,
    it will start up sb_server for you.
+   ** Note that the tray application currently only works with Windows
+   NT, Windows 2000 and Windows XP, not Windows 95, 98, or ME.  This
+   will be remedied in a future version, and in the binary release of
+   the tray application. **
  o As the service starts, it reports the username and configuration file
    that it is using.
  o Added a version check option to the tray application.
