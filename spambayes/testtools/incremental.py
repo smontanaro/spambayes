@@ -1,3 +1,15 @@
+"""incremental.py
+
+This is a test harness for doing testing of incremental
+training regimes.  The individual regimes used should
+be specified in regime.py.
+
+Options:
+  -h  --help         Display this message.
+  -r [regime]        Use this regime (default: perfect).
+  -s [number]        Run only this set.
+"""
+
 ###
 ### This is a test harness for doing testing of incremental
 ### training regimes.  The individual regimes used should
@@ -284,12 +296,15 @@ def main():
     regime = "perfect"
     which = None
 
-    opts, args = getopt.getopt(sys.argv[1:], 's:r:', ['help', 'examples'])
+    opts, args = getopt.getopt(sys.argv[1:], 'hs:r:', ['help', 'examples'])
     for opt, arg in opts:
         if opt == '-s':
             which = int(arg) - 1
-        if opt == '-r':
+        elif opt == '-r':
             regime = arg
+        elif opt == '-h' or opt == '--help':
+            print __doc__
+            sys.exit()
 
     nsets = len(glob.glob("Data/Ham/Set*"))
 
