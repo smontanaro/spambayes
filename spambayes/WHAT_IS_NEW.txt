@@ -10,8 +10,8 @@ Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.  You should also read the "Incompatible
 changes" section.
 
-New in Release 1.0
-==================
+New in 1.0 Release Candiate 1
+=============================
 
 --------------------------
 ** Incompatible changes **
@@ -41,6 +41,8 @@ General
 -------
  o Added -R/--reverse flag to tte.py
  o Fix an error that stopped the notes filter working at all in many cases.
+ o sb_filter and sb_bnfilter now better handle messages that fail to
+   correctly parse.
 
 
 Transition

@@ -1,7 +1,9 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
-Final Release 1
-===============
+Release Candidate 1
+===================
+Skip Montanaro    05/05/2004  sb_filter, sb_bnfilter use new mboxutils as_string().
+Skip Montanaro    04/05/2004  mboxutils: Added as_string() - a function which attempts to work around problems flatten()-ing some Message objects in versions of the email package < 2.5.5.
 Mark Hammond      04/05/2004  Fix [ 918157 ] "Could not watch the specified folders". msgstore.IsReceiveFolder() would fail on an exchange server.
 Tony Meyer        03/05/2004  Temporary fix for [ 941596 ] sb_imapfilter.py not adding headers / moving messages
 Tony Meyer        03/05/2004  imapfilter: catch any exceptions, not just email.Errors
