@@ -86,7 +86,8 @@ class HTParser(rfc822.Message):
         # link to a whole page of contact information, which includes
         # the 'author' email
         self.sidebar.append('Contact Us')
-        self.sidebar.append(('contact.html', 'Contact details'))
+        contact_url = self.get('Contact-URL', 'contact.html')
+        self.sidebar.append((contact_url, 'Contact details'))
         #author = self.get('author')               # guaranteed
         #email = self.get('author-email', author)
         #self.sidebar.append(('mailto:' + email, author))
