@@ -156,7 +156,7 @@ false if you want to retrain as ham.
 (defun spambayes-vm-retrain-as-spam ()
   "Retrain and refilter messages as spam"
   (interactive)
-  (spambayes-vm-retrain 't)
+  (spambayes-vm-retrain t)
 )
 
 (defun spambayes-vm-retrain-as-ham ()
