@@ -188,6 +188,14 @@ clpik.py
     produced by clgen.py, and how to generate potentially interesting
     histograms from them.
 
+rmspik.py
+    A program that analyzes a clgen-produced pickle, and tells you what
+    would happen if we had used Rob Hooft's "RMS ZScore" scheme for
+    deciding certainty instead.
+    CAUTION:  This doesn't work as intended for plain use_central_limit.
+    The chance() function seems to make an assumption that's true
+    only under use_central_limit2 and use_central_limit3.
+
 
 Standard Test Data Setup
 ========================
