@@ -136,6 +136,42 @@ def get_message(obj):
         msg.set_payload(obj)
     return msg
 
+def as_string(msg, unixfrom=False):
+    """Convert a Message object to a string in a safe-ish way.
+
+    In email pkg version 2.5.4 and earlier, msg.as_string() can raise
+    TypeError for some malformed messages.  This catches that and attempts
+    to return something approximating the original message.
+
+    To Do: This really should be done by subclassing email.Message.Message
+    and making this function the as_string() method.  After 1.0.
+    """
+    if isinstance(msg, str):
+        return msg
+    try:
+        return msg.as_string(unixfrom)
+    except TypeError:
+        ty, val, tb = sys.exc_info()
+        exclines = traceback.format_exception(ty, val, tb)[1:]
+        excstr = "    ".join(exclines).strip()
+        headers = []
+        if unixfrom:
+            headers.append(msg.get_unixfrom())
+        for hdr in msg.keys():
+            for val in msg.get_all(hdr):
+                headers.append("%s: %s" % (hdr, val))
+        headers.append("X-Spambayes-Exception: %s" % excstr)
+        parts = ["%s\n" % "\n".join(headers)]
+        boundary = msg.get_boundary()
+        for part in msg.get_payload():
+            if boundary:
+                parts.append(boundary)
+            parts.append(part.as_string())
+        if boundary:
+            parts.append("--%s--" % boundary)
+        return "\n".join(parts)
+
+
 header_break_re = re.compile(r"\r?\n(\r?\n)")
 
 def extract_headers(text):
