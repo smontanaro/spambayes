@@ -24,6 +24,7 @@ Usage:
             -e y/n      : expunge/purge messages on exit (y) or not (n)
             -i debuglvl : a somewhat mysterious imaplib debugging level
             -l minutes  : period of time between filtering operations
+            -b          : Launch a web browser showing the user interface.
 
 Examples:
 
@@ -57,12 +58,6 @@ Warnings:
 To Do:
     o Find a better way to remove old msg from info database when saving
       modified messages
-    o Web UI for configuration and setup. Tony thinks it would be
-        nice if there was a web ui to this for the initial setup (i.e. like
-        pop3proxy), which offered a list of folders to filter/train/etc.  It
-        could then record a uid for the folder rather than a name, and it
-        avoids the problems with different imap servers having different
-        naming styles a list is retrieved via imap.list()
     o IMAPMessage and IMAPFolder currently carry out very simple checks
       of responses received from IMAP commands, but if the response is not
       "OK", then the filter terminates.  Handling of these errors could be
@@ -105,7 +100,9 @@ import email.Parser
 from email.Utils import parsedate
 
 from spambayes.Options import options
-from spambayes import tokenizer, storage, message
+from spambayes import tokenizer, storage, message, Dibbler
+from spambayes.UserInterface import UserInterfaceServer
+from spambayes.ImapUI import IMAPUserInterface
 
 # global IMAPlib object
 global imap
@@ -368,7 +365,7 @@ class IMAPFilter(object):
 def run():
     global imap
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcvpl:e:i:d:D:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbtcvpl:e:i:d:D:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -380,7 +377,8 @@ def run():
     doExpunge = options["imap", "expunge"]
     imapDebug = 0
     sleepTime = 0
-    promptForPass = 0
+    promptForPass = False
+    launchUI = False
 
     for opt, arg in opts:
         if opt == '-h':
@@ -392,6 +390,8 @@ def run():
         elif opt == '-D':
             useDBM = True
             bdbname = arg
+        elif opt == "-b":
+            launchUI = True
         elif opt == '-t':
             doTrain = True
         elif opt == '-p':
@@ -410,7 +410,7 @@ def run():
         elif opt == '-l':
             sleepTime = int(arg) * 60
 
-    if not (doClassify or doTrain):
+    if not (doClassify or doTrain or launchUI):
         print "-c and/or -t operands must be specified"
         sys.exit()
 
@@ -436,6 +436,14 @@ def run():
                        options["imap", "port"], imapDebug)
 
     imap_filter = IMAPFilter(classifier)
+
+    # Web interface
+    # XXX If someone is running *both* pop3proxy and imapfilter
+    # XXX then there will be trouble since both interfaces are
+    # XXX using the same port by default.
+    httpServer = UserInterfaceServer(options["html_ui", "port"])
+    httpServer.register(IMAPUserInterface(classifier, imap))
+    Dibbler.run(launchBrowser=launchUI)
 
     while True:
         imap.login(options["imap", "username"], pwd)
