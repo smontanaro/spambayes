@@ -258,7 +258,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Return the keys and their date.
         return keys, date, prior, start, end
 
-    def _sortMessages(self, messages, sort_order):
+    def _sortMessages(self, messages, sort_order, reverse=False):
         """Sorts the message by the appropriate attribute.  If this was the
         previous sort order, then reverse it."""
         if sort_order is None or sort_order == "received":
@@ -271,28 +271,26 @@ class ProxyUserInterface(UserInterface.UserInterface):
             else:
                 self.previous_sort = 'received'
             return messages
-        else:
-            tmplist = [(getattr(x[1], sort_order), x) for x in messages]
+        tmplist = [(getattr(x[1], sort_order), x) for x in messages]
         tmplist.sort()
-        if self.previous_sort == sort_order:
+        if reverse:
             tmplist.reverse()
-            self.previous_sort = None
-        else:
-            self.previous_sort = sort_order
         return [x for (key, x) in tmplist]
 
-    def _appendMessages(self, table, keyedMessageInfo, label, sort_order):
+    def _appendMessages(self, table, keyedMessageInfo, label, sort_order,
+                        reverse=False):
         """Appends the rows of a table of messages to 'table'."""
         stripe = 0
 
-        keyedMessageInfo = self._sortMessages(keyedMessageInfo, sort_order)
+        keyedMessageInfo = self._sortMessages(keyedMessageInfo, sort_order,
+                                              reverse)
         nrows = options["html_ui", "rows_per_section"]
         for key, messageInfo in keyedMessageInfo[:nrows]:
             unused, unused, messageInfo.received = \
                     self._getTimeRange(self._keyToTimestamp(key))
             row = self.html.reviewRow.clone()
             try:
-                score = float(messageInfo.score.rstrip('%'))
+                score = messageInfo.score
             except ValueError:
                 score = None
             if label == 'Spam':
@@ -333,7 +331,11 @@ class ProxyUserInterface(UserInterface.UserInterface):
             # Apart from any message headers, we may also wish to display
             # the message score, and the time the message was received.
             if options["html_ui", "display_score"]:
-                row.score_ = messageInfo.score
+                if isinstance(messageInfo.score, types.StringTypes):
+                    # Presumably either "?" or "Err".
+                    row.score_ = messageInfo.score
+                else:
+                    row.score_ = "%.2f%%" % (messageInfo.score,)
             else:
                 del row.score_
             if options["html_ui", "display_received_time"]:
@@ -555,6 +557,17 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 del page.nextButton.disabled
             templateRow = page.reviewRow.clone()
 
+            # The decision about whether to reverse the sort
+            # order has to go here, because _sortMessages gets called
+            # thrice, and so the ham list would end up sorted backwards.
+            sort_order = params.get('sort')
+            if self.previous_sort == sort_order:
+                reverse = True
+                self.previous_sort = None
+            else:
+                reverse = False
+                self.previous_sort = sort_order
+
             page.table = ""  # To make way for the real rows.
             for header, label in ((options["Headers",
                                            "header_unsure_string"], 'Unsure'),
@@ -582,7 +595,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                     page.table += self.html.blankRow
                     page.table += subHeader
                     self._appendMessages(page.table, messages, label,
-                                         params.get('sort'))
+                                         sort_order, reverse)
 
             page.table += self.html.trainRow
             if title == "":
@@ -665,7 +678,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             if op >= 0:
                 score = score[:op]
             try:
-                score = "%.2f%%" % (float(score)*100,)
+                score = float(score) * 100
             except ValueError:
                 # Hmm.  The score header should only contain a floating
                 # point number.  What's going on here, then?
