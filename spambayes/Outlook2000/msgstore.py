@@ -29,6 +29,8 @@ MSGFLAG_UNSENT = 0x00000008
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
 MYPR_MESSAGE_ID_A = 0x1035001E # more magic (message id field used for Exchange)
+MYPR_VERSION_ID = 0x7E8FFFFD # magic that I think tells us the Outlook version
+MYPR_ORGANISATION_A = 0x1037001E # I think this is the organisation magic
 
 CLEAR_READ_FLAG = 0x00000004
 CLEAR_RN_PENDING = 0x00000020
@@ -984,39 +986,65 @@ class MAPIMsgStoreMsg:
 
     def _GetFakeHeaders(self):
         # This is designed to fake up some SMTP headers for messages
-        # on an exchange server that do not have such headers of their own
-        prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, \
+        # on an exchange server that do not have such headers of their own.
+        prop_ids = PR_SUBJECT_A, PR_SENDER_NAME_A, PR_DISPLAY_TO_A, \
                    PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME, \
-                   PR_SENDER_NAME_A, MYPR_MESSAGE_ID_A
-        hr, data = self.mapi_object.GetProps(prop_ids,0)
-        subject = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
-        sender = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
-        to = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
-        cc = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
-        delivery_time = data[4][1]
-        alt_sender = self._GetPotentiallyLargeStringProp(prop_ids[5],
-                                                         data[5])
-        message_id = self._GetPotentiallyLargeStringProp(prop_ids[6],
-                                                         data[6])
+                   MYPR_MESSAGE_ID_A, PR_IMPORTANCE, PR_CLIENT_SUBMIT_TIME, \
+                   MYPR_ORGANISATION_A,
+#       This property gives a 'The parameter is incorrect' error, for some
+#       reason, as does, 0x7E8EFFE2, which I think is the 'pretty' version
+#       number.  Until that's figured out, we'll have to not get this.
+#                   MYPR_VERSION_ID
+        hr, data = self.mapi_object.GetProps(prop_ids, 0)
         headers = ["X-Exchange-Message: true"]
-        if subject:
-            headers.append("Subject: "+subject)
-        if sender:
-            headers.append("From: "+sender)
-        elif alt_sender:
-            headers.append("From: "+alt_sender)
-        if to:
-            headers.append("To: "+to)
-        if cc:
-            headers.append("CC: "+cc)
-        if message_id:
-            headers.append("Message-ID: "+message_id)
-        if delivery_time:
-            from time import timezone
-            from email.Utils import formatdate
-            headers.append("X-Exchange-Delivery-Time: "+\
-                           formatdate(int(delivery_time)-timezone, True))
+        for header, index, potentially_large, format_func in (\
+            ("Subject", 0, True, None),
+            ("From", 1, True, self._format_address),
+            ("To", 2, True, self._format_address),
+            ("CC", 3, True, self._format_address),
+            ("Received", 4, False, self._format_received),
+            ("Message-ID", 5, True, None),
+            ("Importance", 6, False, self._format_importance),
+            ("Date", 7, False, self._format_time),
+            ("Organisation", 8, True, None),
+#            ("X-Mailer", 9, False, self._format_version),
+            ):
+            if potentially_large:
+                value = self._GetPotentiallyLargeStringProp(prop_ids[index],
+                                                            data[index])
+            else:
+                value = data[index][1]
+            if value:
+                if format_func:
+                    value = format_func(value)
+                headers.append("%s: %s" % (header, value))
         return "\n".join(headers) + "\n"
+
+    def _format_received(self, raw):
+        # Fake up a 'received' header.  It's important that the date
+        # is right, so that sort+group.py will work.  The rest is just more
+        # clues for the tokenizer to find.
+        return "(via local Exchange server); %s" % (self._format_time(raw),)
+
+    def _format_time(self, raw):
+        from time import timezone
+        from email.Utils import formatdate
+        return formatdate(int(raw)-timezone, True)
+
+    def _format_importance(self, raw):
+        # olImportanceHigh = 2, olImportanceLow = 0, olImportanceNormal = 1
+        return {0 : "low", 1 : "normal", 2 : "high"}[raw]
+
+    def _format_version(self, raw):
+        # Data is just a version string, so prepend something to it.
+        return "Exchange Client " + raw
+
+    _address_re = re.compile(r"[()<>,:@!/=; ]")
+    def _format_address(self, raw):
+        # Fudge up something that's in the appropriate form.  We don't
+        # have enough information available to get an actual working
+        # email address.
+        return "%s@invalid (%s)" % (self._address_re.sub('', raw), raw)
 
     def _EnsureObject(self):
         if self.mapi_object is None:
