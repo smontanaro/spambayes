@@ -68,9 +68,6 @@ Examples:
     Import mybayes.db.export into a new DBM mybayes.db
         sb_dbexpimp -i -d mybayes.db -f mybayes.db.export
 
-    Merge home.db.export into an existing DBM work.db
-        sb_dbexpimp -i -m -d work.db -f home.db.export
-
     Convert a bayes database from pickle to DBM
         sb_dbexpimp -e -p abayes.db -f abayes.export
         sb_dbexpimp -i -d abayes.db -f abayes.export
