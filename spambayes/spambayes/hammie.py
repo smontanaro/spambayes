@@ -98,7 +98,7 @@ class Hammie:
         if debug == None:
             debug = options["Hammie", "debug_header"]
         if train == None:
-            train = options["Hammie", "hammie_train_on_filter"]
+            train = options["Hammie", "train_on_filter"]
 
         msg = mboxutils.get_message(msg)
         try:
