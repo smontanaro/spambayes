@@ -744,6 +744,28 @@ def breakdown_ipaddr(ipaddr):
     for i in range(1, 5):
         yield '.'.join(parts[:i])
 
+# We're merely going to count the number of these, and case-sensitively.
+safe_headers = Set("""
+    abuse-reports-to
+    date
+    errors-to
+    from
+    importance
+    in-reply-to
+    message-id
+    mime-version
+    organization
+    received
+    reply-to
+    return-path
+    subject
+    to
+    user-agent
+    x-abuse-info
+    x-complaints-to
+    x-face
+""".split())
+
 class Tokenizer:
 
     def get_message(self, obj):
@@ -822,15 +844,6 @@ class Tokenizer:
             x = msg.get(field, 'none').lower()
             yield prefix + ' '.join(x.split())
 
-        # Organization:
-        # Oddly enough, tokenizing this doesn't make any difference to
-        # results.  However, noting its mere absence is strong enough
-        # to give a tiny improvement in the f-n rate, and since
-        # recording that requires only one token across the whole
-        # database, the cost is also tiny.
-        if msg.get('organization', None) is None:
-            yield "bool:noorg"
-
         # Received:
         # Neil Schemenauer reported good results from tokenizing prefixes
         # of the embedded IP addresses.
@@ -866,6 +879,14 @@ class Tokenizer:
         ##    x2n[x] = x2n.get(x, 0) + 1
         ##for x in x2n.items():
         ##    yield "header:%s:%d" % x
+
+        # Do a "safe" approximation to that for now.
+        x2n = {}
+        for x in msg.keys():
+            if x.lower() in safe_headers:
+                x2n[x] = x2n.get(x, 0) + 1
+        for x in x2n.items():
+            yield "header:%s:%d" % x
 
     def tokenize_body(self, msg):
         # Find, decode (base64, qp), and tokenize textual parts of the body.
