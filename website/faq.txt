@@ -787,11 +787,22 @@ learn what you consider good mail without needing any specific lists. In
 addition, tokens are generated from email addresses, so an automatic
 'whitelist' (of sorts) is generated, as is a similar blacklist.
 
-These sorts of lists are problematic, because 'spoofing' (pretending you
-are someone else) is reasonably simple, and also fairly common.  So, more
-often than not, they'll lead to incorrect results.  However, there are some
-commercial products based on SpamBayes that offer whitelisting - see the
-`related page`_ for more information.
+Whitelists and blacklists are problematic anyway, because 'spoofing'
+(pretending you are someone else) is reasonably simple, and also very
+common.  So, more often than not, they'll lead to incorrect results.
+However, there are some commercial products based on SpamBayes that offer
+whitelisting - see the `related page`_ for more information.
+
+Also, blacklisting is really a server side responsibility.  SpamBayes is a
+content filter - it looks at what is inside the "envelope".  Blacklisting,
+DNS based spam handling like rejecting mail without valid origin or from a
+known spam source is really the job of the mail server.  In an ideal
+environment such mail will be rejected before it reaches you as it deals
+with what's "written on" the "envelope".
+
+Applying content based filtering on the server is complex, as everyone's
+feeling about content differs - this is why it is a client end role that
+tools like SpamBayes fill.
 
 .. _related page: related.html
 
