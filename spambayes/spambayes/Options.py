@@ -136,15 +136,6 @@ defaults = {
      triggers a skip.""",
      INTEGER, RESTORE),
 
-    ("x-generate_time_buckets", "Generate time buckets", False,
-     """(DEPRECATED) Generate tokens which resemble the posting time
-     in 10-minute buckets:  'time:'  hour  ':'  minute//10""",
-     BOOLEAN, RESTORE),
-
-    ("x-extract_dow", "Extract day-of-week", False,
-     """(DEPRECATED) Extract day of the week tokens from the Date: header.""",
-     BOOLEAN, RESTORE),
-
     ("x-pick_apart_urls", "Extract clues about url structure", False,
      """(EXPERIMENTAL) Note whether url contains non-standard port or
      user/password elements.""",
@@ -465,34 +456,6 @@ defaults = {
      Tim has had good luck with ham_cutoff=0.30 and spam_cutoff=0.80 across
      three test data sets (original c.l.p data, his own email, and newer
      general python.org traffic).""",
-     BOOLEAN, RESTORE),
-
-    # If the # of ham and spam in training data are out of balance, the
-    # spamprob guesses can get stronger in the direction of the category
-    # with more training msgs.  In one sense this must be so, since the more
-    # data we have of one flavor, the more we know about that flavor.  But
-    # that allows the accidental appearance of a strong word of that flavor
-    # in a msg of the other flavor much more power than an accident in the
-    # other direction.  Enable experimental_ham_spam_imbalance_adjustment if
-    # you have more ham than spam training data (or more spam than ham), and
-    # the Bayesian probability adjustment won't 'believe' raw counts more
-    # than min(# ham trained on, # spam trained on) justifies.  I *expect*
-    # this option will go away (and become the default), but people *with*
-    # strong imbalance need to test it first.\
-    # LATER:  this option sucked, creating more problems than it solved.
-    # It's deprecated, and the support code has gone away.
-
-    ("x-experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
-     """(DEPRECATED) If your training database has significantly more ham
-     than spam, or vice versa, you may start seeing an increase in
-     incorrect classifications (messages put in the wrong category, not
-     just marked as unsure). If so, this option allows you to compensate
-     for this, at the cost of increasing the number of messages classified
-     as "unsure".
-
-     Note that the effect is subtle, and you should experiment with both
-     settings to choose the option that suits you best. You do not have
-     to retrain your database if you change this option.""",
      BOOLEAN, RESTORE),
 
     ("x-use_bigrams", "Use mixed uni/bi-grams scheme", False,
