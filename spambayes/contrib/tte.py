@@ -82,6 +82,14 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
+try:
+    reversed
+except NameError:
+    def reversed(seq):
+        seq = seq[:]
+        seq.reverse()
+        return iter(seq)
+
 def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
     smisses = hmisses = round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
@@ -110,33 +118,23 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
                 sys.stdout.flush()
 
                 score = store.spamprob(tokenize(hammsg))
-                if score > ham_cutoff:
+                selector = (hammsg["message-id"] or
+                            hammsg["subject"])
+                if score > ham_cutoff and selector is not None:
                     if verbose:
-                        selector = (hammsg["message-id"] or
-                                    hammsg["subject"])
-                        if selector is None:
-                            print >> sys.stderr, "-"*25
-                            print >> sys.stderr, mboxutils.as_string(hammsg)
-                            print >> sys.stderr, "-"*25
-                        else:
-                            print >> sys.stderr, "miss ham:  %.6f %s" % (
-                                score, selector)
+                        print >> sys.stderr, "miss ham:  %.6f %s" % (
+                            score, selector)
                     hmisses += 1
                     tdict[hammsg["message-id"]] = True
                     store.learn(tokenize(hammsg), False)
 
                 score = store.spamprob(tokenize(spammsg))
-                if score < spam_cutoff:
+                selector = (spammsg["message-id"] or
+                            spammsg["subject"])
+                if score < spam_cutoff and selector is not None:
                     if verbose:
-                        selector = (spammsg["message-id"] or
-                                    spammsg["subject"])
-                        if selector is None:
-                            print >> sys.stderr, "-"*25
-                            print >> sys.stderr, mboxutils.as_string(spammsg)
-                            print >> sys.stderr, "-"*25
-                        else:
-                            print >> sys.stderr, "miss spam: %.6f %s" % (
-                                score, selector)
+                        print >> sys.stderr, "miss spam: %.6f %s" % (
+                            score, selector)
                     smisses += 1
                     tdict[spammsg["message-id"]] = True
                     store.learn(tokenize(spammsg), True)
