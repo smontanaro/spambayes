@@ -120,7 +120,7 @@ class FolderItemsEvent(_BaseItemsEvent):
         #     PR_RECEIVED_BY_NAME
         #     PR_RECEIVED_BY_ENTRYID
         #     PR_TRANSPORT_MESSAGE_HEADERS
-        msgstore_message = self.manager.message_store.GetMessage(item.EntryID)
+        msgstore_message = self.manager.message_store.GetMessage(item)
         if msgstore_message.GetField(self.manager.config.field_score_name) is not None:
             # Already seem this message - user probably moving it back
             # after incorrect classification.
@@ -153,7 +153,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         # then it should be trained as such.
         if not self.manager.config.training.train_manual_spam:
             return
-        msgstore_message = self.manager.message_store.GetMessage(item.EntryID)
+        msgstore_message = self.manager.message_store.GetMessage(item)
         prop = msgstore_message.GetField(self.manager.config.field_score_name)
         if prop is not None:
             import train
@@ -188,7 +188,7 @@ def ShowClues(mgr, app):
                            "Not a mail message")
         return
 
-    msgstore_message = mgr.message_store.GetMessage(item.EntryID)
+    msgstore_message = mgr.message_store.GetMessage(item)
     score, clues = mgr.score(msgstore_message, evidence=True, scale=False)
     new_msg = app.CreateItem(0)
     body = ["<h2>Spam Score: %g</h2><br>" % score]

@@ -205,8 +205,14 @@ class MAPIMsgStore(MsgStore):
                                   table.GetRowCount(0))
 
     def GetMessage(self, message_id):
-        # Return a single message given the ID.
-        message_id = self.NormalizeID(message_id)
+        # Return a single message given either the ID, or an Outlook
+        # message representing the object.
+        if hasattr(message_id, "EntryID"):
+            # A CDO object
+            message_id = mapi.BinFromHex(message_id.Parent.StoreID), \
+                         mapi.BinFromHex(message_id.EntryID)
+        else:
+            message_id = self.NormalizeID(message_id)
         prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
         mapi_object = self._OpenEntry(message_id)
         hr, data = mapi_object.GetProps(prop_ids,0)
