@@ -10,16 +10,13 @@ import rule
 
 def filter_message(message, mgr):
     try:
-        headers = message.Fields[0x7D001E].Value
-        headers = headers.encode('ascii', 'replace')
-        body = message.Text.encode('ascii', 'replace')
-        text = headers + body
+        stream = mgr.GetBayesStreamForMessage(message)
     except pythoncom.com_error, d:
         print "Failed to get a message: %s" % (d,)
         return
 
     hammie = mgr.MakeHammie()
-    prob = hammie.score(text, evidence=False)
+    prob = hammie.score(stream, evidence=False)
     num_rules = 0
     for rule in mgr.config.rules:
         if rule.enabled:

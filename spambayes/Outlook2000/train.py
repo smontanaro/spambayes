@@ -1,5 +1,5 @@
 # Train a classifier from Outlook Mail folders
-# Author: Sean D. True, WebReply.Com
+# Author: Sean D. True, WebReply.Com, Mark Hammond
 # October, 2002
 # Copyright PSF, license under the PSF license
 
@@ -10,6 +10,7 @@ import win32con
 
 def train_folder( f, isspam, mgr, progress):
     from tokenizer import tokenize
+    num = 0
     for message in mgr.YieldMessageList(f):
         if progress.stop_requested():
             break
@@ -17,14 +18,14 @@ def train_folder( f, isspam, mgr, progress):
         try:
             # work with MAPI until we work out how to get headers from outlook
             message = mgr.mapi.GetMessage(message.ID)
-            headers = message.Fields[0x7D001E].Value
-            headers = headers.encode('ascii', 'replace')
-            body = message.Text.encode('ascii', 'replace')
-        except pythoncom.com_error:
+            stream = mgr.GetBayesStreamForMessage(message)
+        except pythoncom.com_error, d:
             progress.warning("failed to get a message")
+            print "Failed to get a message", d
             continue
-        text = headers + body
-        mgr.bayes.learn(tokenize(text), isspam, False)
+        mgr.bayes.learn(tokenize(stream), isspam, False)
+        num += 1
+    print "Trained over", num, "in folder", f.Name
 
 # Called back from the dialog to do the actual training.
 def trainer(mgr, progress):

@@ -22,11 +22,8 @@ def classify_folder( f, mgr, config, progress):
     while not progress.stop_requested() and message:
         try:
             progress.tick()
-            headers = message.Fields[0x7D001E].Value
-            headers = headers.encode('ascii', 'replace')
-            body = message.Text.encode('ascii', 'replace')
-            text = headers + body
-            prob = hammie.score(text, evidence=False)
+            stream = mgr.GetBayesStreamForMessage(message)
+            prob = hammie.score(stream, evidence=False)
             added_prop = False
             try:
                 if outlook_ns is not None:

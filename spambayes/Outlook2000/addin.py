@@ -129,13 +129,9 @@ def ShowClues(mgr, app):
         return
 
     mapi_message = mgr.mapi.GetMessage(item.EntryID)
-    headers = mapi_message.Fields[0x7D001E].Value
-    headers = headers.encode('ascii', 'replace')
-    body = mapi_message.Text.encode('ascii', 'replace')
-    text = headers + body
+    stream = mgr.GetBayesStreamForMessage(mapi_message)
     hammie = mgr.MakeHammie()
-    prob, clues = hammie.score(text, evidence=True)
-
+    prob, clues = hammie.score(stream, evidence=True)
     new_msg = app.CreateItem(0)
     body = ["<h2>Calculated Probability: %g</h2><br>" % prob]
     push = body.append
@@ -154,7 +150,7 @@ def ShowClues(mgr, app):
 ##    new_msg.Body = body
     new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
     # Attach the source message to it
-    new_msg.Attachments.Add(item, constants.olEmbeddeditem, DisplayName="SPAM")
+    new_msg.Attachments.Add(item, constants.olByValue, DisplayName="Original Message")
     new_msg.Display()
 
 class OutlookAddin:

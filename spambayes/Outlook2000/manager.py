@@ -81,6 +81,19 @@ class BayesManager:
             self._tls[thread.get_ident()]["outlook"] = existing
         return existing
 
+    def GetBayesStreamForMessage(self, message):
+        # Note - caller must catch COM error
+        headers = message.Fields[0x7D001E].Value
+        headers = headers.encode('ascii', 'replace')
+        try:
+            body = message.Fields[0x1013001E].Value # HTMLBody field
+            body = body.encode("ascii", "replace") + "\n"
+        except pythoncom.error:
+            body = ""
+        body += message.Text.encode("ascii", "replace")
+        return headers + body
+      
+
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
             raise ManagerError("The file '%s' must exist before the "
@@ -116,7 +129,7 @@ class BayesManager:
             if self.verbose:
                 print ("Created new configuration file '%s'" %
                        self.config_filename)
-            return _ConfigurationRoot()
+            return config.ConfigurationRoot()
 
         try:
             ret = cPickle.load(f)
