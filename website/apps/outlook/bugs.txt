@@ -1,0 +1,93 @@
+================================================
+SpamBayes Outlook Addin Frequently Reported Bugs
+================================================
+
+:Date: $Date$
+:Version: $Revision$
+:Web site: http://spambayes.sourceforge.net/
+
+.. Please note that until there's a Q&A-specific construct available in
+   Docutils, this FAQ will use section titles for questions.  Therefore
+   questions must fit on one line.  The title may be a summary of the
+   question, with the full question in the section body.
+
+.. contents::
+.. sectnum::
+
+This page has general information on the most reported bugs for the Outlook
+Addin.  All bugs are managed at `SourceForge`_, but in an attempt to save 
+both your time and ours, the most commonly reported bugs are here.
+
+If you don't see your bug listed here, please try the following:
+
+* See the `Frequently Asked Questions`_.
+
+* See the `Troubleshooting Guide`_ (also installed with SpamBayes)
+
+* Browse the `SourceForge bug database`_.  If you find a similar bug, 
+  please add any comments you can.  You may also find the 'Monitor' feature
+  useful, so you receive emails as the bug is changed.
+
+If all else fails, you can create a new bug.  **Please ensure you
+attach a log from your session** - the `Troubleshooting Guide`_
+has all the details.
+
+.. _SourceForge: http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse
+.. _SourceForge bug database: http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse
+.. _Frequently Asked Questions: http://spambayes.sourceforge.net/faq.html
+.. _Troubleshooting Guide: http://cvs.sourceforge.net/viewcvs.py/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD
+
+Frequently Reported Bugs
+========================
+
+Installation fails with "DLL Registration" error
+------------------------------------------------
+A number of users report errors at install time registering the DLL.  Most 
+of these helpfully say "Error 0".  Some users have reported that changing 
+the install path to a 'simpler' version solves it for them (but this seems 
+strange to the developers!).  We are tracking this in `Bug 807618`_.
+
+.. _Bug 807618: https://sourceforge.net/tracker/index.php?func=detail&aid=807618&group_id=61702&atid=498103
+
+Outlook Toolbars Fail
+---------------------
+This is a common problem, and 99% of users find that the 
+`Troubleshooting Guide`_ solves this issue for them.  However,
+at least one user has reported this does not work for him.
+We are tracking this issue in bug `[ 828669 ] Toolbars refuse to work after reset`_.
+
+.. _Troubleshooting Guide: http://cvs.sourceforge.net/viewcvs.py/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD
+.. _[ 828669 ] Toolbars refuse to work after reset: https://sourceforge.net/tracker/index.php?func=detail&aid=828669&group_id=61702&atid=498103
+
+Various issues with Outlook builtin rules
+-----------------------------------------
+There are a number of reports regarding SpamBayes 'missing' messages that
+have also been processed by the builtin Outlook rules.  Outlook does not 
+expose a way of avoiding this.  To work around the problem, SpamBayes has a 
+'Background Processing' option you can set in the Advanced tab of the 
+SpamBayes manager.  Any bugs on this issue will be closed as 'Wont Fix' 
+('Can't Fix' would be better, but that doesn't exist <wink>)
+
+New Mail Icon not cleared when Spam is marked as Read
+-----------------------------------------------------
+This is a known problem, but Outlook does not provide a reasonable technique
+for preventing it.  Please see our `FAQ entry on this issue`_.
+
+.. _FAQ entry on this issue: http://spambayes.sourceforge.net/faq.html#how-can-i-get-rid-of-the-envelope-tray-icon-for-spam
+
+Customize Outlook Today stops working
+-------------------------------------
+This is likely to be a Microsoft Issue - see a 
+`Microsoft Knowledge Base article`_ on the issue, or 
+`our (closed) bug #810902`_.
+
+.. _Microsoft Knowledge Base article: http://support.microsoft.com/default.aspx?scid=kb;EN-US;q820575
+.. _our (closed) bug #810902: https://sourceforge.net/tracker/index.php?func=detail&aid=810902&group_id=61702&atid=498103
+
+PGP addin causes crashes
+------------------------
+The PGP freeware plugin for Outlook is known to cause a number of problems, 
+both with and without SpamBayes installed.  SpamBayes seems to have no 
+impact on how often PGP will cause Outlook to crash.  If you use the PGP
+plugin, please disable it while you are not using it - your crashes are
+almost certain to stop.

@@ -9,7 +9,7 @@
 #          SpamBayes CVS before making this target.
 
 # this def'n must occur before the include!
-EXTRA_TARGETS = reply.txt faq.html default.css
+EXTRA_TARGETS = reply.txt faq.html apps/outlook/bugs.html default.css
 
 include scripts/make.rules
 ROOT_DIR = .
@@ -23,8 +23,7 @@ print os.path.splitext(f)[0]+".py";\
 
 $(TARGETS): links.h
 
-# hackery to whack the faq into ht2html...
-
+# hackery to whack the 'faq format' text files into ht2html...
 DUHTML = html.py
 faq.ht : faq.txt
 	$(DUHTML) faq.txt > faq.body.tmp
@@ -37,6 +36,18 @@ faq.ht : faq.txt
 
 faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
+
+apps/outlook/bugs.ht : apps/outlook/bugs.txt
+	$(DUHTML) apps/outlook/bugs.txt > apps/outlook/bugs.body.tmp
+	echo "Title: Commonly Reported Outlook Bugs" > apps/outlook/bugs.ht
+	echo "Author-Email: SpamBayes@python.org" >> apps/outlook/bugs.ht
+	echo "Author: SpamBayes" >> apps/outlook/bugs.ht
+	echo "" >> apps/outlook/bugs.ht
+	cat apps/outlook/bugs.body.tmp | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' >> apps/outlook/bugs.ht
+	rm apps/outlook/bugs.body.tmp
+
+apps/outlook/bugs.html : apps/outlook/bugs.ht
+	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./apps/outlook/bugs.ht
 
 version: download/Version.cfg
 
