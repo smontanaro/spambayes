@@ -53,6 +53,13 @@ except win32api.error:
     else:
         import win32traceutil
 
+# Set our locale to be English, so our config parser works OK
+# (This should almost certainly be done elsewhere, but as no one
+# else seems to have an opinion on where this is, here is as good
+# as any!
+import locale
+locale.setlocale(locale.LC_NUMERIC, "en")
+
 # Attempt to catch the most common errors - COM objects not installed.
 try:
     # Generate support so we get complete support including events
