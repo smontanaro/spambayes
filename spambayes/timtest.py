@@ -507,13 +507,21 @@ def tokenize(string):
     #
     # From:
     # Reply-To:
-    # X-Mailer:
-    for field in ('from',):# 'reply-to', 'x-mailer',):
+    for field in ('from',):# 'reply-to',):
         prefix = field + ':'
         subj = msg.get(field, '-None-')
         for w in subj.lower().split():
             for t in tokenize_word(w):
                 yield prefix + t
+
+    # These headers seem to work best if they're not tokenized:  just
+    # normalize case and whitespace.
+    # X-Mailer:  This is a pure and significant win for the f-n rate; f-p
+    #            rate isn't affected.
+    for field in ('x-mailer',):
+        prefix = field + ':'
+        subj = msg.get(field, '-None-')
+        yield prefix + ' '.join(subj.lower().split())
 
     # Organization:
     # Oddly enough, tokenizing this doesn't make any difference to results.
