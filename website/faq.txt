@@ -932,6 +932,17 @@ configuration file manually.  The option you are after is called
 ``Allowed remote connections``.
 
 
+I've just installed SpamBayes, but when I run it I get an access denied error.
+------------------------------------------------------------------------------
+
+If you use pop3proxy or imapfilter, haven't set anything up, and run it and
+get an error that ends with ``socket.error: (10013, 'Permission denied')``,
+then this probably means that port 8880, which SpamBayes is trying to use to
+present the web interface, is already taken on your machine.  Try using
+``pop3proxy.py -u 8881 -b`` (or ``imapfilter.py -u 8881 -b``), or another
+port that you know is free and available on your machine.
+                                                       
+
 Known Problems & Workarounds
 ============================
 
