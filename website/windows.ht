@@ -44,12 +44,12 @@ Outlook plugin fares with them.</p>
     <td>&nbsp;</td> 		 <!-- Win95 -->
     <td rowspan="2">1.0a2 source
         or CVS works, installer
-        002 fails</td>           <!-- Win98/98se/Me -->
+        002 fails<sup><font size="-2"><a href="#1">1</a></font></sup></td>           <!-- Win98/98se/Me -->
     <td>works</td>  		 <!-- Win2k -->
     <td rowspan="2">works</td>   <!-- WinXP Pro -->
 </tr>
 <tr>
-<td>Outlook 2002 (XP)<sup><font size="-2"><a href="#1">1</a></font></sup></td>
+<td>Outlook 2002 (XP)<sup><font size="-2"><a href="#2">1</a></font></sup></td>
     <td>&nbsp;</td>                      <!-- Win95 -->
     <td>&nbsp;</td>		         <!-- Win2k -->
 </tr>
@@ -59,8 +59,14 @@ Outlook plugin fares with them.</p>
 <p>
 Notes:
 <ol>
-  <li><a name="1">Outlook XP SP2</a> is known to work.   Earlier versions
-  are known to have some issues.</li>
+  <li><a name="1">One very common install problem</a> generates a traceback
+  in the logfile with an error message like "no codec search functions
+  registered: can't find encoding".  At the moment, the only workaround is
+  to install Python, download the Spambayes distribution and install the
+  plugin from source.</li>
+
+  <li><a name="2">Outlook XP SP2</a> is known to work.  Earlier versions are
+  known to have some issues.</li>
 </ol>
 </p>
 
