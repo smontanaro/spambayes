@@ -11,7 +11,7 @@ Download version 1.0a4 from the sourceforge <a href="https://sourceforge.net/pro
 <p>Prerequisites:
 <ul>Either: 
 <li>Python 2.2.2, Python 2.3b1, or a CVS build of python, or
-<li>Python 2.2, 2.2.1, plus the latest <a href="http://mimelib.sf.net">email package</a>.
+<li>Python 2.2, 2.2.1, plus the latest <a href="http://www.python.org/sigs/email-sig/">email package</a>.
 </ul>
 <p>Once you've downloaded and unpacked the source archive, do the regular <tt>setup.py build; setup.py install</tt> dance, then:
 <ul>
