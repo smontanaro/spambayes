@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import math
 
 from Options import options
@@ -111,6 +112,8 @@ class Hist:
     # buckts to a list of nbuckets counts, but only if at least one
     # data point is in the collection.
     def display(self, nbuckets=None, WIDTH=61):
+        if nbuckets is None:
+            nbuckets = self.nbuckets
         if nbuckets <= 0:
             raise ValueError("nbuckets %g > 0 required" % nbuckets)
         self.compute_stats()
