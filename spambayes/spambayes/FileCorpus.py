@@ -272,7 +272,7 @@ class FileMessage(message.SBHeaderMessage):
         self.loaded = True
 
         # We parse the content into a generic email.Message object.
-        msg = email.message_from_string(payload, strict=False)
+        msg = email.message_from_string(payload)
 
         # And then we set ourselves to be equal to it.
         self.set_payload(msg.get_payload())
@@ -346,8 +346,7 @@ class FileMessageFactory(Corpus.MessageFactory):
     def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
         if content:
-            msg = email.message_from_string(content, _class=FileMessage,
-                                            strict=False)
+            msg = email.message_from_string(content, _class=FileMessage)
             msg.file_name = key
             msg.directory = directory
             msg.loaded = True
@@ -379,8 +378,7 @@ class GzipFileMessageFactory(FileMessageFactory):
         '''Create a message object from a filename in a directory'''
         if content:
             msg = email.message_from_string(content,
-                                            _class=GzipFileMessage,
-                                            strict=False)
+                                            _class=GzipFileMessage)
             msg.file_name = key
             msg.directory = directory
             msg.loaded = True
