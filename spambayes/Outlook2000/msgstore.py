@@ -498,12 +498,20 @@ class MAPIMsgStoreFolder:
         parent = self
         while parent is not None:
             parts.insert(0, parent.name)
-            parent = parent.GetParent()
+            try:
+                # Ignore errors fetching parents - the caller just wants the
+                # name - it may not be correctly 'fully qualified', but at
+                # least we get something.
+                parent = parent.GetParent()
+            except MsgStoreException:
+                break
         # We now end up with [0] being an empty string??, [1] being the
         # information store root folder name, etc.  Outlook etc all just
         # use the information store name here.
-        if not parts[0]:
+        if parts and not parts[0]:
             del parts[0]
+        # Don't catch exceptions on the item itself - that is fatal,
+        # and should be caught by the caller.
         # Replace the "root" folder name with the information store name
         # as Outlook, our Folder selector etc do.
         mapi_store = self.msgstore._GetMessageStore(self.id[0])
@@ -531,20 +539,26 @@ class MAPIMsgStoreFolder:
         return MAPIMsgStoreFolder(self.msgstore, eid, name, count)
 
     def GetParent(self):
-        # return a folder object with the parent, or None
-        folder = self.msgstore._OpenEntry(self.id)
-        prop_ids = PR_PARENT_ENTRYID,
-        hr, data = folder.GetProps(prop_ids,0)
-        # Put parent ids together
-        parent_eid = data[0][1]
-        parent_id = self.id[0], parent_eid
-        if hr != 0 or \
-           self.msgstore.session.CompareEntryIDs(parent_eid, self.id[1]):
-            # No parent EID, or EID same as ours.
-            return None
-        parent = self.msgstore._OpenEntry(parent_id)
-        # Finally get the display name.
-        return self._FolderFromMAPIFolder(parent)
+        # return a folder object with the parent, or None if there is no
+        # parent (ie, a top-level folder).  Raises an exception if there is
+        # an error fetching the parent (which implies something wrong with the
+        # item itself, rather than this being top-level)
+        try:
+            folder = self.msgstore._OpenEntry(self.id)
+            prop_ids = PR_PARENT_ENTRYID,
+            hr, data = folder.GetProps(prop_ids,0)
+            # Put parent ids together
+            parent_eid = data[0][1]
+            parent_id = self.id[0], parent_eid
+            if hr != 0 or \
+               self.msgstore.session.CompareEntryIDs(parent_eid, self.id[1]):
+                # No parent EID, or EID same as ours.
+                return None
+            parent = self.msgstore._OpenEntry(parent_id)
+            # Finally get the item itself
+            return self._FolderFromMAPIFolder(parent)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def OpenEntry(self, iid = None, flags = None):
         return self.msgstore._OpenEntry(self.id, iid, flags)
@@ -560,6 +574,7 @@ class MAPIMsgStoreFolder:
     def GetMessageGenerator(self, only_filter_candidates = True):
         folder = self.OpenEntry()
         table = folder.GetContentsTable(0)
+        table.SetColumns(MAPIMsgStoreMsg.message_init_props, 0)
         if only_filter_candidates:
             # Limit ourselves to IPM.* objects - ie, messages.
             restriction = (mapi.RES_PROPERTY,   # a property restriction
@@ -567,7 +582,6 @@ class MAPIMsgStoreFolder:
                             PR_MESSAGE_CLASS_A,   # of the this prop
                             (PR_MESSAGE_CLASS_A, "IPM."))) # with this value
             table.Restrict(restriction, 0)
-        table.SetColumns(MAPIMsgStoreMsg.message_init_props, 0)
         while 1:
             # Getting 70 at a time was the random number that gave best
             # perf for me ;)
