@@ -76,6 +76,12 @@ IMPORTANT NOTE
 The applications have all been renamed in preparation for 1.0 - the
 following section refers to old application names.
 
+IMPORTANT NOTE
+==============
+
+The applications have all been renamed in preparation for 1.0 - the
+following section refers to old application names.
+
 Apps
 ====
 hammie.py
@@ -245,7 +251,7 @@ runtest.sh
     I (Neale) will try to keep this updated to test whatever Tim is
     currently asking for.  The idea is, if you have a standard directory
     structure (below), you can run this thing, go have some tea while it
-    works, then paste the output to the spambayes list for good karma.
+    works, then paste the output to the SpamBayes list for good karma.
 
 
 Standard Test Data Setup
@@ -506,13 +512,13 @@ roll in.  8-)
 
 Anthony's Alternate Approach to Building the Zipfile
 
-o Unpack the tarball somewhere, making a spambayes-1.0a7 directory
-  (version number will obviously change in future releases)
-o Run the following two commands:
+ o Unpack the tarball somewhere, making a spambayes-1.0a7 directory
+   (version number will obviously change in future releases)
+ o Run the following two commands:
 
-    find spambayes-1.0a7 -type f -name '*.txt' | xargs zip -l sb107.zip 
-    find spambayes-1.0a7 -type f \! -name '*.txt' | xargs zip sb107.zip 
+     find spambayes-1.0a7 -type f -name '*.txt' | xargs zip -l sb107.zip 
+     find spambayes-1.0a7 -type f \! -name '*.txt' | xargs zip sb107.zip 
 
-o This makes a tarball where the .txt files are mangled, but everything
-  else is left alone.
+ o This makes a tarball where the .txt files are mangled, but everything
+   else is left alone.
 

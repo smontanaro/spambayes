@@ -122,7 +122,7 @@ Hammond's win32 extensions for Python installed:
 
 All you need to do to configure SpamBayes is to open a web page to
 <http://localhost:8880>, click on the "Configuration" link at the top
-right, and fill in the relevant details.  Everything should be ok with the
+right, and fill in the relevant details.  Everything should be OK with the
 defaults, except for the POP3 and SMTP server information at the top, which
 is required.  Note that *nix users may not have permission to bind ports
 lower than 1025, so instead of proxying on ports 25 and 110, you should
@@ -145,7 +145,7 @@ IMAP Filter
 
 To configure SpamBayes, run "sb_imapfilter.py -b", which should open a web
 page to <http://localhost:8880>, click on the "Configuration" link at the
-top right, and fill in the relevant details.  Everything should be ok with
+top right, and fill in the relevant details.  Everything should be OK with
 the defaults, except for the server information at the top.
 
 You now need to let SpamBayes know which IMAP folders it should work with.
@@ -185,7 +185,7 @@ in here, but for the moment, just have these:
     persistent_storage_file = ~/.hammiedb
 
 (Replace the latter with the location of the .hammiedb file that
-sb_filter created in the first step).
+sb_filter.py created in the first step).
 
 Once you've trained SpamBayes on your
 collection of know ham and spam, you can use the sb_filter.py script to
@@ -202,10 +202,10 @@ multiple invocations from stepping on each others' toes.  (It's not strictly
 necessary in this case since no files on-disk are modified, but Procmail
 will still complain if you don't specify a lock file.)
 
-The result of running sb_filter.py in filter mode is that Procmail will use the
-output from the run as the mail message for further processing downstream.
-sb_filter.py inserts an X-SpamBayes-Classification header in the output message
-which looks like:
+The result of running sb_filter.py in filter mode is that Procmail will
+use the output from the run as the mail message for further processing
+downstream. sb_filter.py inserts an X-SpamBayes-Classification header in
+the output message which looks like:
 
     X-SpamBayes-Classification: ham; 0.00; '*H*': 1.00; '*S*': 0.00; 'python': 0.00;
 	'linux,': 0.01; 'desirable': 0.01; 'cvs,': 0.01; 'perl.': 0.02;
@@ -266,10 +266,11 @@ it on every message you receive, but you should train on a few spams and a
 few hams on a regular basis.  You should also try to train it on about the
 same number of spams as hams.
 
-You can train it on lots of messages in one go by either using the Hammie
-script as explained in the "Command-line training" section, or by giving
-messages to the web interface via the "Train" form on the Home page.  You
-can train on individual messages (which is tedious) or using mbox files.
+You can train it on lots of messages in one go by either using the
+sb_filter.py script as explained in the "Command-line training" section,
+or by giving messages to the web interface via the "Train" form on the
+Home page. You can train on individual messages (which is tedious) or
+using mbox files.
 
 
 IMAP Filter
@@ -384,7 +385,7 @@ There are eight main components to the SpamBayes system:
    query the probabilities database ("How many of my emails really *do*
    contain the word Viagra"?), find particular messages, and most
    importantly, train it on the emails you've received.  When you start
-   using the system, unless you train it using the Hammie script it will
+   using the system, unless you train it using the sb_filter script it will
    classify most things as Unsure, and often make mistakes.  But it keeps
    copies of all the email's its seen, and through the web interface you
    can train it by going through a list of all the emails you've received
@@ -401,12 +402,12 @@ There are eight main components to the SpamBayes system:
    same thing. And it integrates into Outlook's filtering system to make it
    easy to file all the suspected spam into its own folder, for instance.
 
- o The Hammie script.  This does three jobs: command-line training,
+ o The sb_filter.py script.  This does three jobs: command-line training,
    procmail filtering, and XML-RPC.  See below for details of how to use
-   Hammie for training, and how to use it as procmail filter.  Hammie can
-   also run as an XML-RPC server, so that a programmer can write code that
+   sb_filter for training, and how to use it as procmail filter. You  can
+   also run an XML-RPC server, so that a programmer can write code that
    uses a remote server to classify emails programmatically - see
-   hammiesrv.py.
+   sb_xmlrpcserver.py.
 
  o The IMAP filter.  This is a cross between the POP3 proxy and the Outlook
    plugin.  If your mail sits on an IMAP server, you can use the this to

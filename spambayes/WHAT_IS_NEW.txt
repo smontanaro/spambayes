@@ -9,15 +9,26 @@ probably only interest developers, and one for everything else.
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
 
-New in Alpha Release 6
+New in Alpha Release 7
 ======================
 
 --------------------------
 ** Incompatible changes **
 --------------------------
 
-There are two major changes in this release, which *will* effect you if you
-are upgrading from an older version:
+ o If you are using a pickle for storage, your 'message info' database
+   would previously still have been a dbm (where available).  This is
+   no longer the case - if you are using a pickle for the statistics
+   database, you have a pickle for everything.  Your old 'message info'
+   database is not converted (and there is no utility provided to do so).
+   If you are using a pickle for storage, you should delete your old
+   'spambayes.messageinfo.db' file before restarting after the upgrade.
+   You should not suffer any ill effects from this, *unless* you are
+   using sb_imapfilter.py.  In that case, you will find that the filter
+   trains and classifies all messages in the folders it examines, even
+   if it has seen them before - this will only occur once, however.
+
+There should be no other incompatible changes (from 1.0a6) in this release.
 
  o The scripts have all moved (in the archive), and their names have been
    changed.  If you run "setup.py install", it will offer to remove the old
@@ -73,35 +84,21 @@ Outlook Plugin
 
 POP3 Proxy / SMTP Proxy
 -----------------------
- o If running Windows, and have the win32 extensions installed, and a
-   configuration file cannot be found, then default to placing it in the
-   "Application Data" directory (as defined by Windows).  Also default to
-   storing the caches and databases in this directory.
- o Correctly save and close the database when changing options.  This
-   fixes a bug for those using gdbm databases.
+ o An error where a failure message would be printed by
+   the SMTP proxy, even on success, was fixed.
 
 Web Interface
 -------------
- o Place a threshold on the number of items displayed per section in the
-   review page.
- o Correctly display the proxy data when it is specified on the command
-   line.
+ o The bug which caused the "TypeError" when trying to access
+   the database after setting a configuration option via the
+   interface has been fixed.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
 
- o The POP3 proxy tray application (for Windows users), which quietly
-   appeared in the 1.0a5 release, should be ready for use.  If you have
-   the service installed, it will attempt to use that; if you do not,
-   it will start up sb_server for you.
-   ** Note that the tray application currently only works with Windows
-   NT, Windows 2000 and Windows XP, not Windows 95, 98, or ME.  This
-   will be remedied in a future version, and in the binary release of
-   the tray application. **
- o As the service starts, it reports the username and configuration file
-   that it is using.
- o Added a version check option to the tray application.
- o Improved logged for both the service and the tray application.
+ o Both the pop3proxy_service.py and pop3proxy_tray.py
+   scripts are now installed (with "setup.py install") if
+   the user is using Windows.
 
 IMAP Filter
 -----------
@@ -116,23 +113,26 @@ IMAP Filter
 
 General
 -------
- o Add a new file: NEWTRICKS.TXT to record ideas that have and haven't
-   been tried.  If you would like to add to this, please submit a patch
-   via the Sourceforge system.
- o Change the default to tokenizer the "To", "CC", "Reply-To", "Sender",
-   and "From" address headers, rather than just "From".
- o Fix the database opening code so that hammie* again works with both
-   dbm and pickles.
- o Minor performance boosts to hammiebulk and mboxtrain.
-
-Developer
----------
- o Add a close method to the various storage classes.
- o Removed the gary_combining option and code.
+ o Various improvements have been made to the management of the
+   'message info' database.  As outlined above, it will now be
+   stored as a pickle, if your statistics database uses a pickle.
+   In addition, we attempt to close the database when we should,
+   and make sure that we explicitly update it.  This should hopefully
+   go some way to solving the "DB_RUN_RECOVERY" errors that have
+   been regularly reported - we would be interested to hear from
+   you if upgrading to 1.0a7 does appear to solve this problem
+   for you (email spambayes@python.org).
+ o We now try to determine the type of dbm storage used from the
+   file, if one already exists.  This should make the transition
+   between formats a little easier.
+ o Fix sb_xmlrpcserver to work with the renamed (since 1.0a5)
+   scripts.
+ o Fix the sense of include_trained in sb_mboxtrain.
+   
 
 Transition
 ==========
-If you are transitioning from a version older than 1.0a5, please also
+If you are transitioning from a version older than 1.0a6, please also
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
@@ -143,8 +143,7 @@ this document, there are no known transition issues.
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-803501, 802545, 802347, 801952, 798362, 800555, 806632, 795145, 806238, 
-805351
+809769, 814322, 816400, 810342, 818552
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
