@@ -511,10 +511,74 @@ del aliases # Not needed any more
 # Curious, but not worth digging into.  Boosting the lower bound to 4 is a
 # worse idea:  f-p and f-n rates both suffered significantly then.  I didn't
 # try testing with lower bound 2.
-# 
+#
 # Anthony Baxter found that boosting the option skip_max_word_size to 20
-# from it's default of 12 produced a quite dramatic decrease in the number
-# of 'unsure' messages.
+# from its default of 12 produced a quite dramatic decrease in the number
+# of 'unsure' messages.  However, this was coupled with a large increase
+# in the FN rate, and it remains unclear whether simply shifting cutoffs
+# would have given the same tradeoff (not enough data was posted to tell).
+#
+# On Tim's c.l.py test, 10-fold CV, ham_cutoff=0.20 and spam_cutoff=0.80:
+#
+# -> <stat> tested 2000 hams & 1400 spams against 18000 hams & 12600 spams
+# [ditto]
+#
+# filename:    max12   max20
+# ham:spam:  20000:14000
+#                    20000:14000
+# fp total:        2       2       the same
+# fp %:         0.01    0.01
+# fn total:        0       0       the same
+# fn %:         0.00    0.00
+# unsure t:      103     100       slight decrease
+# unsure %:     0.30    0.29
+# real cost:  $40.60  $40.00       slight improvement with these cutoffs
+# best cost:  $27.00  $27.40       best possible got slightly worse
+# h mean:       0.28    0.27
+# h sdev:       2.99    2.92
+# s mean:      99.94   99.93
+# s sdev:       1.41    1.47
+# mean diff:   99.66   99.66
+# k:           22.65   22.70
+#
+# "Best possible" in max20 would have been to boost ham_cutoff to 0.50(!),
+# and drop spam_cutoff a little to 0.78.  This would have traded away most
+# of the unsures in return for letting 3 spam through:
+#
+# -> smallest ham & spam cutoffs 0.5 & 0.78
+# ->     fp 2; fn 3; unsure ham 11; unsure spam 11
+# ->     fp rate 0.01%; fn rate 0.0214%; unsure rate 0.0647%
+#
+# Best possible in max12 was much the same:
+#
+# -> largest ham & spam cutoffs 0.5 & 0.78
+# ->     fp 2; fn 3; unsure ham 12; unsure spam 8
+# ->     fp rate 0.01%; fn rate 0.0214%; unsure rate 0.0588%
+#
+# The classifier pickle size increased by about 1.5 MB (~8.4% bigger).
+#
+# Rob Hooft's results were worse:
+#
+# -> <stat> tested 1600 hams & 580 spams against 14400 hams & 5220 spams
+# [...]
+# -> <stat> tested 1600 hams & 580 spams against 14400 hams & 5220 spams
+# filename:   skip12  skip20
+# ham:spam:  16000:5800
+#                     16000:5800
+# fp total:       12      13
+# fp %:         0.07    0.08
+# fn total:        7       7
+# fn %:         0.12    0.12
+# unsure t:      178     184
+# unsure %:     0.82    0.84
+# real cost: $162.60 $173.80
+# best cost: $106.20 $109.60
+# h mean:       0.51    0.52
+# h sdev:       4.87    4.92
+# s mean:      99.42   99.39
+# s sdev:       5.22    5.34
+# mean diff:   98.91   98.87
+# k:            9.80    9.64
 
 
 # textparts(msg) returns a set containing all the text components of msg.
