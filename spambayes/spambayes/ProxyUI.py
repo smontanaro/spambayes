@@ -352,9 +352,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Build the lists of messages: spams, hams and unsure.
         if len(keys) == 0:
             keys, date, prior, this, next = self._buildReviewKeys(start)
-        keyedMessageInfo = {options["Headers", "header_spam_string"]: [],
+        keyedMessageInfo = {options["Headers", "header_unsure_string"]: [],
                             options["Headers", "header_ham_string"]: [],
-                            options["Headers", "header_unsure_string"]: []}
+                            options["Headers", "header_spam_string"]: [],
+                            }
         for key in keys:
             # Parse the message, get the judgement header and build a message
             # info object for each message.
