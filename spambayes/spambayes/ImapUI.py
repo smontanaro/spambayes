@@ -72,11 +72,12 @@ parm_map = (
     ('Headers',               'include_evidence'),
     ('pop3proxy',             'add_mailid_to'),
     ('pop3proxy',             'strip_incoming_mailids'),
-    ('Statistics Options',    None),
-    ('Storage',               'persistent_storage_file'),
-    ('Categorization',        'ham_cutoff'),
-    ('Categorization',        'spam_cutoff'),
-    ('Storage',               'messageinfo_storage_file'),
+    ('Storage Options',  None),
+    ('Storage',             'persistent_storage_file'),
+    ('Storage',             'messageinfo_storage_file'),
+    ('Statistics Options',  None),
+    ('Categorization',      'ham_cutoff'),
+    ('Categorization',      'spam_cutoff'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):

@@ -382,11 +382,15 @@ class Classifier:
     # appears in a msg, but distorting spamprob doesn't appear a correct way
     # to exploit it.
     def _add_msg(self, wordstream, is_spam):
+        # I think the string stuff is hiding the cause of the db ham/spam
+        # count problem, so remove it for now.
         self.probcache = {}    # nuke the prob cache
         if is_spam:
-            self.nspam = int(self.nspam) + 1  # account for string nspam
+            #self.nspam = int(self.nspam) + 1  # account for string nspam
+            self.nspam += 1
         else:
-            self.nham = int(self.nham) + 1   # account for string nham
+            #self.nham = int(self.nham) + 1   # account for string nham
+            self.nham += 1
 
         for word in Set(wordstream):
             record = self._wordinfoget(word)
@@ -457,7 +461,6 @@ class Classifier:
 
     def _wordinfodel(self, word):
         del self.wordinfo[word]
-
 
 
 Bayes = Classifier

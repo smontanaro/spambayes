@@ -97,11 +97,12 @@ parm_ini_map = (
     ('smtpproxy',           'listen_ports'),
     ('smtpproxy',           'ham_address'),
     ('smtpproxy',           'spam_address'),
-    ('Statistics Options',  None),
+    ('Storage Options',  None),
     ('Storage',             'persistent_storage_file'),
+    ('Storage',             'messageinfo_storage_file'),
+    ('Statistics Options',  None),
     ('Categorization',      'ham_cutoff'),
     ('Categorization',      'spam_cutoff'),
-    ('Storage',             'messageinfo_storage_file'),
 )
 
 
