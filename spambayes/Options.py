@@ -99,6 +99,14 @@ mine_received_headers: False
 # broken.
 generate_long_skips: True
 
+# If true, replace high-bit characters (ord(c) >= 128) and control characters
+# with question marks.  This allows non-ASCII character strings to be
+# identified with little training and small database burden.  It's appropriate
+# only if your ham is plain 7-bit ASCII, or nearly so, so that the mere
+# presence of non-ASCII character strings is known in advance to be a strong
+# spam indicator.
+replace_nonascii_chars: False
+
 [TestDriver]
 # These control various displays in class TestDriver.Driver, and Tester.Test.
 
@@ -278,6 +286,7 @@ all_options = {
                   'basic_header_tokenize': boolean_cracker,
                   'basic_header_tokenize_only': boolean_cracker,
                   'basic_header_skip': ('get', lambda s: Set(s.split())),
+                  'replace_nonascii_chars': boolean_cracker,
                  },
     'TestDriver': {'nbuckets': int_cracker,
                    'show_ham_lo': float_cracker,

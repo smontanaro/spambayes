@@ -738,6 +738,21 @@ def tokenize_word(word, _len=len):
 #
 # total unique fn went from 168 to 169
 
+# For support of the replace_nonascii_chars option, build a string.translate
+# table that maps all high-bit chars and control chars to a '?' character.
+
+non_ascii_translate_tab = ['?'] * 256
+# leave blank up to (but not including) DEL alone
+for i in range(32, 127):
+    non_ascii_translate_tab[i] = chr(i)
+# leave "normal" whitespace alone
+for ch in ' \t\r\n':
+    non_ascii_translate_tab[ord(ch)] = ch
+del i, ch
+
+non_ascii_translate_tab = ''.join(non_ascii_translate_tab)
+
+
 def crack_content_xyz(msg):
     yield 'content-type:' + msg.get_content_type()
 
@@ -1001,7 +1016,7 @@ class Tokenizer:
                         for tok in breakdown(m.group(1).lower()):
                             yield 'received:' + tok
 
-        # Message-Id:  This seems to be a small win and should no
+        # Message-Id:  This seems to be a small win and should not
         # adversely affect a mixed source corpus so it's always enabled.
         msgid = msg.get("message-id", "")
         m = message_id_re.match(msgid)
@@ -1076,6 +1091,10 @@ class Tokenizer:
             text, tokens = crack_uuencode(text)
             for t in tokens:
                 yield t
+
+            if options.replace_nonascii_chars:
+                # Replace high-bit chars and control chars with '?'.
+                text = text.translate(non_ascii_translate_tab)
 
             # Special tagging of embedded URLs.
             text, tokens = crack_urls(text)
