@@ -32,7 +32,7 @@ This is currently at version 007.</p>
 <p><a href="download.html">Download the alpha4 release.</a></p>
 <p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
-<h3><a name="hammie">hammie.py</a></h3>
+<h3><a name="hammiefilter">hammiefilter.py</a></h3>
 <p>hammie is a command line tool for marking mail as ham or spam. Skip Montanaro has started a
 <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">guide to integrating hammie with your mailer</a> (Unix-only instructions at the moment - additions welcome!). 
 Currently it focusses on running hammie via procmail. </p>
@@ -44,7 +44,7 @@ Currently it focusses on running hammie via procmail. </p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha4 release.</a></p>
+<p><a href="download.html">Download the alpha5 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="pop3">pop3proxy.py</a></h3>
@@ -76,7 +76,7 @@ See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spamb
 </p>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha4 release.</a></p>
+<p><a href="download.html">Download the alpha5 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="mboxtrain">mboxtrain.py</a></h3>
@@ -92,7 +92,7 @@ seen previously.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha4 release.</a></p>
+<p><a href="download.html">Download the alpha5 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
 <h3><a name="notesfilter">notesfilter.py</a></h3>
@@ -110,5 +110,5 @@ caution.</p>
 </ul>
 
 <h4>Availability</h4>
-<p><a href="download.html">Download the alpha4 release.</a></p>
+<p><a href="download.html">Download the alpha5 release.</a></p>
 <p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
