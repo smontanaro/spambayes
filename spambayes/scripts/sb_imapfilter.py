@@ -776,7 +776,7 @@ class IMAPFilter(object):
                 num_ham_trained = folder.Train(self.classifier, False)
                 total_ham_trained += num_ham_trained
                 if options['globals', 'verbose']:
-                    print "       %s trained." % (num_ham_trained)
+                    print "\n       %s trained." % (num_ham_trained)
 
         if options["imap", "spam_train_folders"] != "":
             spam_training_folders = options["imap", "spam_train_folders"]
@@ -789,7 +789,7 @@ class IMAPFilter(object):
                 num_spam_trained = folder.Train(self.classifier, True)
                 total_spam_trained += num_spam_trained
                 if options['globals', 'verbose']:
-                    print "       %s trained." % (num_spam_trained)
+                    print "\n       %s trained." % (num_spam_trained)
 
         if total_ham_trained or total_spam_trained:
             self.classifier.store()
