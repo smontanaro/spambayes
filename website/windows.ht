@@ -7,12 +7,12 @@ Author: spambayes
 <p>This page has information for <a href="#outlook">users of Microsoft Outlook</a>,
 and for <a href="#non-outlook">all other mail clients</a>
 
-<h2>Outlook 2000/XP/2003</h2>
+<h2>Outlook 2000/2002(XP)/2003</h2>
 
 <h3>Latest Release</h3>
-<p>The latest release is <b>1.0rc2</b> - see the 
+<p>The latest release is <b>1.0</b> - see the 
 <a href="https://sourceforge.net/project/shownotes.php?release_id=248484">release notes</a>
-or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0rc2.exe?download">download the installation program</a>.
+or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.exe?download">download the installation program</a>.
 </p>
 
 <h3>General Information</h3>
@@ -50,22 +50,22 @@ To do this, you will need three pieces of software:
   latest release with no letters in its version).</li>
 
   <li> Mark Hammond's <a
-  href="http://starship.python.net/crew/mhammond/win32/Downloads.html">win32all
+  href="http://starship.python.net/crew/mhammond/win32/Downloads.html">pywin32
   extensions</a>.  Choose the version which corresponds to the version of
   Python you downloaded.</li>
 
   <li> The SpamBayes source, either as a <a
   href="http://sourceforge.net/project/showfiles.php?group_id=61702">zip
   file</a> or <a href="http://sourceforge.net/cvs/?group_id=61702">via
-  CVS</a>.  The zip file will probably be easier to handle, but there are
-  several improvements to the code which make the CVS version a
+  CVS</a>.  The zip file will probably be easier to handle, but there may
+  be improvements to the code which make the CVS version a
   viable option (though you will have to have a CVS client for Windows
   installed).</li>
 </ol>
 </p>
 
 <p>Once you have all three bits downloaded, run the Python installer then
-the win32all installer.  Finally, double-click the addin.py script in the
+the pywin32 installer.  Finally, double-click the addin.py script in the
 Outlook2000 folder of the SpamBayes distribution and you should be good to
 go.  See the README.txt file in the Outlook2000 directory for more details</p>
 
@@ -73,7 +73,7 @@ go.  See the README.txt file in the Outlook2000 directory for more details</p>
 
 <p>Windows users using other mail clients and retrieving mail via POP3
 can now download the same
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0rc2.exe?download">
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.exe?download">
 installation program</a> and use it to install a binary version of
 sb_server, including a tray application.</p>
 <p>See also the information about <a href="applications.html#sb_server">sb_server</a>.</p>
