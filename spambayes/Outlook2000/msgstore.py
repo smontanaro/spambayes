@@ -486,11 +486,11 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         folder = self.OpenEntry()
         table = folder.GetContentsTable(0)
         if only_filter_candidates:
-            # Limit ourselves to IPM.Note objects - ie, messages.
+            # Limit ourselves to IPM.* objects - ie, messages.
             restriction = (mapi.RES_PROPERTY,   # a property restriction
                            (mapi.RELOP_GE,      # >=
                             PR_MESSAGE_CLASS_A,   # of the this prop
-                            (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
+                            (PR_MESSAGE_CLASS_A, "IPM."))) # with this value
             table.Restrict(restriction, 0)
         table.SetColumns(MAPIMsgStoreMsg.message_init_props, 0)
         while 1:
@@ -529,7 +529,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         class_restriction = (mapi.RES_PROPERTY,   # a property restriction
                              (mapi.RELOP_GE,      # >=
                               PR_MESSAGE_CLASS_A,   # of the this prop
-                              (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
+                              (PR_MESSAGE_CLASS_A, "IPM."))) # with this value
         # Put the final restriction together
         restriction = (mapi.RES_AND, (prop_restriction,
                                       not_exist_restriction,
@@ -654,8 +654,18 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         #   composed messages yet to be sent, or copies of "sent items".
         # It does *not* exclude messages that were user composed, but still
         # actually received by the user (ie, when you mail yourself)
-        return self.msgclass.lower().startswith("ipm.note") and \
-               (self.was_received or test_suite_running)
+        # GroupWise generates IPM.Anti-Virus.Report.45 (but I'm not sure how
+        # it manages given it is an external server, and as far as I can tell,
+        # this does not appear in the headers.
+        class_check = self.msgclass.lower()
+        for check in "ipm.note", "ipm.anti-virus":
+            if class_check.startswith(check):
+                break
+        else:
+            # Not matching class - no good
+            return False
+        # Must match msg class to get here.
+        return self.was_received or test_suite_running
 
     def _GetPotentiallyLargeStringProp(self, prop_id, row):
         return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
