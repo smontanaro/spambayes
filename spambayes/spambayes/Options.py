@@ -559,8 +559,8 @@ defaults = {
      from incoming emails and from you, the user, to get better and
      better at classifying your email.  This option specifies the
      name of the database file.  If you don't give a full pathname,
-     the name will be taken to be relative to the current working
-     directory.""",
+     the name will be taken to be relative to the location of the
+     most recent configuration file loaded.""",
      FILE_WITH_PATH, DO_NOT_RESTORE),
 
     ("messageinfo_storage_file", "Message information file name", "spambayes.messageinfo.db",
@@ -569,8 +569,8 @@ defaults = {
      database is used to ensure that these messages are not retrained
      or reclassified (unless specifically requested to).  This option
      specifies the name of the database file.  If you don't give a
-     full pathname, the name will be taken to be relative to the current
-     working directory.""",
+     full pathname, the name will be taken to be relative to the location
+     of the most recent configuration file loaded.""",
      FILE_WITH_PATH, DO_NOT_RESTORE),
 
     ("cache_use_gzip", "Use gzip", False,
