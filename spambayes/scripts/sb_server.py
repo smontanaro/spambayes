@@ -149,11 +149,14 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
         self.request = ''
         self.set_terminator('\r\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        # create_socket creates a non-blocking socket.  This is fine for
-        # regular sockets, but not for ssl - if it is non-blocking then the
-        # second ssl connection will fail.
-        if ssl:
-            self.socket.setblocking(1)
+        # create_socket creates a non-blocking socket.  This is not great,
+        # because then socket.connect() will return errno 10035, because
+        # connect takes time.  We then don't know if the connect call
+        # succeeded or not.  With Python 2.4, this means that we will move
+        # into asyncore.loop(), and if the connect does fail, have a
+        # loop something like 'while True: log(error)', which fills up
+        # stdout very fast.  Non-blocking is also a problem for ssl sockets.
+        self.socket.setblocking(1)
         try:
             self.connect((serverName, serverPort))
         except socket.error, e:
@@ -192,8 +195,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
                 else:
                     self.send = self.send_ssl
                     self.recv = self.recv_ssl
-                self.socket.setblocking(0)
-                print self._fileno
+            self.socket.setblocking(0)
             
     def send_ssl(self, data):
         return self.ssl_socket.write(data)
