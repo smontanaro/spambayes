@@ -688,7 +688,7 @@ BOOLEAN = (False, True)
 SERVER = r"([\w\.\-]+(:[\d]+)?)"  # in the form server:port
 PORT = r"[\d]+"
 EMAIL_ADDRESS = r"[\w\-\.]+@[\w\-\.]+"
-PATH = r"[\w \$\.\-~:\\/\*]+"
+PATH = r"[\w \$\.\-~:\\/\*\@\=]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
