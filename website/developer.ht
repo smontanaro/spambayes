@@ -5,7 +5,7 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with either Python 2.2.2, Python 2.3 (currently in beta), 
+<p>This project works with either Python 2.2.3, Python 2.3 (currently in beta), 
 or on the bleeding edge of python code,
 available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
 sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever

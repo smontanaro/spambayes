@@ -17,7 +17,7 @@ adds support for the spambayes classifier.
 </ul>
 <p>If you are going to use a source code version, you will also need:</p>
 <ul>
-<li>Python 2.2 or later (2.2.2 recommended)</li>
+<li>Python 2.2 or later (2.2.3 recommended)</li>
 <li>Python's <a href="http://starship.python.net/crew/mhammond">win32com</a>
 extensions (win32all-149 or later - currently ActivePython is not suitable)
 </ul>
@@ -44,7 +44,7 @@ Currently it focusses on running hammie via procmail. </p>
 
 <h4>Requirements</h4>
 <ul>
-<li>Python 2.2 or later (2.2.2 recommended)</li>
+<li>Python 2.2 or later (2.2.3 recommended)</li>
 <li>Currently documentation focuses on Unix.</li>
 </ul>
 
@@ -58,7 +58,7 @@ mail as ham or spam as it passes through. See the <a href="http://cvs.sourceforg
 
 <h4>Requirements</h4>
 <ul>
-<li>Python2.2 or later (2.2.2 recommended)</li>
+<li>Python2.2 or later (2.2.3 recommended)</li>
 <li>Should work on windows/unix/whatever... </li>
 </ul>
 </p>
@@ -75,7 +75,7 @@ See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spamb
 
 <h4>Requirements</h4>
 <ul>
-<li>Python2.2 or later (2.2.2 recommended)</li>
+<li>Python2.2 or later (2.2.3 recommended)</li>
 <li>Should work on windows/unix/whatever... ?</li>
 </ul>
 </p>
@@ -91,7 +91,7 @@ seen previously.</p>
 
 <h4>Requirements</h4>
 <ul>
-<li>Python2.2 or later (2.2.2 recommended)</li>
+<li>Python2.2 or later (2.2.3 recommended)</li>
 <li>The code is currently Unix-specific.</li>
 </ul>
 
