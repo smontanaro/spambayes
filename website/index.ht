@@ -4,7 +4,7 @@ Author: SpamBayes
 
 
 <h2>News</h2>
-<P>Outlook plugin release 007 is available. See the <a href="windows.html">Windows</a> page for more. Note that the Outlook plugin is now available from Sourceforge, on this project's <a href="http://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page.</P>
+<p>Outlook plugin release 007 is available. See the <a href="windows.html">Windows</a> page for more. Note that the Outlook plugin is now available from Sourceforge, on this project's <a href="http://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page.</p>
 <p>Fourth pre-release of spambayes available. See the <a href="download.html">download</a> page for more.</p>
 <p>You may also like to see what <a href="quotes.html">other people have been saying about us in the press and elsewhere</a>.</p>
 
@@ -145,34 +145,6 @@ excited by the bleeding edge - these are detailed on the
 <a href="applications.html">Applications</a> page, and available as
 part of the source download.
 </p>
-
-<h2>Mailing lists</h2>
-<p>There are currently five mailing lists of interest:</p>
-<ul>
-<li>
-The 
-<a href="http://mail.python.org/mailman/listinfo/spambayes-announce">spambayes-announce</a> 
-list - a very low volume mailing list announcing new releases.
-</li>
-<li>
-The 
-<a 
-href="http://mail.python.org/mailman/listinfo/spambayes">spambayes</a>
-user list. General discussions and user queries go here. (This was also the developer list until late May, 2003).
-</li>
-<li>
-The spambayes developers list <a href="http://mail.python.org/mailman/listinfo/spambayes-dev">spambayes-dev</a>. This list is for discussion of
-spambayes development. Please don't use this for user questions ("how do I
-make SB work with Outlook version X"), use the "spambayes" list for that.
-</li>
-<li>
-CVS commit messages go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-checkins">spambayes-checkins</a>.
-</li>
-<li>
-<a href="http://sourceforge.net">Sourceforge</a> tracker items (bugs, feature requests and patches)
-go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-bugs">spambayes-bugs</a>.
-</li>
-</ul>
 
 
 <h2>Credits</h2>
