@@ -18,7 +18,7 @@ wizard_defaults = {
         ("need_train", "Will moving to the train page actually train?", True,
             """""",
         config.BOOLEAN, config.RESTORE),
-        ("can_go_next", "Is the Forward wizard button enabled?", True,
+        ("will_train_later", "The user opted to cancel and train later", False,
             """""",
         config.BOOLEAN, config.RESTORE),
         # Spam
@@ -100,6 +100,9 @@ def CommitWizardConfig(manager, wc):
     if wiz_cd:
         manager.classifier_data.Adopt(wiz_cd)
     manager.config.filter.enabled = True
+    if wc.wizard.preparation == 2: # manually configure
+        import dialogs
+        dialogs.ShowDialog(0, manager, manager.config, "IDD_MANAGER")
 
 def CancelWizardConfig(manager, wc):
     if manager.wizard_classifier_data:
