@@ -222,15 +222,13 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
                 cooked = self.onProcessData(self.data)
                 self.data = ""
                 if self.blockData == False:
-                    self.serverSocket.push(cooked + '\r\n')
+                    self.serverSocket.push(cooked)
                 else:
                     self.push("250 OK\r\n")
         else:
             cooked = self.onTransaction(self.command, self.args)
             if cooked is not None:
                 self.serverSocket.push(cooked + '\r\n')
-                print "pulled: '%s'" % self.request
-                print "pushed: '%s'" % cooked
         self.command = self.args = self.request = ''
 
     def onResponse(self):
