@@ -357,6 +357,9 @@ have any other text editor, so it make things like the README unREADable.
  o Now commit spambayes/__init__.py and tag the whole checkout - see the
    existing tag names for the tag name format.
  o Update the website News, Download and Application sections.
+ o Update reply.txt in the website repository as needed (it specifies the
+   latest version).  Then let Tim, Barry or Skip know that they need to
+   update the autoresponder.
 
 Then announce the release on the mailing lists and watch the bug reports
 roll in.  8-)
