@@ -48,11 +48,6 @@ timtest.py
     refactoring.  You need to fiddle a line near the top to import a
     tokenize() function of your choosing.
 
-GBayes.py
-    A number of tokenizers and a partial test driver.  This assumes
-    an mbox format.  Could stand massive refactoring.  I don't think
-    it's been kept up to date.
-
 
 Test Utilities
 ==============
