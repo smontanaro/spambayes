@@ -875,9 +875,14 @@ class BayesManager:
         import sys, os, urllib
         if urllib.splittype(url)[0] is None: # just a file spec
             if hasattr(sys, "frozen"):
-                # Same directory as to the executable.
+                # New binary is in ../docs/outlook relative to executable.
                 fname = os.path.join(os.path.dirname(sys.argv[0]),
-                                        url)
+                                     "../docs/outlook",
+                                     url)
+                if not os.path.isfile(fname):
+                    # Still support same directory as to the executable.
+                    fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                         url)
             else:
                 # (ie, main Outlook2000) dir
                 fname = os.path.join(os.path.dirname(__file__),
