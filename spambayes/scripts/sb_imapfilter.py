@@ -643,7 +643,10 @@ class IMAPFilter(object):
     def Filter(self):
         if options["globals", "verbose"]:
             t = time.time()
-            count = None
+        count = {}
+        count["ham"] = 0
+        count["spam"] = 0
+        count["unsure"] = 0
 
         # Select the spam folder and unsure folder to make sure they exist
         imap.SelectFolder(self.spam_folder.name)
@@ -653,8 +656,10 @@ class IMAPFilter(object):
             # Select the folder to make sure it exists
             imap.SelectFolder(filter_folder)
             folder = IMAPFolder(filter_folder)
-            count = folder.Filter(self.classifier, self.spam_folder,
+            subcount = folder.Filter(self.classifier, self.spam_folder,
                           self.unsure_folder)
+            for key in count.keys():
+                count[key] += subcount.get(key, 0)
  
         if options["globals", "verbose"]:
             if count is not None:
