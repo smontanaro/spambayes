@@ -33,7 +33,6 @@ try:
     # Support for COM objects we use.
     gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, bForDemand=True) # Outlook 9
     gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, bForDemand=True) # Office 9
-    gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}', 0, 1, 21, bForDemand = True) # CDO
 
     # The TLB defiining the interfaces we implement
     universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
@@ -41,26 +40,13 @@ except pythoncom.com_error, (hr, msg, exc, arg):
     if __name__ != '__main__':
         # Error when not running as a script - eeek - just let it go.
         raise
-    try:
-        pythoncom.MakeIID("MAPI.Session")
-        have_cdo = True
-    except pythoncom.com_error:
-        have_cdo = False
-    print "This Addin requires that Outlook 2000 with CDO be installed on this machine."
+    print "This Addin requires that Outlook 2000 be installed on this machine."
     print
-    if have_cdo:
-        print "However, these appear to be installed.  Error details:"
-        print "COM Error 0x%x (%s)" % (hr, msg)
-        if exc:
-            print "Exception: %s" % (exc)
-        print
-        print "Sorry, I can't be more help, but I can't continue while I have this error."
-    else:
-        print "CDO is not currently installed.  To install CDO, you must locate the"
-        print "media from which you installed Outlook (such as Office 2000 CD or "
-        print "sharepoint), re-run setup, select Outlook, enable CDO."
-        print
-        print "Please install CDO then attempt this registration again."
+    print "This appears to not be installed due to the following error:"
+    print "COM Error 0x%x (%s)" % (hr, msg)
+    if exc:
+        print "Exception: %s" % (exc)
+    print "Sorry, I can't be more help, but I can't continue while I have this error."
     sys.exit(1)
 
 # Something that should be in win32com in some form or another.

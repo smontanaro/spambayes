@@ -61,11 +61,7 @@ class BayesManager:
         path = os.path.split(this_filename)[0]
         self.config = self.LoadConfig()
 
-        cwd = os.getcwd()
-        self.mapi = win32com.client.Dispatch("MAPI.Session")
-        self.mapi.Logon(None, None, False, False)
         self.outlook = outlook
-        os.chdir(cwd)
 
         import_core_spambayes_stuff(self.ini_filename)
         self.LoadBayes()
@@ -164,9 +160,6 @@ class BayesManager:
             print "Bayes database is not dirty - not writing"
 
     def Close(self):
-        if self.mapi is not None:
-            self.mapi.Logoff()
-            self.mapi = None
         if self.bayes_dirty and self.bayes:
             print "Warning: BayesManager closed while Bayes database dirty"
         self.bayes = None

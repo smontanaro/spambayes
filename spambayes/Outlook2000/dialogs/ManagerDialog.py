@@ -88,7 +88,7 @@ class ManagerDialog(dialog.Dialog):
         self.GetDlgItem(IDC_BUT_ENABLE_FILTER).SetCheck(self.mgr.config.filter.enabled)
         names = []
         for eid in self.mgr.config.filter.folder_ids:
-            names.append(self.mgr.mapi.GetFolder(eid).Name.encode("ascii", "replace"))
+            names.append(self.mgr.message_store.GetFolder(eid).name)
         # count enabled rules
         num = len([r for r in self.mgr.config.rules if r.enabled ])
         if num == 0:

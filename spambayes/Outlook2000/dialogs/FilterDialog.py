@@ -260,7 +260,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         folder_ids = self.mgr.config.filter.folder_ids
         for eid in folder_ids:
             try:
-                name = self.mgr.mapi.GetFolder(eid).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(eid).name
             except pythoncom.com_error:
                 name = "<unknown folder>"
             names.append(name)
@@ -270,7 +270,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             filter = self.mgr.config.filter
-            d = FolderSelector.FolderSelector(self.mgr.mapi, filter.folder_ids,checkbox_state=filter.include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
             if d.DoModal()==win32con.IDOK:
                 filter.folder_ids, filter.include_sub = d.GetSelectedIDs()
                 self.UpdateFolderNames()
@@ -333,7 +333,7 @@ class FilterNowDialog(AsyncDialogBase):
         names = []
         for eid in self.mgr.config.filter_now.folder_ids:
             try:
-                name = self.mgr.mapi.GetFolder(eid).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(eid).name
             except pythoncom.com_error:
                 name = "<unknown folder>"
             names.append(name)
@@ -343,7 +343,7 @@ class FilterNowDialog(AsyncDialogBase):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             filter = self.mgr.config.filter_now
-            d = FolderSelector.FolderSelector(self.mgr.mapi, filter.folder_ids,checkbox_state=filter.include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
             if d.DoModal()==win32con.IDOK:
                 filter.folder_ids, filter.include_sub = d.GetSelectedIDs()
                 self.UpdateFolderNames()
@@ -367,6 +367,7 @@ class FilterNowDialog(AsyncDialogBase):
                 self.mgr.WorkerThreadEnding()
 
 if __name__=='__main__':
+    # This doesnt work - still uses CDO.
     from win32com.client import Dispatch
     import pythoncom
     mapi = Dispatch("MAPI.Session")

@@ -94,10 +94,8 @@ class RuleDialog(dialog.Dialog):
         try:
             if not self.folder_id:
                 name = ""
-            elif self.mgr.mapi is None:
-                name = "<no mapi!>"
             else:
-                name = self.mgr.mapi.GetFolder(self.folder_id).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(self.folder_id).name
         except pythoncom.com_error:
             name = "<unknown folder>"
         self.SetDlgItemText(IDC_FOLDER_NAME, name)
@@ -121,7 +119,7 @@ class RuleDialog(dialog.Dialog):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             ids = [self.folder_id]
-            d = FolderSelector.FolderSelector(self.mgr.mapi, ids,single_select=True,checkbox_state=None)#, allow_multi=False)
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, ids,single_select=True,checkbox_state=None)#, allow_multi=False)
             if d.DoModal()==win32con.IDOK:
                 new_ids, cb_state = d.GetSelectedIDs()
                 if new_ids:
@@ -189,12 +187,8 @@ class RuleDialog(dialog.Dialog):
         return self._obj_.OnCancel()
 
 if __name__=='__main__':
-    from win32com.client import Dispatch
-    try:
-        mapi = Dispatch("MAPI.Session")
-        mapi.Logon()
-    except pythoncom.com_error:
-        mapi = None
+    # This doesn't work
+    
     class Rule:
         def __init__(self):
             self.name = "My Rule"

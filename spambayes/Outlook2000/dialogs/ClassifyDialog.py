@@ -53,7 +53,6 @@ class ClassifyDialog(AsyncDialogBase):
     def __init__ (self, mgr, classifier):
         self.classifier = classifier
         self.config = mgr.config.classify
-        self.mapi = mgr.mapi
         self.mgr = mgr
         AsyncDialogBase.__init__ (self, self.dt)
 
@@ -65,21 +64,19 @@ class ClassifyDialog(AsyncDialogBase):
 
     def UpdateStatus(self):
         names = []
-        cwd = os.getcwd()  # mapi.GetFolder() switches to the system MAPI dir
         for eid in self.config.folder_ids:
             try:
-                name = self.mapi.GetFolder(eid).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(eid).name
             except pythoncom.com_error:
                 name = "<unknown folder>"
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_FOLDERS, "; ".join(names))
-        os.chdir(cwd)
 
     def OnBrowse(self, id, code):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             l = self.config.folder_ids
-            d = FolderSelector.FolderSelector(self.mapi, l,checkbox_state=self.config.include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, l,checkbox_state=self.config.include_sub)
             if d.DoModal()==win32con.IDOK:
                 l[:], self.config.include_sub = d.GetSelectedIDs()[:]
                 self.UpdateStatus()

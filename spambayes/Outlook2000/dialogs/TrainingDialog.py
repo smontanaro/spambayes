@@ -5,6 +5,7 @@ import win32con
 import commctrl
 import win32ui
 import win32api
+import pythoncom
 
 #these are the atom numbers defined by Windows for basic dialog controls
 BUTTON    = 0x80
@@ -53,7 +54,6 @@ class TrainingDialog(AsyncDialogBase):
         self.mgr = mgr
         self.trainer = trainer
         self.config = mgr.config.training
-        self.mapi = mgr.mapi
         AsyncDialogBase.__init__ (self, self.dt)
 
     def OnInitDialog(self):
@@ -64,10 +64,9 @@ class TrainingDialog(AsyncDialogBase):
 
     def UpdateStatus(self):
         names = []
-        cwd = os.getcwd()  # mapi.GetFolder() switches to the system MAPI dir
         for eid in self.config.ham_folder_ids:
             try:
-                name = self.mapi.GetFolder(eid).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(eid).name
             except pythoncom.com_error:
                 name = "<unknown folder>"
             names.append(name)
@@ -76,12 +75,11 @@ class TrainingDialog(AsyncDialogBase):
         names = []
         for eid in self.config.spam_folder_ids:
             try:
-                name = self.mapi.GetFolder(eid).Name.encode("ascii", "replace")
+                name = self.mgr.message_store.GetFolder(eid).name
             except pythoncom.com_error:
                 name = "<unknown folder>"
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_SPAM, "; ".join(names))
-        os.chdir(cwd)
 
     def OnBrowse(self, id, code):
         if code == win32con.BN_CLICKED:
@@ -93,7 +91,7 @@ class TrainingDialog(AsyncDialogBase):
                 l = self.config.ham_folder_ids
                 sub_attr = "ham_include_sub"
             include_sub = getattr(self.config, sub_attr)
-            d = FolderSelector.FolderSelector(self.mapi, l, checkbox_state=include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.message_store.session, l, checkbox_state=include_sub)
             if d.DoModal()==win32con.IDOK:
                 l[:], include_sub = d.GetSelectedIDs()[:]
                 setattr(self.config, sub_attr, include_sub)

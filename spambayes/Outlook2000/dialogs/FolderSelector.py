@@ -10,14 +10,10 @@ from DialogGlobals import *
 
 # Helpers for building the folder list
 class FolderSpec:
-    def __init__(self, folder, name = None):
-        if name is None:
-            self.name = folder.Name
-        else:
-            self.name = name
-        self.name = self.name.encode("ascii", "replace")
+    def __init__(self, folder_id, name):
+        self.folder_id = folder_id
+        self.name = name
         self.children = []
-        self.folder = folder
 
     def dump(self, level=0):
         prefix = "  " * level
@@ -25,30 +21,68 @@ class FolderSpec:
         for c in self.children:
             c.dump(level+1)
 
-def _BuildFolders(folders):
+#########################################################################
+## CDO version of a folder walker.
+#########################################################################
+def _BuildFoldersCDO(folders):
     children = []
     folder = folders.GetFirst()
     while folder:
-        spec = FolderSpec(folder)
-        spec.children = _BuildFolders(folder.Folders)
+        spec = FolderSpec(folder.ID, folder.Name.encode("mbcs", "replace"))
+        spec.children = _BuildFoldersCDO(folder.Folders)
         children.append(spec)
         folder = folders.GetNext()
     return children
 
-def BuildFolderTree(session):
+def BuildFolderTreeCDO(session):
     infostores = session.InfoStores
     root = FolderSpec(None, "root")
     for i in range(infostores.Count):
         infostore = infostores[i+1]
         rootFolder = infostore.RootFolder
         folders = rootFolder.Folders
-        spec = FolderSpec(rootFolder, infostore.Name)
-        spec.children = _BuildFolders(folders)
+        spec = FolderSpec(rootFolder.ID, infostore.Name.encode("mbcs", "replace"))
+        spec.children = _BuildFoldersCDO(folders)
         root.children.append(spec)
     return root
 
-#
-# The dialog itself
+#########################################################################
+## An extended MAPI version
+#########################################################################
+from win32com.mapi import mapi
+from win32com.mapi.mapitags import *
+
+def _BuildFoldersMAPI(msgstore, folder):
+    # Get the hierarchy table for it.
+    table = folder.GetHierarchyTable(0)
+    children = []
+    rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,PR_DISPLAY_NAME_A), None, None, 0)
+    for (eid_tag, eid),(name_tag, name) in rows:
+        spec = FolderSpec(mapi.HexFromBin(eid), name)
+        child_folder = msgstore.OpenEntry(eid, None, mapi.MAPI_DEFERRED_ERRORS)
+        spec.children = _BuildFoldersMAPI(msgstore, child_folder)
+        children.append(spec)
+    return children
+    
+def BuildFolderTreeMAPI(session):
+    root = FolderSpec(None, "root")
+    tab = session.GetMsgStoresTable(0)
+    rows = mapi.HrQueryAllRows(tab, (PR_ENTRYID, PR_DISPLAY_NAME_A), None, None, 0)
+    for row in rows:
+        (eid_tag, eid), (name_tag, name) = row
+        msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL | mapi.MAPI_DEFERRED_ERRORS)
+        hr, data = msgstore.GetProps( ( PR_IPM_SUBTREE_ENTRYID,), 0)
+        subtree_eid = data[0][1]
+        folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
+        spec = FolderSpec(mapi.HexFromBin(subtree_eid), name)
+        spec.children = _BuildFoldersMAPI(msgstore, folder)
+        root.children.append(spec)
+    return root
+
+
+#########################################################################
+## The dialog itself
+#########################################################################
 
 # IDs for controls we use.
 IDC_STATUS1 = win32ui.IDC_PROMPT1
@@ -109,7 +143,7 @@ class FolderSelector(dialog.Dialog):
             if self.single_select:
                 mask = state = 0
             else:
-                if self.selected_ids and child.folder.ID in self.selected_ids:
+                if self.selected_ids and child.folder_id in self.selected_ids:
                     state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
                     num_children_selected += 1
                 else:
@@ -117,7 +151,7 @@ class FolderSelector(dialog.Dialog):
                 mask = commctrl.TVIS_STATEIMAGEMASK
             item_id = self._MakeItemParam(child)
             hitem = self.list.InsertItem(hParent, 0, (None, state, mask, text, bitmapCol, bitmapSel, cItems, item_id))
-            if self.single_select and self.selected_ids and child.folder.ID in self.selected_ids:
+            if self.single_select and self.selected_ids and child.folder_id in self.selected_ids:
                 self.list.SelectItem(hitem)
 
             num_children_selected += self._InsertSubFolders(hitem, child)
@@ -192,7 +226,12 @@ class FolderSelector(dialog.Dialog):
             # Hide "clear all"
             self.GetDlgItem(IDC_BUTTON_CLEARALL).ShowWindow(win32con.SW_HIDE)
 
-        tree = BuildFolderTree(self.mapi)
+        if hasattr(self.mapi, "_oleobj_"): # Dispatch COM object
+            # CDO
+            tree = BuildFolderTreeCDO(self.mapi)
+        else:
+            # Extended MAPI.
+            tree = BuildFolderTreeMAPI(self.mapi)
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # wipe this out while we are alive.
         self._UpdateStatus()
@@ -268,15 +307,24 @@ class FolderSelector(dialog.Dialog):
             return self.selected_ids, self.checkbox_state
         ret = []
         for info, spec in self._YieldCheckedChildren():
-            ret.append(spec.folder.ID)
+            ret.append(spec.folder_id)
         return ret, self.GetDlgItem(IDC_BUTTON_SEARCHSUB).GetCheck() != 0
 
-def TestWithMAPI():
+def TestWithCDO():
     from win32com.client import Dispatch
     mapi = Dispatch("MAPI.Session")
     mapi.Logon("", "", False, False)
     ids = [u'0000000071C4408983B0B24F8863EE66A8F79AFF82800000']
-    d=FolderSelector(mapi, ids, single_select = True)
+    d=FolderSelector(mapi, ids, single_select = False)
+    d.DoModal()
+    print d.GetSelectedIDs()
+
+def TestWithMAPI():
+    mapi.MAPIInitialize(None)
+    logonFlags = mapi.MAPI_NO_MAIL | mapi.MAPI_EXTENDED | mapi.MAPI_USE_DEFAULT
+    session = mapi.MAPILogonEx(0, None, None, logonFlags)
+    ids = [u'0000000071C4408983B0B24F8863EE66A8F79AFF82800000']
+    d=FolderSelector(session, ids, single_select = False)
     d.DoModal()
     print d.GetSelectedIDs()
 
