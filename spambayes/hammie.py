@@ -10,10 +10,13 @@ Where:
         show usage and exit
     -g PATH
         mbox or directory of known good messages (non-spam) to train on.
+        Can be specified more than once.
     -s PATH
         mbox or directory of known spam messages to train on.
+        Can be specified more than once.
     -u PATH
         mbox of unknown messages.  A ham/spam decision is reported for each.
+        Can be specified more than once.
     -p FILE
         use file as the persistent store.  loads data from this file if it
         exists, and saves data to this file at the end.  Default: %(DEFAULTDB)s
@@ -263,15 +266,17 @@ def main():
         usage(2, "No options given")
 
     pck = DEFAULTDB
-    good = spam = unknown = None
+    good = []
+    spam = []
+    unknown = []
     do_filter = usedb = False
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
         elif opt == '-g':
-            good = arg
+            good.append(arg)
         elif opt == '-s':
-            spam = arg
+            spam.append(arg)
         elif opt == '-p':
             pck = arg
         elif opt == "-d":
@@ -279,7 +284,7 @@ def main():
         elif opt == "-f":
             do_filter = True
         elif opt == '-u':
-            unknown = arg
+            unknown.append(arg)
     if args:
         usage(2, "Positional arguments not allowed")
 
@@ -288,12 +293,14 @@ def main():
     bayes = createbayes(pck, usedb)
 
     if good:
-        print "Training ham:"
-        train(bayes, good, False)
+        for g in good:
+            print "Training ham (%s):" % g
+            train(bayes, g, False)
         save = True
     if spam:
-        print "Training spam:"
-        train(bayes, spam, True)
+        for s in spam:
+            print "Training spam (%s):" % s
+            train(bayes, s, True)
         save = True
 
     if save:
@@ -307,7 +314,10 @@ def main():
         filter(bayes, sys.stdin, sys.stdout)
 
     if unknown:
-        score(bayes, unknown)
+        for u in unknown:
+            if len(unknown) > 1:
+                print "Scoring", u
+            score(bayes, u)
 
 if __name__ == "__main__":
     main()
