@@ -1355,8 +1355,9 @@ class Tokenizer:
                                                  "skip_max_word_size"]):
         """Generate a stream of tokens from an email Message.
 
-        If options.check_octets is True, the first few undecoded characters
-        of application/octet-stream parts of the message body become tokens.
+        If options['Tokenizer', 'check_octets'] is True, the first few
+        undecoded characters of application/octet-stream parts of the
+        message body become tokens.
         """
 
         if options["Tokenizer", "check_octets"]:
