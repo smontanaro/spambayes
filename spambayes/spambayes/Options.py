@@ -765,7 +765,7 @@ you can't use the Spambayes SMTP proxy (sorry!).  In your email
 client's configuration, where you would normally put your SMTP server
 address, you should now put the address of the machine running
 Spambayes.""",
-r"[\w\.\-]+(: [\d]+)?", True, False),
+r"[\w\.\-]+(:[\d]+)?", True, False),
 
 ("ports", "Ports", "",
 """Each SMTP server that is being monitored must be assigned to a
