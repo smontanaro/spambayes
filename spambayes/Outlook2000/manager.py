@@ -171,13 +171,13 @@ class BasicStorageManager:
         bayes.store()
     def open_bayes(self):
         raise NotImplementedError
+    def close_bayes(self, bayes):
+        bayes.close()
 
 class PickleStorageManager(BasicStorageManager):
     db_extension = ".pck"
     def open_bayes(self):
         return bayes_storage.PickledClassifier(self.bayes_filename)
-    def close_bayes(self, bayes):
-        pass
     def open_mdb(self):
         return cPickle.load(open(self.mdb_filename, 'rb'))
     def new_mdb(self):
@@ -195,9 +195,6 @@ class DBStorageManager(BasicStorageManager):
         # bsddb doesn't handle unicode filenames yet :(
         fname = self.bayes_filename.encode(filesystem_encoding)
         return bayes_storage.DBDictClassifier(fname)
-    def close_bayes(self, bayes):
-        bayes.db.close()
-        bayes.dbm.close()
     def open_mdb(self):
         fname = self.mdb_filename.encode(filesystem_encoding)
         return bsddb.hashopen(fname)
