@@ -240,30 +240,30 @@ build_each_classifier_from_scratch: False
 max_discriminators: 150
 
 # These two control the prior assumption about word probabilities.
-# "x" is essentially the probability given to a word that has never been
-# seen before.  Nobody has reported an improvement via moving it away
-# from 1/2.
-# "s" adjusts how much weight to give the prior assumption relative to
-# the probabilities estimated by counting.  At s=0, the counting estimates
-# are believed 100%, even to the extent of assigning certainty (0 or 1)
-# to a word that has appeared in only ham or only spam.  This is a disaster.
-# As s tends toward infintity, all probabilities tend toward x.  All
-# reports were that a value near 0.4 worked best, so this does not seem to
-# be corpus-dependent.
-# NOTE:  Gary Robinson previously used a different formula involving 'a'
-# and 'x'.  The 'x' here is the same as before.  The 's' here is the old
-# 'a' divided by 'x'.
-robinson_probability_x: 0.5
-robinson_probability_s: 0.45
+# unknown_word_prob is essentially the probability given to a word that
+# has never been seen before.  Nobody has reported an improvement via moving
+# it away from 1/2, although Tim has measured a mean spamprob of a bit over
+# 0.5 (0.51-0.55) in 3 well-trained classifiers.
+#
+# unknown_word_strength adjusts how much weight to give the prior assumption
+# relative to the probabilities estimated by counting.  At 0, the counting
+# estimates are believed 100%, even to the extent of assigning certainty
+# (0 or 1) to a word that has appeared in only ham or only spam.  This
+# is a disaster.
+#
+# As unknown_word_strength tends toward infintity, all probabilities tend
+# toward unknown_word_prob.  All reports were that a value near 0.4 worked
+# best, so this does not seem to be corpus-dependent.
+unknown_word_prob: 0.5
+unknown_word_strength: 0.45
 
 # When scoring a message, ignore all words with
-# abs(word.spamprob - 0.5) < robinson_minimum_prob_strength.
+# abs(word.spamprob - 0.5) < minimum_prob_strength.
 # This may be a hack, but it has proved to reduce error rates in many
-# tests over Robinsons base scheme.  0.1 appeared to work well across
-# all corpora.
-robinson_minimum_prob_strength: 0.1
+# tests.  0.1 appeared to work well across all corpora.
+minimum_prob_strength: 0.1
 
-# The combining scheme currently detailed on Gary Robinons web page.
+# The combining scheme currently detailed on the Robinon web page.
 # The middle ground here is touchy, varying across corpus, and within
 # a corpus across amounts of training data.  It almost never gives extreme
 # scores (near 0.0 or 1.0), but the tail ends of the ham and spam
@@ -271,15 +271,15 @@ robinson_minimum_prob_strength: 0.1
 use_gary_combining: False
 
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
-# follows the chi-squared distribution with 2*n degrees of freedom.  That is
-# the "provably most-sensitive" test Garys original scheme was monotonic
+# follows the chi-squared distribution with 2*n degrees of freedom.  This is
+# the "provably most-sensitive" test the original scheme was monotonic
 # with.  Getting closer to the theoretical basis appears to give an excellent
 # combining method, usually very extreme in its judgment, yet finding a tiny
 # (in # of msgs, spread across a huge range of scores) middle ground where
-# lots of the mistakes live.  This is the best method so far on Tims data.
-# One systematic benefit is that it is immune to "cancellation disease".  One
-# systematic drawback is that it is sensitive to *any* deviation from a
-# uniform distribution, regardless of whether that is actually evidence of
+# lots of the mistakes live.  This is the best method so far.
+# One systematic benefit is is immunity to "cancellation disease".  One
+# systematic drawback is sensitivity to *any* deviation from a
+# uniform distribution, regardless of whether actually evidence of
 # ham or spam.  Rob Hooft alleviated that by combining the final S and H
 # measures via (S-H+1)/2 instead of via S/(S+H)).
 # In practice, it appears that setting ham_cutoff=0.05, and spam_cutoff=0.95,
@@ -380,9 +380,9 @@ all_options = {
     'CV Driver': {'build_each_classifier_from_scratch': boolean_cracker,
                  },
     'Classifier': {'max_discriminators': int_cracker,
-                   'robinson_probability_x': float_cracker,
-                   'robinson_probability_s': float_cracker,
-                   'robinson_minimum_prob_strength': float_cracker,
+                   'unknown_word_prob': float_cracker,
+                   'unknown_word_strength': float_cracker,
+                   'minimum_prob_strength': float_cracker,
                    'use_gary_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
                    },

@@ -43,7 +43,7 @@ class IterOOBTree(OOBTree):
 
 class WordInfo(Persistent):
 
-    def __init__(self, atime, spamprob=options.robinson_probability_x):
+    def __init__(self, atime, spamprob=options.unknown_word_prob):
         self.atime = atime
         self.spamcount = self.hamcount = self.killcount = 0
         self.spamprob = spamprob

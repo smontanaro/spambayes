@@ -28,9 +28,9 @@ program = sys.argv[0]
 
 default="""
 [Classifier]
-robinson_probability_x = 0.5
-robinson_minimum_prob_strength = 0.1
-robinson_probability_s = 0.45
+unknown_word_prob = 0.5
+minimum_prob_strength = 0.1
+unknown_word_strength = 0.45
 max_discriminators = 150
 
 [TestDriver]
@@ -40,9 +40,9 @@ ham_cutoff = 0.20
 
 import Options
 
-start = (Options.options.robinson_probability_x,
-         Options.options.robinson_minimum_prob_strength,
-         Options.options.robinson_probability_s,
+start = (Options.options.unknown_word_prob,
+         Options.options.minimum_prob_strength,
+         Options.options.unknown_word_strength,
          Options.options.spam_cutoff,
          Options.options.ham_cutoff)
 err = (0.01, 0.01, 0.01, 0.005, 0.01)
@@ -51,9 +51,9 @@ def mkini(vars):
     f=open('bayescustomize.ini', 'w')
     f.write("""
 [Classifier]
-robinson_probability_x = %.6f
-robinson_minimum_prob_strength = %.6f
-robinson_probability_s = %.6f
+unknown_word_prob = %.6f
+minimum_prob_strength = %.6f
+unknown_word_strength = %.6f
 
 [TestDriver]
 spam_cutoff = %.4f

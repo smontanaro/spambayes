@@ -69,7 +69,7 @@ class WordInfo(object):
     # once-hot topic or scam that's fallen out of favor.  Whatever, if
     # a word is no longer being used, it's just wasting space.
 
-    def __init__(self, atime, spamprob=options.robinson_probability_x):
+    def __init__(self, atime, spamprob=options.unknown_word_prob):
         self.atime = atime
         self.spamcount = self.hamcount = self.killcount = 0
         self.spamprob = spamprob
@@ -321,8 +321,8 @@ class Bayes:
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
 
-        S = options.robinson_probability_s
-        StimesX = S * options.robinson_probability_x
+        S = options.unknown_word_strength
+        StimesX = S * options.unknown_word_prob
 
         for word, record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
@@ -448,8 +448,8 @@ class Bayes:
                     wordinfo[word] = record
 
     def _getclues(self, wordstream):
-        mindist = options.robinson_minimum_prob_strength
-        unknown = options.robinson_probability_x
+        mindist = options.minimum_prob_strength
+        unknown = options.unknown_word_prob
 
         clues = []  # (distance, prob, word, record) tuples
         pushclue = clues.append
