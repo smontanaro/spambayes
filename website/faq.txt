@@ -57,6 +57,31 @@ field to the message.  Depending on which Spambayes application you are
 using, it may then filter this message for you, or you can set up your own
 filters (to file away suspected spam into its own mail folder, for example).
 
+What is the license? How much does it cost? Can I pay anyway?
+-------------------------------------------------------------
+
+SpamBayes is free and open-source - there is no charge.  The software
+is released under `the PSA license`_.
+
+If you really feel that your life would be incomplete without giving 
+something back to the project, you have a few options:
+
+* Donate you time to help improve the project.  This includes many 
+  items that do not require much in the way of technical skills.  See
+  the `I'm not a programmer but still want to help`_ question for more 
+  details.
+
+* Dontate money to the Python Software Foundations.  For more 
+  information, including why you would want to donate to the PSF,
+  please see our `donations page`_.
+
+* Investigate some of the commercial programs based on the SpamBayes code.
+  This should give you some additional benefits like support or greater 
+  ease-of-use.
+
+.. _the PSA license: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/LICENSE.txt
+.. _I'm not a programmer but still want to help: #i-m-not-a-programmer-but-want-to-help-out-what-can-i-do
+.. _donations page: donations.html
 
 What online resources are available?
 ------------------------------------
@@ -734,34 +759,6 @@ Words less than 3 characters long are skipped, and words greater than 12
 characters long are converted into a special 'long-word' token.  These
 numbers (3 and 12) were determined by brute force testing, and produced the
 best overall results (including compared to no upper or lower limits).
-
-
-Do I have to pay for SpamBayes?  Can I pay you money if I really want to?
--------------------------------------------------------------------------
-
-SpamBayes is free and open-source - there is no charge, and we really
-aren't interested in your money (on the other hand, if you want to donate
-time towards testing, documenting or development - please sign up!).
-
-If you really feel that your life would be incomplete without giving some
-money towards the project, you have a couple of options.  There are some
-commercial programs that are based on the SpamBayes code, so you could
-purchase one of those; this should give you some additional benefits like
-support or greater ease-of-use as well.
-
-The employer of one of the project's
-founders (Tim Peters) paid for the initial research and coding on the
-SpamBayes project.  Open source does very well at the latter but not so
-well at the former (research on statistical algorithms is time-consuming
-and tedious, and there's no a priori guarantee of success).  One thing the
-`Python Software Foundation (PSF)`_ hopes to do in coming years is fund
-core research -- but last time they worked out the details, it seemed to
-require some funds first <wink>.  Therefore, if you'd rather contribute
-closer to the SpamBayes source, the PSF would be the most appropriate place
-to invest your life's savings.
-
-.. _Python Software Foundation (PSF): http://www.python.org/psf/donations.html
-
 
 I'm not a programmer, but want to help out - what can I do?
 -----------------------------------------------------------

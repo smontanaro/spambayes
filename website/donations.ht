@@ -47,8 +47,16 @@ seems the logical choice.</p>
 <p>Your SpamBayes donation goes into the general PSF fund; it is not
 earmarked specifically for the SpamBayes project.  In the future, the PSF
 may make additional funds available for SpamBayes, for some other worthy
-Open Source project, or for some other purpose within its charter.  You
-may like to read the
+Open Source project, or for some other purpose within its charter.</p>
+
+<p>Open Source has a great history of producing fine code,
+but less so when it comes to performing the kinds of research required
+for these kinds of projects (research on statistical algorithms is 
+time-consuming and tedious, and there's no a priori guarantee of success).
+One thing the PSF hopes to do in coming years is fund the core research
+needed to springboard these kinds of projects.</p>
+
+<p>You may like to read the
 <a href="http://www.python.org/psf/mission.html">PSF Mission Statement</a>
 for more details.</p>
 

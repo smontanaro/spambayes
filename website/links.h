@@ -5,6 +5,7 @@
 <li><a href="applications.html">Applications</a>
 <li><a href="developer.html">Developers</a>
 <li><a href="related.html">Related</a>
+<li><a href="donations.html">Donate</a>
 <h3>Platforms</h3>
 <li><a href="windows.html">Windows</a>
 <li><a href="unix.html">Unix/Linux</a>
