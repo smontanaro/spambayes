@@ -153,7 +153,7 @@ except ImportError: # appears in 151 and later.
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
 def ProcessMessage(msgstore_message, manager):
-    if msgstore_message.GetField(manager.config.field_score_name) is not None:
+    if msgstore_message.GetField(manager.config.general.field_score_name) is not None:
         # Already seem this message - user probably moving it back
         # after incorrect classification.
         # If enabled, re-train as Ham
@@ -223,7 +223,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         if not self.manager.config.training.train_manual_spam:
             return
         msgstore_message = self.manager.message_store.GetMessage(item)
-        prop = msgstore_message.GetField(self.manager.config.field_score_name)
+        prop = msgstore_message.GetField(self.manager.config.general.field_score_name)
         if prop is not None:
             import train
             trained_as_good = train.been_trained_as_ham(msgstore_message, self.manager)
@@ -479,8 +479,8 @@ class ExplorerWithEvents:
                         None,
                         constants.msoControlPopup,
                         None, None,
-                        Caption="Anti-Spam",
-                        TooltipText = "Anti-Spam filters and functions",
+                        Caption="SpamBayes",
+                        TooltipText = "SpamBayes anti-spam filters and functions",
                         Enabled = True,
                         Tag = "SpamBayesCommand.Popup")
         # Convert from "CommandBarItem" to derived
@@ -600,8 +600,12 @@ class ExplorerWithEvents:
     # The Outlook event handlers
     def OnActivate(self):
         # See comments for OnNewExplorer below.
-        # *sigh* - OnActivate seems too early too :(
-        pass
+        # *sigh* - OnActivate seems too early too for Outlook 2000,
+        # but Outlook 2003 seems to work here, and *not* the folder switch etc
+        # This also appears to solve some issues relating to multi-profiles
+        # on 2000 (where secondary profiles appears to behave closer to 2003)
+        if not self.have_setup_ui:
+            self.SetupUI() 
 
     def OnSelectionChange(self):
         # See comments for OnNewExplorer below.
@@ -729,6 +733,20 @@ class OutlookAddin:
                 self.explorers_events._DoNewExplorer(explorer, True)
     
             if self.manager.config.filter.enabled:
+                # A little "sanity test" to help the user.  If our status is
+                # 'enabled', then it means we have previously managed to
+                # convince the manager dialog we have enough ham/spam and
+                # valid folders.  If for some reason, we have zero ham or spam,
+                # or no folder definitions but are 'enabled', then it is likely
+                # something got hosed and the user doesn't know.
+                if self.manager.bayes.nham==0 or \
+                   self.manager.bayes.nspam==0 or \
+                   not self.manager.config.filter.spam_folder_id or \
+                   not self.manager.config.filter.watch_folder_ids:
+                    msg = "It appears there was an error loading your configuration\r\n\r\n" \
+                          "Please re-configure SpamBayes via the SpamBayes dropdown"
+                    self.manager.ReportError(msg)
+                # But continue on regardless.
                 self.FiltersChanged()
                 try:
                     self.ProcessMissedMessages()
@@ -747,7 +765,7 @@ class OutlookAddin:
         from time import clock
         config = self.manager.config.filter
         manager = self.manager
-        field_name = manager.config.field_score_name
+        field_name = manager.config.general.field_score_name
         for folder in manager.message_store.GetFolderGenerator(
                                     config.watch_folder_ids,
                                     config.watch_include_sub):

@@ -11,7 +11,6 @@ import win32com.client
 import win32com.client.gencache
 import pythoncom
 
-import config
 import msgstore
 
 try:
@@ -56,23 +55,31 @@ except ImportError:
 # imports is delayed, so that we can set the BAYESCUSTOMIZE envar
 # first (if we import anything from the core spambayes code before
 # setting that envar, our .ini file may have no effect).
-def import_core_spambayes_stuff(ini_filename):
-    global bayes_classifier, bayes_tokenize, bayes_storage
-
-    os.environ["BAYESCUSTOMIZE"] = ini_filename
+# However, we want *some* Spambayes code before the options are processed
+# so this is now 2 steps - get the "early" spambayes core stuff (which
+# must not import spambayes.Options) and sets up sys.path, and "later" core
+# stuff, which can include spambayes.Options, and assume sys.path in place.
+def import_early_core_spambayes_stuff():
     try:
-        from spambayes import classifier
+        from spambayes import OptionsClass
     except ImportError:
         parent = os.path.abspath(os.path.join(os.path.dirname(this_filename),
                                               ".."))
         sys.path.insert(0, parent)
 
+def import_core_spambayes_stuff(ini_filename):
+    assert "spambayes.Options" not in sys.modules, \
+        "'spambayes.Options' was imported too early"
+    global bayes_classifier, bayes_tokenize, bayes_storage
+    os.environ["BAYESCUSTOMIZE"] = ini_filename
     from spambayes import classifier
     from spambayes.tokenizer import tokenize
     from spambayes import storage
     bayes_classifier = classifier
     bayes_tokenize = tokenize
     bayes_storage = storage
+    assert "spambayes.Options" in sys.modules, \
+        "Expected 'spambayes.Options' to be loaded here"
 
 class ManagerError(Exception):
     pass
@@ -171,37 +178,62 @@ class DBStorageManager(BasicStorageManager):
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
         self.reported_startup_error = False
-        self.config = None
+        self.config = self.options = None
         self.addin = None
         self.verbose = verbose
         self.stats = Stats()
-        self.application_directory = os.path.dirname(this_filename)
-        self.data_directory = self.LocateDataDirectory()
-        self.MigrateDataDirectory()
-        if not os.path.isabs(config_base):
-            config_base = os.path.join(self.data_directory,
-                                       config_base)
-        config_base = os.path.abspath(config_base)
-
-        self.ini_filename = config_base + "_bayes_customize.ini"
-        self.config_filename = config_base + "_configuration.pck"
-
-        # Read the configuration file.
-        self.config = self.LoadConfig()
-
         self.outlook = outlook
 
-        import_core_spambayes_stuff(self.ini_filename)
+        import_early_core_spambayes_stuff()
 
-        bayes_base = config_base + "_bayes_database"
-        mdb_base = config_base + "_message_database"
+        self.application_directory = os.path.dirname(this_filename)
+        # where windows would like our data stored (and where
+        # we do, unless overwritten via a config file)
+        self.windows_data_directory = self.LocateDataDirectory()
+        # Read the primary configuration files
+        self.PrepareConfig()
+
+        # See if the initial config files specify a
+        # "data directory".  If so, use it, otherwise
+        # use the default Windows data directory for our app.
+        value = self.config.general.data_directory
+        if value:
+            try:
+                if not os.path.isdir(value):
+                    os.makedirs(value)
+                if not os.path.isdir(value):
+                    raise os.error
+                value = os.path.abspath(value)
+            except os.error:
+                print "The configuration files have specified a data directory of"
+                print repr(value)
+                print "but it is not valid.  Using default"
+                value = None
+        if value:
+            self.data_directory = value
+        else:
+            self.data_directory = self.windows_data_directory
+            
+        # Now we have the data directory, migrate anything needed, and load
+        # any config from it.
+        self.MigrateDataDirectory()
+
+        # Get the message store before loading config, as we use the profile
+        # name.
+        self.message_store = msgstore.MAPIMsgStore(outlook)
+        self.LoadConfig()
+
+        bayes_options_filename = os.path.join(self.data_directory, "default_bayes_customize.ini")
+        import_core_spambayes_stuff(bayes_options_filename)
+
+        bayes_base = os.path.join(self.data_directory, "default_bayes_database")
+        mdb_base = os.path.join(self.data_directory, "default_message_database")
         # determine which db manager to use, and create it.
         ManagerClass = [PickleStorageManager, DBStorageManager][use_db]
         self.db_manager = ManagerClass(bayes_base, mdb_base)
 
         self.bayes = self.message_db = None
         self.LoadBayes()
-        self.message_store = msgstore.MAPIMsgStore(outlook)
 
     def ReportError(self, message, title = None):
         ReportError(message, title)
@@ -318,7 +350,7 @@ class BayesManager:
         folder = msgstore_folder.GetOutlookItem()
         if self.verbose > 1:
             print "Checking folder '%s' for our field '%s'" \
-                  % (self.config.field_score_name,folder.Name.encode("mbcs", "replace"))
+                  % (self.config.general.field_score_name,folder.Name.encode("mbcs", "replace"))
         items = folder.Items
         item = items.GetFirst()
         while item is not None:
@@ -332,7 +364,7 @@ class BayesManager:
             # *sigh* - need to search by int index
             for i in range(ups.Count):
                 up = ups[i+1]
-                if up.Name == self.config.field_score_name:
+                if up.Name == self.config.general.field_score_name:
                     break
             else: # for not broken
                 try:
@@ -340,7 +372,7 @@ class BayesManager:
                     # the combo box in the outlook UI for the given data type.
                     # 1 is the first - "Rounded", which seems fine.
                     format = 1
-                    ups.Add(self.config.field_score_name,
+                    ups.Add(self.config.general.field_score_name,
                            win32com.client.constants.olPercent,
                            True, # Add to folder
                            format)
@@ -365,10 +397,6 @@ class BayesManager:
     def LoadBayes(self):
         import time
         start = time.clock()
-        if not os.path.exists(self.ini_filename):
-            raise ManagerError("The file '%s' must exist before the "
-                               "database '%s' can be opened or created" % (
-                               self.ini_filename, self.db_manager.bayes_filename))
         bayes = message_db = None
         try:
             # file-not-found handled gracefully by storage.
@@ -402,35 +430,109 @@ class BayesManager:
         if self.verbose:
             print "Loaded databases in %gms" % ((time.clock()-start)*1000)
 
-    def LoadConfig(self):
-        # Our 'config' file always uses a pickle
+    def PrepareConfig(self):
+        # Load our Outlook specific configuration.  This is done before
+        # SpamBayes is imported, and thus we are able to change the INI
+        # file used for the engine.  It is also done before the primary
+        # options are loaded - this means we can change the directory
+        # from which these options are loaded.
+        import config
+        self.options = config.CreateConfig()
+        # Note that self.options really *is* self.config - but self.config
+        # allows a "." notation to access the values.  Changing one is reflected
+        # immediately in the other.
+        self.config = config.OptionsContainer(self.options)
+
+        filename = os.path.join(self.application_directory, "default_configuration.ini")
+        self._MergeConfigFile(filename)
+
+        filename = os.path.join(self.windows_data_directory, "default_configuration.ini")
+        self._MergeConfigFile(filename)
+
+    def _MergeConfigFile(self, filename):
         try:
-            f = open(self.config_filename, 'rb')
+            self.options.merge_file(filename)
+        except:
+            msg = "The configuration file named below is invalid.\r\n" \
+                    "Please either correct or remove this file\r\n\r\n" \
+                    "Filename: " + filename
+            self.ReportError(msg)
+
+    def LoadConfig(self):
+        profile_name = self.message_store.GetProfileName()
+        if profile_name is None:
+            # should only happen in source-code versions - older win32alls can't
+            # determine this.
+            profile_name = "unknown_profile"
+        else:
+            # xxx - remove me sometime - win32all grew this post 154(ish)
+            # binary never released with this, so we can be a little more brutal
+            # Try and rename to current profile, silent failure
+            try:
+                os.rename(os.path.join(self.data_directory, "unknown_profile.ini"),
+                          os.path.join(self.data_directory, profile_name + ".ini"))
+            except os.error:
+                pass
+
+        self.config_filename = os.path.join(self.data_directory, profile_name + ".ini")
+        # Now load it up
+        self._MergeConfigFile(self.config_filename)
+        self.MigrateOldPickle()
+
+    def MigrateOldPickle(self):
+        assert self.config is not None, "Must have a config"
+        pickle_filename = os.path.join(self.data_directory,
+                                       "default_configuration.pck")
+        try:
+            f = open(pickle_filename, 'rb')
         except IOError:
             if self.verbose:
-                print ("Created new configuration file '%s'" %
-                       self.config_filename)
-            return config.ConfigurationRoot()
-
+                print "No old pickle file to migrate"
+            return
+        print "Migrating old pickle '%s'" % pickle_filename
         try:
-            ret = cPickle.load(f)
+            try:
+                old_config = cPickle.load(f)
+            except IOError, details:
+                print "FAILED to load old pickle"
+                print details
+                msg = "There was an error loading your old\r\n" \
+                      "SpamBayes configuration file.\r\n\r\n" \
+                      "It is likely that you will need to re-configure\r\n" \
+                      "SpamBayes before it will function correctly."
+                self.ReportError(msg)
+                # But we can't abort yet - we really should still try and
+                # delete it, as we aren't gunna work next time in this case!
+                old_config = None
+        finally:
             f.close()
-            if self.verbose > 1:
-                print "Loaded configuration from '%s':" % self.config_filename
-                ret._dump()
-        except IOError, details:
-            # File-not-found - less serious.
-            ret = config.ConfigurationRoot()
-            if self.verbose > 1:
-                # filename included in exception!
-                print "IOError loading configuration (%s) - using default:" % (details)
-        except:
-            # Any other error loading configuration is nasty, but should not
-            # cause a fatal error.
-            msg = "FAILED to load configuration from '%s'" % (self.config_filename,)
-            self.ReportFatalStartupError(msg)
-            ret = config.ConfigurationRoot()
-        return ret
+        if old_config is not None:
+            for section, items in old_config.__dict__.items():
+                print " migrating section '%s'" % (section,)
+                # exactly one value wasn't in a section - now in "general"
+                dict = getattr(items, "__dict__", None)
+                if dict is None:
+                    dict = {section: items}
+                    section = "general"
+                for name, value in dict.items():
+                    sect = getattr(self.config, section)
+                    setattr(sect, name, value)
+        # Save the config, then delete the pickle so future attempts to
+        # migrate will fail.  We save first, so failure here means next
+        # attempt should still find the pickle.
+        if self.verbose:
+            print "pickle migration doing initial configuration save"
+        self.SaveConfig()
+        try:
+            if self.verbose:
+                print "pickle migration removing '%s'" % pickle_filename
+            os.remove(pickle_filename)
+        except os.error:
+            msg = "There was an error migrating and removing your old\r\n" \
+                  "SpamBayes configuration file.  Configuration changes\r\n" \
+                  "you make are unlikely to be reflected next\r\n" \
+                  "time you start Outlook.  Please try rebooting."
+            self.ReportError(msg)
 
     def InitNewBayes(self):
         if self.bayes is not None:
@@ -480,12 +582,11 @@ class BayesManager:
         return self.bayes
 
     def SaveConfig(self):
+        print "Saving configuration ->", self.config_filename
         if self.verbose > 1:
-            print "Saving configuration:"
-            self.config._dump()
-            print " ->", self.config_filename
-        assert self.config, "Have no config to save!"
-        SavePickle(self.config, self.config_filename)
+            self.options.display()
+        assert self.config and self.options, "Have no config to save!"
+        self.options.update_file(self.config_filename)
 
     def Save(self):
         # No longer save the config here - do it explicitly when changing it

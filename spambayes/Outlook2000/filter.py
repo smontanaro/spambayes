@@ -32,7 +32,7 @@ def filter_message(msg, mgr, all_actions=True):
             # Save the score
             # Catch this exception, as failing to save the score need not
             # be fatal - it may still be possible to perform the move.
-            msg.SetField(mgr.config.field_score_name, prob)
+            msg.SetField(mgr.config.general.field_score_name, prob)
             # and the ID of the folder we were in when scored.
             # (but only if we want to perform all actions)
             # Note we must do this, and the Save, before the
@@ -41,6 +41,10 @@ def filter_message(msg, mgr, all_actions=True):
                 msg.RememberMessageCurrentFolder()
             msg.Save()
         except:
+            # XXX - unfortunately, for the case I added this code, a failing
+            # Save *did* imply a failing Move :(
+            # I also heard a rumour hotmail works if we do 2 saves.
+            # This should be revisited.
             print "Failed to save the Spam score for message ", msg
             import traceback
             traceback.print_exc()
@@ -81,12 +85,13 @@ def filter_folder(f, mgr, progress):
     only_unseen = config.only_unseen
     all_actions = config.action_all
     dispositions = {}
+    field_name = mgr.config.general.field_score_name
     for message in f.GetMessageGenerator():
         if progress.stop_requested():
             break
         progress.tick()
         if only_unread and not message.unread or \
-           only_unseen and message.GetField(mgr.config.field_score_name) is not None:
+           only_unseen and message.GetField(field_name) is not None:
             continue
         try:
             disposition = filter_message(message, mgr, all_actions)
