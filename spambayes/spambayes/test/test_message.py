@@ -3,6 +3,7 @@
 import os
 import sys
 import math
+import time
 import email
 import unittest
 
@@ -565,7 +566,11 @@ class MessageInfoBaseTest(unittest.TestCase):
         self.assertEqual(self.done, True)
         correct = [(att, getattr(msg, att)) \
                    for att in msg.stored_attributes]
-        self.assertEqual(self.db.db[msg.id], correct)
+        db_version = dict(self.db.db[msg.id])
+        correct_version = dict(correct)
+        self.assertEqual(db_version["date_modified"], time.time())
+        del db_version["date_modified"]
+        self.assertEqual(db_version, correct_version)
 
     def _fake_store(self):
         self.done = True
