@@ -280,11 +280,14 @@ class UserInterface(BaseUserInterface):
 
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
+        # XXX This doesn't get recorded in the session counts
+        # XXX for messages classified.  That seems right to me (Tony),
+        # XXX but is easily changed if it isn't.
+        self._writePreamble(_("Classify"))
         message = file or text
         message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
         results = self._buildCluesTable(message)
         results.classifyAnother = self._buildClassifyBox()
-        self._writePreamble(_("Classify"))
         self.write(results)
         self._writePostamble()
 
@@ -541,7 +544,8 @@ class UserInterface(BaseUserInterface):
         for message in messages:
             msg = factory.create(key, message)
             corpus.addMessage(msg)
-            msg.RememberClassification(isSpam)
+            msg.RememberTrained(isSpam)
+            self.stats.RecordTraining(not isSpam)
 
         # Save the database and return a link Home and another training
         # form.
