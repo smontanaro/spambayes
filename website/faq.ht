@@ -17,7 +17,7 @@ To add a new question and answer please do the following:
 
     * Insert the question at the end of the appropriate section of the table
       of contents.  Highlight it with an anchor tag whose href attribute
-      references the name you'll give to the question in the body, e.g.: <a
+      references the name you'll give to the question in the body, e.g., <a
       href="#blarg">question</a>.  Surround the whole question with a
       <li>...</li> pair.
 
@@ -262,11 +262,11 @@ carefully.  Good luck!
             "default_bayes_database".
           </li>
           <li>
-            The tokeniser/classifier. This is the core engine of the system.
+            The tokenizer/classifier. This is the core engine of the system.
             The tokenizer splits emails into tokens (words, roughly
             speaking), and the classifier looks at those tokens to determine
             whether the message looks like spam or not. You don't use the
-            tokeniser/classifier directly - it powers the other parts of the
+            tokenizer/classifier directly - it powers the other parts of the
             system.
           </li>
           <li>
@@ -276,22 +276,22 @@ carefully.  Good luck!
             typical user's email setup looks like this:
 
 <pre>
-       +-----------------+                              +-------------+
-       | Outlook Express |      Internet or intranet    |             |
-       |  (or similar)   | &lt;--------------------------&gt; | POP3 server |
-       |                 |                              |             |
-       +-----------------+                              +-------------+
+    +-----------------+                       +-------------+
+    | Outlook Express |      Internet or      |             |
+    |  (or similar)   | &lt;-------------------&gt; | POP3 server |
+    |                 |      Intranet         |             |
+    +-----------------+                       +-------------+
 </pre>
-            The POP3 server runs either at your ISP for internet mail, or
+            The POP3 server runs either at your ISP for Internet mail, or
             somewhere on your internal network for corporate mail. The POP3
             proxy sits in the middle and adds the classification header as
             you retrieve your email:
 <pre>
-       +-----------------+        +------------+        +-------------+
-       | Outlook Express |        | Spambayes  |        |             |
-       |  (or similar)   | &lt;----&gt; | POP3 proxy | &lt;----&gt; | POP3 server |
-       |                 |        |            |        |             |
-       +-----------------+        +------------+        +-------------+
+    +-----------------+      +------------+      +-------------+
+    | Outlook Express |      | Spambayes  |      |             |
+    |  (or similar)   | &lt;--&gt; | POP3 proxy | &lt;--&gt; | POP3 server |
+    |                 |      |            |      |             |
+    +-----------------+      +------------+      +-------------+
 </pre>
             So where you currently have your email client configured to talk
             to say, "pop3.my-isp.com", you instead configure the
@@ -311,24 +311,24 @@ carefully.  Good luck!
             setup looks like this:
 
 <pre>
-       +-----------------+                              +-------------+
-       | Outlook Express |      Internet or intranet    |             |
-       |  (or similar)   | &lt;--------------------------&gt; | SMTP server |
-       |                 |                              |             |
-       +-----------------+                              +-------------+
+    +-----------------+                       +-------------+
+    | Outlook Express |      Internet or      |             |
+    |  (or similar)   | &lt;-------------------&gt; | SMTP server |
+    |                 |      Intranet         |             |
+    +-----------------+                       +-------------+
 </pre>
 
-            The SMTP server runs either at your ISP for internet mail, or
+            The SMTP server runs either at your ISP for Internet mail, or
             somewhere on your internal network for corporate mail. The SMTP
             proxy sits in the middle and checks for mail to train on as you
             send your email:
 
 <pre>
-       +-----------------+        +------------+        +-------------+
-       | Outlook Express |        | Spambayes  |        |             |
-       |  (or similar)   | &lt;----&gt; | SMTP proxy | &lt;----&gt; | SMTP server |
-       |                 |        |            |        |             |
-       +-----------------+        +------------+        +-------------+
+    +-----------------+      +------------+      +-------------+
+    | Outlook Express |      | Spambayes  |      |             |
+    |  (or similar)   | &lt;--&gt; | SMTP proxy | &lt;--&gt; | SMTP server |
+    |                 |      |            |      |             |
+    +-----------------+      +------------+      +-------------+
 </pre>
 
             So where you currently have your email client configured to talk
@@ -343,7 +343,7 @@ carefully.  Good luck!
 
           </li>
           <li>
-        
+
             The web interface. This is a server that runs alongside the POP3
             proxy, SMTP proxy, and IMAP filter (see below) and lets you
             control it through the web. You can upload emails to it for
@@ -361,10 +361,10 @@ carefully.  Good luck!
             time. The web training interface automatically checks the
             Ham/Spam boxes according to what it thinks, so all you need to
             do it correct the odd mistake - it's very quick and easy.
-        
+
           </li>
           <li>
-            
+
             The Outlook plug-in. For Outlook 2000 and Outlook XP (2002)
             users (not Outlook Express) this lets you manage the whole thing
             from within Outlook. You set up a Ham folder and a Spam folder,
@@ -372,20 +372,20 @@ carefully.  Good luck!
             Alternatively there are buttons to do the same thing. And it
             integrates into Outlook's filtering system to make it easy to
             file all the suspected spam into its own folder, for instance.
-            
+
           </li>
           <li>
-            
+
             The Hammie script. This does three jobs: command-line training,
             procmail filtering, and XML-RPC. See below for details of how to
             use Hammie for training, and how to use it as procmail filter.
             Hammie can also run as an XML-RPC server, so that a programmer
             can write code that uses a remote server to classify emails
             programmatically - see hammiesrv.py.
-            
+
           </li>
           <li>
-            
+
             The IMAP filter. This is a cross between the POP3 proxy and the
             Outlook plugin. If your mail sits on an IMAP server, you can use
             the this to filter your mail. You can designate folders that
@@ -395,7 +395,7 @@ carefully.  Good luck!
             Spambayes is unsure about, and a folder for suspected spam. When
             new mail arrives, the filter will move mail to the appropriate
             location (ham is left in the original folder).
-            
+
           </li>
         </ol>
     </li>
@@ -442,7 +442,7 @@ carefully.  Good luck!
         <p>
           Outlook Express isn't a version of Outlook, it's a completely
           separate program (from the same company). Because they give it
-          away for free, OE is a really stripped down program, and it's
+          away for free, Outlook Express is a really stripped down program, and it's
           extremely difficult to create a plugin for it.
         </p>
         <p>
@@ -499,23 +499,23 @@ carefully.  Good luck!
         Pymacs. This extensibility allows you to easily segregate your
         incoming mail for training purposes. Here's one such example. If you
         place the following code in your ~/.vm file:
-      <pre>
-      (defun copy-to-spam ()
-        (interactive)
-        (vm-save-message (expand-file-name "~/tmp/newspam"))
-        (vm-undelete-message 1))
+<pre>
+    (defun copy-to-spam ()
+      (interactive)
+      (vm-save-message (expand-file-name "~/tmp/newspam"))
+      (vm-undelete-message 1))
 
-      (defun copy-to-nonspam ()
-        (interactive)
-        (vm-save-message (expand-file-name "~/tmp/newham"))
-        (vm-undelete-message 1))
+    (defun copy-to-nonspam ()
+      (interactive)
+      (vm-save-message (expand-file-name "~/tmp/newham"))
+      (vm-undelete-message 1))
 
-      (define-key vm-mode-map "ls" 'copy-to-spam)
-      (define-key vm-summary-mode-map "ls" 'copy-to-spam)
-      (define-key vm-mode-map "lh" 'copy-to-nonspam)
-      (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
+    (define-key vm-mode-map "ls" 'copy-to-spam)
+    (define-key vm-summary-mode-map "ls" 'copy-to-spam)
+    (define-key vm-mode-map "lh" 'copy-to-nonspam)
+    (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
 </pre>
-	
+
       "ls" will save a copy of the current message to ~/tmp/newspam and "lh"
       will save a copy of the current message to ~/tmp/newham. You can then
       use those files later as arguments to hammie.py for training.
@@ -608,7 +608,7 @@ carefully.  Good luck!
 
     <li>
       <span class="faq-header"><a name="webinterface">How do I train
-      Spambayes (web method)</a></span> 
+      Spambayes (web method)</a></span>
       <p>
         Follow the "Review messages" link and you'll see a list of the
         emails that the system has seen so far. Check the appropriate boxes
@@ -673,7 +673,7 @@ carefully.  Good luck!
 <pre>
     hammie.py -g ~/tmp/newham -s ~/tmp/newspam
 </pre>
-        The above command is OS-centric (eg. UNIX, or Windows command
+        The above command is OS-centric (e.g., UNIX, or Windows command
         prompt).  You can also use the web interface for training as
         detailed above.
       </p>
@@ -687,7 +687,7 @@ carefully.  Good luck!
       <p>
         It may be obvious to you, but the classifier only works on the
         information it has been given. Maybe this is "new" (you've never
-        seen this particular flavour of spam before), or maybe there aren't
+        seen this particular flavor of spam before), or maybe there aren't
         enough clues in the message which the system is aware of as strong
         spam clues.
       </p>
@@ -739,15 +739,15 @@ carefully.  Good luck!
         ConfigParser doc</a>, but basically, it's just a text file: lines
         beginning with # are comments, sections start with a line like
         "[Section Name]", and options are set out within the appropriate
-        section with lines like "opt = val" or "opt: val" (either is ok).
+        section with lines like "opt = val" or "opt: val" (either is okay).
         Whitespace other than line endings is for the most part ignored, so
         you can make it look like whatever you like. You can see a list of
         what a configuration file of all the defaults would like like if you
         execute the following Python commands:
-      <pre>
-        &gt;&gt;&gt; from spambayes.Options import options
-        &gt;&gt;&gt; print options.display()
-      </pre>
+<pre>
+    &gt;&gt;&gt; from spambayes.Options import options
+    &gt;&gt;&gt; print options.display()
+</pre>
       </p>
     </li>
 
@@ -779,10 +779,11 @@ carefully.  Good luck!
 </pre>
       If you want a list of all the sections, you can use this command:<br>
 
-      <pre>
-        &gt;&gt;&gt; print options.sections()
-      </pre>If you want a list of all the options, you can use this
-      command:<br>
+<pre>
+    &gt;&gt;&gt; print options.sections()
+</pre>
+
+      If you want a list of all the options, you can use this command:<br>
 
 <pre>
     &gt;&gt;&gt; print options.options(prepend_section_name=False)
@@ -896,7 +897,7 @@ carefully.  Good luck!
         when it's done). Otherwise, you will likely get a message from Tim
         Peters about why you need to test your idea :) Note that as a
         general rule, we've found that with the tokenizer, "stupid beats
-        smart" &mdash; that is, very specialised tokenizer behaviour usually
+        smart" &mdash; that is, very specialized tokenizer behavior usually
         produces worse results than a more general approach that just
         generates tokens and throws them at the classifier.
       </p>
@@ -921,7 +922,7 @@ carefully.  Good luck!
     </li>
 
     <li>
-      <span class="faq-header"><a name="ngrams">Forget tokenising words -
+      <span class="faq-header"><a name="ngrams">Forget tokenizing words -
       you should use character n-grams!</a></span>
 
       <p>
