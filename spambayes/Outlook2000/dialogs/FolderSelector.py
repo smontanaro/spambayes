@@ -5,6 +5,7 @@ import win32con
 import commctrl
 import win32api
 import win32gui
+import winerror
 
 import struct, array
 
