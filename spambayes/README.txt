@@ -49,6 +49,10 @@ timtest.py
     refactoring.  You need to fiddle a line near the top to import a
     tokenize() function of your choosing.
 
+unheader.py
+    A script to remove unwanted headers from an mbox file.  This is mostly
+    useful to delete headers which incorrectly might bias the results.
+
 GBayes.py
     A number of tokenizers and a partial test driver.  This assumes
     an mbox format.  Could stand massive refactoring.  I don't think
