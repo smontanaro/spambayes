@@ -661,8 +661,8 @@ or training will be performed."""
         httpServer.register(IMAPUserInterface(classifier, imap, pwd))
         Dibbler.run(launchBrowser=launchUI)
     else:
-        imap = IMAPSession(server, port, imapDebug, doExpunge)
         while True:
+            imap = IMAPSession(server, port, imapDebug, doExpunge)
             imap.login(username, pwd)
 
             if doTrain:
