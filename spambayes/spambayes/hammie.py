@@ -118,6 +118,7 @@ class Hammie:
             disp = options["Headers", "header_unsure_string"]
         if train:
             self.train(msg, is_spam, True)
+        basic_disp = disp
         disp += ("; %."+str(options["Headers", "header_score_digits"])+"f") % prob
         if options["Headers", "header_score_logarithm"]:
             if prob<=0.005 and prob>0.0:
@@ -130,6 +131,14 @@ class Hammie:
                 disp += " (%d)"%x
         del msg[header]
         msg.add_header(header, disp)
+
+        # Obey notate_to and notate_subject.
+        for header in ('to', 'subject'):
+            if basic_disp in options["Headers", "notate_"+header]:
+                orig = msg[header]
+                del msg[header]
+                msg[header] = "%s,%s" % (basic_disp, orig)
+
         if debug:
             disp = self.formatclues(clues)
             del msg[debugheader]
