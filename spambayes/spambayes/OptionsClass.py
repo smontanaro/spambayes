@@ -574,6 +574,46 @@ class OptionsClass(object):
                                   " value %s (%s)" % 
                                   (sect, opt, val, type(val)))
 
+    def set_from_cmdline(self, arg, stream=None):
+        """Set option from colon-separated sect:opt:val string.
+
+        If optional stream arg is not None, error messages will be displayed
+        on stream, otherwise KeyErrors will be propagated up the call chain.
+        """
+        sect, opt, val = arg.split(':', 2)
+        try:
+            val = self.convert(sect, opt, val)
+        except (KeyError, TypeError), msg:
+            if stream is not None:
+                self._report_option_error(sect, opt, val, stream, msg)
+            else:
+                raise
+        else:
+            self.set(sect, opt, val)
+
+    def _report_option_error(self, sect, opt, val, stream, msg):
+        import textwrap
+        if sect in self.sections():
+            vopts = self.options(True)
+            vopts = [v.split(']', 1)[1] for v in vopts
+                       if v.startswith('[%s]'%sect)]
+            if opt not in vopts:
+                print >> stream, "Invalid option:", opt
+                print >> stream, "Valid options for", sect, "are:"
+                vopts = ', '.join(vopts)
+                vopts = textwrap.wrap(vopts)
+                for line in vopts:
+                    print >> stream, '  ', line
+            else:
+                print >> stream, "Invalid value:", msg
+        else:
+            print >> stream, "Invalid section:", sect
+            print >> stream, "Valid sections are:"
+            vsects = ', '.join(self.sections())
+            vsects = textwrap.wrap(vsects)
+            for line in vsects:
+                print >> stream, '  ', line
+
     def __setitem__(self, key, value):
         self.set(key[0], key[1], value)
 
