@@ -39,13 +39,15 @@ from spambayes.Options import options
 
 WM_TASKBAR_NOTIFY = win32con.WM_USER + 20
 
+START_STOP_ID = 1024
+
 class MainWindow(object):
     def __init__(self):
         # The ordering here is important - it is the order that they will
         # appear in the menu.  As dicts don't have an order, this means
         # that the order is controlled by the id.  Any items were the
         # function is None will appear as separators.
-        self.control_functions = {1024 : ("Start SpamBayes", self.StartStop),
+        self.control_functions = {START_STOP_ID : ("Stop SpamBayes", self.StartStop),
                                   1025 : ("-", None),
                                   1026 : ("View information ...", self.OpenInterface),
                                   1027 : ("Configure ...", self.OpenConfig),
@@ -60,25 +62,25 @@ class MainWindow(object):
 
         # Create the Window.
         hinst = GetModuleHandle(None)
-        # this will replaced with a real configure dialog later
-        # this is mainly to work around not being able to register a window class
-        # with python 2.3
-        dialogTemplate = [['SpamBayes', (14, 10, 246, 187), -1865809852 & ~win32con.WS_VISIBLE, None, (8, 'Tahoma')],]
-        self.hwnd = CreateDialogIndirect(hinst, dialogTemplate, 0, message_map)
+        # This will replaced with a real configure dialog later
+        # This is mainly to work around not being able to register a window
+        # class with Python 2.3
+        dialogTemplate = [['SpamBayes', (14, 10, 246, 187),
+                           -1865809852 & ~win32con.WS_VISIBLE, None,
+                           (8, 'Tahoma')],]
+        self.hwnd = CreateDialogIndirect(hinst, dialogTemplate, 0,
+                                         message_map)
 
-        # Try and find a custom icon
-        # XXX This needs to be done, but first someone needs to make a wee
-        # XXX spambayes icon
-        iconPathName = os.path.abspath( "resources\\sbicon.ico" )
-        if not os.path.isfile(iconPathName):
-            # Look in the source tree.
-            iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
+        # Get the custom icon
+        iconPathName = "%s\\windows\\resources\\sbicon.ico" % \
+                       (os.path.dirname(pop3proxy.__file__),)
+        # When 1.0a6 is released, the above line will need to change to:
+##        iconPathName = "%s\\..\\windows\\resources\\sbicon.ico" % \
+##                       (os.path.dirname(pop3proxy.__file__),)
         if os.path.isfile(iconPathName):
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-            hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0, 0, icon_flags)
-        else:
-            print "Can't find a spambayes icon file - using default"
-            hicon = LoadIcon(0, win32con.IDI_APPLICATION)
+            hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0,
+                              0, icon_flags)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, "SpamBayes")
@@ -152,8 +154,12 @@ class MainWindow(object):
         if self.started:
             pop3proxy.stop(pop3proxy.state)
             self.started = False
+            self.control_functions[START_STOP_ID] = ("Start SpamBayes",
+                                                     self.StartStop)
         else:
             self.StartProxyThread()
+            self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
+                                                     self.StartStop)
 
     def OpenInterface(self):
         webbrowser.open_new("http://localhost:%d/" % \
