@@ -21,6 +21,13 @@ The code here depends in various ways on the latest Python from CVS
 
 Primary Files
 =============
+Options.py
+    A start at a flexible way to control what the tokenizer and
+    classifier do.  Different people are finding different ways in
+    which their test data is biased, and so fiddle the code to
+    worm around that.  It's become almost impossible to know
+    exactly what someone did when they report results.
+
 classifier.py
     An implementation of a Graham-like classifier.
 
