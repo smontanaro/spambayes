@@ -73,6 +73,11 @@ pop3proxy.py
     filters to deal with them without needing to fiddle with your email
     delivery system.
 
+    Also acts as a web server providing a user interface that allows you
+    to train the classifier, classify messages interactively, and query
+    the token database.  This piece will at some point be split out into
+    a separate module.
+
 neiltrain.py
     Builds a CDB (constant database) file of word probabilities using
     spam and non-spam mail.  The database in intended for use with
