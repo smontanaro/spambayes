@@ -914,7 +914,7 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
     function, for example:
 
         [standard getopts code]
-        db_name, db_type = database_types(opts)
+        db_name, db_type = database_type(opts)
         storage = open_storage(db_name, db_type)
 
     The selection is made based on the options passed, or, if the
