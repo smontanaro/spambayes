@@ -97,6 +97,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         self.imap = imap
         self.imap_pwd = pwd
         self.imap_logged_in = False
+        self.app_for_version = "IMAP Filter"
 
     def onHome(self):
         """Serve up the homepage."""

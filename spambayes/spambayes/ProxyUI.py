@@ -117,6 +117,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                              parm_ini_map)
         state = proxy_state
         self.state_recreator = state_recreator # ugly
+        self.app_for_version = "POP3 Proxy"
 
     def onHome(self):
         """Serve up the homepage."""

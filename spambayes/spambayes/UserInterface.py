@@ -73,6 +73,7 @@ import types
 import StringIO
 
 import PyMeldLite
+import Version
 import Dibbler
 import tokenizer
 from Options import options, optionsPathname, defaults
@@ -95,6 +96,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         Dibbler.HTTPPlugin.__init__(self)
         htmlSource, self._images = self.readUIResources()
         self.html = PyMeldLite.Meld(htmlSource, readonly=True)
+        self.app_for_version = None
 
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
@@ -102,11 +104,13 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
                clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
 
     def _getHTMLClone(self):
-        """Gets a clone of the HTML, with the footer timestamped, ready to be
-        modified and sent to the browser."""
+        """Gets a clone of the HTML, with the footer timestamped, and
+        version information added, ready to be modified and sent to the
+        browser."""
         clone = self.html.clone()
         timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
         clone.footer.timestamp = timestamp
+        clone.footer.version = Version.get_version_string(self.app_for_version)
         return clone
 
     def _writePreamble(self, name, parent=None, showImage=True):
