@@ -574,6 +574,10 @@ html_re = re.compile(r"""
     >
 """, re.VERBOSE)
 
+# An equally cheap-ass gimmick to strip style sheets
+stylesheet_re = re.compile(r"<style>.{0,2000}?</style>", 
+                    re.IGNORECASE|re.DOTALL)
+
 received_host_re = re.compile(r'from (\S+)\s')
 received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
 
@@ -1039,6 +1043,7 @@ class Tokenizer:
             if (part.get_content_type() == "text/plain" or
                     not options.retain_pure_html_tags):
                 text = html_re.sub(' ', text)
+                text = stylesheet_re.sub(' ', text)
 
             # Tokenize everything in the body.
             for w in text.split():
