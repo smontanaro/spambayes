@@ -5,16 +5,25 @@ spambayes@python.org mailing list.  Please read this message carefully to
 see if it answers your question(s).
 
 
+Before you do anything else:
+----------------------------
+
+Before asking a question on the list, please take a moment and check the
+frequently asked questions page:
+
+    http://spambayes.sourceforge.net/faq.html
+
+
 What is Spambayes?
 ------------------
 
 The Spambayes project was formed to develop a Bayesian anti-spam filter, 
 initially based on the work of Paul Graham.  The major difference between 
-this and other, similar projects is the emphasis on testing newer 
+this and other, similar, projects is the emphasis on testing newer 
 approaches to scoring messages.  You can read all about Spambayes on the 
 project's website:
 
-    http://spambayes.sf.net/
+    http://spambayes.org/
 
 
 Will Spambayes run on my system/in my environment?
@@ -28,15 +37,15 @@ how you get mail from a mail server.
 I'm having trouble installing Spambayes.  Help!
 -----------------------------------------------
 
-There were problems installing the Outlook plug-in on some combinations of
-Windows and Outlook for early versions of the plug-in.  Version 003 seems to
-install properly with all combinations of Windows and Outlook which have
-been tried so far.  As of 2003-07-28, the most recent version is 006.  If
-you are trying to install or run an earlier version, you should upgrade.
+Please ensure that you have the latest version.  As of 2003-08-28, this is
+007 for the Outlook plug-in, and 1.0a4 for everything else.  If you are
+still having trouble, try looking at the bug reports that are currently
+open:
 
-More information about Spambayes and Windows can be found at
+    http://sf.net/tracker/?group_id=61702&atid=498103
 
-    http://spambayes.sf.net/windows.html
+If you can't find anything, then else submit a bug (see below), or if you
+think it's just something you're doing wrong, ask the list.
 
 
 I found a bug.
@@ -61,8 +70,3 @@ earlier threads on the Python developers' mailing list.  You can subscribe
 to the Spambayes mailing list using the form at
 
     http://mail.python.org/mailman/listinfo/spambayes
-
-Before asking a question on the list, please take a moment and check the
-frequently asked questions page:
-
-    http://spambayes.sourceforge.net/faq.html
