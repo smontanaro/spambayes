@@ -7,11 +7,11 @@ web server and write it to standard output.
 By default, this sends the message to the SpamBayes sb_server web
 interface, which will save the message in the 'unknown' cache, ready
 for you to classify it.  It does not do any training, just saves it
-ready for you to classify.
+ready for you to classify (unless you use the -t switch).
 
 usage:  %(progname)s [-h] [-n] [-s server] [-p port] [-r N]
                      [-o section:option:value]
-                     [-t (ham|spam)] [-o section:option:value]
+                     [-t (ham|spam)]
 
 Options:
     -h, --help    - print help and exit
