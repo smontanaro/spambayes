@@ -357,8 +357,10 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             return
         win32ui.DoWaitCursor(1)
         # Delete this item as spam.
+        spam_folder = None
         spam_folder_id = self.manager.config.filter.spam_folder_id
-        spam_folder = msgstore.GetFolder(spam_folder_id)
+        if spam_folder_id:
+            spam_folder = msgstore.GetFolder(spam_folder_id)
         if not spam_folder:
             self.manager.ReportError("You must configure the Spam folder",
                                "Invalid Configuration")
