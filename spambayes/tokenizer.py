@@ -11,6 +11,12 @@ from sets import Set
 
 from Options import options
 
+# Patch encodings.aliases to recognize 'ansi_x3_4_1968'
+from encodings.aliases import aliases # The aliases dictionary
+if not aliases.has_key('ansi_x3_4_1968'):
+    aliases['ansi_x3_4_1968'] = 'ascii'
+del aliases # Not needed any more
+
 ##############################################################################
 # To fold case or not to fold case?  I didn't want to fold case, because
 # it hides information in English, and I have no idea what .lower() does
@@ -729,9 +735,6 @@ def crack_content_xyz(msg):
 
     for x in msg.get_charsets(None):
         if x is not None:
-            if isinstance(x, tuple):
-                assert len(x) == 3
-                x = x[2]
             yield 'charset:' + x.lower()
 
     x = msg.get('content-disposition')
