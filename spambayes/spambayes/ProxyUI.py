@@ -248,7 +248,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         stripe = 0
         if not options["html_ui", "display_to"]:
             del table.to_header
-        for key, messageInfo in keyedMessageInfo:
+        nrows = options["html_ui", "rows_per_section"]
+        for key, messageInfo in keyedMessageInfo[:nrows]:
             row = self.html.reviewRow.clone()
             if label == 'Spam':
                 row.spam.checked = 1

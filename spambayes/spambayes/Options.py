@@ -784,6 +784,11 @@ defaults = {
      """If you activated the HTTP authentication option, you can modify the
      authorized user password here.""",
      r"[\w]+", RESTORE),
+
+    ("rows_per_section", "Rows per section", 10000,
+     """Number of rows to display per ham/spam/unsure section.""",
+     INTEGER, RESTORE),
+
   ),
 
   "imap" : (
