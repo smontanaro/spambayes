@@ -7,9 +7,6 @@ import sys, os, os.path, getopt, cPickle, string
 from win32com.client import Dispatch, constants
 import pythoncom
 import win32con
-import classifier
-from tokenizer import tokenize
-from hammie import createbayes, Hammie
 
 def classify_folder( f, mgr, config, progress):
     hammie = mgr.hammie

@@ -8,10 +8,8 @@ import win32com.client
 import pythoncom
 import win32con
 
-import classifier
-from tokenizer import tokenize
-
 def train_folder( f, isspam, mgr, progress):
+    from tokenizer import tokenize
     for message in mgr.YieldMessageList(f):
         if progress.stop_requested():
             break
