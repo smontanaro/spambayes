@@ -723,14 +723,13 @@ deleted on uninstall - although it *will* stop working.  You can delete this
 yourself in Outlook: right-click on the toolbar, choose "Customize", then
 select the SpamBayes toolbar and click "Delete".
 
-Recently, there have been reports that the uninstaller has left some entries
-in the registry - if this is the case with you, please add to that `bug tracker`_;
-the next release will hopefully resolve this issue.  These should be harmless,
-but if they bother you (and you are confident mucking about with the registry,
-which we do *not* recommend), then you can remove those keys yourself.
+With the 008.1 and earlier versions of the plug-in, some entries may be left
+in the registry.  These should be harmless, but if they bother you (and you
+are confident mucking about with the registry, which we do *not* recommend),
+then you can remove those keys yourself.  Newer versions of the installer
+correctly remove these entries.
 
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
-.. _`bug tracker`: http://sourceforge.net/tracker/index.php?func=detail&aid=832183&group_id=61702&atid=498103
 .. _`a bug with the plug-in`: http://sourceforge.net/tracker/index.php?func=detail&aid=675811&group_id=61702&atid=498103
 
 
