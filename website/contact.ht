@@ -4,30 +4,43 @@ Author: SpamBayes
 
 
 <h2>Mailing lists</h2>
-<p>There are currently five mailing lists of interest:</p>
+<p>There are currently five mailing lists of interest.  All lists are public, and all
+are publicly archived.  This is normal practice for open-source projects, and you
+should be aware that all email sent to one of these addresses will be visible
+to the world:</p>
 <ul>
 <li>
-The 
-<a href="http://mail.python.org/mailman/listinfo/spambayes-announce">spambayes-announce</a> 
-list - a very low volume mailing list announcing new releases.
+The
+<a href="http://mail.python.org/mailman/listinfo/spambayes-announce">spambayes-announce</a>
+list - a very low volume mailing list announcing new releases.  This is a moderated
+mailing list:  all postings to this list are subject to a human moderator's review
+before they're sent to the list.  The moderator will reject off-topic messages.
 </li>
 <li>
-The 
-<a 
+The
+<a
 href="http://mail.python.org/mailman/listinfo/spambayes">spambayes</a>
 user list. General discussions and user queries go here. (This was also the developer list until late May, 2003).
+This list is not moderated, although "unusual" message may be get held automatically,
+for moderator review.  For example, very large messages are held for review, and the
+moderator may reject such messages, asking you to trim their size.
 </li>
 <li>
 The spambayes developers list <a href="http://mail.python.org/mailman/listinfo/spambayes-dev">spambayes-dev</a>. This list is for discussion of
 spambayes development. Please don't use this for user questions ("how do I
-make SB work with Outlook version X"), use the "spambayes" list for that.
+make SB work with Outlook version X?"), use the "spambayes" list for that.  This list is
+also unmoderated.
 </li>
 <li>
 CVS commit messages go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-checkins">spambayes-checkins</a>.
+You shouldn't send email to this list; a program running at SourceForge automatically creates and sends
+emails to this list as a result of code checkins.
 </li>
 <li>
 <a href="http://sourceforge.net">Sourceforge</a> tracker items (bugs, feature requests and patches)
 go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-bugs">spambayes-bugs</a>.
+You shouldn't send email to this list; a program running at SourceForge automatically creates and sends
+emails to this list as a result of changes made to tracker items.
 </li>
 </ul>
 
