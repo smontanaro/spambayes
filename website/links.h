@@ -3,6 +3,7 @@
 <li><a href="background.html">Background</a>
 <li><a href="docs.html">Documentation</a>
 <li><a href="applications.html">Applications</a>
+<li><a href="quotes.html">Reviews/Quotes</a>
 <li><a href="developer.html">Developers</a>
 <li><a href="related.html">Related</a>
 <li><a href="donations.html">Donate</a>
