@@ -383,12 +383,11 @@ class ProxyUserInterface(UserInterface.UserInterface):
             templateRow = page.reviewRow.clone()
             page.table = ""  # To make way for the real rows.
             for header, label in ((options["Headers",
-                                           "header_spam_string"], 'Spam'),
+                                           "header_unsure_string"], 'Unsure'),
                                   (options["Headers",
                                            "header_ham_string"], 'Ham'),
                                   (options["Headers",
-                                           "header_unsure_string"],
-                                   'Unsure')):
+                                           "header_spam_string"], 'Spam')):
                 messages = keyedMessageInfo[header]
                 if messages:
                     subHeader = str(self.html.reviewSubHeader)
