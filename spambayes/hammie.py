@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# At the moment, this requires Python 2.3 from CVS
 
 # A driver for the classifier module and Tim's tokenizer that you can
 # call from procmail.
