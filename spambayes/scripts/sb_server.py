@@ -473,7 +473,8 @@ class BayesProxy(POP3ProxyBase):
             response = response[:-3]
 
         # Break off the first line, which will be '+OK'.
-        ok, messageText = response.split('\n', 1)
+        statusLine, messageText = response.split('\n', 1)
+        ok, statusRemainder = statusLine.split(None, 1)
         if ok.strip().upper() != "+OK":
             # Must be an error response.  Return unproxied.
             return response
