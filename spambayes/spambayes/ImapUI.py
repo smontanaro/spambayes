@@ -84,7 +84,7 @@ parm_map = (
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
     def __init__(self, cls, imap, pwd):
-        global classifier
+        global classifier, parm_map
         # Only offer SSL if it is available
         try:
             from imaplib import IMAP_SSL
