@@ -281,10 +281,15 @@ class ProcessorDialog(TooltipDialog):
     def OnCommand(self, hwnd, msg, wparam, lparam):
         TooltipDialog.OnCommand(self, hwnd, msg, wparam, lparam)
         id = win32api.LOWORD(wparam)
-        handler = self.command_processors.get(id)
-        if handler is None:
+        # Sometimes called after OnDestroy???
+        if self.command_processors is None:
             print "Ignoring OnCommand for", self._GetIDName(id)
             return
+        else:
+            handler = self.command_processors.get(id)
+            if handler is None:
+                print "Ignoring OnCommand for", self._GetIDName(id)
+                return
 
         self.ApplyHandlingOptionValueError(handler.OnCommand, wparam, lparam)
 

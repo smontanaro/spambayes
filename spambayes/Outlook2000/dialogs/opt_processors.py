@@ -72,6 +72,17 @@ class BoolButtonProcessor(OptionControlProcessor):
 
 # A "Combo" processor, that loads valid strings from the option.
 class ComboProcessor(OptionControlProcessor):
+    def __init__(self, window, control_ids, option,text=None):
+        OptionControlProcessor.__init__(self, window, control_ids, option)
+        if text:
+            temp = text.split(",")
+            print temp
+            self.option_to_text = zip(self.option.valid_input(), temp)
+            self.text_to_option = dict(zip(temp, self.option.valid_input()))
+        else:
+            self.option_to_text = zip(self.option.valid_input(),self.option.valid_input())
+            self.text_to_option = dict(self.option_to_text)
+        
     def OnCommand(self, wparam, lparam):
         code = win32api.HIWORD(wparam)
         if code == win32con.CBN_SELCHANGE:
@@ -81,9 +92,9 @@ class ComboProcessor(OptionControlProcessor):
         combo = self.GetControl()
         index = sel_index = 0
         value = self.option.get()
-        for s in self.option.valid_input():
-            win32gui.SendMessage(combo, win32con.CB_ADDSTRING, 0, s)
-            if value.startswith(s):
+        for opt,text in self.option_to_text:
+            win32gui.SendMessage(combo, win32con.CB_ADDSTRING, 0, text)
+            if value.startswith(opt):
                 sel_index = index
             index += 1
         win32gui.SendMessage(combo, win32con.CB_SETCURSEL, sel_index, 0)
@@ -95,7 +106,8 @@ class ComboProcessor(OptionControlProcessor):
         buffer = array.array("c", "\0" * (len + 1))
         win32gui.SendMessage(combo, win32con.CB_GETLBTEXT, sel, buffer)
         # Trim the \0 from the end.
-        self.SetOptionValue(buffer.tostring()[:-1])
+        text = buffer.tostring()[:-1]
+        self.SetOptionValue(self.text_to_option[text])
 
 class EditNumberProcessor(OptionControlProcessor):
     def __init__(self, window, control_ids, option):

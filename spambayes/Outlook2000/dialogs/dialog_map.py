@@ -302,8 +302,10 @@ dialog_map = {
         (MsSliderProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Experimental.timer_start_delay"),
         (MsSliderProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Experimental.timer_interval"),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Experimental.timer_only_receive_folders"),
-        (ComboProcessor,          "IDC_DEL_SPAM_RS", "General.delete_as_spam_message_state"),
-        (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state"),
+        (ComboProcessor,          "IDC_DEL_SPAM_RS", "General.delete_as_spam_message_state",
+         "make no change to the read state,mark as read,mark as unread"),
+        (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state",
+         "make no change to the read state,mark as read,mark as unread"),
         ),
     "IDD_DIAGNOSIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),

@@ -47,13 +47,13 @@ BEGIN
     CONTROL         "Timer only applies to Inbox",IDC_INBOX_TIMER_ONLY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,89,104,10
     GROUPBOX        "Read States",IDC_STATIC,7,104,234,63
-    LTEXT           "When a message is deleted as spam, change its read state to",
-                    IDC_STATIC,17,115,198,8
-    LTEXT           "When a message is recovered from spam, change its read state to",
-                    IDC_STATIC,14,139,214,8
-    COMBOBOX        IDC_DEL_SPAM_RS,25,124,97,54,CBS_DROPDOWNLIST | CBS_SORT | 
+    LTEXT           "When a message is deleted as spam, ",IDC_STATIC,17,115,
+                    121,8
+    LTEXT           "When a message is recovered from spam, ",IDC_STATIC,14,
+                    139,137,8
+    COMBOBOX        IDC_DEL_SPAM_RS,36,124,126,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_RECOVER_RS,25,148,97,63,CBS_DROPDOWNLIST | CBS_SORT | 
+    COMBOBOX        IDC_RECOVER_RS,36,148,126,63,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
 END
 
