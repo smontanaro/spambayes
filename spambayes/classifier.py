@@ -80,10 +80,16 @@ class WordInfo(object):
          self.spamprob) = t
 
 class Bayes(object):
-    __slots__ = ('wordinfo',  # map word to WordInfo record
-                 'nspam',     # number of spam messages learn() has seen
-                 'nham',      # number of non-spam messages learn() has seen
-                )
+    # Defining __slots__ here made Jeremy's life needlessly difficult when
+    # trying to hook this all up to ZODB as a persistent object.  There's
+    # no space benefit worth getting from slots in this class; slots were
+    # used solely to help catch errors earlier, when this code was changing
+    # rapidly.
+
+    #__slots__ = ('wordinfo',  # map word to WordInfo record
+    #             'nspam',     # number of spam messages learn() has seen
+    #             'nham',      # number of non-spam messages learn() has seen
+    #            )
 
     def __init__(self):
         self.wordinfo = {}
