@@ -752,6 +752,7 @@ or training will be performed."""
             if len(pwd) > 0:
                 pwd = pwd[0]
     else:
+        pwd = None
         if not launchUI:
             print "You need to specify both a server and a username."
             sys.exit()
