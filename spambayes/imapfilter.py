@@ -108,7 +108,6 @@ from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
 from spambayes.Version import get_version_string
 
-from imaplib import Debug
 from imaplib import IMAP4
 from imaplib import Time2Internaldate
 try:
@@ -185,7 +184,6 @@ class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
     
     def __init__(self, server, port, debug=0, do_expunge=False):
-        Debug = debug  # this is a global in the imaplib module
         try:
             BaseIMAP.__init__(self, server, port)
         except:
@@ -195,6 +193,7 @@ class IMAPSession(BaseIMAP):
             # or invalid domain (respectively)
             print "Invalid server or port, please check these settings."
             sys.exit(-1)
+        self.debug = debug
         # For efficiency, we remember which folder we are currently
         # in, and only send a select command to the IMAP server if
         # we want to *change* folders.  This function is used by
@@ -345,6 +344,8 @@ class IMAPMessage(message.SBHeaderMessage):
         if not self.has_key(options["pop3proxy", "mailid_header_name"]):
             self[options["pop3proxy", "mailid_header_name"]] = self.id
         self.got_substance = True
+        if options["globals", "verbose"]:
+            sys.stdout.write(chr(8) + "*")
 
     def MoveTo(self, dest):
         '''Note that message should move to another folder.  No move is
@@ -365,6 +366,7 @@ class IMAPMessage(message.SBHeaderMessage):
             an id."""
         response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
+        #print response
         data = _extract_fetch_data(response[1][0])
         if data.has_key("INTERNALDATE"):
             msg_time = data["INTERNALDATE"]
@@ -488,7 +490,9 @@ class IMAPFolder(object):
             msg.Save()
         else:
             msg.setId(mo.group(1))
-        
+
+        if options["globals", "verbose"]:
+            sys.stdout.write(".")
         return msg
 
     # Lifted straight from pop3proxy.py (under the name getNewMessageName)
@@ -524,10 +528,13 @@ class IMAPFolder(object):
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
-
         return num_trained                
 
     def Filter(self, classifier, spamfolder, unsurefolder):
+        count = {}
+        count["ham"] = 0
+        count["spam"] = 0
+        count["unsure"] = 0
         for msg in self:
             if msg.GetClassification() is None:
                 msg.get_substance()
@@ -539,15 +546,17 @@ class IMAPFolder(object):
                 cls = msg.GetClassification()
                 if cls == options["Hammie", "header_ham_string"]:
                     # we leave ham alone
-                    pass
+                    count["ham"] += 1
                 elif cls == options["Hammie", "header_spam_string"]:
                     msg.MoveTo(spamfolder)
+                    count["spam"] += 1
                 else:
                     msg.MoveTo(unsurefolder)
-
+                    count["unsure"] += 1
                 msg.Save()
+        return count
 
-            
+
 class IMAPFilter(object):
     def __init__(self, classifier):
         self.spam_folder = IMAPFolder(options["imap", "spam_folder"])
@@ -597,6 +606,7 @@ class IMAPFilter(object):
     def Filter(self):
         if options["globals", "verbose"]:
             t = time.time()
+            count = None
 
         # Select the spam folder and unsure folder to make sure they exist
         imap.SelectFolder(self.spam_folder.name)
@@ -606,11 +616,14 @@ class IMAPFilter(object):
             # Select the folder to make sure it exists
             imap.SelectFolder(filter_folder)
             folder = IMAPFolder(filter_folder)
-            folder.Filter(self.classifier, self.spam_folder,
+            count = folder.Filter(self.classifier, self.spam_folder,
                           self.unsure_folder)
  
         if options["globals", "verbose"]:
-            print "Filtering took", time.time() - t, "seconds."
+            if count is not None:
+                print "\nClassified %s ham, %s spam, and %s unsure." % \
+                      (count["ham"], count["spam"], count["unsure"])
+            print "Classifying took", time.time() - t, "seconds."
 
  
 def run():
