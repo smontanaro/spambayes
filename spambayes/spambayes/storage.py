@@ -46,6 +46,10 @@ To Do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
+### Note to authors - please direct all prints to sys.stderr.  In some
+### situations prints to sys.stdout will garble the message (e.g., in
+### hammiefilter).
+
 __author__ = "Neale Pickett <neale@woozle.org>, \
 Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "All the spambayes contributors."
@@ -58,6 +62,7 @@ except NameError:
     def bool(val):
         return not not val
 
+import sys
 from spambayes import classifier
 from spambayes.Options import options
 import cPickle as pickle
@@ -96,7 +101,7 @@ class PickledClassifier(classifier.Classifier):
         # tempbayes object is reclaimed when load() returns.
 
         if options.verbose:
-            print 'Loading state from',self.db_name,'pickle'
+            print >> sys.stderr, 'Loading state from',self.db_name,'pickle'
 
         tempbayes = None
         try:
@@ -114,12 +119,13 @@ class PickledClassifier(classifier.Classifier):
             classifier.Classifier.__setstate__(self,
                                                tempbayes.__getstate__())
             if options.verbose:
-                print '%s is an existing pickle, with %d ham and %d spam' \
+                print >> sys.stderr, ('%s is an existing pickle,'
+                                      ' with %d ham and %d spam') \
                       % (self.db_name, self.nham, self.nspam)
         else:
             # new pickle
             if options.verbose:
-                print self.db_name,'is a new pickle'
+                print >> sys.stderr, self.db_name,'is a new pickle'
             self.wordinfo = {}
             self.nham = 0
             self.nspam = 0
@@ -128,7 +134,7 @@ class PickledClassifier(classifier.Classifier):
         '''Store self as a pickle'''
 
         if options.verbose:
-            print 'Persisting',self.db_name,'as a pickle'
+            print >> sys.stderr, 'Persisting',self.db_name,'as a pickle'
 
         fp = open(self.db_name, 'wb')
         pickle.dump(self, fp, PICKLE_TYPE)
@@ -154,7 +160,7 @@ class DBDictClassifier(classifier.Classifier):
         '''Load state from database'''
 
         if options.verbose:
-            print 'Loading state from',self.db_name,'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.dbm = dbmstorage.open(self.db_name, self.mode)
         self.db = shelve.Shelf(self.dbm)
@@ -166,12 +172,13 @@ class DBDictClassifier(classifier.Classifier):
             (self.nspam, self.nham) = t[1:]
 
             if options.verbose:
-                print '%s is an existing database, with %d spam and %d ham' \
+                print >> sys.stderr, ('%s is an existing database,'
+                                      ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
             if options.verbose:
-                print self.db_name,'is a new database'
+                print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
         self.wordinfo = {}
@@ -181,7 +188,7 @@ class DBDictClassifier(classifier.Classifier):
         '''Place state into persistent store'''
 
         if options.verbose:
-            print 'Persisting',self.db_name,'state in database'
+            print >> sys.stderr, 'Persisting',self.db_name,'state in database'
 
         # Iterate over our changed word list.
         # This is *not* thread-safe - another thread changing our
@@ -305,7 +312,7 @@ class SQLClassifier(classifier.Classifier):
                       "  where word=%s",
                       (word,))
         except Exception, e:
-            print "error:", (e, word)
+            print >> sys.stderr, "error:", (e, word)
             raise
         rows = self.fetchall(c)
 
@@ -391,7 +398,7 @@ class PGClassifier(SQLClassifier):
         import psycopg
         
         if options.verbose:
-            print 'Loading state from',self.db_name,'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.db = psycopg.connect(self.db_name)
 
@@ -407,12 +414,13 @@ class PGClassifier(SQLClassifier):
             self.nspam = row["nspam"]
             self.nham = row["nham"]
             if options.verbose:
-                print '%s is an existing database, with %d spam and %d ham' \
+                print >> sys.stderr, ('%s is an existing database,'
+                                      ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
             if options.verbose:
-                print self.db_name,'is a new database'
+                print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
 
@@ -461,7 +469,7 @@ class mySQLClassifier(SQLClassifier):
         import MySQLdb
         
         if options.verbose:
-            print 'Loading state from',self.db_name,'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.db = MySQLdb.connect(host=self.host, db=self.db_name,
                                   user=self.username, passwd=self.password)
@@ -478,12 +486,13 @@ class mySQLClassifier(SQLClassifier):
             self.nspam = int(row[1])
             self.nham = int(row[2])
             if options.verbose:
-                print '%s is an existing database, with %d spam and %d ham' \
+                print >> sys.stderr, ('%s is an existing database,'
+                                      ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
             if options.verbose:
-                print self.db_name,'is a new database'
+                print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
 
@@ -520,7 +529,7 @@ class Trainer:
         '''Train the database with the message'''
 
         if options.verbose:
-            print 'training with',message.key()
+            print >> sys.stderr, 'training with',message.key()
 
         self.bayes.learn(message.tokenize(), self.is_spam)
 #                         self.updateprobs)
@@ -534,7 +543,7 @@ class Trainer:
         '''Untrain the database with the message'''
 
         if options.verbose:
-            print 'untraining with',message.key()
+            print >> sys.stderr, 'untraining with',message.key()
 
         self.bayes.unlearn(message.tokenize(), self.is_spam)
 #                           self.updateprobs)
@@ -613,9 +622,10 @@ def open_storage(data_source_name, useDB=True):
         if str(e) == "No dbm modules available!":
             # We expect this to hit a fair few people, so warn them nicely,
             # rather than just printing the trackback.
-            print """You do not have a dbm module available to use.  You
-need to either use a pickle (see the FAQ), use Python 2.3 (or above), or
-install a dbm module such as bsddb (see http://sf.net/projects/pybsddb)."""
+            print >> sys.stderr, """\
+You do not have a dbm module available to use.  You need to either use a
+pickle (see the FAQ), use Python 2.3 (or above), or install a dbm module
+such as bsddb (see http://sf.net/projects/pybsddb)."""
             import sys
             sys.exit()
 
