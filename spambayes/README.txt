@@ -75,10 +75,10 @@ SpamBayes source into.  This will open a web browser window - click the
 Installation
 ============
 
-The first thing you need to do is run "setup.py install" in the directory
-that you expanded the SpamBayes archive into.  This will install all the
-files that you need into the correct locations.  After this, you can
-delete that directory; it is no longer required.
+The first thing you need to do is run "python setup.py install" in the
+directory that you expanded the SpamBayes archive into.  This will install
+all the files that you need into the correct locations.  After this, you
+can delete that directory; it is no longer required.
 
 Before you begin
 ----------------
