@@ -46,8 +46,6 @@ import re
 import UserInterface
 from Options import options, optionsPathname
 
-global classifier
-
 # These are the options that will be offered on the configuration page.
 # If the option is None, then the entry is a header and the following
 # options will appear in a new box on the configuration page.
@@ -109,7 +107,7 @@ adv_map = (
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
     def __init__(self, cls, imap, pwd):
-        global classifier, parm_map
+        global parm_map
         # Only offer SSL if it is available
         try:
             from imaplib import IMAP_SSL
@@ -118,7 +116,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
             parm_list.remove(("imap", "use_ssl"))
             parm_map = tuple(parm_list)
         UserInterface.UserInterface.__init__(self, cls, parm_map, adv_map)
-        classifier = cls
+        self.classifier = cls
         self.imap = imap
         self.imap_pwd = pwd
         self.imap_logged_in = False
@@ -126,8 +124,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
 
     def onHome(self):
         """Serve up the homepage."""
-        stateDict = classifier.__dict__.copy()
-        stateDict.update(classifier.__dict__)
+        stateDict = self.classifier.__dict__.copy()
+        stateDict.update(self.classifier.__dict__)
         statusTable = self.html.statusTable.clone()
         del statusTable.proxyDetails
         # This could be a bit more modular
@@ -153,8 +151,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
         # Reload the options.
-        global classifier
-        classifier.store()
+        self.classifier.store()
         import Options
         reload(Options)
         global options

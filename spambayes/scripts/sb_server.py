@@ -723,7 +723,9 @@ def _recreateState():
     # Close the database (if there is one); we should anyway, and gdbm
     # complains if we try to reopen it without closing it first.
     if hasattr(state, "bayes"):
-        state.bayes.store()
+        # Only store a non-empty db.
+        if state.bayes.nham != 0 and state.bayes.nspam != 0:
+            state.bayes.store()
         state.bayes.close()
 
     state = State()

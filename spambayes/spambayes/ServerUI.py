@@ -100,7 +100,7 @@ class ServerUserInterface(UserInterface.UserInterface):
         # Recreate the state.
         self.state = self.state_recreator()
 
-    def verifyInput(self, parms):
+    def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
         # Most of the work here is done by the parent class, but
         # we have a few extra checks

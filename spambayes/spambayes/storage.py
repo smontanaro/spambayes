@@ -168,6 +168,15 @@ class DBDictClassifier(classifier.Classifier):
         getattr(self.db, "close", noop)()
         getattr(self.dbm, "close", noop)()
         # should not be a need to drop the 'dbm' or 'db' attributes.
+        # but we do anyway, because it makes it more clear what has gone
+        # wrong if we try to keep using the database after we have closed
+        # it.
+        if hasattr(self, "db"):
+            del self.db
+        if hasattr(self, "dbm"):
+            del self.dbm
+        if options["globals", "verbose"]:
+            print >> sys.stderr, 'Closed',self.db_name,'database'
 
     def load(self):
         '''Load state from database'''

@@ -85,8 +85,6 @@ from Options import options, optionsPathname, defaults, OptionsClass
 IMAGES = ('helmet', 'status', 'config',
           'message', 'train', 'classify', 'query')
 
-global classifier
-
 class UserInterfaceServer(Dibbler.HTTPServer):
     """Implements the web server component via a Dibbler plugin."""
 
@@ -245,9 +243,8 @@ class UserInterface(BaseUserInterface):
 
     def __init__(self, bayes, config_parms=(), adv_parms=()):
         """Load up the necessary resources: ui.html and helmet.gif."""
-        global classifier
         BaseUserInterface.__init__(self)
-        classifier = bayes
+        self.classifier = bayes
         self.parm_ini_map = config_parms
         self.advanced_options_map = adv_parms
 
@@ -273,14 +270,14 @@ class UserInterface(BaseUserInterface):
         cluesTable = self.html.cluesTable.clone()
         cluesRow = cluesTable.cluesRow.clone()
         del cluesTable.cluesRow   # Delete dummy row to make way for real ones
-        fetchword = classifier._wordinfoget
+        fetchword = self.classifier._wordinfoget
         for word, wordProb in clues:
             record = fetchword(word)
             if record:
                 nham = record.hamcount
                 nspam = record.spamcount
                 if wordProb is None:
-                    wordProb = classifier.probability(record)
+                    wordProb = self.classifier.probability(record)
             elif word != "*H*" and word != "*S*":
                 nham = nspam = 0
             else:
@@ -299,11 +296,11 @@ class UserInterface(BaseUserInterface):
             clues = []
             for tok in tokens:
                 clues.append((tok, None))
-            probability = classifier.spamprob(tokens)
+            probability = self.classifier.spamprob(tokens)
             cluesTable = self._fillCluesTable(clues)
             head_name = "Tokens"
         else:
-            (probability, clues) = classifier.spamprob(tokens, evidence=True)
+            (probability, clues) = self.classifier.spamprob(tokens, evidence=True)
             cluesTable = self._fillCluesTable(clues)
             head_name = "Clues"
 
@@ -378,10 +375,10 @@ class UserInterface(BaseUserInterface):
         if word == "":
             stats.append("You must enter a word.")
         elif query_type == "basic" and not ignore_case:
-            wordinfo = classifier._wordinfoget(word)
+            wordinfo = self.classifier._wordinfoget(word)
             if wordinfo:
                 stat = (word, wordinfo.spamcount, wordinfo.hamcount,
-                        classifier.probability(wordinfo))
+                        self.classifier.probability(wordinfo))
             else:
                 stat = "%r does not exist in the database." % \
                        cgi.escape(word)
@@ -399,7 +396,7 @@ class UserInterface(BaseUserInterface):
             r = re.compile(word, flags)
 
             reached_limit = False
-            for w in classifier._wordinfokeys():
+            for w in self.classifier._wordinfokeys():
                 if not reached_limit and len(stats) >= max_results:
                     reached_limit = True
                     over_limit = 0
@@ -407,9 +404,9 @@ class UserInterface(BaseUserInterface):
                     if reached_limit:
                         over_limit += 1
                     else:
-                        wordinfo = classifier._wordinfoget(w)
+                        wordinfo = self.classifier._wordinfoget(w)
                         stat = (w, wordinfo.spamcount, wordinfo.hamcount,
-                                classifier.probability(wordinfo))
+                                self.classifier.probability(wordinfo))
                         stats.append(stat)
             if len(stats) == 0 and max_results > 0:
                 stat = "There are no words that begin with '%s' " \
@@ -494,7 +491,7 @@ class UserInterface(BaseUserInterface):
         self.flush()
         for message in messages:
             tokens = tokenizer.tokenize(message)
-            classifier.learn(tokens, isSpam)
+            self.classifier.learn(tokens, isSpam)
             f.write("From pop3proxy@spambayes.org Sat Jan 31 00:00:00 2000\n")
             f.write(message)
             f.write("\n\n")
@@ -576,7 +573,7 @@ class UserInterface(BaseUserInterface):
         """Saves the database."""
         self.write("<b>Saving... ")
         self.flush()
-        classifier.store()
+        self.classifier.store()
         self.write("Done</b>.\n")
 
     def onSave(self, how):

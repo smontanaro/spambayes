@@ -659,7 +659,6 @@ class ProxyUserInterface(UserInterface.UserInterface):
         restores the defaults."""
         # Reload the options.
         global state
-        state.bayes.store()
         import Options
         reload(Options)
         global options
@@ -667,6 +666,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
         # Recreate the state.
         state = self.state_recreator()
+        self.classifier = state.bayes
 
     def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
