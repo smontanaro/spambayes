@@ -4,6 +4,7 @@
 
 Classes:
     Message - an email.Message.Message, extended with spambayes methods
+    SBHeaderMessage - A Message with spambayes header manipulations
     MessageInfoDB - persistent state storage for Message
 
 Abstract:
@@ -18,16 +19,20 @@ Abstract:
     have been trained differently than their classification, for fp/fn
     assessment purposes.
     
-    Message is an extension of the email package Message class, to include
-    persistent message information and Spambayes specific header manipulations.
-    The persistent state -currently- consists of the message id, its current
-    classification, and its current training.  The payload is not persisted.
-    Payload persistence is left to whatever mail client software is being used.
+    Message is an extension of the email package Message class, to
+    include persistent message information. The persistent state
+    -currently- consists of the message id, its current
+    classification, and its current training.  The payload is not
+    persisted. Payload persistence is left to whatever mail client
+    software is being used.
+
+    SBHeaderMessage extends Message to include spambayes header specific
+    manipulations.
     
 Usage:
     A typical classification usage pattern would be something like:
     
-    >>>msg = spambayes.message.Message()
+    >>>msg = spambayes.message.SBHeaderMessage()
     >>>msg.setPayload(substance) # substance comes from somewhere else
     >>>id = msg.setIdFromPayload()
     
@@ -44,17 +49,17 @@ Usage:
     
     A typical usage pattern to train as spam would be something like:
     
-    >>>msg = spambayes.message.Message()
+    >>>msg = spambayes.message.SBHeaderMessage()
     >>>msg.setPayload(substance) # substance comes from somewhere else
     >>>id = msg.setId(msgid)     # id is a fname, outlook msg id, something...
 
     >>>msg.delSBHeaders()        # never include sb headers in a train
     
-    >>>if msg.isTrndHam():
+    >>>if msg.getTraining() == False:   # could be None, can't do boolean test
     >>>    bayes.unlearn(msg.asTokens(), False)  # untrain the ham
     
     >>>bayes.learn(msg.asTokens(), True) # train as spam
-    >>>msg.trndAsSpam()
+    >>>msg.rememberTraining(True)
     
 
 To Do:
@@ -93,14 +98,6 @@ from cStringIO import StringIO
 
 from spambayes import dbmstorage
 import shelve
-
-# XXX Tim, what do you want to do here?  This
-# XXX recurses infinately at the moment
-# Make shelve use binary pickles by default.
-#oldShelvePickler = shelve.Pickler
-#def binaryDefaultPickler(f, binary=1):
-#    return oldShelvePickler(f, binary)
-#shelve.Pickler = binaryDefaultPickler
 
 
 class MessageInfoDB:
@@ -179,13 +176,36 @@ class Message(email.Message.Message):
             msginfoDB._setState(self)
 
     def GetClassification(self):
-        return self.c
+        if self.c == 's':
+            return options.header_spam_string
+        if self.c == 'h':
+            return options.header_ham_string
+        if self.c == 'u':
+            return options.header_unsure_string
+        
+        return None
+
+    def RememberClassification(self, cls):
+        # this must store state independent of options settings, as they
+        # may change, which would really screw this database up
+
+        # an unrecoginzed string here is interpreted as unsure.  Should
+        # that condition actually raise an exception instead?
+
+        if cls == options.header_spam_string:
+            self.c = 's'
+        elif cls == options.header_ham_string:
+            self.c = 'h'
+        else
+            self.c = 'u'
+
+        self.modified()
+
     def GetTrained(self):
         return self.t
-    def RememberClassification(self, cls):
-        self.c = cls
-        self.modified()
+
     def RememberTrained(self, isSpam):
+        # isSpam == None means no training has been done
         self.t = isSpam
         self.modified()
          
@@ -198,11 +218,11 @@ class Message(email.Message.Message):
     def __setstate__(self, t):
         (self.id, self.c, self.t) = t
 
-# XXX I can't think of a good name.  Someone change
-# XXX HeaderMessage to something better before it gets used
-# XXX all over the place.
-class HeaderMessage(Message):
-    '''Adds routines to add/remove headers for Spambayes'''
+
+class SBHeaderMessage(Message):
+    '''Message class that is cognizant of Spambayes headers.
+    Adds routines to add/remove headers for Spambayes'''
+    
     def __init__(self):
         Message.__init__(self)
         
