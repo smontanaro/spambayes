@@ -195,12 +195,19 @@ def UnpackTVItem(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
         item_cChildren, item_param = struct.unpack("10i", buffer)
-
+    # ensure only items listed by the mask are valid
+    if not (item_mask & commctrl.TVIF_TEXT): item_textptr = item_cchText = None
+    if not (item_mask & commctrl.TVIF_CHILDREN): item_cChildren = None
+    if not (item_mask & commctrl.TVIF_HANDLE): item_hItem = None
+    if not (item_mask & commctrl.TVIF_IMAGE): item_image = None
+    if not (item_mask & commctrl.TVIF_PARAM): item_param = None
+    if not (item_mask & commctrl.TVIF_SELECTEDIMAGE): item_selimage = None
+    if not (item_mask & commctrl.TVIF_STATE): item_state = item_stateMask = None
+    
     if item_textptr:
         text = win32gui.PyGetString(item_textptr)
     else:
         text = None
-    # Todo - translate items without the mask bit set to None
     return item_hItem, item_state, item_stateMask, \
         text, item_image, item_selimage, \
         item_cChildren, item_param
