@@ -8,7 +8,7 @@ POP3 proxy.
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-__author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
+__author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Adam Walker"
 __credits__ = "Mark Hammond, all the Spambayes folk."
 
 try:
@@ -23,6 +23,7 @@ except NameError:
 import os
 import sys
 import webbrowser
+import thread
 
 import win32con
 from win32api import *
@@ -35,6 +36,8 @@ sys.path.insert(-1, os.path.dirname(os.getcwd()))
 import pop3proxy
 from spambayes import Dibbler
 from spambayes.Options import options
+
+WM_TASKBAR_NOTIFY = win32con.WM_USER + 20
 
 class MainWindow(object):
     def __init__(self):
@@ -52,30 +55,21 @@ class MainWindow(object):
         message_map = {
             win32con.WM_DESTROY: self.OnDestroy,
             win32con.WM_COMMAND: self.OnCommand,
-            win32con.WM_USER+20 : self.OnTaskbarNotify,
+            WM_TASKBAR_NOTIFY : self.OnTaskbarNotify,
         }
 
-        # Register the Window class.
-        wc = WNDCLASS()
-        hinst = wc.hInstance = GetModuleHandle(None)
-        wc.lpszClassName = "SpambayesTaskbar"
-        wc.style = win32con.CS_VREDRAW | win32con.CS_HREDRAW;
-        wc.hCursor = LoadCursor( 0, win32con.IDC_ARROW )
-        wc.hbrBackground = win32con.COLOR_WINDOW
-        wc.lpfnWndProc = message_map
-        classAtom = RegisterClass(wc)
-
         # Create the Window.
-        style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
-        self.hwnd = CreateWindow(classAtom, "SpamBayes", style,
-                                 0, 0, win32con.CW_USEDEFAULT,
-                                 win32con.CW_USEDEFAULT, 0, 0, hinst, None)
-        UpdateWindow(self.hwnd)
+        hinst = GetModuleHandle(None)
+        # this will replaced with a real configure dialog later
+        # this is mainly to work around not being able to register a window class
+        # with python 2.3
+        dialogTemplate = [['SpamBayes', (14, 10, 246, 187), -1865809852 & ~win32con.WS_VISIBLE, None, (8, 'Tahoma')],]
+        self.hwnd = CreateDialogIndirect(hinst, dialogTemplate, 0, message_map)
 
         # Try and find a custom icon
         # XXX This needs to be done, but first someone needs to make a wee
         # XXX spambayes icon
-        iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "pyc.ico" ))
+        iconPathName = os.path.abspath( "resources\\sbicon.ico" )
         if not os.path.isfile(iconPathName):
             # Look in the source tree.
             iconPathName = os.path.abspath(os.path.join( os.path.split(sys.executable)[0], "..\\PC\\pyc.ico" ))
@@ -87,21 +81,21 @@ class MainWindow(object):
             hicon = LoadIcon(0, win32con.IDI_APPLICATION)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
-        nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "SpamBayes")
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
+        self.started = False
 
         # Start up pop3proxy
         # XXX This needs to be finished off.
         # XXX This should determine if we are using the service, and if so
         # XXX start that, and if not kick pop3proxy off in a separate thread.
-        #pop3proxy.prepare(state=pop3proxy.state)
-        #pop3proxy.start(pop3proxy.state)
-        #self.started = True
+        pop3proxy.prepare(state=pop3proxy.state)
+        self.StartProxyThread()
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
-		nid = (self.hwnd, 0)
-		Shell_NotifyIcon(NIM_DELETE, nid)
-		PostQuitMessage(0)
+        nid = (self.hwnd, 0)
+        Shell_NotifyIcon(NIM_DELETE, nid)
+        PostQuitMessage(0)
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_LBUTTONUP:
@@ -141,6 +135,11 @@ class MainWindow(object):
     def OnExit(self):
         DestroyWindow(self.hwnd)
         sys.exit()
+        
+    def StartProxyThread(self):
+        args = (pop3proxy.state,)
+        thread.start_new_thread(pop3proxy.start, args)
+        self.started = True
 
     def StartStop(self):
         # XXX This needs to be finished off.
@@ -151,8 +150,7 @@ class MainWindow(object):
             pop3proxy.stop(pop3proxy.state)
             self.started = False
         else:
-            pop3proxy.start(pop3proxy.state)
-            self.started = True
+            self.StartProxyThread()
 
     def OpenInterface(self):
         webbrowser.open_new("http://localhost:%d/" % \
