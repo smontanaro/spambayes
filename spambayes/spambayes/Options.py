@@ -100,7 +100,7 @@ defaults = {
      reasons if your corpora are from different sources.""",
      BOOLEAN, RESTORE),
 
-    ("address_headers", "Address headers to mine", ("from",),
+    ("address_headers", "Address headers to mine", ("from", "to", "cc", "sender", "reply-to"),
      """Mine the following address headers. If you have mixed source
      corpuses (as opposed to a mixed sauce walrus, which is delicious!)
      then you probably don't want to use 'to' or 'cc') Address headers will
