@@ -768,7 +768,15 @@ uuencode_end_re = re.compile(r"^end\s*\n", re.MULTILINE)
 # Strip out uuencoded sections and produce tokens.  The return value
 # is (new_text, sequence_of_tokens), where new_text no longer contains
 # uuencoded stuff.  Note that we're not bothering to decode it!  Maybe
-# we should.
+# we should.  One of my persistent false negatives is a spam containing
+# nothing but a uuencoded money.txt; OTOH, uuencoded seems to be on
+# its way out (that's an old spam).
+#
+# Efficiency note:  This is cheaper than it looks if there aren't any
+# uuencoded sections.  Under the covers, string[0:] is optimized to
+# return string (no new object is built), and likewise ''.join([string])
+# is optimized to return string.  It would actually slow this code down
+# to special-case these "do nothing" special cases at the Python level!
 def crack_uuencode(text):
     new_text = []
     tokens = []
