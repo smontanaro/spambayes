@@ -343,7 +343,7 @@ class IMAPMessage(message.SBHeaderMessage):
             print "Cannot get substance of message without an id and an UID"
             return
         imap.SelectFolder(self.folder.name)
-        # We really want to use RFC822.PEEK here, as that doesn't effect
+        # We really want to use RFC822.PEEK here, as that doesn't affect
         # the status of the message.  Unfortunately, it appears that not
         # all IMAP servers support this, even though it is in RFC1730
         # Actually, it's not: we should be using BODY.PEEK
