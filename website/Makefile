@@ -17,11 +17,13 @@ $(TARGETS): links.h
 
 DUHTML = html.py
 faq.ht : faq.txt
+	$(DUHTML) faq.txt > faq.body.tmp
 	echo "Title: SpamBayes FAQ" > faq.ht
 	echo "Author-Email: SpamBayes@python.org" >> faq.ht
 	echo "Author: SpamBayes" >> faq.ht
 	echo "" >> faq.ht
-	$(DUHTML) faq.txt | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' >> faq.ht
+	cat faq.body.tmp | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' >> faq.ht
+	rm faq.body.tmp
 
 faq.html : faq.ht
 	./scripts/ht2html/ht2html.py -f -s SpamBayesFAQGenerator -r . ./faq.ht
