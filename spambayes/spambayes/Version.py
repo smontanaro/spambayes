@@ -30,10 +30,10 @@ versions = {
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
         },
         "Outlook" : {
-            "Version":          0.8,
-            "BinaryVersion":    0.8,
+            "Version":          0.81,
+            "BinaryVersion":    0.81,
             "Description":      "SpamBayes Outlook Addin",
-            "Date":             "September 8, 2003",
+            "Date":             "September 9, 2003",
             "Full Description": "%(Description)s, version %(Version)s (%(Date)s)",
             "Full Description Binary":
                                 "%(Description)s, Binary version %(BinaryVersion)s (%(Date)s)",
