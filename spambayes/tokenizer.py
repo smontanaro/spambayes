@@ -505,7 +505,7 @@ def textparts(msg):
             # Descend this part of the tree, adding any redundant HTML text
             # part to redundant_html.
             htmlpart = textpart = None
-            stack = part.get_payload()
+            stack = part.get_payload()[:]
             while stack:
                 subpart = stack.pop()
                 ctype = subpart.get_content_type()
