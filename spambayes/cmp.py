@@ -36,20 +36,27 @@ def suck(f):
     fntot = int(f.readline().split()[-2])
     return fps, fns, fptot, fntot
 
+def tag(p1, p2):
+        if p1 == p2:
+            t = "tied"
+        else:
+            t = p1 < p2 and "lost " or "won  "
+            if p1:
+                p = (p2 - p1) * 100.0 / p1
+                t += " %+7.2f%%" % p
+            else:
+                t += " +(was 0)"
+        return t
+
 def dump(p1s, p2s):
     alltags = ""
     for p1, p2 in zip(p1s, p2s):
-        if p1 < p2:
-            tag = "lost"
-        elif p1 > p2:
-            tag = "won"
-        else:
-            tag = "tied"
-        print "    %5.3f  %5.3f  %s" % (p1, p2, tag)
-        alltags += tag + " "
+        t = tag(p1, p2)
+        print "    %5.3f  %5.3f  %s" % (p1, p2, t)
+        alltags += t + " "
     print
-    for tag in "won", "tied", "lost":
-        print "%-4s %2d %s" % (tag, alltags.count(tag), "times")
+    for t in "won", "tied", "lost":
+        print "%-4s %2d %s" % (t, alltags.count(t), "times")
     print
 
 fp1, fn1, fptot1, fntot1 = suck(file(f1n + '.txt'))
