@@ -1,10 +1,10 @@
 This file covers the major changes between each release.  For more details,
 the reader is referred to the changelog (changelog.txt in the main directory
-of the archive), or for extreme details, to the check-ins archive (please see
+of the archive), or for extreme details, to the check-ins archive (see
 <http://mail.python.org/pipermail/spambayes-checkins>)
                                                                    
-Changes are broken into sections for each application, plus one that will
-probably only interest developers, and one for everything else.
+Changes are broken into sections, so that it's easier for you to find the
+changes that are relevant to you.
 
 Any actions necessary to move to this release from the previous release are
 noted in the "Transition" section.
@@ -56,6 +56,16 @@ Outlook Plugin
  o Add the Spam field to the 'Unsure' folder as is done with the Spam and
    watched folders.
  o Improve matters when the default (Outlook message) store is offline.
+ o If the user attempts to close the Manager dialog while there is a
+   problem preventing us being enabled, confirm they really want to close
+   it.
+ o Try and tone down the toolbar message in the log to prevent people
+   reporting it as a bug.
+ o When the 'New Folder' button was used to create a folder, that folder
+   was not used when you closed the dialog, even though it was selected.
+ o Add Spam field to unsure and empty folders.
+ o Fix things so that the plug-in should better appear in the "COM Addins"
+   list when running the binary version.
 
 POP3 Proxy / SMTP Proxy
 -----------------------
@@ -84,6 +94,15 @@ Web Interface
    training, or insufficient training.
  o Fixed an infinite loop when you break the browser connection to
    sb_server when sb_server is busy training.
+ o New options "Ham Discard Level" and "Spam Discard Level". These make the
+   interface default to discarding hams/spams in the training interface.
+ o UserInterface: Split digest auth info properly.
+ o Default to twenty search results rather than just one.
+ o The status message wasn't updated as often as it should have been.
+ o Output plurals correctly in stats information.
+ o We printed out false positive numbers in the false negatives section of
+   the stats, and vice versa.
+ o Quote IMAP folder names when displaying them.
 
 POP3 Proxy Service / POP3 Proxy Tray Application
 ------------------------------------------------
@@ -92,6 +111,7 @@ POP3 Proxy Service / POP3 Proxy Tray Application
  o Change the double-click (default) action to "review messages" and
    display the default in bold.
  o If a proxy is already running, don't start the service.
+ o When we stopped the proxy and then restarted it didn't work.
 
 IMAP Filter
 -----------
@@ -99,6 +119,7 @@ IMAP Filter
    well.
  o If sb_imapfilter.py is run without any switches, just serve the web
    interface (but don't launch a browser).
+ o Ignore errors that occur when parsing a message.
 
 sb_filter
 ---------
@@ -118,8 +139,13 @@ Testing Suite
 -------------
  o Many improvements to the mksets.py script.
  o Many improvements to the rebal.py script.
+ o Many improvements to the sort+group.py script.
  o Many improvements to the export.py script (for Outlook).
+ o Added additional input/output methods to mkgraph.py.
+ o Improvements to the documentation for mkgraph.py, regimes.py and
+   incremental.py.
  o Added a makefile to the testtools directory to make using timcv.py easier.
+ o Added a new regime - "balanced_corrected".
 
 Tokenizer
 ---------
@@ -137,6 +163,8 @@ Tokenizer
 General
 -------
  o Option names are always case insensitive, no matter what.
+ o Non-absolute file/path options are relative to the last configuration
+   file loaded, not the current working directory, as previously.
  o Moved the option loading code to a function.
  o Generalized the DirOfTxtFileMailbox class in mboxutils to assume all
    non-directory files contain a single message and to recursively descend
@@ -146,10 +174,21 @@ General
  o Fixes to the which_database.py utility script.
  o Fix bug where if one was using Python 2.2, Windows and bsddb
    the database would never open correctly.
- o New script: sb_evoscore.py - A shim script between sb_xmlrpcserver.py
-   and Ximian Evolution.
  o Fix the pspam scripts, muttrc and spambayes.el so that they work with
    the current SpamBayes package.
+ o New script: sb_evoscore.py - A shim script between sb_xmlrpcserver.py
+   and Ximian Evolution.
+ o New script: mkreversemap.py - generates a pickle file mapping features
+   to mailbox files and message-id's.
+ o New script: extractmessages.py - use with mkreversemap.py to identify
+   messages in your training database which contain interesting tokens.
+ o New script: hammer.py: Hammers the core SpamBayes code, repeatedly
+   training and classifying using faked-up messages.
+ o Previous releases have included the sb_pop3dnd.py script (once named
+   sb_overkill.py).  With this release, this script should be fully
+   usable.  It provides the same POP3 proxy as sb_server, but also
+   provides a local IMAP server so that you can train messages by dragging
+   and dropping them within the mail client.
 
 
 Transition
@@ -172,7 +211,8 @@ this document.
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-818871, 833439, 803798, 787676, 860410, 856628, 859215
+818871, 833439, 803798, 787676, 860410, 856628, 859215, 856141, 842984,
+872044, 805852, 874784
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -181,15 +221,23 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-The following feature requests tracked via the Sourceforge system were
+The following feature request tracked via the Sourceforge system was
 added for this release:
 827138
+
+A url containing the details of these feature requests can be made by
+appending the request number to this url:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498104&aid=
 
 Patches integrated
 ===================
 The following patches tracked via the Sourceforge system were integrated
 for this release.
 842464, 831388, 809008, 831388
+
+A url containing the details of these feature requests can be made by
+appending the request number to this url:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498105&aid=
 
 Deprecated Options
 ==================
@@ -241,7 +289,8 @@ users to test these options out on their mail and let us know the results.
 This can be as simple as turning on the option and emailing
 spambayes@python.org with anacdotal results after a period of time, or the
 full testtools scripts can be used.  For details about using these, please
-read the "README-DEVEL.txt" file that comes with the SpamBayes archive.
+read the "README-DEVEL.txt" file that comes with the SpamBayes source
+archive.
 
 Experimental options are always turned off by default.
 
@@ -267,3 +316,6 @@ The following experimental options have been added in this release:
     more tokens in it's classification, then text from any URLs in the
     message is retrieved and used, if it makes a difference to the
     classification.
+
+  o [Tokenizer] x-pick_apart_urls
+    Pick out some semantic bits from URLs.

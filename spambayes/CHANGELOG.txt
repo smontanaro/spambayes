@@ -2,8 +2,54 @@
 
 Alpha Release 8
 ===============
+Tony Meyer        13/01/2004  Fix [ 874784 ] Error in onReview code
+Skip Montanaro    13/01/2004  UserInterface: Split digest auth info properly.  Simple split-on-comma fails if the uri contains commas.
+Barry A. Warsaw   13/01/2004  imapfilter: Catch and ignore MessageParseErrors when parsing the data['RFC822'] text.
+Tony Meyer        12/01/2004  Improve the messageinfo database so that more than two attributes can be saved (it's still backwards compatible with the old type).
+Tony Meyer        12/01/2004  Path/file options are no longer relative to the current working directory, they are relative to the last configuration file loaded.
+Tony Meyer        12/01/2004  pop3dnd: Store the IMAP flags.
+Tony Meyer        12/01/2004  pop3dnd: Fix an incorrectly checked flag (typo).
+Anthony Baxter    12/01/2004  New options ham_discard_level and spam_discard_level. These make the interface default to discard hams/spams in the training interface.
+Tony Meyer        11/01/2004  mkgraph.py: Add a docstring.
+Tony Meyer        11/01/2004  mkgraph.py: Add -f command line arg to pass a filename rather than reading from stdin (which is still the default)
+Tony Meyer        11/01/2004  mkgraph.py: Add a training_is_ham line to the error graph which shows the percentage of training data that is ham (i.e. shows the imbalance).
+Tony Meyer        11/01/2004  mkgraph.py: Modify the outputing so that it can be in different formats for those of us without plotmtv.  The -c command line option outputs all the lines in the same set of rows, rather than in their own set as is the default.  The -s arg specifies the separator for this sort of output (defaults to a comma, so that csv files are output).
+Tony Meyer        11/01/2003  incremental.py: Add a docstring and the ability to print it with -h or --help to incremental.py
+Tony Meyer        11/01/2003  regimes.py: Add a docstring that outlines the various regimes in hopefully easy to understand terms. Print this out if regimes.py is executed.
+Tony Meyer        11/01/2003  regimes.py: Add a new regime - balanced_corrected.
+Tony Meyer        08/01/2004  Fix [ 805852 ] need python-dev package on Debian
+Skip Montanaro    08/01/2004  table.py: space the table out a little more.
+Skip Montanaro    07/01/2004  mkreversemap.py: New script which generates a pickle file mapping features to mailbox files and message-id's.  Use with extractmessages.py.
+Skip Montanaro    07/01/2004  extractmessages.py: New script; use with mkreversemap.py to identify messages in your training database which contain interesting tokens.
+Tony Meyer        07/01/2004  Fix [ 872044 ] HTTP review page date problems.
+Skip Montanaro    06/01/2004  Add experimental option and code to pick out some semantic bits from URLs
+Tony Meyer        05/01/2004  Add extra utility functions to oe_mailbox for dealing with Outlook Express.
+Tony Meyer        05/01/2004  Have autoconfigure confirm that configuration has occured.
+Tony Meyer        05/01/2004  Do better 'is installed' checks in autoconfigure.
+Adam Walker       05/01/2004  Start SMTP proxy in a trainable state.
+Tony Meyer        02/01/2003  UserInterface: Fix import error reported.
+Richie Hindle     01/01/2004  Default to twenty search results on web interface rather than just one.
+Richie Hindle     01/01/2004  Made the search form do a GET rather than a POST.
+Richie Hindle     01/01/2004  Fix for 842984: If webbrowser.open_new() fails, print a message saying "Please point your web browser at http://localhost:8880/" rather than bombing out.
+Richie Hindle     01/01/2004  New script: utilities/hammer.py: Hammers the core SpamBayes code, repeatedly training and classifying using faked-up messages.
+Tony Meyer        31/12/2003  pop3dnd: Fix fetching an envelope.
+Tony Meyer        31/12/2003  pop3dnd: Handle storing no flags.
+Tony Meyer        31/12/2003  pop3dnd: Update the RETR'ing of messages to reflect what sb_server currently does.
+Tony Meyer        31/12/2003  pop3dnd: Clean out some cruft that isn't necessary with the latest version of twisted (1.1)
+Tony Meyer        31/12/2003  pop3dnd: Add two new Message classes, one for messages that are stored in memory, and one for messages that are re-generated each time the message is loaded.
+Tony Meyer        31/12/2003  pop3dnd: Start our UIDs at 1, not 0, because Eudora likes this more.
+Tony Meyer        31/12/2003  pop3dnd: Don't override the imported name "message".
+Tony Meyer        31/12/2003  pop3dnd: Add a new folder - INBOX - this holds any messages from SpamBayes to the user. (Having INBOX as an alias for Spam wasn't working well, and being able to communicate within the confines of the mailer is nice, too).
+Tony Meyer        31/12/2003  pop3dnd: Don't let the user set so much via the command line.  Use a config file, you lazy person.
+Tony Meyer        31/12/2003  pop3proxy_tray: When we stopped sb_server and then restarted, we didn't init the state, so it wouldn't work.  Fix that.
+Tony Meyer        31/12/2003  Web interface: As Richie pointed out, the status message was only updated when the state was recreated.  Fix this.
+Tony Meyer        31/12/2003  Web interface: Output plurals correctly in stats information.
+Tony Meyer        31/12/2003  We printed out false positive numbers in the false negatives section, and vice versa.  Fix.
+Tony Meyer        30/12/2003  IMAP interface: Quote folder names when displaying them - otherwise if the folder names contained certain characters it could result in bad html (if the name was ">foo", for example).
 Tony Meyer        29/12/2003  Web interface: Improve the 'online' help message for the review page, and add messages for the stats and home pages.
 Tim Peters        29/12/2003  Many improvements to the mksets.py testtools script.
+Tim Peters        28/12/2003  sort+group.py: Sort msgs by full-precision timestamp (not just by day).  Normalize Received time to UTC first.  Use email.Utils to parse dates instead of hand-rolling our own parser
+Tim Peters        28/12/2003  sort+group.py: Preserve files' extensions (if any) during renaming.
 Tim Peters        28/12/2003  Outlook: export.py - the -n option now gives the number of Set subdirectories desired, instead of a number of msgs per Set subdir "to shoot for".
 Tim Peters        28/12/2003  Added a new -t option to rebal.py, may have broken -s and -r options.
 Tim Peters        26/12/2003  Many improvements to the rebal.py testtools script.
@@ -19,6 +65,7 @@ Tony Meyer        22/12/2003  Web interface: A beginning at a more userfriendly 
 Mark Hammond      22/12/2003  Outlook: When a frozen executable, addin.py becomes a mini-installer EXE for the DLL.
 Mark Hammond      21/12/2003  Outlook: DWhen doing a "batch train" (eg, selecting multiple messages and saying "Delete as" or "Recover from",) the DB was saved in between each and every message.  Now only saved at the end (which was always the intent)
 Mark Hammond      21/12/2003  Outlook: DAs part of checking our configuration is invalid, make sure the user hasn't set us up such that either Spam/Unsure folders isn't also being watched for new messages
+Mark Hammond      21/12/2003  Outlook: If the user attempts to close the Manager dialog while there is a problem preventing us being enabled, confirm they really want to close it 
 Mark Hammond      20/12/2003  dump_props.py: Add -c option, which writes output to the Windows clipboard.
 Mark Hammond      20/12/2003  Outlook: Include the foldername in many messages, so help track down wierd bugs from user logs.  Say what we are watching a folder for.
 Mark Hammond      20/12/2003  Outlook: Fix [ 860410 ] SpamBayes allows top-level folders to be selected, and also prevent a single-select dialog from closing with no selection
@@ -28,7 +75,11 @@ Mark Hammond      19/12/2003  Outlook: Remove handling of E_OBJECT_CHANGED excep
 Mark Hammond      19/12/2003  Fix [ 803798 ] MAPI_E_OBJECT_CHANGED error saving spam score, which is a dupe of [787676], which was incorrectly marked as fixed
 Mark Hammond      19/12/2003  Outlook: Don't record in the training database unless we are successful in the filter - otherwise future attempts to filter will get all screwed up, as it will think it already was
 Mark Hammond      19/12/2003  Outlook: Move some of our init code from OnConnection to OnStartupComplete
+Mark Hammond      19/12/2003  Outlook: Try and tone down the toolbar message in the log to prevent people reporting it as a bug
+Mark Hammond      19/12/2003  Outlook: Handle situations where Outlook starts up in a confused state, which then confused us.
+Mark Hammond      19/12/2003  Outlook: Ask if you want the slow, non-filter tests run, and add E_OBJECT_CHANGED tests, as per [ 803798 ] MAPI_E_OBJECT_CHANGED error saving spam score
 Tony Meyer        18/12/2003  Bring pspam into the modern SpamBayes world.
+Mark Hammond      18/12/2003  Outlook: When the 'New Folder' button was used to create a folder, that folder was not used when you closed the dialog, even though it was selected.
 Mark Hammond      17/12/2003  Tray app: Better icons and icon loading code.
 Tony Meyer        17/12/2003  Add the basis of a new experimental (and highly debatable) option to 'slurp' URLs.
 Tim Peters        17/12/2003  Implemented the intended "tiling" version of x-use_bigrams.
@@ -40,6 +91,7 @@ Tony Meyer        15/12/2003  Add a warning as a temporary solution for Python b
 Tony Meyer        15/12/2003  Add the missing code for the Habeas headers tokenizing (and deprecate).
 Mark Hammond      15/12/2003  Fix [ 833439 ] default_bayes_customize.ini is confusing.
 Mark Hammond      14/12/2003  Move the option loading code to a function, then call this function as the module loads.
+Mark Hammond      14/12/2003  test_programs: When "calling" URLs, check the output for tracebacks, check the exit code of processes we spawn, and add test for "[ 859215 ] "Restore Defaults" causes assertion error at exit".
 Tim Peters        14/12/2003  Removed support code for the defunct experimental_ham_spam_imbalance_adjustment option
 Mark Hammond      14/12/2003  Fix [ 856628 ] reload(Options) fails in windows binary
 Mark Hammond      14/12/2003  Fix [ 859215 ] "Restore Defaults" causes assertion error at exit.
@@ -47,6 +99,10 @@ Tony Meyer        14/12/2003  ImapUI: When logging in was done by the UI (to sho
 Skip Montanaro    10/12/2003  Loosen constraints on HEADER_VALUE regular expression.
 Skip Montanaro    10/12/2003  Add ability for "x-" options (deprecated, or experimental).
 Mark Hammond      10/12/2003  Outlook: Try and add the Spam field to the 'Unsure' folder in the same way we do for the Spam and watch folders.
+Mark Hammond      10/12/2003  Fix [ 856141 ] Spam field not added to unsure or empty folders
+Mark Hammond      08/12/2003  Outlook: Add/Fix a number of 'unicode file' related comments.
+Mark Hammond      08/12/2003  Outlook: Allow multiple manager objects to work in the same process (but not at the same time):
+Mark Hammond      08/12/2003  Outlook: A number of changes to better support us existing in the 'COM Addins' list when running the binary version
 Tony Meyer        04/12/2003  Tray app: Change the default (double-click) behaviour of the tray to "review messages" rather than "display information".
 Tony Meyer        04/12/2003  Tray app: use SetDefaultItem (so the default action is in bold in the menu).
 Mark Hammond      03/12/2003  For the unittest scritps avoid sys.path munging.
