@@ -16,7 +16,7 @@ try:
     for p in win32com.__path__[1:]:
         modulefinder.AddPackagePath("win32com", p)
     # Not sure why this works for "win32com.mapi" for not "win32com.shell"!
-    for extra in ["win32com.shell"]:
+    for extra in ["win32com.shell","win32com.mapi"]:
         __import__(extra)
         m = sys.modules[extra]
         for p in m.__path__[1:]:
@@ -28,14 +28,35 @@ except ImportError:
 from distutils.core import setup
 import py2exe
 
-class py2exe_options:
-    bitmap_resources = [(1000, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp"))]
-    icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
-                      (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico")),
-    ]
-    packages = "spambayes.resources"
-    excludes = "win32ui,pywin" # pywin is a package, and still seems to be included.
+class Options:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
 
+# py2exe_options is a global name found by py2exe
+py2exe_options = Options(
+    packages = "spambayes.resources,encodings",
+    excludes = "win32ui,pywin,pywin.debugger" # pywin is a package, and still seems to be included.
+)
+
+# These are just objects passed to py2exe
+com_server = Options(
+    modules = ["addin"],
+    dest_base = "SpamBayes_Outlook_Addin",
+    bitmap_resources = [(1000, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp"))],
+    create_exe = False,
+)
+
+service = Options(
+    modules = ["pop3proxy_service"]
+)
+sb_server = Options(
+    script = os.path.join(sb_top_dir, "scripts", "sb_server.py")
+)
+pop3proxy_tray = Options(
+    script = os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py"),
+    icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
+                      (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
+)
 # Default and only distutils command is "py2exe" - save adding it to the
 # command line every single time.
 if len(sys.argv)==1:
@@ -44,11 +65,11 @@ if len(sys.argv)==1:
 setup(name="SpamBayes",
       packages = ["spambayes.resources"],
       # We implement a COM object.
-      com_server=["addin"],
+      com_server=[com_server],
       # A service
-      service=["pop3proxy_service"],
+      service=[service],
       # A console exe for debugging
-      console=[os.path.join(sb_top_dir, "scripts", "sb_server.py")],
+      console=[sb_server],
       # The taskbar
-      windows=[os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py")],
+      windows=[pop3proxy_tray],
 )
