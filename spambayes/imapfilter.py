@@ -245,8 +245,20 @@ class IMAPSession(BaseIMAP):
         all_folders = response[1]
         folders = []
         for fol in all_folders:
+            # Sigh.  Some servers may give us back the folder name as a
+            # literal, so we need to crunch this out.
+            if isinstance(fol, ()):
+                r = re.compile(r"{\d+}")
+                m = r.search(fol[0])
+                if not m:
+                    # Something is wrong here!  Skip this folder
+                    continue
+                fol = '%s"%s"' % (fol[0][:m.start()], fol[1])
             r = re.compile(r"\(([\w\\ ]*)\) ")
             m = r.search(fol)
+            if not m:
+                # Something is not good with this folder, so skip it.
+                continue
             name_attributes = fol[:m.end()-1]
             # IMAP is a truly odd protocol.  The delimiter is
             # only the delimiter for this particular folder - each
@@ -719,11 +731,8 @@ or training will be performed."""
     
     if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),
-    
-    if useDBM:
-        classifier = storage.DBDictClassifier(bdbname)
-    else:
-        classifier = storage.PickledClassifier(bdbname)
+
+    classifier = storage.open_storage(bdbname, useDBM)
 
     if options["globals", "verbose"]:
         print "Done."            
