@@ -96,7 +96,7 @@ def main(args):
 
     usere = False
     dbname = options["Storage", "persistent_storage_file"]
-    ispickle = False
+    ispickle = not options["Storage", "persistent_use_database"]
     tokenizestdin = False
     for opt, arg in opts:
         if opt in ("-h", "--help"):
