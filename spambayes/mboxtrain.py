@@ -207,8 +207,10 @@ def mhdir_train(h, path, is_spam, force):
         print ("  Trained %d out of %d messages                " %
                (trained, counter))
 
-def train(h, path, is_spam, force):
-    if os.path.isfile(path):
+def train(h, path, is_spam, force, trainnew):
+    if not os.path.exists(path):
+        raise ValueError("Nonexistent path: %s" % path)
+    elif os.path.isfile(path):
         mbox_train(h, path, is_spam, force)
     elif os.path.isdir(os.path.join(path, "cur")):
         maildir_train(h, os.path.join(path, "cur"), is_spam, force)
@@ -276,12 +278,12 @@ def main():
 
     for g in good:
         if loud: print "Training ham (%s):" % g
-        train(h, g, False, force)
+        train(h, g, False, force, trainnew)
         save = True
 
     for s in spam:
         if loud: print "Training spam (%s):" % s
-        train(h, s, True, force)
+        train(h, s, True, force, trainnew)
         save = True
 
     if save:
