@@ -280,26 +280,78 @@ class UserInterface(BaseUserInterface):
         return results
 
     def onWordquery(self, word):
+        wildcard_limit = 10
+        statsBoxes = []
         if word == "":
             stats = "You must enter a word."
+            statsBoxes.append(self._buildBox("Statistics for %r" % \
+                                             cgi.escape(word),
+                                             'status.gif', stats))
         else:
             word = word.lower()
-            wordinfo = classifier._wordinfoget(word)
-            if wordinfo:
-                stats = self.html.wordStats.clone()
-                stats.spamcount = wordinfo.spamcount
-                stats.hamcount = wordinfo.hamcount
-                stats.spamprob = classifier.probability(wordinfo)
+            if word[-1] == '*':
+                # Wildcard search - list all words that start with word[:-1]
+                word = word[:-1]
+                reached_limit = False
+                for w in classifier._wordinfokeys():
+                    if not reached_limit and len(statsBoxes) > wildcard_limit:
+                        reached_limit = True
+                        over_limit = 0
+                    if w.startswith(word):
+                        if reached_limit:
+                            over_limit += 1
+                        else:
+                            wordinfo = classifier._wordinfoget(w)
+                            stats = self.html.wordStats.clone()
+                            stats.spamcount = wordinfo.spamcount
+                            stats.hamcount = wordinfo.hamcount
+                            stats.spamprob = classifier.probability(wordinfo)
+                            box = self._buildBox("Statistics for %r" % \
+                                                 cgi.escape(w),
+                                                 'status.gif', stats)
+                            statsBoxes.append(box)
+                if len(statsBoxes) == 0:
+                    stats = "There are no words that begin with '%s' " \
+                            "in the database." % (word,)
+                    # We build a box for each word; I'm not sure this is
+                    # produces the nicest results, but it's ok with a
+                    # limited number of words.
+                    statsBoxes.append(self._buildBox("Statistics for %s" % \
+                                                     cgi.escape(word),
+                                                     'status.gif', stats))
+                elif reached_limit:
+                    if over_limit == 1:
+                        singles = ["was", "match", "is"]
+                    else:
+                        singles = ["were", "matches", "are"]
+                    stats = "There %s %d additional %s that %s not " \
+                            "shown here." % (singles[0], over_limit,
+                                             singles[1], singles[2])
+                    box = self._buildBox("Statistics for '%s*'" % \
+                                         cgi.escape(word), 'status.gif',
+                                         stats)
+                    statsBoxes.append(box)
             else:
-                stats = "%r does not exist in the database." % cgi.escape(word)
+                # Optimised version for non-wildcard searches
+                wordinfo = classifier._wordinfoget(word)
+                if wordinfo:
+                    stats = self.html.wordStats.clone()
+                    stats.spamcount = wordinfo.spamcount
+                    stats.hamcount = wordinfo.hamcount
+                    stats.spamprob = classifier.probability(wordinfo)
+                else:
+                    stats = "%r does not exist in the database." % cgi.escape(word)
+                statsBoxes.append(self._buildBox("Statistics for %r" % \
+                                                 cgi.escape(word),
+                                                 'status.gif', stats))
 
         query = self.html.wordQuery.clone()
-        query.word.value = word
-        statsBox = self._buildBox("Statistics for %r" % cgi.escape(word),
-                                  'status.gif', stats)
+        query.word.value = "%s" % (word,)
         queryBox = self._buildBox("Word query", 'query.gif', query)
         self._writePreamble("Word query")
-        self.write(statsBox + queryBox)
+        for box in statsBoxes:
+            self.write(box)
+        self.write(queryBox)
         self._writePostamble()
 
     def onTrain(self, file, text, which):

@@ -468,5 +468,8 @@ class Classifier:
     def _wordinfodel(self, word):
         del self.wordinfo[word]
 
+    def _wordinfokeys(self):
+        return self.wordinfo.keys()
+
 
 Bayes = Classifier

@@ -268,6 +268,11 @@ class DBDictClassifier(classifier.Classifier):
         del self.wordinfo[word]
         self.changed_words[word] = WORD_DELETED
 
+    def _wordinfokeys(self):
+        wordinfokeys = self.db.keys()
+        del wordinfokeys[wordinfokeys.index(self.statekey)]
+        return wordinfokeys
+
 
 class SQLClassifier(classifier.Classifier):
     def __init__(self, db_name):
