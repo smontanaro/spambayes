@@ -155,7 +155,7 @@ added:
 
 A url containing the details of these feature requests can be made by
 appending the request number to this url:
-http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498104&aid=
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498106&aid=
 
 
 Patches integrated
