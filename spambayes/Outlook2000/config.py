@@ -118,9 +118,6 @@ defaults = {
         ("timer_start_delay", "obsolete", 0, "", INTEGER, RESTORE),
         ("timer_interval", "obsolete", 1000, "", INTEGER, RESTORE),
         ("timer_only_receive_folders", "obsolete", True, "", BOOLEAN, RESTORE),
-        # Rather than fpfnunsure, do tte.  DeleteAs/RecoverFrom just move
-        # the message, and a tte update is done on close.
-        ("train_to_exhaustion", "Train to exhaustion", False, "", BOOLEAN, RESTORE),
     ),
     "Training" : (
     (FolderIDOption,
