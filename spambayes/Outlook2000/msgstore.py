@@ -478,10 +478,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.dirty = False
 
     def __repr__(self):
-        return "<%s, '%s' id=%s/%s>" % (self.__class__.__name__,
+        if self.id is None:
+            id_str = "(deleted/moved)"
+        else:
+            id_str = mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
+        return "<%s, '%s' id=%s>" % (self.__class__.__name__,
                                      self.GetSubject(),
-                                     mapi.HexFromBin(self.id[0]),
-                                     mapi.HexFromBin(self.id[1]))
+                                     id_str)
 
     def __eq__(self, other):
         if other is None: return False
