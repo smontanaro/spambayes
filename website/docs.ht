@@ -29,32 +29,40 @@ Author: spambayes
       catch-all term for this class of filters, no doubt horrifying
       statisticians everywhere.
 
-  <dt>corpus<dd> in this context, a body of messages. Usually referring to a
+  <dt>corpus<dd>In this context, a body of messages. Usually referring to a
       training database. (plural is corpora).
 
-  <dt>false negative<dd>a spam that's incorrectly classified as ham.  Also
+  <dt>false negative<dd>A spam that's incorrectly classified as ham.  Also
       abbreviated as "fn" or "FN".
 
-  <dt>false positive<dd>a ham that's incorrectly classified as spam.  Also
+  <dt>false positive<dd>A ham that's incorrectly classified as spam.  Also
       abbreviated as "fp" or "FP".
 
-  <dt>ham<dd>the opposite of spam; not necessarily email that you want or
+  <dt>ham<dd>The opposite of spam; not necessarily email that you want or
       that you asked for, just anything that's not unsolicited bulk email.
+      There is a second use for the term which means an email message which
+      Spambayes classified as good email.  That doesn't mean it's so, just
+      that based upon the evidence provided to the classifier it looked like
+      good email.  (See also: spam, unsure.)
 
-  <dt>hapax, hapax legomenon <dd>a word or form occurring only once in a 
+  <dt>hapax, hapax legomenon <dd>A word or form occurring only once in a 
       document or corpus. (plural is hapax legomena).
 
-  <dt>spam<dd>broadly speaking: any email that's not wanted by the
-      end-user.  More specifically: unsolicited bulk email; email
-      that you do not want and did not ask for, and was sent to
-      a whole bunch of people by automated means at the same time
-      it was sent to you.  This definition deliberately excludes viruses
-      and those stupid jokes sent to you by your Aunt Tillie.
+  <dt>spam<dd>Broadly speaking, any email that's not wanted by the
+      end-user.  More specifically: unsolicited bulk email; email that you
+      do not want and did not ask for, and was sent to a whole bunch of
+      people by automated means at the same time it was sent to you.  This
+      definition deliberately excludes viruses and those stupid jokes sent
+      to you by your Aunt Tillie.  There is a second use for the term which
+      means an email message which Spambayes classified as bad email.  That
+      doesn't mean it's so, just that based upon the evidence provided to
+      the classifier it looked like bad email.  (See also: ham, unsure.)
     
   <dt>training<dd>The process of feeding spambayes some sample spam and ham
       messages, to teach it what to look for. 
 
-  <dt>unsure<dd>an email message that could not reliably be classified as
+  <dt>unsure<dd>An email message that could not reliably be classified as
       either ham or spam.
+
 </dl>
 
