@@ -459,13 +459,13 @@ the first is via an automatic 'Read Receipt' (but this is unusual, as
 the "from" address is generally forged so the receipt goes nowhere
 useful).  The second common trick is by sending HTML spam that
 references unique URLs (generally images) on the spammer's server.
-When this HTML message is rendered, these fetching of these URLs 
+When this HTML message is rendered, the fetching of these URLs 
 identifies to the spammer the associated email address.
 
 As far as we are aware, SpamBayes does not generate a "read receipt"
 for "Show Spam Clues", even though the message is marked as read (and
 we don't know how to prevent it being marked as read).  However
-that if you are concerned about this, you are encouraged to configure
+if you are concerned about this, you are encouraged to configure
 Outlook's generation of receipts manually.
 
 Further, as "Show Spam Clues" does not attempt to render the HTML nor
