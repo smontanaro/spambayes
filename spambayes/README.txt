@@ -85,9 +85,15 @@ splitn.py
     Split an mbox into random pieces in various ways.  Tim recommends
     using "the standard" test data set up instead (see below).
 
+splitndirs.py
+    Like splitn.py (above), but splits an mbox into one message per file in
+    "the standard" directory structure (see below).  This does an
+    approximate split; rebal.by (below) can be used afterwards to even out
+    the number of messages per folder.
+
 rebal.py
     Evens out the number of messages in "standard" test data folders (see
-    below).
+    below).  Needs generalization (e.g., Ham and 4000 are hardcoded now).
 
 
 Standard Test Data Setup
