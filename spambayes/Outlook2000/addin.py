@@ -238,18 +238,49 @@ def ShowClues(mgr, app):
                             DisplayName="Original Message")
     new_msg.Display()
 
+# Events from our Explorer instance - currently used to enable/disable
+# controls
+class ExplorerEvent:
+    def Init(self, manager, application, but_delete_as, but_recover_as):
+        self.manager = manager
+        self.application = application
+        self.but_delete_as = but_delete_as
+        self.but_recover_as = but_recover_as
+    def Close(self):
+        self.but_delete_as = self.but_recover_as = None
+    def OnFolderSwitch(self):
+        # Work out what folder we are in.
+        explorer = self.application.ActiveExplorer()
+        if explorer is None:
+            print "** Folder Change, but don't have an explorer"
+            return
+
+        outlook_folder = explorer.CurrentFolder
+        show_delete_as = True
+        show_recover_as = False
+        if outlook_folder is not None:
+            mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
+            look_id = self.manager.config.filter.spam_folder_id
+            if look_id:
+                look_folder = self.manager.message_store.GetFolder(look_id)
+                if mapi_folder == look_folder:
+                    # This is the Spam folder - only show "recover"
+                    show_recover_as = True
+                    show_delete_as = False
+            # Check if uncertain
+            look_id = self.manager.config.filter.unsure_folder_id
+            if look_id:
+                look_folder = self.manager.message_store.GetFolder(look_id)
+                if mapi_folder == look_folder:
+                    show_recover_as = True
+                    show_delete_as = True
+        self.but_recover_as.Visible = show_recover_as
+        self.but_delete_as.Visible = show_delete_as
+
 # The "Delete As Spam" and "Recover Spam" button
 # The event from Outlook's explorer that our folder has changed.
-class ButtonDeleteAsExplorerEvent:
-    def Init(self, but):
-        self.but = but
-    def Close(self):
-        self.but = None
-    def OnFolderSwitch(self):
-        self.but._UpdateForFolderChange()
-
-class ButtonDeleteAsEvent:
-    def Init(self, manager, application, explorer):
+class ButtonDeleteAsEventBase:
+    def Init(self, manager, application):
         # NOTE - keeping a reference to 'explorer' in this event
         # appears to cause an Outlook circular reference, and outlook
         # never terminates (it does close, but the process remains alive)
@@ -258,84 +289,77 @@ class ButtonDeleteAsEvent:
         # to the event class so it doesn't auto-disconnect!)
         self.manager = manager
         self.application = application
-        self.explorer_events = WithEvents(explorer,
-                                           ButtonDeleteAsExplorerEvent)
-        self.set_for_as_spam = None
-        self.explorer_events.Init(self)
-        self._UpdateForFolderChange()
 
     def Close(self):
-        self.manager = self.application = self.explorer = None
+        self.manager = self.application = None
 
-    def _UpdateForFolderChange(self):
-        explorer = self.application.ActiveExplorer()
-        if explorer is None:
-            print "** Folder Change, but don't have an explorer"
-            return
-        outlook_folder = explorer.CurrentFolder
-        is_spam = False
-        if outlook_folder is not None:
-            mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
-            look_id = self.manager.config.filter.spam_folder_id
-            if look_id:
-                look_folder = self.manager.message_store.GetFolder(look_id)
-                if mapi_folder == look_folder:
-                    is_spam = True
-            if not is_spam:
-                look_id = self.manager.config.filter.unsure_folder_id
-                if look_id:
-                    look_folder = self.manager.message_store.GetFolder(look_id)
-                    if mapi_folder == look_folder:
-                        is_spam = True
-        if is_spam:
-            set_for_as_spam = False
-        else:
-            set_for_as_spam = True
-        if set_for_as_spam != self.set_for_as_spam:
-            if set_for_as_spam:
-                image = "delete_as_spam.bmp"
-                self.Caption = "Delete As Spam"
-                self.TooltipText = \
+class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
+    def Init(self, manager, application):
+        ButtonDeleteAsEventBase.Init(self, manager, application)
+        image = "delete_as_spam.bmp"
+        self.Caption = "Delete As Spam"
+        self.TooltipText = \
                         "Move the selected message to the Spam folder,\n" \
                         "and train the system that this is Spam."
-            else:
-                image = "recover_ham.bmp"
-                self.Caption = "Recover from Spam"
-                self.TooltipText = \
-                        "Recovers the selected item back to the folder\n" \
-                        "it was filtered from (or to the Inbox if this\n" \
-                        "folder is not known), and trains the system that\n" \
-                        "this is a good message\n"
-            # Set the image.
-            print "Setting image to", image
-            SetButtonImage(self, image)
-            self.set_for_as_spam = set_for_as_spam
+        SetButtonImage(self, image)
 
     def OnClick(self, button, cancel):
         msgstore = self.manager.message_store
         msgstore_messages = self.manager.addin.GetSelectedMessages(True)
         if not msgstore_messages:
             return
-        if self.set_for_as_spam:
-            # Delete this item as spam.
-            spam_folder_id = self.manager.config.filter.spam_folder_id
-            spam_folder = msgstore.GetFolder(spam_folder_id)
-            if not spam_folder:
-                win32ui.MessageBox("You must configure the Spam folder",
-                                   "Invalid Configuration")
-                return
-            import train
-            for msgstore_message in msgstore_messages:
-                # Must train before moving, else we lose the message!
-                print "Training on message - ",
-                if train.train_message(msgstore_message, True, self.manager, rescore = True):
-                    print "trained as spam"
-                else:
-                    print "already was trained as spam"
-                # Now move it.
-                msgstore_message.MoveTo(spam_folder)
-        else:
-            win32ui.MessageBox("Please be patient <wink>")
+        # Delete this item as spam.
+        spam_folder_id = self.manager.config.filter.spam_folder_id
+        spam_folder = msgstore.GetFolder(spam_folder_id)
+        if not spam_folder:
+            win32ui.MessageBox("You must configure the Spam folder",
+                               "Invalid Configuration")
+            return
+        import train
+        for msgstore_message in msgstore_messages:
+            # Must train before moving, else we lose the message!
+            print "Training on message - ",
+            if train.train_message(msgstore_message, True, self.manager, rescore = True):
+                print "trained as spam"
+            else:
+                print "already was trained as spam"
+            # Now move it.
+            msgstore_message.MoveTo(spam_folder)
+
+class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
+    def Init(self, manager, application):
+        ButtonDeleteAsEventBase.Init(self, manager, application)
+        image = "recover_ham.bmp"
+        self.Caption = "Recover from Spam"
+        self.TooltipText = \
+                "Recovers the selected item back to the folder\n" \
+                "it was filtered from (or to the Inbox if this\n" \
+                "folder is not known), and trains the system that\n" \
+                "this is a good message\n"
+        SetButtonImage(self, image)
+
+    def OnClick(self, button, cancel):
+        msgstore = self.manager.message_store
+        msgstore_messages = self.manager.addin.GetSelectedMessages(True)
+        if not msgstore_messages:
+            return
+        # Recover to where they were moved from
+        # Get the inbox as the default place to restore to
+        # (incase we dont know (early code) or folder removed etc
+        inbox_folder = msgstore.GetFolder(
+                    self.application.Session.GetDefaultFolder(
+                        constants.olFolderInbox))
+        import train
+        for msgstore_message in msgstore_messages:
+            # Must train before moving, else we lose the message!
+            print "Training on message - ",
+            if train.train_message(msgstore_message, False, self.manager, rescore = True):
+                print "trained as ham"
+            else:
+                print "already was trained as ham"
+            # Now move it.
+            # XXX - still don't write the source, so no point looking :(
+            msgstore_message.MoveTo(inbox_folder)
 
 # Helpers to work with images on buttons/toolbars.
 def SetButtonImage(button, fname):
@@ -378,38 +402,60 @@ class OutlookAddin:
         self.manager = manager.GetManager(application)
         assert self.manager.addin is None, "Should not already have an addin"
         self.manager.addin = self
+        self.explorer_events = None
 
         # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
         if activeExplorer is not None:
             bars = activeExplorer.CommandBars
             toolbar = bars.Item("Standard")
-            # Add our "Delete as ..." button
-            button = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            # Add our "Delete as ..." and "Recover as" buttons
+            but_delete_as = button = toolbar.Controls.Add(
+                                    Type=constants.msoControlButton,
+                                    Temporary=True)
             # Hook events for the item
             button.BeginGroup = True
-            button = DispatchWithEvents(button, ButtonDeleteAsEvent)
-            button.Init(self.manager, application, activeExplorer)
+            button = DispatchWithEvents(button, ButtonDeleteAsSpamEvent)
+            button.Init(self.manager, application)
             self.buttons.append(button)
+            # And again for "Recover as"
+            but_recover_as = button = toolbar.Controls.Add(
+                                    Type=constants.msoControlButton,
+                                    Temporary=True)
+            button = DispatchWithEvents(button, ButtonRecoverFromSpamEvent)
+            self.buttons.append(button)
+            # Hook our explorer events, and pass the buttons.
+            button.Init(self.manager, application)
 
+            self.explorer_events = WithEvents(activeExplorer,
+                                               ExplorerEvent)
+
+            self.explorer_events.Init(self.manager, application, but_delete_as, but_recover_as)
+            # And prime the event handler.
+            self.explorer_events.OnFolderSwitch()
+
+            # The main tool-bar dropdown with all out entries.
             # Add a pop-up menu to the toolbar
-            popup = toolbar.Controls.Add(Type=constants.msoControlPopup, Temporary=True)
+            popup = toolbar.Controls.Add(
+                                Type=constants.msoControlPopup,
+                                Temporary=True)
             popup.Caption="Anti-Spam"
             popup.TooltipText = "Anti-Spam filters and functions"
             popup.Enabled = True
-            # Convert from "CommandBarItem" to derived "CommandBarPopup"
-            # Not sure if we should be able to work this out ourselves, but no
-            # introspection I tried seemed to indicate we can.  VB does it via
-            # strongly-typed declarations.
+            # Convert from "CommandBarItem" to derived
+            # "CommandBarPopup" Not sure if we should be able to work
+            # this out ourselves, but no introspection I tried seemed
+            # to indicate we can.  VB does it via strongly-typed
+            # declarations.
             popup = CastTo(popup, "CommandBarPopup")
             # And add our children.
-            self._AddPopup(popup, ShowClues, (self.manager, application),
-                           Caption="Show spam clues for current message",
-                           Enabled=True)
             self._AddPopup(popup, manager.ShowManager, (self.manager,),
                            Caption="Anti-Spam Manager...",
                            TooltipText = "Show the Anti-Spam manager dialog.",
                            Enabled = True)
+            self._AddPopup(popup, ShowClues, (self.manager, application),
+                           Caption="Show spam clues for current message",
+                           Enabled=True)
 
         self.FiltersChanged()
 
@@ -498,10 +544,14 @@ class OutlookAddin:
             self.manager.Save()
             self.manager.Close()
             self.manager = None
+
+        if self.explorer_events is not None:
+            self.explorer_events = None
         if self.buttons:
             for button in self.buttons:
                 button.Close()
             self.buttons = None
+
         print "Addin terminating: %d COM client and %d COM servers exist." \
               % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
         try:
@@ -513,11 +563,11 @@ class OutlookAddin:
             pass
 
     def OnAddInsUpdate(self, custom):
-        print "SpamAddin - OnAddInsUpdate", custom
+        pass
     def OnStartupComplete(self, custom):
-        print "SpamAddin - OnStartupComplete", custom
+        pass
     def OnBeginShutdown(self, custom):
-        print "SpamAddin - OnBeginShutdown", custom
+        pass
 
 def RegisterAddin(klass):
     import _winreg
