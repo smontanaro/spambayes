@@ -21,7 +21,7 @@
 # and false negatives under Gary's scheme generally score in a narrow range
 # around the corpus's best spam_cutoff value.
 #
-# THe chi-combining scheme here gets closer to the theoretical basis of
+# The chi-combining scheme here gets closer to the theoretical basis of
 # Gary's combining scheme, and does give extreme scores, but also has a
 # very useful middle ground (small # of msgs spread across a large range
 # of scores).
@@ -34,7 +34,7 @@ from sets import Set
 
 from Options import options
 
-if options.use_chi_squared_combining or options.use_mixed_combining:
+if options.use_chi_squared_combining:
     from chi2 import chi2Q
     LN2 = math.log(2)
 
@@ -263,77 +263,6 @@ class Bayes(object):
 
     if options.use_chi_squared_combining:
         spamprob = chi2_spamprob
-
-    # This is a weighted average of the other two.  In extreme cases, they
-    # often seem to disagree on how "certain" they are.  Mixing softens
-    # the extremes, pushing even some very hard cases into the middle ground.
-    def mixed_spamprob(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import frexp, log as ln
-
-        H = S = 1.0
-        Hexp = Sexp = 0
-
-        clues = self._getclues(wordstream)
-        for prob, word, record in clues:
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
-            S *= 1.0 - prob
-            H *= prob
-            if S < 1e-200:  # prevent underflow
-                S, e = frexp(S)
-                Sexp += e
-            if H < 1e-200:  # prevent underflow
-                H, e = frexp(H)
-                Hexp += e
-
-        n = len(clues)
-        if n:
-            nrecip = 1.0 / n
-            P = 1.0 - S**nrecip * 2.0**(Sexp * nrecip)
-            Q = 1.0 - H**nrecip * 2.0**(Hexp * nrecip)
-
-            S = ln(S) + Sexp * LN2
-            H = ln(H) + Hexp * LN2
-            S = 1.0 - chi2Q(-2.0 * S, 2*n)
-            H = 1.0 - chi2Q(-2.0 * H, 2*n)
-
-        else:
-            P = Q = S = H = 1.0
-
-        gary_score = P/(P+Q)
-        chi_score = (S-H + 1.0) / 2.0
-
-        w = options.mixed_combining_chi_weight
-        prob = w * chi_score + (1.0 - w) * gary_score
-
-        if evidence:
-            clues = [(w, p) for p, w, r in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            extra = [('*chi_score*', chi_score),
-                     ('*gary_score*', gary_score),
-                     ('*S*', S),
-                     ('*H*', H),
-                     ('*P*', P),
-                     ('*Q*', Q),
-                     ('*n*', n),
-                    ]
-            clues[0:0] = extra
-            return prob, clues
-        else:
-            return prob
-
-    if options.use_mixed_combining:
-        spamprob = mixed_spamprob
 
     def learn(self, wordstream, is_spam, update_probabilities=True):
         """Teach the classifier by example.

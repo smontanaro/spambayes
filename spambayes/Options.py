@@ -272,10 +272,6 @@ use_gary_combining: True
 # with ham_cutoff=0.30 and spam_cutoff=0.80 across three test data sets
 # (original c.l.p data, his own email, and newer general python.org traffic).
 use_chi_squared_combining: False
-
-# Use a weighted average of chi-combining and gary-combining.
-use_mixed_combining: False
-mixed_combining_chi_weight: 0.9
 """
 
 int_cracker = ('getint', None)
@@ -329,9 +325,6 @@ all_options = {
                    'robinson_minimum_prob_strength': float_cracker,
                    'use_gary_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
-
-                   'use_mixed_combining': boolean_cracker,
-                   'mixed_combining_chi_weight': float_cracker,
                    },
 }
 
