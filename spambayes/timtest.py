@@ -140,9 +140,9 @@ class Driver:
         self.trained_ham_hist = Hist(self.nbuckets)
         self.trained_spam_hist = Hist(self.nbuckets)
 
-        f = file('w.pik', 'wb')
-        pickle.dump(self.classifier, f, 1)
-        f.close()
+        #f = file('w.pik', 'wb')
+        #pickle.dump(self.classifier, f, 1)
+        #f.close()
         #import sys
         #sys.exit(0)
 
