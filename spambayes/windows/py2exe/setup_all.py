@@ -39,6 +39,11 @@ py2exe_options = Options(
     includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
     dll_excludes = ["dapi.dll", "mapi32.dll"],
     lib_dir = "lib",
+    typelibs = [
+        ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0),
+        ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1),
+        ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0),
+    ]
 )
 
 # These must be the same IDs as in the dialogs.  We really should just extract
@@ -100,7 +105,7 @@ setup(name="SpamBayes",
       com_server=[outlook_addin],
       # A service
       service=[service],
-      # A console exe for debugging
+      # console exes for debugging
       console=[sb_server, outlook_dump_props],
       # The taskbar
       windows=[pop3proxy_tray],
