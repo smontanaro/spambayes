@@ -46,7 +46,6 @@ Usage:
         options:
             -e     : export
             -i     : import
-            -v     : verbose mode (some additional diagnostic messages)
             -f: FN : flat file to export to or import from
             -p: FN : name of pickled database file to use
             -d: FN : name of dbm database file to use
@@ -176,24 +175,9 @@ def runImport(dbFN, useDBM, newDBM, inFN):
         except OSError:
             pass
 
-        try:
-            os.unlink(dbFN+".dat")
-        except OSError:
-            pass
-
-        try:
-            os.unlink(dbFN+".dir")
-        except OSError:
-            pass
-
     bayes = spambayes.storage.open_storage(dbFN, useDBM)
 
-    try:
-        fp = open(inFN, 'rb')
-    except IOError, e:
-        if e.errno != errno.ENOENT:
-            raise
-
+    fp = open(inFN, 'rb')
     rdr = csv.reader(fp)
     (nham, nspam) = rdr.next()
 
@@ -214,9 +198,10 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     for (word, hamcount, spamcount) in rdr:
         word = uunquote(word)
 
-        try:
-            wi = bayes.wordinfo[word]
-        except KeyError:
+        # Can't use wordinfo[word] here, because wordinfo
+        # is only a cache with dbm!  Need to use _wordinfoget instead.
+        wi = bayes._wordinfoget(word)
+        if wi is None:
             wi = bayes.WordInfoClass()
 
         wi.hamcount += int(hamcount)
@@ -268,8 +253,6 @@ if __name__ == '__main__':
             imp = True
         elif opt == '-m':
             newDBM = False
-        elif opt == '-v':
-            options["globals", "verbose"] = True
         elif opt in ('-o', '--option'):
             options.set_from_cmdline(arg, sys.stderr)
     dbFN, useDBM = spambayes.storage.database_type(opts)
