@@ -39,3 +39,15 @@ A: Because training from scratch is a very rare occurance, and because
    the web interface for the POP3 proxy, the configuration page tells
    you what this file is called (and where it is) down towards the
    bottom of the page.
+
+Q: This software is great!  I want to implement it for all my users.
+   Are there plans to develop a server-side spambayes solution?
+A: The problem with a server-side solution is that everyone has a
+   different idea of what is spam - that's the whole strength of the
+   bayesian-style filtering concept.  If you are certain that *all*
+   of your users would agree on what is spam and what is not, then
+   this might work for you, but otherwise you really have to have
+   individual databases for each user.  Either way, you should be
+   able to modify spambayes easily enough to fit into your setup.
+   Please let the list know if you do have success in this area, and
+   we'll update this answer.

@@ -187,7 +187,7 @@ class Message(email.Message.Message):
         # this must store state independent of options settings, as they
         # may change, which would really screw this database up
 
-        # an unrecoginzed string here is interpreted as unsure.  Should
+        # an unrecognized string here is interpreted as unsure.  Should
         # that condition actually raise an exception instead?
 
         if cls == options.header_spam_string:

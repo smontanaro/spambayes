@@ -35,7 +35,25 @@ Examples:
 
     Train Spam and Ham only, with pickled database
         imapfilter -t -d bayes.db
- 
+
+Warnings:
+    o This is very alpha.  The filter is currently being developed and
+      tested.  We do *not* recommend using it on a production system unless
+      you are confident that you can get your mail back if you lose it.  On
+      the other hand, we do recommend that you test it for us and let us
+      know if anything does go wrong.  Once this appears in a release,
+      rather than just cvs, you can feel a *little* <wink> more confident
+      about using it.
+    o By default, the filter does *not* delete, modify or move any of your
+      mail.  Due to quirks in how imap works, new versions of your mail are
+      modified and placed in new folders, but there originals are still
+      available.  These are flagged with the /Deleted flag so that you know
+      that they can be removed.  Your mailer may not show these messages
+      by default, but there should be an option to do so.  *However*, if
+      your mailer automatically purges/expunges (i.e. permantently deletes)
+      mail flagged as such, *or* if you set the imap_expunge option to
+      True, then this mail will be irretrievably lost.
+    
 To Do:
     o Find a better way to remove old msg from info database when saving
       modified messages
@@ -61,8 +79,8 @@ To Do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-__author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
-__credits__ = "Tim Stone, All the Spambayes folk."
+__author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
+__credits__ = "All the Spambayes folk."
 
 from __future__ import generators
 
@@ -93,23 +111,16 @@ imap = None
 # global rfc822 fetch command
 rfc822_command = "(RFC822.PEEK)"
 
-# For efficiency, we remember which folder we are currently
-# in, and only send a select command to the IMAP server if
-# we want to *change* folders.  This function is used by
-# both IMAPMessage and IMAPFolder.
-# Occaisionally, we need to force a command, because we
-# are interested in the response.  Things would be much
-# nicer if we cached this information somewhere.
-# XXX If we wanted to be nice and tidy, this really belongs
-# XXX in an IMAPUtilities class, or something like that,
-# XXX or something like this:
-
 class IMAPSession(imaplib.IMAP4):
     '''A class extending the IMAP4 class, with a few optimizations'''
     
     def __init__(self, server, port, debug):
         imaplib.Debug = debug  # this is a global in the imaplib module
         imaplib.IMAP4.__init__(self, server, port)
+        # For efficiency, we remember which folder we are currently
+        # in, and only send a select command to the IMAP server if
+        # we want to *change* folders.  This function is used by
+        # both IMAPMessage and IMAPFolder.
         self.current_folder = None
         self.current_folder_readonly = None
 
@@ -135,6 +146,9 @@ class IMAPSession(imaplib.IMAP4):
         
         if self.current_folder != folder or \
            self.current_folder_readonly != readOnly or force:
+            # Occasionally, we need to force a command, because we
+            # are interested in the response.  Things would be much
+            # nicer if we cached this information somewhere.
             response = self.select(folder, readOnly)
             if response[0] != "OK":
                 print "Invalid response to %s:\n%s" % (command, response)
@@ -347,11 +361,9 @@ class IMAPFilter(object):
  
         if options.verbose:
             print "Filtering took", time.time() - t, "seconds."
-            
 
  
-if __name__ == '__main__':
-
+def run():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'htcvpl:e:i:d:D:')
     except getopt.error, msg:
@@ -380,7 +392,7 @@ if __name__ == '__main__':
         elif opt == '-t':
             doTrain = True
         elif opt == '-p':
-            promptForPass = 1
+            promptForPass = True
         elif opt == '-c':
             doClassify = True
         elif opt == '-v':
@@ -440,3 +452,6 @@ if __name__ == '__main__':
             time.sleep(sleepTime)
         else:
             break
+
+if __name__ == '__main__':
+    run()
