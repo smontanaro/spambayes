@@ -913,7 +913,7 @@ class Stripper(object):
             if not m:
                 # No matching end - act as if the open
                 # tag did not exist.
-                pushretained(text[start:])                
+                pushretained(text[start:])
                 break
             dummy, i = m.span()
         return self.separator.join(retained), tokens
@@ -1375,7 +1375,12 @@ class Tokenizer:
 
             # Remove HTML/XML tags.  Also &nbsp;.
             text = text.replace('&nbsp;', ' ')
-            text = html_re.sub(' ', text)
+            # It's important to eliminate HTML tags rather than, e.g.,
+            # replace them with a blank (as this code used to do), else
+            # simple tricks like
+            #    Wr<!$FS|i|R3$s80sA >inkle Reduc<!$FS|i|R3$s80sA >tion
+            # can be used to disguise words.
+            text = html_re.sub('', text)
 
             # Tokenize everything in the body.
             for w in text.split():
