@@ -213,6 +213,15 @@ class MAPIMsgStore(MsgStore):
             self.mapi_msg_stores[None] = store
         return store
 
+    def GetRootFolder(self, store_id = None):
+        # if storeID is None, gets the root folder from the default store.
+        store = self._GetMessageStore(store_id)
+        hr, data = store.GetProps((PR_ENTRYID, PR_IPM_SUBTREE_ENTRYID), 0)
+        store_eid = data[0][1]
+        subtree_eid = data[1][1]
+        eid = mapi.HexFromBin(store_eid), mapi.HexFromBin(subtree_eid)
+        return self.GetFolder(eid)
+
     def _OpenEntry(self, id, iid = None, flags = None):
         # id is already normalized.
         store_id, item_id = id
@@ -525,9 +534,11 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         eid, ret_class = mapi_store.GetReceiveFolder(msg_class, 0)
         return mapi_store.CompareEntryIDs(eid, self.id[1])
 
-    def CreateFolder(self, name, comments = None, type = None, flags = None):
+    def CreateFolder(self, name, comments = None, type = None,
+                     open_if_exists = False, flags = None):
         if type is None: type = mapi.FOLDER_GENERIC
         if flags is None: flags = 0
+        if open_if_exists: flags |= mapi.OPEN_IF_EXISTS
         folder = self.OpenEntry()
         ret = folder.CreateFolder(type, name, comments, None, flags)
         return self._FolderFromMAPIFolder(ret)
