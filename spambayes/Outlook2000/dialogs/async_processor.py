@@ -29,7 +29,7 @@ class _Progress:
         self.hprogress = processor.GetControl(processor.statusbar_id)
         self.processor = processor
         self.stopping = False
-        self.total_control_ticks = 100
+        self.total_control_ticks = 40
         self.current_stage = 0
         self.set_stages( (("", 1.0),) )
 
@@ -71,8 +71,9 @@ class _Progress:
         # Calc the perc of the total control.
         stage_name, start, prop = self._get_current_stage()
         total_prop = start + this_prop * prop
-        # How may ticks is this on the control
-        control_tick = int(total_prop * self.total_control_ticks)
+        # How may ticks is this on the control (but always have 1, so the
+        # user knows the process has actually started.)
+        control_tick = max(1,int(total_prop * self.total_control_ticks))
         #print "Tick", self.current_stage_tick, "is", this_prop, "through the stage,", total_prop, "through the total - ctrl tick is", control_tick
         while self.current_control_tick < control_tick:
             self.current_control_tick += 1
