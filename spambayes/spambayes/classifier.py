@@ -678,6 +678,11 @@ class Classifier:
         # doesn't cost us anything apart from another entry in the db, and
         # it's only two entries, plus one for each type of http error
         # encountered, so it's pretty neglible.
+        # If there is no content in the URL, then just return immediately.
+        # "http://)" will trigger this.
+        if not url:
+            return ["url:non_resolving"]
+        
         from spambayes.tokenizer import Tokenizer
 
         if options["URLRetriever", "x-only_slurp_base"]:
