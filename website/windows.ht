@@ -6,10 +6,13 @@ Author: spambayes
 
 <h2>Outlook 2000/Outlook XP</h2>
 
-<p>If you are using Outlook 2000 or Outlook XP (<strong>not</strong> Outlook Express)
-you should be able to simply download and run the <a
-href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-007.exe">Outlook
-plug-in installer</a>.  A separate Python installation is not necessary.</p>
+<p>If you are using Outlook 2000 or Outlook XP (<strong>not</strong> Outlook 
+Express) you should be able to simply download and run the 
+<a href="http://prdownloads.sourceforge.net/spambayes/SpamBayes-Outlook-Setup-007.exe?download">Outlook 
+plug-in installer</a> (<a href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-007.exe">alternate 
+download site</a>).  A separate Python installation is not necessary. 
+<a href="http://starship.python.net/crew/mhammond/spambayes/">Mark's
+website</a> has more details on this package.</p>
 
 <p>Note that all users who installed version 006 or earlier of the plugin are 
 recommended to upgrade to the 007 release.</p>
