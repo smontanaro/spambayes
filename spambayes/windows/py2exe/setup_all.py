@@ -110,7 +110,7 @@ outlook_data_files = [
     ["docs/outlook", [os.path.join(sb_top_dir, r"Outlook2000\about.html")]],
     ["docs/outlook/docs", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\*.html"))],
     ["docs/outlook/docs/images", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\images\*.jpg"))],
-    ["docs/outlook", [os.path.join(sb_top_dir, r"Outlook2000\default_bayes_customize.ini")]],
+    ["bin", [os.path.join(sb_top_dir, r"Outlook2000\default_bayes_customize.ini")]],
 ]
 proxy_data_files = [
     ["docs/sb_server", [os.path.join(sb_top_dir, r"windows\readme_proxy.html")]],
