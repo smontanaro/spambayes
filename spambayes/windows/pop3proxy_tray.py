@@ -375,10 +375,6 @@ class MainWindow(object):
         self.started = True
 
     def StartStop(self):
-        # XXX This needs to be finished off.
-        # XXX This should determine if we are using the service, and if so
-        # XXX start/stop that, and if not kick sb_server off in a separate
-        # XXX thread, or stop the thread that was started.
         if self.use_service:
             if self.GetServiceStatus() in stoppedStatus:
                 self.StartService()
@@ -397,8 +393,6 @@ class MainWindow(object):
         else:
             self.control_functions[START_STOP_ID] = ("Start SpamBayes",
                                          self.StartStop)
-
-
 
     def OpenInterface(self):
         if self.started:
