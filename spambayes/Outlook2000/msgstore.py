@@ -456,7 +456,9 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             if len(rows) == 0:
                 break
             for row in rows:
-                yield MAPIMsgStoreMsg(self.msgstore, row)
+                msg = MAPIMsgStoreMsg(self.msgstore, row)
+                if msg.IsFilterCandidate():
+                    yield msg
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
     # All the properties we must initialize a message with.
