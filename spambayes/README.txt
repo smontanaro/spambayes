@@ -112,7 +112,11 @@ your email client's setup, and do the same with your equivalent of
 
 Now launch pop3proxy, either by running the "pop3proxy_service.py" script
 (for those using Windows 2000, Windows NT or Windows XP), or the
-"sb_server.py" script (for everyone else).
+"sb_server.py" script (for everyone else).  Note that if you want to use
+the service, you need to also have Mark Hammond's win32 extensions for
+Python installed:
+
+<http://starship.python.net/crew/mhammond/win32/Downloads.html>
 
 All you need to do to configure SpamBayes is to open a web page to
 <http://localhost:8880>, click on the "Configuration" link at the top
@@ -137,7 +141,7 @@ be based on the headers only, not the body.  This is not recommended.
 IMAP Filter
 -----------
 
-To configure SpamBayes, run the "sb_imapfilter.py" script, and open a web
+To configure SpamBayes, run "sb_imapfilter.py -b", which should open a web
 page to <http://localhost:8880>, click on the "Configuration" link at the
 top right, and fill in the relevant details.  Everything should be ok with
 the defaults, except for the server information at the top.
