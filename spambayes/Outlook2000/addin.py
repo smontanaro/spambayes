@@ -812,6 +812,9 @@ class OutlookAddin:
             from spambayes.Version import get_version_string
             print "%s starting (with engine %s)..." % \
                     (get_version_string("Outlook"), get_version_string())
+            major, minor, spack, platform, ver_str = win32api.GetVersionEx()
+            print "On Windows version %d.%d.%d (%s)" % \
+                  (major, minor, spack, ver_str)
 
             self.explorers_events = None # create at OnStartupComplete
 
