@@ -423,6 +423,33 @@ def GetPotentiallyLargeStringProp(mapi_object, prop_id, row):
         ret = got_val
     return ret
 
+# Some nasty stuff for getting RTF out of the message
+_have_complained_about_missing_rtf = False
+def GetHTMLFromRTFProperty(mapi_object, prop_tag = PR_RTF_COMPRESSED):
+    global _have_complained_about_missing_rtf
+    try:
+        rtf_stream = mapi_object.OpenProperty(prop_tag, pythoncom.IID_IStream,
+                                              0, 0)
+    except pythoncom.com_error, details:
+        if not IsNotFoundCOMException(details):
+            print "ERROR getting RTF body", details
+        return ""
+    try:
+        html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
+    except AttributeError:
+        if not _have_complained_about_missing_rtf:
+            print "*" * 50
+            print "Sorry, but you need to update to a new win32all (158 or "
+            print "later), so we correctly get the HTML from messages."
+            print "See http://starship.python.net/crew/mhammond/win32"
+            print "*" * 50
+            _have_complained_about_missing_rtf = True
+        return ""
+    html = mapi.RTFStreamToHTML(html_stream)
+    # html may be None if not RTF originally from HTML, but here we
+    # always want a string
+    return html or ''
+
 class MAPIMsgStoreFolder(MsgStoreMsg):
     def __init__(self, msgstore, id, name, count):
         self.msgstore = msgstore
@@ -704,7 +731,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return "\n".join(parts)
 
     def _GetMessageTextParts(self):
-        # This is finally reliable.  The only messages this now fails for
+        # This is almost reliable :).  The only messages this now fails for
         # are for "forwarded" messages, where the forwards are actually
         # in an attachment.  Later.
         # Note we *dont* look in plain text attachments, which we arguably
@@ -719,6 +746,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         body = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         html = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         headers = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
+        # xxx - not sure what to do if we have both.
+        if not html:
+            html = GetHTMLFromRTFProperty(self.mapi_object)
 
         # Some Outlooks deliver a strange notion of headers, including
         # interior MIME armor.  To prevent later errors, try to get rid
@@ -936,7 +966,13 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.dirty = True
 
     def GetField(self, prop, raise_errors = False):
-        self._EnsureObject()
+        try:
+            self._EnsureObject()
+        except pythoncom.com_error, details:
+            if not IsNotFoundCOMException(details):
+                print "ERROR: Could not open an object to fetch a field"
+                print details
+            return None
         if type(prop) != type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             prop = self.mapi_object.GetIDsFromNames(props, 0)[0]
