@@ -43,8 +43,8 @@ def main():
     db = dumbdbm.open("dumbdb", "c")
     db["1"] = "1"
     db.close()
-    str = whichdb.whichdb("dumbdb")
-    if str:
+    dbstr = whichdb.whichdb("dumbdb")
+    if dbstr:
         print "Dumbdbm is available."
     else:
         print "Dumbdbm is not available."
@@ -52,20 +52,20 @@ def main():
     db = dbhash.open("dbhash", "c")
     db["1"] = "1"
     db.close()
-    str = whichdb.whichdb("dbhash")
-    if str == "dbhash":
+    dbstr = whichdb.whichdb("dbhash")
+    if dbstr == "dbhash":
         print "Dbhash is available."
     else:
         print "Dbhash is not available."
 
     if bsddb is None:
-        str = ""
+        dbstr = ""
     else:
         db = bsddb.hashopen("bsddb3", "c")
         db["1"] = "1"
         db.close()
-        str = whichdb.whichdb("bsddb3")
-    if str == "dbhash":
+        dbstr = whichdb.whichdb("bsddb3")
+    if dbstr == "dbhash":
         print "Bsddb[3] is available."
     else:
         print "Bsddb[3] is not available."
@@ -84,11 +84,16 @@ def main():
     db_type = whichdb.whichdb(hammie)
     if db_type == "dbhash":
         # could be dbhash or bsddb3
-        try:
-            db = dbhash.open(hammie, "c")
-        except:
-            print "Your storage %s is a: bsddb3" % (hammie,)
-            return
+        # only bsddb3 has a __version__ attribute - old bsddb module does not
+        if hasattr(bsddb, '__version__'):
+            try:
+                db = bsddb.hashopen(hammie, "r")
+            except bsddb.error:
+                pass
+            else:
+                db.close()
+                print "Your storage", hammie, "is a: bsddb[3]"
+                return
     elif db_type is None:
         print "Your storage %s is unreadable." % (hammie,)
     print "Your storage %s is a: %s" % (hammie, db_type)
