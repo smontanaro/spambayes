@@ -658,36 +658,36 @@ def crack_filename(fname):
 
 def tokenize_word(word, _len=len, maxword=options["Tokenizer",
                                                   "skip_max_word_size"]):
-   n = _len(word)
-   # Make sure this range matches in tokenize().
-   if 3 <= n <= maxword:
-       yield word
+    n = _len(word)
+    # Make sure this range matches in tokenize().
+    if 3 <= n <= maxword:
+        yield word
+        
+    elif n >= 3:
+        # A long word.
+        
+        # Don't want to skip embedded email addresses.
+        # An earlier scheme also split up the y in x@y on '.'.  Not splitting
+        # improved the f-n rate; the f-p rate didn't care either way.
+        if n < 40 and '.' in word and word.count('@') == 1:
+            p1, p2 = word.split('@')
+            yield 'email name:' + p1
+            yield 'email addr:' + p2
 
-   elif n >= 3:
-       # A long word.
-
-       # Don't want to skip embedded email addresses.
-       # An earlier scheme also split up the y in x@y on '.'.  Not splitting
-       # improved the f-n rate; the f-p rate didn't care either way.
-       if n < 40 and '.' in word and word.count('@') == 1:
-           p1, p2 = word.split('@')
-           yield 'email name:' + p1
-           yield 'email addr:' + p2
-
-       else:
-           # There's value in generating a token indicating roughly how
-           # many chars were skipped.  This has real benefit for the f-n
-           # rate, but is neutral for the f-p rate.  I don't know why!
-           # XXX Figure out why, and/or see if some other way of summarizing
-           # XXX this info has greater benefit.
-           if options["Tokenizer", "generate_long_skips"]:
-               yield "skip:%c %d" % (word[0], n // 10 * 10)
-           if has_highbit_char(word):
-               hicount = 0
-               for i in map(ord, word):
-                   if i >= 128:
-                       hicount += 1
-               yield "8bit%%:%d" % round(hicount * 100.0 / len(word))
+        else:
+            # There's value in generating a token indicating roughly how
+            # many chars were skipped.  This has real benefit for the f-n
+            # rate, but is neutral for the f-p rate.  I don't know why!
+            # XXX Figure out why, and/or see if some other way of summarizing
+            # XXX this info has greater benefit.
+            if options["Tokenizer", "generate_long_skips"]:
+                yield "skip:%c %d" % (word[0], n // 10 * 10)
+            if has_highbit_char(word):
+                hicount = 0
+                for i in map(ord, word):
+                    if i >= 128:
+                        hicount += 1
+                yield "8bit%%:%d" % round(hicount * 100.0 / len(word))
 
 # Generate tokens for:
 #    Content-Type
