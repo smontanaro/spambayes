@@ -1,32 +1,34 @@
 #! /usr/bin/env python
 
-"""Usage: %(program)s wordprobs.cdb
+"""Usage: %(program)s wordprobs.cdb Maildir Spamdir
 """
 
 import sys
 import os
+import time
+import signal
+import socket
 import email
 from heapq import heapreplace
 from sets import Set
+import cdb
+from tokenizer import tokenize
 from classifier import MIN_SPAMPROB, MAX_SPAMPROB, UNKNOWN_SPAMPROB, \
     MAX_DISCRIMINATORS
-import cdb
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
-from tokenizer import tokenize
+BLOCK_SIZE = 10000
+SIZE_LIMIT = 5000000 # messages larger are not analyzed
+SPAM_THRESHOLD = 0.9
 
-def spamprob(wordprobs, wordstream, evidence=False):
+def spamprob(wordprobs, wordstream):
     """Return best-guess probability that wordstream is spam.
 
     wordprobs is a CDB of word probabilities
 
     wordstream is an iterable object producing words.
     The return value is a float in [0.0, 1.0].
-
-    If optional arg evidence is True, the return value is a pair
-        probability, evidence
-    where evidence is a list of (word, probability) pairs.
     """
 
     # A priority queue to remember the MAX_DISCRIMINATORS best
@@ -69,7 +71,6 @@ def spamprob(wordprobs, wordstream, evidence=False):
     # unclear how much it matters, though, as the omissions here seem
     # to tend in part to cancel out distortions introduced earlier by
     # HAMBIAS.  Experiments will decide the issue.
-    clues = []
 
     # First cancel out competing extreme clues (see comment block at
     # MAX_DISCRIMINATORS declaration -- this is a twist on Graham).
@@ -82,9 +83,6 @@ def spamprob(wordprobs, wordstream, evidence=False):
         # They're all good clues, but we're only going to feed the tokeep
         # initial clues from the longer list into the probability
         # computation.
-        for dist, prob, word in shorter + longer[tokeep:]:
-            if evidence:
-                clues.append((word, prob))
         for x in longer[:tokeep]:
             heapreplace(nbest, x)
 
@@ -92,31 +90,30 @@ def spamprob(wordprobs, wordstream, evidence=False):
     for distance, prob, word in nbest:
         if prob is None:    # it's one of the dummies nbest started with
             continue
-        if evidence:
-            clues.append((word, prob))
         prob_product *= prob
         inverse_prob_product *= 1.0 - prob
 
     prob = prob_product / (prob_product + inverse_prob_product)
-    if evidence:
-        clues.sort(lambda a, b: cmp(a[1], b[1]))
-        return prob, clues
-    else:
-        return prob
+    return prob
 
-def formatclues(clues, sep="; "):
-    """Format the clues into something readable."""
-    return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
-
-def is_spam(wordprobs, input):
-    """Filter (judge) a message"""
-    msg = email.message_from_file(input)
-    prob, clues = spamprob(wordprobs, tokenize(msg), True)
-    #print "%.2f;" % prob, formatclues(clues)
-    if prob < 0.9:
-        return False
-    else:
-        return True
+def maketmp(dir):
+    hostname = socket.gethostname()
+    pid = os.getpid()
+    fd = -1
+    for x in xrange(200):
+        filename = "%d.%d.%s" % (time.time(), pid, hostname)
+        pathname = "%s/tmp/%s" % (dir, filename)
+        try:
+            fd = os.open(pathname, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0600)
+        except IOError, exc:
+            if exc[i] not in (errno.EINT, errno.EEXIST):
+                raise
+        else:
+            break
+        time.sleep(2)
+    if fd == -1:
+        raise SystemExit, "could not create a mail file"
+    return (os.fdopen(fd, "wb"), pathname, filename)
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -127,14 +124,49 @@ def usage(code, msg=''):
     sys.exit(code)
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 4:
         usage(2)
 
-    wordprobs = cdb.Cdb(open(sys.argv[1], 'rb'))
-    if is_spam(wordprobs, sys.stdin):
-        sys.exit(1)
-    else:
-        sys.exit(0)
+    wordprobfilename = sys.argv[1]
+    hamdir = sys.argv[2]
+    spamdir = sys.argv[3]
+
+    signal.signal(signal.SIGALRM, lambda s: sys.exit(1))
+    signal.alarm(24 * 60 * 60)
+
+    # write message to temporary file (must be on same partition)
+    tmpfile, pathname, filename = maketmp(hamdir)
+    try:
+        tmpfile.write(os.environ.get("DTLINE", "")) # delivered-to line
+        bytes = 0
+        blocks = []
+        while 1:
+            block = sys.stdin.read(BLOCK_SIZE)
+            if not block:
+                break
+            bytes += len(block)
+            if bytes < SIZE_LIMIT:
+                blocks.append(block)
+            tmpfile.write(block)
+        tmpfile.close()
+
+        if bytes < SIZE_LIMIT:
+            msgdata = ''.join(blocks)
+            del blocks
+            msg = email.message_from_string(msgdata)
+            del msgdata
+            wordprobs = cdb.Cdb(open(wordprobfilename, 'rb'))
+            prob = spamprob(wordprobs, tokenize(msg))
+        else:
+            prob = 0.0
+
+        if prob > SPAM_THRESHOLD:
+            os.rename(pathname, "%s/new/%s" % (spamdir, filename))
+        else:
+            os.rename(pathname, "%s/new/%s" % (hamdir, filename))
+    except:
+        os.unlink(pathname)
+        raise
 
 if __name__ == "__main__":
     main()
