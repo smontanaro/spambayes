@@ -13,6 +13,7 @@
 #define IDD_FILTER_SPAM                 110
 #define IDD_FILTER_UNSURE               111
 #define IDD_DIAGNOSIC                   113
+#define IDD_WIZARD                      114
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -74,18 +75,21 @@
 #define IDC_USE_DELAY2                  1065
 #define IDC_TAB                         1068
 #define IDC_BUTTON1                     1069
+#define IDC_BACK_BTN                    1069
 #define IDC_ABOUT_BTN                   1070
 #define IDC_DEL_SPAM_RS                 1071
 #define IDC_RECOVER_RS                  1072
 #define IDC_HIDDEN                      1076
+#define IDC_FORWARD_BTN                 1077
+#define IDC_PAGE_PLACEHOLDER            1078
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        114
+#define _APS_NEXT_RESOURCE_VALUE        115
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1077
+#define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -300,12 +300,13 @@ class ProcessorDialog(TooltipDialog):
         self.ApplyHandlingOptionValueError(handler.OnCommand, wparam, lparam)
 
 class ProcessorPage(ProcessorDialog):
-    def __init__(self, parent, manager, idd, option_handlers):
+    def __init__(self, parent, manager, idd, option_handlers, yoffset):
         ProcessorDialog.__init__(self, parent, manager, idd,option_handlers)
+        self.yoffset = yoffset
     def OnInitDialog(self, hwnd, msg, wparam, lparam):
         self.hwnd = hwnd
         # The hardcoded values are a bit of a hack.
-        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 1, 24, 0, 0, win32con.SWP_NOSIZE)
+        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, 1, self.yoffset, 0, 0, win32con.SWP_NOSIZE)
         self.LoadAllControls()
     def CreateWindow(self):
         # modeless. Pages should have the WS_CHILD window style

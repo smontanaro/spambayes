@@ -138,6 +138,21 @@ BEGIN
     EDITTEXT        IDC_VERBOSE_LOG,43,25,40,14,ES_AUTOHSCROLL
 END
 
+IDD_WIZARD DIALOGEX 0, 0, 390, 203
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "SpamBayes Setup Wizard"
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,333,182,50,14
+    LTEXT           "Logo Here after we figure out dialog size",IDC_STATIC,7,
+                    7,68,189,SS_SUNKEN
+    PUSHBUTTON      "<< Back",IDC_BACK_BTN,216,182,50,14
+    DEFPUSHBUTTON   "Next>>,Finish",IDC_FORWARD_BTN,273,182,50,14
+    CONTROL         "",IDC_PAGE_PLACEHOLDER,"Static",SS_ETCHEDFRAME,80,7,303,
+                    167
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -181,6 +196,14 @@ BEGIN
         RIGHTMARGIN, 172
         TOPMARGIN, 7
         BOTTOMMARGIN, 45
+    END
+
+    IDD_WIZARD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 383
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 196
     END
 END
 #endif    // APSTUDIO_INVOKED
