@@ -65,19 +65,32 @@ except pythoncom.com_error, (hr, msg, exc, arg):
 # Something that should be in win32com in some form or another.
 def CastTo(ob, target):
     """'Cast' a COM object to another type"""
+    # todo - should support target being an IID
     if hasattr(target, "index"): # string like
     # for now, we assume makepy for this to work.
-        if not ob.__class__.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+        if not ob.__class__.__dict__.has_key("CLSID"):
+            # Eeek - no makepy support - try and build it.
             ob = gencache.EnsureDispatch(ob)
-        if not ob.__class__.__dict__.get("CLSID"):
+        if not ob.__class__.__dict__.has_key("CLSID"):
             raise ValueError, "Must be a makepy-able object for this to work"
         clsid = ob.CLSID
+        # Lots of hoops to support "demand-build" - ie, generating
+        # code for an interface first time it is used.  We assume the
+        # interface name exists in the same library as the object.
+        # This is generally the case - only referenced typelibs may be
+        # a problem, and we can handle that later.  Maybe <wink>
+        # So get the generated module for the library itself, then
+        # find the interface CLSID there.
         mod = gencache.GetModuleForCLSID(clsid)
         # Get the 'root' module.
-        mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID, mod.MajorVersion, mod.MinorVersion)
+        mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID,
+                                           mod.MajorVersion, mod.MinorVersion)
         # Find the CLSID of the target
         # XXX - should not be looking in VTables..., but no general map currently exists
         target_clsid = mod.VTablesNamesToIIDMap.get(target)
+        if target_clsid is None:
+            raise ValueError, "The interface name '%s' does not appear in the " \
+                              "same library as object '%r'" % (target, ob)
         mod = gencache.GetModuleForCLSID(target_clsid)
         target_class = getattr(mod, target)
         # resolve coclass to interface
@@ -95,9 +108,6 @@ class ButtonEvent:
         self.handler(*self.args)
 
 class FolderItemsEvent:
-    def __del__(self):
-        print "Event dieing"
-
     def Init(self, target, application, manager):
         self.application = application
         self.manager = manager
@@ -108,7 +118,8 @@ class FolderItemsEvent:
             mapi_message = self.manager.mapi.GetMessage(item.EntryID)
             import filter
             num_rules = filter.filter_message(mapi_message, self.manager)
-            print "%d Spam rules fired for message '%s'" % (num_rules, item.Subject.encode("ascii", "replace"))
+            print "%d Spam rules fired for message '%s'" \
+                  % (num_rules, item.Subject.encode("ascii", "replace"))
         else:
             print "Spam filtering is disabled - ignoring new message"
 
@@ -125,7 +136,8 @@ def ShowClues(mgr, app):
 
     item = sel.Item(1)
     if item.Class != constants.olMail:
-        win32ui.MessageBox("This function can only be performed on mail items", "Not a mail message")
+        win32ui.MessageBox("This function can only be performed on mail items",
+                           "Not a mail message")
         return
 
     mapi_message = mgr.mapi.GetMessage(item.EntryID)
@@ -186,26 +198,30 @@ class OutlookAddin:
             popup.Caption="Anti-Spam"
             popup.TooltipText = "Anti-Spam filters and functions"
             popup.Enabled = True
+            # Convert from "CommandBarItem" to derived "CommandBarPopup"
+            # Not sure if we should be able to work this out ourselves, but no
+            # introspection I tried seemed to indicate we can.  VB does it via
+            # strongly-typed declarations.
             popup = CastTo(popup, "CommandBarPopup")
-
-            item = popup.Controls.Add(Type=constants.msoControlButton, Temporary=True)
-            # Hook events for the item
-            item = DispatchWithEvents(item, ButtonEvent)
-            item.Init(ShowClues, (self.manager, application))
-            item.Caption="Show spam clues for current message"
-            item.Enabled = True
-            self.buttons.append(item)
-
-            item = popup.Controls.Add(Type=constants.msoControlButton, Temporary=True)
-            # Hook events for the item
-            item = DispatchWithEvents(item, ButtonEvent)
-            item.Init(manager.ShowManager, (self.manager,))
-            item.Caption="Options..."
-            item.TooltipText = "Define anti-spam filters"
-            item.Enabled = True
-            self.buttons.append(item)
+            # And add our children.
+            self._AddPopup(popup, ShowClues, (self.manager, application),
+                           Caption="Show spam clues for current message",
+                           Enabled=True)
+            self._AddPopup(popup, manager.ShowManager, (self.manager,),
+                           Caption="Anti-Spam Manager...",
+                           TooltipText = "Show the Anti-Spam manager dialog.",
+                           Enabled = True)
 
         self.FiltersChanged()
+
+    def _AddPopup(self, parent, target, target_args, **item_attrs):
+        item = parent.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+        # Hook events for the item
+        item = DispatchWithEvents(item, ButtonEvent)
+        item.Init(target, target_args)
+        for attr, val in item_attrs.items():
+            setattr(item, attr, val)
+        self.buttons.append(item)
 
     def FiltersChanged(self):
         # Create a notification hook for all folders we filter.
@@ -213,7 +229,9 @@ class OutlookAddin:
 
     def UpdateFolderHooks(self):
         new_hooks = {}
-        for mapi_folder in self.manager.BuildFolderList(self.manager.config.filter.folder_ids, self.manager.config.filter.include_sub):
+        for mapi_folder in self.manager.BuildFolderList(
+                    self.manager.config.filter.folder_ids,
+                    self.manager.config.filter.include_sub):
             eid = mapi_folder.ID
             existing = self.folder_hooks.get(eid)
             if existing is None:
@@ -244,6 +262,16 @@ class OutlookAddin:
             self.manager = None
         self.buttons = None
 
+        print "Addin terminating: %d COM client and %d COM servers exist." \
+              % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
+        try:
+            # will be available if "python_d addin.py" is used to
+            # register the addin.
+            total_refs = sys.gettotalrefcount() # debug Python builds only
+            print "%d Python references exist" % (total_refs,)
+        except AttributeError:
+            pass
+
     def OnAddInsUpdate(self, custom):
         print "SpamAddin - OnAddInsUpdate", custom
     def OnStartupComplete(self, custom):
@@ -251,10 +279,10 @@ class OutlookAddin:
     def OnBeginShutdown(self, custom):
         print "SpamAddin - OnBeginShutdown", custom
 
-
 def RegisterAddin(klass):
     import _winreg
-    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins")
+    key = _winreg.CreateKey(_winreg.HKEY_CURRENT_USER,
+                            "Software\\Microsoft\\Office\\Outlook\\Addins")
     subkey = _winreg.CreateKey(key, klass._reg_progid_)
     _winreg.SetValueEx(subkey, "CommandLineSafe", 0, _winreg.REG_DWORD, 0)
     _winreg.SetValueEx(subkey, "LoadBehavior", 0, _winreg.REG_DWORD, 3)
@@ -264,7 +292,9 @@ def RegisterAddin(klass):
 def UnregisterAddin(klass):
     import _winreg
     try:
-        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\Addins\\" + klass._reg_progid_)
+        _winreg.DeleteKey(_winreg.HKEY_CURRENT_USER,
+                          "Software\\Microsoft\\Office\\Outlook\\Addins\\" \
+                          + klass._reg_progid_)
     except WindowsError:
         pass
 
