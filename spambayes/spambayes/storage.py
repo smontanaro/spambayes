@@ -84,7 +84,12 @@ class PickledClassifier(classifier.Classifier):
         # This is a bit strange, because the loading process
         # creates a temporary instance of PickledClassifier, from which
         # this object's state is copied.  This is a nuance of the way
-        # that pickle does its job
+        # that pickle does its job.
+        # Tim sez:  that's because this is an unusual way to use pickle.
+        # Note that nothing non-trivial is actually copied, though:
+        # assignment merely copies a pointer.  The actual wordinfo etc
+        # objects are shared between tempbayes and self, and the tiny
+        # tempbayes object is reclaimed when load() returns.
 
         if options.verbose:
             print 'Loading state from',self.db_name,'pickle'
@@ -98,12 +103,12 @@ class PickledClassifier(classifier.Classifier):
             tempbayes = pickle.load(fp)
             fp.close()
 
-        # XXX: why not self.__setstate__(tempbayes.__getstate__())?
         if tempbayes:
-            self.wordinfo = tempbayes.wordinfo
-            self.nham = tempbayes.nham
-            self.nspam = tempbayes.nspam
-
+            # Copy state from tempbayes.  The use of our base-class
+            # __setstate__ is forced, in case self is of a subclass of
+            # PickledClassifier that overrides __setstate__.
+            classifier.Classifier.__setstate__(self,
+                                               tempbayes.__getstate__())
             if options.verbose:
                 print '%s is an existing pickle, with %d ham and %d spam' \
                       % (self.db_name, self.nham, self.nspam)
