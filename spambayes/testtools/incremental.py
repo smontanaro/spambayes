@@ -18,7 +18,7 @@ from spambayes import classifier
 from spambayes import msgs
 import email
 from email import Message
-from testtools import regimes
+import regimes
 
 try:
     True, False
