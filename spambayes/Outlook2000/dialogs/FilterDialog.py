@@ -332,8 +332,11 @@ class FilterNowDialog(AsyncDialogBase):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             filter = self.mgr.config.filter_now
-            d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
-            if d.DoModal()==win32con.IDOK:
+            # d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
+            d = FolderSelector.FolderSelector(self.mgr.outlook.Session,
+                                              filter.folder_ids,
+                                              checkbox_state=filter.include_sub)
+            if d.DoModal() == win32con.IDOK:
                 filter.folder_ids, filter.include_sub = d.GetSelectedIDs()
                 self.UpdateFolderNames()
 
