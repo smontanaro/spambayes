@@ -17,7 +17,7 @@ Usage:
             -d  dbname  : dbm training database filename
             -t          : train contents of spam folder and ham folder
             -c          : classify inbox
-            -h          : help
+            -h          : display this message
             -v          : verbose mode
             -P          : security option to prompt for imap password,
                           rather than look in options["imap", "password"]
@@ -26,6 +26,9 @@ Usage:
                           (4 is a good level, and suitable for bug reports)
             -l minutes  : period of time between filtering operations
             -b          : Launch a web browser showing the user interface.
+                          (If not specified, and neither the -c or -t
+                          options are used, then this will default to the
+                          value in your configuration file).
             -o section:option:value :
                           set [section, option] in the options database
                           to value
@@ -872,13 +875,14 @@ or training will be performed.
     imap_filter = IMAPFilter(classifier)
 
     # Web interface
-    if not (doClassify or doTrain) or launchUI:
+    if not (doClassify or doTrain):
         if server != "":
             imap = IMAPSession(server, port, imapDebug, doExpunge)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap, pwd,
                                               IMAPSession))
-        Dibbler.run(launchBrowser=launchUI)
+        Dibbler.run(launchBrowser=launchUI or options["html_ui",
+                                                      "launch_browser"])
     else:
         while True:
             imap = IMAPSession(server, port, imapDebug, doExpunge)
