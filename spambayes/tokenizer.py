@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Module to tokenize email messages for spam filtering."""
 
 import email
@@ -839,19 +840,17 @@ class Tokenizer:
         else:
             # Create an email Message object.
             try:
-                if hasattr(obj, "readline"):
-                    return email.message_from_file(obj)
-                else:
-                    return email.message_from_string(obj)
+                if hasattr(obj, "read"):
+                    obj = obj.read()
+                return email.message_from_string(obj)
             except email.Errors.MessageParseError:
-                return None
+                # XXX: This puts the headers in the payload...
+                msg = email.Message.Message()
+                msg.set_payload(obj)
+                return msg
 
     def tokenize(self, obj):
         msg = self.get_message(obj)
-        if msg is None:
-            yield 'control: MessageParseError'
-            # XXX Fall back to the raw body text?
-            return
 
         for tok in self.tokenize_headers(msg):
             yield tok
