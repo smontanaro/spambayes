@@ -3,8 +3,8 @@
 import sys, os, shutil
 from manager import GetManager
 
-files_per_directory = 400
-default_directory = "..\\testtools\\Data"
+FILES_PER_DIRECTORY = 400
+DEFAULT_DIRECTORY = "..\\testtools\\Data"
 
 def BuildBuckets(manager):
     store = manager.message_store
@@ -16,7 +16,7 @@ def BuildBuckets(manager):
     for folder in store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
         for msg in folder.GetMessageGenerator():
             num_ham += 1
-    num_buckets = min(num_ham, num_spam)/ files_per_directory
+    num_buckets = min(num_ham, num_spam)/ FILES_PER_DIRECTORY
     dirs = []
     for i in range(num_buckets):
         dirs.append("Set%d" % (i+1,))
@@ -78,8 +78,10 @@ def export(directory):
     print "Exported", num, "ham messages."
 
 def main():
+    global FILES_PER_DIRECTORY
     import getopt
-    try:
+
+   try:
         opts, args = getopt.getopt(sys.argv[1:], "qn:")
     except getopt.error, d:
         print d
@@ -90,8 +92,7 @@ def main():
         if opt=='-q':
             quiet = 1
         elif opt=='-n':
-            global files_per_directory
-            files_per_directory = int(val)
+            FILES_PER_DIRECTORY = int(val)
 
     if len(args) > 1:
         print "Only one directory name can be specified"
@@ -99,7 +100,7 @@ def main():
         usage()
 
     if len(args)==0:
-        directory = os.path.join(os.path.dirname(sys.argv[0]), default_directory)
+        directory = os.path.join(os.path.dirname(sys.argv[0]), DEFAULT_DIRECTORY)
     else:
         directory = args[0]
 
@@ -129,7 +130,7 @@ If 'directory' is not specified, '%s' is assumed.
 
 If 'directory' exists, it will be recursively deleted before
 the export (but you will be asked to confirm unless -q is given).""" \
-            % (os.path.basename(sys.argv[0]), files_per_directory, default_directory)
+            % (os.path.basename(sys.argv[0]), FILES_PER_DIRECTORY, DEFAULT_DIRECTORY)
     sys.exit(1)
 
 if __name__=='__main__':
