@@ -278,6 +278,9 @@ class FileMessage(message.SBHeaderMessage):
         self.set_payload(msg.get_payload())
         self.set_unixfrom(msg.get_unixfrom())
         self.set_charset(msg.get_charset())
+        for name, value in msg.items():
+            del self[name]
+            self[name] = value
 
     def remove(self):
         '''Message hara-kiri'''
