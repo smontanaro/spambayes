@@ -1,3 +1,3 @@
 # package marker.
 
-__version__ = '1.0a4'
+__version__ = '1.0a5'
