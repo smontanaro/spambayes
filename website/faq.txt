@@ -756,16 +756,18 @@ You can also use the web interface for training as detailed above.
 How do I train SpamBayes (Outlook plugin)?
 -----------------------------------------------
 
-Instructions about training the Outlook plugin can be found in the documentation
-for the plugin.  However, basically what you need to do is move as much spam
-as you have into your spam folder, tell the plugin which folder that is and
-which folders contain examples of ham, and it will do the rest.
+Instructions about training the Outlook plugin can be found in the
+documentation for the plugin, and the 'Configuration Wizard' will attempt to
+guide you through an initial training process.  Basically what you need to do
+is move as much spam as you have into your spam folder, tell the plugin which
+folder that is and which folders contain examples of ham, and it will do
+the rest.
 
 The plugin does *not* train on all incoming mail.  However, if you use the
 "Delete as spam" and "Recover from spam" buttons, those messages will be
 (re)trained as necessary.  If you have set it to use incremental training
-then it will also train on messages which are moved into the spam folder
-and those folders that you are 'watching'.
+then it will also train on messages which are manually moved into the spam
+folder and those folders that you are 'watching'.
 
 
 Do I need to keep spam after it has been trained? If so, for how long?
