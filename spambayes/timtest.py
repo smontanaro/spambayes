@@ -97,7 +97,7 @@ def main():
     if nsets is None:
         usage(1, "-n is required")
 
-    msgs.setparms(hamkeep, spamkeep, seed)
+    msgs.setparms(hamkeep, spamkeep, seed=seed)
     drive(nsets)
 
 if __name__ == "__main__":
