@@ -1,5 +1,5 @@
 ====================================
-Spambayes Frequently Asked Questions
+SpamBayes Frequently Asked Questions
 ====================================
 
 :Date: $Date$
@@ -16,44 +16,44 @@ Spambayes Frequently Asked Questions
 
 
 This is a work in progress.  Please feel free to ask questions and/or
-provide answers; For help with Spambayes, send email to the `Spambayes
+provide answers; For help with SpamBayes, send email to the `SpamBayes
 mailing list`_.
 
-.. _Spambayes mailing list: mailto:spambayes@python.org
+.. _SpamBayes mailing list: mailto:spambayes@python.org
 
 
 Overview
 ========
 
-What is Spambayes?
+What is SpamBayes?
 ------------------
 
-Spambayes is a tool used to segregate unwanted mail (spam) from the mail you
-want (ham).  Before Spambayes can be your spam filter of choice you need to
+SpamBayes is a tool used to segregate unwanted mail (spam) from the mail you
+want (ham).  Before SpamBayes can be your spam filter of choice you need to
 train it on representative samples of email you receive.  After it's been
-trained, you use Spambayes to classify new mail according to its spamminess
+trained, you use SpamBayes to classify new mail according to its spamminess
 and hamminess qualities.
 
-To train Spambayes (which you don't need to do if you're going to be using
+To train SpamBayes (which you don't need to do if you're going to be using
 the POP3 proxy to classify messages, but you'll get better results from the
 outset if you do) you need to save your incoming email for awhile,
 segregating it into two piles, known spam and known ham (ham is our nickname
 for good mail).  It's best to train on recent email, because your interests
 and the nature of what spam looks like change over time.  Once you've
 collected a fair portion of each (anything is better than nothing, but it
-helps to have a couple hundred of each), you can tell Spambayes, "Here's my
+helps to have a couple hundred of each), you can tell SpamBayes, "Here's my
 ham and my spam".  It will then process that mail and save information about
 different patterns which appear in ham and spam.  That information is then
 used during the filtering stage.  See the "Command-line training" section
 below for details.
 
-When Spambayes filters your email, it compares each unclassified message
+When SpamBayes filters your email, it compares each unclassified message
 against the information it saved from training and makes a decision about
 whether it thinks the message qualifies as ham or spam, or if it's unsure
 about how to classify the message.  It then adds its classification to the
 message, either by adding a header (X-Spambayes-Classification:
 spam|ham|unsure), modifying the To: or Subject: headers, or adding a "Spam"
-field to the message.  Depending on which Spambayes application you are
+field to the message.  Depending on which SpamBayes application you are
 using, it may then filter this message for you, or you can set up your own
 filters (to file away suspected spam into its own mail folder, for example).
 
@@ -86,19 +86,19 @@ something back to the project, you have a few options:
 What online resources are available?
 ------------------------------------
 
-There are four mailing lists which support Spambayes:
+There are four mailing lists which support SpamBayes:
 
-1. The `Spambayes list`_ provides a place for users to get help with
-   Spambayes or help other users.
+1. The `SpamBayes list`_ provides a place for users to get help with
+   SpamBayes or help other users.
 
-2. The `Spambayes developers list`_ provides a forum for people
+2. The `SpamBayes developers list`_ provides a forum for people
    maintaining and improving the package.
 
-3. The `Spambayes announcements list`_ is a low-volume list where
+3. The `SpamBayes announcements list`_ is a low-volume list where
    announcements about new releases are posted.
 
-4. The `Spambayes checkins list`_ receives summaries of all the
-   changes to the Spambayes software.  This is generally only of interest to
+4. The `SpamBayes checkins list`_ receives summaries of all the
+   changes to the SpamBayes software.  This is generally only of interest to
    developers.
 
 All the mailing lists are managed by Mailman, which uses pipermail to
@@ -112,13 +112,13 @@ Google to search for stuff.  For example, searching for
 would search for messages which mention pop3proxy but exclude checkin
 messages.
 
-.. _Spambayes list: http://mail.python.org/mailman/listinfo/spambayes
-.. _Spambayes developers list: http://mail.python.org/mailman/listinfo/spambayes-dev
-.. _Spambayes announcements list: http://mail.python.org/mailman/listinfo/spambayes-announce
-.. _Spambayes checkins list: http://mail.python.org/mailman/listinfo/spambayes-checkins
+.. _SpamBayes list: http://mail.python.org/mailman/listinfo/spambayes
+.. _SpamBayes developers list: http://mail.python.org/mailman/listinfo/spambayes-dev
+.. _SpamBayes announcements list: http://mail.python.org/mailman/listinfo/spambayes-announce
+.. _SpamBayes checkins list: http://mail.python.org/mailman/listinfo/spambayes-checkins
 
 
-What do I need to install Spambayes?
+What do I need to install SpamBayes?
 ------------------------------------
 
 Unless you are using the Outlook plugin, you must have a recent version of
@@ -138,10 +138,10 @@ to your Python "Lib" directory and rename "email" to "email_old".
 .. _Mimelib project: http://mimelib.sf.net/
 
 
-Is there a high level summary that shows how Spambayes works?
+Is there a high level summary that shows how SpamBayes works?
 -------------------------------------------------------------
 
-There are eight main components to the Spambayes system:
+There are eight main components to the SpamBayes system:
 
 1. A database.  Loosely speaking, this is a collection of words and
    associated spam and ham probabilities.  The database says "If a message
@@ -174,7 +174,7 @@ There are eight main components to the Spambayes system:
    middle and adds the classification header as you retrieve your email::
 
     +-----------------+      +------------+      +-------------+
-    | Outlook Express |      | Spambayes  |      |             |
+    | Outlook Express |      | SpamBayes  |      |             |
     |  (or similar)   | <--> | POP3 proxy | <--> | POP3 server |
     |                 |      |            |      |             |
     +-----------------+      +------------+      +-------------+
@@ -204,7 +204,7 @@ There are eight main components to the Spambayes system:
    middle and checks for mail to train on as you send your email::
 
     +-----------------+      +------------+      +-------------+
-    | Outlook Express |      | Spambayes  |      |             |
+    | Outlook Express |      | SpamBayes  |      |             |
     |  (or similar)   | <--> | SMTP proxy | <--> | SMTP server |
     |                 |      |            |      |             |
     +-----------------+      +------------+      +-------------+
@@ -253,7 +253,7 @@ There are eight main components to the Spambayes system:
    filter your mail.  You can designate folders that contain mail to train
    as ham and folders that contain mail to train as spam, and the filter
    does this for you.  You can also designate folders to filter, along with
-   a folder for messages Spambayes is unsure about, and a folder for
+   a folder for messages SpamBayes is unsure about, and a folder for
    suspected spam.  When new mail arrives, the filter will move mail to the
    appropriate location (ham is left in the original folder).
 
@@ -268,14 +268,14 @@ imapfilter.py.  The Outlook plug-in lives in the Outlook2000 subdirectory
 
 As well as these components, there's also a whole pile of utility scripts,
 test harnesses and so on - see README.txt and TESTING.txt in the
-spambayes distribution for more information.
+SpamBayes distribution for more information.
 
 
 Compatibility
 =============
 
 
-Does Spambayes work with Outlook Express?
+Does SpamBayes work with Outlook Express?
 -----------------------------------------
 
 Outlook Express isn't a version of Outlook, it's a completely separate
@@ -296,12 +296,12 @@ the results will be the same.  We are working on an alternative that should
 move us towards the Outlook simplicity.
 
 
-What clients will Spambayes work with in general?
+What clients will SpamBayes work with in general?
 -------------------------------------------------
 
-Spambayes will work with most POP3 or IMAP compatible clients.  How you
+SpamBayes will work with most POP3 or IMAP compatible clients.  How you
 implement depends on your local architecture.  Users with access to procmail
-can just write a recipe that invokes spambayes like this::
+can just write a recipe that invokes SpamBayes like this::
 
     :0fw
     | /opt/spambayes/hammiefilter.py
@@ -344,13 +344,13 @@ also add a "trained" label to the message in question as a visual reminder
 that you've already added the message to your training database.
 
 Users limited to POP3/IMAP communications to the server can use the POP3_ or
-IMAP_ proxies which are part of the Spambayes source.
+IMAP_ proxies which are part of the SpamBayes source.
 
 .. _POP3: http://spambayes.sf.net/applications.html#pop3
 .. _IMAP: http://spambayes.sf.net/applications.html#imap
 
 
-How do I configure Eudora for use with Spambayes?
+How do I configure Eudora for use with SpamBayes?
 -------------------------------------------------
 
 Note: The following instructions have been verified using Eudora 5.1
@@ -435,14 +435,14 @@ plugin contains the most up-to-date help for working around known problems.
 .. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain
 
 
-Do I have to have Python installed to use Spambayes with Outlook?
+Do I have to have Python installed to use SpamBayes with Outlook?
 -----------------------------------------------------------------
 
 If you use the Outlook plugin binary installer there's no need to explicitly
 install Python.
 
 
-Will Spambayes work with Outlook 2000 connecting to an Exchange 2000 server?
+Will SpamBayes work with Outlook 2000 connecting to an Exchange 2000 server?
 ----------------------------------------------------------------------------
 
 Yes.
@@ -453,7 +453,7 @@ Can mail marked as spam automatically be marked as read?
 This is a 'hidden' feature in the post 003 releases of the binary (also post 
 alpha3 source releases and CVS).  Details about how to enable this feature
 can be found in the "configuration.html" file in the "docs" directory in
-the folder Spambayes was installed to.  You can also set up mail that is
+the folder SpamBayes was installed to.  You can also set up mail that is
 trained using the "Delete as spam" button to be marked as read, rather than
 all mail classified as spam.  However, you should also see the
 `envelope icon question`_.
@@ -579,11 +579,11 @@ Further, as "Show Spam Clues" does not attempt to render the HTML nor
 otherwise contact any of the URLs in the message, this will not
 register a hit on the spammer's server.
 
-Using Spambayes
+Using SpamBayes
 ===============
 
 
-How do I train Spambayes (web method)?
+How do I train SpamBayes (web method)?
 --------------------------------------
 
 Follow the "Review messages" link and you'll see a list of the emails that
@@ -605,7 +605,7 @@ messages to the web interface via the "Train" form on the Home page.  You
 can train on individual messages (which is tedious) or using mbox files.
 
 
-How do I train Spambayes (forward/bounce method)?
+How do I train SpamBayes (forward/bounce method)?
 -------------------------------------------------
 
 Alternatively, when you receive an incorrectly classified message, you can
@@ -625,12 +625,12 @@ you will need to set (via the web interface) the "add mail id to" option to
 body, which will add a unique id to the body of each message you receive.
 
 
-How do I train Spambayes (command line method)?
+How do I train SpamBayes (command line method)?
 -----------------------------------------------
 
 Given a pair of Unix mailbox format files (each message starts with a line
 which begins with 'From '), one containing nothing but spam and the other
-containing nothing but ham, you can train Spambayes using a command like::
+containing nothing but ham, you can train SpamBayes using a command like::
 
     hammie.py -g ~/tmp/newham -s ~/tmp/newspam
 
@@ -638,7 +638,7 @@ The above command is OS-centric (e.g., UNIX, or Windows command prompt).
 You can also use the web interface for training as detailed above.
 
 
-How do I train Spambayes (Outlook plugin)?
+How do I train SpamBayes (Outlook plugin)?
 -----------------------------------------------
 
 Instructions about training the Outlook plugin can be found in the documentation
@@ -655,20 +655,20 @@ Do I need to keep spam after it has been trained? If so, for how long?
 ----------------------------------------------------------------------
 
 Once a message has been [correctly] trained there is no need to keep it
-around. However, Spambayes' accuracy is dependent upon having a "sufficient"
+around. However, SpamBayes' accuracy is dependent upon having a "sufficient"
 sample from which to make its decisions. Therefore, most users retain a fair
 amount of spam in the event that they may wish to rebuild the corpus from
 scratch.
 
 Of course, this begs the question: "how much is enough?" That is where the
-"art" of spambayes meets the science. Some users keep as many as several
+"art" of SpamBayes meets the science. Some users keep as many as several
 thousand [recent] spam (as well as a similar number of ham). That is not to
 say that you won't have excellent results with a tenth (or less) of that
 number; since everyone's e-mail profile is different, the requirements for
 training are as well.
 
 
-Why did Spambayes mark this obvious spam "unsure"?
+Why did SpamBayes mark this obvious spam "unsure"?
 --------------------------------------------------
 
 It may be obvious to you that the message is spam, but the classifier only
@@ -688,10 +688,10 @@ clues unique to this type of message may need a few more instances to become
 "convincing".
 
 
-Spambayes doesn't seem to catch much spam.  What gives?
+SpamBayes doesn't seem to catch much spam.  What gives?
 -------------------------------------------------------
 
-Initially, Spambayes will not be able to distinguish spams from hams.  With
+Initially, SpamBayes will not be able to distinguish spams from hams.  With
 no training inputs, the classifier will simply mark everything unsure.  Once
 you start training the classifier on a representative set of spams and hams
 it should very quickly begin to improve, however.  If that's not the case,
@@ -711,7 +711,7 @@ check:
    spams as hams or vice versa).  If so, you could really confuse things and
    should move incorrectly classified messages to their correct locations
    and retrain (which may happen automatically, depending on how you're
-   using Spambayes).
+   using SpamBayes).
 
 
 How do I start from scratch after messing up my training?
@@ -727,7 +727,7 @@ configuration page tells you what this file is called (and where it is) down
 towards the bottom of the page.
 
 
-How do I configure Spambayes?
+How do I configure SpamBayes?
 -----------------------------
 
 To configure the Outlook plugin, you should choose `SpamBayes Manager` from
@@ -804,7 +804,7 @@ Why is SpamBayes ignoring my configuration file?
 
 SpamBayes looks for your configuration file in three places - if it can't
 find it, then, obviously, your options will not be loaded.  The first place
-that Spambayes checks is the environment variable BAYESCUSTOMIZE.  You can
+that SpamBayes checks is the environment variable BAYESCUSTOMIZE.  You can
 set this to the path of your configuration file, wherever it is, and it will
 be loaded.  You can also specify more than one file, separated by the
 appropriate path separator for your platform.  This is the recommended
@@ -857,15 +857,15 @@ to have the time to go through it).
 Is there anything else I should know?
 -------------------------------------
 
-While Spambayes does an excellent job of classifying incoming mail, it is
+While SpamBayes does an excellent job of classifying incoming mail, it is
 only as good as the data on which it was trained.  Here are some tips to
 help you create a good training set:
 
 * Don't use old mail.  The characteristics of your email change over time,
   sometimes subtly, sometimes dramatically, so it's best to use very recent
-  mail to train Spambayes.  If you've abandoned an email address in the past
+  mail to train SpamBayes.  If you've abandoned an email address in the past
   because it was getting spammed heavily, there are probably some clues in
-  mail sent to your old address which would bias Spambayes.
+  mail sent to your old address which would bias SpamBayes.
 
 * Check and recheck your training collections.  While you are manually
   classifying mail as spam or ham, it's easy to make a mistake and toss a
@@ -873,14 +873,14 @@ help you create a good training set:
   the classifier.
 
 
-Can Spambayes be used to perform n-way classification?
+Can SpamBayes be used to perform n-way classification?
 ------------------------------------------------------
 
 In theory, yes it can, though this has not yet been tried.  There are a
 couple other tools, `POPFile <http://popfile.sourceforge.net/>`_ and `CRM114
 <http://crm114.sourceforge.net/>`_.  A demonstration script which performs
 n-way classification was also recently added to the ``contrib`` directory of
-the Spambayes CVS repository.
+the SpamBayes CVS repository.
 
 
 How do I use a pickle for storage?
@@ -1009,7 +1009,7 @@ results than a more general approach that just generates tokens and throws
 them at the classifier.
 
 
-Are there plans to develop a server-side spambayes solution?
+Are there plans to develop a server-side SpamBayes solution?
 ------------------------------------------------------------
 
 The problem with a server-side solution is that everyone has a different
@@ -1017,7 +1017,7 @@ idea of what is spam - that's the whole strength of the bayesian-style
 filtering concept.  If you are certain that *all* of your users would agree
 on what is spam and what is not, then this might work for you, but otherwise
 you really have to have individual databases for each user.  Either way, you
-should be able to modify spambayes easily enough to fit into your setup.
+should be able to modify SpamBayes easily enough to fit into your setup.
 Some people have in fact done this and have been kind enough to donate `notes
 about how they have gone about it`_.  If you also do this but in some other
 way, please let us know so that we can add to the information.
@@ -1087,9 +1087,9 @@ feeling about content differs - this is why it is a client end role that
 tools like SpamBayes fill.
 
 If you really need whitelisting, consider implementing rules in your    
-mailer to intercept the messages before they're passed to spambayes.    
+mailer to intercept the messages before they're passed to SpamBayes.    
 
-None of the existing Spambayes developers have an interest in
+None of the existing SpamBayes developers have an interest in
 implementing whitelisting - if it's something you feel really strongly
 about, download the source and look into making a patch. If someone
 implements whitelisting, including all the user interface side needed
@@ -1102,11 +1102,11 @@ code.
 What do I need to do to update the FAQ?
 ---------------------------------------
 
-If you're not a Spambayes developer simply send your corrections or proposed
-questions and answers to the `Spambayes developers mailing list`_.  If you
+If you're not a SpamBayes developer simply send your corrections or proposed
+questions and answers to the `SpamBayes developers mailing list`_.  If you
 are a developer you need a recent version of Docutils_ and the tools/html.py
 script from that distribution must be in a directory on your PATH.
 
-.. _Spambayes developers mailing list: spambayes-dev@python.org
+.. _SpamBayes developers mailing list: spambayes-dev@python.org
 .. _Docutils: http://docutils.sf.net/
 
