@@ -193,14 +193,37 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
                       citems, param)
     return array.array("c", buf), extra
 
+# Make a new buffer suitable for querying hitem's attributes.
+def EmptyTVITEM(hitem, mask = None, text_buf_size=512):
+    extra = [] # objects we must keep references to
+    if mask is None:
+        mask = commctrl.TVIF_HANDLE | commctrl.TVIF_STATE | commctrl.TVIF_TEXT | \
+               commctrl.TVIF_IMAGE | commctrl.TVIF_SELECTEDIMAGE | \
+               commctrl.TVIF_CHILDREN | commctrl.TVIF_PARAM
+    if mask & commctrl.TVIF_TEXT:
+        text_buffer = array.array("c", "\0" * text_buf_size)
+        extra.append(text_buffer)
+        text_addr, text_len = text_buffer.buffer_info()
+    else:
+        text_addr = text_len = 0
+    format = "iiiiiiiiii"
+    buf = struct.pack(format,
+                      mask, hitem,
+                      0, 0,
+                      text_addr, text_len, # text
+                      0, 0,
+                      0, 0)
+    return array.array("c", buf), extra
+    
 def UnpackTVItem(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
         item_cChildren, item_param = struct.unpack("10i", buffer)
-    # ensure only items listed by the mask are valid
+    # ensure only items listed by the mask are valid (except we assume the
+    # handle is always valid - some notifications (eg, TVN_ENDLABELEDIT) set a
+    # mask that doesn't include the handle, but the docs explicity say it is.)
     if not (item_mask & commctrl.TVIF_TEXT): item_textptr = item_cchText = None
     if not (item_mask & commctrl.TVIF_CHILDREN): item_cChildren = None
-    if not (item_mask & commctrl.TVIF_HANDLE): item_hItem = None
     if not (item_mask & commctrl.TVIF_IMAGE): item_image = None
     if not (item_mask & commctrl.TVIF_PARAM): item_param = None
     if not (item_mask & commctrl.TVIF_SELECTEDIMAGE): item_selimage = None
@@ -358,8 +381,7 @@ class FolderSelector(FolderSelector_Parent):
         return folders_to_expand
 
     def _GetTVItem(self, h):
-        text_buffer = "\0" * 1024
-        buffer, extra = PackTVITEM(h, 0, 0, text_buffer, None, None, None, -1)
+        buffer, extra = EmptyTVITEM(h)
         win32gui.SendMessage(self.list, commctrl.TVM_GETITEM,
                                 0, buffer.buffer_info()[0])
         return UnpackTVItem(buffer.tostring())
