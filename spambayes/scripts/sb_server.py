@@ -639,6 +639,14 @@ class State:
         self.prepared = False
         self.init()
 
+        # Load up the other settings from Option.py / bayescustomize.ini
+        self.uiPort = options["html_ui", "port"]
+        self.launchUI = options["html_ui", "launch_browser"]
+        self.gzipCache = options["Storage", "cache_use_gzip"]
+        self.cacheExpiryDays = options["Storage", "cache_expiry_days"]
+        self.runTestServer = False
+        self.isTest = False
+
     def init(self):
         assert not self.prepared, "init after prepare, but before close"
         # Open the log file.
@@ -662,14 +670,6 @@ class State:
         if len(self.servers) != len(self.proxyPorts):
             print "pop3proxy_servers & pop3proxy_ports are different lengths!"
             sys.exit()
-
-        # Load up the other settings from Option.py / bayescustomize.ini
-        self.uiPort = options["html_ui", "port"]
-        self.launchUI = options["html_ui", "launch_browser"]
-        self.gzipCache = options["Storage", "cache_use_gzip"]
-        self.cacheExpiryDays = options["Storage", "cache_expiry_days"]
-        self.runTestServer = False
-        self.isTest = False
 
         # Set up the statistics.
         self.totalSessions = 0
