@@ -143,7 +143,7 @@ def main(args):
         movethese = fs[nperdir:]
         del fs[nperdir:]
         for f in movethese:
-            migrate(os.path.join(dir,f), resdir, verbose)
+            migrate(os.path.join(dir, f), resdir, verbose)
         res.extend(movethese)
 
     # randomize reservoir once so we can just bite chunks from the front
@@ -158,11 +158,11 @@ def main(args):
         res = res[nperdir-len(fs):]
         for f in movethese:
             if confirm:
-                print file(os.path.join(resdir,f)).read()
+                print file(os.path.join(resdir, f)).read()
                 ok = raw_input('good enough? ').lower()
                 if not ok.startswith('y'):
                     continue
-            migrate(os.path.join(resdir,f), dir, verbose)
+            migrate(os.path.join(resdir, f), dir, verbose)
         fs.extend(movethese)
 
     return 0
