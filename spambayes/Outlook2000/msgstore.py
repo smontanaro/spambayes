@@ -543,9 +543,12 @@ class MAPIMsgStoreFolder:
         return self.msgstore._OpenEntry(self.id, iid, flags)
 
     def GetOutlookItem(self):
-        hex_item_id = mapi.HexFromBin(self.id[1])
-        hex_store_id = mapi.HexFromBin(self.id[0])
-        return self.msgstore.outlook.Session.GetFolderFromID(hex_item_id, hex_store_id)
+        try:
+            hex_item_id = mapi.HexFromBin(self.id[1])
+            hex_store_id = mapi.HexFromBin(self.id[0])
+            return self.msgstore.outlook.Session.GetFolderFromID(hex_item_id, hex_store_id)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def GetMessageGenerator(self, only_filter_candidates = True):
         folder = self.OpenEntry()
