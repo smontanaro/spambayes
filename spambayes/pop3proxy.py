@@ -89,7 +89,7 @@ Gimmicks:
  o Zoe...!
 """
 
-import os, sys, re, errno, getopt, time
+import os, sys, re, errno, getopt, time, traceback
 import socket
 from thread import start_new_thread
 
@@ -417,37 +417,68 @@ class BayesProxy(POP3ProxyBase):
         # Use '\n\r?\n' to detect the end of the headers in case of
         # broken emails that don't use the proper line separators.
         if re.search(r'\n\r?\n', response):
+            # Remove the trailing .\r\n before passing to the email parser.
+            if response[-3:] == '.\r\n':
+                response = response[:-3]
+
             # Break off the first line, which will be '+OK'.
             ok, messageText = response.split('\n', 1)
 
-            msg = spambayes.message.SBHeaderMessage()
-            msg.setPayload(messageText)
-            msg.setId(state.getNewMessageName())
-            # Now find the spam disposition and add the header.
-            (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
-                             evidence=True)
+            try:
+                msg = spambayes.message.SBHeaderMessage()
+                msg.setPayload(messageText)
+                msg.setId(state.getNewMessageName())
+                # Now find the spam disposition and add the header.
+                (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
+                                 evidence=True)
 
-            msg.addSBHeaders(prob, clues)            
-            
-            if command == 'RETR':
-                cls = msg.GetClassification()
-                if cls == options["Hammie", "header_ham_string"]:
-                    state.numHams += 1
-                elif cls == options["Hammie", "header_spam_string"]:
-                    state.numSpams += 1
-                else:
-                    state.numUnsure += 1
+                msg.addSBHeaders(prob, clues)
 
-                # Cache the message; don't pollute the cache with test messages.
-                if not state.isTest \
-                    and options["pop3proxy", "cache_messages"]:
-                    # Write the message into the Unknown cache.
-                    message = state.unknownCorpus.makeMessage(msg.getId())
-                    message.setSubstance(msg.as_string())
-                    state.unknownCorpus.addMessage(message)
+                if command == 'RETR':
+                    cls = msg.GetClassification()
+                    if cls == options["Hammie", "header_ham_string"]:
+                        state.numHams += 1
+                    elif cls == options["Hammie", "header_spam_string"]:
+                        state.numSpams += 1
+                    else:
+                        state.numUnsure += 1
 
-            # Return the +OK and the message with the header added.
-            return ok + "\n" + msg.as_string()
+                    # Cache the message; don't pollute the cache with test messages.
+                    if not state.isTest \
+                        and options["pop3proxy", "cache_messages"]:
+                        # Write the message into the Unknown cache.
+                        message = state.unknownCorpus.makeMessage(msg.getId())
+                        message.setSubstance(msg.as_string())
+                        state.unknownCorpus.addMessage(message)
+
+                # We'll return the message with the header added.
+                messageText = msg.as_string()
+
+            except:
+                # Something nasty happened while parsing or classifying -
+                # report the exception in a hand-appended header and recover.
+                # This is one case where an unqualified 'except' is OK, 'cos
+                # anything's better than destroying people's email...
+                eType, eValue, eTraceback = sys.exc_info()
+                file, line, func, code = traceback.extract_tb(eTraceback)[-1]
+                details = "%s(%s) in %s() at %s line %d: %s" % \
+                           (eType, eValue, func, file, line, code)
+                exceptionHeader = 'X-Spambayes-Exception: %s\r\n' % details
+                headers, body = re.split(r'\n\r?\n', messageText, 1)
+                headers = headers + "\n" + exceptionHeader + "\r\n"
+                messageText = headers + body
+
+            # Restore the +OK and the full POP3 \r\n.\r\n terminator.  We
+            # need to make sure the first \r\n is there as well as the
+            # trailing .\r\n because the email parser can fix broken messages
+            # by adding a trailing boundary without a \r\n.  Thanks to Scott
+            # Schlesier for this fix.
+            retval = ok + "\n" + messageText
+            if retval[-2:] == '\r\n':
+                retval += '.\r\n'
+            else:
+                retval += '\r\n.\r\n'
+            return retval
 
         else:
             # Must be an error response.
@@ -712,7 +743,7 @@ def run():
     servers, proxyPorts = LoadServerInfo()
     CreateProxies(servers, proxyPorts, state)
     LoadServerInfo()
-    
+
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.
         if len(args) == 1:
