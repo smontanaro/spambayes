@@ -391,6 +391,8 @@ def tokenize_word(word, _len=len):
     # XXX on f-p rate, and did a little better or worse than 12 across
     # XXX runs -- overall, no significant difference.  It's only "common
     # XXX sense" so far driving the exclusion of lengths 1 and 2.
+    # XXX Later:  A test with no lower bound showed a significant increase
+    # XXX in the f-n rate.  Curious!
 
     # Make sure this range matches in tokenize().
     if 3 <= n <= 12:
