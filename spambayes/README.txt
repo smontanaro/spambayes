@@ -123,6 +123,13 @@ splitndirs.py
     approximate split; rebal.py (above) can be used afterwards to even out
     the number of messages per folder.
 
+runtest.sh
+    A bourne shell script (for Unix) which will run some test or other.
+    I (Neale) will try to keep this updated to test whatever Tim is
+    currently asking for.  The idea is, if you have a standard directory
+    structure (below), you can run this thing, go have some tea while it
+    works, then paste the output to the spambayes list for good karma.
+
 
 Standard Test Data Setup
 ========================
