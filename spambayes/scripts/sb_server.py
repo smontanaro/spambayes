@@ -54,6 +54,14 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+try:
+    reversed
+except NameError:
+    # Maintain compatibility with Python 2.2 and 2.3
+    def reversed(seq):
+        seq = list(seq[:])
+        seq.reverse()
+        return iter(seq)
 
 todo = """
 
@@ -101,6 +109,7 @@ from thread import start_new_thread
 from email.Header import Header
 
 import spambayes.message
+from spambayes import i18n
 from spambayes import Dibbler
 from spambayes import storage
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
@@ -109,6 +118,7 @@ from spambayes.Options import options, get_pathname_option
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
 from spambayes.Version import get_version_string
+
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
 if sys.platform == 'darwin':
@@ -651,6 +661,22 @@ class State:
 
     def init(self):
         assert not self.prepared, "init after prepare, but before close"
+        # Load the environment for translation.
+        self.lang_manager = i18n.LanguageManager()
+        # Set the system user default language.
+        self.lang_manager.set_language(\
+            self.lang_manager.locale_default_lang())
+        # Set interface to use the user language in the configuration file.
+        for language in reversed(options["globals", "language"]):
+            # We leave the default in there as the last option, to fall
+            # back on if necessary.
+            self.lang_manager.add_language(language)
+        if options["globals", "verbose"]:
+            print "Asked to add languages: " + \
+                  ", ".join(options["globals", "language"])
+            print "Set language to " + \
+                  str(self.lang_manager.current_langs_codes)
+
         # Open the log file.
         if options["globals", "verbose"]:
             self.logFile = open('_pop3proxy.log', 'wb', 0)

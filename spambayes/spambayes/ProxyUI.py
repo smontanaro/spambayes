@@ -163,7 +163,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def __init__(self, proxy_state, state_recreator):
         global state
         UserInterface.UserInterface.__init__(self, proxy_state.bayes,
-                                             parm_ini_map, adv_map)
+                                             parm_ini_map, adv_map,
+                                             proxy_state.lang_manager)
         state = proxy_state
         self.state_recreator = state_recreator # ugly
         self.app_for_version = "POP3 Proxy"
