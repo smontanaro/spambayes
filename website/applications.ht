@@ -26,9 +26,9 @@ For more on this, see the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cg
 </p>
 
 <h4>Availability</h4>
-<p>Mark has packaged together <a href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-003.exe">an installer for the plugin</a>.
+<p>Mark has packaged together <a href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-004.exe">an installer for the plugin</a>.
 You can download it from <a href="http://starship.python.net/crew/mhammond/spambayes/">his website</a>.
-This is currently at version 003.</p>
+This is currently at version 004.</p>
 <p><a href="download.html">Download the alpha4 release.</a></p>
 <p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
 
