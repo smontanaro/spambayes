@@ -431,6 +431,23 @@ The above command is OS-centric (e.g., UNIX, or Windows command prompt).
 You can also use the web interface for training as detailed above.
 
 
+Do I need to keep spam after it has been trained? If so, for how long?
+----------------------------------------------------------------------
+
+Once a message has been [correctly] trained there is no need to keep it
+around. However, Spambayes' accuracy is dependent upon having a "sufficient"
+sample from which to make its decisions. Therefore, most users retain a fair
+amount of spam in the event that they may wish to rebuild the corpus from
+scratch.
+
+Of course, this begs the question: "how much is enough?" That is where the
+"art" of spambayes meets the science. Some users keep as many as several
+thousand [recent] spam (as well as a similar number of ham). That is not to
+say that you won't have excellent results with a tenth (or less) of that
+number; since everyone's e-mail profile is different, the requirements for
+training are as well.
+
+
 Why did Spambayes mark this obvious spam "unsure"?
 --------------------------------------------------
 
