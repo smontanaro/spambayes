@@ -2,8 +2,6 @@
 <html>
 <head>
 <title id="title">Spambayes User Interface</title>
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="-1" />
 <style>
 body { font: 90% arial, swiss, helvetica; margin: 0 }
 table { font: 90% arial, swiss, helvetica }
@@ -137,11 +135,9 @@ a:hover { color: #6040ff }
     <td style='width: 6ex'>&nbsp;&nbsp;&nbsp;</td>
     <td valign='top'>
         <img src='config.gif' width='40' height='40' align='left'/>
-        <span id="configurationLink">
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your Spambayes<br/>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;system using the
-            <a href='config'>Configuration page</a>.
-        </span></td>
+            <a href='config'>Configuration page</a>.</td>
     </tr>
     </table>
 
@@ -313,8 +309,8 @@ a:hover { color: #6040ff }
     <span id="configForm">
     <FORM action="changeopts" method="POST">
 
-    <p><span id="introduction">This page allows you to change the options that control how
-    Spambayes processes your email.</span>  Your options are stored in
+    <p>This page allows you to change the options that control how
+    Spambayes processes your email.  Your options are stored in
     <b><span id='optionsPathname'>/example/pathname</span></b>.</p>
 
     <span id="configFormContent">
@@ -324,48 +320,42 @@ a:hover { color: #6040ff }
             <span id="label">Label</span>:&nbsp;
         </TD>
         <TD>
-            <input type="text" size="26" id="input" name="from_parm_ini_map"/>
+               <input type="text" size="26" id="input" name="from_parm_ini_map"/>
         </TD>
         <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-        <TD id='helpCell' valign='top'>
+        <TD id='helpCell' valign='top' rowspan='2'>
             <p>(Help text goes here.)</p>
         </TD>
     </TR>
     <TR id="configCbRow1">
-        <TD align="right" nowrap='1'>
+        <TD align="right" nowrap='1' valign='top'>
             <span id="label">Label</span>:&nbsp;
         </TD>
-        <TD width='110'>
+        <TD nowrap='1' valign='top'>
             <div id="input">
                 <input type="checkbox" id="input_box" value="value" name="from_parm_ini_map"/>
                 <span id="val_label">Value Label</span>&nbsp;
             </div>
         </TD>
         <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
-        <TD id='helpCell' valign='top'>
+        <TD id='helpCell' valign='top' rowspan='2'>
             <p>(Help text goes here.)</p>
         </TD>
     </TR>
     <TR id="configRow2">
-        <TD nowrap='1' align='right'>Current Value:</TD>
-        <TD nowrap='0' width='150'>&nbsp;<span id="currentValue">(value)</span></TD>
+        <TD nowrap='1' align='right' valign='top'>Current Value:</TD>
+        <TD nowrap='1' valign='top'>&nbsp;<span id="currentValue">(value)</span></TD>
+    </TR>
+    <TR id="configTextRow2">
+        <TD nowrap='1' align='right' valign='top'>Current Value:</TD>
+        <TD valign='top'>&nbsp;<span id="currentValue">(value)</span></TD>
     </TR>
     <TR id="blankRow"><TD>&nbsp;</TD></TR>
-    <TR id="folderRow">
-        <TD width="25%">
-            <input type="checkbox" id="folderBox" value="value" name="folderName">
-            <span id="folderName">Folder name</span>
-            </input>
-        </TD>
-        <TD id='helpCell' valign='top' rowspan='1000'>
-            <p>(Help text goes here.)</p>
-        </TD>
-    </TR>
     </TABLE>
     </span>
 
     <center>
-      <input id="config_submit" type="submit" name="how" value="Save"/>
+      <input type="submit" name="how" value="Save"/>
     </center>
 
     </FORM>

@@ -72,6 +72,7 @@ import email
 import binascii
 import cgi
 import mailbox
+import types
 
 import PyMeldLite
 import Dibbler
@@ -203,12 +204,13 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 class UserInterface(BaseUserInterface):
     """Serves the HTML user interface."""
 
-    def __init__(self, bayes, config_parms=()):
+    def __init__(self, bayes, config_parms=[], config_display=[]):
         """Load up the necessary resources: ui.html and helmet.gif."""
         global classifier
         BaseUserInterface.__init__(self)
         classifier = bayes
         self.parm_ini_map = config_parms
+        self.display = config_display
 
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
@@ -375,11 +377,8 @@ class UserInterface(BaseUserInterface):
         section = None
 
         # Loop though the sections.
-        for sect, opt in self.parm_ini_map:
-            # We need a string to use as the html key that we can change to
-            # and from the sect, opt pair.  We like irony, so we use '_' as
-            # the delimiter <wink>
-            if opt is None:
+        for html_key in self.display:
+            if not self.parm_ini_map.has_key(html_key):
                 if configTable is not None and section is not None:
                     # Finish off the box for this section and add it
                     # to the form.
@@ -394,16 +393,16 @@ class UserInterface(BaseUserInterface):
                 configTextRow1 = configTable.configTextRow1.clone()
                 configCbRow1 = configTable.configCbRow1.clone()
                 configRow2 = configTable.configRow2.clone()
+                configTextRow2 = configTable.configTextRow2.clone()
                 blankRow = configTable.blankRow.clone()
                 del configTable.configTextRow1
                 del configTable.configCbRow1
                 del configTable.configRow2
                 del configTable.blankRow
-                del configTable.folderRow
-                section.heading = sect
+                section.heading = html_key
                 del section.iconCell
                 continue
-            html_key = sect + '_' + opt
+            (sect, opt) = self.parm_ini_map[html_key]
 
             # Populate the rows with the details and add them to the table.
             if type(options.valid_input(sect, opt)) == type(""):
@@ -426,9 +425,9 @@ class UserInterface(BaseUserInterface):
                     # help for Python 2.2
                     if options.is_boolean(sect, opt):
                         if str(val) == "0":
-                            val = "False"
+                            val = "Yes"
                         elif str(val) == "1":
-                            val = "True"
+                            val = "No"
                     newOption.val_label = str(val)
                     if options.multiple_values_allowed(sect, opt):
                         newOption.input_box.type = "checkbox"
@@ -449,21 +448,20 @@ class UserInterface(BaseUserInterface):
                                      ':</strong> ' + \
                                      cgi.escape(options.doc(sect, opt))
 
-            newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]
+
+            if type(currentValue) in types.StringTypes and \
+                str(currentValue) not in (0,1):
+                currentValue = currentValue.replace(',', ', ')
+                newConfigRow2 = configTextRow2.clone()
+            else:
+                newConfigRow2 = configRow2.clone()
             # for Python 2.2
             if options.is_boolean(sect, opt):
                 if str(currentValue) == '0':
-                    currentValue = "False"
+                    currentValue = "Yes"
                 elif str(currentValue) == '1':
-                    currentValue = "True"
-            # XXX Something needs to be done here, otherwise really
-            # XXX long options squeeze the help text too far to the
-            # XXX right.  Browsers can't wrap the text (even if
-            # XXX no-wrap is False) unless there is whitespace to
-            # XXX wrap on - comma's don't count.  This works, but
-            # XXX it's a bit ugly.  Ideas?
-            # currentValue = str(currentValue).replace(',', '<br />')
+                    currentValue = "No"
             newConfigRow2.currentValue = currentValue
             configTable += newConfigRow1 + newConfigRow2 + blankRow
 
@@ -477,8 +475,6 @@ class UserInterface(BaseUserInterface):
         self.write(html)
 
     def onChangeopts(self, **parms):
-        if parms.has_key("how"):
-            del parms["how"]
         html = self.html.clone()
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
@@ -493,10 +489,9 @@ class UserInterface(BaseUserInterface):
             return
 
         for name, value in parms.items():
-            print name, value
-            sect, opt = name.split('_', 1)
-            if (sect, opt) in self.parm_ini_map:
-                options.set(sect, opt, value)
+           if self.parm_ini_map.has_key(name):
+               sect, opt = self.parm_ini_map[name]
+               options.set(sect, opt, value)
 
         op = open(optionsPathname, "r")
         options.update_file(op)
@@ -529,7 +524,7 @@ class UserInterface(BaseUserInterface):
     def verifyInput(self, parms):
         '''Check that the given input is valid.'''
         # Most of the work here is done by the options class, but
-        # we may have a few extra checks that are beyond its capabilities
+        # we have a few extra checks that are beyond its capabilities
         errmsg = ''
 
         # mumbo-jumbo to deal with the checkboxes
@@ -543,11 +538,11 @@ class UserInterface(BaseUserInterface):
                     parms[name[:-2]] = (value,)
                 del parms[name]
 
-        for sect, opt in self.parm_ini_map:
-            if opt is None:
-                nice_section_name = sect
+        for html_key in self.display:
+            if not self.parm_ini_map.has_key(html_key):
+                nice_section_name = html_key
                 continue
-            html_key = sect + '_' + opt
+            sect, opt = self.parm_ini_map[html_key]
             if not parms.has_key(html_key):
                 # This is a set of checkboxes where none are selected
                 value = None
@@ -559,7 +554,7 @@ class UserInterface(BaseUserInterface):
                     for val in value:
                         value_string += val
                         value_string += ','
-                    value = value_string[:-1]   # remove trailing comma
+                    value = value_string[:-1]
                 value = options.convert(sect, opt, value)
             if not options.is_valid(sect, opt, value):
                 errmsg += '<li>\'%s\' is not a value valid for [%s] %s' % \
@@ -573,6 +568,40 @@ class UserInterface(BaseUserInterface):
                 errmsg += '</li>'
             parms[html_key] = value
 
+        # check for equal number of pop3servers and ports
+        slist = parms['p3servers'].split(',')
+        plist = parms['p3ports'].split(',')
+        if len(slist) != len(plist):
+            errmsg += '<li>The number of POP3 proxy ports specified ' + \
+                      'must match the number of servers specified</li>\n'
+
+        # check for duplicate ports
+        plist.sort()
+        for p in range(len(plist)-1):
+            try:
+                if plist[p] == plist[p+1]:
+                    errmsg += '<li>All POP3 port numbers must be unique</li>'
+                    break
+            except IndexError:
+                pass
+
+        # check for equal number of smtpservers and ports
+        slist = parms['smtpservers'].split(',')
+        plist = parms['smtpports'].split(',')
+        if len(slist) != len(plist):
+            errmsg += '<li>The number of SMTP proxy ports specified ' + \
+                      'must match the number of servers specified</li>\n'
+
+        # check for duplicate ports
+        plist.sort()
+        for p in range(len(plist)-1):
+            try:
+                if plist[p] == plist[p+1]:
+                    errmsg += '<li>All SMTP port numbers must be unique</li>'
+                    break
+            except IndexError:
+                pass
+
         return errmsg
 
     def restoreConfigDefaults(self):
@@ -585,10 +614,9 @@ class UserInterface(BaseUserInterface):
         del d
 
         # Only restore the settings that appear on the form.
-        for section, option in self.parm_ini_map:
-            if option is not None:
-                if not options.no_restore(section, option):
-                    options.set(section, option, c.get(section,option))
+        for section, option in self.parm_ini_map.values():
+            if not options.no_restore(section, option):
+                options.set(section, option, c.get(section,option))
 
         op = open(optionsPathname, "r")
         options.update_file(op)
