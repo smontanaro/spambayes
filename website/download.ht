@@ -2,12 +2,6 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<p><strong>Note: If you run the Outlook plugin, whether you used the binary
-installer or downloaded source, please have a look at the Outlook/Windows <a
-href="windows.html">compatibility matrix</a> and <a
-href="mailto:spambayes@python.org">let us know</a> if you can fill in any
-holes.</strong> </p>
-
 <h2>Source Releases</h2>
 <p>The third pre-release of version 1.0 of the SpamBayes project is available.
 Download version 1.0a3 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.

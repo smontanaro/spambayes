@@ -11,6 +11,8 @@ you should be able to simply download and run the <a
 href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-003.exe">Outlook
 plug-in installer</a>.  A separate Python installation is not necessary.</p>
 
+<p>Note that all users who installed version 002 of the plugin are recommended to upgrade to the 003 release.</p>
+
 <p>The Outlook add-in was developed mostly using Outlook 2000 on Windows
 2000 and Win98SE, in Outlook's Internet Mail Only configuration.  Those
 combinations are the best tested, though further testing has been carried
@@ -27,63 +29,11 @@ troubleshooting.html</a> file that is installed with the plugin.  </p>
 
 <h3>Compatibility</h3>
 
-<p>This table lists combinations of Windows and Outlook versions and how the
-Outlook plugin fares with them.</p>
-
-<p>
-<table border="1" cellpadding="2" cellspacing="0">
-<tr>
-    <th>&nbsp;</th>
-    <th>Win95</th>
-    <th>Win98/98se/Me</th>
-    <th>Win2k</th>
-    <th>WinXP</th>
-</tr>
-<tr>
-<th>Outlook 2000</th>
-    <td rowspan="2" style="unknown">unknown<sup><font size="-2"><a href="#3">3</a></font></sup></td>  <!-- Win95 -->
-    <td rowspan="2" align="center">1.0a2 source
-        or CVS works, installer
-        002 fails<sup><font size="-2"><a href="#1">1</a></font></sup></td>           <!-- Win98/98se/Me -->
-    <td align="center">works</td> <!-- Win2k -->
-    <td rowspan="2">works</td>    <!-- WinXP Pro -->
-</tr>
-<tr>
-<th>Outlook 2002 (XP)<sup><font size="-2"><a href="#2">2</a></font></sup></th>
-    <td style="unknown" align="center">unknown<sup><font size="-2"><a href="#3">3</a></font></sup></td>           <!-- Win2k -->
-</tr>
-<tr>
-<th>Outlook 2003</th>
-    <td colspan="4" align="center">currently does not work</td> <!-- Win95 -->
-</tr>
-</table>
-</p>
-
-<p>
-Notes:
-<ol>
-  <li><a name="1">One very common install problem</a> generates a traceback
-  in the logfile with an error message like "no codec search functions
-  registered: can't find encoding".  At the moment, the only workaround is
-  to install Python, download the Spambayes distribution and install the
-  plugin from source (see below).</li>
-
-  <li><a name="2">Outlook XP SP2</a> is known to work.  Earlier versions are
-  known to have some issues.  If you're having problems and are behind on
-  installing service packs from Microsoft (for the OS or for Outlook),
-  catch up on that first -- Outlook and OS bugs affect the add-in too!
-  </li>
-
-  <li><a name="3">We can use some</a> people to help check out the
-  highlighted configurations in the table.  If you can help, please send
-  your results to <a
-  href="mailto:spambayes@python.org">spambayes@python.org</a>.  Please be
-  explicit about the service pack or revision level of the various software
-  bits you are using, and how you installed the plugin (using the binary
-  installer, from the 1.0a2 distribution, or from CVS).</li>
-
-</ol>
-</p>
+<p>As far as we know, the latest release of the plugin works with all
+versions of Windows and Outlook (Outlook 2003 should have the latest
+Technical Release installed).  If you have a problem, please follow
+the bug reporting steps above; we will endeavour to keep this page
+up to date.</p>
 
 <h3>Installing the Outlook Client From Source</h3>
 
@@ -105,7 +55,7 @@ To do this, you will need three pieces of software:
   href="https://sourceforge.net/project/showfiles.php?group_id=61702">zip
   file</a> or <a href="http://sourceforge.net/cvs/?group_id=61702">via
   CVS</a>.  The zip file will probably be easier to handle, but there are
-  several significant improvements to the code which make the CVS version a
+  several improvements to the code which make the CVS version a
   viable option (though you will have to have a CVS client for Windows
   installed).</li>
 </ol>

@@ -315,10 +315,10 @@ Outlook Plugin
 What version(s) of Outlook does the plugin work with?
 -----------------------------------------------------
 
-The most up to date list of known compatible versions of Outlook may be
-found on the `Windows page`_.
-
-.. _Windows page: http://spambayes.sf.net/windows.html
+The 002 installer for the binary has a number of problems with various
+versions of Outlook/Windows.  However, to our knowledge, the 003 installer
+should work with any combination of Windows/Outlook versions.  Please
+let us know if this is not the case.
 
 
 Do I have to have Python installed to use Spambayes with Outlook?
@@ -357,6 +357,31 @@ problem, exit Outlook (not by restarting/shutting down the machine), and
 make sure that it is completely shut down (use the Task Manager to check).
 This should save your training and configuration.  The 003 release (and
 later) saves as required, so avoids this issue.
+
+
+Can I back up the Outlook database?  Should I do this?
+------------------------------------------------------
+
+Yes you can do this, and it is a good idea if you don't keep copies of the
+mail that you have trained.  This way, if your database becomes corrupted,
+you will be able to recoved without losing all your data (if you do keep
+copies of mail that you train, you can simply recreate the database via
+the SpamBayes manager dialog).
+
+To backup the databases, all you need to do is make a copy of the directory
+that SpamBayes keeps its data in.  If you need to, you can drop the files
+back in to recover from a corrupted database, or for any other reason.
+
+This directory is located in the "Application Data" directory.  On Windows
+NT/2000/XP, this will probably be:
+
+    C:\\Documents and Settings\\[username]\\Application Data\\Spambayes
+
+On other versions of Windows, this will probably be:
+
+    C:\\Windows\\Application Data\\Spambayes
+
+Note that this folder may be hidden.
 
 
 Using Spambayes
@@ -458,6 +483,19 @@ containing nothing but ham, you can train Spambayes using a command like::
 
 The above command is OS-centric (e.g., UNIX, or Windows command prompt).
 You can also use the web interface for training as detailed above.
+
+
+How do I train Spambayes (Outlook plugin)?
+-----------------------------------------------
+
+Instructions about training the Outlook plugin can be found in the documentation
+for the plugin.  However, basically what you need to do is move as much spam
+as you have into your spam folder, tell the plugin which folder that is and
+which folders contain examples of ham, and it will do the rest.
+
+The plugin does *not* train on all incoming mail.  However, if you use the
+"Delete as spam" and "Recover from spam" buttons, those messages will be
+(re)trained as necessary.
 
 
 Do I need to keep spam after it has been trained? If so, for how long?
@@ -622,6 +660,33 @@ You need to have done these things to enable that button:
 3. Set folders to move spam to, and to move unsures to
 
 4. Changed the action to "copy" or "move", rather than "untouched"
+
+
+Do I have to pay for SpamBayes?  Can I pay you money if I really want to?
+-------------------------------------------------------------------------
+
+SpamBayes is free and open-source - there is no charge, and we really
+aren't interested in your money (on the other hand, if you want to donate
+time towards testing, documenting or development - please sign up!).
+
+If you really feel that your life would be incomplete without giving some
+money towards the project, you have a couple of options.  There are some
+commercial programs that are based on the SpamBayes code, so you could
+purchase one of those; this should give you some additional benefits like
+support or greater ease-of-use as well.
+
+The employer of one of the project's
+founders (Tim Peters) paid for the initial research and coding on the
+SpamBayes project.  Open source does very well at the latter but not so
+well at the former (research on statistical algorithms is time-consuming
+and tedious, and there's no a priori guarantee of success).  One thing the
+`Python Software Foundation (PSF)`_ hopes to do in coming years is fund
+core research -- but last time they worked out the details, it seemed to
+require some funds first <wink>.  Therefore, if you'd rather contribute
+closer to the SpamBayes source, the PSF would be the most appropriate place
+to invest your life's savings.
+
+.. _Python Software Foundation (PSF): http://www.python.org/psf/donations.html
 
 
 Is there anything else I should know?
