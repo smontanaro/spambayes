@@ -40,14 +40,14 @@ class XMLHammie(hammie.Hammie):
             msg = msg.data
         except AttributeError:
             pass
-        return hammie.Hammie.score(self, msg, *extra)
+        return xmlrpclib.Binary(hammie.Hammie.score(self, msg, *extra))
 
     def filter(self, msg, *extra):
         try:
             msg = msg.data
         except AttributeError:
             pass
-        return hammie.Hammie.filter(self, msg, *extra)
+        return xmlrpclib.Binary(hammie.Hammie.filter(self, msg, *extra))
 
 
 class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
