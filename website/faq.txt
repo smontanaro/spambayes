@@ -1030,15 +1030,77 @@ version, you can download it from cvs, or just go by the name(s) of the
 database file(s).  If you have a single file, probably called ``hammie.db``,
 then you are probably not using dumbdbm.  If you have three files (probably
 called ``hammie.db.dir``, ``hammie.db.dat`` and ``hammie.db.bak``), then you
-most likely are using dumbdbm, and should stop.
+most likely are using dumbdbm, and should stop.  Note that users of the
+pop3proxy_service can not currently use which_database.py.
 
-Support for dumbdbm will be dropped in a future release.
+Support for dumbdbm has been dropped since release 1.0a6.
                     
 Note that none of this applies to the Outlook plug-in, which avoids it
 on your behalf.
 
 .. _which_database.py: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/utilities/which_database.py?rev=HEAD&content-type=text/plain
 .. _pybsddb: http://pybsddb.sourceforge.net/
+
+
+I get a "DBRunRecoveryError" message.
+-------------------------------------
+
+If you get a message that looks like:
+DBRunRecoveryError: (-30982, 'DB_RUNRECOVERY: Fatal error, run database
+recovery -- fatal region error detected; run recovery')
+This, sadly, means that your training database is corrupted, and you have
+no choice but to delete it and train again from scratch.  We don't know what
+causes this to happen, but we are trying to fix it.  If you find it happens
+reliably for you (ie. the problem always comes back after deleting the
+database and retraining), please post a message saying as much to
+spambayes@python.org - no-one has yet found a case where we can reliably
+reproduce the problem, so tracking it down is proving very difficult.
+
+If you don't want to risk it happening again, switch to using the pickle
+storage (web interface: Configuration / Advanced Configuration /
+Storage Options / Use database for storage: No) instead.
+
+Note, however, that there are two issues with this:
+
+* If you have an existing database and use the web interface to change
+  to a pickle, you'll get a '500' error as spambayes tries to open your
+  non-pickle as a pickle.  You can simply stop SpamBayes, remove the old
+  database, and start SpamBayes up again to fix this.
+* The "message info" database in the 1.0x releases *always* uses a dbm,
+  not a pickle.  (This is fixed in cvs).  Unless you are using
+  sb_imapfilter.py, you can just delete this file if it becomes corrupted,
+  though (assuming normal use of spambayes).  Note that if you are using a
+  pickle and get a DBRunRecoveryError, it *has* to be this file that is
+  corrupted (a pickle will never give you one of those errors).
+
+You may also wish to read the `my database is corrupted`_ FAQ.
+
+.. _my database is corrupted: #my-database-keeps-getting-corrupted
+
+
+The readme says that I can delete the files after doing "setup.py install", but then I can't find pop3proxy_service.py or pop3proxy_tray.py.
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+This is a mistake in either the readme or setup.py in the 1.0a6 release.
+It's fixed for the next release, so that pop3proxy_service.py and
+pop3proxy_tray.py will also be installed to the Python scripts directory
+(if you are running Windows).
+For the moment, you just have to copy those files manually, or just not
+delete them, and run them from the expanded archive location.
+
+
+I can't train via the web interface in 1.0a6!
+---------------------------------------------
+
+There is a known problem with the 1.0a6 release, which is fixed in CVS,
+and so fixed for the next release.  Basically you can't use the database
+after making any changes via the web interface configuration pages.
+To work around this, either restart SpamBayes after using the configuration
+pages, or use 1.0a5 until the next release comes out.
+
+The '500' error you receive will end with "Object does not support item
+assignment".  It may also show up on other pages than the review messages
+one, such as looking up a word in the database.
 
 
 Development
