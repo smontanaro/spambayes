@@ -99,13 +99,24 @@ def train_folder(f, isspam, mgr, progress):
 # Called back from the dialog to do the actual training.
 def trainer(mgr, progress, rebuild, rescore = True):
     config = mgr.config
-    if rebuild:
-        mgr.InitNewBayes()
-    bayes = mgr.bayes
 
     if not config.training.ham_folder_ids or not config.training.spam_folder_ids:
         progress.error("You must specify at least one spam, and one good folder")
         return
+
+    if rebuild:
+        mgr.InitNewBayes()
+    bayes = mgr.bayes
+    # We do this in possibly 3 stages - train, filter, save
+    # re-scoring is much slower and training (as we actually have to save
+    # the message back.)
+    # Saving is really slow sometimes, but we only have 1 tick for that anyway
+    if rescore:
+        stages = ("Training", .3), ("Saving", .1), ("Scoring", .6)
+    else:
+        stages = ("Training", .9), ("Saving", .1)
+    progress.set_stages(stages)
+
     progress.set_status("Counting messages")
 
     num_msgs = 0
@@ -131,7 +142,13 @@ def trainer(mgr, progress, rebuild, rescore = True):
     progress.tick()
     if progress.stop_requested():
         return
-    progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
+    # Completed training - save the database
+    # Setup the next "stage" in the progress dialog.
+    progress.set_max_ticks(1)
+    progress.set_status("Writing the database...")
+    mgr.Save()
+    progress.tick()
+
     if rescore:
         # Setup the "filter now" config to what we want.
         config = mgr.config.filter_now
@@ -142,8 +159,8 @@ def trainer(mgr, progress, rebuild, rescore = True):
         config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
         import filter
         filter.filterer(mgr, progress)
-    progress.set_status("Saving training database...")
-    mgr.Save()
+
+    progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
 
 def main():
     import manager
