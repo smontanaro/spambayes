@@ -208,7 +208,8 @@ class Driver:
             printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
 
         if options.save_histogram_pickles:
-            for f, h in (('ham', self.global_ham_hist), ('spam', self.global_spam_hist)):
+            for f, h in (('ham', self.global_ham_hist), 
+                         ('spam', self.global_spam_hist)):
                 fname = "%s_%shist.pik" % (options.pickle_basename, f)
                 print "    saving %s histogram pickle to %s" %(f, fname)
                 fp = file(fname, 'wb')
