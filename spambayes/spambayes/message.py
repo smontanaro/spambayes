@@ -81,6 +81,7 @@ except NameError:
         return not not val
 
 import sys
+import types
 
 import email.Message
 import email.Parser
@@ -157,7 +158,7 @@ class Message(email.Message.Message):
 
         return self.id
 
-    def changeID(self, id):
+    def changeId(self, id):
         # We cannot re-set an id (see below).  However there are
         # occasionally times when the id for a message will change,
         # for example, on an IMAP server (or possibly an exchange
@@ -180,9 +181,13 @@ class Message(email.Message.Message):
         # to diagnose
         if id is None:
             raise ValueError, "MsgId must not be None"
+
+        if not type(id) in types.StringTypes:
+            raise TypeError, "Id must be a string" 
             
         self.id = id
         msginfoDB._getState(self)
+        self.modified()   # id has changed, force storage
         
     def getId(self):
         return self.id
