@@ -534,7 +534,13 @@ class mySQLClassifier(SQLClassifier):
         try:
             c.execute("select count(*) from bayes")
         except MySQLdb.ProgrammingError:
-            self.db.rollback()
+            try:
+                self.db.rollback()
+            except MySQLdb.NotSupportedError:
+                # Server doesn't support rollback, so just assume that
+                # we can keep going and create the db.  This should only
+                # happen once, anyway.
+                pass
             self.create_bayes()
 
         if self._has_key(self.statekey):
