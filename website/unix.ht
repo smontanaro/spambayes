@@ -11,7 +11,7 @@ install the Spambayes source either as a <a
 href="https://sourceforge.net/project/showfiles.php?group_id=61702">bundled
 package</a> or <a href="https://sourceforge.net/cvs/?group_id=61702">from
 CVS</a>, then choose the Spambayes application which best fits into your
-mail setup.
+mail setup.</p>
 
 <h2>Procmail</h2>
 
@@ -20,7 +20,13 @@ delivery agent and your email package picks up your primary mail from a
 local spool file (e.g. <code>/var/spool/mail</code>), you will probably find
 sb_filter.py the easiest application to integrate into your mail
 environment.</p>
-<p>An example setup is as follows (thanks to Alister Forbes for contributing this):
+<p>An example setup is as follows (thanks to Alister Forbes for contributing this).
+Note that the path to the sb_filter script will be the same as the prefix
+you used when installing Python, which is probably /usr when you installed
+Python using your OS's package management software, and is more likely to
+be /usr/local if you built your own. You can refer to the output of
+"setup.py install" to find the location.</p>
+
 <ol>
 <li>Install spambayes with the usual <pre>setup.py install</pre></li>
 <li>Create the database that spambayes will use to test your incoming mail:
@@ -45,7 +51,6 @@ environment.</p>
 <pre>21 2 * * * /usr/local/bin/sb_mboxtrain.py -d $HOME/.hammie.db -g $HOME/Mail/Inbox -s $HOME/Mail/spam</pre>
 </li>
 </ol>
-</p>
 <p>Additional details are available in the <a
 href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">Hammie
 readme</a>.</p>
@@ -53,11 +58,11 @@ readme</a>.</p>
 <h2>POP3</h2>
 
 <p>If your mail program fetches mail using POP3, then you should run <a
-href="applications.html#sb_server">sb_server.py</a>.
+href="applications.html#sb_server">sb_server.py</a>.</p>
 
 <p>You might wish to set sb_server.py to run as a daemon - Fernando NIÑO and
 Dave Handley have provided these scripts (respectively) which will allow you
-to do this:
+to do this:</p>
 <pre>
 #!/bin/bash
 #
@@ -188,19 +193,18 @@ esac
 
 exit $RETVAL
 </pre>
-</p>
 
 <h2>IMAP</h2>
 
 <p>If your mail program fetches mail using IMAP, then you should run
-<a href="applications.html#imap">imapfilter.py</a>.
+<a href="applications.html#imap">imapfilter.py</a>.</p>
 
 <h2>Training</h2>
 
 <p>See the <a
 href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">Hammie
 readme</a> for a detailed discussion of the many training options
-on Unix systems.
+on Unix systems.</p>
 
 <h2>Notes</h2>
 
@@ -211,9 +215,9 @@ on Unix systems.
 
 <h2>exmh</h2>
 
-<P>The following short guide will help you set up a new message menu on
+<p>The following short guide will help you set up a new message menu on
 exmh - this adds a menu containing "Train as Spam" and "Train as Ham"
-options.</P>
+options.</p>
 
 <ol>
   <li> First of all, create the directory <tt>~/.tk/exmh</tt> if you 
@@ -254,5 +258,5 @@ auto_mkindex ~/.tk/exmh *.tcl
 *Mops.spam.m.c_trainham: SB_HamTrain
 </pre>
 
-  <LI>Restart exmh, and you're done.</LI>
+  <li>Restart exmh, and you're done.</li>
 </ol>
