@@ -33,6 +33,12 @@ To Do:
    email addresses, and so forth.
  o str(Option) should really call Option.unconvert since this is what
    it does.  Try putting that in and running all the tests.
+ o Each Option object has a delimiter attribute - this separates out
+   values when the Object can have multiple values and is in string
+   form.  At the moment the only place this is set is in unconvert()
+   where it is set to the first valid character out of a list.  It
+   would be nice if convert() set the delimiter (if it wasn't already)
+   so that Options would keep the one they start with.
  o [See also the __issues__ string.]
  o Suggestions?
 

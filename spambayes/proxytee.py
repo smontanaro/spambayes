@@ -91,7 +91,7 @@ def usage(*args):
 def main(argv):
     null = False
     server = "localhost"
-    port = options.html_ui_port
+    port = options["html_ui", "port"]
     prob = 1.0
 
     try:

@@ -41,6 +41,7 @@ setup(
            'proxytee.py',
            'dbExpImp.py',
            'mboxtrain.py',
+           'imapfilter.py',
           ],
         packages = [
            'spambayes',

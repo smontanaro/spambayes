@@ -196,19 +196,19 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
 
                 # generate_long_skips = True blows up on occasion,
                 # probably due to this unicode problem.
-                options.generate_long_skips = False
+                options["Tokenizer", "generate_long_skips"] = False
                 tokens = tokenizer.tokenize(message)
                 prob, clues = bayes.spamprob(tokens, evidence=True)
 
-                if prob < options.ham_cutoff:
-                    disposition = options.header_ham_string
+                if prob < options["Categorization", "ham_cutoff"]:
+                    disposition = options["Hammie", "header_ham_string"]
                     numham += 1
-                elif prob > options.spam_cutoff:
-                    disposition = options.header_spam_string
+                elif prob > options["Categorization", "spam_cutoff"]:
+                    disposition = options["Hammie", "header_spam_string"]
                     docstomove += [doc]
                     numspam += 1
                 else:
-                    disposition = options.header_unsure_string
+                    disposition = options["Hammie", "header_unsure_string"]
                     numuns += 1
 
                 notesindex[nid] = 'classified'
@@ -234,9 +234,9 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
 def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
     if is_spam:
-        str = options.header_spam_string
+        str = options["Hammie", "header_spam_string"]
     else:
-        str = options.header_ham_string
+        str = options["Hammie", "header_ham_string"]
 
     print "Training %s" % (str)
     
@@ -255,16 +255,18 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
             
         message = "Subject: %s\r\n%s" % (subj, body)
 
-        options.generate_long_skips = False
+        options["Tokenizer", "generate_long_skips"] = False
         tokens = tokenizer.tokenize(message)
 
         nid = doc.NOTEID
         if notesindex.has_key(nid):
             trainedas = notesindex[nid]
-            if trainedas == options.header_spam_string and not is_spam:
+            if trainedas == options["Hammie", "header_spam_string"] and \
+               not is_spam:
                 # msg is trained as spam, is to be retrained as ham
                 bayes.unlearn(tokens, True)
-            elif trainedas == options.header_ham_string and is_spam:
+            elif trainedas == options["Hammie", "header_ham_string"] and \
+                 is_spam:
                 # msg is trained as ham, is to be retrained as spam
                 bayes.unlearn(tokens, False)
   

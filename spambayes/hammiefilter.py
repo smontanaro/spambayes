@@ -96,11 +96,11 @@ def usage(code, msg=''):
 class HammieFilter(object):
     def __init__(self):
         options = Options.options
-        options.mergefiles(['/etc/hammierc',
+        options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
-        self.dbname = options.hammiefilter_persistent_storage_file
+        self.dbname = options["hammiefilter", "persistent_storage_file"]
         self.dbname = os.path.expanduser(self.dbname)
-        self.usedb = options.hammiefilter_persistent_use_database
+        self.usedb = options["hammiefilter", "persistent_use_database"]
 
     def newdb(self):
         h = hammie.open(self.dbname, self.usedb, 'n')

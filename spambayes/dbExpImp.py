@@ -255,7 +255,7 @@ if __name__ == '__main__':
         elif opt == '-m':
             newDBM = False
         elif opt == '-v':
-            options.verbose = True
+            options["globals", "verbose"] = True
 
     if (dbFN and flatFN):
         if exp:

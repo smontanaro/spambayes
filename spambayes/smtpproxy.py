@@ -334,18 +334,12 @@ class BayesSMTPProxy(SMTPProxyBase):
 
     def onRcptTo(self, command, args):
         toHost, toFull = self.splitTo(args[0])
-        if toFull == options.smtpproxy_shutdown_address:
-            self.push("421 Closing on user request\r\n")
-            self.socket.shutdown(2)
-            self.close()
-            raise SystemExit
-            return None
-        elif toFull == options.smtpproxy_spam_address:
+        if toFull == options["smtpproxy", "spam_address"]:
             self.train_as_spam = True
             self.blockData = True
             self.push("250 OK\r\n")
             return None
-        elif toFull == options.smtpproxy_ham_address:
+        elif toFull == options["smtpproxy", "ham_address"]:
             self.train_as_ham = True
             self.blockData = True
             self.push("250 OK\r\n")
@@ -390,7 +384,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         msg = get_message(data)
 
         # the nicest MUA is one that forwards the header intact
-        id = msg.get(options.pop3proxy_mailid_header_name)
+        id = msg.get(options["pop3proxy", "mailid_header_name"])
         if id is not None:
             return id
 
@@ -415,20 +409,21 @@ class BayesSMTPProxy(SMTPProxyBase):
         return None
 
     def _find_id_in_text(self, text):
-        id_location = text.find(options.pop3proxy_mailid_header_name)
+        id_location = text.find(options["pop3proxy", "mailid_header_name"])
         if id_location == -1:
             return None
         else:
             # A MUA might enclose the id in a table
             # (Mozilla Mail does this with inline html)
-            s = re.compile(options.pop3proxy_mailid_header_name + \
+            s = re.compile(options["pop3proxy", "mailid_header_name"] + \
                            ':[\s]*</th>[\s]*<td>[\s]*')
             if s.search(text[id_location:]) is not None:
                 id_location += s.search(text[id_location:]).end()
                 s = re.compile('[\d-]+</td>')
                 id_end = s.search(text[id_location:]).end() + id_location
             else:
-                id_location += len(options.pop3proxy_mailid_header_name) + 2
+                id_location += len(options["pop3proxy",
+                                           "mailid_header_name"]) + 2
                 s = re.compile('[\w -]+[\\r]?\\n')
                 id_end = s.search(text[id_location:]).end() + id_location
             id = text[id_location:id_end]
@@ -445,7 +440,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         if id is None:
             print "Could not extract id"
             return
-        if options.verbose:
+        if options["globals", "verbose"]:
             if isSpam == True:
                 print "Training %s as spam" % id
             else:
@@ -471,16 +466,16 @@ def LoadServerInfo():
     # Load the proxy settings
     servers = []
     proxyPorts = []
-    if options.smtpproxy_servers:
-        for server in options.smtpproxy_servers:
+    if options["smtpproxy", "servers"]:
+        for server in options["smtpproxy", "servers"]:
             server = server.strip()
             if server.find(':') > -1:
                 server, port = server.split(':', 1)
             else:
                 port = '25'
             servers.append((server, int(port)))
-    if options.smtpproxy_ports:
-        splitPorts = options.smtpproxy_ports
+    if options["smtpproxy", "ports"]:
+        splitPorts = options["smtpproxy", "ports"]
         proxyPorts = map(_addressAndPort, splitPorts)
     if len(servers) != len(proxyPorts):
         print "smtpproxy_servers & smtpproxy_ports are different lengths!"
