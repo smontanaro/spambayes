@@ -38,6 +38,7 @@ class ManagerError(Exception):
 
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
+        self.addin = None
         self.verbose = verbose
         if not os.path.isabs(config_base):
             config_base = os.path.join(os.path.dirname(this_filename),
@@ -230,6 +231,8 @@ def ShowManager(mgr):
         import dialogs.FilterDialog
         d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, rule.Rule, filter.filterer)
         d.DoModal()
+        if dlg.mgr.addin is not None:
+            dlg.mgr.addin.FiltersChanged()
         
     import dialogs.ManagerDialog
     d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, do_classify)

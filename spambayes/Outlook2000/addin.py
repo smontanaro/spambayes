@@ -72,6 +72,9 @@ class ButtonEvent:
         self.handler(*self.args)
 
 class FolderItemsEvent:
+    def __del__(self):
+        print "Event dieing"
+
     def Init(self, target, application, manager):
         self.application = application
         self.manager = manager
@@ -106,6 +109,8 @@ class OutlookAddin:
         # Create our bayes manager
         import manager
         self.manager = manager.GetManager()
+        assert self.manager.addin is None, "Should not already have an addin"
+        self.manager.addin = self
         
         # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
         activeExplorer = application.ActiveExplorer()
@@ -120,9 +125,12 @@ class OutlookAddin:
             item.TooltipText = "Define anti-spam filters"
             item.Enabled = True
 
+        self.FiltersChanged()
+
+    def FiltersChanged(self):
         # Create a notification hook for all folders we filter.
         self.UpdateFolderHooks()
-
+        
     def UpdateFolderHooks(self):
         new_hooks = {}
         for mapi_folder in self.manager.BuildFolderList(self.manager.config.filter.folder_ids, self.manager.config.filter.include_sub):
@@ -138,9 +146,12 @@ class OutlookAddin:
                 if new_hook is not None:
                     new_hook.Init(folder, self.application, self.manager)
                     new_hooks[eid] = new_hook
-                    print "Created new message hook for", folder.Name
+                    print "AntiSpam: Watching for new messages in folder", folder.Name
             else:
                 new_hooks[eid] = existing
+        for k in self.folder_hooks.keys():
+            if not new_hooks.has_key(k):
+                self.folder_hooks[k]._obj_.close()
         self.folder_hooks = new_hooks
             
     def OnDisconnection(self, mode, custom):
