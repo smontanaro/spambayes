@@ -257,6 +257,162 @@ class DBDictClassifier(classifier.Classifier):
         del self.wordinfo[word]
         self.changed_words[word] = WORD_DELETED
 
+
+class SQLClassifier(classifier.Classifier):
+    def __init__(self, db_name):
+        '''Constructor(database name)'''
+
+        classifier.Classifier.__init__(self)
+        self.statekey = "saved state"
+        self.db_name = db_name
+        self.load()
+
+    def load(self):
+        '''Load state from the database'''
+        raise NotImplementedError, "must be implemented in subclass"
+
+    def store(self):
+        '''Save state to the database'''
+        self._set_row(self.statekey, self.nspam, self.nham)
+
+    def cursor(self):
+        '''Return a new db cursor'''
+        raise NotImplementedError, "must be implemented in subclass"
+
+    def fetchall(self, c):
+        '''Return all rows as a dict'''
+        raise NotImplementedError, "must be implemented in subclass"
+
+    def commit(self, c):
+        '''Commit the current transaction - may commit at db or cursor'''
+        raise NotImplementedError, "must be implemented in subclass"
+        
+    def create_bayes(self):
+        '''Create a new bayes table'''
+        c = self.cursor()
+        c.execute(self.table_definition)
+        self.commit(c)
+
+    def _get_row(self, word):
+        '''Return row matching word'''
+        try:
+            c = self.cursor()
+            c.execute("select * from bayes"
+                      "  where word=%s",
+                      (word,))
+        except Exception, e:
+            print "error:", (e, word)
+            raise
+        rows = self.fetchall(c)
+
+        if rows:
+            return rows[0]
+        else:
+            return {}
+
+    def _set_row(self, word, nspam, nham):
+        c = self.cursor()
+        if self._has_key(word):
+            c.execute("update bayes"
+                      "  set nspam=%s,nham=%s"
+                      "  where word=%s",
+                      (nspam, nham, word))
+        else:
+            c.execute("insert into bayes"
+                      "  (nspam, nham, word)"
+                      "  values (%s, %s, %s)",
+                      (nspam, nham, word))
+        self.commit(c)
+
+    def _delete_row(self, word):
+        c = self.cursor()
+        c.execute("delete from bayes"
+                  "  where word=%s",
+                  (word,))
+        self.commit(c)
+
+    def _has_key(self, key):
+        c = self.cursor()
+        c.execute("select word from bayes"
+                  "  where word=%s",
+                  (key,))
+        return len(self.fetchall(c)) > 0
+
+    def _wordinfoget(self, word):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
+
+        row = self._get_row(word)
+        if row:
+            item = self.WordInfoClass()
+            item.__setstate__((row["nspam"], row["nham"]))
+            return item
+        else:
+            return self.WordInfoClass()
+
+    def _wordinfoset(self, word, record):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
+        self._set_row(word, record.spamcount, record.hamcount)
+
+    def _wordinfodel(self, word):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
+        self._delete_row(word)
+
+
+class PGClassifier(SQLClassifier):
+    '''Classifier object persisted in a Postgres database'''
+    def __init__(self, db_name):
+        self.table_definition = ("create table bayes ("
+                                 "  word bytea not null default '',"
+                                 "  nspam integer not null default 0,"
+                                 "  nham integer not null default 0,"
+                                 "  primary key(word)"
+                                 ")")
+        SQLClassifier.__init__(self, db_name)
+
+    def cursor(self):
+        return self.db.cursor()
+
+    def fetchall(self, c):
+        return c.dictfetchall()
+
+    def commit(self, c):
+        self.db.commit()
+
+    def load(self):
+        '''Load state from database'''
+
+        import psycopg
+        
+        if options.verbose:
+            print 'Loading state from',self.db_name,'database'
+
+        self.db = psycopg.connect(self.db_name)
+
+        c = self.cursor()
+        try:
+            c.execute("select count(*) from bayes")
+        except psycopg.ProgrammingError:
+            self.db.rollback()
+            self.create_bayes()
+        
+        if self._has_key(self.statekey):
+            row = self._get_row(self.statekey)
+            self.nspam = row["nspam"]
+            self.nham = row["nham"]
+            if options.verbose:
+                print '%s is an existing database, with %d spam and %d ham' \
+                      % (self.db_name, self.nspam, self.nham)
+        else:
+            # new database
+            if options.verbose:
+                print self.db_name,'is a new database'
+            self.nspam = 0
+            self.nham = 0
+
+
 class Trainer:
     '''Associates a Classifier object and one or more Corpora, \
     is an observer of the corpora'''
