@@ -498,6 +498,9 @@ on Windows, so his approach to building the zip file is at the end.
       % gpg -sab spambayes-1.0.1.tar.gz
       % gpg -sab spambayes-1.0.1.exe
    Put the created *.asc files in the "sigs" directory of the website.
+   (Note that when you update the website, you will need to manually ssh
+   to shell1.sourceforge.net and chmod these files so that people can
+   access them.)
  o If your public key isn't already linked to on the Download page, put
    it there.
  o Update the website News, Download and Windows sections.
@@ -537,8 +540,8 @@ The binary release includes both sb_server and the Outlook plug-in and
 is an installer for Windows (98 and above) systems.  In order to have
 COM typelibs that work with Outlook 2000, 2002 and 2003, you need to
 build the installer on a system that has Outlook 2000 (not a more recent
-version).  You also need to have InnoSetup, resourcepackage and py2exe
-installed.
+version).  You also need to have InnoSetup, pywin32, resourcepackage and
+py2exe installed.
 
  o Get hold of a fresh copy of the source (Windows line endings,
    presumably).
