@@ -238,7 +238,7 @@ def filter(bayes, input, output):
     disp += "; %.2f" % prob
     disp += "; " + formatclues(clues)
     msg.add_header(DISPHEADER, disp)
-    output.write(str(msg))
+    output.write(msg.as_string(unixfrom=(msg.get_unixfrom() is not None)))
 
 def score(bayes, msgs):
     """Score (judge) all messages from a mailbox."""
