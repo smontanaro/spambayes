@@ -1519,6 +1519,22 @@ def DllUnregisterServer():
         pass
 
 if __name__ == '__main__':
+    # woohoo - here is a wicked hack.  If we are a frozen .EXE, then we are
+    # a mini "registration" utility.  However, we still want to register the
+    # DLL, *not* us.  Pretend we are frozen in that DLL.
+    # NOTE: This is only needed due to problems with Inno Setup unregistering
+    # our DLL the 'normal' way, but then being unable to remove the files as
+    # they are in use (presumably by Inno doing the unregister!).  If this
+    # problem ever goes away, so will the need for this to be frozen as
+    # an executable.  In all cases other than as above, 'regsvr32 dll_name'
+    # is still the preferred way of registering our binary.
+    if hasattr(sys, "frozen"):
+        sys.frozendllhandle = win32api.LoadLibrary("outlook_addin.dll")
+        sys.frozen = "dll"
+        # Without this, com registration will look at class.__module__, and
+        # get all confused about the module name holding our class in the DLL
+        OutlookAddin._reg_class_spec_ = "addin.OutlookAddin"
+        # And continue doing the registration with our hacked environment.
     import win32com.server.register
     win32com.server.register.UseCommandLine(OutlookAddin)
     # todo - later win32all versions of  UseCommandLine support
