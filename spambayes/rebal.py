@@ -1,58 +1,166 @@
+#!/usr/bin/env python
+
+"""
+rebal.py - rebalance a ham or spam directory, moving files to or from
+a reservoir directory as necessary.
+
+usage: rebal.py [ options ]
+options:
+   -r res - specify an alternate reservoir [%(RESDIR)s]
+   -s set - specify an alternate Set pfx [%(SETPFX)s]
+   -n num - specify number of files per dir [%(NPERDIR)s]
+   -v     - tell user what's happening [%(VERBOSE)s]
+   -q     - be quiet about what's happening [not %(VERBOSE)s]
+   -c     - confirm file moves into Set directory [%(CONFIRM)s]
+   -Q     - be quiet and don't confirm moves
+
+The script will work with a variable number of Set directories, but they
+must already exist.
+
+Example: 
+
+    rebal.py -r reservoir -s Set -n 300
+
+This will move random files between the directory 'reservoir' and the
+various subdirectories prefixed with 'Set', making sure no more than 300
+files are left in the 'Set' directories when finished.
+
+Example:
+
+Suppose you want to shuffle your Set files around, winding up with 300 files
+in each one, you can execute:
+
+    rebal.py -n 0
+    rebal.py -n 300
+
+The first run will move all files from the various Data/Ham/Set directories
+to the Data/Ham/reservoir directory.  The second run will randomly parcel
+out 300 files to each of the Data/Ham/Set directories.
+"""
+
 import os
 import sys
 import random
+import glob
+import getopt
 
-'''
-dead = """
-Data/Ham/Set2/22467.txt
-Data/Ham/Set5/31389.txt
-Data/Ham/Set1/19642.txt
-"""
-
-for f in dead.split():
-    os.unlink(f)
-
-sys.exit(0)
-'''
-
+# defaults
 NPERDIR = 4000
 RESDIR = 'Data/Ham/reservoir'
-res = os.listdir(RESDIR)
+SETPFX = 'Data/Ham/Set'
+VERBOSE = True
+CONFIRM = True
 
-stuff = []
-for i in range(1, 6):
-    dir = 'Data/Ham/Set%d' % i
-    fs = os.listdir(dir)
-    stuff.append((dir, fs))
+def usage():
+    print >> sys.stderr, """\
+usage: rebal.py [ options ]
+options:
+   -r res - specify an alternate reservoir [%(RESDIR)s]
+   -s set - specify an alternate Set pfx [%(SETPFX)s]
+   -n num - specify number of files per dir [%(NPERDIR)s]
+   -v     - tell user what's happening [%(VERBOSE)s]
+   -q     - be quiet about what's happening [not %(VERBOSE)s]
+   -c     - confirm file moves into Set directory [%(CONFIRM)s]
+   -Q     - be quiet and don't confirm moves
+""" % globals()
+    
+def migrate(f, dir, verbose):
+    """rename f into dir, making sure to avoid name clashes."""
+    base = os.path.split(f)[-1]
+    if os.path.exists(os.path.join(dir,base)):
+        # this path can get slow if we have a lot of name collisions
+        # but we should rarely encounter that case (so he says smugly)
+        reslist = [int(n) for n in os.listdir(dir)]
+        reslist.sort()
+        out = os.path.join(dir, "%d"%(reslist[-1]+1))
+    else:
+        out = os.path.join(dir, base)
+    if verbose:
+        print "moving", f, "to", out
+    os.rename(f, out)
+    
+def main(args):
+    nperdir = NPERDIR
+    resdir = RESDIR
+    setpfx = SETPFX
+    verbose = VERBOSE
+    confirm = CONFIRM
+    
+    try:
+        opts, args = getopt.getopt(args, "r:s:n:vqcQh")
+    except getopt.GetoptError:
+        usage()
+        return 1
 
-while stuff:
-    dir, fs = stuff.pop()
-    if len(fs) == NPERDIR:
-        continue
+    for opt, arg in opts:
+        if opt == "-n":
+            nperdir = int(arg)
+        elif opt == "-r":
+            resdir = arg
+        elif opt == "-s":
+            setpfx = arg
+        elif opt == "-v":
+            verbose = True
+        elif opt == "-c":
+            confirm = True
+        elif opt == "-q":
+            verbose = False
+        elif opt == "-Q":
+            verbose = confirm = False
+        elif opt == "-h":
+            usage()
+            return 0
 
-    if len(fs) > NPERDIR:
-        f = random.choice(fs)
-        fs.remove(f)
-        print "deleting", f, "from", dir
-        os.unlink(dir + "/" + f)
+    res = os.listdir(resdir)
 
-    elif len(fs) < NPERDIR:
-        print "need a new one for", dir
-        f = random.choice(res)
-        print "How about", f
-        res.remove(f)
+    dirs = glob.glob(setpfx+"*")
+    if dirs == []:
+        print >> sys.stderr, "no directories beginning with", setpfx, "exist."
+        return 1
 
-        fp = file(RESDIR + "/" + f, 'rb')
-        guts = fp.read()
-        fp.close()
-        os.unlink(RESDIR + "/" + f)
+    stuff = []
+    n = len(res)
+    for dir in dirs:
+        fs = os.listdir(dir)
+        n += len(fs)
+        stuff.append((dir, fs))
 
-        print guts
-        ok = raw_input('good enough? ')
-        if ok.startswith('y'):
-            fp = file(dir + "/" + f, 'wb')
-            fp.write(guts)
-            fp.close()
-            fs.append(f)
+    if nperdir * len(dirs) > n:
+        print >> sys.stderr, "not enough files to go around - use lower -n."
+        return 1
 
-    stuff.append((dir, fs))
+    # if necessary, migrate random files to the reservoir
+    for (dir, fs) in stuff:
+        if nperdir >= len(fs):
+            continue
+
+        random.shuffle(fs)
+        movethese = fs[nperdir:]
+        del fs[nperdir:]
+        for f in movethese:
+            migrate(os.path.join(dir,f), resdir, verbose)
+        res.extend(movethese)
+
+    # randomize reservoir once so we can just bite chunks from the front
+    random.shuffle(res)
+
+    # grow Set* directories from the reservoir
+    for (dir, fs) in stuff:
+        if nperdir == len(fs):
+            continue
+
+        movethese = res[:nperdir-len(fs)]
+        res = res[nperdir-len(fs):]
+        for f in movethese:
+            if confirm:
+                print file(os.path.join(resdir,f)).read()
+                ok = raw_input('good enough? ').lower()
+                if not ok.startswith('y'):
+                    continue
+            migrate(os.path.join(resdir,f), dir, verbose)
+        fs.extend(movethese)
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
