@@ -14,4 +14,7 @@ if __name__=='__main__':
     import manager
     mgr = manager.GetManager()
     from dialogs import ShowDialog
-    ShowDialog(0, mgr, "IDD_MANAGER")
+    idd = "IDD_MANAGER"
+    if len(sys.argv)>1:
+        idd = sys.argv[1]
+    ShowDialog(0, mgr, idd)
