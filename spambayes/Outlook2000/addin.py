@@ -470,14 +470,16 @@ def ShowClues(mgr, explorer):
     # Score when the message was classified - this will hopefully help
     # people realise that it may not necessarily be the same, and will
     # help diagnosing any 'wrong' scoring reported.
-    original_score = 100 * msgstore_message.GetField(\
+    original_score = msgstore_message.GetField(\
         mgr.config.general.field_score_name)
-    if original_score >= mgr.config.filter.spam_threshold:
-        original_class = "spam"
-    elif original_score >= mgr.config.filter.unsure_threshold:
-        original_class = "unsure"
-    else:
-        original_class = "good"
+    if original_score is not None:
+        original_score *= 100.0
+        if original_score >= mgr.config.filter.spam_threshold:
+            original_class = "spam"
+        elif original_score >= mgr.config.filter.unsure_threshold:
+            original_class = "unsure"
+        else:
+            original_class = "good"
     push("<br>\n")
     if original_score is None:
         push("This message has not been filtered.")
