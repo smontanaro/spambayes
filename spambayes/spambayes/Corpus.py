@@ -206,7 +206,7 @@ class Corpus:
                 for opt, tag in (("ham", "header_ham_string"),
                                  ("spam", "header_spam_string"),
                                  ("unsure", "header_unsure_string")):
-                    if opt in notate_opt and \
+                    if (notate_opt is not None) and (opt in notate_opt) and \
                        msg[header].startswith("%s," % options["Headers", tag]):
                         msg.replace_header(header, msg[header][len(tag)+1:])
 
