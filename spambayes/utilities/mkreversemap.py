@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+
+"""
+Create mapping from features to message ids
+
+usage %(prog)s [ -h ] -t ham|spam -d mapfile mailbox ...
+
+-d mapfile - identify file which will hold mapping information
+
+-t ham|spam - identify the type of messages in the input mailbox(es)
+
+-h - print this documentation and exit
+"""
+
+import sys
+import getopt
+import anydbm
+import cPickle as pickle
+
+from spambayes.mboxutils import getmbox
+from spambayes.tokenizer import tokenize
+
+prog = sys.argv[0]
+
+def usage(msg=None):
+    if msg is not None:
+        print >> sys.stderr, msg
+    print >> sys.stderr, __doc__.strip() % globals()
+
+def mapmessages(f, mboxtype, mapdb):
+    i = 0
+    for msg in getmbox(f):
+        i += 1
+        sys.stdout.write('\r%s: %d' % (f, i))
+        sys.stdout.flush()
+        msgid = msg.get("message-id")
+        if msgid is None:
+            continue
+        for t in tokenize(msg):
+            ham, spam = mapdb.get(t, ({}, {}))
+            if mboxtype == "ham":
+                msgids = ham.get(f, set())
+                msgids.add(msgid)
+                ham[f] = msgids
+            else:
+                msgids = spam.get(f, set())
+                msgids.add(msgid)
+                spam[f] = msgids
+            mapdb[t] = (ham, spam)
+    sys.stdout.write("\n")
+
+def main(args):
+    try:
+        opts, args = getopt.getopt(args, "hd:t:",
+                                   ["type=", "help", "database="])
+    except getopt.GetoptError, msg:
+        usage(msg)
+        return 1
+
+    mapfile = None
+    mboxtype = None
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+            return 0
+        elif opt in ("-d", "--database"):
+            mapfile = arg
+
+        elif opt in ("-t", "--type"):
+            mboxtype = arg
+
+    if mapfile is None:
+        usage("'-d mapfile' is required")
+        return 1
+
+    if mboxtype is None:
+        usage("'-t ham|spam' is required")
+        return 1
+
+    if mboxtype not in ("ham", "spam"):
+        usage("mboxtype must be 'ham' or 'spam'")
+        return 1
+
+    try:
+        mapd = pickle.load(file(mapfile))
+    except IOError:
+        mapd = {}
+
+    for f in args:
+        mapmessages(f, mboxtype, mapd)
+    pickle.dump(mapd, file(mapfile, "w"))
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
