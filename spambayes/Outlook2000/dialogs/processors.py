@@ -84,7 +84,7 @@ class CommandButtonProcessor(ButtonProcessor):
 
     def OnClicked(self, id):
         # Bit of a hack - always pass the manager as the first arg.
-        args = (self.window.manager,) + self.args
+        args = (self.window,) + self.args
         self.func(*args)
     
     def GetPopupHelpText(self, ctrlid):

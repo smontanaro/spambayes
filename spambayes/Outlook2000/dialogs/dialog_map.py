@@ -219,10 +219,31 @@ class TabProcessor(ControlProcessor):
                              item,
                              buf)
         self.pages[item] = idName
-        
 
-def ShowAbout(mgr):
-    mgr.ShowHtml("about.html")
+
+def ShowAbout(window):
+    window.manager.ShowHtml("about.html")
+
+def ResetConfig(window):
+    question = "This will reset all configuration options to their default values\r\n\r\n" \
+               "It will not reset the folders you have selected, nor your\r\n" \
+               "training information, but all other options will be reset\r\n" \
+               "and SpamBayes will need to be re-enabled before it will\r\n" \
+               "continuefiltering.\r\n\r\n" \
+               "Are you sure you wish to reset all options?"
+    flags = win32con.MB_ICONQUESTION | win32con.MB_YESNO | win32con.MB_DEFBUTTON2
+    if win32gui.MessageBox(window.hwnd,
+                           question, "SpamBayes",flags) == win32con.IDYES:
+        options = window.config._options
+        for sect in options.sections():
+            for opt_name in options.options_in_section(sect):
+                opt = options.get_option(sect, opt_name)
+                if not opt.no_restore():
+                    assert opt.is_valid(opt.default_value), \
+                           "Resetting '%s' to invalid default %r" % (opt.display_name(), opt.default_value)
+                    opt.set(opt.default_value)
+        window.LoadAllControls()
+
 
 class DialogCommand(ButtonProcessor):
     def __init__(self, window, control_ids, idd):
@@ -357,6 +378,7 @@ dialog_map = {
         (DialogCommand,           "IDC_BUT_TRAIN_NOW", "IDD_TRAINING"),
         (DialogCommand,           "IDC_ADVANCED_BTN", "IDD_ADVANCED"),
         (ShowWizardCommand,       "IDC_BUT_WIZARD", "IDD_WIZARD"),
+        (CommandButtonProcessor,  "IDC_BUT_RESET", ResetConfig, ()),
         ),
     "IDD_FILTER_NOW" : (
         (BoolButtonProcessor,     "IDC_BUT_UNREAD",    "Filter_Now.only_unread"),

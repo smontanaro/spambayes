@@ -119,8 +119,7 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
 
     def Done(self):
         if self.running:
-            msg = "You must let the running process finish, or stop it\r\n" \
-                  "yourself, before closing this window"
+            msg = "You must let the running process finish before closing this window"
             win32gui.MessageBox(self.window.hwnd, msg, "SpamBayes",
                                 win32con.MB_OK | win32con.MB_ICONEXCLAMATION)
         return not self.running
