@@ -811,6 +811,7 @@ class MAPIMsgStoreMsg:
         self.stored_attributes = ['c', 't', 'original_folder']
         self.t = None
         self.c = None
+        self.date_modified = None
         self.original_folder = None
 
     def getDBKey(self):

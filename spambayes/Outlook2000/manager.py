@@ -456,9 +456,11 @@ class BayesManager:
             self.classifier_data.InitNew()
         self.bayes_options = bayes_options
         bayes_options["Categorization", "spam_cutoff"] = \
-                                        self.config.filter.spam_threshold
+                                        self.config.filter.spam_threshold \
+                                        / 100.0
         bayes_options["Categorization", "ham_cutoff"] = \
-                                        self.config.filter.unsure_threshold
+                                        self.config.filter.unsure_threshold \
+                                        / 100.0
         self.stats = bayes_stats.Stats(bayes_options,
                                        self.classifier_data.message_db)
 
@@ -907,9 +909,11 @@ class BayesManager:
         # And update the cutoff values in bayes_options (which the
         # stats use) to our thresholds.
         bayes_options["Categorization", "spam_cutoff"] = \
-                                        self.config.filter.spam_threshold
+                                        self.config.filter.spam_threshold \
+                                        / 100.0
         bayes_options["Categorization", "ham_cutoff"] = \
-                                        self.config.filter.unsure_threshold
+                                        self.config.filter.unsure_threshold \
+                                        / 100.0
         # And tell the addin that our filters may have changed.
         if self.addin is not None:
             self.addin.FiltersChanged()
