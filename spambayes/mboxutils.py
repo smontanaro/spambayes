@@ -86,6 +86,6 @@ def getmbox(name):
         else:
             mbox = DirOfTxtFileMailbox(name, _factory)
     else:
-        fp = open(name)
+        fp = open(name, "rb")
         mbox = mailbox.PortableUnixMailbox(fp, _factory)
     return iter(mbox)
