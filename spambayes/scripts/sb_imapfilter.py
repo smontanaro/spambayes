@@ -448,6 +448,21 @@ class IMAPMessage(message.SBHeaderMessage):
                             " " + self.id + ")")
         self._check(response, 'search')
         new_id = response[1][0]
+
+        # See [ 870799 ] imap trying to fetch invalid message UID
+        # It seems that although the save gave a "NO" response to the
+        # first save, the message was still saved (without the flags,
+        # probably).  This isn't really good behaviour on the server's
+        # part, but, as usual, we try and deal with it.  So, if we get
+        # more than one undeleted message with the same SpamBayes id,
+        # delete all of them apart from the last one, and use that.
+        multiple_ids = new_id.split()
+        for id_to_remove in multiple_ids[:-1]:
+            response = imap.uid("STORE", id_to_remove, "+FLAGS.SILENT",
+                                "(\\Deleted \\Seen)")
+            self._check(response, 'store')
+        new_id = multiple_ids[-1]
+        
         # Let's hope it doesn't, but, just in case, if the search
         # turns up empty, we make the assumption that the new
         # message is the last one with a recent flag
