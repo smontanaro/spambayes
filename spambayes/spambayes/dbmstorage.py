@@ -12,7 +12,8 @@ def open_db3hash(*args):
     return bsddb3.hashopen(*args)
 
 def open_dbhash(*args):
-    """Open a bsddb hash.  Don't use this on Windows."""
+    """Open a bsddb hash.  Don't use this on Windows, unless Python 2.3 or 
+    greater is used, in which case bsddb3 is actually named bsddb."""
     import bsddb
     return bsddb.hashopen(*args)
 
@@ -28,7 +29,13 @@ def open_dumbdbm(*args):
 
 def open_best(*args):
     if sys.platform == "win32":
+        # Note that Python 2.3 and later ship with the new bsddb interface
+        # as the default bsddb module - so 2.3 can use the old name safely.
         funcs = [open_db3hash, open_gdbm, open_dumbdbm]
+        if sys.version_info >= (2,3):
+            funcs.insert(0, open_dbhash)
+        else:
+            funcs.insert(0, open_db3hash)
     else:
         funcs = [open_db3hash, open_dbhash, open_gdbm, open_dumbdbm]
     for f in funcs:

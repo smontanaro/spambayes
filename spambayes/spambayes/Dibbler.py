@@ -234,7 +234,10 @@ class Listener(asyncore.dispatcher):
         """Creates a listener object, which will listen for incoming
         connections when Dibbler.run is called:
 
-         o port: The TCP/IP port to listen on
+         o port: The TCP/IP (address, port) to listen on. Usually '' -
+           meaning bind to all IP addresses that the machine has - will be
+           passed as the address.  If `port` is just an int, an address of
+           '' will be assumed.
 
          o factory: The function to call to create a handler (can be a class
            name).
@@ -259,7 +262,9 @@ class Listener(asyncore.dispatcher):
         s.setblocking(False)
         self.set_socket(s, self.socketMap)
         self.set_reuse_addr()
-        self.bind(('', port))
+        if type(port) != type(()):
+            port = ('', port)
+        self.bind(port)
         self.listen(5)
 
     def handle_accept(self):
@@ -279,17 +284,21 @@ class HTTPServer(Listener):
     """A web server with which you can register `HTTPPlugin`s to serve up
     your content - see `HTTPPlugin` for detailed documentation and examples.
 
-    `port` specifies the TCP/IP port on which to run, defaulting to port 80.
+    `port` specifies the TCP/IP (address, port) on which to run, defaulting
+    to ('', 80).
 
     `context` optionally specifies a `Dibbler.Context` for the server.
     """
 
-    def __init__(self, port=80, context=_defaultContext):
+    def __init__(self, port=('', 80), context=_defaultContext):
         """Create an `HTTPServer` for the given port."""
         Listener.__init__(self, port, _HTTPHandler,
                           (self, context), context._map)
         self._plugins = []
-        context._HTTPPort = port
+        try:
+            context._HTTPPort = port[1]
+        except TypeError:
+            context._HTTPPort = port
 
     def register(self, *plugins):
         """Registers one or more `HTTPPlugin`-derived objects with the
@@ -335,7 +344,7 @@ class _HTTPHandler(BrighterAsyncChat):
         try:
             method, url, version = requestLine.strip().split()
         except ValueError:
-            self.pushError(400, "Malformed request: '%s'" % requestLine)
+            self.writeError(400, "Malformed request: '%s'" % requestLine)
             self.close_when_done()
             return
 

@@ -19,12 +19,12 @@ Where OPTIONS is one or more of:
         use the pickle store.  A pickle is smaller and faster to create,
         but much slower to load.  Recommended for use with pop3proxy and
         hammiesrv.
-    -g PATH
-        mbox or directory of known good messages (non-spam) to train on.
-        Can be specified more than once.
+    -e PATH
+        directory of all messages (both ham and spam).
     -s PATH
-        mbox or directory of known spam messages to train on.
-        Can be specified more than once.
+        directory of known spam messages to train on.  These should be
+        duplicates of messages in the everything folder.  Can be
+        specified more than once.
     -f
         force training, ignoring the trained header.  Use this if you
         need to rebuild your database from scratch.
@@ -58,7 +58,7 @@ def usage(code, msg=''):
 
 def row(value, spamday, hamday, unsureday):
     line = "%5d|" % value
-    for j in range((expire) // grouping, -1, -1):
+    for j in range(((expire) // grouping) - 1, -1, -1):
         spamv = 0
         hamv = 0
         unsurev = 0
@@ -93,11 +93,36 @@ def row(value, spamday, hamday, unsureday):
         line += char
     return line
 
+def legend():
+    line = " " * 60
+    now = time.mktime(time.strptime(time.strftime("%d %b %Y"), "%d %b %Y"))
+    date = time.mktime(time.strptime(time.strftime("1 %b %Y"), "%d %b %Y"))
+    age = int(59 - ((now - date) // day // grouping))
+    if age >= 55:
+        line = line[:age] + time.strftime("| %b")
+    else:
+        line = line[:(age)] + "|" + line[(age+1):]
+        center = int((age + 59) // 2)
+        line = line[:center] + time.strftime("%b") + line[center+3:]
+    date = time.mktime(time.strptime(time.strftime("1 %b %Y", time.localtime(date - day * 2)), "%d %b %Y"))
+    newage = int(59 - ((now - date) // day // grouping))
+    while newage >= 0:
+        line = line[:newage] + "|" + line[newage+1:]
+        center = int((age + newage) // 2)
+        line = line[:center] + time.strftime("%b", time.localtime(date)) + line[center+3:]
+        age = newage
+        date = time.mktime(time.strptime(time.strftime("1 %b %Y", time.localtime(date - day * 2)), "%d %b %Y"))
+        newage = int(59 - ((now - date) // day // grouping))
+    if age >= 4:
+        center = int((age) // 2)
+        line = line[:center-2] + time.strftime("%b", time.localtime(date)) + line[center+1:]
+    return line
+
 def main():
     """Main program; parse options and go."""
 
     global loud
-    
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hfqd:D:s:e:')
     except getopt.error, msg:
@@ -170,17 +195,17 @@ def main():
             # Figure out how old the message is
             age = 2 * expire
             try:
-                 received = (msg.get_all("Received"))[0]
-                 received = date_re.search(received).group(1)
-                 # if loud: print "  %s" % received
-                 date = time.mktime(time.strptime(received, "%d %b %Y"))
-                 # if loud: print "  %d" % date
-                 age = (now - date) // day
-                 # Can't just continue here... we're in a try
-                 if age < 0:
-                     age = 2 * expire
+                received = (msg.get_all("Received"))[0]
+                received = date_re.search(received).group(1)
+                # if loud: print "  %s" % received
+                date = time.mktime(time.strptime(received, "%d %b %Y"))
+                # if loud: print "  %d" % date
+                age = (now - date) // day
+                # Can't just continue here... we're in a try
+                if age < 0:
+                    age = 2 * expire
             except:
-                 pass
+                pass
             # Skip anything that has no date or is too old or from the future
             # if loud: print "%s: %d" % (name, age)
             if age >= expire:
@@ -217,7 +242,7 @@ def main():
                 if loud and not (hamcount % 100):
                     sys.stdout.write("h")
                     sys.stdout.flush()
-            
+
             h.train(msg, isspam)
 
     if loud:
@@ -229,6 +254,7 @@ def main():
         for j in range(19, -1, -1):
             print row(scale * j, spamday, hamday, unsureday)
         print "     +" + ('-' * 60)
+        print "      " + legend()
         print
 
         print "Total: %d ham, %d spam (%.2f%% spam)" % (

@@ -130,8 +130,8 @@ def main(argv):
             post_multipart("%s:%d"%(server,port), "/upload", [],
                            [('file', 'message.dat', data)])
         except:
-            print >> sys.stderr, "upload failed"
-            sys.exit(1)
+            # not an error if the server isn't responding
+            pass
 
 if __name__ == "__main__":
     main(sys.argv[1:])

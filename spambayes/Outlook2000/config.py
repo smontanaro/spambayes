@@ -60,10 +60,10 @@ class ConfigurationRoot(_ConfigurationContainer):
             watch_include_sub = False,
             spam_folder_id = None,
             spam_threshold = 90,
-            spam_action = "Nothing",
+            spam_action = "Untouched",
             unsure_folder_id = None,
             unsure_threshold = 15,
-            unsure_action = "Nothing",
+            unsure_action = "Untouched",
             enabled = False,
             )
         filter_now = _ConfigurationContainer(

@@ -193,9 +193,8 @@ __version__ = "1.0"
 __author__ = "Richie Hindle <richie@entrian.com>"
 
 
-import re, xmllib
-
 # Entrian.Coverage: Pragma Stop
+import sys, re, string
 try:
     True, False, bool
 except NameError:
@@ -212,6 +211,14 @@ _fail = _Fail()
 
 # Non-self-closing tags; see the module documentation.
 nonSelfClose = {'textarea': None}
+
+# Map high characters to charrefs.
+def replaceHighCharacters(match):
+    return "&#%d;" % ord(match.group(1))
+
+# Map meaningless low characters to '?'
+badxml_chars = ''.join([chr(c) for c in range(0, 32) if c not in [9, 10, 13]])
+badxml_map = string.maketrans(badxml_chars, '?' * len(badxml_chars))
 
 
 ###########################################################################
@@ -343,122 +350,197 @@ class _TextNode(_Node):
         return self._text
 
 
-class _TreeGenerator(xmllib.XMLParser):
-    """An XML parser that generates a lightweight DOM tree.  Call `feed()`
-    with XML source, then `close()`, then `getTree()` will give you the
-    tree's `_RootNode`:
+# For XML parsing we use xmllib in versions prior to 2.3, because we can't
+# be sure that expat will be there, or that it will be a decent version.
+# We use expat in versions 2.3 and above, because we can be sure it will
+# be there and xmllib is deprecated from 2.3.
 
-    >>> g = _TreeGenerator()
-    >>> g.feed("<xml>Stuff. ")
-    >>> g.feed("More stuff.</xml>")
-    >>> g.close()
-    >>> tree = g.getTree()
-    >>> print tree.toText()
-    <xml>Stuff. More stuff.</xml>
-    """
+# The slightly odd Entrian.Coverage pragmas in this section make sure that
+# whichever branch is taken, we get code coverage for that branch and no
+# coverage failures for the other.
+if sys.hexversion >> 16 < 0x203:
+    # Entrian.Coverage: Pragma Stop
+    import xmllib
+    class _TreeGenerator(xmllib.XMLParser):
+        # Entrian.Coverage: Pragma Start
+        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
+        with XML source, then `close()`, then `getTree()` will give you the
+        tree's `_RootNode`:
 
-    def __init__(self):
-        xmllib.XMLParser.__init__(self, translate_attribute_references=False)
-        self.entitydefs = {}    # entitydefs is an xmllib.XMLParser attribute.
-        self._tree = _RootNode()
-        self._currentNode = self._tree
-        self._pendingText = []
+        >>> g = _TreeGenerator()
+        >>> g.feed("<xml>Stuff. ")
+        >>> g.feed("More stuff.</xml>")
+        >>> g.close()
+        >>> tree = g.getTree()
+        >>> print tree.toText()
+        <xml>Stuff. More stuff.</xml>
+        """
 
-    def getTree(self):
-        """Returns the generated tree; call `feed()` then `close()` first."""
-        return self._tree
+        def __init__(self):
+            xmllib.XMLParser.__init__(self,
+                                      translate_attribute_references=False)
+            self.entitydefs = {}    # This is an xmllib.XMLParser attribute.
+            self._tree = _RootNode()
+            self._currentNode = self._tree
+            self._pendingText = []
 
-    def _collapsePendingText(self):
-        """Text (any content that isn't an open/close element) is built up
-        in `self._pendingText` until an open/close element is seen, at which
-        point it gets collapsed into a `_TextNode`."""
+        def getTree(self):
+            """Returns the generated tree; call `feed` then `close` first."""
+            return self._tree
 
-        data = ''.join(self._pendingText)
-        self._currentNode.children.append(_TextNode(data))
-        self._pendingText = []
+        def _collapsePendingText(self):
+            """Text (any content that isn't an open/close element) is built up
+            in `self._pendingText` until an open/close element is seen, at
+            which point it gets collapsed into a `_TextNode`."""
 
-    def handle_xml(self, encoding, standalone):
-        xml = '<?xml version="1.0"'
-        if encoding:
-            xml += ' encoding="%s"' % encoding
-        if standalone:
-            xml += ' standalone="%s"' % standalone
-        xml += '?>'
-        self._pendingText.append(xml)
+            data = ''.join(self._pendingText)
+            self._currentNode.children.append(_TextNode(data))
+            self._pendingText = []
 
-    def handle_doctype(self, tag, pubid, syslit, data):
-        doctype = '<!DOCTYPE %s' % tag
-        if pubid:
-            doctype += ' PUBLIC "%s"' % pubid
-        elif syslit:
-            doctype += ' SYSTEM'
-        if syslit:
-            doctype += ' "%s"' % syslit
-        if data:
-            doctype += ' [%s]>' % data
-        else:
-            doctype += '>'
-        self._pendingText.append(doctype)
+        def handle_xml(self, encoding, standalone):
+            xml = '<?xml version="1.0"'
+            if encoding:
+                xml += ' encoding="%s"' % encoding
+            if standalone:
+                xml += ' standalone="%s"' % standalone
+            xml += '?>'
+            self._pendingText.append(xml)
 
-    def handle_comment(self, data):
-        self._pendingText.append('<!--%s-->' % data)
+        def handle_doctype(self, tag, pubid, syslit, data):
+            doctype = '<!DOCTYPE %s' % tag
+            if pubid:
+                doctype += ' PUBLIC "%s"' % pubid
+            elif syslit:
+                doctype += ' SYSTEM'
+            if syslit:
+                doctype += ' "%s"' % syslit
+            if data:
+                doctype += ' [%s]>' % data
+            else:
+                doctype += '>'
+            self._pendingText.append(doctype)
 
-    def handle_proc(self, name, data):
-        self._pendingText.append('<?%s %s ?>' % (name, data.strip()))
+        def handle_comment(self, data):
+            self._pendingText.append('<!--%s-->' % data)
 
-    def handle_data(self, data):
-        self._pendingText.append(data)
+        def handle_proc(self, name, data):
+            self._pendingText.append('<?%s %s ?>' % (name, data.strip()))
 
-    def handle_charref(self, ref):
-        self._pendingText.append('&#%s;' % ref)
+        def handle_data(self, data):
+            self._pendingText.append(data)
 
-    unknown_charref = handle_charref
+        def handle_charref(self, ref):
+            self._pendingText.append('&#%s;' % ref)
 
-    def handle_entityref(self, ref):
-        self._pendingText.append('&%s;' % ref)
+        unknown_charref = handle_charref
 
-    unknown_entityref = handle_entityref
+        def handle_entityref(self, ref):
+            self._pendingText.append('&%s;' % ref)
 
-    def handle_cdata(self, data):
-        if self._pendingText:
-            self._collapsePendingText()
-        self._pendingText.append('<![CDATA[%s]]>' % data)
+        unknown_entityref = handle_entityref
 
-    def unknown_starttag(self, tag, attributes):
-        if self._pendingText:
-            self._collapsePendingText()
-        newNode = _ElementNode(self._currentNode, tag, attributes)
-        self._currentNode.children.append(newNode)
-        self._currentNode = newNode
+        def handle_cdata(self, data):
+            if self._pendingText:
+                self._collapsePendingText()
+            self._pendingText.append('<![CDATA[%s]]>' % data)
 
-    def unknown_endtag(self, tag):
-        if self._pendingText:
-            self._collapsePendingText()
-        self._currentNode = self._currentNode.parent
+        def unknown_starttag(self, tag, attributes):
+            if self._pendingText:
+                self._collapsePendingText()
+            newNode = _ElementNode(self._currentNode, tag, attributes)
+            self._currentNode.children.append(newNode)
+            self._currentNode = newNode
 
+        def unknown_endtag(self, tag):
+            if self._pendingText:
+                self._collapsePendingText()
+            self._currentNode = self._currentNode.parent
 
-# Versions of xmllib from 1.5.2 to 2.2.2 (and probably beyond) are
-# broken with respect to unicode, in that they use string.maketrans().
-# If the xmllib we're using looks broken, we create an object that will
-# fix it, and transiently apply the fix when parsing unicode XML.
-fixedAttrtrans = None
-if hasattr(xmllib, 'attrtrans') and isinstance(xmllib.attrtrans, str):
-    class UnicodeAttrtrans:
-        def __getitem__(self, c):
-            if unichr(c) in ' \r\n\t':
-                return ord(u' ')
-            return c
-    fixedAttrtrans = UnicodeAttrtrans()
+else:
+    # Entrian.Coverage: Pragma Stop
+    import xml.parsers.expat
+    class _TreeGenerator:
+        # Entrian.Coverage: Pragma Start
+        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
+        with XML source, then `close()`, then `getTree()` will give you the
+        tree's `_RootNode`:
+
+        >>> g = _TreeGenerator()
+        >>> g.feed("<xml>Stuff. ")
+        >>> g.feed("More stuff.</xml>")
+        >>> g.close()
+        >>> tree = g.getTree()
+        >>> print tree.toText()
+        <xml>Stuff. More stuff.</xml>
+        """
+
+        def __init__(self):
+            self._tree = _RootNode()
+            self._currentNode = self._tree
+            self._pendingText = []
+            self._parser = xml.parsers.expat.ParserCreate()
+            self._parser.buffer_text = True
+            self._parser.DefaultHandler = self.DefaultHandler
+            self._parser.StartElementHandler = self.StartElementHandler
+            self._parser.EndElementHandler = self.EndElementHandler
+
+        # All entities and charrefs, like &bull; and &#160;, are considered
+        # valid - who are we to argue?  Expat thinks it knows better, so we
+        # fool it here.
+        def _mungeEntities(self, data):
+            return re.sub(r'&([A-Za-z0-9#]+);', r':PyMeldEntity:\1:', data)
+
+        def _unmungeEntities(self, data):
+            return re.sub(r':PyMeldEntity:([A-Za-z0-9#]+):', r'&\1;', data)
+
+        def feed(self, data):
+            """Call this with XML content to be parsed."""
+            data = self._mungeEntities(data)
+            self._parser.Parse(data)
+
+        def close(self):
+            """Call this when you've passed all your XML content to `feed`."""
+            self._parser.Parse("", True)
+
+        def getTree(self):
+            """Returns the generated tree; call `feed` then `close` first."""
+            return self._tree
+
+        def _collapsePendingText(self):
+            """Text (any content that isn't an open/close element) is built up
+            in `self._pendingText` until an open/close element is seen, at
+            which point it gets collapsed into a `_TextNode`."""
+
+            data = ''.join(self._pendingText)
+            data = self._unmungeEntities(data)
+            self._currentNode.children.append(_TextNode(data))
+            self._pendingText = []
+
+        def DefaultHandler(self, data):
+            """Expat handler."""
+            self._pendingText.append(str(data))
+
+        def StartElementHandler(self, tag, attributes):
+            """Expat handler."""
+            if self._pendingText:
+                self._collapsePendingText()
+            newAttributes = {}
+            for name, value in attributes.iteritems():
+                newAttributes[str(name)] = self._unmungeEntities(str(value))
+            newNode = _ElementNode(self._currentNode, str(tag), newAttributes)
+            self._currentNode.children.append(newNode)
+            self._currentNode = newNode
+
+        def EndElementHandler(self, tag):
+            """Expat handler."""
+            if self._pendingText:
+                self._collapsePendingText()
+            self._currentNode = self._currentNode.parent
 
 
 def _generateTree(source):
     """Given some XML source, generates a lightweight DOM tree rooted at a
     `_RootNode`."""
-
-    # Fix xmllib if necessary.
-    if isinstance(source, unicode) and fixedAttrtrans:
-        originalAttrtrans = xmllib.attrtrans
-        xmllib.attrtrans = fixedAttrtrans
 
     # Lots of HTML files start with a DOCTYPE declaration like this:
     #   <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -483,14 +565,14 @@ def _generateTree(source):
         source = source[:match.start(1)] + match.group(2) + \
                  source[match.end(1):]
 
+    # Map characters not allowed in XML content to sensible things.
+    source = source.translate(badxml_map)
+    source = re.sub('([\x80-\xff])', replaceHighCharacters, source)
+
     # Parse the XML and generate the tree.
     g = _TreeGenerator()
     g.feed(source)
     g.close()
-
-    # Put xmllib back again.
-    if isinstance(source, unicode) and fixedAttrtrans:
-        xmllib.attrtrans = originalAttrtrans
 
     # Get the tree and put the DOCTYPE back in if we hacked it out above.
     tree = g.getTree()
@@ -522,12 +604,12 @@ class Meld:
         says."""
 
         self._readonly = readonly
-        if isinstance(source, (str, unicode)):
+        if isinstance(source, str):
             self._tree = _generateTree(source)
         elif isinstance(source, _Node): # For internal use only.
             self._tree = source
         else:
-            raise TypeError, "Melds must be constructed from strings"
+            raise TypeError, "Melds must be constructed from ASCII strings"
 
     def _findByID(self, node, name):
         """Returns the node with the given ID, or None."""
@@ -541,7 +623,7 @@ class Meld:
     def _quoteAttribute(self, value):
         """Minimally quotes an attribute value, using `&quot;`, `&amp;`,
         `&lt;` and `&gt;`."""
-        if not isinstance(value, (str, unicode)):
+        if not isinstance(value, str):
             value = str(value)
         value = value.replace('"', '&quot;')
         value = value.replace('<', '&lt;').replace('>', '&gt;')
@@ -567,7 +649,7 @@ class Meld:
         if isinstance(value, Meld):
             node.children = [value._tree.getElementNode().clone()]
         else:
-            if not isinstance(value, (str, unicode)):
+            if not isinstance(value, str):
                 value = str(value)
             node.children = self._nodeListFromSource(value)
 
@@ -615,15 +697,17 @@ class Meld:
         if name == '_content':
             return self._tree.getElementNode().childrenToText()
         if name.startswith('_'):
-            return self.__dict__[name]
+            try:
+                return self.__dict__[name]
+            except KeyError:
+                raise AttributeError, name
         node = self._findByID(self._tree, name)
         if node:
             return Meld(node, self._readonly)
         attribute = self._tree.getElementNode().attributes.get(name, _fail)
         if attribute is not _fail:
             return self._unquoteAttribute(attribute)
-        else:
-            raise AttributeError, "No element or attribute named %r" % name
+        raise AttributeError, "No element or attribute named %r" % name
 
     def __setattr__(self, name, value):
         """`object.<name> = value` sets the XML content of the element with an
@@ -670,8 +754,11 @@ class Meld:
             self._tree.getElementNode().children = []
             return
         if name.startswith('_'):
-            del self.__dict__[name]
-            return
+            try:
+                del self.__dict__[name]
+                return
+            except KeyError:
+                raise AttributeError, name
         if self._readonly:
             raise ReadOnlyError, READ_ONLY_MESSAGE
         node = self._findByID(self._tree, name)
@@ -758,7 +845,7 @@ class Meld:
             keys = values.keys()
             sequence = values.values()
         elif hasattr(values, '__getitem__') and \
-             not isinstance(values, (str, unicode)):
+             not isinstance(values, str):
             # It's a sequence.
             keys = None
             sequence = list(values)
@@ -827,12 +914,6 @@ class Meld:
         none of the examples calls `str`."""
         return str(self._tree.toText())
 
-    def __unicode__(self):
-        """Returns the XML that this `Meld` represents.  Don't call
-        this directly - instead convert a `Meld` to unicode using
-        `unicode(object)`."""
-        return unicode(self._tree.toText())
-
 
 ###########################################################################
 ##
@@ -893,18 +974,16 @@ __test__ = {
 """,
 
 'XML proc': """
->>> print Meld('''<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+>>> print Meld('''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 ... <?codewarrior exportversion="1.0.1" ideversion="4.2" ?>
 ... <!DOCTYPE PROJECT [
 ... <!ELEMENT PROJECT (TARGETLIST, TARGETORDER, GROUPLIST, DESIGNLIST?)>
-... (...etc...)
 ... ]>
 ... <PROJECT>Stuff</PROJECT>''')
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?codewarrior exportversion="1.0.1" ideversion="4.2" ?>
 <!DOCTYPE PROJECT [
 <!ELEMENT PROJECT (TARGETLIST, TARGETORDER, GROUPLIST, DESIGNLIST?)>
-(...etc...)
 ]>
 <PROJECT>Stuff</PROJECT>
 """,
@@ -917,13 +996,9 @@ __test__ = {
 
 'entities and charrefs': """
 >>> page = Meld('''<html><body>&bull; This "and&#160;that"...
-... <span id="s" title="&quot;Quoted&quot; & Not">x</span></body></html>''')
+... <span id="s" title="&quot;Quoted&quot; &amp; Not">x</span></body></html>''')
 >>> print page.s.title
 "Quoted" & Not
->>> page.s.title = page.s.title     # Accept liberally, produce strictly.
->>> print page
-<html><body>&bull; This "and&#160;that"...
-<span id="s" title="&quot;Quoted&quot; &amp; Not">x</span></body></html>
 >>> page.s.title = page.s.title + " <>"
 >>> print page.s.title
 "Quoted" & Not <>
@@ -962,7 +1037,7 @@ __test__ = {
 >>> page = Meld(1)
 Traceback (most recent call last):
 ...
-TypeError: Melds must be constructed from strings
+TypeError: Melds must be constructed from ASCII strings
 """,
 
 'accessing a non-existent attribute': """
@@ -1043,18 +1118,11 @@ x<span id="one">1</span>
 <html><span id="one">1y<z/></span></html>
 """,
 
-# This is just a smoke-test; proper Unicode support is untested, though
-# the code does attempt to be unicode-friendly, and to work around a
-# unicode-related bug in xmllib.
-'unicode': r"""
+'no unicode': r"""
 >>> u = Meld(u'<html><span id="one">One</span></html>')
->>> a = Meld('<html><span id="two">Two</span></html>')
->>> u.one = a.two
->>> print repr(unicode(u))
-u'<html><span id="one"><span id="two">Two</span></span></html>'
->>> a.two = Meld(u'<x a="Unicode\nValue"/>')
->>> print a
-<html><span id="two"><x a="Unicode Value"/></span></html>
+Traceback (most recent call last):
+...
+TypeError: Melds must be constructed from ASCII strings
 """,
 
 'private attributes': """
@@ -1068,10 +1136,24 @@ u'<html><span id="one"><span id="two">Two</span></span></html>'
 >>> print repr(page._private)
 Traceback (most recent call last):
 ...
-KeyError: _private
+AttributeError: _private
+>>> del page._private
+Traceback (most recent call last):
+...
+AttributeError: _private
 >>> print page
 <html>x</html>
 """,
+
+'bad XML characters': """
+>>> page = Meld('''<x>
+... Valentines Day Special \x96 2 bikinis for the price of one \x01
+... </x>''')    # No exception.
+>>> print page
+<x>
+Valentines Day Special &#150; 2 bikinis for the price of one ?
+</x>
+"""
 }
 
 

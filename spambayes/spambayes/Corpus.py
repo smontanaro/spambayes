@@ -251,7 +251,7 @@ class Corpus:
 
 
 class ExpiryCorpus:
-    '''Corpus of "young" file system artifacts'''
+    '''Mixin Class - Corpus of "young" file system artifacts'''
 
     def __init__(self, expireBefore):
         '''Constructor'''

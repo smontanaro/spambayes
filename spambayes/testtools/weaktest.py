@@ -20,7 +20,7 @@ Where:
     -n int
         Number of Set directories (Data/Spam/Set1, ... and Data/Ham/Set1, ...).
         This is required.
-    -d decider 
+    -d decider
         Name of the decider. One of %(decisionkeys)s
     -m min
         Minimal number of messages to train on before involving the decider.
@@ -62,20 +62,20 @@ class TrainDecision:
 class UnsureAndFalses(TrainDecision):
     def spamtrain(self,scr):
         if scr < options.spam_cutoff:
-	    return TRAIN_AS_SPAM
+            return TRAIN_AS_SPAM
 
     def hamtrain(self,scr):
         if scr > options.ham_cutoff:
-	    return TRAIN_AS_HAM
+            return TRAIN_AS_HAM
 
 class UnsureOnly(TrainDecision):
     def spamtrain(self,scr):
         if options.ham_cutoff < scr < options.spam_cutoff:
-	    return TRAIN_AS_SPAM
+            return TRAIN_AS_SPAM
 
     def hamtrain(self,scr):
         if options.ham_cutoff < scr < options.spam_cutoff:
-	    return TRAIN_AS_HAM
+            return TRAIN_AS_HAM
 
 class All(TrainDecision):
     def spamtrain(self,scr):
@@ -87,7 +87,7 @@ class All(TrainDecision):
 class AllBut0and100(TrainDecision):
     def spamtrain(self,scr):
         if scr < 0.995:
-	    return TRAIN_AS_SPAM
+            return TRAIN_AS_SPAM
 
     def hamtrain(self,scr):
         if scr > 0.005:
@@ -96,9 +96,9 @@ class AllBut0and100(TrainDecision):
 class OwnDecision(TrainDecision):
     def hamtrain(self,scr):
         if scr < options.ham_cutoff:
-	    return TRAIN_AS_HAM
+            return TRAIN_AS_HAM
         elif scr > options.spam_cutoff:
-	    return TRAIN_AS_SPAM
+            return TRAIN_AS_SPAM
 
     spamtrain = hamtrain
 
@@ -126,12 +126,12 @@ class FirstN:
         self.x += 1
         if self.tooearly():
             if is_spam:
-		return TRAIN_AS_SPAM
+                return TRAIN_AS_SPAM
             else:
-		return TRAIN_AS_HAM
+                return TRAIN_AS_HAM
         else:
             return self.client(scr,is_spam)
-    
+
     def tooearly(self):
         return self.x < self.n
 
@@ -181,8 +181,8 @@ def drive(nsets,decision):
                 if debug > 0:
                     print "Ham with score %.2f"%scr
                 cc.ham(scr)
-        de = decision(scr,is_spam) 
-        if de == TRAIN_AS_SPAM: 
+        de = decision(scr,is_spam)
+        if de == TRAIN_AS_SPAM:
             d.train_spam(m)
             spamtrain += 1
         elif de == TRAIN_AS_HAM:

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-import sys 
+import sys
 if sys.version < '2.2':
     print "Error: Python version too old. You need at least Python 2.2 to use this package."
     print "(you're running version %s)"%sys.version
     sys.exit(0)
 
-# Install 
+# Install
 from distutils.core import setup
 
 import email
@@ -28,19 +28,22 @@ setup(
   name='spambayes',
   version = __version__,
   description = "Spam classification system",
-  author = "the spambayes project", 
+  author = "the spambayes project",
   author_email = "spambayes@python.org",
-  url = "http://spambayes.sourceforge.net", 
+  url = "http://spambayes.sourceforge.net",
   scripts=['unheader.py',
            'hammie.py',
            'hammiecli.py',
            'hammiesrv.py',
            'hammiefilter.py',
            'pop3proxy.py',
-           'proxytrainer.py',
            'proxytee.py',
+           'dbExpImp.py',
           ],
-        packages = [ 'spambayes', ],
+        packages = [
+           'spambayes',
+           'spambayes.resources',
+          ],
         classifiers = [
             'Development Status :: 4 - Beta',
             'Environment :: Console',

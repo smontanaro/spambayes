@@ -32,44 +32,6 @@ import re
 import time
 import binascii
 
-def zaptags(data, *tags):
-    """delete all tags (and /tags) from input data given as arguments"""
-    for pat in tags:
-        pat = pat.split(":")
-        sub = ""
-        if len(pat) >= 2:
-            sub = pat[-1]
-            pat = ":".join(pat[:-1])
-        else:
-            pat = pat[0]
-            sub = ""
-        if '\\' in sub:
-            sub = _zap_esc_map(sub)
-        try:
-            data = re.sub(r'(?i)</?(%s)(?:\s[^>]*)?>'%pat, sub, data)
-        except TypeError:
-            print (pat, sub, data)
-            raise
-    return data
-
-def clean(data):
-    """Clean the obviously variable stuff from a chunk of data.
-
-    The first (and perhaps only) use of this is to try and eliminate bits
-    of data that keep multiple spam email messages from looking the same.
-    """
-    # Get rid of any HTML tags that hold URLs - tend to have varying content
-    # I suppose i could just get rid of all HTML tags
-    data = zaptags(data, 'a', 'img', 'base', 'frame')
-    # delete anything that looks like an email address
-    data = re.sub(r"(?i)[-a-z0-9_.+]+@[-a-z0-9_.]+\.([a-z]+)", "", data)
-    # delete anything that looks like a url (catch bare urls)
-    data = re.sub(r"(?i)(ftp|http|gopher)://[-a-z0-9_/?&%@=+:;#!~|.,$*]+", "", data)
-    # delete pmguid: stuff (turns up frequently)
-    data = re.sub(r"pmguid:[^.\s]+(\.[^.\s]+)*", "", data)
-    # throw away everything other than alpha & digits
-    return re.sub(r"[^A-Za-z0-9]+", "", data)
-
 def flatten(obj):
     # I do not know how to use the email package very well - all I want here
     # is the body of obj expressed as a string - there is probably a better
@@ -84,8 +46,40 @@ def flatten(obj):
     raise TypeError, ("unrecognized body type: %s" % type(obj))
 
 def generate_checksum(f):
-    body = flatten(email.Parser.Parser().parse(f))
-    return binascii.b2a_hex(md5.new(clean(body)).digest())
+    data = flatten(email.Parser.Parser().parse(f))
+
+    # modelled after Justin Mason's fuzzy checksummer for SpamAssassin.
+    # Message body is cleaned, then broken into lines.  The list of lines is
+    # then broken into four parts and separate checksums are generated for
+    # each part.  They are then joined together with '.'.  Downstream
+    # processes can split those chunks into pieces and consider them
+    # separately or in various combinations if desired.
+
+    # Get rid of anything which looks like an HTML tag and downcase it all
+    data = re.sub(r"<[^>]*>", "", data).lower()
+
+    # delete anything which looks like a url or email address
+    # not sure what a pmguid: url is but it seems to occur frequently in spam
+    words = [w for w in data.split(' ')
+             if ('@' not in w and
+                 (':' not in w or
+                  w[:4] != "ftp:" and
+                  w[:7] != "mailto:" and
+                  w[:5] != "http:" and
+                  w[:7] != "gopher:" and
+                  w[:8] != "pmguid:"))]
+
+    # delete lines which contain white space
+    lines = [line for line in " ".join(words).split('\n') if ' ' in line]
+
+    # +1 guarantees we don't miss lines at the end
+    chunksize = len(lines)//4+1
+    sum = []
+    for i in range(4):
+        chunk = "\n".join(lines[i*chunksize:(i+1)*chunksize])
+        sum.append(binascii.b2a_hex(md5.new(chunk).digest()))
+
+    return ".".join(sum)
 
 def main(args):
     opts, args = getopt.getopt(args, "")

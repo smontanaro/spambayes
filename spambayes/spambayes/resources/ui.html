@@ -11,6 +11,7 @@ a:link { color: #0000c0 }
 a:visited { color: #0000c0 }
 a:hover { color: #6040ff }
 .content a { font-weight: bold }
+.viewlink a { font-weight: normal }
 
 .banner { background: #c0e0ff; padding=5; padding-left: 15;
           border-top: 1px solid black;
@@ -26,7 +27,10 @@ a:hover { color: #6040ff }
 
 .reviewheaders a:link { color: #000000 }
 .reviewheaders a:visited { color: #000000 }
-.stripe_on td { background: #f4f4f4 }
+.viewlink a:link { color: #000000 }
+.viewlink a:visited { color: #000000 }
+
+.stripe_on td { background: #ececec }
 
 .uiHtmlHeader { font-size: 120%; color: #800000; font-weight: bold }
 </style>
@@ -204,15 +208,18 @@ a:hover { color: #6040ff }
         </td>
     </tr>
     <tr id="reviewRow" class='stripe_on'>
-        <td id="subject">Re: Spambayes and PyMeld rock!  8-)</td>
+        <td class='viewlink'>
+            <a id="subject" href="view">
+                Re: Spambayes and PyMeld rock!  8-)</a>
+        </td>
         <td id="from_">Richie Hindle &lt;richie@entrian.com&gt;</td>
-        <td align='center'>
+        <td align='center'>&nbsp;
             <input type='radio' name='classify:TYPE:KEY'
-                   id="discard" value='discard'/>&nbsp;
+                   id="discard" value='discard'/>&nbsp;&nbsp;&nbsp;&nbsp;
             <input type='radio' name='classify:TYPE:KEY'
-                   id="defer"   value='defer'/>&nbsp;
+                   id="defer"   value='defer'/>&nbsp;&nbsp;&nbsp;&nbsp;
             <input type='radio' name='classify:TYPE:KEY'
-                   id="ham"     value='ham'/>&nbsp;
+                   id="ham"     value='ham'/>&nbsp;&nbsp;&nbsp;&nbsp;
             <input type='radio' name='classify:TYPE:KEY'
                    id="spam"    value='spam'/>
         </td>
@@ -291,8 +298,9 @@ a:hover { color: #6040ff }
     <span id="configForm">
     <FORM action="changeopts" method="POST">
 
-    <p>This page allows you to change certain customizable options that control
-    the way in which Spambayes processes your email.</p>
+    <p>This page allows you to change the options that control how
+    Spambayes processes your email.  Your options are stored in
+    <b><span id='optionsPathname'>/example/pathname</span></b>.</p>
 
     <span id="configFormContent">
     <TABLE id="configTable" border="0" cellpadding="0">

@@ -7,7 +7,7 @@ Where:
     -h
         Show usage and exit.
     -c command
-        The command to be run, with all its options. 
+        The command to be run, with all its options.
         The last line of output from this program should
         match 'YYYYYYY cost: $xxxx.xx'
         (i.e. the third word of the last line should be the value to be

@@ -115,18 +115,36 @@ and put links to the relevant threads at some point.</p>
 <p>Gary produced a number of alternative approaches to combining and
 scoring word probabilities. The initial one, after much back and forth
 in the mailing list, is in the code today as 'gary_combining', and is
-the second plot, above.. A couple
-of other approaches, using the <a href="http://www.statisticalengineering.com/central_limit_theorem.htm">Central Limit Theorem</a> (or <a href="http://mathworld.wolfram.com/CentralLimitTheorem.html">this, for the serious math geeks</a>), were also tried.</p>
-<p class="todo">todo: do some plots for these</p>
+the second plot, above. Gary's next suggestion involved a couple
+of other approaches using the <a href="http://www.statisticalengineering.com/central_limit_theorem.htm">Central Limit Theorem</a> (or <a href="http://mathworld.wolfram.com/CentralLimitTheorem.html">this, for the serious math geeks</a>). 
+</P>
+
+<P>The Central Limit combining schemes produced some interesting (and 
+suprising!) results - they produced two internal scores, one for ham and
+one for spam. This meant it was possible for them to return a "I don't know"
+response, when ham and spam scores were both very low or both very high. This
+caused some confusion as we tried to map these results to a Graham-like score.
+</P>
+<p>
+An example: a message with internal spam score that's 50 standard deviations 
+on the spam side of the ham mean score and an internal ham score that's 
+40 standard deviations on the ham side of the spam mean would, if you just 
+combine them in a straightforward manner, produce a result that it's 
+definitely a spam.  But look at the internal scores - it was certain that it 
+<u>wasn't</u> spam, and it wasn't ham, either. In other words, it's not 
+like anything it's seen before - so the only thing to do is to punt it out 
+with an 'unsure' answer.
+</P>
 <P>
-They produced interesting output - but histograms of the ham and spam
-distributions still had a disturbingly large overlap in the middle. There was
-also an issue with incremental training and untraining of messages that
-made it harder to use in the "real world". These two central limit 
+These two central limit 
 approaches were dropped after Tim, Gary and Rob Hooft produced a combining
 scheme using <a href="http://mathworld.wolfram.com/Chi-SquaredDistribution.html">chi-squared probabilities</a>. This is now the default combining
 scheme. </p>
-<p>The chi-squared approach produces two numbers - a "ham probability" ("*H*")
+<P>Chi-combining is similar to the central limit approaches, but it doesn't
+have the annoying training problems that central limit approaches suffered
+from, and it produces a "smoother" score.
+</P>
+<P>The chi-squared approach produces two numbers - a "ham probability" ("*H*")
 and a "spam probability" ("*S*"). A typical spam will have a high *S*
 and low *H*, while a ham will have high *H* and low *S*. In the case where
 the message looks entirely unlike anything the system's been trained on,

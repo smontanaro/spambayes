@@ -16,8 +16,8 @@ header.  Usage:
             -t      : Runs a fake POP3 server on port 8110 (for testing).
             -h      : Displays this help message.
 
-            -p FILE : use the named database file
-            -d      : the database is a DBM file rather than a pickle
+            -d FILE : use the named DBM database file
+            -D FILE : the the named Pickle database file
             -l port : proxy listens on this port number (default 110)
             -u port : User interface listens on this port number
                       (default 8880; Browse http://localhost:8880/)
@@ -83,7 +83,6 @@ New features:
    classified, etc."
  o Possibly integrate Tim Stone's SMTP code - make it use async, make
    the training code update (rather than replace!) the database.
- o Allow use of the UI without the POP3 proxy.
  o Remove any existing X-Spambayes-Classification header from incoming
    emails.
  o Whitelist.
@@ -94,8 +93,6 @@ New features:
 
 Code quality:
 
- o Make a separate Dibbler plugin for serving images, so there's no
-   duplication between pop3proxy and OptionConfig.
  o Move the UI into its own module.
  o Cope with the email client timing out and closing the connection.
  o Lose the trailing dot from cached messages.
@@ -141,16 +138,28 @@ try:
 except ImportError:
     import StringIO
 
-import os, sys, re, operator, errno, getopt, string, time, bisect
-import socket, asyncore, asynchat, cgi, urlparse, webbrowser
+import os, sys, re, operator, errno, getopt, time, bisect
+import socket, asyncore, asynchat, cgi
 import mailbox, email.Header
+from email.Iterators import typed_subpart_iterator
 import spambayes
 from spambayes import storage, tokenizer, mboxutils, PyMeldLite, Dibbler
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
-from email.Iterators import typed_subpart_iterator
-from OptionConfig import OptionsConfigurator
+from spambayes.OptionConfig import OptionsConfigurator
 from spambayes.Options import options
+
+# Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
+if sys.platform == 'darwin':
+    try:
+        import resource
+    except ImportError:
+        pass
+    else:
+        soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+        newsoft = min(hard, max(soft, 1024*2048))
+        resource.setrlimit(resource.RLIMIT_STACK, (newsoft, hard))
+
 
 # HEADER_EXAMPLE is the longest possible header - the length of this one
 # is added to the size of each message.
@@ -165,6 +174,8 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
     simply calls a callback with the data.  The BayesProxy object
     can't connect to the real POP3 server and talk to it
     synchronously, because that would block the process."""
+
+    lineCallback = None
 
     def __init__(self, serverName, serverPort, lineCallback):
         Dibbler.BrighterAsyncChat.__init__(self)
@@ -263,7 +274,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         if self.command in ['USER', 'PASS', 'APOP', 'QUIT',
                             'STAT', 'DELE', 'NOOP', 'RSET', 'KILL']:
             return False
-        elif self.command in ['RETR', 'TOP']:
+        elif self.command in ['RETR', 'TOP', 'CAPA']:
             return True
         elif self.command in ['LIST', 'UIDL']:
             return len(self.args) == 0
@@ -318,6 +329,12 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         self.request = ''
 
     def onResponse(self):
+        # We don't support pipelining, so if the command is CAPA and the
+        # response includes PIPELINING, hack out that line of the response.
+        if self.command == 'CAPA':
+            pipelineRE = r'(?im)^PIPELINING[^\n]*\n'
+            self.response = re.sub(pipelineRE, '', self.response)
+
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
         if self.response:
@@ -344,8 +361,8 @@ class BayesProxyListener(Dibbler.Listener):
     def __init__(self, serverName, serverPort, proxyPort):
         proxyArgs = (serverName, serverPort)
         Dibbler.Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
-        print 'Listener on port %d is proxying %s:%d' % \
-               (proxyPort, serverName, serverPort)
+        print 'Listener on port %s is proxying %s:%d' % \
+               (_addressPortStr(proxyPort), serverName, serverPort)
 
 
 class BayesProxy(POP3ProxyBase):
@@ -481,22 +498,19 @@ class BayesProxy(POP3ProxyBase):
             header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             headers = headers + "\n" + header + "\r\n"
+            
+            if options.pop3proxy_notate_to:
+                # add 'spam' as recip
+                tore = re.compile("^To: ", re.IGNORECASE | re.MULTILINE)
+                headers = re.sub(tore,"To: %s," % (disposition),
+                     headers)
+                
             messageText = headers + body
 
             # Cache the message; don't pollute the cache with test messages.
             if command == 'RETR' and not state.isTest:
-                # The message name is the time it arrived, with a uniquifier
-                # appended if two arrive within one clock tick of each other.
-                messageName = "%10.10d" % long(time.time())
-                if messageName == state.lastBaseMessageName:
-                    state.lastBaseMessageName = messageName
-                    messageName = "%s-%d" % (messageName, state.uniquifier)
-                    state.uniquifier += 1
-                else:
-                    state.lastBaseMessageName = messageName
-                    state.uniquifier = 2
-
                 # Write the message into the Unknown cache.
+                messageName = state.getNewMessageName()
                 message = state.unknownCorpus.makeMessage(messageName)
                 message.setSubstance(messageText)
                 state.unknownCorpus.addMessage(message)
@@ -535,9 +549,10 @@ def readUIResources():
     # `getattr` or `__import__` work with ResourcePackage.
     from spambayes.resources import ui_html
     images = {}
-    for imageName in IMAGES:
-        exec "from spambayes.resources import %s_gif" % imageName
-        exec "images[imageName] = %s_gif.data" % imageName
+    for baseName in IMAGES:
+        moduleName = '%s.%s_gif' % ('spambayes.resources', baseName)
+        module = __import__(moduleName, {}, {}, ('spambayes', 'resources'))
+        images[baseName] = module.data
     return ui_html.data, images
 
 
@@ -555,10 +570,11 @@ class UserInterface(Dibbler.HTTPPlugin):
         return options.html_ui_allow_remote_connections or \
                clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
 
-    def _writePreamble(self, name, showImage=True):
+    def _writePreamble(self, name, parent=None, showImage=True):
         """Writes the HTML for the beginning of a page - time-consuming
         methlets use this and `_writePostamble` to write the page in
-        pieces, including progress messages."""
+        pieces, including progress messages.  `parent` (if given) should
+        be a pair: `(url, label)`, eg. `('review', 'Review')`."""
 
         # Take the whole palette and remove the content and the footer,
         # leaving the header and an empty body.
@@ -572,6 +588,9 @@ class UserInterface(Dibbler.HTTPPlugin):
         if name == 'Home':
             del html.homelink
             html.pagename = "Home"
+        elif parent:
+            html.pagename = "> <a href='%s'>%s</a> > %s" % \
+                            (parent[0], parent[1], name)
         else:
             html.pagename = "> " + name
 
@@ -648,6 +667,37 @@ class UserInterface(Dibbler.HTTPPlugin):
             raise SystemExit
         self._writePostamble()
 
+    def _convertUploadToMessageList(self, content):
+        """Returns a list of raw messages extracted from uploaded content.
+        You can upload either a single message or an mbox file."""
+        if content.startswith('From '):
+            # Get a list of raw messages from the mbox content.
+            class SimpleMessage:
+                def __init__(self, fp):
+                    self.guts = fp.read()
+            contentFile = StringIO.StringIO(content)
+            mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
+            return map(lambda m: m.guts, mbox)
+        else:
+            # Just the one message.
+            return [content]
+
+    def onUpload(self, file):
+        """Save a message for later training - used by Skip's proxytee.py."""
+        # Convert platform-specific line endings into unix-style.
+        file = file.replace('\r\n', '\n').replace('\r', '\n')
+
+        # Get a message list from the upload and write it into the cache.
+        messages = self._convertUploadToMessageList(file)
+        for m in messages:
+            messageName = state.getNewMessageName()
+            message = state.unknownCorpus.makeMessage(messageName)
+            message.setSubstance(m)
+            state.unknownCorpus.addMessage(message)
+
+        # Return a link Home.
+        self.write("<p>OK. Return <a href='home'>Home</a>.</p>")
+
     def onTrain(self, file, text, which):
         """Train on an uploaded or pasted message."""
         self._writePreamble("Train")
@@ -659,18 +709,8 @@ class UserInterface(Dibbler.HTTPPlugin):
         # Convert platform-specific line endings into unix-style.
         content = content.replace('\r\n', '\n').replace('\r', '\n')
 
-        # Single message or mbox?
-        if content.startswith('From '):
-            # Get a list of raw messages from the mbox content.
-            class SimpleMessage:
-                def __init__(self, fp):
-                    self.guts = fp.read()
-            contentFile = StringIO.StringIO(content)
-            mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
-            messages = map(lambda m: m.guts, mbox)
-        else:
-            # Just the one message.
-            messages = [content]
+        # The upload might be a single message or am mbox file.
+        messages = self._convertUploadToMessageList(content)
 
         # Append the message(s) to a file, to make it easier to rebuild
         # the database later.   This is a temporary implementation -
@@ -797,6 +837,7 @@ class UserInterface(Dibbler.HTTPPlugin):
                 row.defer.checked = 1
             row.subject = messageInfo.subjectHeader
             row.subject.title = messageInfo.bodySummary
+            row.subject.href="view?key=%s&corpus=%s" % (key, label)
             row.from_ = messageInfo.fromHeader
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
             row = str(row).replace('TYPE', label).replace('KEY', key)
@@ -880,8 +921,11 @@ class UserInterface(Dibbler.HTTPPlugin):
             # info object for each message.
             cachedMessage = state.unknownCorpus[key]
             message = mboxutils.get_message(cachedMessage.getSubstance())
-            judgement = message[options.hammie_header_name] or \
-                                            options.header_unsure_string
+            judgement = message[options.hammie_header_name]
+            if judgement is None:
+                judgement = options.header_unsure_string
+            else:
+                judgement = judgement.split(';')[0].strip()
             messageInfo = self._makeMessageInfo(message)
             keyedMessageInfo[judgement].append((key, messageInfo))
 
@@ -920,6 +964,16 @@ class UserInterface(Dibbler.HTTPPlugin):
         self.write(box)
         self._writePostamble()
 
+    def onView(self, key, corpus):
+        """View a message - linked from the Review page."""
+        self._writePreamble("View message", parent=('review', 'Review'))
+        message = state.unknownCorpus.get(key)
+        if message:
+            self.write("<pre>%s</pre>" % cgi.escape(message.getSubstance()))
+        else:
+            self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
+        self._writePostamble()
+
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
         message = file or text
@@ -931,7 +985,7 @@ class UserInterface(Dibbler.HTTPPlugin):
         cluesRow = cluesTable.cluesRow.clone()
         del cluesTable.cluesRow   # Delete dummy row to make way for real ones
         for word, wordProb in clues:
-            cluesTable += cluesRow % (word, wordProb)
+            cluesTable += cluesRow % (cgi.escape(word), wordProb)
 
         results = self.html.classifyResults.clone()
         results.probability = probability
@@ -950,11 +1004,11 @@ class UserInterface(Dibbler.HTTPPlugin):
             stats.hamcount = wordinfo.hamcount
             stats.spamprob = state.bayes.probability(wordinfo)
         else:
-            stats = "%r does not exist in the database." % word
+            stats = "%r does not exist in the database." % cgi.escape(word)
 
         query = self.html.wordQuery.clone()
         query.word.value = word
-        statsBox = self._buildBox("Statistics for %r" % word,
+        statsBox = self._buildBox("Statistics for %r" % cgi.escape(word),
                                   'status.gif', stats)
         queryBox = self._buildBox("Word query", 'query.gif', query)
         self._writePreamble("Word query")
@@ -1066,7 +1120,7 @@ class State:
 
         if options.pop3proxy_ports:
             splitPorts = options.pop3proxy_ports.split(',')
-            self.proxyPorts = map(int, map(string.strip, splitPorts))
+            self.proxyPorts = map(_addressAndPort, splitPorts)
 
         if len(self.servers) != len(self.proxyPorts):
             print "pop3proxy_servers & pop3proxy_ports are different lengths!"
@@ -1088,7 +1142,7 @@ class State:
         self.numHams = 0
         self.numUnsure = 0
 
-        # Unique names for cached messages - see BayesProxy.onRetr
+        # Unique names for cached messages - see `getNewMessageName()` below.
         self.lastBaseMessageName = ''
         self.uniquifier = 2
 
@@ -1097,7 +1151,7 @@ class State:
         versions of the details, for display in the Status panel."""
         serverStrings = ["%s:%s" % (s, p) for s, p in self.servers]
         self.serversString = ', '.join(serverStrings)
-        self.proxyPortsString = ', '.join(map(str, self.proxyPorts))
+        self.proxyPortsString = ', '.join(map(_addressPortStr, self.proxyPorts))
 
     def createWorkers(self):
         """Using the options that were initialised in __init__ and then
@@ -1108,12 +1162,12 @@ class State:
             self.useDB = True
             options.pop3proxy_persistent_storage_file = \
                         '_pop3proxy_test.pickle'   # This is never saved.
+        filename = options.pop3proxy_persistent_storage_file
+        filename = os.path.expanduser(filename)
         if self.useDB:
-            self.bayes = storage.DBDictClassifier( \
-                                options.pop3proxy_persistent_storage_file)
+            self.bayes = storage.DBDictClassifier(filename)
         else:
-            self.bayes = storage.PickledClassifier(\
-                                options.pop3proxy_persistent_storage_file)
+            self.bayes = storage.PickledClassifier(filename)
         print "Done."
 
         # Don't set up the caches and training objects when running the self-test,
@@ -1138,13 +1192,13 @@ class State:
             age = options.pop3proxy_cache_expiry_days*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory,
                                                options.pop3proxy_spam_cache,
-                                               cacheSize=20)
+                                               '[0123456789]*', cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory,
                                               options.pop3proxy_ham_cache,
-                                              cacheSize=20)
+                                              '[0123456789]*', cacheSize=20)
             self.unknownCorpus = FileCorpus(factory,
                                             options.pop3proxy_unknown_cache,
-                                            cacheSize=20)
+                                            '[0123456789]*', cacheSize=20)
 
             # Expire old messages from the trained corpuses.
             self.spamCorpus.removeExpiredMessages()
@@ -1155,6 +1209,37 @@ class State:
             self.hamTrainer = storage.HamTrainer(self.bayes)
             self.spamCorpus.addObserver(self.spamTrainer)
             self.hamCorpus.addObserver(self.hamTrainer)
+
+    def getNewMessageName(self):
+        # The message name is the time it arrived, with a uniquifier
+        # appended if two arrive within one clock tick of each other.
+        messageName = "%10.10d" % long(time.time())
+        if messageName == self.lastBaseMessageName:
+            messageName = "%s-%d" % (messageName, self.uniquifier)
+            self.uniquifier += 1
+        else:
+            self.lastBaseMessageName = messageName
+            self.uniquifier = 2
+        return messageName
+
+
+# Option-parsing helper functions
+def _addressAndPort(s):
+    """Decode a string representing a port to bind to, with optional address."""
+    s = s.strip()
+    if ':' in s:
+        addr, port = s.split(':')
+        return addr, int(port)
+    else:
+        return '', int(s)
+
+def _addressPortStr((addr, port)):
+    """Encode a string representing a port to bind to, with optional address."""
+    if not addr:
+        return str(port)
+    else:
+        return '%s:%d' % (addr, port)
+
 
 state = State()
 proxyListeners = []
@@ -1237,7 +1322,8 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         self.set_terminator('\r\n')
         self.okCommands = ['USER', 'PASS', 'APOP', 'NOOP',
                            'DELE', 'RSET', 'QUIT', 'KILL']
-        self.handlers = {'STAT': self.onStat,
+        self.handlers = {'CAPA': self.onCapa,
+                         'STAT': self.onStat,
                          'LIST': self.onList,
                          'RETR': self.onRetr,
                          'TOP': self.onTop}
@@ -1273,6 +1359,18 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         for c in response:
             self.push(c)
             time.sleep(0.02)
+
+    def onCapa(self, command, args):
+        """POP3 CAPA command.  This lies about supporting pipelining for
+        test purposes - the POP3 proxy *doesn't* support pipelining, and
+        we test that it correctly filters out that capability from the
+        proxied capability list."""
+        lines = ["+OK Capability list follows",
+                 "PIPELINING",
+                 "TOP",
+                 ".",
+                 ""]
+        return '\r\n'.join(lines)
 
     def onStat(self, command, args):
         """POP3 STAT command."""
@@ -1351,7 +1449,7 @@ def test():
         httpServer = UserInterfaceServer(8881)
         proxyUI = UserInterface()
         httpServer.register(proxyUI, OptionsConfigurator(proxyUI))
-        BayesProxyListener('localhost', 8110, 8111)
+        BayesProxyListener('localhost', 8110, ('', 8111))
         state.bayes.learn(tokenizer.tokenize(spam1), True)
         state.bayes.learn(tokenizer.tokenize(good1), False)
         proxyReady.set()
@@ -1362,11 +1460,26 @@ def test():
     threading.Thread(target=runUIAndProxy).start()
     proxyReady.wait()
 
-    # Connect to the proxy.
+    # Connect to the proxy and the test server.
     proxy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     proxy.connect(('localhost', 8111))
     response = proxy.recv(100)
     assert response == "+OK ready\r\n"
+    pop3Server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    pop3Server.connect(('localhost', 8110))
+    response = pop3Server.recv(100)
+    assert response == "+OK ready\r\n"
+
+    # Verify that the test server claims to support pipelining.
+    pop3Server.send("capa\r\n")
+    response = pop3Server.recv(1000)
+    assert response.find("PIPELINING") >= 0
+
+    # Ask for the capabilities via the proxy, and verify that the proxy
+    # is filtering out the PIPELINING capability.
+    proxy.send("capa\r\n")
+    response = proxy.recv(1000)
+    assert response.find("PIPELINING") == -1
 
     # Stat the mailbox to get the number of messages.
     proxy.send("stat\r\n")
@@ -1397,8 +1510,6 @@ def test():
     # Kill the proxy and the test server.
     proxy.sendall("kill\r\n")
     proxy.recv(100)
-    pop3Server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    pop3Server.connect(('localhost', 8110))
     pop3Server.sendall("kill\r\n")
     pop3Server.recv(100)
 
@@ -1410,7 +1521,7 @@ def test():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htdbzp:l:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htbzpd:D:l:u:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -1425,12 +1536,18 @@ def run():
             state.runTestServer = True
         elif opt == '-b':
             state.launchUI = True
-        elif opt == '-d':
+        elif opt == '-d':   # dbm file
             state.useDB = True
-        elif opt == '-p':
             options.pop3proxy_persistent_storage_file = arg
+        elif opt == '-D':   # pickle file
+            state.useDB = False
+            options.pop3proxy_persistent_storage_file = arg
+        elif opt == '-p':   # dead option
+            print >>sys.stderr, "-p option is no longer supported, use -D\n"
+            print >>sys.stderr, __doc__
+            sys.exit()
         elif opt == '-l':
-            state.proxyPorts = [int(arg)]
+            state.proxyPorts = [_addressAndPort(arg)]
         elif opt == '-u':
             state.uiPort = int(arg)
         elif opt == '-z':

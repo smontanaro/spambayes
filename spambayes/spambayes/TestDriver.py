@@ -21,14 +21,14 @@
 # # Display stats against all runs.
 # alldone()
 
-try: 
+try:
     from sets import Set
 except ImportError:
     from spambayes.compatsets import Set
 
 import cPickle as pickle
 
-try: 
+try:
     from heapq import heapreplace
 except ImportError:
     from spambayes.compatheapq import heapreplace
@@ -199,8 +199,8 @@ class Driver:
 
     def alldone(self):
         if options.show_histograms:
-            besthamcut,bestspamcut = printhist("all runs:", 
-                                               self.global_ham_hist, 
+            besthamcut,bestspamcut = printhist("all runs:",
+                                               self.global_ham_hist,
                                                self.global_spam_hist)
         else:
             besthamcut = options.ham_cutoff

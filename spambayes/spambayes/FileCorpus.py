@@ -118,7 +118,7 @@ filter'''
 
         for filename in os.listdir(directory):
             if fnmatch.fnmatch(filename, filter):
-               self.msgs[filename] = None
+                self.msgs[filename] = None
 
     def makeMessage(self, key):
         '''Ask our factory to make a Message'''
@@ -215,10 +215,10 @@ class FileMessage(Corpus.Message):
             fp = open(pn, 'rb')
         except IOError, e:
             if e.errno != errno.ENOENT:
-               raise
+                raise
         else:
-           self.setSubstance(fp.read())
-           fp.close()
+            self.setSubstance(fp.read())
+            fp.close()
 
     def store(self):
         '''Write the Message substance to the file'''
@@ -507,7 +507,7 @@ def cleanupDirectory(dirname):
         flist = os.listdir(dirname)
     except OSError, e:
         if e.errno != 3:     # errno.<WHAT>
-           raise
+            raise
     else:
         for filename in os.listdir(dirname):
             fn = os.path.join(dirname, filename)
@@ -552,12 +552,12 @@ def setupTest(useGzip):
     m3.store()
 
     for x in range(11):
-       time.sleep(1)    # make sure MSG00003 has expired
-       if 10-x == 1:
-           s = ''
-       else:
-           s = 's'
-       print 'wait',10-x,'more second%s' % (s)
+        time.sleep(1)    # make sure MSG00003 has expired
+        if 10-x == 1:
+            s = ''
+        else:
+            s = 's'
+        print 'wait',10-x,'more second%s' % (s)
 
     m4 = fmClass('MSG00004', 'fctestunsurecorpus')
     m4.setSubstance(tm1)
@@ -726,5 +726,3 @@ if __name__ == '__main__':
         cleanupTest()
     else:
         print >>sys.stderr, __doc__
-
-

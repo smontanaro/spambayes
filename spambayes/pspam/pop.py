@@ -5,7 +5,7 @@ multi-threaded POP3 proxy.  It adds an X-Spambayes header with a spam
 probability.  It scores a message using a persistent spambayes
 classifier loaded from a ZEO server.
 
-The strategy for adding spam headers is from Richie Hindler's
+The strategy for adding spam headers is from Richie Hindle's
 pop3proxy.py.  The STAT, LIST, RETR, and TOP commands are intercepted
 to change the number of bytes the client is told to expect and/or to
 insert the spam header.

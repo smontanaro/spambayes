@@ -38,40 +38,22 @@ class FolderSpec:
 # have an Exchange server handy these days, and really doesn't give a
 # rat's arse <wink>).
 # So finally we have an Outlook object model version!
-#########################################################################
-## CDO version of a folder walker.
-#########################################################################
-def _BuildFoldersCDO(folders):
-    children = []
-    folder = folders.GetFirst()
-    while folder:
-        spec = FolderSpec(folder.ID, folder.Name.encode("mbcs", "replace"))
-        spec.children = _BuildFoldersCDO(folder.Folders)
-        children.append(spec)
-        folder = folders.GetNext()
-    return children
+# But then Tony Meyer came to the rescue - he noticed that we were
+# simply using short-term EID values for Exchange Folders - so now that
+# is solved, we are back to the Extended MAPI version.
 
-def BuildFolderTreeCDO(session):
-    infostores = session.InfoStores
-    root = FolderSpec(None, "root")
-    for i in range(infostores.Count):
-        infostore = infostores[i+1]
-        rootFolder = infostore.RootFolder
-        folders = rootFolder.Folders
-        spec = FolderSpec(rootFolder.ID, infostore.Name.encode("mbcs", "replace"))
-        spec.children = _BuildFoldersCDO(folders)
-        root.children.append(spec)
-    return root
+# These variants were deleted by MarkH - cvs is your friend :)
+# Last appeared in Rev 1.10
 
 #########################################################################
 ## An extended MAPI version
 #########################################################################
 from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
+import pythoncom
 
-default_store_id = None
-
-def _BuildFoldersMAPI(msgstore, folder):
+def _BuildFoldersMAPI(manager, folder_id):
+    folder = manager.message_store.GetFolder(folder_id).OpenEntry()
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
     children = []
@@ -79,25 +61,35 @@ def _BuildFoldersMAPI(msgstore, folder):
                                        PR_STORE_ENTRYID,
                                        PR_DISPLAY_NAME_A), None, None, 0)
     for (eid_tag, eid),(storeeid_tag, store_eid), (name_tag, name) in rows:
-        folder_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
-        spec = FolderSpec(folder_id, name)
-        child_folder = msgstore.OpenEntry(eid, None, mapi.MAPI_DEFERRED_ERRORS)
-        spec.children = _BuildFoldersMAPI(msgstore, child_folder)
-        children.append(spec)
+        # Note the eid we get here is short-term - hence we must
+        # re-fetch from the object itself (which is what our manager does,
+        # so no need to do it explicitly - just believe folder.id over eid)
+        temp_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
+        try:
+            child_folder = manager.message_store.GetFolder(temp_id)
+        except pythoncom.com_error:
+            # Bad folder for some reason - ignore it.
+            child_folder = None
+        if child_folder is not None:
+            spec = FolderSpec(child_folder.GetID(), name)
+            # If we have no children at all, indicate
+            # the item is not expandable.
+            table = child_folder.OpenEntry().GetHierarchyTable(0)
+            if table.GetRowCount(0) == 0:
+                spec.children = []
+            else:
+                spec.children = None # Flag as "not yet built"
+            children.append(spec)
     return children
 
 def BuildFolderTreeMAPI(session):
-    global default_store_id
     root = FolderSpec(None, "root")
     tab = session.GetMsgStoresTable(0)
-    prop_tags = PR_ENTRYID, PR_DEFAULT_STORE, PR_DISPLAY_NAME_A
+    prop_tags = PR_ENTRYID, PR_DISPLAY_NAME_A
     rows = mapi.HrQueryAllRows(tab, prop_tags, None, None, 0)
     for row in rows:
-        (eid_tag, eid), (is_def_tag, is_def), (name_tag, name) = row
+        (eid_tag, eid), (name_tag, name) = row
         hex_eid = mapi.HexFromBin(eid)
-        if is_def:
-            default_store_id = hex_eid
-
         msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
                                                       mapi.MAPI_DEFERRED_ERRORS)
         hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,), 0)
@@ -105,31 +97,8 @@ def BuildFolderTreeMAPI(session):
         folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
         folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
         spec = FolderSpec(folder_id, name)
-        spec.children = _BuildFoldersMAPI(msgstore, folder)
+        spec.children = None
         root.children.append(spec)
-    return root
-
-## <sob> - An Outlook object model version
-import pythoncom
-def _BuildFolderTreeOutlook(session, parent):
-    children = []
-    for i in range(parent.Folders.Count):
-        folder = parent.Folders[i+1]
-        try:
-            spec = FolderSpec((folder.StoreID, folder.EntryID),
-                              folder.Name.encode("mbcs", "replace"))
-        except pythoncom.error:
-            # Something strange with this folder - just ignore it
-            spec = None
-        if spec is not None:
-            if folder.Folders:
-                spec.children = _BuildFolderTreeOutlook(session, folder)
-            children.append(spec)
-    return children
-
-def BuildFolderTreeOutlook(session):
-    root = FolderSpec(None, "root")
-    root.children = _BuildFolderTreeOutlook(session, session)
     return root
 
 #########################################################################
@@ -173,7 +142,7 @@ class FolderSelector(dialog.Dialog):
         [BUTTON,         'C&lear All',          IDC_BUTTON_CLEARALL,  (190, 58,  50, 14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
     ]
 
-    def __init__ (self, mapi, selected_ids=None,
+    def __init__ (self, manager, selected_ids=None,
                               single_select=False,
                               checkbox_state=False,
                               checkbox_text=None,
@@ -187,19 +156,16 @@ class FolderSelector(dialog.Dialog):
 
         self.select_desc_noun = desc_noun
         self.select_desc_noun_suffix = desc_noun_suffix
-        self.selected_ids = selected_ids
-        self.mapi = mapi
+        self.selected_ids = [sid for sid in selected_ids if sid is not None]
+        self.manager = manager
         self.checkbox_state = checkbox_state
         self.checkbox_text = checkbox_text or "Include &subfolders"
 
     def CompareIDs(self, id1, id2):
-        if type(id1) != type(()):
-            id1 = default_store_id, id1
-        if type(id2) != type(()):
-            id2 = default_store_id, id2
-        return id1 == id2
-#        return self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
-#               self.mapi.CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
+        # Compare the eid of the stores, then the objects
+        CompareEntryIDs = self.manager.message_store.session.CompareEntryIDs
+        return CompareEntryIDs(mapi.BinFromHex(id1[0]), mapi.BinFromHex(id2[0])) and \
+               CompareEntryIDs(mapi.BinFromHex(id1[1]), mapi.BinFromHex(id2[1]))
 
     def InIDs(self, id, ids):
         for id_check in ids:
@@ -214,10 +180,12 @@ class FolderSelector(dialog.Dialog):
         return item_id
 
     def _InsertSubFolders(self, hParent, folderSpec):
-        num_children_selected = 0
         for child in folderSpec.children:
             text = child.name
-            cItems = len(child.children)
+            if child.children is None: # Need to build them!
+                cItems = 1 # Anything > 0 will do
+            else:
+                cItems = len(child.children)
             if cItems==0:
                 bitmapCol = bitmapSel = 5 # blank doc
             else:
@@ -228,7 +196,6 @@ class FolderSelector(dialog.Dialog):
                 if (self.selected_ids and
                         self.InIDs(child.folder_id, self.selected_ids)):
                     state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
-                    num_children_selected += 1
                 else:
                     state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
                 mask = commctrl.TVIS_STATEIMAGEMASK
@@ -242,15 +209,28 @@ class FolderSelector(dialog.Dialog):
                                           bitmapSel,
                                           cItems,
                                           item_id))
+            # If this folder is in the list of ones we need to expand
+            # to show pre-selected items, then force expand now.
+            if self.InIDs(child.folder_id, self.expand_ids):
+                self.list.Expand(hitem, commctrl.TVE_EXPAND)
+            # If single-select, and this is ours, select it
+            # (multi-select uses check-boxes, not selection)
             if (self.single_select and
                     self.selected_ids and
                     self.InIDs(child.folder_id, self.selected_ids)):
                 self.list.SelectItem(hitem)
 
-            num_children_selected += self._InsertSubFolders(hitem, child)
-        if num_children_selected and hParent:
-            self.list.Expand(hParent, commctrl.TVE_EXPAND)
-        return num_children_selected
+    def _DetermineFoldersToExpand(self):
+        folders_to_expand = []
+        for folder_id in self.selected_ids:
+            folder = self.manager.message_store.GetFolder(folder_id)
+            while folder is not None:
+                parent = folder.GetParent()
+                if parent is not None and \
+                   not self.InIDs(parent.GetID(), folders_to_expand):
+                    folders_to_expand.append(parent.GetID())
+                folder = parent
+        return folders_to_expand
 
     def _YieldChildren(self, h):
         try:
@@ -323,15 +303,14 @@ class FolderSelector(dialog.Dialog):
             # Hide "clear all"
             self.GetDlgItem(IDC_BUTTON_CLEARALL).ShowWindow(win32con.SW_HIDE)
 
-        tree = BuildFolderTreeOutlook(self.mapi)
-#        if hasattr(self.mapi, "_oleobj_"): # Dispatch COM object
-#            # CDO
-#            tree = BuildFolderTreeCDO(self.mapi)
-#        else:
-#            # Extended MAPI.
-#            tree = BuildFolderTreeMAPI(self.mapi)
+        # Extended MAPI version of the tree.
+        # Build list of all ids to expand - ie, list includes all
+        # selected folders, and all parents.
+        self.expand_ids = self._DetermineFoldersToExpand()
+        tree = BuildFolderTreeMAPI(self.manager.message_store.session)
         self._InsertSubFolders(0, tree)
-        self.selected_ids = [] # wipe this out while we are alive.
+        self.selected_ids = [] # Only use this while creating dialog.
+        self.expand_ids = [] # Only use this while creating dialog.
         self._UpdateStatus()
 
         return dialog.Dialog.OnInitDialog (self)
@@ -392,6 +371,14 @@ class FolderSelector(dialog.Dialog):
     def OnTreeItemExpanding(self,(hwndFrom, idFrom, code), extra):
         if idFrom != IDC_LIST_FOLDERS: return None
         action, itemOld, itemNew, pt = extra
+        if action == 1: return 0 # contracting, not expanding
+
+        itemHandle = itemNew[0]
+        info = self.list.GetItem(itemHandle)
+        folderSpec = self.item_map[info[7]]
+        if folderSpec.children is None:
+            folderSpec.children = _BuildFoldersMAPI(self.manager, folderSpec.folder_id)
+            self._InsertSubFolders(itemHandle, folderSpec)
         return 0
 
     def OnTreeItemSelChanged(self,(hwndFrom, idFrom, code), extra):
@@ -410,31 +397,16 @@ class FolderSelector(dialog.Dialog):
             ret.append(spec.folder_id)
         return ret, self.GetDlgItem(IDC_BUTTON_SEARCHSUB).GetCheck() != 0
 
-def TestWithCDO():
-    from win32com.client import Dispatch
-    mapi = Dispatch("MAPI.Session")
-    mapi.Logon("", "", False, False)
-    ids = [u'0000000071C4408983B0B24F8863EE66A8F79AFF82800000']
-    d=FolderSelector(mapi, ids, single_select = False)
+def Test():
+    import sys, os
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..")))
+    import manager
+    ids = []
+    d=FolderSelector(manager.GetManager(), ids, single_select = False)
     d.DoModal()
-    print d.GetSelectedIDs()
-
-def TestWithMAPI():
-    mapi.MAPIInitialize(None)
-    logonFlags = mapi.MAPI_NO_MAIL | mapi.MAPI_EXTENDED | mapi.MAPI_USE_DEFAULT
-    session = mapi.MAPILogonEx(0, None, None, logonFlags)
-    ids = [u'0000000071C4408983B0B24F8863EE66A8F79AFF82800000']
-    d=FolderSelector(session, ids, single_select = False)
+    ids, include_sub = d.GetSelectedIDs()
+    d=FolderSelector(manager.GetManager(), ids, single_select = False)
     d.DoModal()
-    print d.GetSelectedIDs()
-
-def TestWithOutlook():
-    from win32com.client import Dispatch
-    outlook = Dispatch("Outlook.Application")
-    d=FolderSelector(outlook.Session, None, single_select = False)
-    d.DoModal()
-    print d.GetSelectedIDs()
-
 
 if __name__=='__main__':
-    TestWithOutlook()
+    Test()

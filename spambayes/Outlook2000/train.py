@@ -17,14 +17,14 @@ except NameError:
 # Note our Message Database uses PR_SEARCH_KEY, *not* PR_ENTRYID, as the
 # latter changes after a Move operation - see msgstore.py
 def been_trained_as_ham(msg, mgr):
-    spam = mgr.message_db.get(msg.searchkey)
-    # spam is None
-    return spam == False
+    if not mgr.message_db.has_key(msg.searchkey):
+        return False
+    return mgr.message_db[msg.searchkey]=='0'
 
 def been_trained_as_spam(msg, mgr):
-    spam = mgr.message_db.get(msg.searchkey)
-    # spam is None
-    return spam == True
+    if not mgr.message_db.has_key(msg.searchkey):
+        return False
+    return mgr.message_db[msg.searchkey]=='1'
 
 def train_message(msg, is_spam, mgr, rescore=False):
     # Train an individual message.
@@ -35,7 +35,10 @@ def train_message(msg, is_spam, mgr, rescore=False):
     # be written to the message (so the user can see some effects)
     from spambayes.tokenizer import tokenize
 
-    was_spam = mgr.message_db.get(msg.searchkey)
+    if not mgr.message_db.has_key(msg.searchkey):
+        was_spam = None
+    else:
+        was_spam = mgr.message_db[msg.searchkey]=='1'
     if was_spam == is_spam:
         return False    # already correctly classified
 
@@ -47,7 +50,7 @@ def train_message(msg, is_spam, mgr, rescore=False):
 
     # Learn the correct classification.
     mgr.bayes.learn(tokenize(stream), is_spam)
-    mgr.message_db[msg.searchkey] = is_spam
+    mgr.message_db[msg.searchkey] = ['0', '1'][is_spam]
     mgr.bayes_dirty = True
 
     # Simplest way to rescore is to re-filter with all_actions = False

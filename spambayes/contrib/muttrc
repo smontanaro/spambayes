@@ -1,0 +1,26 @@
+##
+## Mutt keybindings for spambayes
+## Author: Neale Pickett <neale@woozle.org>
+##
+## This muttrc assumes you are already filtering with a procmail recipie
+## similar to:
+##
+##   :0fw
+##   | hammiefilter.py -t
+##
+##
+## This binds 'S' to refile as spam and move to a 'caughtspam' folder.
+## 'H' will refile as ham and move to your inbox.  You will want to use
+## these on every misclassified message.
+##
+## As a special bonus, all tagged spam will be colored red on black.
+##
+## If you have any problems with this, and especially if you have any
+## improvements, please mail them to me!  Thanks to Adam Hupp for
+## helping out with the muttisms.
+##
+folder-hook . "macro index S '|hammiefilter.py -s\n <save-message>=caughtspam\n'"
+folder-hook . "macro pager S '|hammiefilter.py -s\n <save-message>=caughtspam\n'"
+folder-hook . "macro index H '|hammiefilter.py -g\r <save-message>!\r'"
+folder-hook . "macro pager H '|hammiefilter.py -g\r <save-message>!\r'"
+color index red black "~h 'X-Hammie-Disposition: spam' ~F"

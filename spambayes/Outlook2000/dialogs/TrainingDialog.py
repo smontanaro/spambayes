@@ -70,7 +70,7 @@ class TrainingDialog(AsyncDialogBase):
         # If we have no known ham folders, suggest the Inbox.
         if len(self.config.ham_folder_ids)==0 and self.mgr.outlook is not None:
             inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
-            self.config.ham_folder_ids = [inbox.EntryID]
+            self.config.ham_folder_ids = [(inbox.StoreID, inbox.EntryID)]
         # If we have no known spam folders, but do have a spam folder
         # defined in the filters, use it.
         if len(self.config.spam_folder_ids)==0 and self.mgr.config.filter.spam_folder_id:
@@ -104,8 +104,7 @@ class TrainingDialog(AsyncDialogBase):
                 l = self.config.ham_folder_ids
                 sub_attr = "ham_include_sub"
             include_sub = getattr(self.config, sub_attr)
-#            d = FolderSelector.FolderSelector(self.mgr.message_store.session, l, checkbox_state=include_sub)
-            d = FolderSelector.FolderSelector(self.mgr.outlook.Session, l, checkbox_state=include_sub)
+            d = FolderSelector.FolderSelector(self.mgr, l, checkbox_state=include_sub)
             if d.DoModal()==win32con.IDOK:
                 l[:], include_sub = d.GetSelectedIDs()[:]
                 setattr(self.config, sub_attr, include_sub)

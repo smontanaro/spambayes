@@ -3,6 +3,7 @@ from __future__ import generators
 import cPickle
 import os
 import sys
+import errno
 
 import win32com.client
 import win32com.client.gencache
@@ -33,13 +34,26 @@ try:
 except NameError: # no __file__
     this_filename = os.path.abspath(sys.argv[0])
 
+# See if we can use the new bsddb module. (The old one is unreliable
+# on Windows, so we don't use that)
+try:
+    import bsddb
+    use_db = hasattr(bsddb, "db") # This name doesn't exist in the old one.
+except ImportError:
+    # See if the explicit bsddb3 module exists.
+    try:
+        import bsddb3 as bsddb
+        use_db = True
+    except ImportError:
+        use_db = False
+
 # This is a little bit of a hack <wink>.  We are generally in a child directory
 # of the bayes code.  To help installation, we handle the fact that this may
 # not be on sys.path.  Note that doing these imports is delayed, so that we
 # can set the BAYESCUSTOMIZE envar first (if we import anything from the core
 # spambayes code before setting that envar, our .ini file may have no effect).
 def import_core_spambayes_stuff(ini_filename):
-    global bayes_classifier, bayes_tokenize
+    global bayes_classifier, bayes_tokenize, bayes_storage
 
     os.environ["BAYESCUSTOMIZE"] = ini_filename
     try:
@@ -51,12 +65,70 @@ def import_core_spambayes_stuff(ini_filename):
 
     from spambayes import classifier
     from spambayes.tokenizer import tokenize
+    from spambayes import storage
     bayes_classifier = classifier
     bayes_tokenize = tokenize
+    bayes_storage = storage
 
 class ManagerError(Exception):
     pass
 
+# Base class for our "storage manager" - we choose between the pickle
+# and DB versions at runtime.  As our bayes uses spambayes.storage,
+# our base class can share common bayes loading code.
+class BasicStorageManager:
+    db_extension = None # for pychecker - overwritten by subclass
+    def __init__(self, bayes_base_name, mdb_base_name):
+        self.bayes_filename = bayes_base_name + self.db_extension
+        self.mdb_filename = mdb_base_name + self.db_extension
+    def new_bayes(self):
+        # Just delete the file and do an "open"
+        try:
+            os.unlink(self.bayes_filename)
+        except IOError, e:
+            if e.errno != errno.ENOENT: raise
+        return self.open_bayes()
+    def store_bayes(self, bayes):
+        bayes.store()
+    def open_bayes(self):
+        raise NotImplementedError
+
+class PickleStorageManager(BasicStorageManager):
+    db_extension = ".pck"
+    def open_bayes(self):
+        return bayes_storage.PickledClassifier(self.bayes_filename)
+    def close_bayes(self, bayes):
+        pass
+    def open_mdb(self):
+        return cPickle.load(open(self.mdb_filename, 'rb'))
+    def new_mdb(self):
+        return {}
+    def store_mdb(self, mdb):
+        cPickle.dump(mdb, open(self.mdb_filename,"wb"), 1)
+    def close_mdb(self, mdb):
+        pass
+
+class DBStorageManager(BasicStorageManager):
+    db_extension = ".db"
+    def open_bayes(self):
+        return bayes_storage.DBDictClassifier(self.bayes_filename)
+    def close_bayes(self, bayes):
+        bayes.db.close()
+        bayes.dbm.close()
+    def open_mdb(self):
+        return bsddb.hashopen(self.mdb_filename)
+    def new_mdb(self):
+        try:
+            os.unlink(self.mdb_filename)
+        except EnvironmentError, e:
+            if e.errno != errno.ENOENT: raise
+        return self.open_mdb()
+    def store_mdb(self, mdb):
+        mdb.sync()
+    def close_mdb(self, mdb):
+        mdb.close()
+
+# Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
         self.addin = None
@@ -67,16 +139,22 @@ class BayesManager:
                                        config_base)
         config_base = os.path.abspath(config_base)
         self.ini_filename = config_base + "_bayes_customize.ini"
-        self.bayes_filename = config_base + "_bayes_database.pck"
-        self.message_db_filename = config_base + "_message_database.pck"
         self.config_filename = config_base + "_configuration.pck"
 
-        # First read the configuration file.
+        # Read the configuration file.
         self.config = self.LoadConfig()
 
         self.outlook = outlook
 
         import_core_spambayes_stuff(self.ini_filename)
+
+        bayes_base = config_base + "_bayes_database"
+        mdb_base = config_base + "_message_database"
+        # determine which db manager to use, and create it.
+        ManagerClass = [PickleStorageManager, DBStorageManager][use_db]
+        self.db_manager = ManagerClass(bayes_base, mdb_base)
+
+        self.bayes = self.message_db = None
         self.LoadBayes()
         self.message_store = msgstore.MAPIMsgStore(outlook)
 
@@ -114,7 +192,6 @@ class BayesManager:
         # model.  So we resort to olPercent, and live with the % sign
         # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
-        ol = self.outlook
         msgstore_folder = self.message_store.GetFolder(folder_id)
         folder = msgstore_folder.GetOutlookItem()
         if self.verbose > 1:
@@ -147,9 +224,6 @@ class BayesManager:
                           "user-property in folder '%s'" \
                           % (folder.Name.encode("mbcs", "replace"),)
                     print "", details
-                    print " This is probably because the code has recently"\
-                          " been changed, but it will"
-                    print " have no effect on the filtering or scoring."
         # else no items in this folder - not much worth doing!
         if include_sub:
             # Recurse down the folder list.
@@ -160,23 +234,24 @@ class BayesManager:
                 folder = folders.GetNext()
 
     def LoadBayes(self):
+        import time
+        start = time.clock()
         if not os.path.exists(self.ini_filename):
             raise ManagerError("The file '%s' must exist before the "
                                "database '%s' can be opened or created" % (
-                               self.ini_filename, self.bayes_filename))
+                               self.ini_filename, self.db_manager.bayes_filename))
         bayes = message_db = None
         try:
-            bayes = cPickle.load(open(self.bayes_filename, 'rb'))
-            print "Loaded bayes database from '%s'" % (self.bayes_filename,)
-        except IOError:
-            pass # ignore file-not-found
+            # file-not-found handled gracefully by storage.
+            bayes = self.db_manager.open_bayes()
+            print "Loaded bayes database from '%s'" % (self.db_manager.bayes_filename,)
         except:
             print "Failed to load bayes database"
             import traceback
             traceback.print_exc()
         try:
-            message_db = cPickle.load(open(self.message_db_filename, 'rb'))
-            print "Loaded message database from '%s'" % (self.message_db_filename,)
+            message_db = self.db_manager.open_mdb()
+            print "Loaded message database from '%s'" % (self.db_manager.mdb_filename,)
         except IOError:
             pass
         except:
@@ -184,6 +259,8 @@ class BayesManager:
             import traceback
             traceback.print_exc()
         if bayes is None or message_db is None:
+            self.bayes = bayes
+            self.message_db = message_db
             print "Either bayes database or message database is missing - creating new"
             self.InitNewBayes()
             bayes = self.bayes
@@ -192,13 +269,16 @@ class BayesManager:
             print ("Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
         if len(message_db) != bayes.nham + bayes.nspam:
-            print "*** - message database only has %d messages - bayes has %d - something is screwey" % \
+            print "*** - message database has %d messages - bayes has %d - something is screwey" % \
                     (len(message_db), bayes.nham + bayes.nspam)
         self.bayes = bayes
         self.message_db = message_db
         self.bayes_dirty = False
+        if self.verbose:
+            print "Loaded databases in %gms" % ((time.clock()-start)*1000)
 
     def LoadConfig(self):
+        # Our 'config' file always uses a pickle
         try:
             f = open(self.config_filename, 'rb')
         except IOError:
@@ -227,8 +307,12 @@ class BayesManager:
         return ret
 
     def InitNewBayes(self):
-        self.bayes = bayes_classifier.Bayes()
-        self.message_db = {} # OK, so its not quite a DB yet <wink>
+        if self.bayes is not None:
+            self.db_manager.close_bayes(self.bayes)
+        if self.message_db is not None:
+            self.db_manager.close_mdb(self.message_db)
+        self.bayes = self.db_manager.new_bayes()
+        self.message_db = self.db_manager.new_mdb()
         self.bayes_dirty = True
 
     def SaveBayes(self):
@@ -242,11 +326,11 @@ class BayesManager:
         if self.verbose:
             print "Saving bayes database with %d spam and %d good messages" %\
                    (bayes.nspam, bayes.nham)
-            print " ->", self.bayes_filename
-        cPickle.dump(bayes, open(self.bayes_filename,"wb"), 1)
+            print " ->", self.db_manager.bayes_filename
+        self.db_manager.store_bayes(self.bayes)
         if self.verbose:
-            print " ->", self.message_db_filename
-        cPickle.dump(self.message_db, open(self.message_db_filename,"wb"), 1)
+            print " ->", self.db_manager.mdb_filename
+        self.db_manager.store_mdb(self.message_db)
         self.bayes_dirty = False
 
     def GetClassifier(self):

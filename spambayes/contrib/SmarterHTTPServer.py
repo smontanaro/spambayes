@@ -36,7 +36,7 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     """
 
     server_version = "SmarterHTTP/" + __version__
-    
+
 
     def send_head(self):
         """Common code for GET and HEAD commands.
@@ -62,7 +62,7 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                         break
                 else:
                     return self.list_directory(path)
-                
+
         ctype = self.guess_type(path)
 
         if ctype != 'application/method':
@@ -86,7 +86,7 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             pdict = {}
             if parms:
                 pdict = cgi.parse_qs(parms, False)
-            
+
             # ctype application/method methlets (invented here) may
             # send whatever headers they like.  However, the server has
             # already sent the 200 response, so Location: headers are
@@ -94,7 +94,7 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             # Content-type: text/html, so the methlets should not send
             # anything incompatible with text/html type.  Methlets should
             # not invoke end_headers().
-                        
+
             if hasattr(self, methname):
                 self.send_response(200)
                 retstr = getattr(self, methname)(pdict)

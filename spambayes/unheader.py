@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-    unheader.py: cleans headers from email messages. By default, this 
+    unheader.py: cleans headers from email messages. By default, this
     removes SpamAssassin headers, specify a pattern with -p to supply
     new headers to remove.
 
-    This is often needed because existing spamassassin headers can 
+    This is often needed because existing spamassassin headers can
     provide killer spam clues, for all the wrong reasons.
 """
 

@@ -6,6 +6,7 @@ Author: spambayes
 <p>Some projects working in a similar area </p>
 </p>
 <ul>
+<li>Gary Robinson has a well-organized <a href="http://wecanstopspam.org/jsp/Wiki?StartingPoints">Spam Wiki</a>.
 <li>Gary Arnold's <a href="http://www.garyarnold.com/projects.php#bayespam">bayespam</a>, a perl qmail filter.
 <li>As of version 1.3, Mozilla Mail now supports Graham-style Bayesian filtering, see <a href="http://www.mozilla.org/mailnews/spam.html">the documentation </a> on the mozilla website. 
 <li>Eric Raymond's <a href="http://bogofilter.sf.net/">bogofilter</a>, a C code bayesian filter.

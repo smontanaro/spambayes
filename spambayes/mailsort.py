@@ -164,7 +164,7 @@ def main():
             print_message_score(msg)
     else:
         raise RuntimeError # shouldn't get here
-    
-    
+
+
 if __name__ == "__main__":
     main()

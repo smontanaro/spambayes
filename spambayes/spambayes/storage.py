@@ -275,4 +275,5 @@ class HamTrainer(Trainer):
 
 
 if __name__ == '__main__':
-    print >>sys.stderr, __doc__
+    import sys
+    print >> sys.stderr, __doc__

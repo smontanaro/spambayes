@@ -5,18 +5,8 @@ Classes:
 Abstract:
 
 This module implements a browser based Spambayes option file configuration
-utility.  Users may use the pages in this application to customize the
-options in the bayescustomize.ini file.
-
-This does not support the BAYESCUSTOMIZE environment variable.  Is this even
-used anywhere?
-
-By default, this module forms a part of the web user interface provided by
-pop3proxy.py.  You can also run it standalone, but only for historical
-reasons.  To do this, just invoke OptionConfig.py <optional port number>
-The port number is the port the http server will listen on, and defaults to
-8000.  Your web browser should launch automatically; if it doesn't, then
-point it to http://locahost:8000 (or whatever port you chose).
+utility.  Users may use it (via pop3proxy.py) to customize the options in
+the bayescustomize.ini file.
 
 To Do:
     o Suggestions?
@@ -30,15 +20,16 @@ To Do:
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 # Blame for bugs caused by using Dibbler: Richie Hindle <richie@entrian.com>
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
 
 from spambayes import Dibbler, PyMeldLite
-from spambayes.Options import options
-import re
-import os, sys
+from spambayes.Options import options, optionsPathname
+import sys
 import ConfigParser
-import copy
-
-IMAGES = ('helmet', 'config', 'status')
 
 # This control dictionary maps http request parameters and template fields
 # to ConfigParser sections and options.  The key matches both the input
@@ -54,12 +45,13 @@ parm_ini_map = \
     'unsurestring': ('Hammie',          'header_unsure_string'),
     'p3servers':    ('pop3proxy',       'pop3proxy_servers'),
     'p3ports':      ('pop3proxy',       'pop3proxy_ports'),
+    'p3notate':     ('pop3proxy',       'pop3proxy_notate_to'),
    }
 
 # "Restore defaults" ignores these, because it would be pointlessly
 # destructive - they default to being empty, so you gain nothing by
 # restoring them.
-noRestore = ('pop3proxy_servers', 'pop3proxy_ports')
+noRestore = ('pop3proxy_servers', 'pop3proxy_ports', 'pop3_notate_to')
 
 # This governs the order in which the options appear on the configurator
 # page, and the headings and help text that are used.
@@ -86,6 +78,18 @@ page_layout = \
          server.  Again, you need to configure your email client to use this
          port.  If there are multiple servers, you must specify the same
          number of ports as servers, separated by commas."""),
+         
+        ("p3notate", "Notate To",
+         """Some email clients (Outlook Express, for example) can only set
+         up filtering rules on a limited set of headers.  These clients
+         cannot test for the existence/value of an arbitrary header and filter
+         mail based on that information.  To accomodate these kind of mail
+         clients, the Notate To: can be checked, which will add "spam,",
+         "ham,", or "unsure," to the recipient list.  A filter rule can then
+         test to see if one of these words (followed by a comma) is in the
+         recipient list, and route the mail to an appropriate folder, or take
+         whatever other action is supported and appropriate for the mail
+         classification."""),
     )),
 
     ("Statistics Options",
@@ -154,27 +158,14 @@ PIMapOpt = 1
 
 
 class OptionsConfigurator(Dibbler.HTTPPlugin):
-    def __init__(self, proxyUI=None):
+    def __init__(self, proxyUI):
         Dibbler.HTTPPlugin.__init__(self)
-
-        # Store the proxy UI; this won't be given when we're standalone.
         self.proxyUI = proxyUI
+        self.html = self.proxyUI.html.clone()
 
-        # Load up the necessary resources: ui.html and the GIFs.
-        from pop3proxy import readUIResources
-        htmlSource, self._images = readUIResources()
-        self.html = PyMeldLite.Meld(htmlSource)
-
-        # Adjust the HTML according to whether we're running standalone or as
-        # a part of the proxy.
-        if not self.proxyUI:
-            self.html.productName = "Spambayes Options Configurator"
-            self.html.footerHome = "Spambayes Options Configurator"
-            self.html.shutdownButton.value = "Shutdown Configurator"
-        else:
-            # "Save and Shutdown" is confusing here - it means "Save database"
-            # but that's not clear.
-            self.html.shutdownTableCell = "&nbsp;"
+        # "Save and Shutdown" is confusing here - it means "Save database"
+        # but that's not clear.
+        self.html.shutdownTableCell = "&nbsp;"
 
     def onConfig(self):
         # start with the options config file, add bayescustomize.ini to it
@@ -189,12 +180,13 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
                     bcini.add_section(sect)
                     bcini.set(sect, opt, options._config.get(sect, opt))
 
-        bcini.read('bayescustomize.ini')
+        bcini.read(optionsPathname)
 
         # Start with an empty config form then add the sections.
         html = self.html.clone()
         html.mainContent = self.html.configForm.clone()
         html.mainContent.configFormContent = ""
+        html.mainContent.optionsPathname = optionsPathname
 
         # Loop though the sections in the `page_layout` structure above.
         for sectionHeading, values in page_layout:
@@ -247,21 +239,10 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             section.boxContent = configTable
             html.configFormContent += section
 
-        # Customise the page according to whether we're standalone or a proxy.
-        if self.proxyUI:
-            html.title = 'Home &gt; Configure'
-            html.pagename = '&gt; Configure'
-        else:
-            html.title = 'Home'
-            del html.homelink
-            html.pagename = 'Home'
-
+        html.title = 'Home &gt; Configure'
+        html.pagename = '&gt; Configure'
         self.writeOKHeaders('text/html')
         self.write(html)
-
-    # Implement `onHome` for the standalone version.  In the POP3 proxy, the
-    # proxy UI's `onHome` will take precedence over this one.
-    onHome = onConfig
 
     def onChangeopts(self, **parms):
         html = self.html.clone()
@@ -277,18 +258,10 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             return
 
         updateIniFile(parms)
+        self.proxyUI.reReadOptions()
 
         html.mainContent.heading = "Options Changed"
-        if self.proxyUI:
-            html.mainContent.boxContent = OK_MESSAGE % "Options changed"
-            self.proxyUI.reReadOptions()
-        else:
-            html.mainContent.boxContent = """The options changes you've made
-                   have been recorded.  You will need to restart any Spambayes
-                   processes you have running, such as the pop3proxy, in order
-                   for your changes to take effect.  When you return to the
-                   Options Configuration homepage, you may need to refresh the
-                   page to see the changes you have made."""
+        html.mainContent.boxContent = OK_MESSAGE % "Options changed"
         html.title = 'Home &gt; Options Changed'
         html.pagename = '&gt; Options Changed'
         self.writeOKHeaders('text/html')
@@ -296,48 +269,16 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
 
     def onRestoredefaults(self, how):
         restoreIniDefaults()
+        self.proxyUI.reReadOptions()
+
         html = self.html.clone()
         html.mainContent = self.html.headedBox.clone()
         html.mainContent.heading = "Option Defaults Restored"
-        if self.proxyUI:
-            html.mainContent.boxContent = OK_MESSAGE % "Defaults restored"
-            self.proxyUI.reReadOptions()
-        else:
-            html.mainContent.boxContent = """All options have been reverted to
-              their default values.  You will need to restart any Spambayes
-              processes you have running, such as the pop3proxy, in order for
-              your changes to take effect.  When you return to the Options
-              Configuration homepage, you may need to refresh the page to see
-              the changes you have made."""
+        html.mainContent.boxContent = OK_MESSAGE % "Defaults restored"
         html.title = 'Home &gt; Defaults Restored'
         html.pagename = '&gt; Defaults Restored'
         self.writeOKHeaders('text/html')
         self.write(html)
-
-    def onSave(self, how):
-        # Really 'shutdown'; this is the button in the footer, not on the
-        # form.  Again, the proxy UI's `onSave` will override this one when
-        # we're running as part of the proxy.
-        html = self.html.clone()
-        del html.helmet
-        del html.homelink
-        html.shutdownTableCell = "&nbsp;"
-        html.mainContent = self.html.shutdownMessage
-        html.title = 'Home &gt; Shutdown'
-        html.pagename = 'Shutdown'
-        self.writeOKHeaders('text/html')
-        self.write(html)
-        self.close()
-        sys.exit()
-
-    def _writeImage(self, image):
-        self.writeOKHeaders('image/gif')
-        self.write(self._images[image])
-
-    # If you are easily offended, look away now...
-    for imageName in IMAGES:
-        exec "def %s(self): self._writeImage('%s')" % \
-             ("on%sGif" % imageName.capitalize(), imageName)
 
 
 def editInput(parms):
@@ -364,8 +305,7 @@ def editInput(parms):
     try:
         sco = float(sco)
     except ValueError:
-        errmsg += '<li>Spam cutoff must be a number, \
-between 0 and 1</li>\n'
+        errmsg += '<li>Spam cutoff must be a number, between 0 and 1</li>\n'
 
     # edit 0 <= hamcutoff < spamcutoff <= 1
     if hco < 0 or hco > 1:
@@ -375,6 +315,17 @@ between 0 and 1</li>\n'
     if not hco < sco:
         errmsg += '<li>Ham cutoff must be less than Spam cutoff</li>\n'
 
+    try:
+        nto = parms['p3notate']
+    except KeyError:
+        if options.pop3proxy_notate_to:
+            nto = "True"
+        else:
+            nto = "False"
+    
+    if not nto == "True" and not nto == "False":
+        errmsg += """<li>Notate To: must be "True" or "False".</li>\n"""
+    
     # edit for equal number of pop3servers and ports
     try:
         slist = parms['p3servers'].split(',')
@@ -404,9 +355,8 @@ number of servers specified</li>\n'
 
 def updateIniFile(parms):
 
-    # assumes bayescustomize.ini is in this process' working directory
-
-    inipath = os.path.abspath('bayescustomize.ini')
+    # Get the pathname of the ini file as discovered by the Options module.
+    inipath = optionsPathname
 
     bcini = ConfigParser.ConfigParser()
     bcini.read(inipath)
@@ -434,9 +384,8 @@ def updateIniFile(parms):
 
 def restoreIniDefaults():
 
-    # assumes bayescustomize.ini is in this process' working directory
-
-    inipath = os.path.abspath('bayescustomize.ini')
+    # Get the pathname of the ini file as discovered by the Options module.
+    inipath = optionsPathname
 
     bcini = ConfigParser.ConfigParser()
     bcini.read(inipath)
@@ -452,16 +401,3 @@ def restoreIniDefaults():
     o = open(inipath, 'wt')
     bcini.write(o)
     o.close()
-
-
-def run(port):
-    httpServer = Dibbler.HTTPServer(port)
-    httpServer.register(OptionsConfigurator())
-    Dibbler.run(launchBrowser=True)
-
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
-    else:
-        port = 8000
-    run(port)

@@ -12,7 +12,7 @@ import re
 import math
 import time
 import os
-try: 
+try:
     from sets import Set
 except ImportError:
     from spambayes.compatsets import Set
@@ -1197,7 +1197,7 @@ class Tokenizer:
                 addr.reverse()
                 addr = "".join(addr)
                 all_addrs.append(addr.lower())
-                
+
             if len(all_addrs) > 1:
                 # don't be fooled by "os.path." - commonprefix
                 # operates char-by-char!

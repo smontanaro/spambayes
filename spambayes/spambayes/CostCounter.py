@@ -21,7 +21,7 @@ class CompositeCostCounter:
 
     def spam(self, scr):
         for c in self.clients:
-             c.spam(scr)
+            c.spam(scr)
 
     def ham(self, scr):
         for c in self.clients:
@@ -92,27 +92,27 @@ class CountCostCounter(CostCounter):
             self._correctham += 1
 
     def __str__(self):
-         return ("Total messages: %d; %d (%.1f%%) ham + %d (%.1f%%) spam\n"%(
-                     self._total,
-                     self._ham, zd(100.*self._ham,self._total),
-                     self._spam, zd(100.*self._spam,self._total))+
-                 "Ham: %d (%.2f%%) ok, %d (%.2f%%) unsure, %d (%.2f%%) fp\n"%(
-                     self._correctham, zd(100.*self._correctham,self._ham),
-                     self._unsureham, zd(100.*self._unsureham,self._ham),
-                     self._fp, zd(100.*self._fp,self._ham))+
-                 "Spam: %d (%.2f%%) ok, %d (%.2f%%) unsure, %d (%.2f%%) fn\n"%(
-                     self._correctspam, zd(100.*self._correctspam,self._spam),
-                     self._unsurespam, zd(100.*self._unsurespam,self._spam),
-                     self._fn, zd(100.*self._fn,self._spam))+
-                 "Score False: %.2f%% Unsure %.2f%%"%(
-                     zd(100.*(self._fp+self._fn),self._total),
-                     zd(100.*self._unsure,self._total)))
+        return ("Total messages: %d; %d (%.1f%%) ham + %d (%.1f%%) spam\n"%(
+                    self._total,
+                    self._ham, zd(100.*self._ham,self._total),
+                    self._spam, zd(100.*self._spam,self._total))+
+                "Ham: %d (%.2f%%) ok, %d (%.2f%%) unsure, %d (%.2f%%) fp\n"%(
+                    self._correctham, zd(100.*self._correctham,self._ham),
+                    self._unsureham, zd(100.*self._unsureham,self._ham),
+                    self._fp, zd(100.*self._fp,self._ham))+
+                "Spam: %d (%.2f%%) ok, %d (%.2f%%) unsure, %d (%.2f%%) fn\n"%(
+                    self._correctspam, zd(100.*self._correctspam,self._spam),
+                    self._unsurespam, zd(100.*self._unsurespam,self._spam),
+                    self._fn, zd(100.*self._fn,self._spam))+
+                "Score False: %.2f%% Unsure %.2f%%"%(
+                    zd(100.*(self._fp+self._fn),self._total),
+                    zd(100.*self._unsure,self._total)))
 
 def zd(x,y):
     if y > 0:
-       return x / y
+        return x / y
     else:
-       return 0
+        return 0
 
 class StdCostCounter(CostCounter):
     name = "Standard Cost"
@@ -132,7 +132,7 @@ class FlexCostCounter(CostCounter):
     name = "Flex Cost"
     def _lambda(self, scr):
         if scr < options.ham_cutoff:
-	    return 0
+            return 0
         elif scr > options.spam_cutoff:
             return 1
         else:
@@ -154,26 +154,26 @@ class Flex2CostCounter(FlexCostCounter):
         self.total += self._lambda(scr)**2 * options.best_cutoff_fp_weight
 
 def default():
-     return CompositeCostCounter([
-                CountCostCounter(),
-                StdCostCounter(),
-                FlexCostCounter(),
-                Flex2CostCounter(),
-                DelayedCostCounter([
-                    CountCostCounter(),
-                    StdCostCounter(),
-                    FlexCostCounter(),
-                    Flex2CostCounter(),
-                ])
-            ])
+    return CompositeCostCounter([
+               CountCostCounter(),
+               StdCostCounter(),
+               FlexCostCounter(),
+               Flex2CostCounter(),
+               DelayedCostCounter([
+                   CountCostCounter(),
+                   StdCostCounter(),
+                   FlexCostCounter(),
+                   Flex2CostCounter(),
+               ])
+           ])
 
 def nodelay():
-     return CompositeCostCounter([
-                CountCostCounter(),
-                StdCostCounter(),
-                FlexCostCounter(),
-                Flex2CostCounter(),
-            ])
+    return CompositeCostCounter([
+               CountCostCounter(),
+               StdCostCounter(),
+               FlexCostCounter(),
+               Flex2CostCounter(),
+           ])
 
 if __name__=="__main__":
     cc=default()

@@ -52,7 +52,7 @@ class FilterArrivalsDialog(dialog.Dialog):
 
         [BUTTON,          "Certain Spam",       -1,                  (7,43,235,65),    cs   | win32con.BS_GROUPBOX],
         [STATIC,          certain_spam_msg,     -1,                  (13,52,212,10),   cs],
-        ["msctls_trackbar32", "",               IDC_SLIDER_CERTAIN,  (13,66,165,12),   cs   | commctrl.TBS_BOTH | commctrl.TBS_NOTICKS],
+        ["msctls_trackbar32", "",               IDC_SLIDER_CERTAIN,  (13,62,165,12),   cs   | commctrl.TBS_BOTH | commctrl.TBS_AUTOTICKS ],
         [EDIT,            "",                   IDC_EDIT_CERTAIN,    (184,63,51,14),   csts | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER],
         [STATIC,          "and these messages should be", -1,        (13,76,107,10),   cs],
         [COMBOBOX,        "",                   IDC_ACTION_CERTAIN,  (13,88,55,40),    csts | win32con.CBS_DROPDOWNLIST | win32con.WS_VSCROLL],
@@ -62,7 +62,7 @@ class FilterArrivalsDialog(dialog.Dialog):
 
         [BUTTON,          "Possible Spam",      -1,                  (7,114,235,68),   cs   | win32con.BS_GROUPBOX],
         [STATIC,          unsure_msg,           -1,                  (13,124,212,10),  cs],
-        ["msctls_trackbar32", "",               IDC_SLIDER_UNSURE,   (13,141,165,12),  cs   | commctrl.TBS_BOTH | commctrl.TBS_NOTICKS],
+        ["msctls_trackbar32", "",               IDC_SLIDER_UNSURE,   (13,137,165,12),  cs   | commctrl.TBS_BOTH | commctrl.TBS_AUTOTICKS],
         [EDIT,            "",                   IDC_EDIT_UNSURE,     (184,137,54,14),  csts | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER],
         [STATIC,          "and these messages should be", -1,        (13,150,107,10),  cs],
         [COMBOBOX,        "",                   IDC_ACTION_UNSURE,   (13,161,55,40),   csts | win32con.CBS_DROPDOWNLIST | win32con.WS_VSCROLL],
@@ -86,7 +86,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         # If we have no watch folder, suggest the Inbox.
         if len(self.watch_folder_ids)==0 and mgr.outlook is not None:
             inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
-            self.watch_folder_ids = [inbox.EntryID]
+            self.watch_folder_ids = [(inbox.StoreID, inbox.EntryID)]
 
         self.spam_folder_id = mgr.config.filter.spam_folder_id
         self.unsure_folder_id = mgr.config.filter.unsure_folder_id
@@ -200,8 +200,7 @@ class FilterArrivalsDialog(dialog.Dialog):
             if not ids_are_list:
                 ids = [ids]
             single_select = not ids_are_list
-#            d = FolderSelector.FolderSelector(self.mgr.message_store.session, ids, checkbox_state=None, single_select=single_select)
-            d = FolderSelector.FolderSelector(self.mgr.outlook.Session, ids, checkbox_state=None, single_select=single_select)
+            d = FolderSelector.FolderSelector(self.mgr, ids, checkbox_state=None, single_select=single_select)
             if d.DoModal()==win32con.IDOK:
                 new_ids, include_sub = d.GetSelectedIDs()
                 if not ids_are_list:
@@ -226,6 +225,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         slider.SetRange(0, 100, 0)
         slider.SetLineSize(1)
         slider.SetPageSize(5)
+        slider.SetTicFreq(10)
         self._AdjustSliderToEdit(idc_slider, idc_edit)
 
     def _AdjustSliderToEdit(self, idc_slider, idc_edit):
@@ -341,8 +341,7 @@ class FilterNowDialog(AsyncDialogBase):
         if code == win32con.BN_CLICKED:
             import FolderSelector
             filter = self.mgr.config.filter_now
-            # d = FolderSelector.FolderSelector(self.mgr.message_store.session, filter.folder_ids,checkbox_state=filter.include_sub)
-            d = FolderSelector.FolderSelector(self.mgr.outlook.Session,
+            d = FolderSelector.FolderSelector(self.mgr,
                                               filter.folder_ids,
                                               checkbox_state=filter.include_sub)
             if d.DoModal() == win32con.IDOK:
@@ -385,13 +384,17 @@ if __name__=='__main__':
     import msgstore
 
     class Config: pass
-    class Manager: pass
+    class Manager:
+        def FormatFolderNames(self, folder_ids, include_sub):
+            return "Folder 1; Folder 2"
+
     mgr = Manager()
     mgr.message_store = msgstore.MAPIMsgStore()
     mgr.config = config = Config()
     config.filter = Config()
-    config.filter.watch_folder_ids = [outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID]
-    config.filter.watch_folder_include_sub = True
+    inbox = outlook.Session.GetDefaultFolder(constants.olFolderInbox)
+    config.filter.watch_folder_ids = [(inbox.StoreID, inbox.EntryID)]
+    config.filter.watch_include_sub = True
     config.filter.spam_folder_id = ""
     config.filter.spam_action = "Mo"
     config.filter.spam_threshold = 80
@@ -399,14 +402,15 @@ if __name__=='__main__':
     config.filter.unsure_action = "No"
     config.filter.unsure_threshold = 20
     config.filter_now=Config()
-    config.filter_now.folder_ids = [outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID]
+    inbox = outlook.Session.GetDefaultFolder(constants.olFolderInbox)
+    config.filter_now.folder_ids = [(inbox.StoreID, inbox.EntryID)]
     config.filter_now.include_sub = True
     config.filter_now.only_unread = False
     config.filter_now.only_unseen = True
     config.filter_now.action_all = True
 
-    #tester = FilterArrivalsDialog
-    tester = FilterNowDialog
+    tester = FilterArrivalsDialog
+##    tester = FilterNowDialog
     d = tester(mgr, None)
     if d.DoModal() == win32con.IDOK:
         # do it again to make sure all config data is reflected.

@@ -41,6 +41,9 @@ class MsgStoreFolder:
     def __init__(self):
         self.name = "<folder>"
         self.count = 0
+    def GetParent(self):
+        # return a folder object with the parent, or None
+        raise NotImplementedError
     def GetMessageGenerator(self, folder):
         # Return a generator of MsgStoreMsg objects for the folder
         raise NotImplementedError
@@ -171,11 +174,16 @@ class MAPIMsgStore(MsgStore):
             store_id, item_id = item_id
             item_id = mapi.BinFromHex(item_id)
             if store_id is None:
+                # store_id=None was a "backwards compat" hack no longer
+                # need - it can go once we are *sure* we dont need it ;)
+                assert False, "We expect fully qualified IDs"
                 store_id = self.default_store_bin_eid
             else:
                 store_id = mapi.BinFromHex(store_id)
             return store_id, item_id
+        # See above - this branch can die (I think ;)
         assert type(item_id) in [type(''), type(u'')], "What kind of ID is '%r'?" % (item_id,)
+        assert False, "We expect fully qualified IDs"
         return self.default_store_bin_eid, mapi.BinFromHex(item_id)
 
     def _GetSubFolderIter(self, folder):
@@ -215,8 +223,10 @@ class MAPIMsgStore(MsgStore):
             folder_id = self.NormalizeID(folder_id)
         folder = self._OpenEntry(folder_id)
         table = folder.GetContentsTable(0)
-        rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
-        return MAPIMsgStoreFolder(self, folder_id, props[0][1],
+        # Ensure we have a long-term ID.
+        rc, props = folder.GetProps( (PR_ENTRYID, PR_DISPLAY_NAME_A), 0)
+        folder_id = folder_id[0], props[0][1]
+        return MAPIMsgStoreFolder(self, folder_id, props[1][1],
                                   table.GetRowCount(0))
 
     def GetMessage(self, message_id):
@@ -274,13 +284,35 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
     def GetID(self):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
 
+    def GetParent(self):
+        # return a folder object with the parent, or None
+        folder = self.msgstore._OpenEntry(self.id)
+        prop_ids = PR_PARENT_ENTRYID,
+        hr, data = folder.GetProps(prop_ids,0)
+        # Put parent ids together
+        parent_eid = data[0][1]
+        parent_id = self.id[0], parent_eid
+        if hr != 0 or \
+           self.msgstore.session.CompareEntryIDs(parent_eid, self.id[1]):
+            # No parent EID, or EID same as ours.
+            return None
+        parent = self.msgstore._OpenEntry(parent_id)
+        # Finally get the display name.
+        hr, data = folder.GetProps((PR_DISPLAY_NAME_A,), 0)
+        name = data[0][1]
+        count = parent.GetContentsTable(0).GetRowCount(0)
+        return MAPIMsgStoreFolder(self.msgstore, parent_id, name, count)
+
+    def OpenEntry(self, iid = None, flags = None):
+        return self.msgstore._OpenEntry(self.id, iid, flags)
+
     def GetOutlookItem(self):
         hex_item_id = mapi.HexFromBin(self.id[1])
         hex_store_id = mapi.HexFromBin(self.id[0])
         return self.msgstore.outlook.Session.GetFolderFromID(hex_item_id, hex_store_id)
 
     def GetMessageGenerator(self):
-        folder = self.msgstore._OpenEntry(self.id)
+        folder = self.OpenEntry()
         table = folder.GetContentsTable(0)
         # Limit ourselves to IPM.Note objects - ie, messages.
         restriction = (mapi.RES_PROPERTY,   # a property restriction
@@ -661,6 +693,53 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def CopyTo(self, folder):
         self._DoCopyMove(folder, False)
+    def GetFolder(self):
+        # return a folder object with the parent, or None
+        folder = self.msgstore._OpenEntry(self.id)
+        prop_ids = PR_PARENT_ENTRYID,
+        hr, data = folder.GetProps(prop_ids,0)
+        # Put parent ids together
+        parent_eid = data[0][1]
+        parent_id = self.id[0], parent_eid
+        parent = self.msgstore._OpenEntry(parent_id)
+        # Finally get the display name.
+        hr, data = folder.GetProps((PR_DISPLAY_NAME_A,), 0)
+        name = data[0][1]
+        count = parent.GetContentsTable(0).GetRowCount(0)
+        return MAPIMsgStoreFolder(self.msgstore, parent_id, name, count)
+
+    def RememberMessageCurrentFolder(self):
+        self._EnsureObject()
+        folder = self.GetFolder()
+        props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
+                  (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderID")
+                  )
+        resolve_ids = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
+        prop_ids = PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[0])), \
+                   PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[1]))
+
+        prop_tuples = (prop_ids[0],folder.id[0]), (prop_ids[1],folder.id[1])
+        self.mapi_object.SetProps(prop_tuples)
+        self.dirty = True
+
+    def GetRememberedFolder(self):
+        props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
+                  (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderID")
+                  )
+        try:
+            self._EnsureObject()
+            resolve_ids = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
+            prop_ids = PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[0])), \
+                       PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[1]))
+            hr, data = self.mapi_object.GetProps(prop_ids,0)
+            if hr != 0:
+                return None
+            (store_tag, store_id), (eid_tag, eid) = data
+            folder_id = mapi.HexFromBin(store_id), mapi.HexFromBin(eid)
+            return self.msgstore.GetFolder(folder_id)
+        except:
+            print "Error locating origin of message", self
+            return None
 
 def test():
     from win32com.client import Dispatch

@@ -51,7 +51,7 @@ def msg_train(h, msg, is_spam, force):
     except TypeError:
         # We'll be unable to represent this as text :(
         return False
-    
+
     if is_spam:
         spamtxt = "spam"
     else:
@@ -89,7 +89,7 @@ def maildir_train(h, path, is_spam, force):
     for fn in os.listdir(os.path.join(path, "cur")):
         counter += 1
         cfn = os.path.join(path, "cur", fn)
-        tfn = os.path.join(path, "tmp", 
+        tfn = os.path.join(path, "tmp",
                            "%d.%d_%d.%s" % (time.time(), pid,
                                             counter, host))
         if loud:
@@ -126,7 +126,7 @@ def mbox_train(h, path, is_spam, force):
     f = file(path, "r+b")
     fcntl.flock(f, fcntl.LOCK_EX)
     mbox = mailbox.PortableUnixMailbox(f, mboxutils.get_message)
-    
+
     outf = os.tmpfile()
     counter = 0
     trained = 0
@@ -172,10 +172,10 @@ def mhdir_train(h, path, is_spam, force):
 
     counter = 0
     trained = 0
-    
+
     for fn in glob.glob(os.path.join(path, "[0-9]*")):
         counter += 1
-        
+
         cfn = fn
         tfn = os.path.join(path, "spambayes.tmp")
         if loud:
@@ -189,7 +189,7 @@ def mhdir_train(h, path, is_spam, force):
         f = file(tfn, "wb")
         f.write(msg.as_string())
         f.close()
-        
+
         # XXX: This will raise an exception on Windows.  Do any Windows
         # people actually use MH directories?
         os.rename(tfn, cfn)
@@ -207,7 +207,7 @@ def train(h, path, is_spam, force):
         mhdir_train(h, path, is_spam, force)
     else:
         raise ValueError("Unable to determine mailbox type: " + path)
-    
+
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -221,7 +221,7 @@ def main():
     """Main program; parse options and go."""
 
     global loud
-    
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hfqd:D:g:s:')
     except getopt.error, msg:

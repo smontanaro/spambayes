@@ -9,7 +9,7 @@ try:
 except ImportError:
     import StringIO
 import ConfigParser
-try: 
+try:
     from sets import Set
 except ImportError:
     from spambayes.compatsets import Set
@@ -342,7 +342,18 @@ hammie_debug_header: False
 
 # Name of a debugging header for spambayes hackers, showing the strongest
 # clues that have resulted in the classification in the standard header.
-hammie_debug_header_name: X-Hammie-Debug
+hammie_debug_header_name: X-Spambayes-Debug
+
+# Train when filtering?  After filtering a message, hammie can then
+# train itself on the judgement (ham or spam).  This can speed things up
+# with a procmail-based solution.  If you do enable this, please make
+# sure to retrain any mistakes.  Otherwise, your word database will
+# slowly become useless.
+hammie_train_on_filter: False
+
+# When training on a message, the name of the header to add with how it
+# was trained
+hammie_trained_header: X-Spambayes-Trained
 
 # The range of clues that are added to the "debug" header in the E-mail
 # All clues that have their probability smaller than this number, or larger
@@ -373,8 +384,9 @@ pop3proxy_cache_expiry_days: 7
 pop3proxy_spam_cache: pop3proxy-spam-cache
 pop3proxy_ham_cache: pop3proxy-ham-cache
 pop3proxy_unknown_cache: pop3proxy-unknown-cache
-pop3proxy_persistent_use_database: False
+pop3proxy_persistent_use_database: True
 pop3proxy_persistent_storage_file: hammie.db
+pop3proxy_notate_to: True
 
 # Deprecated - use pop3proxy_servers and pop3proxy_ports instead.
 pop3proxy_server_name:
@@ -462,6 +474,8 @@ all_options = {
                'header_score_logarithm': boolean_cracker,
                'hammie_debug_header': boolean_cracker,
                'hammie_debug_header_name': string_cracker,
+               'hammie_train_on_filter': boolean_cracker,
+               'hammie_trained_header': string_cracker,
                },
     'hammiefilter' : {'hammiefilter_persistent_use_database': boolean_cracker,
                       'hammiefilter_persistent_storage_file': string_cracker,
@@ -478,6 +492,7 @@ all_options = {
                   'pop3proxy_unknown_cache': string_cracker,
                   'pop3proxy_persistent_use_database': boolean_cracker,
                   'pop3proxy_persistent_storage_file': string_cracker,
+                  'pop3proxy_notate_to': boolean_cracker,
                   },
     'html_ui': {'html_ui_port': int_cracker,
                 'html_ui_launch_browser': boolean_cracker,
@@ -531,6 +546,13 @@ class OptionsClass(object):
         self._config.write(output)
         return output.getvalue()
 
+
+# `optionsPathname` is the pathname of the last ini file in the list.
+# This is where the web-based configuration page will write its changes.
+# If no ini files are found, it defaults to bayescustomize.ini in the
+# current working directory.
+optionsPathname = None
+
 options = OptionsClass()
 
 d = StringIO.StringIO(defaults)
@@ -541,6 +563,18 @@ alternate = None
 if hasattr(os, 'getenv'):
     alternate = os.getenv('BAYESCUSTOMIZE')
 if alternate:
-    options.mergefiles(alternate.split())
+    filenames = alternate.split()
+    options.mergefiles(filenames)
+    optionsPathname = os.path.abspath(filenames[-1])
 else:
-    options.mergefiles(['bayescustomize.ini'])
+    alts = []
+    for path in ['bayescustomize.ini', '~/.spambayesrc']:
+        epath = os.path.expanduser(path)
+        if os.path.exists(epath):
+            alts.append(epath)
+    if alts:
+        options.mergefiles(alts)
+        optionsPathname = os.path.abspath(alts[-1])
+
+if not optionsPathname:
+    optionsPathname = os.path.abspath('bayescustomize.ini')

@@ -3,5 +3,7 @@
 *.db
 *.pik
 *.zip
+dist
 build
+MANIFEST
 Data

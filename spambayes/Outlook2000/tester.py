@@ -29,13 +29,36 @@ def WaitForFilters():
         pythoncom.PumpWaitingMessages()
         sleep(0.01)
 
+def DictExtractor(bayes):
+    for k, v in bayes.wordinfo.items():
+        yield k, v
+
+def DBExtractor(bayes):
+    import bsddb
+    key = bayes.dbm.first()[0]
+    if key not in ["saved state"]:
+        yield key, bayes._wordinfoget(key)
+    while True:
+        try:
+            key = bayes.dbm.next()[0]
+        except bsddb.error:
+            break
+        if key not in ["saved state"]:
+            yield key, bayes._wordinfoget(key)
+
 # Find the top 'n' words in the Spam database that are clearly
 # marked as either ham or spam.  Simply enumerates the
 # bayes word list looking for any word with zero count in the
 # non-requested category.
 def FindTopWords(bayes, num, get_spam):
     items = []
-    for word, info in bayes.wordinfo.items():
+    try:
+        bayes.db # bsddb style
+        extractor = DBExtractor
+    except AttributeError:
+        extractor = DictExtractor
+
+    for word, info in extractor(bayes):
         if ":" in word:
             continue
         if get_spam:

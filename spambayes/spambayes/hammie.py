@@ -17,7 +17,7 @@ class Hammie:
     """A spambayes mail filter.
 
     This implements the basic functionality needed to score, filter, or
-    train.  
+    train.
 
     """
 
@@ -61,7 +61,7 @@ class Hammie:
 
     def filter(self, msg, header=None, spam_cutoff=None,
                ham_cutoff=None, debugheader=None,
-               debug=None):
+               debug=None, train=None):
         """Score (judge) a message and add a disposition header.
 
         msg can be a string, a file object, or a Message object.
@@ -72,6 +72,12 @@ class Hammie:
 
         An extra debugging header can be added if 'debug' is set to True.
         The name of the debugging header is given as 'debugheader'.
+
+        If 'train' is True, also train on the result of scoring the
+        message (ie. train as ham if it's ham, train as spam if it's
+        spam).  If the message already has a trained header, it will be
+        untrained first.  You'll want to be very dilligent about
+        retraining mistakes if you use this option.
 
         All defaults for optional parameters come from the Options file.
 
@@ -89,19 +95,28 @@ class Hammie:
             debugheader = options.hammie_debug_header_name
         if debug == None:
             debug = options.hammie_debug_header
+        if train == None:
+            train = options.hammie_train_on_filter
 
         msg = mboxutils.get_message(msg)
         try:
             del msg[header]
         except KeyError:
             pass
+        if train:
+            self.untrain_from_header(msg)
         prob, clues = self._scoremsg(msg, True)
         if prob < ham_cutoff:
+            is_spam = False
             disp = options.header_ham_string
         elif prob > spam_cutoff:
+            is_spam = True
             disp = options.header_spam_string
         else:
+            is_spam = False
             disp = options.header_unsure_string
+        if train:
+            self.train(msg, is_spam, True)
         disp += ("; %."+str(options.header_score_digits)+"f") % prob
         if options.header_score_logarithm:
             if prob<=0.005 and prob>0.0:
@@ -112,54 +127,97 @@ class Hammie:
                 import math
                 x=-math.log10(1.0-prob)
                 disp += " (%d)"%x
+        del msg[header]
         msg.add_header(header, disp)
         if debug:
             disp = self.formatclues(clues)
+            del msg[debugheader]
             msg.add_header(debugheader, disp)
         return msg.as_string(unixfrom=(msg.get_unixfrom() is not None))
 
-    def train(self, msg, is_spam):
+    def train(self, msg, is_spam, add_header=False):
         """Train bayes with a message.
 
         msg can be a string, a file object, or a Message object.
 
         is_spam should be 1 if the message is spam, 0 if not.
 
+        If add_header is True, add a header with how it was trained (in
+        case we need to untrain later)
+
         """
 
         self.bayes.learn(tokenize(msg), is_spam)
+        if add_header:
+            if is_spam:
+                trained = options.header_spam_string
+            else:
+                trained = options.header_ham_string
+            del msg[options.hammie_trained_header]
+            msg.add_header(options.hammie_trained_header, trained)
 
     def untrain(self, msg, is_spam):
         """Untrain bayes with a message.
 
         msg can be a string, a file object, or a Message object.
 
-        is_spam should be 1 if the message is spam, 0 if not.
+        is_spam should be True if the message is spam, False if not.
 
         """
 
         self.bayes.unlearn(tokenize(msg), is_spam)
 
-    def train_ham(self, msg):
+    def untrain_from_header(self, msg):
+        """Untrain bayes based on X-Spambayes-Trained header.
+
+        msg can be a string, a file object, or a Message object.
+
+        If no such header is present, nothing happens.
+
+        If add_header is True, add a header with how it was trained (in
+        case we need to untrain later)
+
+        """
+
+        msg = mboxutils.get_message(msg)
+        trained = msg.get(options.hammie_trained_header)
+        if not trained:
+            return
+        del msg[options.hammie_trained_header]
+        if trained == options.header_ham_string:
+            self.untrain_ham(msg)
+        elif trained == options.header_spam_string:
+            self.untrain_spam(msg)
+        else:
+            raise ValueError('%s header value unrecognized'
+                             % options.hammie_trained_header)
+
+    def train_ham(self, msg, add_header=False):
         """Train bayes with ham.
 
         msg can be a string, a file object, or a Message object.
 
+        If add_header is True, add a header with how it was trained (in
+        case we need to untrain later)
+
         """
 
-        self.train(msg, False)
+        self.train(msg, False, add_header)
 
-    def train_spam(self, msg):
+    def train_spam(self, msg, add_header=False):
         """Train bayes with spam.
 
         msg can be a string, a file object, or a Message object.
 
+        If add_header is True, add a header with how it was trained (in
+        case we need to untrain later)
+
         """
 
-        self.train(msg, True)
+        self.train(msg, True, add_header)
 
     def untrain_ham(self, msg):
-        """Untrain bayes with ham.
+        """Untrain bayes with a message previously trained as ham.
 
         msg can be a string, a file object, or a Message object.
 
@@ -167,8 +225,8 @@ class Hammie:
 
         self.untrain(msg, False)
 
-    def train_spam(self, msg):
-        """Untrain bayes with spam.
+    def untrain_spam(self, msg):
+        """Untrain bayes with a message previously traned as spam.
 
         msg can be a string, a file object, or a Message object.
 

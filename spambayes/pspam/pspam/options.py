@@ -1,6 +1,6 @@
 from spambayes.Options import options, all_options, \
      boolean_cracker, float_cracker, int_cracker, string_cracker
-try: 
+try:
     from sets import Set
 except ImportError:
     from spambayes.compatsets import Set
