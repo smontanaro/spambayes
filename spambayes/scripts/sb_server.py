@@ -108,11 +108,11 @@ import os, sys, re, errno, getopt, time, traceback, socket, cStringIO, email
 from thread import start_new_thread
 from email.Header import Header
 
-import spambayes.message
 from spambayes import i18n
 from spambayes import Stats
 from spambayes import Dibbler
 from spambayes import storage
+from spambayes import message
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options, get_pathname_option
@@ -493,7 +493,7 @@ class BayesProxy(POP3ProxyBase):
 
         try:
             msg = email.message_from_string(messageText,
-                      _class=spambayes.message.SBHeaderMessage)
+                      _class=message.SBHeaderMessage)
             msg.setId(state.getNewMessageName())
             # Now find the spam disposition and add the header.
             (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
@@ -561,7 +561,7 @@ class BayesProxy(POP3ProxyBase):
             # report the exception in a hand-appended header and recover.
             # This is one case where an unqualified 'except' is OK, 'cos
             # anything's better than destroying people's email...
-            messageText, details = spambayes.message.\
+            messageText, details = message.\
                                    insert_exception_header(messageText)
 
             # Print the exception and a traceback.
