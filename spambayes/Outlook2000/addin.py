@@ -253,8 +253,25 @@ def ShowClues(mgr, explorer):
     msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
     push(escape(msg.as_string(), True))
     push("</PRE>\n")
+    # Show all the tokens in the message
+    from spambayes.tokenizer import tokenize
+    from spambayes.classifier import Set # whatever classifier uses
+    push("<h2>Message Tokens:</h2><br>")
+    # need to re-fetch, as the tokens we see may be different based on
+    # header stripping.
+    toks = Set(tokenize(
+        msgstore_message.GetEmailPackageObject(strip_mime_headers=True)))
+    # create a sorted list
+    toks = [tok for tok in toks]
+    toks.sort()
+    push("%d unique tokens<br>" % len(toks))
+    # Use <code> instead of <pre>, as <pre> is not word-wrapped by IE
+    # However, <code> does not require escaping.
+    # could use pprint, but not worth it.
+    for token in toks:
+        push("<code>" + repr(token) + "</code>, ")
+    # Put the body together, then the rest of the message.
     body = ''.join(body)
-
     new_msg.Subject = "Spam Clues: " + item.Subject
     # As above, use HTMLBody else Outlook refuses to behave.
     new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
@@ -346,8 +363,12 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         import train
         for msgstore_message in msgstore_messages:
             # Recover where they were moved from
+            # During experimenting/playing/debugging, it is possible
+            # that the source folder == dest folder - restore to
+            # the inbox in this case.
             restore_folder = msgstore_message.GetRememberedFolder()
-            if restore_folder is None:
+            if restore_folder is None or \
+               msgstore_message.GetFolder() == restore_folder:
                 restore_folder = inbox_folder
 
             # Must train before moving, else we lose the message!
@@ -358,7 +379,6 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             else:
                 print "already was trained as ham"
             # Now move it.
-            # XXX - still don't write the source, so no point looking :(
             msgstore_message.MoveTo(restore_folder)
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
