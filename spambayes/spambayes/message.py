@@ -141,20 +141,18 @@ class Message(email.Message.Message):
         
     def setPayload(self, payload):
         prs = email.Parser.Parser()
+        fp = StringIO(payload)
         # this is kindof a hack, due to the fact that the parser creates a
         # new message object, and we already have the message object
-        prs._parseheaders(self, StringIO(payload))
+        prs._parseheaders(self, fp)
         # we may want to do some header parsing error handling here
         # to try to extract important headers regardless of malformations
-        prs._parsebody(self, StringIO(payload))
+        prs._parsebody(self, fp)
         
     def setId(self, id):
         if self.id:
             raise ValueError, "MsgId has already been set, cannot be changed"
 
-        # XXX This isn't really needed since type(None) is not
-        # XXX in types.StringTypes - do we still want it for the
-        # XXX more informative error message?
         if id is None:
             raise ValueError, "MsgId must not be None"
 
@@ -169,8 +167,6 @@ class Message(email.Message.Message):
         return self.id
 
     def asTokens(self):
-        # use as_string() here because multipart/digest will return
-        # a list of message objects if get_payload() is used
         return tokenize(self.as_string())
         
     def modified(self):
@@ -198,8 +194,11 @@ class Message(email.Message.Message):
             self.c = 's'
         elif cls == options.header_ham_string:
             self.c = 'h'
-        else:
+        elif cls == options.header_unsure_string:
             self.c = 'u'
+        else:
+            raise ValueError, \
+                  "Classification must match header strings in options"
 
         self.modified()
 
@@ -212,7 +211,7 @@ class Message(email.Message.Message):
         self.modified()
          
     def __repr__(self):
-        return "core.Message%r" % repr(self.__getstate__())
+        return "spambayes.message.Message%r" % repr(self.__getstate__())
 
     def __getstate__(self):
         return (self.id, self.c, self.t)
