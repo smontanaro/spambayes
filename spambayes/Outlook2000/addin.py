@@ -1313,6 +1313,22 @@ class OutlookAddin:
             if existing is None or existing.__class__ != HandlerClass:
                 folder = msgstore_folder.GetOutlookItem()
                 name = msgstore_folder.GetFQName()
+                # Ensure the field is created before we hook the folder
+                # events, else there is a chance our event handler will
+                # see the temporary message we create.
+                try:
+                    self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
+                except:
+                    # An exception checking that Outlook's folder has a
+                    # 'spam' field is not fatal, nor really even worth
+                    # telling the user about, nor even worth a traceback
+                    # (as it is likely a COM error).
+                    print "ERROR: Failed to check folder '%s' for " \
+                          "Spam field" % name
+                    etype, value, tb = sys.exc_info()
+                    tb = None # dont want it, and nuke circular ref
+                    traceback.print_exception(etype, value, tb)
+                # now setup the hook.
                 try:
                     new_hook = DispatchWithEvents(folder.Items, HandlerClass)
                 except ValueError:
@@ -1321,18 +1337,6 @@ class OutlookAddin:
                 if new_hook is not None:
                     new_hook.Init(msgstore_folder, self.application, self.manager)
                     new_hooks[msgstore_folder.id] = new_hook
-                    try:
-                        self.manager.EnsureOutlookFieldsForFolder(msgstore_folder.GetID())
-                    except:
-                        # An exception checking that Outlook's folder has a
-                        # 'spam' field is not fatal, nor really even worth
-                        # telling the user about, nor even worth a traceback
-                        # (as it is likely a COM error).
-                        print "ERROR: Failed to check folder '%s' for " \
-                              "Spam field" % name
-                        etype, value, tb = sys.exc_info()
-                        tb = None # dont want it, and nuke circular ref
-                        traceback.print_exception(etype, value, tb)
                     print "SpamBayes: Watching for new messages in folder", name
             else:
                 new_hooks[msgstore_folder.id] = existing
