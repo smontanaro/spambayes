@@ -76,6 +76,9 @@ Yeah, Page Templates are a bit more clever, sadly, DTML methods aren't :-(
 Chris
 """
 
+malformed1 = """From: ta-meyer@ihug.co.nz
+Subject: No body, and no separator"""
+
 import asyncore
 import socket
 import operator
@@ -122,7 +125,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         # hence the two-stage construction.
         Dibbler.BrighterAsyncChat.__init__(self, map=socketMap)
         Dibbler.BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
-        self.maildrop = [spam1, good1]
+        self.maildrop = [spam1, good1, malformed1]
         self.set_terminator('\r\n')
         self.okCommands = ['USER', 'PASS', 'APOP', 'NOOP', 'SLOW',
                            'DELE', 'RSET', 'QUIT', 'KILL']
@@ -218,7 +221,10 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         """Implements the POP3 RETR and TOP commands."""
         if 0 < number <= len(self.maildrop):
             message = self.maildrop[number-1]
-            headers, body = message.split('\n\n', 1)
+            try:
+                headers, body = message.split('\n\n', 1)
+            except ValueError:
+                return "+OK\r\n%s\r\n.\r\n" % message
             bodyLines = body.split('\n')[:maxLines]
             message = headers + '\r\n\r\n' + '\n'.join(bodyLines)
             return "+OK\r\n%s\r\n.\r\n" % message
@@ -313,7 +319,7 @@ def test():
     proxy.send("stat\r\n")
     response = proxy.recv(100)
     count, totalSize = map(int, response.split()[1:3])
-    assert count == 2
+    assert count == 3
 
     # Loop through the messages ensuring that they have judgement
     # headers.

@@ -456,112 +456,124 @@ class BayesProxy(POP3ProxyBase):
     def onRetr(self, command, args, response):
         """Adds the judgement header based on the raw headers and body
         of the message."""
-        # Use '\n\r?\n' to detect the end of the headers in case of
-        # broken emails that don't use the proper line separators.
-        if re.search(r'\n\r?\n', response):
-            # Remove the trailing .\r\n before passing to the email parser.
-            # Thanks to Scott Schlesier for this fix.
-            terminatingDotPresent = (response[-4:] == '\n.\r\n')
-            if terminatingDotPresent:
-                response = response[:-3]
+        # Previously, we used '\n\r?\n' to detect the end of the headers in
+        # case of broken emails that don't use the proper line separators,
+        # and if we couldn't find it, then we assumed that the response was
+        # and error response and passed it unfiltered.  However, if the
+        # message doesn't contain the separator (malformed mail), then this
+        # would mean the message was passed straight through the proxy.
+        # Since all the content is then in the headers, this probably
+        # doesn't do a spammer much good, but, just in case, we now just
+        # check for "+OK" and assume no error response will be given if
+        # that is (which seems reasonable).
+        # Remove the trailing .\r\n before passing to the email parser.
+        # Thanks to Scott Schlesier for this fix.
+        terminatingDotPresent = (response[-4:] == '\n.\r\n')
+        if terminatingDotPresent:
+            response = response[:-3]
 
-            # Break off the first line, which will be '+OK'.
-            ok, messageText = response.split('\n', 1)
-
-            try:
-                msg = email.message_from_string(messageText,
-                          _class=spambayes.message.SBHeaderMessage)
-                msg.setId(state.getNewMessageName())
-                # Now find the spam disposition and add the header.
-                (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
-                                 evidence=True)
-
-                msg.addSBHeaders(prob, clues)
-
-                # Check for "RETR" or "TOP N 99999999" - fetchmail without
-                # the 'fetchall' option uses the latter to retrieve messages.
-                if (command == 'RETR' or
-                    (command == 'TOP' and
-                     len(args) == 2 and args[1] == '99999999')):
-                    cls = msg.GetClassification()
-                    if cls == options["Headers", "header_ham_string"]:
-                        state.numHams += 1
-                    elif cls == options["Headers", "header_spam_string"]:
-                        state.numSpams += 1
-                    else:
-                        state.numUnsure += 1
-
-                    # Suppress caching of "Precedence: bulk" or
-                    # "Precedence: list" ham if the options say so.
-                    isSuppressedBulkHam = \
-                        (cls == options["Headers", "header_ham_string"] and
-                         options["Storage", "no_cache_bulk_ham"] and
-                         msg.get('precedence') in ['bulk', 'list'])
-
-                    # Suppress large messages if the options say so.
-                    size_limit = options["Storage",
-                                         "no_cache_large_messages"]
-                    isTooBig = size_limit > 0 and \
-                               len(messageText) > size_limit
-
-                    # Cache the message.  Don't pollute the cache with test
-                    # messages or suppressed bulk ham.
-                    if (not state.isTest and
-                        options["Storage", "cache_messages"] and
-                        not isSuppressedBulkHam and not isTooBig):
-                        # Write the message into the Unknown cache.
-                        makeMessage = state.unknownCorpus.makeMessage
-                        message = makeMessage(msg.getId(), msg.as_string())
-                        state.unknownCorpus.addMessage(message)
-
-                # We'll return the message with the headers added.  We take
-                # all the headers from the SBHeaderMessage, but take the body
-                # directly from the POP3 conversation, because the
-                # SBHeaderMessage might have "fixed" a partial message by
-                # appending a closing boundary separator.  Remember we can
-                # be dealing with partial message here because of the timeout
-                # code in onServerLine.
-                headers = []
-                for name, value in msg.items():
-                    header = "%s: %s" % (name, value)
-                    headers.append(re.sub(r'\r?\n', '\r\n', header))
-                body = re.split(r'\n\r?\n', messageText, 1)[1]
-                messageText = "\r\n".join(headers) + "\r\n\r\n" + body
-            except:
-                # Something nasty happened while parsing or classifying -
-                # report the exception in a hand-appended header and recover.
-                # This is one case where an unqualified 'except' is OK, 'cos
-                # anything's better than destroying people's email...
-                stream = cStringIO.StringIO()
-                traceback.print_exc(None, stream)
-                details = stream.getvalue()
-
-                # Build the header.  This will strip leading whitespace from
-                # the lines, so we add a leading dot to maintain indentation.
-                detailLines = details.strip().split('\n')
-                dottedDetails = '\n.'.join(detailLines)
-                headerName = 'X-Spambayes-Exception'
-                header = Header(dottedDetails, header_name=headerName)
-
-                # Insert the header, converting email.Header's '\n' line
-                # breaks to POP3's '\r\n'.
-                headers, body = re.split(r'\n\r?\n', messageText, 1)
-                header = re.sub(r'\r?\n', '\r\n', str(header))
-                headers += "\n%s: %s\r\n\r\n" % (headerName, header)
-                messageText = headers + body
-
-                # Print the exception and a traceback.
-                print >>sys.stderr, details
-
-            # Restore the +OK and the POP3 .\r\n terminator if there was one.
-            retval = ok + "\n" + messageText
-            if terminatingDotPresent:
-                retval += '.\r\n'
-            return retval
-
-        else:
-            # Must be an error response.
+        # Break off the first line, which will be '+OK'.
+        ok, messageText = response.split('\n', 1)
+        if ok.strip().upper() != "+OK":
+            # Must be an error response.  Return unproxied.
             return response
+
+        try:
+            msg = email.message_from_string(messageText,
+                      _class=spambayes.message.SBHeaderMessage)
+            msg.setId(state.getNewMessageName())
+            # Now find the spam disposition and add the header.
+            (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
+                             evidence=True)
+
+            msg.addSBHeaders(prob, clues)
+
+            # Check for "RETR" or "TOP N 99999999" - fetchmail without
+            # the 'fetchall' option uses the latter to retrieve messages.
+            if (command == 'RETR' or
+                (command == 'TOP' and
+                 len(args) == 2 and args[1] == '99999999')):
+                cls = msg.GetClassification()
+                if cls == options["Headers", "header_ham_string"]:
+                    state.numHams += 1
+                elif cls == options["Headers", "header_spam_string"]:
+                    state.numSpams += 1
+                else:
+                    state.numUnsure += 1
+
+                # Suppress caching of "Precedence: bulk" or
+                # "Precedence: list" ham if the options say so.
+                isSuppressedBulkHam = \
+                    (cls == options["Headers", "header_ham_string"] and
+                     options["Storage", "no_cache_bulk_ham"] and
+                     msg.get('precedence') in ['bulk', 'list'])
+
+                # Suppress large messages if the options say so.
+                size_limit = options["Storage",
+                                     "no_cache_large_messages"]
+                isTooBig = size_limit > 0 and \
+                           len(messageText) > size_limit
+
+                # Cache the message.  Don't pollute the cache with test
+                # messages or suppressed bulk ham.
+                if (not state.isTest and
+                    options["Storage", "cache_messages"] and
+                    not isSuppressedBulkHam and not isTooBig):
+                    # Write the message into the Unknown cache.
+                    makeMessage = state.unknownCorpus.makeMessage
+                    message = makeMessage(msg.getId(), msg.as_string())
+                    state.unknownCorpus.addMessage(message)
+
+            # We'll return the message with the headers added.  We take
+            # all the headers from the SBHeaderMessage, but take the body
+            # directly from the POP3 conversation, because the
+            # SBHeaderMessage might have "fixed" a partial message by
+            # appending a closing boundary separator.  Remember we can
+            # be dealing with partial message here because of the timeout
+            # code in onServerLine.
+            headers = []
+            for name, value in msg.items():
+                header = "%s: %s" % (name, value)
+                headers.append(re.sub(r'\r?\n', '\r\n', header))
+            try:
+                body = re.split(r'\n\r?\n', messageText, 1)[1]
+            except IndexError:
+                # No separator, so no body.  Bad message, but proxy it
+                # through anyway (adding the missing separator).
+                messageText = "\r\n".join(headers) + "\r\n\r\n"
+            else:
+                messageText = "\r\n".join(headers) + "\r\n\r\n" + body
+        except:
+            # Something nasty happened while parsing or classifying -
+            # report the exception in a hand-appended header and recover.
+            # This is one case where an unqualified 'except' is OK, 'cos
+            # anything's better than destroying people's email...
+            stream = cStringIO.StringIO()
+            traceback.print_exc(None, stream)
+            details = stream.getvalue()
+
+            # Build the header.  This will strip leading whitespace from
+            # the lines, so we add a leading dot to maintain indentation.
+            detailLines = details.strip().split('\n')
+            dottedDetails = '\n.'.join(detailLines)
+            headerName = 'X-Spambayes-Exception'
+            header = Header(dottedDetails, header_name=headerName)
+
+            # Insert the header, converting email.Header's '\n' line
+            # breaks to POP3's '\r\n'.
+            headers, body = re.split(r'\n\r?\n', messageText, 1)
+            header = re.sub(r'\r?\n', '\r\n', str(header))
+            headers += "\n%s: %s\r\n\r\n" % (headerName, header)
+            messageText = headers + body
+
+            # Print the exception and a traceback.
+            print >>sys.stderr, details
+
+        # Restore the +OK and the POP3 .\r\n terminator if there was one.
+        retval = ok + "\n" + messageText
+        if terminatingDotPresent:
+            retval += '.\r\n'
+        return retval
 
     def onTop(self, command, args, response):
         """Adds the judgement header based on the raw headers and as
@@ -655,6 +667,7 @@ class State:
         # Open the log file.
         if options["globals", "verbose"]:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
+
         self.servers = []
         self.proxyPorts = []
         if options["pop3proxy", "remote_servers"]:
