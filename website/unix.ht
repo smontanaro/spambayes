@@ -19,10 +19,36 @@ mail setup.
 delivery agent and your email package picks up your primary mail from a
 local spool file (e.g. <code>/var/spool/mail</code>), you will probably find
 hammiefilter.py the easiest application to integrate into your mail
-environment.  Details are available in the <a
+environment.</p>
+<p>An example setup is as follows (thanks to Alister Forbes for contributing this):
+<ol>
+<li>Install spambayes with the usual <pre>setup.py install</pre></li>
+<li>Create the database that spambayes will use to test your incoming mail:
+<pre>/usr/local/bin/hammiefilter.py -d $HOME/.hammie.db -n</pre></li>
+<li>Train it on your existing mail. This is optional, but a good idea. -g is the flag for the known good mail, and -s is for known spam 
+<pre>/usr/local/bin/mboxtrain.py -d $HOME/.hammiedb -g $HOME/Mail/inbox -s $HOME/Mail/spam</pre></li>
+<li>Adding the following recipes to the top of your .procmailrc will get the spam and unsure stuff out of the way. Allowing everything else to be filtered as per your normal procmail recipes.
+<pre>
+      :0fw:hamlock
+      | /usr/local/bin/hammiefilter.py
+
+      :0
+      * ^X-Spambayes-Classification: spam 
+      ${MAILDIR}/spam
+      
+      :0
+      * ^X-Spambayes-Classification: unsure
+      ${MAILDIR}/unsure
+</pre>
+</li>
+<li>For ongoing training, there is a handy little cronjob that will run at 2:21 am every morning, training the database with good mail from Inbox and spam from caughtspam. Just add the following to your crontab
+<pre>21 2 * * * /usr/local/bin/mboxtrain.py -d $HOME/.hammiedb -g $HOME/Mail/Inbox -s $HOME/Mail/spam</pre>
+</li>
+</ol>
+</p>
+<p>Additional details are available in the <a
 href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">Hammie
-integration guide</a>. (XXX: More of what's there needs to be incorporated
-here.)</p>
+integration guide</a>.</p>
 
 <h2>POP3</h2>
 
