@@ -256,18 +256,6 @@ class IMAPMessage(message.SBHeaderMessage):
             print "Invalid response to %s:\n%s" % (command, response)
             sys.exit(-1)
 
-    def _force_CRLF(self, data):
-        """Make sure data uses CRLF for line termination."""
-        return CRLF_RE.sub('\r\n', data)
-
-    def as_string(self):
-        # The email package stores line endings in the "internal" Python
-        # format ('\n').  It is up to whoever transmits that information to
-        # convert to appropriate line endings (according to RFC822, that is
-        # \r\n *only*).  imaplib *should* take care of this for us (in the
-        # append function), but does not, so we do it here
-        return self._force_CRLF(message.SBHeaderMessage.as_string(self))
-        
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
         # a timestamp for the message.  If the message has a valid date
