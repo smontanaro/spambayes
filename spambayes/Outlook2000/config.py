@@ -157,7 +157,7 @@ defaults = {
     ("spam_action", "The action to take for new spam", "Untouched",
         """""",
         FILTER_ACTION, RESTORE),
-    ("spam_mark_as_read", "Should filtered spam also be marked as 'read'", True,
+    ("spam_mark_as_read", "Should filtered spam also be marked as 'read'", False,
         """Determines if spam messages are marked as 'Read' as they are
         filtered.  This can be set to 'True' if the new-mail icon bothers
         you when the only new items are spam.  It can be set to 'False'
