@@ -419,7 +419,9 @@ class BayesProxy(POP3ProxyBase):
         # broken emails that don't use the proper line separators.
         if re.search(r'\n\r?\n', response):
             # Remove the trailing .\r\n before passing to the email parser.
-            if response[-3:] == '.\r\n':
+            # Thanks to Scott Schlesier for this fix.
+            terminatingDotPresent = (response[-4:] == '\n.\r\n')
+            if terminatingDotPresent:
                 response = response[:-3]
 
             # Break off the first line, which will be '+OK'.
@@ -452,8 +454,20 @@ class BayesProxy(POP3ProxyBase):
                         message.setSubstance(msg.as_string())
                         state.unknownCorpus.addMessage(message)
 
-                # We'll return the message with the header added.
-                messageText = msg.as_string()
+                # We'll return the message with the headers added.  We take
+                # all the headers from the SBHeaderMessage, but take the body
+                # directly from the POP3 conversation, because the
+                # SBHeaderMessage might have "fixed" a partial message by
+                # appending a closing boundary separator.  Remember we can
+                # be dealing with partial message here because of the timeout
+                # code in onServerLine.
+                headers = []
+                for name, value in msg.items():
+                    enc = Header(value, header_name=name, continuation_ws='\t')
+                    header = "%s: %s" % (name, str(enc))
+                    headers.append(re.sub(r'\r?\n', '\r\n', header))
+                body = re.split(r'\n\r?\n', messageText, 1)[1]
+                messageText = "\r\n".join(headers) + "\r\n\r\n" + body
 
             except:
                 # Something nasty happened while parsing or classifying -
@@ -470,24 +484,17 @@ class BayesProxy(POP3ProxyBase):
                 header = Header(details, header_name=headerName,
                                          continuation_ws='\t')
 
-                # Insert the header, fixing up the fact that email.Header
-                # splits the lines using \n rather than \r\n (and being
-                # paranoid about that possibly changing in the future).
+                # Insert the header, converting email.Header's '\n' line
+                # breaks to POP3's '\r\n'.
                 headers, body = re.split(r'\n\r?\n', messageText, 1)
-                fixed = str(header).replace('\r\n', '\n').replace('\n', '\r\n')
-                headers += "\n%s: %s\r\n\r\n" % (headerName, fixed)
+                header = re.sub(r'\r?\n', '\r\n', str(header))
+                headers += "\n%s: %s\r\n\r\n" % (headerName, header)
                 messageText = headers + body
 
-            # Restore the +OK and the full POP3 \r\n.\r\n terminator.  We
-            # need to make sure the first \r\n is there as well as the
-            # trailing .\r\n because the email parser can fix broken messages
-            # by adding a trailing boundary without a \r\n.  Thanks to Scott
-            # Schlesier for this fix.
+            # Restore the +OK and the POP3 .\r\n terminator if there was one.
             retval = ok + "\n" + messageText
-            if retval[-2:] == '\r\n':
+            if terminatingDotPresent:
                 retval += '.\r\n'
-            else:
-                retval += '\r\n.\r\n'
             return retval
 
         else:
