@@ -21,8 +21,11 @@ from win32com.client import gencache, DispatchWithEvents, Dispatch
 import win32api
 import pythoncom
 from win32com.client import constants, getevents
+import win32ui
 
 import win32gui, win32con, win32clipboard # for button images!
+
+toolbar_name = "SpamBayes"
 
 # If we are not running in a console, redirect all print statements to the
 # win32traceutil collector.
@@ -236,8 +239,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                     # idiot at the other end of the mouse <wink>)
                     print "already was trained as spam"
                 assert train.been_trained_as_spam(msgstore_message, self.manager)
-            # And if the DB can save itself incrementally, do it now
-            self.manager.SaveBayesPostIncrementalTrain()
+                # And if the DB can save itself incrementally, do it now
+                self.manager.SaveBayesPostIncrementalTrain()
 
 # Event function fired from the "Show Clues" UI items.
 def ShowClues(mgr, explorer):
@@ -347,6 +350,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
             return
+        win32ui.DoWaitCursor(1)
         # Delete this item as spam.
         spam_folder_id = self.manager.config.filter.spam_folder_id
         spam_folder = msgstore.GetFolder(spam_folder_id)
@@ -358,7 +362,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         for msgstore_message in msgstore_messages:
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
-            print "Deleting and spam training message '%s' - " % (subject,),
+            print "Moving and spam training message '%s' - " % (subject,),
             if train.train_message(msgstore_message, True, self.manager, rescore = True):
                 print "trained as spam"
             else:
@@ -369,6 +373,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
         self.manager.SaveBayesPostIncrementalTrain()
+        win32ui.DoWaitCursor(0)
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
     def Init(self, manager, explorer):
@@ -387,6 +392,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
             return
+        win32ui.DoWaitCursor(1)
         # Get the inbox as the default place to restore to
         # (incase we dont know (early code) or folder removed etc
         app = self.explorer.Application
@@ -416,6 +422,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
         self.manager.SaveBayesPostIncrementalTrain()
+        win32ui.DoWaitCursor(0)
 
 # Helpers to work with images on buttons/toolbars.
 def SetButtonImage(button, fname, manager):
@@ -444,38 +451,38 @@ class ExplorerWithEvents:
         self.manager = manager
         self.have_setup_ui = False
         self.explorer_list = explorer_list
+        self.toolbar = None
         self.buttons = []
 
     def SetupUI(self):
         manager = self.manager
         self.buttons = []
         activeExplorer = self
-        bars = activeExplorer.CommandBars
-        toolbar = bars.Item("Standard")
+        assert self.toolbar is None, "Should not yet have a toolbar"
         # Add our "Delete as ..." and "Recover as" buttons
         self.but_delete_as = self._AddControl(
-                        toolbar,
+                        None,
                         constants.msoControlButton,
                         ButtonDeleteAsSpamEvent, (self.manager, self),
-                        BeginGroup = True,
-                        Tag = "SpamBayes.DeleteAsSpam")
+                        BeginGroup = False,
+                        Tag = "SpamBayesCommand.DeleteAsSpam")
         # And again for "Recover as"
         self.but_recover_as = self._AddControl(
-                        toolbar,
+                        None,
                         constants.msoControlButton,
                         ButtonRecoverFromSpamEvent, (self.manager, self),
-                        Tag = "SpamBayes.RecoverFromSpam")
+                        Tag = "SpamBayesCommand.RecoverFromSpam")
 
         # The main tool-bar dropdown with all our entries.
         # Add a pop-up menu to the toolbar
         popup = self._AddControl(
-                        toolbar,
+                        None,
                         constants.msoControlPopup,
                         None, None,
                         Caption="Anti-Spam",
                         TooltipText = "Anti-Spam filters and functions",
                         Enabled = True,
-                        Tag = "SpamBayes.Popup")
+                        Tag = "SpamBayesCommand.Popup")
         # Convert from "CommandBarItem" to derived
         # "CommandBarPopup" Not sure if we should be able to work
         # this out ourselves, but no introspection I tried seemed
@@ -489,13 +496,15 @@ class ExplorerWithEvents:
                        Caption="Anti-Spam Manager...",
                        TooltipText = "Show the Anti-Spam manager dialog.",
                        Enabled = True,
-                       Tag = "SpamBayes.Manager")
+                       Visible=True,
+                       Tag = "SpamBayesCommand.Manager")
         self._AddControl(popup,
                        constants.msoControlButton,
                        ButtonEvent, (ShowClues, self.manager, self),
                        Caption="Show spam clues for current message",
                        Enabled=True,
-                       Tag = "SpamBayes.Clues")
+                       Visible=True,
+                       Tag = "SpamBayesCommand.Clues")
         # If we are running from Python sources, enable a few extra items
         if not hasattr(sys, "frozen"):
             self._AddControl(popup,
@@ -503,7 +512,8 @@ class ExplorerWithEvents:
                            ButtonEvent, (Tester, self.manager),
                            Caption="Execute test suite",
                            Enabled=True,
-                           Tag = "SpamBayes.TestSuite")
+                           Visible=True,
+                           Tag = "SpamBayesCommand.TestSuite")
         self.have_setup_ui = True
 
     def _AddControl(self,
@@ -511,28 +521,57 @@ class ExplorerWithEvents:
                     control_type, # type of control to add.
                     events_class, events_init_args, # class/Init() args
                     **item_attrs): # extra control attributes.
-        # Sigh - sometimes our toolbar etc items will become
-        # permanent, even though we make them temporary.
-        # I found
+        # Outlook Toolbars suck :)
+        # We have tried a number of options: temp/perm in the standard toolbar,
+        # Always creating our own toolbar, etc.
+        # This seems to be fairly common:
         # http://groups.google.com/groups?threadm=eKKmbvQvAHA.1808%40tkmsftngp02
-        # Maybe we should consider making them permanent - this would then
-        # allow the user to drag them around the toolbars and have them
-        # stick.  The downside is that should the user uninstall this addin
-        # there is no clean way to remove the buttons.  Do we even care?
+        # Now the strategy is just to use our own, permanent toolbar, with
+        # permanent items, and ignore uninstall issues.
+        # We search all commandbars for a control with our Tag.  If found, we
+        # use it (the user may have customized the bar and moved our buttons
+        # elsewhere).  If we can not find the child control, we then try and
+        # locate our toolbar, creating if necessary.  Our items get added to
+        # that.
         assert item_attrs.has_key('Tag'), "Need a 'Tag' attribute!"
-        # Note we search *all* command bars here for the tag, only
-        # adding to the specified bar if not found.
         item = self.CommandBars.FindControl(
                         Type = control_type,
                         Tag = item_attrs['Tag'])
         if item is None:
-            item = parent.Controls.Add(Type=control_type, Temporary=True)
+            if parent is None:
+                # No parent specified - that means top-level - locate the
+                # toolbar to use as the parent.
+                if self.toolbar is None:
+                    # See if we can find our "SpamBayes" toolbar
+                    # Indexing via the name appears unreliable, so just loop
+                    # Pity we have no "Tag" on a toolbar - then we could even
+                    # handle being renamed by the user.
+                    bars = self.CommandBars
+                    for i in range(bars.Count):
+                        toolbar = bars.Item(i+1)
+                        if toolbar.Name == "SpamBayes":
+                            self.toolbar = toolbar
+                            print "Found SB toolbar - visible state is", toolbar.Visible
+                            break
+                    else:
+                        # for not broken - can't find toolbar.  Create a new one.
+                        # Create it as a permanent one (which is default)
+                        print "Creating new SpamBayes toolbar to host our buttons"
+                        self.toolbar = bars.Add(toolbar_name, constants.msoBarTop, Temporary=False)
+                    self.toolbar.Visible = True
+                parent = self.toolbar
+            # Now add the item itself to the parent.
+            item = parent.Controls.Add(Type=control_type, Temporary=False)
         # Hook events for the item
         if events_class is not None:
             item = DispatchWithEvents(item, events_class)
             item.Init(*events_init_args)
+        # Set the extra attributes passed in.
         for attr, val in item_attrs.items():
             setattr(item, attr, val)
+        # remember and return the item.
+        # (not remembering causes events to get disconnected as our objects
+        # destruct)
         self.buttons.append(item)
         return item
 
@@ -578,6 +617,7 @@ class ExplorerWithEvents:
             closer = getattr(button, "Close", None)
             if closer is not None:
                 closer()
+        self.toolbar = None
         self.buttons = []
         self.close() # disconnect events.
 
@@ -664,7 +704,7 @@ class OutlookAddin:
         # Handle failures during initialization so that we are not
         # automatically disabled by Outlook.
         # Our error reporter is in the "manager" module, so we get that first
-        print "SpamAddin - Connecting to Outlook"
+        print "SpamBayes - Connecting to Outlook"
         import manager
         try:
             self.application = application
@@ -766,11 +806,15 @@ class OutlookAddin:
         return new_hooks
 
     def OnDisconnection(self, mode, custom):
-        print "SpamAddin - Disconnecting from Outlook"
+        print "SpamBayes - Disconnecting from Outlook"
         self.folder_hooks = None
         self.application = None
         self.explorers_events = None
         if self.manager is not None:
+            # Save database - bsddb databases will generally do nothing here
+            # as it will not be dirty, but pickles will.
+            # config never needs saving as it is always done by whoever changes
+            # it (ie, the dialog)
             self.manager.Save()
             stats = self.manager.stats
             print "SpamBayes processed %d messages, finding %d spam and %d unsure" % \
