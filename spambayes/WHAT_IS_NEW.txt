@@ -71,7 +71,7 @@ Outlook Plugin
    functionality for unsure/spam messages.
  o The "Delete As Spam" button is now simply "Spam", and the
    "Recover From Spam" button simply "Not Spam".
- o Notification sounds can now be set.
+ o Notification sounds can now be set, via the Manager dialog.
  o The SpamBayes menu now includes an "Empty Spam Folder" option.
  o Outlook users can now use a variety of different underlying database
    storage methods, in the same fashion as non-Outlook users.
@@ -109,6 +109,14 @@ IMAP Filter (sb_imapfilter.py)
  o A ham folder may now be specified, like the spam and unsure folders.
  o Continue on (skipping) if a folder is unable to be acccesed for training
    or filtering.
+ o Filtering multiple servers with a single sb_imapfilter process is now
+   supported.  Enter in the server names, separated by commas, and the
+   usernames and passwords separated by '\'s.  The filter will also try
+   and load a configuration file for each server (it will look in the
+   same directory as the main configuration file, for a file called
+   server.name.ini or .spambayes_server_name_rc), where you can change
+   the folders to filter, the thresholds, or any other options (this
+   currently does not include the database names).
  o Many minor fixes and improvements.
 
 sb_pop3dnd.py
@@ -130,6 +138,8 @@ New
  o The new postfixproxy.py script is a proxy filter for use with
    PostFix 2.1's content filter functionality.
  o The new pycksum.py script is a fuzzy checksum program.
+ o The new showclues.py script outputs to stdout a 'show clues' report like
+   the one that Outlook creates, with the clues, tokens and message stream.
 
 Other
 -----
@@ -159,7 +169,8 @@ Feature Requests Added
 ======================
 No feature requests tracked via the Sourceforge system were added for this
 release.
-870524, 940547, 715248, 938992, 1039057, 909088, 887984, 753708, 848365
+870524, 940547, 715248, 938992, 1039057, 909088, 887984, 753708, 848365,
+1144670, 1122067
 
 
 Patches integrated

@@ -2,6 +2,26 @@
 
 Release 1.1a1
 =============
+Tony Meyer        16/03/2005  Optionally load configuration file for each imap server.
+Tony Meyer        09/03/2005  Use a blocking socket when connecting with sb_server, so that with Python 2.4 we don't end up with never-ending reports of errors.
+Tony Meyer        23/02/2005  Add [ 1144670 ] SMTP slow on large files
+Tony Meyer        14/02/2005  Handle multiple imap servers.  Adds [ 1122067 ] Feature Request: Config sb_imapfilter for multiple accounts
+Tony Meyer        14/02/2005  New script: A little script that outputs to stdout a 'show clues' report like the one that Outlook creates, with the clues, tokens and message stream.
+Kenny Pitt        12/02/2005  Add a "Notifications" tab to SpamBayes Manager for configuring notification sounds.
+Tony Meyer        08/02/2005  Move the ensureDir function to storage, as many scripts use it.
+Tony Meyer        01/02/2005  Update setup script to use Inno Setup 5.x rather than 4.x (patch from Kenny Pitt)
+Tony Meyer        28/01/2005  Distribute mscvr71.dll, as Microsoft recommend.
+Tony Meyer        28/01/2005  The 'fix' for escaping subject lines was incorrect; do it correctly.
+Tony Meyer        24/01/2005  Add new part of [ 1106457 ] bsddb185 has to be covered in dbmstorage.py
+Tony Meyer        21/01/2005  Fix [ 1106457 ] bsddb185 has to be covered in dbmstorage.py
+Tony Meyer        17/01/2005  Add a method to generate documentation for options that suits a HTML documentation file.
+Tony Meyer        17/01/2005  OptionsClass: Add an optional flag add_comments to display().  If this is True (False by default)  then the help string for the option is added in comments above the option.
+Tony Meyer        17/01/2005  Outlook: Remove migrating the data directory - the need for this predates any of the combined binaries, so should be past now.
+Tony Meyer        17/01/2005  Outlook: Look for a {profile name}_bayes_customize.ini file in the data directory, and add that (lastly) to the spambayes configuration files to load.  This allows per-profile spambayes config changes, and makes things more consistent with the Outlook options.
+Tony Meyer        14/01/2005  Try and work around the reasonably common problems with imaplib and OS X.
+Kenny Pitt        12/01/2005  Outlook: Now that we have more space in the Manager dialog, split the "Filter status" info into separate lines for better readability.  Also add information about the setting of the new good message folder option.
+Kenny Pitt        12/01/2005  Outlook: General dialog template cleanup.
+Kenny Pitt        08/01/2005  Since bsddb is the same as bsddb3 on any recent Python (2.3+), try using bsddb3 instead if we are unable to import bsddb.
 Tony Meyer        04/01/2005  If we are reloading the options, optionsPathname will already be set, so if we are  a windows user using the default pathname, the object won't be reloaded.  Fix so a reload is always done.
 Tony Meyer        04/01/2005  rcparser.py: Look for dialogs.h in this directory if it isn't with dialogs.rc.
 Tony Meyer        04/01/2005  Add initial French and Spanish translations.
