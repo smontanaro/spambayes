@@ -22,11 +22,31 @@ f1n, f2n = sys.argv[1:3]
 def suck(f):
     fns = []
     fps = []
+    hamdev = []
+    spamdev = []
+    
     get = f.readline
     while 1:
         line = get()
         if line.startswith('-> <stat> tested'):
             print line,
+        if line.find('sample sdev') != -1:
+            vals = line.split(';')
+            mean = float(vals[1].split(' ')[-1])
+            sdev = float(vals[2].split(' ')[-1])
+            val = (mean,sdev)
+            typ = vals[0].split(' ')[2]
+            if line.find('for all runs') != -1:
+                if typ == 'Ham':
+                    hamdevall = val
+                else:
+                    spamdevall = val
+            elif line.find('all in this') != -1:
+                if typ == 'Ham':
+                    hamdev.append(val)
+                else:
+                    spamdev.append(val)
+            continue
         if line.startswith('-> '):
             continue
         if line.startswith('total'):
@@ -44,11 +64,11 @@ def suck(f):
     fntot = int(get().split()[-1])
     fpmean = float(get().split()[-1])
     fnmean = float(get().split()[-1])
-    return fps, fns, fptot, fntot, fpmean, fnmean
+    return fps, fns, fptot, fntot, fpmean, fnmean, hamdev, spamdev,hamdevall,spamdevall
 
 def tag(p1, p2):
         if p1 == p2:
-            t = "tied"
+            t = "tied          "
         else:
             t = p1 < p2 and "lost " or "won  "
             if p1:
@@ -58,6 +78,17 @@ def tag(p1, p2):
                 t += " +(was 0)"
         return t
 
+def mtag(m1,m2):
+    mean1,dev1 = m1
+    mean2,dev2 = m2
+    mp = (mean2 - mean1) * 100.0 / mean1
+    dp = (dev2 - dev1) * 100.0 / dev1
+
+    return "%2.2f %2.2f (%+2.2f%%)     %2.2f %2.2f (%+2.2f%%)" %  (
+            mean1,mean2,mp,
+            dev1,dev2,dp
+        )
+    
 def dump(p1s, p2s):
     alltags = ""
     for p1, p2 in zip(p1s, p2s):
@@ -68,6 +99,10 @@ def dump(p1s, p2s):
     for t in "won", "tied", "lost":
         print "%-4s %2d times" % (t, alltags.count(t))
     print
+
+def dumpdev(meandev1,meandev2):
+    for m1,m2 in zip(meandev1,meandev2):
+        print mtag(m1, m2)
 
 def windowsfy(fn):
     import os
@@ -82,8 +117,8 @@ print f1n, '->', f2n
 f1n = windowsfy(f1n)
 f2n = windowsfy(f2n)
 
-fp1, fn1, fptot1, fntot1, fpmean1, fnmean1 = suck(file(f1n))
-fp2, fn2, fptot2, fntot2, fpmean2, fnmean2 = suck(file(f2n))
+fp1, fn1, fptot1, fntot1, fpmean1, fnmean1,hamdev1,spamdev1,hamdevall1,spamdevall1 = suck(file(f1n))
+fp2, fn2, fptot2, fntot2, fpmean2, fnmean2,hamdev2,spamdev2,hamdevall2,spamdevall2 = suck(file(f2n))
 
 print
 print "false positive percentages"
@@ -96,3 +131,21 @@ print "false negative percentages"
 dump(fn1, fn2)
 print "total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2)
 print "mean fn % went from", fnmean1, "to", fnmean2, tag(fnmean1, fnmean2)
+
+print
+print "ham mean                 ham sdev"
+dumpdev(hamdev1,hamdev2)
+print
+print "ham mean and sdev for all runs"
+dumpdev([hamdevall1],[hamdevall2])
+
+print
+print "spam mean                spam sdev"
+dumpdev(spamdev1,spamdev2)
+print
+print "spam mean and sdev for all runs"
+dumpdev([spamdevall1],[spamdevall2])
+print
+diff1 = spamdevall1[0] - hamdevall1[0]
+diff2 = spamdevall2[0] - hamdevall2[0]
+print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,diff2,(diff2-diff1))
