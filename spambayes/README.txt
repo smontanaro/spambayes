@@ -110,11 +110,11 @@ the real email servers.  Change your equivalent of "pop3.example.com" to
 your email client's setup, and do the same with your equivalent of
 "smtp.example.com".
 
-Now launch pop3proxy, either by running the "pop3proxy_service.py" script
-(for those using Windows 2000, Windows NT or Windows XP), or the
-"sb_server.py" script (for everyone else).  Note that if you want to use
-the service, you need to also have Mark Hammond's win32 extensions for
-Python installed:
+Now launch SpamBayes, either by running "pop3proxy_service.py install"
+and then "net start pop3proxy" (for those using Windows 2000, Windows NT
+or Windows XP), or the "sb_server.py" script (for everyone else).  Note
+that if you want to use the service, you need to also have Mark
+Hammond's win32 extensions for Python installed:
 
 <http://starship.python.net/crew/mhammond/win32/Downloads.html>
 
