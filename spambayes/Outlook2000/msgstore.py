@@ -295,8 +295,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # Search key is the only reliable thing after a move/copy operation
         # only problem is that it can potentially be changed - however, the
         # Outlook client provides no such (easy/obvious) way
-        # (ie, someone would need to really want to change it <wink>
-        # This, searchkey is the only reliable long-lived message key.
+        # (ie, someone would need to really want to change it <wink>)
+        # Thus, searchkey is the only reliable long-lived message key.
         self.searchkey = searchkey
         self.unread = unread
         self.dirty = False
@@ -368,11 +368,15 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # in an attachment.  Later.
         # Oh - and for multipart/signed messages <frown>
         self._EnsureObject()
-        prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY_A, MYPR_BODY_HTML_A
+        prop_ids = (PR_TRANSPORT_MESSAGE_HEADERS_A,
+                    PR_BODY_A,
+                    MYPR_BODY_HTML_A,
+                    PR_HASATTACH)
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
+        has_attach = data[3][1]
         # Mail delivered internally via Exchange Server etc may not have
         # headers - fake some up.
         if not headers:
@@ -381,6 +385,12 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # gibberish at the start of the headers - fix this.
         elif headers.startswith("Microsoft Mail"):
             headers = "X-MS-Mail-Gibberish: " + headers
+        if not html and not body:
+            # Only ever seen this for "multipart/signed" messages, so
+            # without any better clues, just handle this.
+            # Find all attachments with PR_ATTACH_MIME_TAG_A=multipart/signed
+            pass
+            
         return "%s\n%s\n%s" % (headers, html, body)
 
     def _GetFakeHeaders(self):
@@ -475,7 +485,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if type(prop) != type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             prop = self.mapi_object.GetIDsFromNames(props, 0)[0]
-            # Docs say PT_ERROR, reality shows PT_UNSPECIFIED
             if PROP_TYPE(prop) == PT_ERROR: # No such property
                 return None
             prop = PROP_TAG( PT_UNSPECIFIED, PROP_ID(prop))
@@ -493,7 +502,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
         self.dirty = False
 
-    def _DoCopyMode(self, folder, isMove):
+    def _DoCopyMove(self, folder, isMove):
 ##        self.mapi_object = None # release the COM pointer
         assert not self.dirty, \
                "asking me to move a dirty message - later saves will fail!"
@@ -516,10 +525,10 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.folder = None
 
     def MoveTo(self, folder):
-        self._DoCopyMode(folder, True)
+        self._DoCopyMove(folder, True)
 
     def CopyTo(self, folder):
-        self._DoCopyMode(folder, True)
+        self._DoCopyMove(folder, False)
 
 def test():
     from win32com.client import Dispatch
