@@ -16,7 +16,7 @@ import binascii
 try:
     from sets import Set
 except ImportError:
-    from spambayes.compatsets import Set
+    from compatsets import Set
 
 
 from spambayes.Options import options
