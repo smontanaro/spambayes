@@ -92,6 +92,11 @@ To Do:
     o Usernames should be able to be literals as well as quoted strings.
       This might help if the username/password has special characters like
       accented characters.
+    o The code currently FETCHes the whole RFC822 message in training, even
+      if it will subsequently decide that the message has already been
+      trained (it won't then train on it, it just throws the message away).
+      This is really inefficient, and a better solution needs to be
+      developed.
     o Suggestions?
 """
 
@@ -190,8 +195,15 @@ class IMAPSession(imaplib.IMAP4):
     
     def __init__(self, server, port, debug=0, do_expunge=False):
         imaplib.Debug = debug  # this is a global in the imaplib module
-        imaplib.IMAP4.__init__(self, server, port)
-        # XXX We should check here to see if the server/port were valid
+        try:
+            imaplib.IMAP4.__init__(self, server, port)
+        except:
+            # A more specific except would be good here, but I get
+            # (in Python 2.2) a generic 'error' and a 'gaierror'
+            # if I pass a valid domain that isn't an IMAP server
+            # or invalid domain (respectively)
+            print "Invalid server or port, please check these settings."
+            sys.exit(-1)
         # For efficiency, we remember which folder we are currently
         # in, and only send a select command to the IMAP server if
         # we want to *change* folders.  This function is used by
@@ -199,9 +211,9 @@ class IMAPSession(imaplib.IMAP4):
         self.current_folder = None
         self.do_expunge = do_expunge
 
-    def login(self, uid, pw):
+    def login(self, username, pwd):
         try:
-            imaplib.IMAP4.login(self, uid, pw)  # superclass login
+            imaplib.IMAP4.login(self, username, pwd)  # superclass login
         except imaplib.IMAP4.error, e:
             if str(e) == "permission denied":
                 print "There was an error logging in to the IMAP server."
@@ -218,8 +230,8 @@ class IMAPSession(imaplib.IMAP4):
         
     def SelectFolder(self, folder):
         '''A method to point ensuing imap operations at a target folder'''
-        if self.current_folder != None:
-            if self.current_folder != folder:
+        if self.current_folder != folder:
+            if self.current_folder != None:
                 if self.do_expunge:
                     # It is faster to do close() than a single
                     # expunge when we log out (because expunge returns
@@ -251,8 +263,7 @@ class IMAPMessage(message.SBHeaderMessage):
             sys.exit(-1)
 
     def _force_CRLF(self, data):
-        """Make sure data uses CRLF for line termination.
-        """
+        """Make sure data uses CRLF for line termination."""
         return CRLF_RE.sub('\r\n', data)
 
     def as_string(self):
@@ -265,8 +276,8 @@ class IMAPMessage(message.SBHeaderMessage):
         
     def extractTime(self):
         # When we create a new copy of a message, we need to specify
-        # a timestamp for the message.  If the message has a date header
-        # we use that.  Otherwise, we use the current time.
+        # a timestamp for the message.  If the message has a valid date
+        # header we use that.  Otherwise, we use the current time.
         message_date = self["Date"]
         if message_date is not None:
             parsed_date = parsedate(message_date)
@@ -277,26 +288,22 @@ class IMAPMessage(message.SBHeaderMessage):
 
     def MoveTo(self, dest):
         '''Note that message should move to another folder.  No move is
-        carried out until Save() is called.'''
-        # This move operation just changes where we think we are,
-        # and we do an actual move on save (to avoid doing
-        # this more than once)
+        carried out until Save() is called, for efficiency.'''
         if self.previous_folder is None:
             self.previous_folder = self.folder
-            self.folder = dest
+        self.folder = dest
 
     def Save(self):
         '''Save message to imap server.'''
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
-        # we need to copy the flags as well
         if self.folder is None:
             raise RuntimeError, """Can't save a message that doesn't
             have a folder."""
         if self.id is None:
             raise RuntimeError, """Can't save a message that doesn't have
             an id."""
-        response = imap.uid("FETCH", self.id, "(FLAGS INTERNALDATE)")
+        response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
         data = _extract_fetch_data(response[1][0])
         if data.has_key("INTERNALDATE"):
@@ -311,9 +318,12 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             flags = None
 
-        # See searching for new uid comments below
-        old_id = self.id
-        self["X-Spambayes-IMAP-OldID"] = old_id
+        # Once, we used the IMAP uid to keep track of messages.
+        # This fails miserably because it's only guarenteed to be unique
+        # within a particular folder.  Folders have a UID validity value,
+        # but this can change from session to session.  So we forget this
+        # imap rubbish and use our own id.
+        self[options["pop3proxy", "mailid_header_name"]] = self.id
 
         response = imap.append(self.folder.name, flags,
                                msg_time, self.as_string())
@@ -324,22 +334,20 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             imap.SelectFolder(self.previous_folder.name)
             self.previous_folder = None
-        response = imap.uid("STORE", old_id, "+FLAGS.SILENT", "(\\Deleted)")
+        response = imap.uid("STORE", self.uid, "+FLAGS.SILENT", "(\\Deleted)")
         self._check(response, 'store')
 
-        # We need to update the uid, as it will have changed
-        # Searching for the new message is full of problems.  Searching for
-        # the text sends far too much data through the connection, and
-        # doesn't work reliably anyway.  We instead search for a special
-        # header that we add for this explicit purpose.
+        # We need to update the uid, as it will have changed.
+        # Although we don't use the UID to keep track of messages, we do
+        # have to use it for IMAP operations.
         imap.SelectFolder(self.folder.name)
-        response = imap.uid("SEARCH", "HEADER", "X-Spambayes-IMAP-OldID",
-                            old_id)
+        response = imap.uid("SEARCH", "HEADER",
+                            options["pop3proxy", "mailid_header_name"],
+                            self.id)
         self._check(response, 'search')
         new_id = response[1][0]
-        # This works with NetMail, but not with Courier.  Very strange,
-        # and needs more examination.  For the moment, if the search
-        # turns up empty, we make the very big assumption that the new
+        # Let's hope it doesn't, but, just in case, if the search
+        # turns up empty, we make the assumption that the new
         # message is the last one with a recent flag
         if new_id == "":
             response = imap.uid("SEARCH", "RECENT")
@@ -347,13 +355,7 @@ class IMAPMessage(message.SBHeaderMessage):
             if new_id.find(' ') > -1:
                 ids = new_id.split(' ')
                 new_id = ids[-1]
-
-        #XXX This code to delete the old message id from the message
-        #XXX info db and manipulate the message id, is a *serious* hack.
-        #XXX There's gotta be a better way to do this.
-        message.msginfoDB._delState(self)
-        self.id = new_id
-        self.modified()
+        self.uid = new_id
 
 # This performs a similar function to email.message_from_string()
 def imapmessage_from_string(s, _class=IMAPMessage, strict=False):
@@ -361,9 +363,12 @@ def imapmessage_from_string(s, _class=IMAPMessage, strict=False):
 
 
 class IMAPFolder(object):
-    def __init__(self, folder_name, readOnly=True):
+    def __init__(self, folder_name):
         self.name = folder_name
         self.rfc822_command = "RFC822.PEEK"
+        # Unique names for cached messages - see _generate_id below.
+        self.lastBaseMessageName = ''
+        self.uniquifier = 2
 
     def __cmp__(self, obj):
         '''Two folders are equal if their names are equal'''
@@ -384,7 +389,7 @@ class IMAPFolder(object):
             except KeyError:
                 pass
 
-    def recent_keys(self):
+    def recent_uids(self):
         '''Returns uids for all the messages in the folder that
         are flagged as recent, but not flagged as deleted.'''
         imap.SelectFolder(self.name, True)
@@ -393,9 +398,8 @@ class IMAPFolder(object):
         return response[1][0].split(' ')
 
     def keys(self):
-        '''Returns uids for all the messages in the folder not
+        '''Returns *uids* for all the messages in the folder not
         marked as deleted.'''
-        # request message range
         imap.SelectFolder(self.name)
         response = imap.uid("SEARCH", "UNDELETED")
         self._check(response, "SEARCH UNDELETED")
@@ -420,11 +424,31 @@ class IMAPFolder(object):
         # we return an instance of *our* message class, not the
         # raw rfc822 message
         msg = imapmessage_from_string(messageText)
-        msg.setId(key)
         msg.setFolder(self)
+        msg.uid = data["UID"]
+        if msg.setIdFromPayload() is None:
+            msg.setId(self._generate_id())
+            # Unfortunately, we now have to re-save this message, so that
+            # our id is stored on the IMAP server.  Before anyone suggests
+            # it, we can't store it as a flag, because user-defined flags
+            # aren't supported by all IMAP servers.
+            msg.Save()
         
         return msg
-   
+
+    # Lifted straight from pop3proxy.py (under the name getNewMessageName)
+    def _generate_id(self):
+        # The message id is the time it arrived, with a uniquifier
+        # appended if two arrive within one clock tick of each other.
+        messageName = "%10.10d" % long(time.time())
+        if messageName == self.lastBaseMessageName:
+            messageName = "%s-%d" % (messageName, self.uniquifier)
+            self.uniquifier += 1
+        else:
+            self.lastBaseMessageName = messageName
+            self.uniquifier = 2
+        return messageName
+
     def Train(self, classifier, isSpam):
         '''Train folder as spam/ham'''
         num_trained = 0
@@ -521,7 +545,7 @@ class IMAPFilter(object):
         for filter_folder in options["imap", "filter_folders"]:
             # Select the folder to make sure it exists
             imap.SelectFolder(filter_folder)
-            folder = IMAPFolder(filter_folder, False)
+            folder = IMAPFolder(filter_folder)
             folder.Filter(self.classifier, self.spam_folder,
                           self.unsure_folder)
  

@@ -236,7 +236,7 @@ class SBHeaderMessage(Message):
     def setIdFromPayload(self):
         try:
             self.setId(self[options['pop3proxy','mailid_header_name']])
-        except KeyError:
+        except ValueError:
             return None
 
         return self.id
