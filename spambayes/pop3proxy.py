@@ -503,7 +503,7 @@ class BayesProxy(POP3ProxyBase):
 
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             messageName = state.getNewMessageName()
-            headers += '\r\n%s: %s\r\n' % (options.hammie_header_name,
+            headers += '\n%s: %s\r\n' % (options.hammie_header_name,
                                            disposition)
             if command == 'RETR' and not state.isTest:
                 if options.pop3proxy_add_mailid_to.find("header") != -1:

@@ -27,13 +27,19 @@ except NameError:
 
 
 todo = """
-It would be nice if spam/ham could be bulk forwarded to the proxy,
-rather than one by one.  This would require separating the different
-messages and extracting the correct ids.  Simply changing to find
-*all* the ids in a message, rather than stopping after one *might*
-work, but I don't really know.  Richie Hindle suggested something along
-these lines back in September '02.
-
+ o It would be nice if spam/ham could be bulk forwarded to the proxy,
+   rather than one by one.  This would require separating the different
+   messages and extracting the correct ids.  Simply changing to find
+   *all* the ids in a message, rather than stopping after one *might*
+   work, but I don't really know.  Richie Hindle suggested something along
+   these lines back in September '02.
+   
+ o It would be nice if the proxy could email a confirmation message
+   back to the mail client.  Something along the lines of "yes, I
+   trained message id xxx with subject xxx as sp/ham".  This would
+   be an option, of course, and it would be nice to be able to set
+   it to be sent every time, or as a x days/hours digest.
+   
 Testing:
 
  o Test with as many clients as possible to check that the
