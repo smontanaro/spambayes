@@ -110,7 +110,7 @@ from imaplib import IMAP4
 from imaplib import Time2Internaldate
 try:
     if options["imap", "use_ssl"]:
-        from imaplib import IMAP_SSL as BaseIMAP
+        from imaplib import IMAP4_SSL as BaseIMAP
     else:
         from imaplib import IMAP4 as BaseIMAP
 except ImportError:
