@@ -15,6 +15,10 @@ from time import sleep
 import copy
 import rfc822
 import cStringIO
+import threading
+
+from win32com.mapi import mapi, mapiutil
+import pythoncom
 
 HAM="ham"
 SPAM="spam"
@@ -28,11 +32,16 @@ class TestFailure(Exception):
 def TestFailed(msg):
     raise TestFailure(msg)
 
+filter_event = threading.Event()
+
 def WaitForFilters():
     import pythoncom
     # Must wait longer than normal, so when run with a timer we still work.
+    filter_event.clear()
     for i in range(500):
         pythoncom.PumpWaitingMessages()
+        if filter_event.isSet():
+            break
         sleep(0.01)
 
 def DictExtractor(bayes):
@@ -370,6 +379,7 @@ def TestUnsureFilter(driver):
     print "Created an unsure message, and saw it get filtered"
 
 def run_tests(manager):
+    "Filtering tests"
     driver = Driver(manager)
     manager.Save() # necessary after a full retrain
     assert driver.manager.config.filter.enabled, "Filtering must be enabled for these tests"
@@ -383,27 +393,50 @@ def run_tests(manager):
 
 def run_filter_tests(manager):
     # setup config to save info with the message, and test
-    print "*" * 10, "Running tests with save_spam_info=True, timer off"
-    manager.config.experimental.timer_start_delay = 0
-    manager.config.experimental.timer_interval = 0
-    manager.config.filter.save_spam_info = True
-    manager.addin.FiltersChanged() # to ensure correct filtler in place
-    run_tests(manager)
-    # do it again with the same config, just to prove we can.
-    print "*" * 10, "Running them again with save_spam_info=True"
-    run_tests(manager)
-    # enable the timer.
-    manager.config.experimental.timer_start_delay = 1000
-    manager.config.experimental.timer_interval = 500
-    manager.addin.FiltersChanged() # to switch to timer based filters.
-    print "*" * 10, "Running them again with save_spam_info=True, and timer enabled"
-    run_tests(manager)
-    # and with save_spam_info False.
-    print "*" * 10, "Running tests with save_spam_info=False"
-    manager.config.filter.save_spam_info = False
-    run_tests(manager)
-    print "*" * 10, "Filtering tests completed successfully."
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": False,
+                           "Filter.save_spam_info" : True,
+                          },
+                          run_tests, manager)
+    
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": True,
+                           "Filter.save_spam_info" : True,
+                          },
+                          run_tests, manager)
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": False,
+                           "Filter.save_spam_info" : False,
+                          },
+                          run_tests, manager)
+    
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": True,
+                           "Filter.save_spam_info" : False,
+                          },
+                          run_tests, manager)
 
+def apply_with_new_config(manager, new_config_dict, func, *args):
+    old_config = {}
+    friendly_opts = []
+    for name, val in new_config_dict.items():
+        sect_name, opt_name = name.split(".")
+        old_config[sect_name, opt_name] = manager.options.get(sect_name, opt_name)
+        manager.options.set(sect_name, opt_name, val)
+        friendly_opts.append("%s=%s" % (name, val))
+    manager.addin.FiltersChanged() # to ensure correct filtler in place
+    try:
+        test_name = getattr(func, "__doc__", None)
+        if not test_name: test_name = func.__name__
+        print "*" * 10, "Running '%s' with %s" % (test_name, ", ".join(friendly_opts))
+        func(*args)
+    finally:
+        for (sect_name, opt_name), val in old_config.items():
+            manager.options.set(sect_name, opt_name, val)
+    
+###############################################################################
+# "Non-filter" tests are those that don't require us to create messages and
+# see them get filtered.
 def run_nonfilter_tests(manager):
     # And now some other 'sanity' checks.
     # Check messages we are unable to score.
@@ -424,7 +457,7 @@ def run_nonfilter_tests(manager):
                     # ipm.note messages we don't want to filter should be
                     # reported.
                     num_looked += 1
-                    if num_looked % 500 == 0: print " (scanned", num_looked, "messages...)"
+                    if num_looked % 500 == 0: print " scanned", num_looked, "messages..."
                     if not message.IsFilterCandidate() and \
                         message.msgclass.lower().startswith("ipm.note"):
                         if num_found == 0:
@@ -448,20 +481,122 @@ def run_nonfilter_tests(manager):
     finally:
         msgstore.test_suite_running = True
 
+###############################################################################
+# "Failure" tests - execute some tests while provoking the msgstore to simulate
+# various MAPI errors.  Although not complete, it does help exercise our code
+# paths through the code.
+def _restore_mapi_failure():
+    import msgstore
+    msgstore.test_suite_failure = None
+    msgstore.test_suite_failure_request = None
+    
+def _setup_for_mapi_failure(checkpoint, hr):
+    import msgstore
+    assert msgstore.test_suite_running, "msgstore should already know its running"
+    assert not msgstore.test_suite_failure, "should already have torn down previous failure"
+    msgstore.test_suite_failure = pythoncom.com_error, \
+                         (hr, "testsuite generated error", None, -1)
+    msgstore.test_suite_failure_request = checkpoint
+
+def _setup_mapi_notfound_failure(checkpoint):
+    _setup_for_mapi_failure(checkpoint, mapi.MAPI_E_NOT_FOUND)
+
+def _do_single_failure_ham_test(driver, checkpoint, hr):
+    _do_single_failure_test(driver, True, checkpoint, hr)
+
+def _do_single_failure_spam_test(driver, checkpoint, hr):
+    _do_single_failure_test(driver, False, checkpoint, hr)
+
+def _do_single_failure_test(driver, is_ham, checkpoint, hr):
+    print "-> Testing MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
+                                              checkpoint)
+    # message moved after we have ID, but before opening.
+    folder = driver.folder_watch
+    if is_ham:
+        msg, words = driver.CreateTestMessageInFolder(HAM, folder)
+    else:
+        msg, words = driver.CreateTestMessageInFolder(SPAM, folder)
+    try:
+        _setup_for_mapi_failure(checkpoint, hr)
+        try:
+            # sleep to ensure filtering.
+            WaitForFilters()
+        finally:
+            _restore_mapi_failure()
+        if driver.FindTestMessage(folder) is None:
+            TestFailed("We appear to have filtered a message even though we forced 'not found' failure")
+    finally:
+        print "<- Finished MAPI error '%s' in %s" % (mapiutil.GetScodeString(hr),
+                                                   checkpoint)
+        if msg is not None:
+            msg.Delete()
+
+def do_failure_tests(manager):
+    # We setup msgstore to fail for us, then try a few tests.  The idea is to
+    # ensure we gracefully degrade in these failures.
+    # We set verbosity to min of 1, as this helps us see how the filters handle
+    # the errors.
+    driver = Driver(manager)
+    driver.CleanAllTestMessages()
+    old_verbose = manager.verbose
+    manager.verbose = max(1, old_verbose)
+    try:
+        _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg._EnsureObject", mapi.MAPI_E_NOT_FOUND)
+        _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.SetField", -2146644781)
+        _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.Save", -2146644781)
+        # SetReadState???
+        _do_single_failure_spam_test(driver, "MAPIMsgStoreMsg._DoCopyMove", mapi.MAPI_E_TABLE_TOO_BIG)
+    finally:
+        manager.verbose = old_verbose
+
+def run_failure_tests(manager):
+    "Forced MAPI failure tests"
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": True,
+                          },
+                          do_failure_tests, manager)
+    apply_with_new_config(manager,
+                          {"Filter.timer_enabled": False,
+                          },
+                          do_failure_tests, manager)
+    
+def filter_message_with_event(msg, mgr, all_actions=True):
+    import filter
+    try:
+        return filter._original_filter_message(msg, mgr, all_actions)
+    finally:
+        filter_event.set()
+
 def test(manager):
     import msgstore
     from dialogs import SetWaitCursor
     SetWaitCursor(1)
+
+    import filter
+    if "_original_filter_message" not in filter.__dict__:
+        filter._original_filter_message = filter.filter_message
+        filter.filter_message = filter_message_with_event
+    
     try: # restore the plugin config at exit.
+        assert not msgstore.test_suite_running, "already running??"
         msgstore.test_suite_running = True
+        assert not manager.test_suite_running, "already running??"
+        manager.test_suite_running = True
         run_nonfilter_tests(manager)
         # filtering tests take alot of time - do them last.
         run_filter_tests(manager)
+        run_failure_tests(manager)
+        print "*" * 20
+        print "Test suite finished without error!"
+        print "*" * 20
     finally:
+        print "Restoring standard configuration..."
         # Always restore configuration to how we started.
         msgstore.test_suite_running = False
+        manager.test_suite_running = False
         manager.LoadConfig()
         manager.addin.FiltersChanged() # restore original filters.
+        manager.addin.ProcessMissedMessages()
         SetWaitCursor(0)
 
 if __name__=='__main__':

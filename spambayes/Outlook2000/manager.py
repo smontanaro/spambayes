@@ -328,6 +328,7 @@ class BayesManager:
         self.stats = Stats()
         self.outlook = outlook
         self.dialog_parser = None
+        self.test_suite_running = False
 
         import_early_core_spambayes_stuff()
 
@@ -410,8 +411,16 @@ class BayesManager:
             print args[-1]
 
     def ReportError(self, message, title = None):
+        if self.test_suite_running:
+            print "ReportError:", repr(message)
+            print "(but test suite running - not reported)"
+            return
         ReportError(message, title)
     def ReportInformation(self, message, title=None):
+        if self.test_suite_running:
+            print "ReportInformation:", repr(message)
+            print "(but test suite running - not reported)"
+            return
         ReportInformation(message, title)
     def AskQuestion(self, message, title=None):
         return AskQuestion(message, title)
@@ -442,6 +451,10 @@ class BayesManager:
     def ReportErrorOnce(self, msg, title = None, key = None):
         if key is None: key = msg
         # Always print the message and traceback.
+        if self.test_suite_running:
+            print "ReportErrorOnce:", repr(msg)
+            print "(but test suite running - not reported)"
+            return
         print "ERROR:", repr(msg)
         traceback.print_exc()
         if key in self.reported_error_map:
@@ -504,11 +517,11 @@ class BayesManager:
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
         for eid in folder_ids:
-            folder = self.message_store.GetFolder(eid)
-            if folder is None:
-                name = "<unknown folder>"
-            else:
+            try:
+                folder = self.message_store.GetFolder(eid)
                 name = folder.name
+            except self.message_store.MsgStoreException:
+                name = "<unknown folder>"
             names.append(name)
         ret = '; '.join(names)
         if include_sub:
@@ -529,8 +542,9 @@ class BayesManager:
         # model.  So we resort to olPercent, and live with the % sign
         # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
-        msgstore_folder = self.message_store.GetFolder(folder_id)
-        if msgstore_folder is None:
+        try:
+            msgstore_folder = self.message_store.GetFolder(folder_id)
+        except self.message_store.MsgStoreException:
             print "Checking a folder for our field failed - "\
                   "there is no such folder."
             return

@@ -9,8 +9,6 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
-import pythoncom # for the exceptions.
-
 def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
     prob = mgr.score(msg)
@@ -28,6 +26,7 @@ def filter_message(msg, mgr, all_actions=True):
         disposition = "No"
         attr_prefix = None
 
+    ms = mgr.message_store
     try:
         try:
             if config.save_spam_info:
@@ -42,19 +41,15 @@ def filter_message(msg, mgr, all_actions=True):
                 if all_actions:
                     msg.RememberMessageCurrentFolder()
                 msg.Save()
-        except pythoncom.com_error, (hr, exc_msg, exc, arg_err):
-            # This seems to happen for IMAP mails (0x800cccd3)
-            # and also for hotmail messages (0x8004dff7)
-            known_failure_codes = -2146644781, -2147164169
-            # I also heard a rumour hotmail works if we do 2 saves
-            if hr not in known_failure_codes:
-                print "Unexpected MAPI error saving the spam score for", msg
-                print hr, exc_msg, exc
-            else:
-                # So we can see if it still happens :)
-                mgr.LogDebug(1, "Note: known (but still not understood) " \
-                                "error 0x%x saving the spam score." % hr)
-            # No need for a traceback in this case.
+        except ms.ReadOnlyException:
+            # read-only message - not much we can do!
+            # Clear dirty flag anyway
+            mgr.LogDebug(1, "Message is read-only - could not save Spam score")
+            msg.dirty = False
+        except ms.MsgStoreException, details:
+            # Some other error saving - this is nasty.
+            print "Unexpected MAPI error saving the spam score for", msg
+            print details
             # Clear dirty flag anyway
             msg.dirty = False
 
@@ -67,15 +62,17 @@ def filter_message(msg, mgr, all_actions=True):
             if action.startswith("un"): # untouched
                 pass
             elif action.startswith("co"): # copied
-                dest_folder = mgr.message_store.GetFolder(folder_id)
-                if dest_folder is None:
+                try:
+                    dest_folder = ms.GetFolder(folder_id)
+                except ms.MsgStoreException:
                     print "ERROR: Unable to open the folder to Copy the " \
                           "message - this message was not copied"
                 else:
                     msg.CopyToReportingError(mgr, dest_folder)
             elif action.startswith("mo"): # Moved
-                dest_folder = mgr.message_store.GetFolder(folder_id)
-                if dest_folder is None:
+                try:
+                    dest_folder = ms.GetFolder(folder_id)
+                except ms.MsgStoreException:
                     print "ERROR: Unable to open the folder to Move the " \
                           "message - this message was not moved"
                 else:

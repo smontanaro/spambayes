@@ -9,92 +9,13 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
-# Nod to our automated test suite - we *do* want these messages filtered!
-test_suite_running = False
-
-# Abstract definition - can be moved out when we have more than one sub-class <wink>
-# External interface to this module is almost exclusively via a "folder ID"
-
-class MsgStoreException(Exception):
-    pass
-
-class NotFoundException(MsgStoreException):
-    pass
-
-class MsgStore:
-    # Stash exceptions in the class for ease of use by consumers.
-    MsgStoreException = MsgStoreException
-    NotFoundException = NotFoundException
-    def __init__(self):
-        pass
-    def Close(self):
-        # Close this object and free everything
-        raise NotImplementedError
-    def GetFolderGenerator(self, folder_ids, include_sub):
-        # Return a generator of MsgStoreFolder objects.
-        raise NotImplementedError
-    def GetFolder(self, folder_id):
-        # Return a single folder given the ID.
-        raise NotImplementedError
-    def GetMessage(self, message_id):
-        # Return a single message given the ID.
-        raise NotImplementedError
-
-class MsgStoreFolder:
-    def __init__(self):
-        self.name = "<folder>"
-        self.count = 0
-    def GetParent(self):
-        # return a folder object with the parent, or None
-        raise NotImplementedError
-    def GetMessageGenerator(self, folder, only_filter_candidates = True):
-        # Return a generator of MsgStoreMsg objects for the folder
-        raise NotImplementedError
-
-class MsgStoreMsg:
-    def __init__(self):
-        pass
-    def GetEmailPackageObject(self):
-        # Return a "read-only" Python email package object
-        # "read-only" in that changes will never be reflected to the real store.
-        raise NotImplementedError
-    def SetField(self, name, value):
-        # Abstractly set a user field name/id to a field value.
-        # User field is for the user to see - status/internal fields
-        # should get their own methods
-        raise NotImplementedError
-    def GetSubject(self):
-        # Get the subject - function as it may require a trip to the store!
-        raise NotImplementedError
-    def GetField(self, name):
-        # Abstractly get a user field name/id to a field value.
-        raise NotImplementedError
-    def Save(self):
-        # Save changes after field changes.
-        raise NotImplementedError
-    def MoveTo(self, folder_id):
-        # Move the message to a folder.
-        raise NotImplementedError
-    def CopyTo(self, folder_id):
-        # Copy the message to a folder.
-        raise NotImplementedError
-    def IsFilterCandidate(self):
-        # Return True if this is a message that should be checked for spam
-        # Return False if it should be ignored (eg, user-composed message,
-        # undeliverable report, meeting request etc.
-        raise NotImplementedError
-
-# Our MAPI implementation
-import warnings
-if sys.version_info >= (2, 3):
-    # sick off the new hex() warnings!
-    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
-
+# MAPI imports etc.
 from win32com.client import Dispatch, constants
 from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
 import pythoncom
 
+# Additional MAPI constants we dont have in Python
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
 MSGFLAG_READ = 0x1 # from MAPIdefs.h
 MSGFLAG_UNSENT = 0x00000008
@@ -109,6 +30,68 @@ SUPPRESS_RECEIPT = 0x1
 
 USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
 
+#import warnings
+#if sys.version_info >= (2, 3):
+#    # sick off the new hex() warnings!
+#    warnings.filterwarnings("ignore", category=FutureWarning, append=1)
+
+# Nod to our automated test suite.  Currently supports a hack so our test
+# message is filtered, and also for raising exceptions at key times.
+# see tester.py for more details.
+test_suite_running = False
+test_suite_failure_request = None
+test_suite_failure = None
+# Sometimes the test suite will request that we simulate MAPI errors.
+def help_test_suite(checkpoint_name):
+    if test_suite_running and \
+       test_suite_failure_request == checkpoint_name:
+        raise test_suite_failure[0], test_suite_failure[1]
+
+# Exceptions raised by this module.  Raw MAPI exceptions should never
+# be raised to the caller.
+class MsgStoreException(Exception):
+    def __init__(self, mapi_exception, extra_msg = None):
+        self.mapi_exception = mapi_exception
+        self.extra_msg = extra_msg
+        Exception.__init__(self, mapi_exception, extra_msg)
+    def __str__(self):
+        try:
+            return "%s: %s" % (self.__class__.__name__,
+                               GetCOMExceptionString(self.mapi_exception))
+        except:
+            print "Error __str__"
+            import traceback
+            traceback.print_exc()
+
+# Exception raised when you attempt to get a message or folder that doesn't
+# exist.  Usually means you are querying an ID that *was* valid, but has
+# since been moved or deleted.
+# Note you may get this exception "getting" objects (such as messages or
+# folders), or accessing properties once the object was created (the message
+# may be moved under us at any time)
+class NotFoundException(MsgStoreException):
+    pass
+
+# Exception raised when you try and modify a "read only" object.
+# Only currently examples are Hotmail and IMAP folders.
+class ReadOnlyException(MsgStoreException):
+    pass
+
+# Utility functions for exceptions.  Convert a COM exception to the best
+# manager exception.
+def MsgStoreExceptionFromCOMException(com_exc):
+    if IsNotFoundCOMException(com_exc):
+        return NotFoundException(com_exc)
+    if IsReadOnlyCOMException(com_exc):
+        return ReadOnlyException(com_exc)
+    return MsgStoreException(com_exc)
+
+# Build a reasonable string from a COM exception tuple
+def GetCOMExceptionString(exc_val):
+    hr, msg, exc, arg_err = exc_val
+    err_string = mapiutil.GetScodeString(hr)
+    return "Exception 0x%x (%s): %s" % (hr, err_string, msg)
+
 # Does this exception probably mean "object not found"?
 def IsNotFoundCOMException(exc_val):
     hr, msg, exc, arg_err = exc_val
@@ -120,12 +103,14 @@ def IsNotAvailableCOMException(exc_val):
     hr, msg, exc, arg_err = exc_val
     return hr == mapi.MAPI_E_FAILONEPROVIDER
 
-def GetCOMExceptionString(exc_val):
-    hr, msg, exc, arg_err = exc_val
-    err_string = mapiutil.GetScodeString(hr)
-    return "Exception 0x%x (%s): %s" % (hr, err_string, msg)
+def IsReadOnlyCOMException(exc_val):
+    # This seems to happen for IMAP mails (0x800cccd3)
+    # and also for hotmail messages (0x8004dff7)
+    known_failure_codes = -2146644781, -2147164169
+    return exc_val[0] in known_failure_codes
 
-def ReportMAPIError(manager, what, exc_type, exc_val):
+    
+def ReportMAPIError(manager, what, exc_val):
     hr, exc_msg, exc, arg_err = exc_val
     if hr == mapi.MAPI_E_TABLE_TOO_BIG:
         err_msg = what + " failed as one of your\r\n" \
@@ -141,7 +126,13 @@ def ReportMAPIError(manager, what, exc_type, exc_val):
                   "is restarted."
     manager.ReportErrorOnce(err_msg)
 
-class MAPIMsgStore(MsgStore):
+# Our objects.
+class MAPIMsgStore:
+    # Stash exceptions in the class for ease of use by consumers.
+    MsgStoreException = MsgStoreException
+    NotFoundException = NotFoundException
+    ReadOnlyException = ReadOnlyException
+    
     def __init__(self, outlook = None):
         self.outlook = outlook
         cwd = os.getcwd() # remember the cwd - mapi changes it under us!
@@ -297,60 +288,41 @@ class MAPIMsgStore(MsgStore):
 
     def GetFolder(self, folder_id):
         # Return a single folder given the ID.
-        try:
-            # See if this is an Outlook folder item
-            sid = mapi.BinFromHex(folder_id.StoreID)
-            eid = mapi.BinFromHex(folder_id.EntryID)
-            folder_id = sid, eid
-        except AttributeError:
-            # No 'EntryID'/'StoreID' properties - a 'normal' ID
-            folder_id = self.NormalizeID(folder_id)
-        except pythoncom.com_error, details:
-            if IsNotFoundCOMException(details):
-                print "Unable to open folder '%r'" \
-                      "- the folder was not found" % folder_id
-            else:
-                print "Unexpected MAPI error opening folder"
-                print GetCOMExceptionString(details)
-            return None
-        # Also catch COM exceptions opening the folder and table.
-        try:
+        try: # catch all MAPI errors
+            try:
+                # See if this is an Outlook folder item
+                sid = mapi.BinFromHex(folder_id.StoreID)
+                eid = mapi.BinFromHex(folder_id.EntryID)
+                folder_id = sid, eid
+            except AttributeError:
+                # No 'EntryID'/'StoreID' properties - a 'normal' ID
+                folder_id = self.NormalizeID(folder_id)
             folder = self._OpenEntry(folder_id)
             table = folder.GetContentsTable(0)
-        except pythoncom.com_error, details:
-            # We will ignore *all* such errors for the time
-            # being, but warn for results we don't know about.
-            if not IsNotFoundCOMException(details):
-                print "WARNING: Unexpected MAPI error opening folder"
-                print GetCOMExceptionString(details)
-            return None
-        # Ensure we have a long-term ID.
-        rc, props = folder.GetProps( (PR_ENTRYID, PR_DISPLAY_NAME_A), 0)
-        folder_id = folder_id[0], props[0][1]
-        return MAPIMsgStoreFolder(self, folder_id, props[1][1],
+            # Ensure we have a long-term ID.
+            rc, props = folder.GetProps( (PR_ENTRYID, PR_DISPLAY_NAME_A), 0)
+            folder_id = folder_id[0], props[0][1]
+            return MAPIMsgStoreFolder(self, folder_id, props[1][1],
                                   table.GetRowCount(0))
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def GetMessage(self, message_id):
         # Return a single message given either the ID, or an Outlook
         # message representing the object.
-        try:
-            eid = mapi.BinFromHex(message_id.EntryID)
-            sid = mapi.BinFromHex(message_id.Parent.StoreID)
-            message_id = sid, eid
-        except AttributeError:
-            # No 'EntryID'/'StoreID' properties - a 'normal' ID
-            message_id = self.NormalizeID(message_id)
+        try: # catch all MAPI exceptions.
+            try:
+                eid = mapi.BinFromHex(message_id.EntryID)
+                sid = mapi.BinFromHex(message_id.Parent.StoreID)
+                message_id = sid, eid
+            except AttributeError:
+                # No 'EntryID'/'StoreID' properties - a 'normal' ID
+                message_id = self.NormalizeID(message_id)
+            mapi_object = self._OpenEntry(message_id)
+            hr, data = mapi_object.GetProps(MAPIMsgStoreMsg.message_init_props,0)
+            return MAPIMsgStoreMsg(self, data)
         except pythoncom.com_error, details:
-            if IsNotFoundCOMException(details):
-                print "Unable to open message '%r'" \
-                      "- the message was not found" % message_id
-            else:
-                print "Unexpected MAPI error opening message"
-                print GetCOMExceptionString(details)
-            return None
-        mapi_object = self._OpenEntry(message_id)
-        hr, data = mapi_object.GetProps(MAPIMsgStoreMsg.message_init_props,0)
-        return MAPIMsgStoreMsg(self, data)
+            raise MsgStoreExceptionFromCOMException(details)
 
     def YieldReceiveFolders(self, msg_class = "IPM.Note"):
         # Get the main receive folder for each message store.
@@ -450,7 +422,7 @@ def GetHTMLFromRTFProperty(mapi_object, prop_tag = PR_RTF_COMPRESSED):
     # always want a string
     return html or ''
 
-class MAPIMsgStoreFolder(MsgStoreMsg):
+class MAPIMsgStoreFolder:
     def __init__(self, msgstore, id, name, count):
         self.msgstore = msgstore
         self.id = id
@@ -557,6 +529,8 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             for row in rows:
                 # Our restriction helped, but may not have filtered
                 # every message we don't want to touch.
+                # Note no exception will be raised below if the message is
+                # moved under us, as we don't need to access any properties.
                 msg = MAPIMsgStoreMsg(self.msgstore, row)
                 if not only_filter_candidates or msg.IsFilterCandidate():
                     yield msg
@@ -595,6 +569,8 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
             if len(rows) == 0:
                 break
             for row in rows:
+                # Note no exception will be raised below if the message is
+                # moved under us, as we don't need to access any properties.
                 msg = MAPIMsgStoreMsg(self.msgstore, row)
                 if msg.IsFilterCandidate():
                     yield msg
@@ -614,8 +590,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         ret = folder.CreateFolder(type, name, comments, None, flags)
         return self._FolderFromMAPIFolder(ret)
 
-
-class MAPIMsgStoreMsg(MsgStoreMsg):
+class MAPIMsgStoreMsg:
     # All the properties we must initialize a message with.
     # These include all the IDs we need, parent IDs, any properties needed
     # to determine if this is a "filterable" message, etc
@@ -712,6 +687,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # GroupWise generates IPM.Anti-Virus.Report.45 (but I'm not sure how
         # it manages given it is an external server, and as far as I can tell,
         # this does not appear in the headers.
+        if test_suite_running:
+            # While the test suite is running, we *only* filter test msgs.
+            return self.subject == "SpamBayes addin auto-generated test message"
         class_check = self.msgclass.lower()
         for check in "ipm.note", "ipm.anti-virus":
             if class_check.startswith(check):
@@ -720,7 +698,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             # Not matching class - no good
             return False
         # Must match msg class to get here.
-        return self.was_received or test_suite_running
+        return self.was_received
 
     def _GetPotentiallyLargeStringProp(self, prop_id, row):
         return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
@@ -847,7 +825,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def _EnsureObject(self):
         if self.mapi_object is None:
-            self.mapi_object = self.msgstore._OpenEntry(self.id)
+            try:
+                help_test_suite("MAPIMsgStoreMsg._EnsureObject")
+                self.mapi_object = self.msgstore._OpenEntry(self.id)
+            except pythoncom.com_error, details:
+                raise MsgStoreExceptionFromCOMException(details)
 
     def GetEmailPackageObject(self, strip_mime_headers=True):
         # Return an email.Message object.
@@ -950,29 +932,28 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # XXX blanks unless I *first* modify the view (like Messages) in
         # XXX Outlook to define a custom Integer field of the same name.
         self._EnsureObject()
-        if type(prop) != type(0):
-            props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
-            propIds = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
-            type_tag = _MapiTypeMap.get(type(val))
-            if type_tag is None:
-                raise ValueError, "Don't know what to do with '%r' ('%s')" % (
-                                     val, type(val))
-            prop = PROP_TAG(type_tag, PROP_ID(propIds[0]))
-        if val is None:
-            # Delete the property
-            self.mapi_object.DeleteProps((prop,))
-        else:
-            self.mapi_object.SetProps(((prop,val),))
-        self.dirty = True
-
-    def GetField(self, prop, raise_errors = False):
         try:
-            self._EnsureObject()
+            if type(prop) != type(0):
+                props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
+                propIds = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
+                type_tag = _MapiTypeMap.get(type(val))
+                if type_tag is None:
+                    raise ValueError, "Don't know what to do with '%r' ('%s')" % (
+                                         val, type(val))
+                prop = PROP_TAG(type_tag, PROP_ID(propIds[0]))
+            help_test_suite("MAPIMsgStoreMsg.SetField")
+            if val is None:
+                # Delete the property
+                self.mapi_object.DeleteProps((prop,))
+            else:
+                self.mapi_object.SetProps(((prop,val),))
+            self.dirty = True
         except pythoncom.com_error, details:
-            if not IsNotFoundCOMException(details):
-                print "ERROR: Could not open an object to fetch a field"
-                print details
-            return None
+            raise MsgStoreExceptionFromCOMException(details)
+
+    def GetField(self, prop):
+        # xxx - still raise_errors?
+        self._EnsureObject()
         if type(prop) != type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
             prop = self.mapi_object.GetIDsFromNames(props, 0)[0]
@@ -988,60 +969,65 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                     return GetPropFromStream(self.mapi_object, prop)
                 return None
             return val
-        except:
-            if raise_errors:
-                raise
-            return None
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def GetReadState(self):
         val = self.GetField(PR_MESSAGE_FLAGS)
         return (val&MSGFLAG_READ) != 0
 
     def SetReadState(self, is_read):
-        self._EnsureObject()
-        # always try and clear any pending delivery reports of read/unread
-        if is_read:
-            self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|SUPPRESS_RECEIPT)
-        else:
-            self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|CLEAR_READ_FLAG)
-        if __debug__:
-            if self.GetReadState() != is_read:
-                print "MAPI SetReadState appears to have failed to change the message state"
-                print "Requested set to %s but the MAPI field after was %r" % \
-                      (is_read, self.GetField(PR_MESSAGE_FLAGS))
+        try:
+            self._EnsureObject()
+            # always try and clear any pending delivery reports of read/unread
+            help_test_suite("MAPIMsgStoreMsg.SetReadState")
+            if is_read:
+                self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|SUPPRESS_RECEIPT)
+            else:
+                self.mapi_object.SetReadFlag(USE_DEFERRED_ERRORS|CLEAR_READ_FLAG)
+            if __debug__:
+                if self.GetReadState() != is_read:
+                    print "MAPI SetReadState appears to have failed to change the message state"
+                    print "Requested set to %s but the MAPI field after was %r" % \
+                          (is_read, self.GetField(PR_MESSAGE_FLAGS))
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"
-        # There are some known exceptions that can be raised by IMAP and hotmail
-        # For now, we just let the caller handle all errors, and manually
-        # reset the dirty flag.  Only current caller is filter.py
-        # There are also some issues with the "unread flag" that fiddling this
-        # save code may fix.
-        # It seems that *not* specifying mapi.MAPI_DEFERRED_ERRORS solves alot
-        # of said problems though!  So we don't!
-        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE)
-        self.dirty = False
+        # It seems that *not* specifying mapi.MAPI_DEFERRED_ERRORS solves a lot
+        # problems!  So we don't!
+        try:
+            help_test_suite("MAPIMsgStoreMsg.Save")
+            self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE)
+            self.dirty = False
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def _DoCopyMove(self, folder, isMove):
         assert not self.dirty, \
                "asking me to move a dirty message - later saves will fail!"
-        dest_folder = self.msgstore._OpenEntry(folder.id)
-        source_folder = self.msgstore._OpenEntry(self.folder_id)
-        flags = 0
-        if isMove: flags |= MESSAGE_MOVE
-        eid = self.id[1]
-        source_folder.CopyMessages((eid,),
-                                    None,
-                                    dest_folder,
-                                    0,
-                                    None,
-                                    flags)
-        # At this stage, I think we have lost meaningful ID etc values
-        # Set everything to None to make it clearer what is wrong should
-        # this become an issue.  We would need to re-fetch the eid of
-        # the item, and set the store_id to the dest folder.
-        self.id = None
-        self.folder_id = None
+        try:
+            dest_folder = self.msgstore._OpenEntry(folder.id)
+            source_folder = self.msgstore._OpenEntry(self.folder_id)
+            flags = 0
+            if isMove: flags |= MESSAGE_MOVE
+            eid = self.id[1]
+            help_test_suite("MAPIMsgStoreMsg._DoCopyMove")
+            source_folder.CopyMessages((eid,),
+                                        None,
+                                        dest_folder,
+                                        0,
+                                        None,
+                                        flags)
+            # At this stage, I think we have lost meaningful ID etc values
+            # Set everything to None to make it clearer what is wrong should
+            # this become an issue.  We would need to re-fetch the eid of
+            # the item, and set the store_id to the dest folder.
+            self.id = None
+            self.folder_id = None
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def MoveTo(self, folder):
         self._DoCopyMove(folder, True)
@@ -1052,18 +1038,19 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     # Functions to perform operations, but report the error (ONCE!) to the
     # user.  Any errors are re-raised so the caller can degrade gracefully if
     # necessary.
+    # XXX - not too happy with these - they should go, and the caller should
+    # handle (especially now that we work exclusively with exceptions from
+    # this module.
     def MoveToReportingError(self, manager, folder):
         try:
             self.MoveTo(folder)
-        except pythoncom.com_error, details:
-            ReportMAPIError(manager, "Moving a message", pythoncom.com_error, details)
-            raise
+        except MsgStoreException, details:
+            ReportMAPIError(manager, "Moving a message", details.mapi_exception)
     def CopyToReportingError(self, manager, folder):
         try:
             self.MoveTo(folder)
-        except pythoncom.com_error, details:
-            ReportMAPIError(manager, "Copying a message", pythoncom.com_error, details)
-            raise
+        except MsgStoreException, details:
+            ReportMAPIError(manager, "Copying a message", details.mapi_exception)
 
     def GetFolder(self):
         # return a folder object with the parent, or None
@@ -1073,17 +1060,20 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def RememberMessageCurrentFolder(self):
         self._EnsureObject()
-        folder = self.GetFolder()
-        props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
-                  (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderID")
-                  )
-        resolve_ids = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
-        prop_ids = PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[0])), \
-                   PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[1]))
-
-        prop_tuples = (prop_ids[0],folder.id[0]), (prop_ids[1],folder.id[1])
-        self.mapi_object.SetProps(prop_tuples)
-        self.dirty = True
+        try:
+            folder = self.GetFolder()
+            props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
+                      (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderID")
+                      )
+            resolve_ids = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
+            prop_ids = PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[0])), \
+                       PROP_TAG( PT_BINARY, PROP_ID(resolve_ids[1]))
+    
+            prop_tuples = (prop_ids[0],folder.id[0]), (prop_ids[1],folder.id[1])
+            self.mapi_object.SetProps(prop_tuples)
+            self.dirty = True
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def GetRememberedFolder(self):
         props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
@@ -1099,6 +1089,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 return None
             (store_tag, store_id), (eid_tag, eid) = data
             folder_id = mapi.HexFromBin(store_id), mapi.HexFromBin(eid)
+            help_test_suite("MAPIMsgStoreMsg.GetRememberedFolder")
             return self.msgstore.GetFolder(folder_id)
         except:
             print "Error locating origin of message", self

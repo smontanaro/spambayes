@@ -165,45 +165,48 @@ def TrainAsSpam(msgstore_message, manager, rescore = True):
 def ProcessMessage(msgstore_message, manager):
     manager.LogDebug(2, "ProcessMessage starting for message '%s'" \
                         % msgstore_message.subject)
-    if not msgstore_message.IsFilterCandidate():
-        manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!" \
-                         % msgstore_message.subject)
-        return
-
-    if HaveSeenMessage(msgstore_message, manager):
-        # Already seen this message - user probably moving it back
-        # after incorrect classification.
-        # If enabled, re-train as Ham
-        # otherwise just ignore.
-        if manager.config.training.train_recovered_spam:
-            import train
-            if train.been_trained_as_spam(msgstore_message, manager.classifier_data):
-                need_train = True
-            else:
-                prop = msgstore_message.GetField(manager.config.general.field_score_name)
-                # We may not have been able to save the score - re-score now
-                if prop is None:
-                    prop = manager.score(msgstore_message)
-                # If it was not previously classified as either 'Spam' or
-                # 'Unsure', then this event is unlikely to be the user
-                # re-classifying (and in fact it may simply be the Outlook
-                # rules moving the item.
-                need_train = manager.config.filter.unsure_threshold < prop * 100
-
-            if need_train:
-                TrainAsHam(msgstore_message, manager)
-            else:
-                subject = msgstore_message.subject
-                manager.LogDebug(1, "Message '%s' was previously seen, but " \
-                                 "did not need to be trained as ham" % subject)
-        return
-    if manager.config.filter.enabled:
-        import filter
-        disposition = filter.filter_message(msgstore_message, manager)
-        print "Message '%s' had a Spam classification of '%s'" \
-              % (msgstore_message.GetSubject(), disposition)
-    else:
-        print "Spam filtering is disabled - ignoring new message"
+    try:
+        if not msgstore_message.IsFilterCandidate():
+            manager.LogDebug(1, "Skipping message '%s' - we don't filter ones like that!" \
+                             % msgstore_message.subject)
+            return
+    
+        if HaveSeenMessage(msgstore_message, manager):
+            # Already seen this message - user probably moving it back
+            # after incorrect classification.
+            # If enabled, re-train as Ham
+            # otherwise just ignore.
+            if manager.config.training.train_recovered_spam:
+                import train
+                if train.been_trained_as_spam(msgstore_message, manager.classifier_data):
+                    need_train = True
+                else:
+                    prop = msgstore_message.GetField(manager.config.general.field_score_name)
+                    # We may not have been able to save the score - re-score now
+                    if prop is None:
+                        prop = manager.score(msgstore_message)
+                    # If it was not previously classified as either 'Spam' or
+                    # 'Unsure', then this event is unlikely to be the user
+                    # re-classifying (and in fact it may simply be the Outlook
+                    # rules moving the item.
+                    need_train = manager.config.filter.unsure_threshold < prop * 100
+    
+                if need_train:
+                    TrainAsHam(msgstore_message, manager)
+                else:
+                    subject = msgstore_message.subject
+                    manager.LogDebug(1, "Message '%s' was previously seen, but " \
+                                     "did not need to be trained as ham" % subject)
+            return
+        if manager.config.filter.enabled:
+            import filter
+            disposition = filter.filter_message(msgstore_message, manager)
+            print "Message '%s' had a Spam classification of '%s'" \
+                  % (msgstore_message.GetSubject(), disposition)
+        else:
+            print "Spam filtering is disabled - ignoring new message"
+    except manager.message_store.NotFoundException:
+        manager.LogDebug(1, "ProcessMessage had the message moved out from underneath us")
     manager.LogDebug(2, "ProcessMessage finished for", msgstore_message)
 
 # Button/Menu and other UI event handler classes
@@ -339,8 +342,12 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             # ones that HaveSeen() returns False for, so therefore isn't a hit.
             while 1:
                 item = self.timer_generator.next()
-                if not HaveSeenMessage(item, self.manager):
-                    break
+                try:
+                    if not HaveSeenMessage(item, self.manager):
+                        break
+                except self.manager.message_store.NotFoundException:
+                    # ignore messages move underneath us
+                    self.manager.LogDebug(1, "The new message is skipping a message that moved underneath us")
         except StopIteration:
             # No items left in our generator
             self.timer_generator = None
@@ -364,9 +371,14 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # new and use our timer.  If not unread, we know our missed message
         # generator would miss it, so we process it synchronously.
         if not self.use_timer or not item.UnRead:
-            msgstore_message = self.manager.message_store.GetMessage(item)
-            if msgstore_message is not None:
+            ms = self.manager.message_store
+            try:
+                msgstore_message = ms.GetMessage(item)
                 ProcessMessage(msgstore_message, self.manager)
+            except ms.MsgStoreException, details:
+                print "Unexpected error fetching message"
+                traceback.print_exc()
+                print details
         else:
             self._StartTimer()
 
@@ -381,6 +393,9 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                               "with item", item.Subject.encode("mbcs", "ignore"))
         if not self.manager.config.training.train_manual_spam:
             return
+        # XXX - Theoretically we could get "not found" exception here,
+        # but we have never guarded for it, and never seen it.  If it does
+        # happen life will go on, so for now we continue to ignore it.
         msgstore_message = self.manager.message_store.GetMessage(item)
         if not msgstore_message.IsFilterCandidate():
             self.manager.LogDebug(1, "Not training message '%s' - we don't filter ones like that!")
@@ -538,7 +553,6 @@ def Tester(manager):
     try:
         print "Executing automated tests..."
         tester.test(manager)
-        print "Tests worked."
     except:
         traceback.print_exc()
         print "Tests FAILED.  Sorry about that.  If I were you, I would do a full re-train ASAP"
@@ -571,10 +585,15 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         SetWaitCursor(1)
         # Delete this item as spam.
         spam_folder = None
+        # It is unlikely that the spam folder is not specified, as the UI
+        # will prevent enabling.  But it could be invalid.
         spam_folder_id = self.manager.config.filter.spam_folder_id
         if spam_folder_id:
-            spam_folder = msgstore.GetFolder(spam_folder_id)
-        if not spam_folder:
+            try:
+                spam_folder = msgstore.GetFolder(spam_folder_id)
+            except msgstore.MsgStoreException:
+                pass
+        if spam_folder is None:
             self.manager.ReportError("You must configure the Spam folder",
                                "Invalid Configuration")
             return
@@ -630,29 +649,34 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # During experimenting/playing/debugging, it is possible
             # that the source folder == dest folder - restore to
             # the inbox in this case.
-            subject = msgstore_message.GetSubject()
-            restore_folder = msgstore_message.GetRememberedFolder()
-            if restore_folder is None or \
-               msgstore_message.GetFolder() == restore_folder:
-                print "Unable to determine source folder for message '%s' - restoring to Inbox" % (subject,)
-                restore_folder = inbox_folder
-
-            # Must train before moving, else we lose the message!
-            print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
-            TrainAsHam(msgstore_message, self.manager)
-            # Do the new message state if necessary.
             try:
-                if new_msg_state == "Read":
-                    msgstore_message.SetReadState(True)
-                elif new_msg_state == "Unread":
-                    msgstore_message.SetReadState(False)
-                else:
-                    if new_msg_state not in ["", "None", None]:
-                        print "*** Bad new_msg_state value: %r" % (new_msg_state,)
-            except pythoncom.com_error:
-                print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
-            # Now move it.
-            msgstore_message.MoveToReportingError(self.manager, restore_folder)
+                subject = msgstore_message.GetSubject()
+                restore_folder = msgstore_message.GetRememberedFolder()
+                if restore_folder is None or \
+                   msgstore_message.GetFolder() == restore_folder:
+                    print "Unable to determine source folder for message '%s' - restoring to Inbox" % (subject,)
+                    restore_folder = inbox_folder
+    
+                # Must train before moving, else we lose the message!
+                print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
+                TrainAsHam(msgstore_message, self.manager)
+                # Do the new message state if necessary.
+                try:
+                    if new_msg_state == "Read":
+                        msgstore_message.SetReadState(True)
+                    elif new_msg_state == "Unread":
+                        msgstore_message.SetReadState(False)
+                    else:
+                        if new_msg_state not in ["", "None", None]:
+                            print "*** Bad new_msg_state value: %r" % (new_msg_state,)
+                except msgstore.MsgStoreException, details:
+                    print "*** Failed to set the message state to '%s' for message '%s'" % (new_msg_state, subject)
+                    print details
+                # Now move it.
+                msgstore_message.MoveToReportingError(self.manager, restore_folder)
+            except msgstore.NotFoundException:
+                # Message moved under us - ignore.
+                self.manager.LogDebug(1, "Recover from spam had message moved from underneath us - ignored")
             # Note the move will possibly also trigger a re-train
             # but we are smart enough to know we have already done it.
         # And if the DB can save itself incrementally, do it now
@@ -929,11 +953,19 @@ class ExplorerWithEvents:
             return None
 
         ret = []
+        ms = self.manager.message_store
         for i in range(sel.Count):
             item = sel.Item(i+1)
-            msgstore_message = self.manager.message_store.GetMessage(item)
-            if msgstore_message and msgstore_message.IsFilterCandidate():
-                ret.append(msgstore_message)
+            try:
+                msgstore_message = ms.GetMessage(item)
+                if msgstore_message.IsFilterCandidate():
+                    ret.append(msgstore_message)
+            except ms.NotFoundException:
+                pass
+            except ms.MsgStoreException, details:
+                print "Unexpected error fetching message"
+                traceback.print_exc()
+                print details
 
         if len(ret) == 0:
             self.manager.ReportError("No filterable mail items are selected", "No selection")
