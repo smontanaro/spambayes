@@ -127,6 +127,11 @@ def main():
     relthis = curdir[len(prefix)+1:]
     if not relthis:
         relthis = '.'
+    # On Windows, we want forward URL style slashes.
+    if os.sep=="\\":
+        relthis = relthis.replace("\\", "/")
+        #prefix = prefix.replace("\\", "/")
+        #absroot = absroot.replace("\\", "/")
 
     # get the generator class
     m = __import__(classmod)
