@@ -89,7 +89,7 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
                     bests = []
                 bests.append((h, s))
 
-    print '-> best cost $%.2f' % best_cost
+    print '-> best cost for %s $%.2f' % (tag, best_cost)
     print '-> per-fp cost $%.2f; per-fn cost $%.2f; per-unsure cost $%.2f' % (
           FPW, FNW, UNW)
 
