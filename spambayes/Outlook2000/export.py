@@ -81,7 +81,7 @@ def main():
     global FILES_PER_DIRECTORY
     import getopt
 
-   try:
+    try:
         opts, args = getopt.getopt(sys.argv[1:], "qn:")
     except getopt.error, d:
         print d
