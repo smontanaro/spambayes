@@ -8,11 +8,11 @@ usage: rebal.py [ options ]
 options:
    -r res - specify an alternate reservoir [%(RESDIR)s]
    -s set - specify an alternate Set pfx [%(SETPFX)s]
-   -n num - specify number of files per dir [%(NPERDIR)s]
+   -n num - specify number of files per Set dir desired [%(NPERDIR)s]
    -v     - tell user what's happening [%(VERBOSE)s]
    -q     - be quiet about what's happening [not %(VERBOSE)s]
    -c     - confirm file moves into Set directory [%(CONFIRM)s]
-   -Q     - be quiet and don't confirm moves
+   -Q     - don't confirm moves; this is independent of -v/-q
 
 The script will work with a variable number of Set directories, but they
 must already exist.
@@ -103,7 +103,7 @@ def main(args):
         elif opt == "-q":
             verbose = False
         elif opt == "-Q":
-            verbose = confirm = False
+            confirm = False
         elif opt == "-h":
             usage()
             return 0
