@@ -130,7 +130,7 @@ class IMAPSession(BaseIMAP):
     def __init__(self, server, port, debug=0, do_expunge=False):
         # There's a tricky situation where if use_ssl is False, but we
         # try to connect to a IMAP over SSL server, we will just hang
-        # forever, waiting for a repsonse that will never come.  To
+        # forever, waiting for a response that will never come.  To
         # get past this, just for the welcome message, we install a
         # timeout on the connection.  Normal service is then returned.
         # This only applies when we are not using SSL.
@@ -255,6 +255,8 @@ class IMAPSession(BaseIMAP):
             self.current_folder = folder
             return data
 
+    number_re = re.compile(r"{\d+}")
+    folder_re = re.compile(r"\(([\w\\ ]*)\) ")
     def folder_list(self):
         """Return a alphabetical list of all folders available on the
         server."""
@@ -271,13 +273,12 @@ class IMAPSession(BaseIMAP):
             # Sigh.  Some servers may give us back the folder name as a
             # literal, so we need to crunch this out.
             if isinstance(fol, types.TupleType):
-                m = re.search(r"{\d+}", fol[0])
+                m = self.number_re.search(fol[0])
                 if not m:
                     # Something is wrong here!  Skip this folder.
                     continue
                 fol = '%s"%s"' % (fol[0][:m.start()], fol[1])
-            r = re.compile(r"\(([\w\\ ]*)\) ")
-            m = r.search(fol)
+            m = self.folder_re.search(fol)
             if not m:
                 # Something is not good with this folder, so skip it.
                 continue
@@ -510,6 +511,7 @@ class IMAPMessage(message.SBHeaderMessage):
         else:
             return message.SBHeaderMessage.as_string(self, unixfrom)
 
+    recent_re = re.compile(r"\\Recent ?| ?\\Recent")
     def Save(self):
         """Save message to IMAP server.
 
@@ -536,7 +538,7 @@ class IMAPMessage(message.SBHeaderMessage):
             flags = data["FLAGS"]
             # The \Recent flag can be fetched, but cannot be stored
             # We must remove it from the list if it is there.
-            flags = re.sub(r"\\Recent ?| ?\\Recent", "", flags)
+            flags = self.recent_re.sub("", flags)
         else:
             flags = None
 
@@ -675,6 +677,11 @@ class IMAPFolder(object):
         else:
             return []
 
+    custom_header_id_re = re.compile(re.escape(\
+        options["Headers", "mailid_header_name"]) + "\:\s*(\d+(?:\-\d)?)",
+                                     re.IGNORECASE)
+    message_id_re = re.compile("Message-ID\: ?\<([^\n\>]+)\>",
+                               re.IGNORECASE)
     def __getitem__(self, key):
         """Return message matching the given *uid*.
 
@@ -687,9 +694,9 @@ class IMAPFolder(object):
         # Using RFC822.HEADER.LINES would be better here, but it seems
         # that not all servers accept it, even though it is in the RFC
         response = self.imap_server.uid("FETCH", key, "RFC822.HEADER")
-        data = self.imap_server.check_response("fetch %s rfc822.header" \
-                                               % (key,), response)
-        data = self.imap_server.extract_fetch_data(data[0])
+        response_data = self.imap_server.check_response(\
+            "fetch %s rfc822.header" % (key,), response)
+        data = self.imap_server.extract_fetch_data(response_data[0])
 
         # Create a new IMAPMessage object, which will be the return value.
         msg = IMAPMessage()
@@ -699,12 +706,24 @@ class IMAPFolder(object):
 
         # We use the MessageID header as the ID for the message, as long
         # as it is available, and if not, we add our own.
-        custom_header_id = re.escape(options["Headers",
-                                             "mailid_header_name"]) + \
-                           "\:\s*(\d+(?:\-\d)?)"
+        try:
+            headers = data["RFC822.HEADER"]
+        except KeyError:
+            # This is bad!  We asked for this in the fetch, so either
+            # our parsing is wrong or the response from the server is
+            # wrong.  For the moment, print out some debugging info
+            # and don't do anything else (which means we will keep
+            # coming back to this message).
+            print >> sys.stderr, "Trouble parsing response:", \
+                  response_data, data
+            print >> sys.stderr, "Please report this to spambayes@python.org"
+            if options["globals", "verbose"]:
+                sys.stdout.write("?")
+            return msg
+        
         # Search for our custom id first, for backwards compatibility.
-        for id_header in [custom_header_id, "Message-ID\: ?\<([^\n\>]+)\>"]:
-            mo = re.search(id_header, data["RFC822.HEADER"], re.IGNORECASE)
+        for id_header_re in [self.custom_header_id_re, self.message_id_re]:
+            mo = id_header_re.search(headers)
             if mo:
                 msg.setId(mo.group(1))
                 break
