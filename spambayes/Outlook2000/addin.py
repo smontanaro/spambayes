@@ -276,22 +276,27 @@ class ExplorerEvent:
         outlook_folder = explorer.CurrentFolder
         show_delete_as = True
         show_recover_as = False
-        if outlook_folder is not None:
-            mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
-            look_id = self.manager.config.filter.spam_folder_id
-            if look_id:
-                look_folder = self.manager.message_store.GetFolder(look_id)
-                if mapi_folder == look_folder:
-                    # This is the Spam folder - only show "recover"
-                    show_recover_as = True
-                    show_delete_as = False
-            # Check if uncertain
-            look_id = self.manager.config.filter.unsure_folder_id
-            if look_id:
-                look_folder = self.manager.message_store.GetFolder(look_id)
-                if mapi_folder == look_folder:
-                    show_recover_as = True
-                    show_delete_as = True
+        try:
+            if outlook_folder is not None:
+                mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
+                look_id = self.manager.config.filter.spam_folder_id
+                if look_id:
+                    look_folder = self.manager.message_store.GetFolder(look_id)
+                    if mapi_folder == look_folder:
+                        # This is the Spam folder - only show "recover"
+                        show_recover_as = True
+                        show_delete_as = False
+                # Check if uncertain
+                look_id = self.manager.config.filter.unsure_folder_id
+                if look_id:
+                    look_folder = self.manager.message_store.GetFolder(look_id)
+                    if mapi_folder == look_folder:
+                        show_recover_as = True
+                        show_delete_as = True
+        except:
+            print "Error finding the MAPI folders for a folder switch event"
+            import traceback
+            traceback.print_exc()
         self.but_recover_as.Visible = show_recover_as
         self.but_delete_as.Visible = show_delete_as
 
