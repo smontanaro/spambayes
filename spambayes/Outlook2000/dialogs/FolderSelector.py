@@ -56,7 +56,7 @@ class FolderSpec:
 #########################################################################
 ## An extended MAPI version
 #########################################################################
-from win32com.mapi import mapi
+from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
 import pythoncom
 
@@ -170,7 +170,7 @@ def PackTVITEM(hitem, state, stateMask, text, image, selimage, citems, param):
                       citems, param)
     return array.array("c", buf), extra
 
-def UnpackLVITEM(buffer):
+def UnpackTVItem(buffer):
     item_mask, item_hItem, item_state, item_stateMask, \
         item_textptr, item_cchText, item_image, item_selimage, \
         item_cChildren, item_param = struct.unpack("10i", buffer)
@@ -184,14 +184,21 @@ def UnpackLVITEM(buffer):
         text, item_image, item_selimage, \
         item_cChildren, item_param
 
-def UnpackLVNOTIFY(lparam):
+def UnpackTVNOTIFY(lparam):
     format = "iiii40s40s"
     buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
     hwndFrom, id, code, action, buf_old, buf_new \
           = struct.unpack(format, buf)
-    item_old = UnpackLVITEM(buf_old)
-    item_new = UnpackLVITEM(buf_new)
+    item_old = UnpackTVItem(buf_old)
+    item_new = UnpackTVItem(buf_new)
     return hwndFrom, id, code, action, item_old, item_new
+
+def UnpackTVDISPINFO(lparam):
+    format = "iii40s"
+    buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
+    hwndFrom, id, code, buf_item = struct.unpack(format, buf)
+    item = UnpackTVItem(buf_item)
+    return hwndFrom, id, code, item
 
 #########################################################################
 ## The dialog itself
@@ -225,6 +232,7 @@ class FolderSelector(FolderSelector_Parent):
         self.checkbox_state = checkbox_state
         self.checkbox_text = checkbox_text or "Include &subfolders"
         self.exclude_prop_ids = exclude_prop_ids
+        self.in_label_edit = False
 
     def CompareIDs(self, id1, id2):
         # Compare the eid of the stores, then the objects
@@ -244,39 +252,42 @@ class FolderSelector(FolderSelector_Parent):
         self.item_map[item_id] = item
         return item_id
 
+    def _InsertFolder(self, hParent, child, selected_ids = None, insert_after=0):
+        text = child.name
+        if child.children is None: # Need to build them!
+            cItems = 1 # Anything > 0 will do
+        else:
+            cItems = len(child.children)
+        if cItems==0:
+            bitmapCol = bitmapSel = 5 # blank doc
+        else:
+            bitmapCol = bitmapSel = 0 # folder
+        if self.single_select:
+            mask = state = 0
+        else:
+            if (selected_ids and
+                    self.InIDs(child.folder_id, selected_ids)):
+                state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
+            else:
+                state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
+            mask = commctrl.TVIS_STATEIMAGEMASK
+        item_id = self._MakeItemParam(child)
+        insert_buf, extras = PackTVINSERTSTRUCT(hParent, insert_after,
+                                        (None,
+                                        state,
+                                        mask,
+                                        text,
+                                        bitmapCol,
+                                        bitmapSel,
+                                        cItems,
+                                        item_id))
+        hitem = win32gui.SendMessage(self.list, commctrl.TVM_INSERTITEM,
+                                        0, insert_buf)
+        return hitem
+
     def _InsertSubFolders(self, hParent, folderSpec):
         for child in folderSpec.children:
-            text = child.name
-            if child.children is None: # Need to build them!
-                cItems = 1 # Anything > 0 will do
-            else:
-                cItems = len(child.children)
-            if cItems==0:
-                bitmapCol = bitmapSel = 5 # blank doc
-            else:
-                bitmapCol = bitmapSel = 0 # folder
-            if self.single_select:
-                mask = state = 0
-            else:
-                if (self.selected_ids and
-                        self.InIDs(child.folder_id, self.selected_ids)):
-                    state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
-                else:
-                    state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
-                mask = commctrl.TVIS_STATEIMAGEMASK
-            item_id = self._MakeItemParam(child)
-            insert_buf, extras = PackTVINSERTSTRUCT(hParent, 0,
-                                         (None,
-                                          state,
-                                          mask,
-                                          text,
-                                          bitmapCol,
-                                          bitmapSel,
-                                          cItems,
-                                          item_id))
-            hitem = win32gui.SendMessage(self.list, commctrl.TVM_INSERTITEM,
-                                         0, insert_buf)
-
+            hitem = self._InsertFolder(hParent, child, self.selected_ids)
             # If this folder is in the list of ones we need to expand
             # to show pre-selected items, then force expand now.
             if self.InIDs(child.folder_id, self.expand_ids):
@@ -304,12 +315,12 @@ class FolderSelector(FolderSelector_Parent):
                 folder = parent
         return folders_to_expand
 
-    def _GetLVItem(self, h):
+    def _GetTVItem(self, h):
         text_buffer = "\0" * 1024
         buffer, extra = PackTVITEM(h, 0, 0, text_buffer, None, None, None, -1)
         win32gui.SendMessage(self.list, commctrl.TVM_GETITEM,
                                 0, buffer.buffer_info()[0])
-        return UnpackLVITEM(buffer.tostring())
+        return UnpackTVItem(buffer.tostring())
 
     def _YieldChildren(self, h):
         try:
@@ -318,7 +329,7 @@ class FolderSelector(FolderSelector_Parent):
         except win32gui.error:
             h = 0
         while h:
-            info = self._GetLVItem(h)
+            info = self._GetTVItem(h)
             item_param = info[-1]
             spec = self.item_map[item_param]
 
@@ -344,7 +355,7 @@ class FolderSelector(FolderSelector_Parent):
                                          commctrl.TVGN_CARET, 0)
             except win32gui.error:
                 return
-            info = self._GetLVItem(h)
+            info = self._GetTVItem(h)
             spec = self.item_map[info[7]]
             yield info, spec
             return # single-hit yield.
@@ -417,7 +428,6 @@ class FolderSelector(FolderSelector_Parent):
         self._UpdateStatus()
         dlgutils.SetWaitCursor(0)
 
-
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         import timer
         if self.timer_id is not None:
@@ -433,6 +443,11 @@ class FolderSelector(FolderSelector_Parent):
         code = win32api.HIWORD(wparam)
         
         if code == win32con.BN_CLICKED:
+            if id in (win32con.IDOK, win32con.IDCANCEL) and self.in_label_edit:
+                cancel = id == win32con.IDCANCEL
+                win32gui.SendMessage(self.list, commctrl.TVM_ENDEDITLABELNOW,
+                                     cancel,0)
+                return
             # Button clicks
             if id == win32con.IDOK:
                 self.selected_ids, self.checkbox_state = self.GetSelectedIDs()
@@ -447,6 +462,36 @@ class FolderSelector(FolderSelector_Parent):
                                             None, None, None, None, None)
                     win32gui.SendMessage(self.list, commctrl.TVM_SETITEM,
                                          0, buf)
+            elif id_name == "IDC_BUT_NEW":
+                # Force a new entry in the tree at our location, and begin
+                # editing.
+                # Add the new item to the tree.
+                h = win32gui.SendMessage(self.list, commctrl.TVM_GETNEXTITEM,
+                                         commctrl.TVGN_CARET, commctrl.TVI_ROOT)
+                parent_item = self._GetTVItem(h)
+                if parent_item[6]==0:
+                    # eeek - parent has no existig children - say we have one
+                    # so we can be expanded.
+                    update_item, extra = PackTVITEM(h, None, None, None, None, None, 1, None)
+                    win32gui.SendMessage(self.list, commctrl.TVM_SETITEM, 0, update_item)
+
+                item_id = self._MakeItemParam(None)
+                temp_spec = FolderSpec(None, "New folder")
+                hnew = self._InsertFolder(h, temp_spec, None, commctrl.TVI_FIRST)
+
+                win32gui.SendMessage(self.list, commctrl.TVM_ENSUREVISIBLE, 0, hnew)
+                win32gui.SendMessage(self.list,
+                                     commctrl.TVM_SELECTITEM,
+                                     commctrl.TVGN_CARET, hnew)
+
+                # Allow label editing
+                s = win32api.GetWindowLong(self.list, win32con.GWL_STYLE)
+                s |= commctrl.TVS_EDITLABELS
+                win32api.SetWindowLong(self.list, win32con.GWL_STYLE, s)
+
+                win32gui.SetFocus(self.list)
+                self.in_label_edit = True
+                win32gui.SendMessage(self.list, commctrl.TVM_EDITLABEL, 0, hnew)
 
         self._UpdateStatus()
 
@@ -492,7 +537,7 @@ class FolderSelector(FolderSelector_Parent):
                     self.OnOK()
             elif code == commctrl.TVN_ITEMEXPANDING:
                 ignore, ignore, ignore, action, itemOld, itemNew = \
-                                            UnpackLVNOTIFY(lparam)
+                                            UnpackTVNOTIFY(lparam)
                 if action == 1: return 0 # contracting, not expanding
                 itemHandle = itemNew[0]
                 info = itemNew
@@ -502,6 +547,50 @@ class FolderSelector(FolderSelector_Parent):
                     self._InsertSubFolders(itemHandle, folderSpec)
             elif code == commctrl.TVN_SELCHANGED:
                 self._UpdateStatus()
+            elif code == commctrl.TVN_ENDLABELEDIT:
+                ignore, ignore, ignore, item = UnpackTVDISPINFO(lparam)
+                handle = item[0]
+                stay_in_edit = False
+                try:
+                    name = item[3]
+                    if name is None:
+                        # User cancelled folder creation - delete the item
+                        win32gui.SendMessage(self.list, commctrl.TVM_DELETEITEM,
+                                             0, handle)
+                        return
+                    # Attempt to create a folder of that name.
+                    parent_handle = win32gui.SendMessage(self.list,
+                                                         commctrl.TVM_GETNEXTITEM,
+                                                         commctrl.TVGN_PARENT,
+                                                         handle)
+                    parent_item = self._GetTVItem(parent_handle)
+                    parent_spec = self.item_map[parent_item[7]]
+                    parent_folder = self.manager.message_store.GetFolder(parent_spec.folder_id)
+                    try:
+                        new_folder = parent_folder.CreateFolder(name)
+                        # Create a new FolderSpec for this folder, and stash
+                        new_spec = FolderSpec(new_folder.GetID(), name)
+                        self.item_map[item[7]] = new_spec
+                        # And update the tree with the new item
+                        buf, extra = PackTVITEM(handle, None, None, name, None, None, None, None)
+                        win32gui.SendMessage(self.list, commctrl.TVM_SETITEM, 0, buf)
+                    except pythoncom.com_error, details:
+                        hr, msg, exc, arg = details
+                        if hr == mapi.MAPI_E_COLLISION:
+                            user_msg = "A folder with that name already exists"
+                        else:
+                            user_msg = "MAPI error %s" % mapiutil.GetScodeString(hr)
+                        self.manager.ReportError("Could not create the folder\r\n\r\n" + user_msg)
+                        stay_in_edit = True
+                finally:
+                    if stay_in_edit:
+                        win32gui.SendMessage(self.list, commctrl.TVM_EDITLABEL, 0, handle)
+                    else:
+                        # reset to no label edits
+                        s = win32api.GetWindowLong(self.list, win32con.GWL_STYLE)
+                        s &= ~commctrl.TVS_EDITLABELS
+                        win32api.SetWindowLong(self.list, win32con.GWL_STYLE, s)
+                        self.in_label_edit = False
 
 def Test():
     import sys, os
