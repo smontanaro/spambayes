@@ -101,6 +101,7 @@ class Service(win32serviceutil.ServiceFramework):
 
     def ServerThread(self):
         state = pop3proxy.state
+        state.buildServerStrings()
         pop3proxy.main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
 
 if __name__=='__main__':
