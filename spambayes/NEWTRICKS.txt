@@ -54,3 +54,20 @@ results of these ideas.
 - [817813] Add a spelling checker and reasonable sized dictionary and generate
   a "not in dictionary" token.
 
+- Structural analysis of URLs.  It seems a few things might yield some
+  interesting tokens:
+
+    * URLs containing a username portion
+
+    * URLs where the server is an ip address instead of a hostname
+
+    * URLs which refer to non-standard ports
+
+    * URLs in an href attribute which refer to a different web server than
+      the one surrounded by <a href="http://...">http://...</a>
+
+  Identity theft scams are increasing in frequency and seem to use one or
+  more of these schemes to hide the true nature of the URLs they attempt to
+  get you to click.
+
+
