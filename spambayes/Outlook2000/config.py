@@ -161,7 +161,17 @@ defaults = {
         enabled, SpamBayes will automatically train on such messages""",
         BOOLEAN, RESTORE),
     ("rescore", "Rescore message after training?", True,
-        """State of the 'rescore' button""",
+        """After the training has completed, should all the messages be
+        scored for their Spam value.  This is particularly useful after
+        your initial training runs, so you can see how effective your
+        sorting of spam and ham was.""",
+        BOOLEAN, RESTORE),
+    ("rebuild", "Rescore message after training?", True,
+        """Should the entire database be rebuilt?  If enabled, then all
+        training information is reset, and a complete new database built
+        from the existing messages in your folders.  If disabled, then only
+        new messages in the folders that have not previously been trained
+        on will be processed""",
         BOOLEAN, RESTORE),
     ),
 
@@ -219,19 +229,21 @@ defaults = {
     ),
     "Filter_Now": (
     (FolderIDOption, "folder_ids", "Folders to filter in a 'Filter Now' operation", [],
-        """""",
+        """The list of folders that will be filtered by this process.""",
         FOLDER_ID, DO_NOT_RESTORE),
     ("include_sub", "Does the nominated folders include sub-folders?", False,
         """""",
         BOOLEAN, DO_NOT_RESTORE),
     ("only_unread", "Only filter unread messages?", False,
-        """""",
+        """When scoring messages, should only messages that are unread be considered?""",
         BOOLEAN, RESTORE),
     ("only_unseen", "Only filter previously unseen ?", False,
         """""",
         BOOLEAN, RESTORE),
     ("action_all", "Perform all filter actions?", True,
-        """""",
+        """When scoring the messages, should all items be performed (such as
+        moving the items based on the score) or should the items only be scored,
+        but otherwise untouched.""",
         BOOLEAN, RESTORE),
     ),
 }
