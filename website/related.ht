@@ -23,14 +23,13 @@ Author: spambayes
 
 </ul>
 
-</ul>
-<h2>Projects based on SpamBayes (Commercial or otherwise)</h2>
-<p>These are some projects that are based on SpamBayes.  Those that are commercial offer the same success in filtering mail, but in exchange for forking out some money, may be more user-friendly and offer more in the way of support.</p>
+<h2>Commercial products based on SpamBayes</h2>
+<p>Some developers like the SpamBayes project enough to invest in building other projects on top of it. Please contact us if you would like to be listed here. A listing here does not mean that the SpamBayes team endorses the project. Commercial projects offer the same success in filtering mail, but in exchange for your money, strive to be more user-friendly, offer more in the way of support, or additional features that enhance the functions of the core SpamBayes code base.</p>
 <ul>
-<li>SpamAtBay is a soon to be available commercial version of the SpamBayes addin for Outlook.  SpamAtBay development is headed by Sean True, who wrote the first integration of Outlook and SpamBayes (later this was improved on - basically rewritten using the same idea - by Mark Hammond).
-SpamAtBay has a more polished layout, documentation and some more consumer oriented features.  Contact <a href="mailto:seant@webreply.com ">Sean True</a> for more information.</li>
-<li><a href="http://www.inboxer.com">InBoxer</a>.  This is a consumer-oriented release with a simple one-click install process, based on SpamAtBay (in turn, based on SpamBayes). Contact <a href="mailto:info@inboxer.com">Roger Matus</a> for more information.</li>
+<li><a href="http://www.inboxer.com/0sb.html">InBoxer is a SpamBayes based Outlook plugin.</a> Development is headed by Sean True, who wrote the first integration of Outlook and SpamBayes. Sean's team has taken Mark Hammond's complete re-implementation and turned it into a commercial product. InBoxer focuses on ease of use and installation, and adds whitelist/blacklist, default spam clues statistics, a enhanced installer, and additional documentation.</li>
+<br>
 </ul>
+
 <h2>Other Commercial Products using "Bayesian" style filtering</h2>
 <ul>
 <li><a href="http://www.spambully.com/">Spam Bully</a> is a commercial spam filter that claims to use bayesian techniques.
