@@ -22,6 +22,8 @@ These currently include:
   onConfig - present the appropriate configuration page
   onAdvancedconfig - present the appropriate advanced configuration page
   onHelp - present the help page
+  onStats - present statistics information
+  onBugreport - help the user fill out a bug report
 
 To Do:
 
@@ -78,7 +80,6 @@ import types
 import StringIO
 
 import oe_mailbox
-from time import gmtime, strftime
 
 import PyMeldLite
 import Version

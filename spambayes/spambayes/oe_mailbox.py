@@ -16,11 +16,16 @@ import struct
 import msgs
 import StringIO
 import sys
+from time import gmtime, strftime
 
-if sys.platform == "win32":
+try:
     import win32api
     import win32con
     from win32com.shell import shell, shellcon
+except ImportError:
+    # Not win32, or win32all not installed.
+    # Some functions will not work, but some will.
+    win32api = win32con = shell = shellcon = None
 
 ###########################################################################
 ## DBX FILE HEADER
@@ -479,6 +484,9 @@ def OEStoreRoot():
         # where the dbx files are stored (I presume they are in the
         # same format).
         raise NotImplementedError
+    if win32api is None:
+        # Delayed import error from top.
+        raise ImportError("win32all not installed")
 
     reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, "")
     user_index = 0
