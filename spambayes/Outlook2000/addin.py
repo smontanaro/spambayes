@@ -1,4 +1,4 @@
-# Mark's Outlook addin
+# SpamBayes Outlook Addin
 
 import sys
 import warnings
@@ -116,9 +116,9 @@ class FolderItemsEvent:
 
     def OnItemAdd(self, item):
         if self.manager.config.filter.enabled:
-            mapi_message = self.manager.mapi.GetMessage(item.EntryID)
+            msgstore_message = self.manager.message_store.GetMessage(item.EntryID)
             import filter
-            num_rules = filter.filter_message(mapi_message, self.manager)
+            num_rules = filter.filter_message(msgstore_message, self.manager)
             print "%d Spam rules fired for message '%s'" \
                   % (num_rules, item.Subject.encode("ascii", "replace"))
         else:
@@ -141,9 +141,8 @@ def ShowClues(mgr, app):
                            "Not a mail message")
         return
 
-    mapi_message = mgr.mapi.GetMessage(item.EntryID)
-    stream = mgr.GetBayesStreamForMessage(mapi_message)
-    prob, clues = mgr.score(stream, evidence=True)
+    msgstore_message = mgr.message_store.GetMessage(item.EntryID)
+    prob, clues = mgr.score(msgstore_message, evidence=True)
     new_msg = app.CreateItem(0)
     body = ["<h2>Spam Score: %g</h2><br>" % prob]
     push = body.append
@@ -153,6 +152,13 @@ def ShowClues(mgr, app):
         word = repr(word)
         push(escape(word) + ' ' * (30 - len(word)))
         push(' %g\n' % prob)
+    push("</PRE>\n")
+    # Now the raw text of the message, as best we can
+    push("<h2>Message Stream:</h2><br>")
+    push("<PRE>\n")
+    txt = msgstore_message.GetEmailPackageObject().as_string(unixfrom=1)
+    import cgi
+    push(cgi.escape(txt, True))
     push("</PRE>\n")
     body = ''.join(body)
 
@@ -183,7 +189,7 @@ class OutlookAddin:
 
         # Create our bayes manager
         import manager
-        self.manager = manager.GetManager()
+        self.manager = manager.GetManager(application)
         assert self.manager.addin is None, "Should not already have an addin"
         self.manager.addin = self
 
@@ -228,13 +234,13 @@ class OutlookAddin:
 
     def UpdateFolderHooks(self):
         new_hooks = {}
-        for mapi_folder in self.manager.BuildFolderList(
+        for msgstore_folder in self.manager.message_store.GetFolderGenerator(
                     self.manager.config.filter.folder_ids,
                     self.manager.config.filter.include_sub):
-            eid = mapi_folder.ID
+            eid = msgstore_folder.GetOutlookEntryID()
             existing = self.folder_hooks.get(eid)
             if existing is None:
-                folder = self.application.GetNamespace("MAPI").GetFolderFromID(eid)
+                folder = self.application.Session.GetFolderFromID(eid)
                 try:
                     new_hook = DispatchWithEvents(folder.Items, FolderItemsEvent)
                 except ValueError:

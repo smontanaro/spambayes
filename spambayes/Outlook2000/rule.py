@@ -2,8 +2,6 @@ import pythoncom
 from win32com.client import constants
 import time
 
-MAPI_E_NOT_FOUND = -2147221233
-
 class Rule:
     def __init__(self):
         self.name = "New Rule"
@@ -13,7 +11,7 @@ class Rule:
         self.action = "None"
         self.flag_message = True
         self.write_field = True
-        self.write_field_name = "SpamProb"
+        self.write_field_name = "SpamScore"
         self.folder_id = ""
 
     def __repr__(self):
@@ -33,47 +31,30 @@ class Rule:
         if self.write_field and not self.write_field_name:
             return "You must specify the field name to create"
 
-    def _GetFolder(self, mgr):
-        try:
-            return mgr.mapi.GetFolder(self.folder_id)
-        except pythoncom.com_error:
-            return None
-
     def Act(self, mgr, msg, prob):
         if mgr.verbose > 1:
-            print "Rule '%s': %.2f->%.2f (%.2f) (%s)" % (self.name, self.min, self.max, prob, msg.Subject[:20].encode("ascii", "replace"))
+            print "Rule '%s': %.2f->%.2f (%.2f) (%s)" % (self.name, self.min, self.max, prob, repr(msg))
         if prob < self.min or prob > self.max:
             return False
-        # Do mods before we move.
-        dirty = False
-        outlook_ns = mgr.GetOutlookForCurrentThread().GetNamespace("MAPI")
-        try:
-            outlook_message = outlook_ns.GetItemFromID(msg.ID)
-        except pythoncom.com_error, (hr, desc, exc, arg):
-            if not exc or exc[5] != MAPI_E_NOT_FOUND:
-                raise
-            print "Warning: Can't open the message - it has probably been moved"
-            return False
 
-        if self.flag_message:
-            outlook_message.FlagRequest = "Check Spam"
-            outlook_message.FlagStatus = constants.olFlagMarked
-            dirty = True
+##        if self.flag_message:
+##            outlook_message.FlagRequest = "Check Spam"
+##            outlook_message.FlagStatus = constants.olFlagMarked
+##            dirty = True
+
         if self.write_field:
-            format = 4 # 4=2 decimal, 3=1 decimal - index in "field chooser" combo when type=Number.
-            prop = outlook_message.UserProperties.Add(self.write_field_name, constants.olNumber, True, format)
-            prop.Value = prob
-            dirty = True
-        if dirty:
-            outlook_message.Save()
+            msg.SetField(self.write_field_name, prob)
+            msg.Save()
 
         if self.action == "None":
             pass
         elif self.action == "Copy":
-            outlook_message.Copy(outlook_ns.GetFolderFromID(self.folder_id))
+            dest_folder = mgr.message_store.GetFolder(self.folder_id)
+            msg.CopyTo(dest_folder)
         elif self.action == "Move":
-            outlook_message.Move(outlook_ns.GetFolderFromID(self.folder_id))
+            dest_folder = mgr.message_store.GetFolder(self.folder_id)
+            msg.MoveTo(dest_folder)
         else:
-            print "Eeek - bad action", self.action
+            assert 0, "Eeek - bad action '%r'" % (self.action,)
 
         return True

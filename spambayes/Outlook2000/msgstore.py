@@ -1,0 +1,309 @@
+from __future__ import generators
+
+import sys, os
+
+
+# Abstract definition - can be moved out when we have more than one sub-class <wink>
+# External interface to this module is almost exclusively via a "folder ID"
+
+class MsgStoreException(Exception):
+    pass
+
+class NotFoundException(MsgStoreException):
+    pass
+
+class MsgStore:
+    # Stash exceptions in the class for ease of use by consumers.
+    MsgStoreException = MsgStoreException
+    NotFoundException = NotFoundException
+    def __init__(self):
+        pass
+    def Close(self):
+        # Close this object and free everything
+        raise NotImplementedError
+    def GetFolderGenerator(self, folder_ids, include_sub):
+        # Return a generator of MsgStoreFolder objects.
+        raise NotImplementedError
+    def GetFolder(self, folder_id):
+        # Return a single folder given the ID.
+        raise NotImplementedError
+    def GetMessage(self, message_id):
+        # Return a single message given the ID.
+        raise NotImplementedError
+
+class MsgStoreFolder:
+    def __init__(self):
+        self.name = "<folder>"
+        self.count = 0
+    def GetMessageGenerator(self, folder):
+        # Return a generator of MsgStoreMsg objects for the folder
+        raise NotImplementedError
+
+class MsgStoreMsg:
+    def __init__(self):
+        self.unread = False
+    def GetEmailPackageObject(self):
+        # Return a "read-only" Python email package object
+        # "read-only" in that changes will never be reflected to the real store.
+        raise NotImplementedError
+    def SetField(self, name, value):
+        # Abstractly set a user field name/id to a field value.
+        # User field is for the user to see - status/internal fields
+        # should get their own methods
+        raise NotImplementedError
+    def Save(self):
+        # Save changes after field changes.
+        raise NotImplementedError
+    def MoveTo(self, folder_id):
+        # Move the message to a folder.
+        raise NotImplementedError
+    def CopyTo(self, folder_id):
+        # Copy the message to a folder.
+        raise NotImplementedError
+    # And some status ones we may hopefully use.
+    def BeenFiltered(self):
+        # Ever been filtered by us before
+        raise NotImplementedError
+    def GetTrainedCorpaName(self):
+        # Return None, "ham" or "spam"
+        raise NotImplementedError
+
+        
+# Our MAPI implementation
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, append=1)
+
+from win32com.client import Dispatch, constants
+from win32com.mapi import mapi
+from win32com.mapi.mapitags import *
+
+MESSAGE_MOVE = 0x1 # from MAPIdefs.h
+MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
+MYPR_BODY_HTML_W = 0x1013001f # ditto
+
+USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
+
+class MAPIMsgStore(MsgStore):
+    def __init__(self, outlook = None):
+        self.outlook = outlook
+        cwd = os.getcwd()
+        mapi.MAPIInitialize(None)
+        logonFlags = mapi.MAPI_NO_MAIL | mapi.MAPI_EXTENDED | mapi.MAPI_USE_DEFAULT 
+        self.session = mapi.MAPILogonEx(0, None, None, logonFlags)
+        self._FindDefaultMessageStore()
+        os.chdir(cwd)
+
+    def Close(self):
+        self.mapi_msgstore = None
+        self.session.Logoff(0,0,0)
+        self.session = None
+        mapi.MAPIUninitialize()
+
+    def _FindDefaultMessageStore(self):
+        tab = self.session.GetMsgStoresTable(0)
+        # restriction for the table.
+        restriction = mapi.RES_PROPERTY, (mapi.RELOP_EQ, PR_DEFAULT_STORE, (PR_DEFAULT_STORE, True))
+        rows = mapi.HrQueryAllRows(tab, (PR_ENTRYID,), restriction, None, 0)
+        # get first entry
+        row = rows[0]
+        eid_tag, eid = row[0]
+        # Open the store.
+        self.mapi_msgstore = self.session.OpenMsgStore(0, eid, None, mapi.MDB_WRITE | mapi.MDB_NO_MAIL | USE_DEFERRED_ERRORS )
+
+    def _GetSubFolderIter(self, folder):
+        table = folder.GetHierarchyTable(0)
+        rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,PR_DISPLAY_NAME_A), None, None, 0)
+        for (eid_tag, eid),(name_tag, name) in rows:
+            sub = self.mapi_msgstore.OpenEntry(eid, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+            table = sub.GetContentsTable(0)
+            yield MAPIMsgStoreFolder(self, eid, name, table.GetRowCount(0))
+            folder = self.mapi_msgstore.OpenEntry(eid, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+            for store_folder in self._GetSubFolderIter(folder):
+                yield store_folder
+        
+    def GetFolderGenerator(self, folder_ids, include_sub):
+        for folder_id in folder_ids:
+            folder_id = mapi.BinFromHex(folder_id)
+            folder = self.mapi_msgstore.OpenEntry(folder_id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+            table = folder.GetContentsTable(0)
+            rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
+            yield MAPIMsgStoreFolder(self, folder_id, props[0][1], table.GetRowCount(0))
+            if include_sub:
+                for f in self._GetSubFolderIter(folder):
+                    yield f
+
+    def GetFolder(self, folder_id):
+        # Return a single folder given the ID.
+        folder_id = mapi.BinFromHex(folder_id)
+        folder = self.mapi_msgstore.OpenEntry(folder_id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        table = folder.GetContentsTable(0)
+        rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
+        return MAPIMsgStoreFolder(self, folder_id, props[0][1], table.GetRowCount(0))
+
+    def GetMessage(self, message_id):
+        # Return a single message given the ID.
+        message_id = mapi.BinFromHex(message_id)
+        prop_ids = PR_PARENT_ENTRYID, PR_CONTENT_UNREAD
+        mapi_object = self.mapi_msgstore.OpenEntry(message_id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        hr, data = mapi_object.GetProps(prop_ids,0)
+        folder_eid = data[0][1]
+        unread = data[1][1]
+        folder = MAPIMsgStoreFolder(self, folder_eid, "Unknown - temp message", -1)
+        return  MAPIMsgStoreMsg(self, folder, message_id, unread)        
+
+    def GetOutlookObjectFromID(self, eid):
+        if self.outlook is None:
+            from win32com.client import Dispatch
+            self.outlook = Dispatch("Outlook.Application")
+        return self.outlook.Session.GetItemFromID(mapi.HexFromBin(eid))
+
+
+_MapiTypeMap = {
+    type(0.0): PT_DOUBLE,
+    type(0): PT_I4,
+    type(''): PT_STRING8,
+    type(u''): PT_UNICODE,
+    type(1==1): PT_BOOLEAN,
+}
+
+class MAPIMsgStoreFolder(MsgStoreMsg):
+    def __init__(self, msgstore, id, name, count):
+        self.msgstore = msgstore
+        self.id = id
+        self.name = name
+        self.count = count
+
+    def __repr__(self):
+        return "<%s '%s' (%d items), id=%s>" % (self.__class__.__name__, self.name, self.count, mapi.HexFromBin(self.id))
+
+    def GetOutlookEntryID(self):
+        return mapi.HexFromBin(self.id)
+
+    def GetMessageGenerator(self):
+        folder = self.msgstore.mapi_msgstore.OpenEntry(self.id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        table = folder.GetContentsTable(0)
+        prop_ids = PR_ENTRYID, PR_CONTENT_UNREAD
+        table.SetColumns(prop_ids, 0)
+        while 1:
+            # Getting 70 at a time was the random number that gave best perf for me ;)
+            rows = table.QueryRows(70, 0)
+            if len(rows)==0:
+                break
+            for row in rows:
+                yield MAPIMsgStoreMsg(self.msgstore, self, row[0][1], row[1][1])
+
+
+class MAPIMsgStoreMsg(MsgStoreMsg):
+    def __init__(self, msgstore, folder, entryid, unread):
+        self.folder = folder
+        self.msgstore = msgstore
+        self.mapi_object = None
+        self.id = entryid
+        self.unread = unread
+        self.dirty = False
+
+    def __repr__(self):
+        urs = ["read", "unread"][self.unread]
+        return "<%s, (%s) id=%s>" % (self.__class__.__name__, urs, mapi.HexFromBin(self.id))
+
+    def GetOutlookEntryID(self):
+        return mapi.HexFromBin(self.id)
+
+    def _GetMessageText(self):
+        self._EnsureObject()
+        prop_ids = PR_TRANSPORT_MESSAGE_HEADERS_A, PR_BODY, MYPR_BODY_HTML_A
+        hr, data = self.mapi_object.GetProps(prop_ids,0)
+        headers = data[0][1]
+        if type(headers) != type(''): headers = '' # If no field will be an int error (the tag([0]) would tell us, but this is easier)
+        body = data[1][1]
+        if type(body) != type(''): body= '' # If no field will be an int error (the tag([0]) would tell us, but this is easier)
+        # Messages with "text/html" and "multipart/*" give grief.
+        # In some cases, the HTML body appears *only* accessible via Outlook :(  Outlook is slow, so try and avoid
+        # Tried using the "_W" props, and indeed tried dumping every prop - these HTML messages are hidden from Mapi!
+        if PROP_TYPE(data[2][0])==PT_ERROR:
+            # No HTML body - see if one of our problem children.
+            html = ""
+            lo_headers = headers.lower()
+            if lo_headers.find("content-type: text/html")>=0 or lo_headers.find("content-type: multipart/")>=0:
+                outlook_msg = self.msgstore.GetOutlookObjectFromID(self.id)
+                html = outlook_msg.HTMLBody.encode("ascii", "replace")
+        else:
+            html = data[2][1]
+        return headers + "\n" + html + "\n" + body
+
+    def _EnsureObject(self):
+        if self.mapi_object is None:
+            self.mapi_object = self.msgstore.mapi_msgstore.OpenEntry(self.id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+
+    def GetEmailPackageObject(self):
+        import email
+        # XXX If this was originally a MIME msg, we're hosed at this point --
+        # the boundary tag in the headers doesn't exist in the body, and
+        # the msg is simply ill-formed.  The miserable hack here simply
+        # squashes the text part (if any) and the HTML part (if any) together,
+        # and strips MIME info from the original headers.
+        text = self._GetMessageText()
+        try:
+            msg = email.message_from_string(text)
+        except:
+            print "FAILED to create email.message from: ", `text`
+            raise
+        if msg.has_key('content-type'):
+            del msg['content-type']
+        if msg.has_key('content-transfer-encoding'):
+            del msg['content-transfer-encoding']
+        return msg
+
+    def SetField(self, prop, val):
+        self._EnsureObject()
+        if type(prop)!=type(0):
+            props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
+            propIds = self.mapi_object.GetIDsFromNames(props, mapi.MAPI_CREATE)
+            type_tag = _MapiTypeMap.get(type(val))
+            if type_tag is None:
+                raise ValueError, "Dont know what to do with '%r' ('%s')" % (val, type(val))
+            prop = PROP_TAG( type_tag, PROP_ID(propIds[0]))
+        if val is None:
+            # Delete the property
+            self.mapi_object.DeleteProps((prop,))
+        else:
+            self.mapi_object.SetProps(((prop,val),))
+        self.dirty = True
+
+    def Save(self):
+        assert self.dirty, "asking me to save a clean message!"
+        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE)
+        self.dirty = False
+
+    def _DoCopyMode(self, folder, isMove):
+##        self.mapi_object = None # release the COM pointer
+        assert not self.dirty, "asking me to move a dirty message - later saves will fail!"
+        dest_folder = self.msgstore.mapi_msgstore.OpenEntry(folder.id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        source_folder = self.msgstore.mapi_msgstore.OpenEntry(self.folder.id, None, mapi.MAPI_MODIFY | USE_DEFERRED_ERRORS)
+        flags = 0
+        if isMove: flags |= MESSAGE_MOVE
+        source_folder.CopyMessages( (self.id,), None, dest_folder, 0, None, flags)
+        self.folder = self.msgstore.GetFolder(mapi.HexFromBin(folder.id))
+        
+    def MoveTo(self, folder):
+        self._DoCopyMode(folder, True)
+
+    def CopyTo(self, folder):
+        self._DoCopyMode(folder, True)
+
+def test():
+    from win32com.client import Dispatch
+    outlook = Dispatch("Outlook.Application")
+    eid = outlook.Session.GetDefaultFolder(constants.olFolderInbox).EntryID
+
+    store = MAPIMsgStore()
+    for folder in store.GetFolderGenerator([eid,], True):
+        print folder
+        for msg in folder.GetMessageGenerator():
+            print msg
+    store.Close()
+    
+
+if __name__=='__main__':
+    test()
+    

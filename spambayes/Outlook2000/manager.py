@@ -10,6 +10,7 @@ import win32com.client.gencache
 import pythoncom
 
 import config
+import msgstore
 
 try:
     this_filename = os.path.abspath(__file__)
@@ -63,57 +64,19 @@ class BayesManager:
         cwd = os.getcwd()
         self.mapi = win32com.client.Dispatch("MAPI.Session")
         self.mapi.Logon(None, None, False, False)
-        self._tls = {thread.get_ident(): {"outlook": outlook} }
         self.outlook = outlook
         os.chdir(cwd)
 
         import_core_spambayes_stuff(self.ini_filename)
         self.LoadBayes()
+        self.message_store = msgstore.MAPIMsgStore(outlook)
 
     # Outlook gives us thread grief :(
     def WorkerThreadStarting(self):
         pythoncom.CoInitialize()
-        self._tls[thread.get_ident()] = {}
 
     def WorkerThreadEnding(self):
-        assert self._tls.has_key(thread.get_ident()), \
-               "WorkerThreadStarting hasn't been called for this thread"
-        del self._tls[thread.get_ident()]
         pythoncom.CoUninitialize()
-
-    def GetOutlookForCurrentThread(self):
-        assert self._tls.has_key(thread.get_ident()), \
-               "WorkerThreadStarting hasn't been called for this thread"
-        existing = self._tls[thread.get_ident()].get("outlook")
-        if not existing:
-            existing = win32com.client.Dispatch("Outlook.Application")
-            self._tls[thread.get_ident()]["outlook"] = existing
-        return existing
-
-    def GetBayesStreamForMessage(self, message):
-        # Note - caller must catch COM error
-        import email
-
-        headers = message.Fields[0x7D001E].Value
-        headers = headers.encode('ascii', 'replace')
-        try:
-            body = message.Fields[0x1013001E].Value # HTMLBody field
-            body = body.encode("ascii", "replace") + "\n"
-        except pythoncom.error:
-            body = ""
-        body += message.Text.encode("ascii", "replace")
-
-        # XXX If this was originally a MIME msg, we're hosed at this point --
-        # the boundary tag in the headers doesn't exist in the body, and
-        # the msg is simply ill-formed.  The miserable hack here simply
-        # squashes the text part (if any) and the HTML part (if any) together,
-        # and strips MIME info from the original headers.
-        msg = email.message_from_string(headers + '\n' + body)
-        if msg.has_key('content-type'):
-            del msg['content-type']
-        if msg.has_key('content-transfer-encoding'):
-            del msg['content-transfer-encoding']
-        return msg
 
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
@@ -122,6 +85,9 @@ class BayesManager:
                                self.ini_filename, self.bayes_filename))
         bayes = None
         try:
+            # Ooops - Tim did it another way - checking this in before I get more conficts!
+##            from Options import options
+##            options.mergefiles([self.ini_filename])
             bayes = cPickle.load(open(self.bayes_filename, 'rb'))
             print "Loaded bayes database from '%s'" % (self.bayes_filename,)
         except IOError:
@@ -168,6 +134,9 @@ class BayesManager:
         return ret
 
     def InitNewBayes(self):
+            # Ooops - Tim did it another way - checking this in before I get more conficts!
+##        from Options import options
+##        options.mergefiles([self.ini_filename])
         self.bayes = bayes_classifier.Bayes()
         self.bayes_dirty = True
 
@@ -202,46 +171,23 @@ class BayesManager:
             print "Warning: BayesManager closed while Bayes database dirty"
         self.bayes = None
         self.config = None
-        self._tls = None
-
-    def BuildFolderList(self, folder_ids, include_sub):
-        ret = {}
-        for id in folder_ids:
-            subs = []
-            try:
-                f = self.mapi.GetFolder(id)
-                if include_sub:
-                    sub_ids = []
-                    subs = f.Folders
-                    for i in range(1, subs.Count):
-                        sub_ids.append(subs.Item(i).ID)
-                    subs = self.BuildFolderList(sub_ids, True)
-            except pythoncom.error:
-                continue
-            ret[id] = f
-            for sub in subs:
-                ret[sub.ID] = sub
-        return ret.values()
-
-    def YieldMessageList(self, folder):
-        messages = folder.Messages
-        if not messages:
-            print "Can't find messages in folder '%s'" % (folder.Name,)
-            return
-        message = messages.GetFirst()
-        while message is not None:
-            yield message
-            message = messages.GetNext()
+        if self.message_store is not None:
+            self.message_store.Close()
+            self.message_store = None
 
     def score(self, msg, evidence=False):
+        email = msg.GetEmailPackageObject()
+        # As Tim suggested in email, score should move to range(100)
+        # This is probably a good place to do it - anyone who wants the real
+        # float value can look at the "clues"
         return self.bayes.spamprob(bayes_tokenize(msg), evidence)
 
 _mgr = None
 
-def GetManager(verbose=1):
+def GetManager(outlook = None, verbose=1):
     global _mgr
     if _mgr is None:
-        _mgr = BayesManager(verbose=verbose)
+        _mgr = BayesManager(outlook=outlook, verbose=verbose)
     # If requesting greater verbosity, honour it
     if verbose > _mgr.verbose:
         _mgr.verbose = verbose

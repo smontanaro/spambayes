@@ -2,6 +2,7 @@ import os
 
 from pywin.mfc import dialog
 import win32con
+import pythoncom
 import commctrl
 import win32ui
 import win32api
