@@ -27,3 +27,15 @@ A: It didn't, but you may need to train on a few more of this type
    algorithm weights its results based on the number of times it
    has seen a particular clue, so that clues unique to this type
    of message may need a few more instances to become "convincing".
+
+Q: I've mucked up my training and I want to start all over again,
+   but there isn't an option for this anywhere.  What do I do?
+A: Because training from scratch is a very rare occurance, and because
+   deleting all your training information is something you don't want
+   to do by accident, there isn't an option for this.  However, you
+   can quite simply do this manually.  All the training data is stored
+   in a file, usually called hammie.db, and if you delete (or rename)
+   this, then you will start training from scratch.  If you are using
+   the web interface for the POP3 proxy, the configuration page tells
+   you what this file is called (and where it is) down towards the
+   bottom of the page.
