@@ -50,7 +50,7 @@ At the moment, a bunch of email headers are broken apart, and tagged
 with the name of the header and the token. Recipient (to/cc) headers 
 are broken apart in a variety of ways - for instance, we count the 
 number of recipients, and generate a token for the nearest power of 
-two to the number. Optionally, "Recieved" lines are parsed for
+two to the number. Optionally, "Received" lines are parsed for
 various tokens.</p>
 
 <p>It's likely that remaining "easy wins" in the tokenizing are buried
@@ -64,7 +64,7 @@ header, and the time that the message arrived at the user's mailbox.
 of clues were highly correlated. For instance, if the message was a
 HTML spam, you'd get things like "font", "table", "#FF0000" and the
 like. This caused any other HTML spam to be marked solidly as spam,
-but also unnecessarily penalised the non-spam HTML messages. In the
+but also unnecessarily penalized the non-spam HTML messages. In the
 end, the best results were found by stripping out most HTML clues.</p>
 
 <h3>Combining and Scoring</h3>
@@ -120,7 +120,7 @@ of other approaches using the <a href="http://www.statisticalengineering.com/cen
 </P>
 
 <P>The Central Limit combining schemes produced some interesting (and 
-suprising!) results - they produced two internal scores, one for ham and
+surprising!) results - they produced two internal scores, one for ham and
 one for spam. This meant it was possible for them to return a "I don't know"
 response, when ham and spam scores were both very low or both very high. This
 caused some confusion as we tried to map these results to a Graham-like score.
@@ -172,7 +172,7 @@ to score as Unsure the first time the system sees such a message from
 a particular company.  Spam and commercial email both use the language
 and devices of advertising heavily, so it's hard to tell them apart.
 Training quickly teaches the system all sorts of things about the
-commerical email you want, though, ranging from which company sent it
+commercial email you want, though, ranging from which company sent it
 and how they addressed you, to the kinds of products and services it's
 offering.</p>
 
