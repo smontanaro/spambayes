@@ -10,6 +10,8 @@ mailbox type given a mailbox argument.
 /foo/bar  -- (existing file) a Unix-style mailbox
 /foo/bar/ -- (existing directory) a directory full of .txt and .lorien
              files
+/foo/bar/ -- (existing directory with a cur/ subdirectory)
+             Maildir mailbox
 /foo/Mail/bar/ -- (existing directory with /Mail/ in its path)
              alternative way of spelling an MH mailbox
 
@@ -79,9 +81,11 @@ def getmbox(name):
             return _cat(mboxes)
 
     if os.path.isdir(name):
-        # XXX Bogus: use an MHMailbox if the pathname contains /Mail/,
-        # else a DirOfTxtFileMailbox.
-        if name.find("/Mail/") >= 0:
+        # XXX Bogus: use a Maildir if /cur is a subdirectory, else a MHMailbox
+        # if the pathname contains /Mail/, else a DirOfTxtFileMailbox.
+        if os.path.exists(os.path.join(name, 'cur')):
+            mbox = mailbox.Maildir(name, _factory)
+        elif name.find("/Mail/") >= 0:
             mbox = mailbox.MHMailbox(name, _factory)
         else:
             mbox = DirOfTxtFileMailbox(name, _factory)
