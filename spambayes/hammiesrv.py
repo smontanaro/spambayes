@@ -78,7 +78,7 @@ class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             # shut down the connection
             self.wfile.flush()
             self.connection.shutdown(1)
-            
+
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -111,7 +111,7 @@ def main():
 
     ip, port = args[0].split(":")
     port = int(port)
-    
+
     bayes = hammie.createbayes(pck, usedb)
     h = hammie.Hammie(bayes)
 

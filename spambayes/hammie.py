@@ -181,7 +181,7 @@ class PersistentGrahamBayes(classifier.GrahamBayes):
 class Hammie:
 
     """A spambayes mail filter"""
-    
+
     def __init__(self, bayes):
         self.bayes = bayes
 
@@ -197,7 +197,7 @@ class Hammie:
         """
 
         return self.bayes.spamprob(tokenize(msg), evidence)
-        
+
     def formatclues(self, clues, sep="; "):
         """Format the clues into something readable."""
 
@@ -229,7 +229,7 @@ class Hammie:
         Optionally, set header to the name of the header to add, and/or
         cutoff to the probability value which must be met or exceeded
         for a message to get a 'Yes' disposition.
-        
+
         Returns the same message with a new disposition header.
 
         """
@@ -257,9 +257,9 @@ class Hammie:
 
         Probabilities are not updated after this call is made; to do
         that, call update_probabilities().
-        
+
         """
-        
+
         self.bayes.learn(tokenize(msg), is_spam, False)
 
     def train_ham(self, msg):
@@ -294,9 +294,9 @@ class Hammie:
         until you're all done before calling this.
 
         """
-        
+
         self.bayes.update_probabilities()
-    
+
 
 def train(hammie, msgs, is_spam):
     """Train bayes with all messages from a mailbox."""

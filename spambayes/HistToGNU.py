@@ -61,7 +61,7 @@ def plot(files):
 
     cmd.write('pause 100\n')
     print cmd.getvalue()
-    
+
 def main():
     import getopt
 
@@ -76,7 +76,7 @@ def main():
         for f in ('ham', 'spam'):
             fname = "%s_%shist.pik" % (options.pickle_basename, f)
             args.append(fname)
-            
+
     if args:
         plot(args)
     else:

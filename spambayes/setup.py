@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-  name='spambayes', 
+  name='spambayes',
   scripts=['unheader.py',
            'hammie.py',
            'loosecksum.py',
