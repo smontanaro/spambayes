@@ -76,9 +76,11 @@ Installation
 ============
 
 The first thing you need to do is run "python setup.py install" in the
-directory that you expanded the SpamBayes archive into.  This will install
-all the files that you need into the correct locations.  After this, you
-can delete that directory; it is no longer required.
+directory that you expanded the SpamBayes archive into (to do this, you
+probably need to open up a console window/command prompt/DOS prompt, 
+and navigate to the appropriate directory with the "cd" command).  This
+will install all the files that you need into the correct locations.
+After this, you can delete that directory; it is no longer required.
 
 Before you begin
 ----------------
@@ -93,6 +95,9 @@ a couple hundred of each), you can tell SpamBayes, "Here's my ham and my
 spam".  It will then process that mail and save information about different
 patterns which appear in ham and spam.  That information is then used
 during the filtering stage.  See the "Training" section below for details.
+
+For more detailed instructions, please read the appropriate section below
+(if you don't know, you probably want the POP3 Proxy section).
 
 Outlook plug-in
 ---------------
