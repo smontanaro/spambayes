@@ -536,7 +536,7 @@ if options.ignore_redundant_html:
                 elif htmlpart is not None:
                     text.add(htmlpart)
 
-            elif part.get_main_type('text') == 'text':
+            elif part.get_content_maintype() == 'text':
                 text.add(part)
 
         return text - redundant_html
@@ -545,7 +545,7 @@ else:
     # Use all text parts.  If a text/plain and text/html part happen to
     # have redundant content, so it goes.
     def textparts(msg):
-        return Set(filter(lambda part: part.get_main_type('text') == 'text',
+        return Set(filter(lambda part: part.get_content_maintype() == 'text',
                           msg.walk()))
 
 def octetparts(msg):
@@ -715,9 +715,7 @@ def tokenize_word(word, _len=len):
 # total unique fn went from 168 to 169
 
 def crack_content_xyz(msg):
-    x = msg.get_type()
-    if x is not None:
-        yield 'content-type:' + x.lower()
+    yield 'content-type:' + msg.get_content_type()
 
     x = msg.get_param('type')
     if x is not None:
@@ -1035,7 +1033,7 @@ class Tokenizer:
                 yield t
 
             # Remove HTML/XML tags.
-            if (part.get_type() == "text/plain" or
+            if (part.get_content_type() == "text/plain" or
                     not options.retain_pure_html_tags):
                 text = html_re.sub(' ', text)
 
