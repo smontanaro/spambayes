@@ -106,15 +106,18 @@ except ImportError:
 # must not import spambayes.Options) and sets up sys.path, and "later" core
 # stuff, which can include spambayes.Options, and assume sys.path in place.
 def import_early_core_spambayes_stuff():
+    global bayes_i18n
     try:
         from spambayes import OptionsClass
     except ImportError:
         parent = os.path.abspath(os.path.join(os.path.dirname(this_filename),
                                               ".."))
         sys.path.insert(0, parent)
+    from spambayes import i18n
+    bayes_i18n = i18n
 
 def import_core_spambayes_stuff(ini_filenames):
-    global bayes_classifier, bayes_tokenize, bayes_storage
+    global bayes_classifier, bayes_tokenize, bayes_storage, bayes_options
     if "spambayes.Options" in sys.modules:
         # The only thing we are worried about here is spambayes.Options
         # being imported before we have determined the INI files we need to
@@ -145,6 +148,8 @@ def import_core_spambayes_stuff(ini_filenames):
     bayes_storage = storage
     assert "spambayes.Options" in sys.modules, \
         "Expected 'spambayes.Options' to be loaded here"
+    from spambayes.Options import options
+    bayes_options = options
 
 # Function to "safely" save a pickle, only overwriting
 # the existing file after a successful write.
@@ -339,6 +344,12 @@ class BayesManager:
         import_early_core_spambayes_stuff()
 
         self.application_directory = os.path.dirname(this_filename)
+
+        # Load the environment for translation.
+        lang_manager = bayes_i18n.LanguageManager(self.application_directory)
+        # Set the system user default language.
+        lang_manager.set_language(lang_manager.locale_default_lang())
+
         # where windows would like our data stored (and where
         # we do, unless overwritten via a config file)
         self.windows_data_directory = self.LocateDataDirectory()
@@ -396,6 +407,16 @@ class BayesManager:
                 bayes_option_filenames.append(look_file)
         import_core_spambayes_stuff(bayes_option_filenames)
 
+        # Set interface to use the user language in configuration file.
+        for language in bayes_options["globals", "language"][::-1]:
+            # We leave the default in there as the last option, to fall
+            # back on if necessary.
+            lang_manager.add_language(language)
+        self.LogDebug(1, "Asked to add languages: " + \
+                      ", ".join(bayes_options["globals", "language"]))
+        self.LogDebug(1, "Set language to " + \
+                      str(lang_manager.current_langs_codes))
+
         bayes_base = os.path.join(self.data_directory, "default_bayes_database")
         mdb_base = os.path.join(self.data_directory, "default_message_database")
         # determine which db manager to use, and create it.
@@ -449,11 +470,11 @@ class BayesManager:
     def ReportFatalStartupError(self, message):
         if not self.reported_startup_error:
             self.reported_startup_error = True
-            full_message = \
+            full_message = _(\
                 "There was an error initializing the Spam plugin.\r\n\r\n" \
                 "Spam filtering has been disabled.  Please re-configure\r\n" \
                 "and re-enable this plugin\r\n\r\n" \
-                "Error details:\r\n" + message
+                "Error details:\r\n") + message
             # Disable the plugin
             if self.config is not None:
                 self.config.filter.enabled = False
@@ -568,7 +589,7 @@ class BayesManager:
 
         # Regarding the property type:
         # We originally wanted to use the "Integer" Outlook field,
-        # but it seems this property type alone is not expose via the Object
+        # but it seems this property type alone is not exposed via the Object
         # model.  So we resort to olPercent, and live with the % sign
         # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
@@ -639,9 +660,9 @@ class BayesManager:
         try:
             self.options.merge_file(filename)
         except:
-            msg = "The configuration file named below is invalid.\r\n" \
+            msg = _("The configuration file named below is invalid.\r\n" \
                     "Please either correct or remove this file\r\n\r\n" \
-                    "Filename: " + filename
+                    "Filename: ") + filename
             self.ReportError(msg)
 
     def LoadConfig(self):
@@ -709,10 +730,10 @@ class BayesManager:
             except:
                 print "FAILED to load old pickle"
                 traceback.print_exc()
-                msg = "There was an error loading your old\r\n" \
-                      "SpamBayes configuration file.\r\n\r\n" \
-                      "It is likely that you will need to re-configure\r\n" \
-                      "SpamBayes before it will function correctly."
+                msg = _("There was an error loading your old\r\n" \
+                        "SpamBayes configuration file.\r\n\r\n" \
+                        "It is likely that you will need to re-configure\r\n" \
+                        "SpamBayes before it will function correctly.")
                 self.ReportError(msg)
                 # But we can't abort yet - we really should still try and
                 # delete it, as we aren't gunna work next time in this case!
@@ -738,10 +759,10 @@ class BayesManager:
             self.LogDebug(1, "pickle migration removing '%s'" % pickle_filename)
             os.remove(pickle_filename)
         except os.error:
-            msg = "There was an error migrating and removing your old\r\n" \
-                  "SpamBayes configuration file.  Configuration changes\r\n" \
-                  "you make are unlikely to be reflected next\r\n" \
-                  "time you start Outlook.  Please try rebooting."
+            msg = _("There was an error migrating and removing your old\r\n" \
+                    "SpamBayes configuration file.  Configuration changes\r\n" \
+                    "you make are unlikely to be reflected next\r\n" \
+                    "time you start Outlook.  Please try rebooting.")
             self.ReportError(msg)
 
 
@@ -803,9 +824,9 @@ class BayesManager:
         except AssertionError:
             # See bug 706520 assert fails in classifier
             # For now, just tell the user.
-            msg = "It appears your SpamBayes training database is corrupt.\r\n\r\n" \
-                  "We are working on solving this, but unfortunately you\r\n" \
-                  "must re-train the system via the SpamBayes manager."
+            msg = _("It appears your SpamBayes training database is corrupt.\r\n\r\n" \
+                    "We are working on solving this, but unfortunately you\r\n" \
+                    "must re-train the system via the SpamBayes manager.")
             self.ReportErrorOnce(msg)
             # and disable the addin, as we are hosed!
             self.config.filter.enabled = False
@@ -818,13 +839,13 @@ class BayesManager:
         config = self.config.filter
         ok_to_enable = operator.truth(config.watch_folder_ids)
         if not ok_to_enable:
-            return "You must define folders to watch for new messages.  " \
-                   "Select the 'Filtering' tab to define these folders."
+            return _("You must define folders to watch for new messages.  " \
+                     "Select the 'Filtering' tab to define these folders.")
 
         ok_to_enable = operator.truth(config.spam_folder_id)
         if not ok_to_enable:
-            return "You must define the folder to receive your certain spam.  " \
-                   "Select the 'Filtering' tab to define this folders."
+            return _("You must define the folder to receive your certain spam.  " \
+                     "Select the 'Filtering' tab to define this folder.")
 
         # Check that the user hasn't selected the same folder as both
         # 'Spam' or 'Unsure', and 'Watch' - this would confuse us greatly.
@@ -834,25 +855,25 @@ class BayesManager:
             try:
                 unsure_folder = ms.GetFolder(config.unsure_folder_id)
             except ms.MsgStoreException, details:
-                return "The unsure folder is invalid: %s" % (details,)
+                return _("The unsure folder is invalid: %s") % (details,)
         try:
             spam_folder = ms.GetFolder(config.spam_folder_id)
         except ms.MsgStoreException, details:
-            return "The spam folder is invalid: %s" % (details,)
+            return _("The spam folder is invalid: %s") % (details,)
         if ok_to_enable:
             for folder in ms.GetFolderGenerator(config.watch_folder_ids,
                                                 config.watch_include_sub):
                 bad_folder_type = None
                 if unsure_folder is not None and unsure_folder == folder:
-                    bad_folder_type = "unsure"
+                    bad_folder_type = _("unsure")
                     bad_folder_name = unsure_folder.GetFQName()
                 if spam_folder == folder:
-                    bad_folder_type = "spam"
+                    bad_folder_type = _("spam")
                     bad_folder_name = spam_folder.GetFQName()
                 if bad_folder_type is not None:
-                    return "You can not specify folder '%s' as both the " \
-                           "%s folder, and as being watched." \
-                           % (bad_folder_name, bad_folder_type)
+                    return _("You can not specify folder '%s' as both the " \
+                             "%s folder, and as being watched.") \
+                             % (bad_folder_name, bad_folder_type)
         return None
 
     def ShowManager(self):

@@ -90,7 +90,7 @@ class Stats:
             num_seen += (totals["num_ham"] + totals["num_spam"] +
                          totals["num_unsure"])
         if num_seen==0:
-            return ["SpamBayes has processed zero messages"]
+            return [_("SpamBayes has processed zero messages")]
         chunks = []
         push = chunks.append
         if session_only:
@@ -129,24 +129,24 @@ class Stats:
         format_dict["perc_unsure_s"] = "%%(perc_unsure).%df%%(perc)s" \
                                        % (decimal_points,)
         format_dict["perc"] = "%"
-        push(("SpamBayes has processed %(num_seen)d messages - " \
+        push((_("SpamBayes has processed %(num_seen)d messages - " \
              "%(num_ham)d (%(perc_ham_s)s) good, " \
              "%(num_spam)d (%(perc_spam_s)s) spam " \
-             "and %(num_unsure)d (%(perc_unsure_s)s) unsure" \
+             "and %(num_unsure)d (%(perc_unsure_s)s) unsure") \
              % format_dict) % format_dict)
 
         if num_recovered_good:
-            push("%(num_recovered_good)d message(s) were manually " \
+            push(_("%(num_recovered_good)d message(s) were manually " \
                  "classified as good (with %(num_recovered_good_fp)d " \
-                 "being false positives)" % format_dict)
+                 "being false positives)") % format_dict)
         else:
-            push("No messages were manually classified as good")
+            push(_("No messages were manually classified as good"))
         if num_deleted_spam:
-            push("%(num_deleted_spam)d message(s) were manually " \
+            push(_("%(num_deleted_spam)d message(s) were manually " \
                  "classified as spam (with %(num_deleted_spam_fn)d " \
-                 "being false negatives)" % format_dict)
+                 "being false negatives)") % format_dict)
         else:
-            push("No messages were manually classified as spam")
+            push(_("No messages were manually classified as spam"))
         return chunks
 
 if __name__=='__main__':

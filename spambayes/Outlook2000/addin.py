@@ -538,18 +538,23 @@ def EmptySpamFolder(mgr):
     else:
         try:
             if spam_folder.GetItemCount() > 0:
-                message = "Are you sure you want to permanently delete all items " \
-                          "in the \"%s\" folder?" % spam_folder.name
+                message = _("Are you sure you want to permanently delete " \
+                            "all items in the \"%s\" folder?") \
+                            % spam_folder.name
                 if mgr.AskQuestion(message):
-                    mgr.LogDebug(2, "Emptying spam from folder '%s'" % spam_folder.GetFQName())
+                    mgr.LogDebug(2, "Emptying spam from folder '%s'" % \
+                                 spam_folder.GetFQName())
                     import manager
                     spam_folder.EmptyFolder(manager._GetParent())
             else:
-                mgr.LogDebug(2, "Spam folder '%s' was already empty" % spam_folder.GetFQName())
-                message = "The \"%s\" folder is already empty." % spam_folder.name
+                mgr.LogDebug(2, "Spam folder '%s' was already empty" % \
+                             spam_folder.GetFQName())
+                message = _("The \"%s\" folder is already empty.") % \
+                          spam_folder.name
                 mgr.ReportInformation(message)
         except:
-            mgr.LogDebug(0, "Error emptying spam folder '%s'!" % spam_folder.GetFQName())
+            mgr.LogDebug(0, "Error emptying spam folder '%s'!" % \
+                         spam_folder.GetFQName())
             traceback.print_exc()
 
 def CheckLatestVersion(manager):
@@ -577,25 +582,25 @@ def CheckLatestVersion(manager):
         print "Error checking the latest version"
         traceback.print_exc()
         manager.ReportError(
-            "There was an error checking for the latest version\r\n"
-            "For specific details on the error, please see the SpamBayes log"
-            "\r\n\r\nPlease check your internet connection, or try again later"
+            _("There was an error checking for the latest version\r\n"
+              "For specific details on the error, please see the SpamBayes log"
+              "\r\n\r\nPlease check your internet connection, or try again later")
         )
         return
 
     print "Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num)
     if latest_ver_num > cur_ver_num:
         url = get_version_string(app_name, "Download Page", version_dict=latest)
-        msg = "You are running %s\r\n\r\nThe latest available version is %s" \
-              "\r\n\r\nThe download page for the latest version is\r\n%s" \
-              "\r\n\r\nWould you like to visit this page now?" \
-              % (cur_ver_string, latest_ver_string, url)
+        msg = _("You are running %s\r\n\r\nThe latest available version is %s" \
+                "\r\n\r\nThe download page for the latest version is\r\n%s" \
+                "\r\n\r\nWould you like to visit this page now?") \
+                % (cur_ver_string, latest_ver_string, url)
         if manager.AskQuestion(msg):
             print "Opening browser page", url
             os.startfile(url)
     else:
-        msg = "The latest available version is %s\r\n\r\n" \
-              "No later version is available." % latest_ver_string
+        msg = _("The latest available version is %s\r\n\r\n" \
+                "No later version is available.") % latest_ver_string
         manager.ReportInformation(msg)
 
 # A hook for whatever tests we have setup
@@ -634,8 +639,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         # the button state as the manager dialog closes.
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
-                "You must configure and enable SpamBayes before you can " \
-                "mark messages as spam")
+                _("You must configure and enable SpamBayes before you " \
+                  "can mark messages as spam"))
             return
         SetWaitCursor(1)
         # Delete this item as spam.
@@ -649,8 +654,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             except msgstore.MsgStoreException:
                 pass
         if spam_folder is None:
-            self.manager.ReportError("You must configure the Spam folder",
-                               "Invalid Configuration")
+            self.manager.ReportError(_("You must configure the Spam folder"),
+                                     _("Invalid Configuration"))
             return
         import train
         new_msg_state = self.manager.config.general.delete_as_spam_message_state
@@ -693,8 +698,8 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
         # the button state as the manager dialog closes.
         if not self.manager.config.filter.enabled:
             self.manager.ReportError(
-                "You must configure and enable SpamBayes before you can " \
-                "mark messages as not spam")
+                _("You must configure and enable SpamBayes before you " \
+                  "can mark messages as not spam"))
             return
         SetWaitCursor(1)
         # Get the inbox as the default place to restore to
@@ -792,28 +797,28 @@ class ExplorerWithEvents:
         assert self.toolbar is None, "Should not yet have a toolbar"
 
         # Add our "Spam" and "Not Spam" buttons
-        tt_text = "Move the selected message to the Spam folder,\n" \
-                  "and train the system that this is Spam."
+        tt_text = _("Move the selected message to the Spam folder,\n" \
+                    "and train the system that this is Spam.")
         self.but_delete_as = self._AddControl(
                         None,
                         constants.msoControlButton,
                         ButtonDeleteAsSpamEvent, (self.manager, self),
-                        Caption="Spam",
+                        Caption=_("Spam"),
                         TooltipText = tt_text,
                         BeginGroup = False,
                         Tag = "SpamBayesCommand.DeleteAsSpam",
                         image = "delete_as_spam.bmp")
         # And again for "Not Spam"
-        tt_text = \
-                "Recovers the selected item back to the folder\n" \
-                "it was filtered from (or to the Inbox if this\n" \
-                "folder is not known), and trains the system that\n" \
-                "this is a good message\n"
+        tt_text = _(\
+            "Recovers the selected item back to the folder\n" \
+            "it was filtered from (or to the Inbox if this\n" \
+            "folder is not known), and trains the system that\n" \
+            "this is a good message\n")
         self.but_recover_as = self._AddControl(
                         None,
                         constants.msoControlButton,
                         ButtonRecoverFromSpamEvent, (self.manager, self),
-                        Caption="Not Spam",
+                        Caption=_("Not Spam"),
                         TooltipText = tt_text,
                         Tag = "SpamBayesCommand.RecoverFromSpam",
                         image = "recover_ham.bmp")
@@ -827,8 +832,8 @@ class ExplorerWithEvents:
                             None,
                             constants.msoControlPopup,
                             None, None,
-                            Caption="SpamBayes",
-                            TooltipText = "SpamBayes anti-spam filters and functions",
+                            Caption=_("SpamBayes"),
+                            TooltipText = _("SpamBayes anti-spam filters and functions"),
                             Enabled = True,
                             Tag = "SpamBayesCommand.Popup")
             if popup is None:
@@ -845,8 +850,8 @@ class ExplorerWithEvents:
             child = self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (manager.ShowManager,),
-                           Caption="SpamBayes Manager...",
-                           TooltipText = "Show the SpamBayes manager dialog.",
+                           Caption=_("SpamBayes Manager..."),
+                           TooltipText = _("Show the SpamBayes manager dialog."),
                            Enabled = True,
                            Visible=True,
                            Tag = "SpamBayesCommand.Manager")
@@ -873,21 +878,21 @@ class ExplorerWithEvents:
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (ShowClues, self.manager, self),
-                           Caption="Show spam clues for current message",
+                           Caption=_("Show spam clues for current message"),
                            Enabled=True,
                            Visible=True,
                            Tag = "SpamBayesCommand.Clues")
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (manager.ShowFilterNow,),
-                           Caption="Filter messages...",
+                           Caption=_("Filter messages..."),
                            Enabled=True,
                            Visible=True,
                            Tag = "SpamBayesCommand.FilterNow")
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (EmptySpamFolder, self.manager),
-                           Caption="Empty Spam Folder",
+                           Caption=_("Empty Spam Folder"),
                            Enabled=True,
                            Visible=True,
                            BeginGroup=True,
@@ -895,7 +900,7 @@ class ExplorerWithEvents:
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (CheckLatestVersion, self.manager,),
-                           Caption="Check for new version",
+                           Caption=_("Check for new version"),
                            Enabled=True,
                            Visible=True,
                            BeginGroup=True,
@@ -904,30 +909,30 @@ class ExplorerWithEvents:
                             popup,
                             constants.msoControlPopup,
                             None, None,
-                            Caption="Help",
-                            TooltipText = "SpamBayes help documents",
+                            Caption=_("Help"),
+                            TooltipText = _("SpamBayes help documents"),
                             Enabled = True,
                             Tag = "SpamBayesCommand.HelpPopup")
             if helpPopup is not None:
                 helpPopup = CastTo(helpPopup, "CommandBarPopup")
                 self._AddHelpControl(helpPopup,
-                                     "About SpamBayes",
+                                     _("About SpamBayes"),
                                      "about.html",
                                      "SpamBayesCommand.Help.ShowAbout")
                 self._AddHelpControl(helpPopup,
-                                     "Troubleshooting Guide",
+                                     _("Troubleshooting Guide"),
                                      "docs/troubleshooting.html",
                                      "SpamBayesCommand.Help.ShowTroubleshooting")
                 self._AddHelpControl(helpPopup,
-                                     "SpamBayes Website",
+                                     _("SpamBayes Website"),
                                      "http://spambayes.sourceforge.net/",
                                      "SpamBayesCommand.Help.ShowSpamBayes Website")
                 self._AddHelpControl(helpPopup,
-                                     "Frequently Asked Questions",
+                                     _("Frequently Asked Questions"),
                                      "http://spambayes.sourceforge.net/faq.html",
                                      "SpamBayesCommand.Help.ShowFAQ")
                 self._AddHelpControl(helpPopup,
-                                     "SpamBayes Bug Tracker",
+                                     _("SpamBayes Bug Tracker"),
                                      "http://sourceforge.net/tracker/?group_id=61702&atid=498103",
                                      "SpamBayesCommand.Help.BugTacker")
 
@@ -936,7 +941,7 @@ class ExplorerWithEvents:
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (Tester, self.manager),
-                           Caption="Execute test suite",
+                           Caption=_("Execute test suite"),
                            Enabled=True,
                            Visible=True,
                            BeginGroup=True,
@@ -1050,7 +1055,8 @@ class ExplorerWithEvents:
             explorer = self.Application.ActiveExplorer()
         sel = explorer.Selection
         if sel.Count > 1 and not allow_multi:
-            self.manager.ReportError("Please select a single item", "Large selection")
+            self.manager.ReportError(_("Please select a single item"),
+                                     _("Large selection"))
             return None
 
         ret = []
@@ -1069,7 +1075,8 @@ class ExplorerWithEvents:
                 print details
 
         if len(ret) == 0:
-            self.manager.ReportError("No filterable mail items are selected", "No selection")
+            self.manager.ReportError(_("No filterable mail items are selected"),
+                                     _("No selection"))
             return None
         if allow_multi:
             return ret
@@ -1139,12 +1146,12 @@ class ExplorerWithEvents:
             except:
                 print "Error finding the MAPI folders for a folder switch event"
                 # As this happens once per move, we should only display it once.
-                self.manager.ReportErrorOnce(
+                self.manager.ReportErrorOnce(_(
                     "There appears to be a problem with the SpamBayes"
                     " configuration\r\n\r\nPlease select the SpamBayes"
                     " manager, and run the\r\nConfiguration Wizard to"
-                    " reconfigure the filter.",
-                    "Invalid SpamBayes Configuration")
+                    " reconfigure the filter."),
+                    _("Invalid SpamBayes Configuration"))
                 traceback.print_exc()
         if self.but_recover_as is not None:
             self.but_recover_as.Visible = show_recover_as
@@ -1254,6 +1261,8 @@ class OutlookAddin:
         except:
             print "Error connecting to Outlook!"
             traceback.print_exc()
+            # We can't translate this string, as we haven't managed to load
+            # the translation tools.
             manager.ReportError(
                 "There was an error initializing the SpamBayes addin\r\n\r\n"
                 "Please re-start Outlook and try again.")
@@ -1277,8 +1286,8 @@ class OutlookAddin:
             # days, so could possibly die.
             if not self.manager.config.filter.spam_folder_id or \
                not self.manager.config.filter.watch_folder_ids:
-                msg = "It appears there was an error loading your configuration\r\n\r\n" \
-                      "Please re-configure SpamBayes via the SpamBayes dropdown"
+                msg = _("It appears there was an error loading your configuration\r\n\r\n" \
+                        "Please re-configure SpamBayes via the SpamBayes dropdown")
                 self.manager.ReportError(msg)
             # But continue on regardless.
             self.FiltersChanged()
@@ -1292,8 +1301,8 @@ class OutlookAddin:
             # a number of "it doesn't work" bugs are simply related to not
             # being enabled.  The new Wizard should help, but things can
             # still screw up.
-            self.manager.LogDebug(0, "*** SpamBayes is NOT enabled, so will " \
-                                     "not filter incoming mail. ***")
+            self.manager.LogDebug(0, _("*** SpamBayes is NOT enabled, so " \
+                                       "will not filter incoming mail. ***"))
         # Toolbar and other UI stuff must be setup once startup is complete.
         explorers = self.application.Explorers
         if self.manager is not None: # If we successfully started up.

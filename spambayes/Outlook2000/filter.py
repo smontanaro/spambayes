@@ -140,17 +140,17 @@ def filter_folder(f, mgr, config, progress):
 def filterer(mgr, config, progress):
     config = config.filter_now
     if not config.folder_ids:
-        progress.error("You must specify at least one folder")
+        progress.error(_("You must specify at least one folder"))
         return
 
-    progress.set_status("Counting messages")
+    progress.set_status(_("Counting messages"))
     num_msgs = 0
     for f in mgr.message_store.GetFolderGenerator(config.folder_ids, config.include_sub):
         num_msgs += f.count
     progress.set_max_ticks(num_msgs+3)
     dispositions = {}
     for f in mgr.message_store.GetFolderGenerator(config.folder_ids, config.include_sub):
-        progress.set_status("Filtering folder '%s'" % (f.name))
+        progress.set_status(_("Filtering folder '%s'") % (f.name))
         this_dispositions = filter_folder(f, mgr, config, progress)
         for key, val in this_dispositions.items():
             dispositions[key] = dispositions.get(key, 0) + val
@@ -159,10 +159,10 @@ def filterer(mgr, config, progress):
     # All done - report what we did.
     err_text = ""
     if dispositions.has_key("Error"):
-        err_text = " (%d errors)" % dispositions["Error"]
+        err_text = _(" (%d errors)") % dispositions["Error"]
     dget = dispositions.get
-    text = "Found %d spam, %d unsure and %d good messages%s" % \
-                (dget("Yes",0), dget("Unsure",0), dget("No",0), err_text)
+    text = _("Found %d spam, %d unsure and %d good messages%s") % \
+           (dget("Yes",0), dget("Unsure",0), dget("No",0), err_text)
     progress.set_status(text)
 
 def main():

@@ -82,8 +82,8 @@ def _CreateFolder(manager, name, comment):
         new_folder = root.CreateFolder(name, comment, open_if_exists = True)
         return new_folder
     except:
-        msg = "There was an error creating the folder named '%s'\r\n" \
-                "Please restart Outlook and try again" % name
+        msg = _("There was an error creating the folder named '%s'\r\n" \
+                "Please restart Outlook and try again") % name
         manager.ReportError(msg)
         return None
 
