@@ -26,9 +26,6 @@ Usage:
                           (4 is a good level, and suitable for bug reports)
             -l minutes  : period of time between filtering operations
             -b          : Launch a web browser showing the user interface.
-                          (If not specified, and neither the -c or -t
-                          options are used, then this will default to the
-                          value in your configuration file).
             -o section:option:value :
                           set [section, option] in the options database
                           to value
@@ -57,14 +54,6 @@ Warnings:
 """
 
 todo = """
-    o IMAPMessage and IMAPFolder currently carry out very simple checks
-      of responses received from IMAP commands, but if the response is not
-      "OK", then the filter terminates.  Handling of these errors could be
-      much nicer.
-    o Develop a test script, like spambayes/test/test_pop3proxy.py that
-      runs through some tests (perhaps with a *real* imap server, rather
-      than a dummy one).  This would make it easier to carry out the tests
-      against each server whenever a change is made.
     o IMAP supports authentication via other methods than the plain-text
       password method that we are using at the moment.  Neither of the
       servers I have access to offer any alternative method, however.  If
@@ -75,12 +64,12 @@ todo = """
     o Suggestions?
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-4
+# This module is part of the SpamBayes project, which is Copyright 2002-4
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
-__credits__ = "All the Spambayes folk."
+__credits__ = "All the SpamBayes folk."
 
 from __future__ import generators
 
@@ -97,6 +86,7 @@ import time
 import sys
 import getopt
 import types
+import thread
 import traceback
 import email
 import email.Parser
@@ -173,7 +163,7 @@ class IMAPSession(BaseIMAP):
         Note that most, if not all, of the expunging is probably done in
         SelectFolder, rather than here, for purposes of speed."""
         # We may never have logged in, in which case we do nothing.
-        if self.do_expunge and self.logged_in:
+        if self.connected and self.logged_in and self.do_expunge:
             # Expunge messages from the ham, spam and unsure folders.
             for fol in ["spam_folder",
                         "unsure_folder",
@@ -939,12 +929,6 @@ def run():
     print get_version_string("IMAP Filter")
     print "and engine %s.\n" % (get_version_string(),)
 
-    if (launchUI and (doClassify or doTrain)):
-        print """-b option is exclusive with -c and -t options.
-The user interface will be launched, but no classification
-or training will be performed.
-"""
-
     if options["globals", "verbose"]:
         print "Loading database %s..." % (bdbname),
 
@@ -987,8 +971,19 @@ or training will be performed.
 
     imap_filter = IMAPFilter(classifier)
 
-    # Web interface
-    if not (doClassify or doTrain):
+    # Web interface.  We have changed the rules about this many times.
+    # With 1.0.x, the rule is that the interface is served if we are
+    # not classifying or training.  However, this runs into the problem
+    # that if we run with -l, we might still want to edit the options,
+    # and we don't want to start a separate instance, because then the
+    # database is accessed from two processes.
+    # With 1.1.x, the rule is that the interface is also served if the
+    # -l option is used, which means it is only not served if we are
+    # doing a one-off classification/train.  In that case, there would
+    # probably not be enough time to get to the interface and interact
+    # with it (and we don't want it to die halfway through!), and we
+    # don't want to slow classification/training down, either.
+    if sleepTime or not (doClassify or doTrain):
         if server == "":
             imap = None
         else:
@@ -996,9 +991,14 @@ or training will be performed.
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap, pwd,
                                               IMAPSession))
-        Dibbler.run(launchBrowser=launchUI or options["html_ui",
-                                                      "launch_browser"])
-    else:
+        launchBrowser=launchUI or options["html_ui", "launch_browser"]
+        if sleepTime:
+            # Run in a separate thread, as we have more work to do.
+            thread.start_new_thread(Dibbler.run, (),
+                                    {"launchBrowser":launchBrowser})
+        else:
+            Dibbler.run(launchBrowser=launchBrowser)
+    if doClassify or doTrain:
         while True:
             imap = IMAPSession(server, port, imapDebug, doExpunge)
             if imap.connected:
