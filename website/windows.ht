@@ -45,11 +45,11 @@ Outlook plugin fares with them.</p>
 </tr>
 <tr>
 <td>Outlook 2000</td>
-    <td>&nbsp;</td> <!-- Win95 -->
-    <td>works</td>  <!-- Win98/98se/Me -->
-    <td>works</td>  <!-- Win2k -->
-    <td>&nbsp;</td> <!-- WinXP Pro -->
-    <td>&nbsp;</td> <!-- WinXP Home -->
+    <td>&nbsp;</td> 		 <!-- Win95 -->
+    <td>works</td>  		 <!-- Win98/98se/Me -->
+    <td>works</td>  		 <!-- Win2k -->
+    <td>works</td>               <!-- WinXP Pro -->
+    <td>&nbsp;</td>              <!-- WinXP Home -->
 </tr>
 <tr>
 <td>Outlook 2002 (XP)</td>
@@ -57,7 +57,7 @@ Outlook plugin fares with them.</p>
     <td>1.0a2 source or CVS works,
         installer 002 fails</td>         <!-- Win98/98se/Me -->
     <td>&nbsp;</td>		         <!-- Win2k -->
-    <td>installer 002 works</td>         <!-- WinXP Pro -->
+    <td>works</td>                       <!-- WinXP Pro -->
     <td>&nbsp;</td>		         <!-- WinXP Home -->
 </tr>
 </table>
