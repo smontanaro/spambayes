@@ -36,8 +36,8 @@ download/Version.cfg: $(VERSION_PY)
 # want 'make' to recurse without 'install' and
 # 'make install' to recurse *with* 'install'
 local_install:
-	cd apps; $(MAKE) install
-	cd download ; $(MAKE) install
+	-cd apps; $(MAKE) install
+	-cd download ; $(MAKE) install
 
 subdirs:
 	cd apps; $(MAKE) 
