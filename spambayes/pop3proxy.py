@@ -679,7 +679,7 @@ class State:
             # lots of memory.
             map(ensureDir, [options["pop3proxy", "spam_cache"],
                             options["pop3proxy", "ham_cache"],
-                            options["pop3proxy", "unknown_cache]"])
+                            options["pop3proxy", "unknown_cache"]])
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
