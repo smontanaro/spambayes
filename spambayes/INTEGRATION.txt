@@ -40,23 +40,28 @@ integrated into your mail processing system.
 Requirements
 ------------
 
-As a general requirement, you must have a recent version of Python installed
-on your computer, version 2.2 or later.  (Don't ask about backporting it to
-earlier versions of Python.  It's almost a certainty this won't happen.)  If
-you need to install Python on your system, check the Python download page
-for the version appropriate to your computer:
+As a general requirement, you must have a recent version of Python
+installed on your computer, version 2.2 or later.  Python 2.2.3 is
+recommended.  (Don't ask about backporting it to earlier versions of
+Python.  It's almost a certainty this won't happen.)  If you need to
+install Python on your system, check the Python download page for the
+version appropriate to your computer:
 
     http://www.python.org/download/
 
-You also need version 2.4.3 or above of the Python "email" package.  If
-you're running Python 2.3 (which at the time of writing is available
-from SourceForge CVS, or as the alpha version 2.3a1, available from
-python.org) then you already have this.  If not, you can download
-it from http://mimelib.sf.net and install it - unpack the archive, cd to
-the email-2.4.3 directory and type "python setup.py install" (YMMV on
-different platforms).  This will install it into your Python site-packages
-directory.  You'll also need to move aside the standard "email" library -
-go to your Python "Lib" directory and rename "email" to "email_old".
+You also need version 2.4.3 or above of the Python "email" package.
+If you're running Python 2.2.3 or Python 2.3 (which at the time of
+writing is available from SourceForge CVS, or as the beta version
+2.3b1, available from python.org) then you already have a good version
+of the email package.
+
+If not, you can download email version 2.5 (as of this writing) from
+http://mimelib.sf.net and install it - unpack the archive, cd to the
+email-2.5 directory and type "python setup.py install" (YMMV on
+different platforms).  This will install it into your Python
+site-packages directory.  You'll also need to move aside the standard
+"email" library - go to your Python "Lib" directory and rename "email"
+to "email_old".
 
 
 Overview
