@@ -15,7 +15,12 @@
 ## Neale Pickett <neale@woozle.org>
 ##
 
-# Test to run
+if [ "$1" = "-r" ]; then
+    REBAL=1
+    shift
+fi
+
+# Which test to run
 TEST=${1:-robinson1}
 
 # Number of messages per rebalanced set
@@ -24,14 +29,23 @@ RNUM=200
 # Number of sets
 SETS=5
 
-# Put them all into reservoirs
-python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n 0 -Q
-python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n 0 -Q
-# Rebalance
-python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n $RNUM -Q
-python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n $RNUM -Q
+if [ -n "$REBAL" ]; then
+    # Put them all into reservoirs
+    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n 0 -Q
+    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n 0 -Q
+    # Rebalance
+    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n $RNUM -Q
+    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n $RNUM -Q
+fi
 
 case "$TEST" in
+    run2|useold)
+	python timcv.py -n $SETS > run2.txt
+
+        python rates.py run1 run2 > runrates.txt
+
+        python cmp.py run1s run2s | tee results.txt
+	;;
     robinson1)
 	# This test requires you have an appropriately-modified
 	# Tester.py.new and classifier.py.new as detailed in
