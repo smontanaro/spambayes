@@ -109,7 +109,8 @@ adv_map = (
 
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
-    def __init__(self, cls, imap, pwd, imap_session_class):
+    def __init__(self, cls, imap, pwd, imap_session_class,
+                 lang_manager=None):
         global parm_map
         # Only offer SSL if it is available
         try:
@@ -120,7 +121,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
             parm_map = tuple(parm_list)
         else:
             del IMAP4_SSL
-        UserInterface.UserInterface.__init__(self, cls, parm_map, adv_map)
+        UserInterface.UserInterface.__init__(self, cls, parm_map, adv_map,
+                                             lang_manager)
         self.classifier = cls
         self.imap = imap
         self.imap_pwd = pwd

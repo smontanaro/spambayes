@@ -132,8 +132,9 @@ class UserInterfaceServer(Dibbler.HTTPServer):
 
 
 class BaseUserInterface(Dibbler.HTTPPlugin):
-    def __init__(self):
+    def __init__(self, lang_manager=None):
         Dibbler.HTTPPlugin.__init__(self)
+        self.lang_manager = lang_manager
         htmlSource, self._images = self.readUIResources()
         self.html = PyMeldLite.Meld(htmlSource, readonly=True)
         self.app_for_version = None
@@ -249,10 +250,10 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def readUIResources(self):
         """Returns ui.html and a dictionary of Gifs."""
-
-        # Using `exec` is nasty, but I couldn't figure out a way of making
-        # `getattr` or `__import__` work with ResourcePackage.
-        from spambayes.resources import ui_html
+        if self.lang_manager:
+            ui_html = self.lang_manager.import_ui_html()
+        else:
+            from spambayes.resources import ui_html
         images = {}
         for baseName in IMAGES:
             moduleName = '%s.%s_gif' % ('spambayes.resources', baseName)
@@ -264,9 +265,10 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 class UserInterface(BaseUserInterface):
     """Serves the HTML user interface."""
 
-    def __init__(self, bayes, config_parms=(), adv_parms=()):
+    def __init__(self, bayes, config_parms=(), adv_parms=(),
+                 lang_manager=None):
         """Load up the necessary resources: ui.html and helmet.gif."""
-        BaseUserInterface.__init__(self)
+        BaseUserInterface.__init__(self, lang_manager)
         self.classifier = bayes
         self.parm_ini_map = config_parms
         self.advanced_options_map = adv_parms
