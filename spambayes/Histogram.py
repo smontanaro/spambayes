@@ -137,11 +137,18 @@ class Hist:
         # We need ndigits decimal digits to display the largest bucket count.
         ndigits = len(str(biggest))
 
-        # Displaying the bucket boundaries is more troublesome.  For now,
-        # just print one digit after the decimal point, regardless of what
-        # the boundaries look like.
-        boundary_digits = max(len(str(int(lo))), len(str(int(hi))))
-        format = "%" + str(boundary_digits + 2) + '.1f %' + str(ndigits) + "d"
+        # Displaying the bucket boundaries is more troublesome.
+        bucketwidth = self.get_bucketwidth()
+        whole_digits = max(len(str(int(lo))),
+                           len(str(int(hi - bucketwidth))))
+        frac_digits = 0
+        while bucketwidth < 1.0:
+            # Incrementing by bucketwidth may not change the last displayed
+            # digit, so display one more.
+            frac_digits += 1
+            bucketwidth *= 10.0
+        format = ("%" + str(whole_digits + 1 + frac_digits) + '.' +
+                  str(frac_digits) + 'f %' + str(ndigits) + "d")
 
         bucketwidth = self.get_bucketwidth()
         for i in range(nbuckets):
