@@ -108,7 +108,7 @@ class Stats(object):
                 format_dict[key] = 'was a'
             else:
                 format_dict[key] = 'were'
-            
+
         push("SpamBayes has processed %(num_seen)d message%(sp1)s - " \
              "%(cls_ham)d (%(perc_ham).0f%%) good, " \
              "%(cls_spam)d (%(perc_spam).0f%%) spam " \

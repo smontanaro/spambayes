@@ -212,7 +212,7 @@ class IMAPMessage(message.Message):
     def isMultipart(self):
         """Indicate whether this message has subparts."""
         return False
-    
+
     def getSubPart(self, part):
         """Retrieve a MIME sub-message
 

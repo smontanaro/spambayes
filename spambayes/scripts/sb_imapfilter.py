@@ -27,7 +27,7 @@ Usage:
             -b          : Launch a web browser showing the user interface.
             -o section:option:value :
                           set [section, option] in the options database
-                          to value 
+                          to value
 
 
 Examples:

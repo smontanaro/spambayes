@@ -98,7 +98,7 @@ def outputset(Output):
                 d -= nspam_tested[k - span]
             Output.add_line(k, (n * 100.0 / (d or 1)))
 
-        Output.line_title(linelabel="unsure", linecolor=2)            
+        Output.line_title(linelabel="unsure", linecolor=2)
         for k in xrange(len(nspam_unsure)):
             n = nham_unsure[k] + nspam_unsure[k]
             d = nham_tested[k] + nspam_tested[k]

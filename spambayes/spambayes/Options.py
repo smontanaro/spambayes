@@ -912,15 +912,15 @@ defaults = {
 
     ("ham_discard_level", "Ham Discard Level", 0.0,
      """Hams scoring less than this percentage will default to being
-        discarded in the training interface (they won't be trained). You'll 
-        need to turn off the 'Train when filtering' option, above, for this 
+        discarded in the training interface (they won't be trained). You'll
+        need to turn off the 'Train when filtering' option, above, for this
         to have any effect""",
      REAL, RESTORE),
 
     ("spam_discard_level", "Spam Discard Level", 100.0,
-     """Spams scoring more than this percentage will default to being 
-        discarded in the training interface (they won't be trained). You'll 
-        need to turn off the 'Train when filtering' option, above, for this 
+     """Spams scoring more than this percentage will default to being
+        discarded in the training interface (they won't be trained). You'll
+        need to turn off the 'Train when filtering' option, above, for this
         to have any effect""",
      REAL, RESTORE),
 

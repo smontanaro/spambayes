@@ -556,9 +556,9 @@ def OEAccountKeys(permission = None):
         # Can't do this in the parameter, because then it requires
         # win32con to be available for the module to be imported.
         permission = win32con.KEY_READ | win32con.KEY_SET_VALUE
-        
+
     possible_root_keys = []
-    
+
     # This appears to be the place for OE6 and WinXP
     # (So I'm guessing also for NT4)
     if sys.getwindowsversion()[0] >= 4:
