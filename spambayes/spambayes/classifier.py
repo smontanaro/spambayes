@@ -60,7 +60,10 @@ try:
     enumerate
 except NameError:
     def enumerate(seq):
-        return zip(range(len(seq)), seq)
+        i = 0
+        for elt in seq:
+            yield (i, elt)
+            i += 1
 
 DOMAIN_AND_PORT_RE = re.compile(r"([^:/\\]+)(:([\d]+))?")
 HTTP_ERROR_RE = re.compile(r"HTTP Error ([\d]+)")
