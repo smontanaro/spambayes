@@ -189,7 +189,6 @@ class EditNumberProcessor(OptionControlProcessor):
             slider_pos = win32gui.SendMessage(slider, commctrl.TBM_GETPOS, 0, 0)
             slider_pos = float(slider_pos) * self.max_val / self.ticks
             str_val = str(slider_pos)
-            print "Slider wants to set to", str_val
             edit = self.GetControl()
             win32gui.SendMessage(edit, win32con.WM_SETTEXT, 0, str_val)
 
