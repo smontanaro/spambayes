@@ -43,3 +43,13 @@ TD.unknown {
   background: #ddddff;
 }
 
+/* doo dads for the FAQ */
+SPAN.faq-section {
+  font-weight: bold;
+  font-size: x-large;
+}
+
+SPAN.faq-header {
+  font-weight: bold;
+  font-size: large;
+}
