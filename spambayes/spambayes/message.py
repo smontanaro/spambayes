@@ -63,7 +63,9 @@ Usage:
     
 
 To Do:
-    o Master DB module
+    o Master DB module, or at least make the msginfodb name an options parm
+    o Figure out how to safely add message id to body (or if it can be done
+      at all...)
     o Suggestions?
 
     """
@@ -100,6 +102,7 @@ from cStringIO import StringIO
 from spambayes import dbmstorage
 import shelve
 
+CRLFRE = re.compile(r'\r\n|\r|\n')
 
 class MessageInfoDB:
     def __init__(self, db_name, mode='c'):
@@ -173,7 +176,7 @@ class Message(email.Message.Message):
     def _force_CRLF(self, data):
         """Make sure data uses CRLF for line termination.
         """
-        return re.sub(r'\r\n|\r|\n', '\r\n', data)
+        return CRLFRE.sub('\r\n', data)
 
     def as_string(self):
         # The email package stores line endings in the "internal" Python
