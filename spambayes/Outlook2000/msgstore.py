@@ -95,9 +95,16 @@ MYPR_BODY_HTML_W = 0x1013001f # ditto
 
 USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
 
+# Does this exception probably mean "object not found"?
 def IsNotFoundCOMException(exc_val):
     hr, msg, exc, arg_err = exc_val
     return hr in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]
+
+# Does this exception probably mean "object not available 'cos you ain't logged
+# in, or 'cos the server is down"?
+def IsNotAvailableCOMException(exc_val):
+    hr, msg, exc, arg_err = exc_val
+    return hr == mapi.MAPI_E_FAILONEPROVIDER
 
 def GetCOMExceptionString(exc_val):
     hr, msg, exc, arg_err = exc_val
@@ -223,8 +230,13 @@ class MAPIMsgStore(MsgStore):
                 table = folder.GetContentsTable(0)
             except pythoncom.com_error, details:
                 # We will ignore *all* such errors for the time
-                # being, but warn for results we don't know about.
-                if not IsNotFoundCOMException(details):
+                # being, but give verbose details for results we don't
+                # know about
+                if IsNotAvailableCOMException(details):
+                    print "NOTE: Skipping folder for this session - temporarily unavailable"
+                elif IsNotFoundCOMException(details):
+                    print "NOTE: Skipping deleted folder"
+                else:
                     print "WARNING: Unexpected MAPI error opening folder"
                     print GetCOMExceptionString(details)
                 continue
