@@ -146,7 +146,7 @@ store name (eg, "Top of Public Folders").  If the path does not
 begin with a \\, it is assumed to be fully-qualifed from the root
 of the default message store
 
-Eg, python\\python-dev' will locate a python-dev subfolder in a python
+Eg, 'python\\python-dev' will locate a python-dev subfolder in a python
 subfolder in your default store.
 """ % os.path.basename(sys.argv[0])
     print msg
