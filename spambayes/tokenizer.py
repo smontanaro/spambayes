@@ -1029,7 +1029,16 @@ class Tokenizer:
             # Find, decode application/octet-stream parts of the body,
             # tokenizing the first few characters of each chunk.
             for part in octetparts(msg):
-                text = part.get_payload(decode=False)
+                try:
+                    text = part.get_payload(decode=True)
+                except:
+                    yield "control: couldn't decode octet"
+                    text = part.get_payload(decode=False)
+
+                if text is None:
+                    yield "control: octet payload is None"
+                    continue
+
                 yield "octet:%s" % text[:options.octet_prefix_size]
 
         # Find, decode (base64, qp), and tokenize textual parts of the body.
