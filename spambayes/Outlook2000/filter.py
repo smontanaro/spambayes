@@ -58,7 +58,7 @@ def filter_message(msg, mgr, all_actions=True):
             if mark_as_read:
                 msg.SetReadState(True)
             if action.startswith("un"): # untouched
-                pass
+                mgr.LogDebug(1, "Not touching message '%s'" % msg.subject)
             elif action.startswith("co"): # copied
                 try:
                     dest_folder = ms.GetFolder(folder_id)
@@ -67,6 +67,8 @@ def filter_message(msg, mgr, all_actions=True):
                           "message - this message was not copied"
                 else:
                     msg.CopyToReportingError(mgr, dest_folder)
+                    mgr.LogDebug(1, "Copied message '%s' to folder '%s'" \
+                                 % (msg.subject, dest_folder.GetFQName()))
             elif action.startswith("mo"): # Moved
                 try:
                     dest_folder = ms.GetFolder(folder_id)
@@ -75,6 +77,8 @@ def filter_message(msg, mgr, all_actions=True):
                           "message - this message was not moved"
                 else:
                     msg.MoveToReportingError(mgr, dest_folder)
+                    mgr.LogDebug(1, "Moved message '%s' to folder '%s'" \
+                                 % (msg.subject, dest_folder.GetFQName()))
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 
