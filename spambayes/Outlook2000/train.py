@@ -180,7 +180,7 @@ def trainer(mgr, config, progress):
         config.folder_ids = mgr.config.training.ham_folder_ids + mgr.config.training.spam_folder_ids
         config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
         import filter
-        filter.filterer(mgr, progress)
+        filter.filterer(mgr, mgr.config, progress)
 
     bayes = classifier_data.bayes
     progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
