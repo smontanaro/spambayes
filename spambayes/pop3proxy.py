@@ -82,8 +82,6 @@ New features:
    messages."
  o "Send me a status email every [...] telling how many mails have been
    classified, etc."
- o Possibly integrate Tim Stone's SMTP code - make it use async, make
-   the training code update (rather than replace!) the database.
  o Remove any existing X-Spambayes-Classification header from incoming
    emails.
  o Whitelist.
@@ -506,8 +504,8 @@ class BayesProxy(POP3ProxyBase):
             id_header = ""
             if command == 'RETR' and not state.isTest:
                 if options.pop3proxy_add_mailid_to.find("header") != -1:
-                    id_header = options.pop3proxy_mailid_header_name + ": " \
-                            + messageName + "\r\n"
+                    id_header = options.pop3proxy_mailid_header_name \
+                            + ": " + messageName + "\r\n"
                 if options.pop3proxy_add_mailid_to.find("body") != -1:
                     body = body[:len(body)-3] + \
                            options.pop3proxy_mailid_header_name + ": " \
@@ -535,7 +533,8 @@ class BayesProxy(POP3ProxyBase):
             messageText = headers + body
 
             # Cache the message; don't pollute the cache with test messages.
-            if command == 'RETR' and not state.isTest:
+            if command == 'RETR' and not state.isTest \
+                    and options.pop3proxy_cache_messages:
                 # Write the message into the Unknown cache.
                 message = state.unknownCorpus.makeMessage(messageName)
                 message.setSubstance(messageText)

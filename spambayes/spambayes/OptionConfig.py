@@ -45,7 +45,9 @@ parm_ini_map = \
     'unsurestring': ('Hammie',          'header_unsure_string'),
     'p3servers':    ('pop3proxy',       'pop3proxy_servers'),
     'p3ports':      ('pop3proxy',       'pop3proxy_ports'),
-    'p3notate':     ('pop3proxy',       'pop3proxy_notate_to'),
+    'p3notateto':   ('pop3proxy',       'pop3proxy_notate_to'),
+    'p3notatesub':  ('pop3proxy',       'pop3proxy_notate_subject'),
+    'p3cachemsg':   ('pop3proxy',       'pop3proxy_cache_messages'),
     'p3addid':      ('pop3proxy',       'pop3proxy_add_mailid_to'),
     'p3stripid':    ('pop3proxy',       'pop3proxy_strip_incoming_mailids'),
     'smtpservers':  ('smtpproxy',       'smtpproxy_servers'),
@@ -86,17 +88,31 @@ page_layout = \
          client to use this port.  If there are multiple servers, you must
          specify the same number of ports as servers, separated by commas."""),
          
-        ("p3notate", "Notate To",
-         """Some email clients (Outlook Express, for example) can only set
-         up filtering rules on a limited set of headers.  These clients
-         cannot test for the existence/value of an arbitrary header and filter
-         mail based on that information.  To accomodate these kind of mail
-         clients, the Notate To: can be checked, which will add "spam,",
-         "ham,", or "unsure," to the recipient list.  A filter rule can then
-         test to see if one of these words (followed by a comma) is in the
-         recipient list, and route the mail to an appropriate folder, or take
-         whatever other action is supported and appropriate for the mail
-         classification."""),
+        ("p3notateto", "Notate To",
+         """Some email clients (Outlook Express, for example) can only
+         set up filtering rules on a limited set of headers.  These
+         clients cannot test for the existence/value of an arbitrary
+         header and filter mail based on that information.  To
+         accomodate these kind of mail clients, the Notate To: can be
+         checked, which will add "spam", "ham", or "unsure" to the
+         recipient list.  Notate Subject: will add the same to the
+         start of the mail subject line.  A filter rule can then use
+         to see if one of these words (followed by a comma) is in the
+         this information in filter rules to route the mail to an
+         appropriate folder, or take whatever other action is
+         supported and appropriate for the mail classification."""),
+
+       ("p3notatesub", "Notate Subject",
+         ""),
+
+       ("p3cachemsg", "Cache Messages",
+         """You can disable the pop3proxy caching of messages.  This
+         will make the proxy a bit faster, and make it use less space
+         on your hard drive.  The proxy uses its cache for reviewing
+         and training of messages, so if you disable caching you won't
+         be able to do further training unless you re-enable it.
+         Thus, you should only turn caching off when you are satisfied
+         with the filtering that Spambayes is doing for you."""),
 
         ("p3addid", "Add id tag",
          """If you wish to be able to find a specific message (via the 'find'
@@ -384,7 +400,7 @@ def editInput(parms):
         errmsg += '<li>Ham cutoff must be less than Spam cutoff</li>\n'
 
     try:
-        nto = parms['p3notate']
+        nto = parms['p3notateto']
     except KeyError:
         if options.pop3proxy_notate_to:
             nto = "True"
@@ -393,6 +409,28 @@ def editInput(parms):
     
     if not nto == "True" and not nto == "False":
         errmsg += """<li>Notate To: must be "True" or "False".</li>\n"""
+    
+    try:
+        nsub = parms['p3notatesub']
+    except KeyError:
+        if options.pop3proxy_notate_sub:
+            nsub = "True"
+        else:
+            nsub = "False"
+    
+    if not nsub == "True" and not nsub == "False":
+        errmsg += """<li>Notate Subject: must be "True" or "False".</li>\n"""
+    
+    try:
+        cachemsg = parms['p3cachemsg']
+    except KeyError:
+        if options.pop3proxy_cache_messages:
+            cachemsg = "True"
+        else:
+            cachemsg = "False"
+    
+    if not nsub == "True" and not nsub == "False":
+        errmsg += """<li>Cache Messages: must be "True" or "False".</li>\n"""
     
     # edit for equal number of pop3servers and ports
     try:
