@@ -13,26 +13,29 @@ usage %(prog)s [ -h ] [ -d <file> | -p <file> ] <cdbfile>
 """
 
 import sys
+import os
 import getopt
 from spambayes import cdb
 from spambayes import storage
 from spambayes.cdb_classifier import CdbClassifier
+
+prog = os.path.basename(sys.argv[0])
 
 def usage(msg=None):
     if msg is not None:
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-def main():
+def main(args):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hd:p:",
+        opts, args = getopt.getopt(args, "hd:p:",
                                    ["help", "database=", "pickle="])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
 
     if len(args) != 1:
-        usage(msg)
+        usage()
         return 1
     cdbname = args[0]
 
@@ -55,4 +58,5 @@ def main():
     cdb.cdb_make(cdbfile, items)
     cdbfile.close()
 
-main()
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
