@@ -829,7 +829,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             self.mapi_object.SetProps(((prop,val),))
         self.dirty = True
 
-    def GetField(self, prop):
+    def GetField(self, prop, raise_errors = False):
         self._EnsureObject()
         if type(prop) != type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
@@ -837,14 +837,19 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             if PROP_TYPE(prop) == PT_ERROR: # No such property
                 return None
             prop = PROP_TAG( PT_UNSPECIFIED, PROP_ID(prop))
-        hr, props = self.mapi_object.GetProps((prop,), 0)
-        ((tag, val), ) = props
-        if PROP_TYPE(tag) == PT_ERROR:
-            if val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
-                # Too big for simple properties - get via a stream
-                return self._GetPropFromStream(prop)
+        try:
+            hr, props = self.mapi_object.GetProps((prop,), 0)
+            ((tag, val), ) = props
+            if PROP_TYPE(tag) == PT_ERROR:
+                if val == mapi.MAPI_E_NOT_ENOUGH_MEMORY:
+                    # Too big for simple properties - get via a stream
+                    return self._GetPropFromStream(prop)
+                return None
+            return val
+        except:
+            if raise_errors:
+                raise
             return None
-        return val
 
     def GetReadState(self):
         val = self.GetField(PR_MESSAGE_FLAGS)

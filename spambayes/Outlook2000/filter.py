@@ -42,14 +42,14 @@ def filter_message(msg, mgr, all_actions=True):
                 if all_actions:
                     msg.RememberMessageCurrentFolder()
                 msg.Save()
-        except pythoncom.com_error, (hr, msg, exc, arg_err):
+        except pythoncom.com_error, (hr, exc_msg, exc, arg_err):
             # This seems to happen for IMAP mails (0x800cccd3)
             # and also for hotmail messages (0x8004dff7)
             known_failure_codes = -2146644781, -2147164169
             # I also heard a rumour hotmail works if we do 2 saves
             if hr not in known_failure_codes:
                 print "Unexpected MAPI error saving the spam score for", msg
-                print hr, msg, exc
+                print hr, exc_msg, exc
             else:
                 # So we can see if it still happens :)
                 mgr.LogDebug(1, "Note: known (but still not understood) " \
