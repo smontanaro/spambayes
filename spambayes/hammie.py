@@ -442,9 +442,9 @@ def main():
         for u in unknown:
             if len(unknown) > 1:
                 print "Scoring", u
-            s, h = score(h, u, reverse)
+            s, g = score(h, u, reverse)
             spams += s
-            hams += h
+            hams += g
         print "Total %d spam, %d ham" % (spams, hams)
 
 
