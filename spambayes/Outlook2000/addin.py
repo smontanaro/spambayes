@@ -536,7 +536,10 @@ def CheckLatestVersion(manager):
 
 # A hook for whatever tests we have setup
 def Tester(manager):
-    import tester, traceback
+    import tester
+    # This is only used in source-code versions - so we may as well reload
+    # the test suite to save shutting down Outlook each time we tweak it.
+    reload(tester)
     try:
         print "Executing automated tests..."
         tester.test(manager)
