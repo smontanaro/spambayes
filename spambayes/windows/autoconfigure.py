@@ -60,7 +60,7 @@ import ConfigParser
 from spambayes.Options import options, optionsPathname
 
 def move_to_next_free_port(port):
-    # Increment port until we get to one that isn't taken
+    # Increment port until we get to one that isn't taken.
     # I doubt this will work if there is a firewall that prevents
     # localhost connecting to particular ports, but I'm not sure
     # how else we can do this - Richie says that bind() doesn't
@@ -103,7 +103,7 @@ def configure_eudora(config_location):
                 p = c.get(sect, "popaccount")
                 c.set(sect, "popaccount", "%s@localhost" % \
                       (p[:p.index('@')],))
-                for ((eud_name, eud_port), us_name in translate.items():
+                for (eud_name, eud_port), us_name in translate.items():
                     try:
                         port = c.get(sect, eud_port)
                     except ConfigParser.NoOptionError:
@@ -397,9 +397,13 @@ def configure_m2(config_location):
     # If someone can describe the best all-purpose rule, I'll pop it in
     # here.
 
+def configure_outlook_express(config_location):
+    dbx_filename = os.path.join(config_location, "pop3uidl.dbx")
+
 
 if __name__ == "__main__":
     #configure_eudora(eudora_ini_dir)
     #configure_mozilla(mozilla_ini_dir)
     #configure_m2(m2_ini_dir)
+    #configure_outlook_express(oe_ini_dir)
     pass
