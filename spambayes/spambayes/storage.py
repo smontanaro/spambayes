@@ -376,6 +376,18 @@ class SQLClassifier(classifier.Classifier):
             word = word.encode("utf-8")
         self._delete_row(word)
 
+    def _wordinfokeys(self):
+        c = self.cursor()
+        c.execute("select word from bayes")
+        rows = self.fetchall(c)
+        # There is probably some clever way to do this with map or
+        # something, but I don't know what it is.  We want the first
+        # element from all the items in 'rows'
+        keys = []
+        for r in rows:
+            keys.append(r[0])
+        return keys
+
 
 class PGClassifier(SQLClassifier):
     '''Classifier object persisted in a Postgres database'''
