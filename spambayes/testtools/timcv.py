@@ -48,7 +48,12 @@ If that exists, it can be used to change the settings in Options.options.
 
 from __future__ import generators
 
+import os
 import sys
+
+sys.path.insert(-1, os.getcwd())
+sys.path.insert(-1, os.path.dirname(os.getcwd()))
+
 
 from spambayes.Options import options
 from spambayes import TestDriver
