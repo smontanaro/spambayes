@@ -241,11 +241,15 @@ class EditableFolderIDProcessor(opt_processors.FolderIDProcessor):
                 self.SetOptionValue("", self.option_folder_name)
 
     def OnCommand(self, wparam, lparam):
+        code = win32api.HIWORD(wparam)
+        id = win32api.LOWORD(wparam)
         if id == self.control_id:
             if code==win32con.EN_CHANGE:
                 print "got change", self.in_setting_name
                 if not self.in_setting_name:
+                    print "resetting!"
                     self.SetOptionValue(None) # reset the folder IDs.
+                    self.SetOptionValue("", self.option_folder_name)
         return opt_processors.FolderIDProcessor.OnCommand(self, wparam, lparam)
 
     def UpdateControl_FromValue(self):
