@@ -504,7 +504,7 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Training"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Bulk training",IDC_STATIC,5,1,243,113
+    GROUPBOX        "",IDC_STATIC,5,1,243,113
     LTEXT           "Folders with known good messages.",IDC_STATIC,11,11,131,
                     11
     CONTROL         "",IDC_STATIC_HAM,"Static",SS_LEFTNOWORDWRAP | 
@@ -528,16 +528,16 @@ BEGIN
     CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox",
                     IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,127,204,18
-    LTEXT           "Clicking Delete as Spam should",IDC_STATIC,11,148,104,
-                    10
-    COMBOBOX        IDC_DEL_SPAM_RS,130,145,112,54,CBS_DROPDOWNLIST | 
+    LTEXT           "Clicking Recover From Spam should",IDC_STATIC,10,148,
+                    115,10
+    COMBOBOX        IDC_RECOVER_RS,127,145,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Train that a message is spam when it is moved to the spam folder",
                     IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,163,204,16
-    LTEXT           "Clicking Recover From Spam should",IDC_STATIC,11,183,
-                    115,10
-    COMBOBOX        IDC_RECOVER_RS,128,180,114,54,CBS_DROPDOWNLIST | 
+    LTEXT           "Clicking Delete as Spam should",IDC_STATIC,10,183,104,
+                    10
+    COMBOBOX        IDC_DEL_SPAM_RS,129,180,112,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
 END
 
