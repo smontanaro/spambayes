@@ -81,6 +81,8 @@ class MAPIDriver:
                 if is_default:
                     store_name = name.lower()
                     break
+                else:
+                    raise RuntimeError, "Can't find a default message store"
             folder_names = names
         else:
             store_name = names[1]
