@@ -620,7 +620,13 @@ class ExplorerWithEvents:
                     self.toolbar.Visible = True
                 parent = self.toolbar
             # Now add the item itself to the parent.
-            item = parent.Controls.Add(Type=control_type, Temporary=False)
+            try:
+                item = parent.Controls.Add(Type=control_type, Temporary=False)
+            except pythoncom.com_error, e:
+                # Toolbars seem to still fail randomly for some users.
+                # eg, bug [ 755738 ] Latest CVS outllok doesn't work
+                print "FAILED to add the toolbar item '%s' - %s" % (tag,e)
+                return
         # Hook events for the item, but only if we haven't already in some
         # other explorer instance.
         if events_class is not None and tag not in self.explorers_collection.button_event_map:
