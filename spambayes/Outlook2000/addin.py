@@ -91,8 +91,9 @@ gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1,
                         bForDemand=True, bValidateFile=bValidateGencache) # Office 9
 
 # Register what vtable based interfaces we need to implement.
-gencache.EnsureModule('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0,
-                        bForDemand=True, bValidateFile=bValidateGencache) # Addin
+# Damn - we should use EnsureModule for the _IDTExtensibility2 typelib, but
+# win32all 155 and earlier don't like us pre-generating :(
+universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
 
 # A couple of functions that are in new win32all, but we dont want to
 # force people to ugrade if we can avoid it.
