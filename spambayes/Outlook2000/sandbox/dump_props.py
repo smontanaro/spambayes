@@ -43,7 +43,9 @@ def GetLargeProperty(item, prop_tag):
     return "".join(chunks)
 
 def DumpItemProps(item, shorten, get_large_props):
-    for prop_name, prop_tag, prop_val in GetAllProperties(item):
+    all_props = GetAllProperties(item)
+    all_props.sort() # sort by first tuple item, which is name :)
+    for prop_name, prop_tag, prop_val in all_props:
         if get_large_props and \
            PROP_TYPE(prop_tag)==PT_ERROR and \
            prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,'MAPI_E_NOT_ENOUGH_MEMORY']:
@@ -69,6 +71,8 @@ def DumpProps(driver, mapi_folder, subject, include_attach, shorten, get_large):
                 print "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
                 attach = item.OpenAttach(attach_num, None, mapi.MAPI_DEFERRED_ERRORS)
                 DumpItemProps(attach, shorten, get_large)
+            print
+        print
 
 def usage(driver):
     folder_doc = driver.GetFolderNameDoc()
