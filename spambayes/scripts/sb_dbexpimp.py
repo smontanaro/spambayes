@@ -2,17 +2,12 @@
 
 """sb_dbexpimp.py - Bayes database export/import
 
-Classes:
-
-
-Abstract:
-
     This utility has the primary function of exporting and importing
-    a spambayes database into/from a flat file.  This is useful in a number
+    a spambayes database into/from a CSV file.  This is useful in a number
     of scenarios.
 
-    Platform portability of database - flat files can be exported and
-    imported across platforms (winduhs and linux, for example)
+    Platform portability of database - CSV files can be exported and
+    imported across platforms (Windows and Linux, for example).
 
     Database implementation changes - databases can survive database
     implementation upgrades or new database implementations.  For example,
@@ -20,7 +15,7 @@ Abstract:
 
     Database reorganization - an export followed by an import reorgs an
     existing database, <theoretically> improving performance, at least in
-    some database implementations
+    some database implementations.
 
     Database sharing - it is possible to distribute particular databases
     for research purposes, database sharing purposes, or for new users to
@@ -28,17 +23,8 @@ Abstract:
 
     Database merging - multiple databases can be merged into one quite
     easily by specifying -m on an import.  This will add the two database
-    nham and nspams together (assuming the two databases do not share
-    corpora) and for wordinfo conflicts, will add spamcount and hamcount
-    together.
-
-    Spambayes software release migration - an export can be executed before
-    a release upgrade, as part of the installation script.  Then, after the
-    new software is installed, an import can be executed, which will
-    effectively preserve existing training.  This eliminates the need for
-    retraining every time a release is installed.
-
-    Others?  I'm sure I haven't thought of everything...
+    nham and nspams together and for wordinfo conflicts, will add spamcount
+    and hamcount together.
 
 Usage:
     sb_dbexpimp [options]
@@ -59,9 +45,13 @@ Usage:
 
             -h     : help
 
+If neither -p nor -d is specified, then the values in your configuration
+file (or failing that, the defaults) will be used.  In this way, you may
+convert to and from storage formats other than pickle and dbm.
+
 Examples:
 
-    Export pickled mybayes.db into mybayes.db.export as a csv flat file
+    Export pickled mybayes.db into mybayes.db.export as a CSV file
         sb_dbexpimp -e -p mybayes.db -f mybayes.db.export
 
     Import mybayes.db.export into a new DBM mybayes.db
@@ -77,13 +67,9 @@ Examples:
         sb_dbexpimp -e -d bbayes.db -f bbayes.export
         sb_dbexpimp -i -d newbayes.db -f abayes.export
         sb_dbexpimp -i -m -d newbayes.db -f bbayes.export
-
-To Do:
-    o Suggestions?
-
 """
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -222,8 +208,6 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
     print "Database has %s ham, %s spam, and %s words" \
            % (bayes.nham, bayes.nspam, len(words))
-
-
 
 
 if __name__ == '__main__':
