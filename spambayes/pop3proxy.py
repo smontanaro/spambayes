@@ -113,23 +113,25 @@ class POP3ProxyBase(asynchat.async_chat):
         elif command in ['LIST', 'UIDL']:
             return len(args) == 0
         else:
-            # Assume that unknown commands will get an error response.
+            # Assume that an unknown command will get a single-line
+            # response.  This should work for errors and for POP-AUTH.
             return False
 
     def readResponse(self, command, args):
         """Reads the POP3 server's response and returns a tuple of
         (response, isClosing, timedOut).  isClosing is True if the
         server closes the socket, which tells found_terminator() to
-        close when the response has been sent.  timedOut is set if the
-        request was still arriving after 30 seconds, and tells
-        found_terminator() to proxy the remainder of the response.
+        close when the response has been sent.  timedOut is set if a
+        TOP or RETR request was still arriving after 30 seconds, and
+        tells found_terminator() to proxy the remainder of the response.
         """
-        isClosing = False
-        timedOut = False
+        responseLines = []
         startTime = time.time()
         isMulti = self.isMultiline(command, args)
-        responseLines = []
+        isClosing = False
+        timedOut = False
         isFirstLine = True
+        seenAllHeaders = False
         while True:
             line = self.serverFile.readline()
             if not line:
@@ -147,10 +149,13 @@ class POP3ProxyBase(asynchat.async_chat):
             else:
                 # A normal line - append it to the response and carry on.
                 responseLines.append(line)
+                seenAllHeaders = seenAllHeaders or line in ['\r\n', '\n']
 
-            # Time out after 30 seconds - found_terminator() knows how
+            # Time out after 30 seconds for message-retrieval commands
+            # if all the headers are down - found_terminator() knows how
             # to deal with this.
-            if time.time() > startTime + 30:
+            if command in ['TOP', 'RETR'] and \
+               seenAllHeaders and time.time() > startTime + 30:
                 timedOut = True
                 break
 
@@ -543,7 +548,6 @@ def test():
     proxy.send("stat\r\n")
     response = proxy.recv(100)
     count, totalSize = map(int, response.split()[1:3])
-    print "%d messages in test mailbox" % count
     assert count == 2
 
     # Loop through the messages ensuring that they have judgement
@@ -553,11 +557,7 @@ def test():
         proxy.send("retr %d\r\n" % i)
         while response.find('\n.\r\n') == -1:
             response = response + proxy.recv(1000)
-        headerOffset = response.find(hammie.DISPHEADER)
-        assert headerOffset != -1
-        headerEnd = headerOffset + len(HEADER_EXAMPLE)
-        header = response[headerOffset:headerEnd].strip()
-        print "Message %d: %s" % (i, header)
+        assert response.find(hammie.DISPHEADER) != -1
 
     # Kill the proxy and the test server.
     proxy.sendall("kill\r\n")
