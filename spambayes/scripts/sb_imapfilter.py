@@ -977,7 +977,7 @@ class IMAPFilter(object):
             print "Classifying took %.4f seconds." % (time.time() - t,)
 
 
-def run():
+def run(force_UI=False):
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:')
     except getopt.error, msg:
@@ -1050,7 +1050,7 @@ def run():
                 pwd = pwd[0]
     else:
         pwd = None
-        if not launchUI:
+        if not launchUI and not force_UI:
             print "You need to specify both a server and a username."
             sys.exit()
 
@@ -1087,7 +1087,7 @@ def run():
             imap = IMAPSession(server, port, imapDebug, doExpunge)
 
         # Load stats manager.
-        stats = Stats(options, message_db)
+        stats = Stats.Stats(options, message_db)
         
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap, pwd,
