@@ -10,6 +10,66 @@ from sets import Set
 
 __all__ = ['options']
 
+defaults = """
+[Tokenizer]
+# By default, tokenizer.Tokenizer.tokenize_headers() strips HTML tags
+# from pure text/html messages.  Set to True to retain HTML tags in
+# this case.
+retain_pure_html_tags: False
+
+# Generate tokens just counting the number of instances of each kind of
+# header line, in a case-sensitive way.
+#
+# Depending on data collection, some headers aren't safe to count.
+# For example, if ham is collected from a mailing list but spam from your
+# regular inbox traffic, the presence of a header like List-Info will be a
+# very strong ham clue, but a bogus one.  In that case, set
+# count_all_header_lines to False, and adjust safe_headers instead.
+
+count_all_header_lines: False
+
+# Like count_all_header_lines, but restricted to headers in this list.
+# safe_headers is ignored when count_all_header_lines is true.
+
+safe_headers: abuse-reports-to
+    date
+    errors-to
+    from
+    importance
+    in-reply-to
+    message-id
+    mime-version
+    organization
+    received
+    reply-to
+    return-path
+    subject
+    to
+    user-agent
+    x-abuse-info
+    x-complaints-to
+    x-face
+
+[TestDriver]
+# These control various displays in class Drive (timtest.py).
+
+# Number of buckets in histograms.
+nbuckets: 40
+show_histograms: True
+
+# Display spam when
+#     show_spam_lo <= spamprob <= show_spam_hi
+# and likewise for ham.  The defaults here don't show anything.
+show_spam_lo: 1.0
+show_spam_hi: 0.0
+show_ham_lo: 1.0
+show_ham_hi: 0.0
+
+show_false_positives: True
+show_false_negatives: False
+show_best_discriminators: True
+"""
+
 int_cracker = ('getint', None)
 float_cracker = ('getfloat', None)
 boolean_cracker = ('getboolean', bool)
@@ -39,24 +99,35 @@ class OptionsClass(object):
         self._config = ConfigParser.ConfigParser()
 
     def mergefiles(self, fnamelist):
-        c = self._config
-        c.read(fnamelist)
+        self._config.read(fnamelist)
+        self._update()
 
+    def mergefilelike(self, filelike):
+        self._config.readfp(filelike)
+        self._update()
+
+    def _update(self):
+        nerrors = 0
+        c = self._config
         for section in c.sections():
             if section not in all_options:
                 _warn("config file has unknown section %r" % section)
+                nerrors += 1
                 continue
             goodopts = all_options[section]
             for option in c.options(section):
                 if option not in goodopts:
                     _warn("config file has unknown option %r in "
                          "section %r" % (option, section))
+                    nerrors += 1
                     continue
                 fetcher, converter = goodopts[option]
                 value = getattr(c, fetcher)(section, option)
                 if converter is not None:
                     value = converter(value)
                 setattr(options, option, value)
+        if nerrors:
+            raise ValueError("errors while parsing .ini file")
 
     def display(self):
         output = StringIO.StringIO()
@@ -65,4 +136,9 @@ class OptionsClass(object):
 
 
 options = OptionsClass()
-options.mergefiles(['bayes.ini', 'bayescustomize.ini'])
+
+d = StringIO.StringIO(defaults)
+options.mergefilelike(d)
+del d
+
+options.mergefiles(['bayescustomize.ini'])
