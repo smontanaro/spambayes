@@ -185,7 +185,9 @@ class MAPIMsgStore(MsgStore):
                                     0)               # any # of results is fine
         assert len(rows)==1, "Should be exactly one row"
         (tag, val), = rows[0]
-        return val
+        # I can't convince MAPI to give me the Unicode name, so we assume
+        # encoded as MBCS.
+        return val.decode("mbcs", "ignore")
 
     def _GetMessageStore(self, store_eid): # bin eid.
         try:
