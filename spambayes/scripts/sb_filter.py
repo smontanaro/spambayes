@@ -183,12 +183,12 @@ class HammieFilter(object):
 
     def train_ham(self, msg):
         self.open('c')
-        self.h.train_ham(msg, True)
+        self.h.train_ham(msg, Options.options["Headers", "include_trained"])
         self.h.store()
 
     def train_spam(self, msg):
         self.open('c')
-        self.h.train_spam(msg, True)
+        self.h.train_spam(msg, Options.options["Headers", "include_trained"])
         self.h.store()
 
     def untrain_ham(self, msg):
