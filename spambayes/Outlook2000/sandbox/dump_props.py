@@ -9,6 +9,21 @@ from win32com.mapi.mapitags import *
 
 import mapi_driver
 
+try:
+    TBL_ALL_COLUMNS = mapi.TBL_ALL_COLUMNS
+except AttributeError: # missing in early versions
+    TBL_ALL_COLUMNS = 1
+
+PR_USERFIELDS = 0x36E30102 # PROP_TAG(PT_BINARY, 0x36e3)
+
+def GetPropTagName(obj, prop_tag):
+    hr, tags, array = obj.GetNamesFromIDs( (prop_tag,) )
+    if type(array[0][1])==type(u''):
+        name = array[0][1]
+    else:
+        name = mapiutil.GetPropTagName(prop_tag)
+    return name
+
 # Also in new versions of mapituil
 def GetAllProperties(obj, make_pretty = True):
     tags = obj.GetPropList(0)
@@ -16,14 +31,7 @@ def GetAllProperties(obj, make_pretty = True):
     ret = []
     for tag, val in data:
         if make_pretty:
-            hr, tags, array = obj.GetNamesFromIDs( (tag,) )
-            if type(array[0][1])==type(u''):
-                name = array[0][1]
-            else:
-                name = mapiutil.GetPropTagName(tag)
-            # pretty value transformations
-            if PROP_TYPE(tag)==PT_ERROR:
-                val = mapiutil.GetScodeString(val)
+            name = GetPropTagName(obj, tag)
         else:
             name = tag
         ret.append((name, tag, val))
@@ -42,27 +50,40 @@ def GetLargeProperty(item, prop_tag):
         chunks.append(chunk)
     return "".join(chunks)
 
+def FormatPropertyValue(prop_tag, prop_val, item, shorten, get_large_props):
+    # Do some magic rtf conversion
+    if PROP_ID(prop_tag) == PROP_ID(PR_RTF_COMPRESSED):
+        rtf_stream = item.OpenProperty(PR_RTF_COMPRESSED,
+                                       pythoncom.IID_IStream, 0, 0)
+        html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
+        prop_val = mapi.RTFStreamToHTML(html_stream)
+        prop_tag = PROP_TAG(PT_STRING8, PR_RTF_COMPRESSED)
+    prop_repr = None
+    if PROP_TYPE(prop_tag)==PT_ERROR:
+        if get_large_props and \
+           prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,
+                        'MAPI_E_NOT_ENOUGH_MEMORY']:
+            # Use magic to get a large property.
+            prop_val = GetLargeProperty(item, prop_tag)
+            prop_repr = repr(prop_val)
+        else:
+            prop_val = prop_repr = mapiutil.GetScodeString(prop_val)
+    if prop_repr is None:
+        prop_repr = repr(prop_val)
+    if shorten:
+        prop_repr = prop_repr[:50]
+    return prop_repr
+
 def DumpItemProps(item, shorten, get_large_props):
     all_props = GetAllProperties(item)
     all_props.sort() # sort by first tuple item, which is name :)
     for prop_name, prop_tag, prop_val in all_props:
-        # Do some magic rtf conversion
-        if PROP_ID(prop_tag) == PROP_ID(PR_RTF_COMPRESSED):
-            rtf_stream = item.OpenProperty(PR_RTF_COMPRESSED, pythoncom.IID_IStream,
-                                                  0, 0)
-            html_stream = mapi.WrapCompressedRTFStream(rtf_stream, 0)
-            prop_val = mapi.RTFStreamToHTML(html_stream)
-            prop_name = "PR_RTF_COMPRESSED (to HTML)"
-            prop_tag = PROP_TAG(PT_STRING8, PR_RTF_COMPRESSED)
-        if get_large_props and \
-           PROP_TYPE(prop_tag)==PT_ERROR and \
-           prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,'MAPI_E_NOT_ENOUGH_MEMORY']:
-            # Use magic to get a large property.
-            prop_val = GetLargeProperty(item, prop_tag)
-
-        prop_repr = repr(prop_val)
-        if shorten:
-            prop_repr = prop_repr[:50]
+        # If we want 'short' variables, drop 'not found' props.
+        if shorten and PROP_TYPE(prop_tag)==PT_ERROR \
+           and prop_val == mapi.MAPI_E_NOT_FOUND:
+            continue
+        prop_repr = FormatPropertyValue(prop_tag, prop_val, item,
+                                        shorten, get_large_props)
         print "%-20s: %s" % (prop_name, prop_repr)
 
 def DumpProps(driver, mapi_folder, subject, include_attach, shorten, get_large):
@@ -77,48 +98,104 @@ def DumpProps(driver, mapi_folder, subject, include_attach, shorten, get_large):
             for row in rows:
                 attach_num = row[0][1]
                 print "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
-                attach = item.OpenAttach(attach_num, None, mapi.MAPI_DEFERRED_ERRORS)
+                attach = item.OpenAttach(attach_num, None,
+                                         mapi.MAPI_DEFERRED_ERRORS)
                 DumpItemProps(attach, shorten, get_large)
             print
         print
 
-def usage(driver):
+# Generic table dumper.
+def DumpTable(driver, table, name_query_ob, shorten, large_props):
+    cols = table.QueryColumns(TBL_ALL_COLUMNS)
+    table.SetColumns(cols, 0)
+    rows = mapi.HrQueryAllRows(table, cols, None, None, 0)
+    print "Table has %d rows, each with %d columns" % (len(rows), len(cols))
+    for row in rows:
+        print "-- new row --"
+        for col in row:
+            prop_tag, prop_val = col
+            # If we want 'short' variables, drop 'not found' props.
+            if shorten and PROP_TYPE(prop_tag)==PT_ERROR \
+               and prop_val == mapi.MAPI_E_NOT_FOUND:
+                continue
+            prop_name = GetPropTagName(name_query_ob, prop_tag)
+            prop_repr = FormatPropertyValue(prop_tag, prop_val, name_query_ob,
+                                            shorten, large_props)
+            print "%-20s: %s" % (prop_name, prop_repr)
+
+# This dumps the raw binary data of the property Outlook uses to store
+# user defined fields.
+def FindAndDumpTableUserProps(driver, table, folder, shorten, get_large_props):
+    restriction = (mapi.RES_PROPERTY,
+                  (mapi.RELOP_EQ,
+                   PR_MESSAGE_CLASS_A,
+                   (PR_MESSAGE_CLASS_A, 'IPC.MS.REN.USERFIELDS')))
+    cols = (PR_USERFIELDS,)
+    table.SetColumns(cols, 0)
+    rows = mapi.HrQueryAllRows(table, cols, restriction, None, 0)
+    assert len(rows)<=1, "Only expecting 1 (or 0) rows"
+    tag, val = rows[0][0]
+    prop_name = GetPropTagName(folder, tag)
+    prop_repr = FormatPropertyValue(tag, val, folder,
+                                    shorten, get_large_props)
+    print "%-20s: %s" % (prop_name, prop_repr)
+    
+def usage(driver, extra = None):
     folder_doc = driver.GetFolderNameDoc()
+    if extra:
+        print extra
+        print
     msg = """\
-Usage: %s [-f foldername] subject of the message
--f - Search for the message in the specified folder (default = Inbox)
--s - Shorten long property values.
--a - Include attachments
--l - Get the data for very large properties
--n - Show top-level folder names and exit
+Usage: %s [options ...] subject of the message
 
 Dumps all properties for all messages that match the subject.  Subject
 matching is substring and ignore-case.
+
+-f - Search for the message in the specified folder (default = Inbox)
+-s - Shorten long property values.
+-a - Include attachments
+-l - Get the data for very large properties via a stream
+-n - Show top-level folder names and exit
+--dump-folder
+     Dump the properties of the specified folder.
+--dump-folder-assoc-contents
+     Dump the 'associated contents' table of the specified folder.
+--dump-folder-user-props
+     Find and dump the PR_USERFIELDS field for the specified table.
 
 %s
 Use the -n option to see all top-level folder names from all stores.""" \
     % (os.path.basename(sys.argv[0]),folder_doc)
     print msg
+    sys.exit(1)
 
 def main():
     driver = mapi_driver.MAPIDriver()
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "af:snl")
+        opts, args = getopt.getopt(sys.argv[1:], "af:snl",
+                                   ["dump-folder",
+                                    "dump-folder-assoc-contents",
+                                    "dump-folder-user-props",
+                                    ])
     except getopt.error, e:
-        print e
-        print
-        usage(driver)
-        sys.exit(1)
+        usage(driver, e)
     folder_name = ""
 
     shorten = False
     get_large_props = False
     include_attach = False
+    dump_folder = dump_folder_assoc_contents = dump_folder_user_props = False
     for opt, opt_val in opts:
         if opt == "-f":
             folder_name = opt_val
+        elif opt == "--dump-folder":
+            dump_folder = True
+        elif opt == "--dump-folder-assoc-contents":
+            dump_folder_assoc_contents = True
+        elif opt == "--dump-folder-user-props":
+            dump_folder_user_props = True
         elif opt == "-s":
             shorten = True
         elif opt == "-a":
@@ -129,26 +206,39 @@ def main():
             driver.DumpTopLevelFolders()
             sys.exit(1)
         else:
-            print "Invalid arg"
-            return
+            usage(driver, "Unknown arg '%s'" % opt)
 
     if not folder_name:
         folder_name = "Inbox" # Assume this exists!
 
     subject = " ".join(args)
-    if not subject:
-        print "You must specify a subject"
-        print
-        usage(driver)
-        sys.exit(1)
-
+    is_table_dump = dump_folder_assoc_contents or \
+                    dump_folder or dump_folder_user_props
+    if is_table_dump and subject or not is_table_dump and not subject:
+        if is_table_dump:
+            extra = "You must not specify a subject with '-p'"
+        else:
+            extra = "You must specify a subject (unless you use '-p')"
+        usage(driver, extra)
     try:
         folder = driver.FindFolder(folder_name)
     except ValueError, details:
         print details
         sys.exit(1)
 
-    DumpProps(driver, folder, subject, include_attach, shorten, get_large_props)
+    if is_table_dump:
+        if dump_folder:
+            DumpItemProps(folder, shorten, get_large_props)
+        if dump_folder_assoc_contents:
+            table = folder.GetContentsTable(mapi.MAPI_ASSOCIATED)
+            DumpTable(driver, table, folder, shorten, get_large_props)
+        if dump_folder_user_props:
+            table = folder.GetContentsTable(mapi.MAPI_ASSOCIATED)
+            FindAndDumpTableUserProps(driver, table, folder,
+                                      shorten, get_large_props)
+    else:
+        DumpProps(driver, folder, subject, include_attach,
+                  shorten, get_large_props)
 
 if __name__=='__main__':
     main()
