@@ -252,6 +252,16 @@ class Bayes(object):
             #         s*x + n*p(w)
             # f(w) = --------------
             #           s + n
+            #
+            # I find this easier to reason about like so (equivalent when
+            # s != 0):
+            #
+            #        x - p
+            #  p +  -------
+            #       1 + n/s
+            #
+            # IOW, it moves p a fraction of the distance from p to x, and
+            # less so the larger n is, or the smaller s is.
 
             n = hamcount + spamcount
             prob = (StimesX + n * prob) / (S + n)
