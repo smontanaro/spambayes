@@ -11,7 +11,7 @@ from proxy3_filter import *
 import proxy3_options
 
 from spambayes import hammie, Options, mboxutils
-dbf = os.path.expanduser(Options.options.hammiefilter_persistent_storage_file)
+dbf = os.path.expanduser(Options.options["Storage", "persistent_storage_file"])
 
 class SpambayesFilter(BufferAllFilter):
     hammie = hammie.open(dbf, 1, 'r')
@@ -20,7 +20,7 @@ class SpambayesFilter(BufferAllFilter):
         if self.reply.split()[1] == '200':
             prob = self.hammie.score("%s\r\n%s" % (self.serverheaders, s))
             print "|  prob: %.5f" % prob
-            if prob >= Options.options.spam_cutoff:
+            if prob >= Options.options["Categorization", "spam_cutoff"]:
                 print self.serverheaders
                 print "text:", s[0:40], "...", s[-40:]
                 return "not authorized"
