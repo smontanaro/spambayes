@@ -2,6 +2,8 @@
 
 Beta Release 1
 ==============
+Kenny Pitt        07/04/2004  Fix some problems with the [851785] fix
+Toby Dickenson    26/03/2004  New script: sb_bnfilter - like sb_filter but without the startup overhead
 Tony Meyer        24/03/2004  When messages expired from the sb_server caches during a USER check (rather than on launch) they would be untrained.  This is not right at all, and so was fixed.
 Tony Meyer        23/03/2004  Fix a subtle bug where if one option was selected for notate_to/subject the option would be presented with radio buttons not checkboxes (so only one, and never zero or 2/3 options could be chosen).
 Kenny Pitt        18/03/2004  Outlook: Don't record classification in stats unless all_actions is true so that rescoring messages doesn't skew the statistics counters.

@@ -83,6 +83,9 @@ Tokenizer
 General
 -------
  o Added new flags and results data to the contrib/tte.py script.
+ o Added a new script - sb_bnfilter.py, which works like sb_filter
+   but avoids startup overhead (like sb_xmlrpcserver.py aims to, but
+   without as much administration work).
 
 
 Transition
