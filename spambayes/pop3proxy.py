@@ -50,34 +50,17 @@ todo = """
 
 Web training interface:
 
- o Review already-trained messages, and purge them.
- o Include a Reply link that launches the registered email client, eg.
-   mailto:tim@fourstonesExpressions.com?subject=Re:%20pop3proxy&body=Hi%21%0D
- o Keyboard navigation (David Ascher).  But aren't Tab and left/right
-   arrow enough?
- o [Francois Granger] Show the raw spambrob number close to the buttons
-   (this would mean using the extra X-Hammie header by default).
- o Add Today and Refresh buttons on the Review page.
-
-
 User interface improvements:
 
  o Once the pieces are on separate pages, make the paste box bigger.
  o Deployment: Windows executable?  atlaxwin and ctypes?  Or just
    webbrowser?
- o Can it cleanly dynamically update its status display while having a
-   POP3 conversation?  Hammering reload sucks.
  o Save the stats (num classified, etc.) between sessions.
  o "Reload database" button.
 
 
 New features:
 
- o "Send me an email every [...] to remind me to train on new
-   messages."
- o "Send me a status email every [...] telling how many mails have been
-   classified, etc."
- o Whitelist.
  o Online manual.
  o Links to project homepage, mailing list, etc.
  o List of words with stats (it would have to be paged!) a la SpamSieve.
@@ -104,44 +87,20 @@ Gimmicks:
  o Graphs.  Of something.  Who cares what?
  o NNTP proxy.
  o Zoe...!
-
-Notes, for the sake of somewhere better to put them:
-
-Don't proxy spams at all?  This would mean writing a full POP3 client
-and server - it would download all your mail on a timer and serve to you
-all the non-spams.  It could be 'safe' in that it leaves the messages in
-the real POP3 account until you collect them from it (or in the case of
-spams, until you collect contemporaneous hams).  The web interface would
-then present all the spams so that you could correct any FPs and mark
-them for collection.  The thing is no longer a proxy (because the first
-POP3 command in a conversion is STAT or LIST, which tells you how many
-mails there are - it wouldn't know the answer, and finding out could
-take weeks over a modem - I've already had problems with clients timing
-out while the proxy was downloading stuff from the server).
-
-Adam's idea: add checkboxes to a Google results list for "Relevant" /
-"Irrelevant", then submit that to build a search including the
-highest-scoring tokens and excluding the lowest-scoring ones.
 """
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
-
-import os, sys, re, operator, errno, getopt, time, bisect, binascii
-import socket, asyncore, asynchat, cgi
-import mailbox, email.Header
+import os, sys, re, errno, getopt, time
+import socket
 from thread import start_new_thread
-from email.Iterators import typed_subpart_iterator
-import spambayes
-from spambayes import storage, tokenizer, mboxutils, Dibbler
+
+import spambayes.message
+from spambayes import Dibbler
+from spambayes import storage
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
-import spambayes.message
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
 if sys.platform == 'darwin':
@@ -154,12 +113,8 @@ if sys.platform == 'darwin':
         newsoft = min(hard, max(soft, 1024*2048))
         resource.setrlimit(resource.RLIMIT_STACK, (newsoft, hard))
 
-
-# HEADER_EXAMPLE is the longest possible header - the length of this one
-# is added to the size of each message.
-HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % \
-                 options["Hammie", "header_name"]
-
+# number to add to STAT length for each msg to fudge for spambayes headers
+HEADER_SIZE_FUDGE_FACTOR = 512
 
 class ServerLineReader(Dibbler.BrighterAsyncChat):
     """An async socket that reads lines from a remote server and
@@ -439,7 +394,7 @@ class BayesProxy(POP3ProxyBase):
         match = re.search(r'^\+OK\s+(\d+)\s+(\d+)(.*)\r\n', response)
         if match:
             count = int(match.group(1))
-            size = int(match.group(2)) + len(HEADER_EXAMPLE) * count
+            size = int(match.group(2)) + HEADER_SIZE_FUDGE_FACTOR * count
             return '+OK %d %d%s\r\n' % (count, size, match.group(3))
         else:
             return response
@@ -495,7 +450,7 @@ class BayesProxy(POP3ProxyBase):
                 else:
                     state.numUnsure += 1
 
-            # Cache the message; don't pollute the cache with test messages.
+                # Cache the message; don't pollute the cache with test messages.
                 if not state.isTest \
                     and options["pop3proxy", "cache_messages"]:
                     # Write the message into the Unknown cache.
@@ -642,7 +597,7 @@ class State:
             # Given that (hopefully) users will get to the stage
             # where they do not need to do any more regular training to
             # be satisfied with spambayes' performance, we expire old
-            # messages from not only the trained corpii, but the unknown
+            # messages from not only the trained corpora, but the unknown
             # as well.
             self.spamCorpus.removeExpiredMessages()
             self.hamCorpus.removeExpiredMessages()
