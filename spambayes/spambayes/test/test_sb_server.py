@@ -118,7 +118,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
     def __init__(self, clientSocket, socketMap):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
-        Dibbler.BrighterAsyncChat.__init__(self)
+        Dibbler.BrighterAsyncChat.__init__(self, map=socketMap)
         Dibbler.BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
         self.maildrop = [spam1, good1]
         self.set_terminator('\r\n')
