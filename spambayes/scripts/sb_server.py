@@ -850,6 +850,7 @@ def main(servers, proxyPorts, uiPort, launchUI):
     Dibbler.run(launchBrowser=launchUI)
 
 def prepare():
+    state.init()
     state.prepare()
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
