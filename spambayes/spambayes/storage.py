@@ -571,6 +571,52 @@ class HamTrainer(Trainer):
 
         Trainer.__init__(self, bayes, False, updateprobs)
 
+class NoSuchClassifierError(Exception):
+    def __init__(self, invalid_name):
+        self.invalid_name = invalid_name
+    def __str__(self):
+        return repr(self.invalid_name)
+
+_storage_types = {"dbm" : DBDictClassifier,
+                  "pickle" : PickledClassifier,
+                  "pgsql" : PGClassifier,
+                  "mysql" : mySQLClassifier,
+                  }
+
+def open_storage(data_source_name, useDB=True):
+    '''Return a storage object appropriate to the given parameters.
+
+    By centralizing this code here, all the applications will behave
+    the same given the same options.
+
+    If useDB is false, a pickle will be used, otherwise if the data
+    source name includes "::", whatever is before that determines
+    the type of database.  If the source name doesn't include "::",
+    then a DBDictClassifier is used.'''
+    if useDB:
+        if '::' in data_source_name:
+            db_type, rest = data_source_name.split('::', 1)
+            if _storage_types.has_key(db_type.lower()):
+                klass = _storage_types[db_type.lower()]
+                data_source_name = rest
+            else:
+                raise NoSuchClassifierError(db_type)
+        else:
+            klass = DBDictClassifier
+    else:
+        klass = PickledClassifier
+    try:
+        return klass(data_source_name)
+    except dbmstorage.error, e:
+        if str(e) == "No dbm modules available!":
+            # We expect this to hit a fair few people, so warn them nicely,
+            # rather than just printing the trackback.
+            print """You do not have a dbm module available to use.  You
+need to either use a pickle (see the FAQ), use Python 2.3 (or above), or
+install a dbm module such as bsddb (see http://sf.net/projects/pybsddb)."""
+            import sys
+            sys.exit()
+
 
 if __name__ == '__main__':
     import sys
