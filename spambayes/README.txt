@@ -98,7 +98,9 @@ Outlook plug-in
 ---------------
 
 For information about how to use the Outlook plug-in, please read the
-"about.html" file in the Outlook2000 directory.
+"about.html" file in the Outlook2000 directory.  If you want to run the
+Outlook plug-in from source, you should also read the "README.txt" file
+in that directory.
 
 
 POP3 Proxy

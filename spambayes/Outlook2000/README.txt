@@ -3,6 +3,12 @@ Outlook 2000, courtesy of Sean True and Mark Hammond.  Note that you need
 Python's win32com extensions (http://starship.python.net/crew/mhammond) and
 you *must* have win32all-149 or later.
 
+Note that running "setup.py install" will *not* install the contents of this
+directory into the Python site-packages directory.  You will need to either
+copy this directory there yourself, or run it from some other appropriate
+location.  The plug-in will probably not be happy if you change the location
+of the source files after it is installed (do an uninstall, then a reinstall).
+
 See below for a list of known problems.
 
 Outlook Addin
@@ -80,7 +86,7 @@ Copyright transferred to PSF from Mark Hammond.
 Licensed under PSF, see Tim Peters for IANAL interpretation.
 
 Please send all comments, queries, support questions etc to the SpamBayes
-mailing list - see http://mail.python.org/mailman-21/listinfo/spambayes
+mailing list - see http://mail.python.org/mailman/listinfo/spambayes
 
 -- Sean
 seant@iname.com
