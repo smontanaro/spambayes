@@ -9,6 +9,10 @@ sys.path.append(os.path.join(sb_top_dir, "scripts"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000/sandbox"))
 
+# Generate the dialogs.py file.
+import dialogs
+dialogs.LoadDialogs()
+
 # ModuleFinder can't handle runtime changes to __path__, but win32com uses them,
 # particularly for people who build from sources.  Hook this in.
 try:
