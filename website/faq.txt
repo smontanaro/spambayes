@@ -86,7 +86,7 @@ something back to the project, you have a few options:
 What online resources are available?
 ------------------------------------
 
-There are four mailing lists which support SpamBayes:
+There are five mailing lists which support SpamBayes:
 
 1. The `SpamBayes list`_ provides a place for users to get help with
    SpamBayes or help other users.
@@ -100,6 +100,12 @@ There are four mailing lists which support SpamBayes:
 4. The `SpamBayes checkins list`_ receives summaries of all the
    changes to the SpamBayes software.  This is generally only of interest to
    developers.
+
+5. The `SpamBayes bugs list`_ receives copies of all the bug, patch,
+   support requests and feature request reports that are submitted via the
+   `sourceforge`_ system.  This is generally only of interest to developers
+   (you can use the sourceforge system to monitor any individual bugs that
+   you are interested in).
 
 All the mailing lists are managed by Mailman, which uses pipermail to
 archive messages.  There is no search capability, so your best bet is to use
@@ -116,6 +122,8 @@ messages.
 .. _SpamBayes developers list: http://mail.python.org/mailman/listinfo/spambayes-dev
 .. _SpamBayes announcements list: http://mail.python.org/mailman/listinfo/spambayes-announce
 .. _SpamBayes checkins list: http://mail.python.org/mailman/listinfo/spambayes-checkins
+.. _SpamBayes bugs list: http://mail.python.org/mailman/listinfo/spambayes-bugs
+.. _sourceforge: http://www.sourceforge.net
 
 
 What do I need to install SpamBayes?
@@ -242,11 +250,11 @@ There are eight main components to the SpamBayes system:
    to make it easy to file all the suspected spam into its own folder, for
    instance.
 
-7. The Hammie script.  This does three jobs: command-line training, procmail
-   filtering, and XML-RPC.  See below for details of how to use Hammie for
-   training, and how to use it as procmail filter.  Hammie can also run as
+7. The filter script.  This does three jobs: command-line training, procmail
+   filtering, and XML-RPC.  See below for details of how to use sb_filter for
+   training, and how to use it as procmail filter.  SpamBayes can also run as
    an XML-RPC server, so that a programmer can write code that uses a remote
-   server to classify emails programmatically - see hammiesrv.py.
+   server to classify emails programmatically - see sb_xmlrpcsrv.py.
 
 8. The IMAP filter.  This is a cross between the POP3 proxy and the Outlook
    plugin.  If your mail sits on an IMAP server, you can use the this to
@@ -261,14 +269,16 @@ There are eight main components to the SpamBayes system:
 Where does all this stuff live?
 -------------------------------
 
-The Hammie script is called hammie.py.  The POP3 proxy lives in pop3proxy.py,
-and the smtpproxy lives in smtpproxy.py.  The IMAP filter lives in
-imapfilter.py.  The Outlook plug-in lives in the Outlook2000 subdirectory
-- see the README.txt in that directory for more information on that.
+The filter script is called sb_filter.py.  The POP3 proxy lives in sb_server.py;
+to upload to the server use sb_upload.py.  The IMAP filter lives in
+sb_imapfilter.py.  These all live in the scripts directory - Windows users
+can find non-command-line versions in the windows directory. The Outlook
+plug-in lives in the Outlook2000 subdirectory - see the README.txt in that
+directory for more information on that.
 
 As well as these components, there's also a whole pile of utility scripts,
-test harnesses and so on - see README.txt and TESTING.txt in the
-SpamBayes distribution for more information.
+test harnesses and so on - see README.txt, README-DEVEL.txt and TESTING.txt
+in the SpamBayes distribution for more information.
 
 
 Compatibility
@@ -283,14 +293,12 @@ program (from the same company).  Because they give it away for free,
 Outlook Express is a really stripped down program, and it's extremely
 difficult to create a plugin for it.
 
-You can use pop3proxy and/or imapfilter with Outlook Express, however you
-must have either the alpha 3 release, or a recent CVS snapshot in order to
-do so (alpha 2 does not include all the necessary features).  Because
+You can use sb_server and/or sb_imapfilter with Outlook Express.  Because
 Outlook Express does not let you filter on arbitrary headers (like
-X-Spambayes-Classification), pop3proxy must add the classification to the
+X-Spambayes-Classification), sb_server must add the classification to the
 "To:" line, or the "Subject" line.
 
-Pop3proxy/imapfilter aren't quite as 'transparent' as the Outlook plugin,
+sb_server/sb_imapfilter aren't quite as 'transparent' as the Outlook plugin,
 but they're still quite easy to use/setup, and they use the same core, so
 the results will be the same.  We are working on an alternative that should
 move us towards the Outlook simplicity.
@@ -304,7 +312,7 @@ implement depends on your local architecture.  Users with access to procmail
 can just write a recipe that invokes SpamBayes like this::
 
     :0fw
-    | /opt/spambayes/hammiefilter.py
+    | /opt/spambayes/sb_filter.py
 
 Follow that with a recipe to check the results and take action::
 
@@ -323,14 +331,14 @@ purposes.  Here's one such example.  If you place the following code in your
     (let ((vm-delete-after-saving nil))
       (vm-save-message (expand-file-name "~/tmp/newspam"))
       (vm-add-message-labels "trained" 1))
-    (vm-pipe-message-to-command "hammiefilter.py -s >/dev/null" nil))
+    (vm-pipe-message-to-command "sb_filter.py -s >/dev/null" nil))
 
   (defun train-as-nonspam ()
     (interactive)
     (let ((vm-delete-after-saving nil))
       (vm-save-message (expand-file-name "~/tmp/newham"))
       (vm-add-message-labels "trained" 1))
-    (vm-pipe-message-to-command "hammiefilter.py -g >/dev/null" nil))
+    (vm-pipe-message-to-command "sb_filter.py -g >/dev/null" nil))
 
   (define-key vm-mode-map "ls" 'train-as-spam)
   (define-key vm-summary-mode-map "ls" 'train-as-spam)
@@ -346,7 +354,7 @@ that you've already added the message to your training database.
 Users limited to POP3/IMAP communications to the server can use the POP3_ or
 IMAP_ proxies which are part of the SpamBayes source.
 
-.. _POP3: http://spambayes.sf.net/applications.html#pop3
+.. _POP3: http://spambayes.sf.net/applications.html#sb_server
 .. _IMAP: http://spambayes.sf.net/applications.html#imap
 
 
@@ -373,9 +381,9 @@ setting directory, e.g.::
 2. Make two copies - ``eudoraok.ini`` for backup and ``eudorame.ini`` to
    modify.
 
-3. Configure pop3proxy for each of Eudora's personalities' POP3 servers,
+3. Configure sb_server for each of Eudora's personalities' POP3 servers,
    specifying a separate port for each. For example 1110, 1120, 1130 and
-   1140 for four personalities. Do the same for smtpproxy - for example
+   1140 for four personalities. Do the same for sb_smtpproxy - for example
    1115, 1125, 1135 and 1145 corresponding to the four POP3 servers.
 
 4. Close Eudora.
@@ -428,15 +436,15 @@ What version(s) of Outlook does the plugin work with?
 
 Previous versions of the binary had a number of problems with various
 versions of Outlook/Windows.  However, to our knowledge, the current version
-should work with any combination of Windows/Outlook versions.  Please let us
+should work with any combination of Windows/Outlook versions. Please let us
 know if this is not the case.  The `troubleshooting guide`_ for the Outlook
 plugin contains the most up-to-date help for working around known problems.
 A number of people have used the plugin with a beta version of Outlook 2003.
 If you fall into that category, note that you must have applied all the
 technical refreshes released by Microsoft to use the plugin successfully.
-Better yet, upgrade to the final version when it's available.
+Better yet, upgrade to the final version now that it's available.
 
-.. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain
+.. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html
 
 
 Do I have to have Python installed to use SpamBayes with Outlook?
@@ -454,29 +462,11 @@ Yes.
 Can mail marked as spam automatically be marked as read?
 --------------------------------------------------------
 
-This is a 'hidden' feature in the post 003 releases of the binary (also post 
-alpha3 source releases and CVS).  Details about how to enable this feature
-can be found in the "configuration.html" file in the "docs" directory in
-the folder SpamBayes was installed to.  You can also set up mail that is
-trained using the "Delete as spam" button to be marked as read, rather than
-all mail classified as spam.  However, you should also see the
-`envelope icon question`_.
+Yes, in version 008 and above of the plugin.  You can find this on the
+filtering tab of the SpamBayes manager dialog.  However, you should also
+see the `envelope icon question`_.
 
 .. _`envelope icon question`: #how-can-I-get-rid-of-the-envelope-tray-icon-for-spam
-
-
-Outlook forgets all training/configuration when I quit and start again
-----------------------------------------------------------------------
-
-This is a known problem with the 002 release of the plug-in (or earlier).
-What is probably happening is that Outlook is not shutting down properly
-or completely, or is being forced to shut down too quickly.  This version
-of the plug-in only saves training/configuration data on shut-down, so
-this can result in training/configuration being lost.  To get around this
-problem, exit Outlook (not by restarting/shutting down the machine), and
-make sure that it is completely shut down (use the Task Manager to check).
-This should save your training and configuration.  The 003 release (and
-later) saves as required, so avoids this issue.
 
 
 Can I back up the Outlook database?  Should I do this?
@@ -533,6 +523,8 @@ you need to have done these things to enable the button:
 
 4. Changed the action to "copy" or "move", rather than "untouched"
 
+5. Ticked the "enable SpamBayes" checkbox on the first tab of the dialog.
+
 
 How can I get rid of the envelope tray icon for spam?
 -----------------------------------------------------
@@ -547,7 +539,8 @@ it doesn't let us determine whether there is other unread mail as well, which
 means that we do not know whether we should delete the icon or not.
 
 Until someone comes up with a clever solution for all of this, you'll have to
-put up with the little envelope, sorry.
+put up with the little envelope, sorry.  Note that there is a feature request
+already open for this, which you may add to if you have comments to make.
 
 
 How can I configure SpamBayes to delete spam rather than moving it?
@@ -561,11 +554,12 @@ It is recommended that you configure auto-archive to keep at least a
 few days of Spam around, should the SpamBayes database become corrupt and 
 require you to perform a full re-train.
 
+
 Will "Show Spam Clues" notify a spammer that I opened their message?
 --------------------------------------------------------------------
 
 We think not (but we don't have the source code to Outlook to check
-for sure).  In general, there are 2 ways spammers can determine this;
+for sure).  In general, there are two ways spammers can determine this;
 the first is via an automatic 'Read Receipt' (but this is unusual, as
 the "from" address is generally forged so the receipt goes nowhere
 useful).  The second common trick is by sending HTML spam that
@@ -617,7 +611,8 @@ SpamBayes was developed by English-speaking people and has therefore had
 very little testing with other languages.  There are some anecdotal reports
 that it doesn't work as well with Western European language.  It might work
 very well with them if these default values are changed in the user's ini
-file:
+file (note that for Outlook users, this means the default_bayes_customize.ini
+file, rather than the one called Outlook.ini, or named after your profile):
 
     [Tokenizer]
     replace_nonascii_chars: True
@@ -653,10 +648,11 @@ every message you receive, but you should train on a few spams and a few
 hams on a regular basis.  You should also try to train it on about the same
 number of spams as hams.
 
-You can train it on lots of messages in one go by either using the Hammie
+You can train it on lots of messages in one go by either using the sb_filter
 script as explained in the "Command-line training" section, or by giving
 messages to the web interface via the "Train" form on the Home page.  You
-can train on individual messages (which is tedious) or using mbox files.
+can train on individual messages (which is tedious), using mbox files or
+using Outlook Express dbx files.
 
 
 How do I train SpamBayes (forward/bounce method)?
@@ -667,16 +663,13 @@ forward it to the SMTP proxy for training.  If the message should have been
 classified as spam, forward or bounce the message to
 spambayes_spam@localhost, and if the message should have been classified as
 ham, forward it to spambayes_ham@localhost.  You can still review the
-training through the web interface, if you wish to do so.
-
-Note that you must set (via the web interface) the "add mail id to" option
-in order to use this.  You can also use this id to find a particular message
-via the web interface.
+training through the web interface, if you wish to do so.  You should ensure
+that the "lookup message in cache" option is set to True/Yes before you use
+this.
 
 Note that some mail clients (particularly Outlook Express) do not forward
-all headers when you bounce, forward or redirect mail.  For these clients,
-you will need to set (via the web interface) the "add mail id to" option to
-body, which will add a unique id to the body of each message you receive.
+all headers when you bounce, forward or redirect mail.  We do not recommend
+using the SMTP proxy with these clients.
 
 
 How do I train SpamBayes (command line method)?
@@ -686,7 +679,7 @@ Given a pair of Unix mailbox format files (each message starts with a line
 which begins with 'From '), one containing nothing but spam and the other
 containing nothing but ham, you can train SpamBayes using a command like::
 
-    hammie.py -g ~/tmp/newham -s ~/tmp/newspam
+    sb_mboxtrain.py -g ~/tmp/newham -s ~/tmp/newspam
 
 The above command is OS-centric (e.g., UNIX, or Windows command prompt).
 You can also use the web interface for training as detailed above.
@@ -702,7 +695,9 @@ which folders contain examples of ham, and it will do the rest.
 
 The plugin does *not* train on all incoming mail.  However, if you use the
 "Delete as spam" and "Recover from spam" buttons, those messages will be
-(re)trained as necessary.
+(re)trained as necessary.  If you have set it to use incremental training
+then it will also train on messages which are moved into the spam folder
+and those folders that you are 'watching'.
 
 
 Do I need to keep spam after it has been trained? If so, for how long?
@@ -729,7 +724,11 @@ It may be obvious to you that the message is spam, but the classifier only
 works on the information it has been given.  Maybe this is "new" (you've
 never seen this particular flavor of spam before), or maybe there aren't
 enough clues in the message which the system is aware of as strong spam
-clues.
+clues.  You should look at the clues that SpamBayes generated, and that
+should give you an idea of the reason for the classification.  Both the
+web interface and the Outlook plug-in let you view the clues that make
+up the message.  If you still can't figure out the reason why, you can
+ask the mailing list for advice.
 
 
 OK, I trained on that message, but it still thinks it's unsure.
@@ -805,7 +804,7 @@ that folder.
 Otherwise, the system is configured through a file called
 `bayescustomize.ini` or `.spambayesrc`.  In here you can configure the name
 and type of your database, your ham and spam cutoffs, and so on.  The
-default values for all the options, and the documentation for them, lives
+default values for all the options, and the documentation for them, live
 in Options.py.
 
 To change an option, create a bayescustomize.ini and add the option to that
@@ -891,7 +890,7 @@ Fantastic!  There are four main ways to contribute (including programming):
 
 Sadly, not much is done in the way of testing these days.  Hopefully this
 will change, though, and if you're interested it's definately an option.
-Check out the README for information about how to get started.  This is the
+Check out the README-DEVEL for information about how to get started.  This is the
 way to go if you have a new idea, too - even if you convince someone else to
 develop it, we'll expect you to put in time to test its effectiveness.
 
@@ -955,7 +954,7 @@ also wish to change the name of the storage file (to end with "pck", for
 example), but this is not necessary - to do so, change the
 "persistent_storage_file" option (also in the "Storage" section).
 
-If you specify your database on the command line ("pop3proxy.py -d hammie.db",
+If you specify your database on the command line ("sb_server.py -d hammie.db",
 for example), then you should use the "-D" switch instead.  Note, however,
 that it is likely that these switches will change in a future release, and
 using the configuration file is a much safer option.
@@ -986,17 +985,18 @@ In versions after 1.0a4, you can specify IP addresses or ranges that you
 want to be allowed access (two or three machines, for example).  You can
 also do this via the web configuration, without having to alter the
 configuration file manually.  The option you are after is called
-``Allowed remote connections``.
+``Allowed remote connections``.  In versions after 1.0a5, you can also
+set the interface to use HTTP-AUTH, either Basic or Digest.
 
 
 I've just installed SpamBayes, but when I run it I get an access denied error.
 ------------------------------------------------------------------------------
 
-If you use pop3proxy or imapfilter, haven't set anything up, and run it and
+If you use sb_server or sb_imapfilter, haven't set anything up, and run it and
 get an error that ends with ``socket.error: (10013, 'Permission denied')``,
 then this probably means that port 8880, which SpamBayes is trying to use to
 present the web interface, is already taken on your machine.  Try using
-``pop3proxy.py -u 8881 -b`` (or ``imapfilter.py -u 8881 -b``), or another
+``sb_server.py -u 8881 -b`` (or ``sb_imapfilter.py -u 8881 -b``), or another
 port that you know is free and available on your machine.
                                                        
 
