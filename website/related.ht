@@ -16,6 +16,13 @@ Author: spambayes
 <li><a href="http://popfile.sf.net">popfile</a>, a pop3 proxy written in Perl with a Naive Bayes classifier.
 <li><a href="http://www.spambully.com/">Spam Bully</a> is a commercial spam filter that claims to use bayesian techniques.
 </ul>
+<h2>Projects based on SpamBayes</h2>
+<p>These are some projects that are based on SpamBayes.  Those that are commercial offer the same success in filtering mail, but in exchange for forking out some money, may be more user-friendly and offer more in the way of support.
+<ul>
+<li>SpamAtBay is a soon to be available commercial version of the SpamBayes addin for Outlook.  SpamAtBay development is headed by Sean True, who wrote the first integration of Outlook and SpamBayes (later this was improved on - basically rewritten using the same idea - by Mark Hammond).
+SpamAtBay has a more polished layout, documentation and some more consumer oriented features.  Contact <a href="mailto:seant@webreply.com ">Sean True</a> for more information.</li>
+<li><a href="http://www.inboxer.com">InBoxer</a>.  This is a consumer-oriented release with a simple one-click install process, based on SpamAtBay (in turn, based on SpamBayes). Contact <a href="mailto:info@inboxer.com">Roger Matys</a> for more information.</li>
+</ul>
 
 
 <p><i>(got more? email <a href="mailto:anthony@interlink.com.au">anthony@interlink.com.au</a> and I'll add links, or correct descriptions.)</i>

@@ -9,7 +9,9 @@ Author: spambayes
  comments on python-dev.
 <li>A rudimentary set of <a href="faq.html">Frequently Asked Questions (FAQ)</a>.</li>
 <li>Instructions on <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">integrating Spambayes</a> into your mail system.</li>
-<li>The Outlook plugin includes an <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD&content-type=text/plain">&quot;About&quot; File</a>, and a <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain">&quot;Troubleshooting Guide&quot</a> that can be accessed via the toolbar.</li>
+<li>The Outlook plugin includes an <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD&content-type=text/plain">&quot;About&quot; File</a>, and a <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain">&quot;Troubleshooting Guide&quot</a> that can be accessed via the toolbar.
+(Note that the online documentaton is always for the <strong>latest source</strong> version, and so might not correspond exactly with the version you are using.
+Always start with the documentation that came with the version you installed.)</li>
 <li>There's also a vast number of clues and notes scattered as block comments through the code.
 </ul>
 

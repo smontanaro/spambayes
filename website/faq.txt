@@ -713,6 +713,24 @@ From and sender addresses, it's unlikely that it would do any good, and may
 well do some innocent much harm.
 
 
+Why don't you add whitelisting/blacklisting to SpamBayes?
+---------------------------------------------------------
+
+The main reason is that for the most part SpamBayes doesn't need it!  As
+long as you keep training on unsure or mis-classified mail, SpamBayes will
+learn what you consider good mail without needing any specific lists. In
+addition, tokens are generated from email addresses, so an automatic
+'whitelist' (of sorts) is generated, as is a similar blacklist.
+
+These sorts of lists are problematic, because 'spoofing' (pretending you
+are someone else) is reasonably simple, and also fairly common.  So, more
+often than not, they'll lead to incorrect results.  However, there are some
+commercial products based on SpamBayes that offer whitelisting - see the
+`related page`_ for more information.
+
+.. _related page: related.html
+
+
 What do I need to do to update the FAQ?
 ---------------------------------------
 
