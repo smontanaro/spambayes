@@ -1,3 +1,5 @@
+import os
+
 from pywin.mfc import dialog
 import win32con
 import commctrl
@@ -62,6 +64,7 @@ class TrainingDialog(AsyncDialogBase):
 
     def UpdateStatus(self):
         names = []
+        cwd = os.getcwd()  # mapi.GetFolder() switches to the system MAPI dir
         for eid in self.config.ham_folder_ids:
             try:
                 name = self.mapi.GetFolder(eid).Name.encode("ascii", "replace")
@@ -78,6 +81,7 @@ class TrainingDialog(AsyncDialogBase):
                 name = "<unknown folder>"
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_SPAM, "; ".join(names))
+        os.chdir(cwd)
 
     def OnBrowse(self, id, code):
         if code == win32con.BN_CLICKED:
