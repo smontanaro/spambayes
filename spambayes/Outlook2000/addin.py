@@ -694,8 +694,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
         new_msg_state = self.manager.config.general.delete_as_spam_message_state
         for msgstore_message in msgstore_messages:
             # Record this recovery in our stats.
-            self.manager.stats.RecordManualClassification(False,
-                                    self.manager.score(msgstore_message))
+            self.manager.stats.RecordTraining(False,
+                                self.manager.score(msgstore_message))
             # Record the original folder, in case this message is not where
             # it was after filtering, or has never been filtered.
             msgstore_message.RememberMessageCurrentFolder()
@@ -762,7 +762,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
                     restore_folder = inbox_folder
 
                 # Record this recovery in our stats.
-                self.manager.stats.RecordManualClassification(True,
+                self.manager.stats.RecordTraining(True,
                                         self.manager.score(msgstore_message))
                 # Must train before moving, else we lose the message!
                 print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
@@ -1143,7 +1143,6 @@ class ExplorerWithEvents:
         self.explorers_collection._DoDeadExplorer(self)
         self.explorers_collection = None
         self.toolbar = None
-        self.manager.stats.Store() # save stats
         self.close() # disconnect events.
 
     def OnBeforeFolderSwitch(self, new_folder, cancel):
@@ -1504,11 +1503,9 @@ class OutlookAddin:
             self.manager.Save()
             # Report some simple stats, for session, and for total.
             print "Session:"
-            print "\r\n".join(self.manager.stats.GetStats(True))
+            print "\r\n".join(self.manager.stats.GetStats(session_only=True))
             print "Total:"
             print "\r\n".join(self.manager.stats.GetStats())
-            # Save stats.
-            self.manager.stats.Store()
             self.manager.Close()
             self.manager = None
 

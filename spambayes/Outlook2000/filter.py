@@ -16,12 +16,15 @@ def filter_message(msg, mgr, all_actions=True):
     if prob_perc >= config.spam_threshold:
         disposition = "Yes"
         attr_prefix = "spam"
+        msg.c = "spam"
     elif prob_perc >= config.unsure_threshold:
         disposition = "Unsure"
         attr_prefix = "unsure"
+        msg.c = "unsure"
     else:
         disposition = "No"
         attr_prefix = "ham"
+        msg.c = "ham"
 
     ms = mgr.message_store
     try:

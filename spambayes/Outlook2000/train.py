@@ -171,10 +171,11 @@ def trainer(mgr, config, progress):
         classifier_data = mgr.classifier_data
         # If we are rebuilding, then we reset the statistics, too.
         # (But output them to the log for reference).
-        mgr.LogDebug(1, "Session:" + "\r\n".join(mgr.stats.GetStats(False)))
+        mgr.LogDebug(1, "Session:" + "\r\n".join(\
+            mgr.stats.GetStats(session_only=True)))
         mgr.LogDebug(1, "Total:" + "\r\n".join(mgr.stats.GetStats()))
         mgr.stats.Reset()
-        mgr.stats.ResetTotal(True)
+        mgr.stats.ResetTotal(permanently=True)
 
     progress.tick()
 

@@ -16,7 +16,6 @@ import win32com.client.gencache
 import pythoncom
 
 import msgstore
-import oastats
 
 try:
     True, False
@@ -122,7 +121,7 @@ def import_early_core_spambayes_stuff():
 
 def import_core_spambayes_stuff(ini_filenames):
     global bayes_classifier, bayes_tokenize, bayes_storage, bayes_options, \
-           bayes_message
+           bayes_message, bayes_stats
     if "spambayes.Options" in sys.modules:
         # The only thing we are worried about here is spambayes.Options
         # being imported before we have determined the INI files we need to
@@ -149,10 +148,12 @@ def import_core_spambayes_stuff(ini_filenames):
     from spambayes.tokenizer import tokenize
     from spambayes import storage
     from spambayes import message
+    from spambayes import Stats
     bayes_classifier = classifier
     bayes_tokenize = tokenize
     bayes_storage = storage
     bayes_message = message
+    bayes_stats = Stats
     assert "spambayes.Options" in sys.modules, \
         "Expected 'spambayes.Options' to be loaded here"
     from spambayes.Options import options
@@ -453,7 +454,11 @@ class BayesManager:
         except:
             self.ReportFatalStartupError("Failed to load bayes database")
             self.classifier_data.InitNew()
-        self.stats = oastats.Stats(self.config, self.data_directory)
+        s_thres = self.config.filter.spam_threshold
+        u_thres = self.config.filter.unsure_threshold
+        mdb = self.classifier_data.message_db
+        self.stats = bayes_stats.Stats(s_thres, u_thres, mdb, "ham",
+                                       "unsure", "spam")
 
     # Logging - this should be somewhere else.
     def LogDebug(self, level, *args):

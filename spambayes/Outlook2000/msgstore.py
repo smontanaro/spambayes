@@ -808,8 +808,9 @@ class MAPIMsgStoreMsg:
         self.dirty = False
 
         # For use with the spambayes.message messageinfo database.
-        self.stored_attributes = ['t', 'original_folder']
+        self.stored_attributes = ['c', 't', 'original_folder']
         self.t = None
+        self.c = None
         self.original_folder = None
 
     def getDBKey(self):
