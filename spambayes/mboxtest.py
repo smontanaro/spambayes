@@ -21,12 +21,14 @@ Options:
 import getopt
 import mailbox
 import random
+import re
 from sets import Set
 import sys
 
 from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
 from TestDriver import Driver
 from timtest import Msg
+from Options import options
 
 mbox_fmts = {"unix": mailbox.PortableUnixMailbox,
              "mmdf": mailbox.MmdfMailbox,
@@ -36,19 +38,21 @@ mbox_fmts = {"unix": mailbox.PortableUnixMailbox,
 
 class MyTokenizer(Tokenizer):
 
-    skip = {'received': 1,
-            'date': 1,
-            'x-from_': 1,
-            }
+    skip = [re.compile(rx) for rx in options.skip_headers]
 
     def tokenize_headers(self, msg):
-        for k, v in msg.items():
-            k = k.lower()
-            if k in self.skip or k.startswith('x-vm'):
-                continue
-            for w in subject_word_re.findall(v):
-                for t in tokenize_word(w):
-                    yield "%s:%s" % (k, t)
+        if options.tokenize_header_words:
+            for k, v in msg.items():
+                k = k.lower()
+                for rx in self.skip:
+                    if rx.match(k):
+                        continue
+                for w in subject_word_re.findall(v):
+                    for t in tokenize_word(w):
+                        yield "%s:%s" % (k, t)
+        if options.tokenize_header_default:
+            for tok in Tokenizer.tokenize_headers(self, msg):
+                yield tok
 
 class MboxMsg(Msg):
 
@@ -73,10 +77,10 @@ class MboxMsg(Msg):
             lines.append(line)
         return "\n".join(lines)
 
-##    tokenize = MyTokenizer().tokenize
+    tokenize = MyTokenizer().tokenize
 
     def __iter__(self):
-        return tokenize(self.guts)
+        return self.tokenize(self.guts)
 
 class mbox(object):
 
@@ -129,7 +133,7 @@ def main(args):
     global FMT
 
     FMT = "unix"
-    NSETS = 5
+    NSETS = 10
     SEED = 101
     MAXMSGS = None
     opts, args = getopt.getopt(args, "f:n:s:m:")
@@ -157,21 +161,29 @@ def main(args):
     print "ham", ham, nham
     print "spam", spam, nspam
 
-    testsets = []
-    for iham in randindices(nham, NSETS):
-        for ispam in randindices(nspam, NSETS):
-            testsets.append((sort(iham), sort(ispam)))
+    ihams = map(tuple, randindices(nham, NSETS))
+    ispams = map(tuple, randindices(nspam, NSETS))
 
     driver = Driver()
 
-    for iham, ispam in testsets:
-        driver.new_classifier()
-        driver.train(mbox(ham, iham), mbox(spam, ispam))
-        for ihtest, istest in testsets:
-            if (iham, ispam) == (ihtest, istest):
-                continue
-            driver.test(mbox(ham, ihtest), mbox(spam, istest))
+    for i in range(1, NSETS):
+        driver.train(mbox(ham, ihams[i]), mbox(spam, ispams[i]))
+
+    i = 0
+    for iham, ispam in zip(ihams, ispams):
+        hams = mbox(ham, iham)
+        spams = mbox(spam, ispam)
+
+        if i > 0:
+            driver.untrain(hams, spams)
+            
+        driver.test(hams, spams)
         driver.finishtest()
+
+        if i < NSETS - 1:
+            driver.train(hams, spams)
+        
+        i += 1
     driver.alldone()
 
 if __name__ == "__main__":

@@ -67,6 +67,21 @@ safe_headers: abuse-reports-to
 # if your test corpora are from different sources.  Else set this to true.
 mine_received_headers: False
 
+[MboxTest]
+# If tokenize_header_words is true, then the header values are
+# tokenized using the default text tokenize.  The words are tagged
+# with "header:" where header is the name of the header.
+tokenize_header_words: False
+# If tokenize_header_default is True, use the base header tokenization
+# logic described in the Tokenizer section.
+tokenize_header_default: True
+
+# skip_headers is a set of regular expressions describing headers that
+# should not be tokenized if tokenize_header is True.
+skip_headers: received
+    date
+    x-.*
+
 [TestDriver]
 # These control various displays in class TestDriver.Driver.
 
@@ -157,6 +172,10 @@ all_options = {
                    'max_discriminators': int_cracker,
                    'adjust_probs_by_evidence_mass': boolean_cracker,
                    },
+    'MboxTest': {'tokenize_header_words': boolean_cracker,
+                 'tokenize_header_default': boolean_cracker,
+                 'skip_headers': ('get', lambda s: Set(s.split())),
+                 },
 }
 
 def _warn(msg):
