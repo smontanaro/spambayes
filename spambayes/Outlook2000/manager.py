@@ -102,6 +102,7 @@ class BayesManager:
 
         try:
             ret = cPickle.load(f)
+            f.close()
             if self.verbose > 1:
                 print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
@@ -112,7 +113,6 @@ class BayesManager:
                        "- using default:" % self.config_filename)
                 import traceback
                 traceback.print_exc()
-        f.close()
         return ret
 
     def InitNewBayes(self):
