@@ -207,17 +207,17 @@ class Option(object):
             raise
         s = str(value)
         i = 0
-        vals = ()
+        vals = []
         while True:
             m = r.search(s[i:])
             if m is None:
                 break
-            vals += (m.group(),)
+            vals.append(m.group())
             delimiter = s[i:i + m.start()]
             if self.delimiter is None and delimiter != "":
                 self.delimiter = delimiter
             i += m.end()
-        return vals
+        return tuple(vals)
 
     def as_nice_string(self, section=None):
         '''Summarise the option in a user-readable format.'''
@@ -398,6 +398,7 @@ class OptionsClass(object):
     def __init__(self):
         self.verbose = None
         self._options = {}
+        self.restore_point = {}
         self.conversion_table = {} # set by creator if they need it.
     #
     # Regular expressions for parsing section headers and options.
@@ -518,7 +519,7 @@ class OptionsClass(object):
                 written.append((sect, opt))
 
     def load_defaults(self, defaults):
-        '''Load default values (stored in this module).'''
+        '''Load default values (stored in Options.py).'''
         for section, opts in defaults.items():
             for opt in opts:
                 # If first item of the tuple is a sub-class of Option, then
@@ -535,6 +536,28 @@ class OptionsClass(object):
 
                 o = klass(*args)
                 self._options[section, o.name] = o
+
+    def set_restore_point(self):
+        '''Remember what the option values are right now, to
+        be able to go back to them, via revert_to_restore_point().
+
+        Any existing restore point is wiped.  Restore points do
+        not persist over sessions.
+        '''
+        self.restore_point = {}
+        for key, opt_obj in self._options.iteritems():
+            self.restore_point[key] = opt_obj.get()
+
+    def revert_to_restore_point(self):
+        '''Restore option values to their values when set_restore_point()
+        was last called.
+
+        If set_restore_point() has not been called, then this has no
+        effect.  If new options have been added since set_restore_point,
+        their values are not effected.
+        '''
+        for key, value in self.restore_point.iteritems():
+            self._options[key].set(value)
 
     def merge_files(self, file_list):
         for f in file_list:
@@ -801,11 +824,11 @@ IMAP_FOLDER = r"[^,]+"
 #   "{" number "}" CRLF *CHAR8
 #   where number represents the number of CHAR8 octets
 # but this is too complex for us at the moment.
-IMAP_ASTRING = ""
+IMAP_ASTRING = []
 for i in range(1, 128):
     if not chr(i) in ['"', '\\', '\n', '\r']:
-        IMAP_ASTRING += chr(i)
-IMAP_ASTRING = r"\"?\\?[" + re.escape(IMAP_ASTRING) + r"]+\"?"
+        IMAP_ASTRING.append(chr(i))
+IMAP_ASTRING = r"\"?[" + re.escape(''.join(IMAP_ASTRING)) + r"]+\"?"
 
 # Similarly, each option must specify whether it should be reset to
 # this value on a "reset to defaults" command.  Most should, but with some
