@@ -35,6 +35,9 @@ class Hist:
     def __init__(self, nbuckets=20):
         self.buckets = [0] * nbuckets
         self.nbuckets = nbuckets
+        self.n = 0          # number of data points
+        self.sum = 0.0      # sum of their values
+        self.sumsq = 0.0    # sum of their squares
 
     def add(self, x):
         n = self.nbuckets
@@ -43,14 +46,33 @@ class Hist:
             i = n-1
         self.buckets[i] += 1
 
+        self.n += 1
+        x *= 100.0
+        self.sum += x
+        self.sumsq += x*x
+
     def __iadd__(self, other):
         if self.nbuckets != other.nbuckets:
             raise ValueError('bucket size mismatch')
         for i in range(self.nbuckets):
             self.buckets[i] += other.buckets[i]
+        self.n += other.n
+        self.sum += other.sum
+        self.sumsq += other.sumsq
         return self
 
     def display(self, WIDTH=60):
+        from math import sqrt
+        if self.n > 1:
+            mean = self.sum / self.n
+            # sum (x_i - mean)**2 = sum (x_i**2 - 2*x_i*mean + mean**2) =
+            # sum x_i**2 - 2*mean*sum x_i + sum mean**2 =
+            # sum x_i**2 - 2*mean*mean*n + n*mean**2 =
+            # sum x_i**2 - n*mean**2
+            samplevar = (self.sumsq - self.n * mean**2) / (self.n - 1)
+            print "%d items; mean %.2f; sample sdev %.2f" % (self.n,
+                  mean, sqrt(samplevar))
+
         biggest = max(self.buckets)
         hunit, r = divmod(biggest, WIDTH)
         if r:
