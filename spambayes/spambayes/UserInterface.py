@@ -1050,8 +1050,8 @@ days), you can no longer find them.</p>
             if domain_guess.startswith(pre):
                 domain_guess = domain_guess[len(pre):]
         report.from_addr.value = "[YOUR EMAIL ADDRESS]@%s" % (domain_guess,)
-        report.cc_addr.value = report.from_addr.value
-        report.subject.value = "Problem with %s" % (self.app_for_version,)
+        report.subject.value = "Problem with %s: [PROBLEM SUMMARY]" % \
+                               (self.app_for_version,)
         # If the user has a log file, attach it.
         try:
             import win32api
@@ -1093,8 +1093,7 @@ days), you can no longer find them.</p>
         self.write(report)
         self._writePostamble()
 
-    def onSubmitreport(self, from_addr, to_addr, cc_addr, message,
-                       subject, attach):
+    def onSubmitreport(self, from_addr, message, subject, attach):
         """Send the help message/bug report to the specified address."""
         # For guessing MIME type based on file name extension
         import mimetypes
@@ -1106,7 +1105,7 @@ days), you can no longer find them.</p>
         from email.MIMEImage import MIMEImage
         from email.MIMEText import MIMEText
 
-        if not self._verifyEnteredDetails(from_addr, cc_addr, message):
+        if not self._verifyEnteredDetails(from_addr, subject, message):
             self._writePreamble("Error", ("help", "Help"))
             self.write(self._buildBox("Error", "status.gif",
                                       "You must fill in the details that " \
@@ -1119,9 +1118,12 @@ days), you can no longer find them.</p>
             # Create the enclosing (outer) message
             outer = MIMEMultipart()
             outer['Subject'] = subject
-            outer['To'] = to_addr
-            if cc_addr:
-                outer['CC'] = cc_addr
+            # Force the message to "spambayes@python.org", rather than
+            # letting the user choose.
+            outer['To'] = '"SpamBayes Mailing List" <spambayes@python.org>'
+            # Always cc the user, so that they get a copy of the message,
+            # even if they're not subscribed to the list.
+            outer['CC'] = from_addr
             outer['From'] = from_addr
             outer.preamble = self._wrap(message)
             # To guarantee the message ends with a newline
@@ -1167,7 +1169,10 @@ days), you can no longer find them.</p>
             outer.attach(msg)
 
             recips = []
-            for r in [to_addr, cc_addr]:
+            # If you are testing, then make sure you change this
+            # address to something else, so that you don't bombard the
+            # list with messages.
+            for r in ["spambayes@python.org", from_addr]:
                 if r:
                     recips.append(r)
             mailer.sendmail(from_addr, recips, outer.as_string())
@@ -1175,13 +1180,14 @@ days), you can no longer find them.</p>
                        "refresh this page!")
         self._writePostamble()
 
-    def _verifyEnteredDetails(self, from_addr, cc_addr, message):
+    def _verifyEnteredDetails(self, from_addr, subject, message):
         """Ensure that the user didn't just send the form message, and
         at least changed the fields."""
-        if from_addr.startswith("[YOUR EMAIL ADDRESS]") or \
-           cc_addr.startswith("[YOUR EMAIL ADDRESS]"):
+        if from_addr.startswith("[YOUR EMAIL ADDRESS]"):
             return False
         if message.endswith("[DESCRIBE YOUR PROBLEM HERE]"):
+            return False
+        if subject.endswith("[PROBLEM SUMMARY]"):
             return False
         return True
 
