@@ -7,6 +7,7 @@ Currently works with:
  o Mozilla Mail (POP3/SMTP only)
  o Opera Mail (M2) (POP3/SMTP only)
  o Outlook Express (POP3/SMTP only)
+ o PocoMail (POP3/SMTP only)
 
 To do:
  o Establish which mail client(s) are to be setup.
@@ -82,8 +83,8 @@ def move_to_next_free_port(port):
             s.close()
         except socket.error:
              portStr = str(port)
-             if options["pop3proxy", "listen_ports"].find(portStr) != -1 or \
-                options["smtpproxy", "listen_ports"].find(portStr) != -1:
+             if portStr in options["pop3proxy", "listen_ports"] or \
+                portStr in options["smtpproxy", "listen_ports"]:
                  continue
              else:
                  return port
@@ -411,12 +412,11 @@ def configure_m2(config_location):
     # If someone can describe the best all-purpose rule, I'll pop it in
     # here.
 
-def configure_outlook_express(key):
+def configure_outlook_express():
     """Configure OE to use the SpamBayes POP3 and SMTP proxies, and
     configure SpamBayes to proxy the servers that OE was connecting to."""
     # OE stores its configuration in the registry, not a file.
-
-    key = key + "\\Software\\Microsoft\\Internet Account Manager\\Accounts"
+    key = "Software\\Microsoft\\Internet Account Manager\\Accounts"
     
     import win32api
     import win32con
@@ -428,20 +428,22 @@ def configure_outlook_express(key):
     pop_proxy = pop_proxy_port
     smtp_proxy = smtp_proxy_port
 
-    reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, key)
+    reg = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
     account_index = 0
     while True:
         # Loop through all the accounts
         config = {}
         try:
-            subkey_name = "%s\\%s" % \
-                          (key, win32api.RegEnumKey(reg, account_index))
+            subkey_name = "%s\\%s" % (key,
+                                      win32api.RegEnumKey(reg,
+                                                          account_index))
         except win32api.error:
             break
         account_index += 1
         index = 0
-        subkey = win32api.RegOpenKeyEx(win32con.HKEY_USERS, subkey_name, 0,
-                                       win32con.KEY_READ | win32con.KEY_SET_VALUE)
+        subkey = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
+                                       subkey_name, 0, win32con.KEY_READ |
+                                       win32con.KEY_SET_VALUE)
         while True:
             # Loop through all the keys
             try:
@@ -656,13 +658,10 @@ def configure_pocomail():
 
 if __name__ == "__main__":
     pmail_ini_dir = "C:\\Program Files\\PMAIL\\MAIL\\ADMIN"
-    # XXX This is my OE key = "S-1-5-21-95318837-410984162-318601546-13224"
-    # XXX but I presume it's different for everyone?  I'll have to check on
-    # XXX another machine.
     #configure_eudora(eudora_ini_dir)
     #configure_mozilla(mozilla_ini_dir)
     #configure_m2(m2_ini_dir)
     #configure_outlook_express()
     #configure_pocomail()
-    configure_pegasus_mail(pmail_ini_dir)
+    #configure_pegasus_mail(pmail_ini_dir)
     pass
