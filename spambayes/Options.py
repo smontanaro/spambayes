@@ -147,6 +147,12 @@ best_cutoff_fp_weight:     10.00
 best_cutoff_fn_weight:      1.00
 best_cutoff_unsure_weight:  0.20
 
+# Histogram analysis also displays percentiles.  For each percentile p
+# in the list, the score S such that p% of all scores are <= S is given.
+# Note that percentile 50 is the median, and is displayed (along with the
+# min score and max score) independent of this option.
+percentiles: 5 25 75 95
+
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
 # and likewise for ham.  The defaults here don't show anything.
@@ -287,6 +293,7 @@ all_options = {
                    'show_false_negatives': boolean_cracker,
                    'show_unsure': boolean_cracker,
                    'show_histograms': boolean_cracker,
+                   'percentiles': ('get', lambda s: map(float, s.split())),
                    'show_best_discriminators': int_cracker,
                    'save_trained_pickles': boolean_cracker,
                    'save_histogram_pickles': boolean_cracker,

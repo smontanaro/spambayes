@@ -29,6 +29,7 @@ class Hist:
     #     max       largest value in collection
     #     median    midpoint
     #     mean
+    #     pct       list of (percentile, score) pairs
     #     var       variance
     #     sdev      population standard deviation (sqrt(variance))
     # self.data is also sorted.
@@ -65,6 +66,24 @@ class Hist:
             var += d*d
         self.var = var / n
         self.sdev = math.sqrt(self.var)
+        # Compute percentiles.
+        self.pct = pct = []
+        for p in options.percentiles:
+            assert 0.0 <= p <= 100.0
+            # In going from data index 0 to index n-1, we move n-1 times.
+            # p% of that is (n-1)*p/100.
+            i = (n-1)*p/1e2
+            if i < 0:
+                # Just return the smallest.
+                score = data[0]
+            else:
+                whole = int(i)
+                frac = i - whole
+                score = data[whole]
+                if whole < n-1 and frac:
+                    # Move frac of the way from this score to the next.
+                    score += frac * (data[whole + 1] - score)
+            pct.append((p, score))
 
     # Merge other into self.
     def __iadd__(self, other):
@@ -124,6 +143,9 @@ class Hist:
         print "-> <stat> min %g; median %g; max %g" % (self.min,
                                                        self.median,
                                                        self.max)
+        pcts = ['%g%% %g' % x for x in self.pct]
+        print "-> <stat> percentiles:", '; '.join(pcts)
+
         lo, hi = self.get_lo_hi()
         if lo > hi:
             return
