@@ -184,7 +184,7 @@ class Option(object):
         try:
             r = re.compile(self.allowed_values)
         except:
-            print self.allowed_values
+            print >> sys.stderr, self.allowed_values
             raise
         s = str(value)
         i = 0
@@ -382,7 +382,8 @@ class OptionsClass(object):
             # doesn't exist, so create it - all the changed options will
             # be added to it
             if self.verbose:
-                print "Creating new configuration file", filename
+                print >> sys.stderr, "Creating new configuration file",
+                print >> sys.stderr, filename
             f = file(filename, "w")
             f.close()
             f = file(filename, "r")
@@ -503,8 +504,9 @@ class OptionsClass(object):
                 section = sect
                 option = opt
                 if not self._options.has_key((section, option)):
-                    print "Invalid option %s in section %s in file %s" % \
-                          (opt, sect, filename)
+                    print >> sys.stderr, ("Invalid option %s in"
+                                          " section %s in file %s" %
+                                          (opt, sect, filename))
                 else:
                     if self.multiple_values_allowed(section, option):
                         value = self.convert(section, option, value)
@@ -568,9 +570,10 @@ class OptionsClass(object):
         if self.is_valid(sect, opt, val):
             self._options[sect, opt].set(val)
         else:
-            print "Attempted to set [%s] %s with invalid value %s (%s)" % \
-                  (sect, opt, val, type(val))
-        
+            print >> sys.stderr, ("Attempted to set [%s] %s with invalid"
+                                  " value %s (%s)" % 
+                                  (sect, opt, val, type(val)))
+
     def __setitem__(self, key, value):
         self.set(key[0], key[1], value)
 
