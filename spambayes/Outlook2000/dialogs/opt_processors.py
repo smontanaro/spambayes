@@ -186,7 +186,7 @@ class FolderIDProcessor(OptionControlProcessor):
             if is_multi:
                 ids = self.option.get()
             else:
-                ids = [self.optin.get()]
+                ids = [self.option.get()]
             from dialogs import FolderSelector
             if self.option_include_sub:
                 cb_state = self.option_include_sub.get()
