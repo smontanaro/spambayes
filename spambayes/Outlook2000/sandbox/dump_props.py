@@ -26,21 +26,40 @@ def GetAllProperties(obj, make_pretty = True):
                 val = mapiutil.GetScodeString(val)
         else:
             name = tag
-        ret.append((name, val))
+        ret.append((name, tag, val))
     return ret
 
-def DumpItemProps(item, shorten):
-    for prop_name, prop_val in GetAllProperties(item):
+def GetLargeProperty(item, prop_tag):
+    prop_tag = PROP_TAG(PT_BINARY, PROP_ID(prop_tag))
+    stream = item.OpenProperty(prop_tag,
+                                pythoncom.IID_IStream,
+                                0, 0)
+    chunks = []
+    while 1:
+        chunk = stream.Read(4096)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    return "".join(chunks)
+
+def DumpItemProps(item, shorten, get_large_props):
+    for prop_name, prop_tag, prop_val in GetAllProperties(item):
+        if get_large_props and \
+           PROP_TYPE(prop_tag)==PT_ERROR and \
+           prop_val in [mapi.MAPI_E_NOT_ENOUGH_MEMORY,'MAPI_E_NOT_ENOUGH_MEMORY']:
+            # Use magic to get a large property.
+            prop_val = GetLargeProperty(item, prop_tag)
+
         prop_repr = repr(prop_val)
         if shorten:
             prop_repr = prop_repr[:50]
         print "%-20s: %s" % (prop_name, prop_repr)
 
-def DumpProps(driver, mapi_folder, subject, include_attach, shorten):
+def DumpProps(driver, mapi_folder, subject, include_attach, shorten, get_large):
     hr, data = mapi_folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
     name = data[0][1]
     for item in driver.GetItemsWithValue(mapi_folder, PR_SUBJECT_A, subject):
-        DumpItemProps(item, shorten)
+        DumpItemProps(item, shorten, get_large)
         if include_attach:
             print
             table = item.GetAttachmentTable(0)
@@ -49,7 +68,7 @@ def DumpProps(driver, mapi_folder, subject, include_attach, shorten):
                 attach_num = row[0][1]
                 print "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
                 attach = item.OpenAttach(attach_num, None, mapi.MAPI_DEFERRED_ERRORS)
-                DumpItemProps(attach, shorten)
+                DumpItemProps(attach, shorten, get_large)
 
 def usage(driver):
     folder_doc = driver.GetFolderNameDoc()
@@ -58,6 +77,7 @@ Usage: %s [-f foldername] subject of the message
 -f - Search for the message in the specified folder (default = Inbox)
 -s - Shorten long property values.
 -a - Include attachments
+-l - Get the data for very large properties
 -n - Show top-level folder names and exit
 
 Dumps all properties for all messages that match the subject.  Subject
@@ -73,7 +93,7 @@ def main():
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "af:sn")
+        opts, args = getopt.getopt(sys.argv[1:], "af:snl")
     except getopt.error, e:
         print e
         print
@@ -82,6 +102,7 @@ def main():
     folder_name = ""
 
     shorten = False
+    get_large_props = False
     include_attach = False
     for opt, opt_val in opts:
         if opt == "-f":
@@ -90,6 +111,8 @@ def main():
             shorten = True
         elif opt == "-a":
             include_attach = True
+        elif opt == "-l":
+            get_large_props = True
         elif opt == "-n":
             driver.DumpTopLevelFolders()
             sys.exit(1)
@@ -113,7 +136,7 @@ def main():
         print details
         sys.exit(1)
 
-    DumpProps(driver, folder, subject, include_attach, shorten)
+    DumpProps(driver, folder, subject, include_attach, shorten, get_large_props)
 
 if __name__=='__main__':
     main()
