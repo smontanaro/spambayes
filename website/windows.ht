@@ -73,6 +73,6 @@ install a recent version of <a href="http://www.python.org/">Python</a> and
 the <a
 href="https://sourceforge.net/project/showfiles.php?group_id=61702">Spambayes
 source</a><sup><font size="-2">1</font></sup>, then setup the proxy server
-(<a href="applications.html#pop3">POP3</a> or <a
+(<a href="applications.html#sb_server">POP3</a> or <a
 href="applications.html#imap">IMAP</a>) which corresponds to the way in
 which you transfer mail from your mail server.
