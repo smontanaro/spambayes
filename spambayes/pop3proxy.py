@@ -6,12 +6,16 @@ You point pop3proxy at your POP3 server, and configure your email
 client to collect mail from the proxy then filter on the added
 header.  Usage:
 
-    pop3proxy.py [options] <server> [<server port>]
+    pop3proxy.py [options] [<server> [<server port>]]
         <server> is the name of your real POP3 server
         <port>   is the port number of your real POP3 server, which
                  defaults to 110.
 
         options:
+            -z      : Runs a self-test and exits.
+            -t      : Runs a test POP3 server on port 8110 (for testing).
+            -h      : Displays this help message.
+
             -p FILE : use the named data file
             -d      : the file is a DBM file rather than a pickle
             -l port : proxy listens on this port number (default 110)
@@ -19,11 +23,9 @@ header.  Usage:
                       (default 8880; Browse http://localhost:8880/)
             -b      : Launch a web browser showing the user interface.
 
-    pop3proxy -t
-        Runs a test POP3 server on port 8110; useful for testing.
-
-    pop3proxy -h
-        Displays this help message.
+        All command line arguments and switches take their default
+        values from the [Hammie], [pop3proxy] and [html_ui] sections
+        of bayescustomize.ini.
 
 For safety, and to help debugging, the whole POP3 conversation is
 written out to _pop3proxy.log for each run.
@@ -47,27 +49,56 @@ except NameError:
 
 
 todo = """
- o (Re)training interface - one message per line, quick-rendering table.
- o Slightly-wordy index page; intro paragraph for each page.
+
+User interface improvements:
+
  o Once the training stuff is on a separate page, make the paste box
    bigger.
- o "Links" section (on homepage?) to project homepage, mailing list,
-   etc.
- o "Home" link (with helmet!) at the end of each page.
- o "Classify this" - just like Train.
- o "Send me an email every [...] to remind me to train on new
-   messages."
- o "Send me a status email every [...] telling how many mails have been
-   classified, etc."
  o Deployment: Windows executable?  atlaxwin and ctypes?  Or just
    webbrowser?
- o Possibly integrate Tim Stone's SMTP code - make it use async, make
-   the training code update (rather than replace!) the database.
  o Can it cleanly dynamically update its status display while having a
    POP3 converation?  Hammering reload sucks.
  o Add a command to save the database without shutting down, and one to
    reload the database.
- o Leave the word in the input field after a Word query.
+ o Save the Status (num classified, etc.) between sessions.
+
+
+New features:
+
+ o (Re)training interface - one message per line, quick-rendering table.
+ o "Send me an email every [...] to remind me to train on new
+   messages."
+ o "Send me a status email every [...] telling how many mails have been
+   classified, etc."
+ o Possibly integrate Tim Stone's SMTP code - make it use async, make
+   the training code update (rather than replace!) the database.
+ o Option to keep trained messages and view potential FPs and FNs to
+   correct them.
+ o Allow use of the UI without the POP3 proxy.
+
+
+Code quality:
+
+ o Move the UI into its own module.
+ o Eventually, pull the common HTTP code from pop3proxy.py and Entrian
+   Debugger into a library.
+
+
+Info:
+
+ o Slightly-wordy index page; intro paragraph for each page.
+ o In both stats and training results, report nham and nspam - warn if
+   they're very different (for some value of 'very').
+ o "Links" section (on homepage?) to project homepage, mailing list,
+   etc.
+
+
+Gimmicks:
+
+ o Classify a web page given a URL.
+ o Graphs.  Of something.  Who cares what?
+ o Zoe...!
+
 """
 
 import sys, re, operator, errno, getopt, cPickle, cStringIO, time
@@ -146,7 +177,13 @@ class ServerLineReader(BrighterAsyncChat):
         self.request = ''
         self.set_terminator('\r\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect((serverName, serverPort))
+        try:
+            self.connect((serverName, serverPort))
+        except socket.error, e:
+            print >>sys.stderr, "Can't connect to %s:%d: %s" % \
+                                (serverName, serverPort, e)
+            self.close()
+            self.lineCallback('')   # "The socket's been closed."
 
     def collect_incoming_data(self, data):
         self.request = self.request + data
@@ -198,7 +235,7 @@ class POP3ProxyBase(BrighterAsyncChat):
         isFirstLine = not self.response
         self.response = self.response + line
 
-        # Is this line that terminates a set of headers?
+        # Is this the line that terminates a set of headers?
         self.seenAllHeaders = self.seenAllHeaders or line in ['\r\n', '\n']
 
         # Has the server closed its end of the socket?
@@ -236,7 +273,10 @@ class POP3ProxyBase(BrighterAsyncChat):
             return len(args) == 0
         else:
             # Assume that an unknown command will get a single-line
-            # response.  This should work for errors and for POP-AUTH.
+            # response.  This should work for errors and for POP-AUTH,
+            # and is harmless even for multiline responses - the first
+            # line will be passed to onTransaction and ignored, then the
+            # rest will be proxied straight through.
             return False
 
     def collect_incoming_data(self, data):
@@ -245,14 +285,15 @@ class POP3ProxyBase(BrighterAsyncChat):
 
     def found_terminator(self):
         """Asynchat override."""
-        if self.request.strip().upper() == 'KILL':
-            self.serverSocket.sendall('QUIT\r\n')
-            self.send("+OK, dying.\r\n")
-            self.serverSocket.shutdown(2)
-            self.serverSocket.close()
+        verb = self.request.strip().upper()
+        if verb == 'KILL':
             self.shutdown(2)
             self.close()
             raise SystemExit
+        elif verb == 'CRASH':
+            # For testing
+            x = 0
+            y = 1/x
 
         self.serverSocket.push(self.request + '\r\n')
         if self.request.strip() == '':
@@ -270,8 +311,9 @@ class POP3ProxyBase(BrighterAsyncChat):
     def onResponse(self):
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
-        cooked = self.onTransaction(self.command, self.args, self.response)
-        self.push(cooked)
+        if self.response:
+            cooked = self.onTransaction(self.command, self.args, self.response)
+            self.push(cooked)
 
         # If onServerLine() decided that the server has closed its
         # socket, close this one when the response has been sent.
@@ -333,12 +375,19 @@ class BayesProxy(POP3ProxyBase):
                          'RETR': self.onRetr, 'TOP': self.onTop}
         status.totalSessions += 1
         status.activeSessions += 1
+        self.isClosed = False
 
     def send(self, data):
         """Logs the data to the log file."""
         self.logFile.write(data)
         self.logFile.flush()
-        return POP3ProxyBase.send(self, data)
+        try:
+            return POP3ProxyBase.send(self, data)
+        except socket.error:
+            # The email client has closed the connection - 40tude Dialog
+            # does this immediately after issuing a QUIT command,
+            # without waiting for the response.
+            self.close()
 
     def recv(self, size):
         """Logs the data to the log file."""
@@ -348,8 +397,11 @@ class BayesProxy(POP3ProxyBase):
         return data
 
     def close(self):
-        status.activeSessions -= 1
-        POP3ProxyBase.close(self)
+        # This can be called multiple times by async.
+        if not self.isClosed:
+            self.isClosed = True
+            status.activeSessions -= 1
+            POP3ProxyBase.close(self)
 
     def onTransaction(self, command, args, response):
         """Takes the raw request and response, and returns the
@@ -441,9 +493,9 @@ class UserInterfaceListener(Listener):
     """Listens for incoming web browser connections and spins off
     UserInterface objects to serve them."""
 
-    def __init__(self, uiPort, bayes):
+    def __init__(self, uiPort, bayes, socketMap=asyncore.socket_map):
         uiArgs = (bayes,)
-        Listener.__init__(self, uiPort, UserInterface, uiArgs)
+        Listener.__init__(self, uiPort, UserInterface, uiArgs, socketMap=socketMap)
 
 
 # Until the user interface has had a wider audience, I won't pollute the
@@ -478,9 +530,16 @@ QAAAOw==""")
 class UserInterface(BrighterAsyncChat):
     """Serves the HTML user interface of the proxy."""
 
+    # A couple of notes about the HTML here:
+    #  o I've tried to keep content and presentation separate using
+    #    one main stylesheet - no <font> tags, and no inline stylesheets
+    #  o Form fields must specify their name and value attributes like
+    #    this: "... name='n' value='v' ..." even if there is no default
+    #    value.  This is so that setFieldValue can set the value.
+
     header = """<html><head><title>Spambayes proxy: %s</title>
              <style>
-             body { font: 90%% arial, swiss, helvetica }
+             body { font: 90%% arial, swiss, helvetica; margin: 0 }
              table { font: 90%% arial, swiss, helvetica }
              form { margin: 0 }
              .banner { background: #c0e0ff; padding=5; padding-left: 15;
@@ -496,20 +555,22 @@ class UserInterface(BrighterAsyncChat):
              </style>
              </head>\n"""
 
-    bodyStart = """<body style='margin: 0'>
+    bodyStart = """<body>
                 <div class='banner'>
                 <img src='/helmet.gif' align='absmiddle'>
                 <span class='header'>&nbsp;Spambayes proxy: %s</span></div>
                 <div class='content'>\n"""
 
     footer = """</div>
-             <form action='/shutdown'>
+             <form action='/shutdown' method='POST'>
              <table width='100%%' cellspacing='0'>
-             <tr><td class='banner'>&nbsp;Spambayes Proxy, %s.
+             <tr><td class='banner'>&nbsp;<a href='/'>Spambayes Proxy</a>,
+             %s.
              <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
              <td align='right' class='banner'>
              %s
-             </td></tr></table></form>\n"""
+             </td></tr></table></form>
+             </body></html>\n"""
 
     shutdownDB = """<input type='submit' name='how' value='Shutdown'>"""
 
@@ -530,24 +591,32 @@ class UserInterface(BrighterAsyncChat):
               """
 
     wordQuery = """<form action='/wordquery'>
-                <input name='word' type='text' size='30'>
+                <input name='word' value='' type='text' size='30'>
                 <input type='submit' value='Tell me about this word'>
                 </form>"""
 
-    train = """<form action='/upload' method='POST'
+    upload = """<form action='/%s' method='POST'
                 enctype='multipart/form-data'>
-            Either upload a message file: <input type='file' name='file'><br>
-            Or paste the whole message (incuding headers) here:<br>
-            <textarea name='text' rows='3' cols='60'></textarea><br>
-            Is this message
-            <input type='radio' name='which' value='ham'>Ham</input> or
-            <input type='radio'
-                   name='which' value='spam' checked>Spam</input>?<br>
-            <input type='submit' value='Train on this message'>
-            </form>"""
+             Either upload a message file:
+             <input type='file' name='file' value=''><br>
+             Or paste the whole message (incuding headers) here:<br>
+             <textarea name='text' rows='3' cols='60'></textarea><br>
+             %s
+             </form>"""
 
-    def __init__(self, clientSocket, bayes):
-        BrighterAsyncChat.__init__(self, clientSocket)
+    uploadSumbit = """<input type='submit' name='which' value='%s'>"""
+
+    train = upload % ('train',
+                      (uploadSumbit % "Train as Spam") + "&nbsp;" + \
+                      (uploadSumbit % "Train as Ham"))
+
+    classify = upload % ('classify', uploadSumbit % "Classify")
+
+    def __init__(self, clientSocket, bayes, socketMap=asyncore.socket_map):
+        # Grumble: asynchat.__init__ doesn't take a 'map' argument,
+        # hence the two-stage construction.
+        BrighterAsyncChat.__init__(self)
+        BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
         self.bayes = bayes
         self.request = ''
         self.set_terminator('\r\n\r\n')
@@ -653,11 +722,25 @@ class UserInterface(BrighterAsyncChat):
             homeLink = "<a href='/'>Home</a> > %s" % name
         self.push(self.bodyStart % homeLink)
 
+    def setFieldValue(self, form, name, value):
+        """Sets the default value of a field in a form.  See the comment
+        at the top of this class for how to specify HTML that works with
+        this function.  (This is exactly what Entrian PyMeld is for, but
+        that ships under the Sleepycat License.)"""
+        match = re.search(r"\s+name='%s'\s+value='([^']*)'" % name, form)
+        if match:
+            quotedValue = re.sub("'", "&#%d;" % ord("'"), value)
+            return form[:match.start(1)] + quotedValue + form[match.end(1):]
+        else:
+            print >>sys.stderr, "Warning: setFieldValue('%s') failed" % name
+            return form
+
     def onHome(self, params):
         """Serve up the homepage."""
         body = (self.pageSection % ('Status', self.summary % status.__dict__)+
-                self.pageSection % ('Word query', self.wordQuery)+
-                self.pageSection % ('Train', self.train))
+                self.pageSection % ('Train', self.train)+
+                self.pageSection % ('Classify a message', self.classify)+
+                self.pageSection % ('Word query', self.wordQuery))
         self.push(body)
 
     def onShutdown(self, params):
@@ -675,11 +758,11 @@ class UserInterface(BrighterAsyncChat):
         self.close()
         raise SystemExit
 
-    def onUpload(self, params):
+    def onTrain(self, params):
         """Train on an uploaded or pasted message."""
         # Upload or paste?  Spam or ham?
         message = params.get('file') or params.get('text')
-        isSpam = (params['which'] == 'spam')
+        isSpam = (params['which'] == 'Train as Spam')
 
         # Append the message to a file, to make it easier to rebuild
         # the database later.   This is a temporary implementation -
@@ -697,10 +780,25 @@ class UserInterface(BrighterAsyncChat):
         f.close()
 
         # Train on the message.
-        self.bayes.learn(tokenizer.tokenize(message), isSpam, True)
+        tokens = tokenizer.tokenize(message)
+        self.bayes.learn(tokens, isSpam, True)
         self.push("<p>OK. Return <a href='/'>Home</a> or train another:</p>")
         self.push(self.pageSection % ('Train another', self.train))
 
+    def onClassify(self, params):
+        """Classify an uploaded or pasted message."""
+        message = params.get('file') or params.get('text')
+        tokens = tokenizer.tokenize(message)
+        prob, clues = self.bayes.spamprob(tokens, evidence=True)
+        self.push("<p>Spam probability: <b>%.8f</b></p>" % prob)
+        self.push("<table class='sectiontable' cellspacing='0'>")
+        self.push("<tr><td class='sectionheading'>Clues:</td></tr>\n")
+        self.push("<tr><td class='sectionbody'><table>")
+        for w, p in clues:
+            self.push("<tr><td>%s</td><td>%.8f</td></tr>\n" % (w, p))
+        self.push("</table></td></tr></table>")
+        self.push("<p>Return <a href='/'>Home</a> or classify another:</p>")
+        self.push(self.pageSection % ('Classify another', self.classify))
     def onWordquery(self, params):
         word = params['word']
         word = word.lower()
@@ -716,11 +814,31 @@ class UserInterface(BrighterAsyncChat):
                    <b>%(spamprob)f</b>.<br>
                    Last used: <b>%(atime)s</b>.<br>""" % members
         except KeyError:
-            info = "'%s' does not appear in the database." % word
+            info = "%r does not appear in the database." % word
 
-        body = (self.pageSection % ("Statistics for '%s'" % word, info) +
-                self.pageSection % ('Word query', self.wordQuery))
+        query = self.setFieldValue(self.wordQuery, 'word', params['word'])
+        body = (self.pageSection % ("Statistics for %r" % word, info) +
+                self.pageSection % ('Word query', query))
         self.push(body)
+
+
+def initStatus():
+    status.proxyPort = options.pop3proxy_port
+    status.serverName = options.pop3proxy_server_name
+    status.serverPort = options.pop3proxy_server_port
+    status.pickleName = options.persistent_storage_file
+    status.useDB = options.persistent_use_database
+    status.uiPort = options.html_ui_port
+    status.launchUI = options.html_ui_launch_browser
+    status.gzipCache = options.pop3proxy_cache_use_gzip
+    status.cacheExpiryDays = options.pop3proxy_cache_expiry_days
+    status.runTestServer = False
+    status.totalSessions = 0
+    status.activeSessions = 0
+    status.numEmails = 0
+    status.numSpams = 0
+    status.numHams = 0
+    status.numUnsure = 0
 
 
 def main(serverName, serverPort, proxyPort,
@@ -890,7 +1008,7 @@ class TestPOP3Server(BrighterAsyncChat):
 
     def onUnknown(self, command, args):
         """Unknown POP3 command."""
-        return "-ERR Unknown command: '%s'\r\n" % command
+        return "-ERR Unknown command: %s\r\n" % repr(command)
 
 
 def test():
@@ -900,6 +1018,7 @@ def test():
     # Run a proxy and a test server in separate threads with separate
     # asyncore environments.
     import threading
+    initStatus()
     testServerReady = threading.Event()
     def runTestServer():
         testSocketMap = {}
@@ -911,6 +1030,7 @@ def test():
     def runProxy():
         # Name the database in case it ever gets auto-flushed to disk.
         bayes = hammie.createbayes('_pop3proxy.db')
+        UserInterfaceListener(8881, bayes)
         BayesProxyListener('localhost', 8110, 8111, bayes)
         bayes.learn(tokenizer.tokenize(spam1), True)
         bayes.learn(tokenizer.tokenize(good1), False)
@@ -943,11 +1063,24 @@ def test():
             response = response + proxy.recv(1000)
         assert response.find(options.hammie_header_name) >= 0
 
+    # Smoke-test the HTML UI.
+    httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    httpServer.connect(('localhost', 8881))
+    httpServer.sendall("get / HTTP/1.0\r\n\r\n")
+    response = ''
+    while 1:
+        packet = httpServer.recv(1000)
+        if not packet: break
+        response += packet
+    assert re.search(r"(?s)<html>.*Spambayes proxy.*</html>", response)
+
     # Kill the proxy and the test server.
     proxy.sendall("kill\r\n")
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.connect(('localhost', 8110))
-    server.sendall("kill\r\n")
+    proxy.recv(100)
+    pop3Server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    pop3Server.connect(('localhost', 8110))
+    pop3Server.sendall("kill\r\n")
+    pop3Server.recv(100)
 
 
 # ===================================================================
@@ -957,24 +1090,13 @@ def test():
 if __name__ == '__main__':
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htdbp:l:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htdbzp:l:u:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    status.pickleName = hammie.DEFAULTDB
-    status.proxyPort = 110
-    status.uiPort = 8880
-    status.serverPort = 110
-    status.useDB = False
-    status.runTestServer = False
-    status.launchUI = False
-    status.totalSessions = 0
-    status.activeSessions = 0
-    status.numEmails = 0
-    status.numSpams = 0
-    status.numHams = 0
-    status.numUnsure = 0
+    initStatus()
+    runSelfTest = False
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
@@ -991,10 +1113,12 @@ if __name__ == '__main__':
             status.proxyPort = int(arg)
         elif opt == '-u':
             status.uiPort = int(arg)
+        elif opt == '-z':
+            runSelfTest = True
 
     # Do whatever we've been asked to do...
-    if not opts and not args:
-        print "Running a self-test (use 'pop3proxy -h' for help)"
+    if runSelfTest:
+        print "\nRunning self-test...\n"
         test()
         print "Self-test passed."   # ...else it would have asserted.
 
@@ -1003,13 +1127,22 @@ if __name__ == '__main__':
         TestListener()
         asyncore.loop()
 
-    elif 1 <= len(args) <= 2:
-        # Normal usage, with optional server port number.
-        status.serverName = args[0]
-        if len(args) == 2:
+    elif 0 <= len(args) <= 2:
+        # Normal usage, with optional server name and port number.
+        if len(args) >= 1:
+            status.serverName = args[0]
+        if len(args) >= 2:
             status.serverPort = int(args[1])
-        main(status.serverName, status.serverPort, status.proxyPort,
-             status.uiPort, status.launchUI, status.pickleName, status.useDB)
+
+        if not status.serverName:
+            print >>sys.stderr, \
+                  ("Error: You must give a POP3 server name, either in\n"
+                   "bayescustomize.ini as pop3proxy_server_name or on the\n"
+                   "command line.  pop3server.py -h prints a usage message.")
+        else:
+            main(status.serverName, status.serverPort, status.proxyPort,
+                 status.uiPort, status.launchUI, status.pickleName,
+                 status.useDB)
 
     else:
         print >>sys.stderr, __doc__
