@@ -17,14 +17,13 @@ muttrc - Mutt key bindings for SpamBayes.
 
 mod_spambayes.py - Plugin for Amit Patel's proxy3 web proxy.
 
-mkzip.py - ???
-
 spamcounts.py - print spam and ham counts and spam probability for a
 messages for for select tokens
 
-sb_bnfilter.py - alternative to sb_filter that avoids re-initialising
-spambayes for consecutive requests using a short-lived server process.
-This is intended to give the performance advantages of sb_xmlrpcserver,
-without the administrative complications.
+findbest.py - Find the next "best" unsure message to train on.
 
-sb_bnserver.py - component of sb_bnfilter.py
+pycksum.py - A fuzzy checksum program designed for email messages.
+
+sb_culler.py - Andrew Dalke's POP3 culler.
+
+tte.py - A utility script for 'train to exhaustion'.
