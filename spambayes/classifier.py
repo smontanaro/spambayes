@@ -472,7 +472,7 @@ class GrahamBayes(object):
 
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
-        for record in self.wordinfo.itervalues():
+        for word,record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
             hamcount = HAMBIAS * record.hamcount
             spamcount = SPAMBIAS * record.spamcount
@@ -487,8 +487,9 @@ class GrahamBayes(object):
                     prob = MIN_SPAMPROB
                 elif prob > MAX_SPAMPROB:
                     prob = MAX_SPAMPROB
-
-            record.spamprob = prob
+            if record.spamprob != prob:
+                record.spamprob = prob
+                self.wordinfo[word] = record
 
         if self.DEBUG:
             print 'New probabilities:'
