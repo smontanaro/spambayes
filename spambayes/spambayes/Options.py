@@ -1435,8 +1435,8 @@ class OptionsClass(object):
                 else:
                     if self.multiple_values_allowed(section, option):
                         value = self.convert(section, option, value)
-                    self.set(section, option, self.convert(section, option,
-                                                           value))
+                    value = self.convert(section, option, value)
+                    self.set(section, option, value)
                     # backward compatibility guff
                     self._oldset(sect, opt, value)
                     # end of backward compatibility guff
