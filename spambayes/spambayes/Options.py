@@ -568,6 +568,13 @@ defaults = {
      """""",
      HEADER_NAME, RESTORE),
 
+    ("include_trained", "Add trained header", True,
+     """sb_mboxtrain.py can add a header that details how a message was
+     trained, which lets you keep track of it, and appropriately
+     re-train messages.  However, if you would rather mboxtrain didn't
+     rewrite the message files, you can disable this option.""",
+     BOOLEAN, RESTORE),
+
     ("trained_header_name", "Trained header name", "X-Spambayes-Trained",
      """When training on a message, the name of the header to add with how
      it was trained""",

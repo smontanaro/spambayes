@@ -115,6 +115,8 @@ def maildir_train(h, path, is_spam, force, removetrained):
         if not msg_train(h, msg, is_spam, force):
             continue
         trained += 1
+        if not options["Headers", "include_trained"]:
+            continue
         f = file(tfn, "wb")
         f.write(msg.as_string())
         f.close()
@@ -154,25 +156,27 @@ def mbox_train(h, path, is_spam, force):
             sys.stdout.flush()
         if msg_train(h, msg, is_spam, force):
             trained += 1
-        # Write it out with the Unix "From " line
-        outf.write(msg.as_string(True))
+        if not options["Headers", "include_trained"]:
+            # Write it out with the Unix "From " line
+            outf.write(msg.as_string(True))
 
-    outf.seek(0)
-    try:
-        os.ftruncate(f.fileno(), 0)
-        f.seek(0)
-    except:
-        # If anything goes wrong, don't try to write
-        print "Problem truncating mbox--nothing written"
-        raise
-    try:
-        for line in outf.xreadlines():
-            f.write(line)
-    except:
-        print >> sys.stderr ("Problem writing mbox!  Sorry, "
-                             "I tried my best, but your mail "
-                             "may be corrupted.")
-        raise
+    if not options["Headers", "include_trained"]:
+        outf.seek(0)
+        try:
+            os.ftruncate(f.fileno(), 0)
+            f.seek(0)
+        except:
+            # If anything goes wrong, don't try to write
+            print "Problem truncating mbox--nothing written"
+            raise
+        try:
+            for line in outf.xreadlines():
+                f.write(line)
+        except:
+            print >> sys.stderr ("Problem writing mbox!  Sorry, "
+                                 "I tried my best, but your mail "
+                                 "may be corrupted.")
+            raise
     fcntl.lockf(f, fcntl.LOCK_UN)
     f.close()
     if loud:
@@ -202,6 +206,8 @@ def mhdir_train(h, path, is_spam, force):
         f.close()
         msg_train(h, msg, is_spam, force)
         trained += 1
+        if not options["Headers", "include_trained"]:
+            continue
         f = file(tfn, "wb")
         f.write(msg.as_string())
         f.close()
@@ -289,11 +295,13 @@ def main():
     for g in good:
         if loud: print "Training ham (%s):" % g
         train(h, g, False, force, trainnew, removetrained)
+        sys.stdout.flush()
         save = True
 
     for s in spam:
         if loud: print "Training spam (%s):" % s
         train(h, s, True, force, trainnew, removetrained)
+        sys.stdout.flush()
         save = True
 
     if save:
