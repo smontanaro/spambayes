@@ -180,7 +180,7 @@ class BayesManager:
         # As Tim suggested in email, score should move to range(100)
         # This is probably a good place to do it - anyone who wants the real
         # float value can look at the "clues"
-        return self.bayes.spamprob(bayes_tokenize(msg), evidence)
+        return self.bayes.spamprob(bayes_tokenize(email), evidence)
 
 _mgr = None
 
