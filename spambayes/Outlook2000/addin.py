@@ -246,13 +246,6 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         start_delay = self.manager.config.experimental.timer_start_delay
         interval = self.manager.config.experimental.timer_interval
         use_timer = start_delay and interval
-        if use_timer:
-            # The user wants to use a timer - see if we should only enable
-            # the timer for known 'inbox' folders, or for all watched folders.
-            is_inbox = self.target.IsReceiveFolder()
-            if not is_inbox and not self.manager.config.experimental.timer_only_receive_folders:
-                use_timer = False
-
         if use_timer and not hasattr(timer, "__version__"):
             # No binaries will see this.
             print "*" * 50
@@ -262,6 +255,13 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             print "The timer is NOT enabled..."
             print "*" * 50
             use_timer = False
+
+        if use_timer:
+            # The user wants to use a timer - see if we should only enable
+            # the timer for known 'inbox' folders, or for all watched folders.
+            is_inbox = self.target.IsReceiveFolder()
+            if not is_inbox and not self.manager.config.experimental.timer_only_receive_folders:
+                use_timer = False
 
         # Good chance someone will assume timer is seconds, not ms.
         if use_timer and (start_delay < 500 or interval < 500):
