@@ -27,6 +27,9 @@ header.  Usage:
 
 For safety, and to help debugging, the whole POP3 conversation is
 written out to _pop3proxy.log for each run.
+
+To make rebuilding the database easier, trained messages are appended
+to _pop3proxyham.mbox and _pop3proxyspam.mbox.
 """
 
 # This module is part of the spambayes project, which is Copyright 2002
@@ -35,6 +38,12 @@ written out to _pop3proxy.log for each run.
 
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, all the spambayes contributors."
+
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
 
 
 import sys, re, operator, errno, getopt, cPickle, cStringIO, time
@@ -608,8 +617,19 @@ class UserInterface(BrighterAsyncChat):
         raise SystemExit
 
     def onUpload(self, params):
-        message = params.get('file') or params.get('text')            
+        message = params.get('file') or params.get('text')
         isSpam = (params['which'] == 'spam')
+        # Append the message to a file, to make it easier to rebuild
+        # the database later.
+        message = message.replace('\r\n', '\n').replace('\r', '\n')
+        if isSpam:
+            f = open("_pop3proxyspam.mbox", "a")
+        else:
+            f = open("_pop3proxyham.mbox", "a")
+        f.write("From ???@???\n")  # fake From line (XXX good enough?)
+        f.write(message)
+        f.write("\n")
+        f.close()
         self.bayes.learn(tokenizer.tokenize(message), isSpam, True)
         self.push("""<p>Trained on your message. Saving database...</p>""")
         self.push(" ")  # Flush... must find out how to do this properly...
