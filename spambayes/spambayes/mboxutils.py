@@ -105,6 +105,12 @@ def get_message(obj):
     can fail if the message is malformed.  In that case, the headers
     (everything through the first blank line) are thrown out, and the
     rest of the text is wrapped in a bare email.Message.Message.
+
+    Note that we can't use our own message class here, because this
+    function is imported by tokenizer, and our message class imports
+    tokenizer, so we get a circular import problem.  In any case, this
+    function does need anything that our message class offers, so that
+    shouldn't matter.
     """
 
     if isinstance(obj, email.Message.Message):

@@ -85,6 +85,7 @@ __credits__ = "Richie Hindle, Tim Peters, all the spambayes contributors."
 from __future__ import generators
 
 from spambayes import Corpus
+from spambayes import message
 from spambayes import storage
 import sys, os, gzip, fnmatch, getopt, errno, time, stat
 from spambayes.Options import options
@@ -115,21 +116,17 @@ filter'''
         # FileCorpus (at least for now).  External changes that must be made
         # to the corpus should for the moment be handled by a complete
         # retraining.
-
         for filename in os.listdir(directory):
             if fnmatch.fnmatch(filename, filter):
                 self.msgs[filename] = None
 
     def makeMessage(self, key):
         '''Ask our factory to make a Message'''
-
         msg = self.factory.create(key, self.directory)
-
         return msg
 
     def addMessage(self, message):
         '''Add a Message to this corpus'''
-
         if not fnmatch.fnmatch(message.key(), self.filter):
             raise ValueError
 
@@ -144,7 +141,6 @@ filter'''
 
     def removeMessage(self, message):
         '''Remove a Message from this corpus'''
-
         if options["globals", "verbose"]:
             print 'removing',message.key(),'from corpus'
 
@@ -186,22 +182,22 @@ filter'''
         FileCorpus.__init__(self, factory, directory, filter, cacheSize)
 
 
-class FileMessage(Corpus.Message):
+class FileMessage(message.SBHeaderMessage):
     '''Message that persists as a file system artifact.'''
 
     def __init__(self,file_name, directory):
         '''Constructor(message file name, corpus directory name)'''
-
-        Corpus.Message.__init__(self)
+        message.SBHeaderMessage.__init__(self)
         self.file_name = file_name
         self.directory = directory
+        self.loaded = False
 
-        # No calling of self.load() here - that's done on demand by
-        # Message.__getattr__.
+    def as_string(self):
+        self.load() # ensure that the substance is loaded
+        return message.SBHeaderMessage.as_string(self)
 
     def pathname(self):
         '''Derive the pathname of the message file'''
-
         return os.path.join(self.directory, self.file_name)
 
     def load(self):
@@ -214,6 +210,9 @@ class FileMessage(Corpus.Message):
         # subclass (GzipFileMessage) that adds the ability to store
         # messages gzipped.  If someone can think of a classier (pun
         # intended) way of doing this, be my guest.
+        if self.loaded:
+            return
+
         if options["globals", "verbose"]:
             print 'loading', self.file_name
 
@@ -226,7 +225,7 @@ class FileMessage(Corpus.Message):
                 raise
         else:
             try:
-                self.setSubstance(fp.read())
+                self.setPayload(fp.read())
             except IOError, e:
                 if str(e) == 'Not a gzipped file':
                     # We've probably got both gzipped messages and
@@ -238,10 +237,11 @@ class FileMessage(Corpus.Message):
                         if e.errno != errno.ENOENT:
                             raise
                     else:
-                        self.setSubstance(fp.read())
+                        self.setPayload(fp.read())
                         fp.close()
             else:
                 fp.close()
+        self.loaded = True
 
     def store(self):
         '''Write the Message substance to the file'''
@@ -249,10 +249,13 @@ class FileMessage(Corpus.Message):
         if options["globals", "verbose"]:
             print 'storing', self.file_name
 
-        pn = self.pathname()
-        fp = open(pn, 'wb')
-        fp.write(self.getSubstance())
+        fp = open(self.pathname(), 'wb')
+        fp.write(self.as_string())
         fp.close()
+
+    def setPayload(self, payload):
+        self.loaded = True
+        message.SBHeaderMessage.setPayload(self, payload)
 
     def remove(self):
         '''Message hara-kiri'''
@@ -274,15 +277,14 @@ class FileMessage(Corpus.Message):
         '''Instance as a representative string'''
 
         elip = ''
-        sub = self.getSubstance()
+        sub = self.as_string()
 
-        if options["globals", "verbose"]:
-            sub = self.getSubstance()
-        else:
+        if not options["globals", "verbose"]:
             if len(sub) > 20:
-                sub = sub[:20]
                 if len(sub) > 40:
-                    sub += '...' + sub[-20:]
+                    sub = sub[:20] + '...' + sub[-20:]
+                else:
+                    sub = sub[:20]
 
         pn = os.path.join(self.directory, self.file_name)
 
@@ -292,7 +294,6 @@ class FileMessage(Corpus.Message):
 
     def __str__(self):
         '''Instance as a printable string'''
-
         return self.__repr__()
 
     def createTimestamp(self):
@@ -329,7 +330,7 @@ class GzipFileMessage(FileMessage):
 
         pn = self.pathname()
         gz = gzip.open(pn, 'wb')
-        gz.write(self.getSubstance())
+        gz.write(self.as_string())
         gz.flush()
         gz.close()
 
@@ -389,7 +390,7 @@ def runTest(useGzip):
         fmClass = FileMessage
 
     m1 = fmClass('XMG00001', 'fctestspamcorpus')
-    m1.setSubstance(testmsg2())
+    m1.setPayload(testmsg2())
 
     print '\n\nAdd a message to hamcorpus that does not match the filter'
 
@@ -444,15 +445,6 @@ We should not see MSG00003 in this iteration.'
     print "\n\nLet's test printing a message"
     msg = spamcorpus['MSG00001']
     print msg
-    print '\n\nThis is some vital information in the message'
-    print 'Date header is',msg.getDate()
-    print 'Subject header is',msg.getSubject()
-    print 'From header is',msg.getFrom()
-
-    print 'Header text is:',msg.getHeaders()
-    print 'Headers are:',msg.getHeadersList()
-    print 'Body is:',msg.getPayload()
-
 
 
     print '\n\nClassifying messages in unsure corpus'
@@ -550,15 +542,15 @@ def setupTest(useGzip):
         fmClass = FileMessage
 
     m1 = fmClass('MSG00001', 'fctestspamcorpus')
-    m1.setSubstance(tm1)
+    m1.setPayload(tm1)
     m1.store()
 
     m2 = fmClass('MSG00002', 'fctestspamcorpus')
-    m2.setSubstance(tm2)
+    m2.setPayload(tm2)
     m2.store()
 
     m3 = fmClass('MSG00003', 'fctestunsurecorpus')
-    m3.setSubstance(tm1)
+    m3.setPayload(tm1)
     m3.store()
 
     for x in range(11):
@@ -570,15 +562,15 @@ def setupTest(useGzip):
         print 'wait',10-x,'more second%s' % (s)
 
     m4 = fmClass('MSG00004', 'fctestunsurecorpus')
-    m4.setSubstance(tm1)
+    m4.setPayload(tm1)
     m4.store()
 
     m5 = fmClass('MSG00005', 'fctestunsurecorpus')
-    m5.setSubstance(tm2)
+    m5.setPayload(tm2)
     m5.store()
 
     m6 = fmClass('MSG00006', 'fctestunsurecorpus')
-    m6.setSubstance(tm2)
+    m6.setPayload(tm2)
     m6.store()
 
 
@@ -692,7 +684,6 @@ Richie Hindle
 richie@entrian.com"""
 
 if __name__ == '__main__':
-
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'estgvhcu')
     except getopt.error, msg:

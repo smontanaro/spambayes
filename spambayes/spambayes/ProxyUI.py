@@ -27,24 +27,17 @@ To do:
 Web training interface:
 
  o Review already-trained messages, and purge them.
- o Put in a link to view a message (plain text, html, multipart...?)
-   Include a Reply link that launches the registered email client, eg.
-   mailto:tim@fourstonesExpressions.com?subject=Re:%20pop3proxy&body=Hi%21%0D
- o [Francois Granger] Show the raw spambrob number close to the buttons
-   (this would mean using the extra X-Hammie header by default).
- o Add Today and Refresh buttons on the Review page.
+ o Add a Today button on the Review page.
 
 User interface improvements:
 
  o Can it cleanly dynamically update its status display while having a POP3
    conversation?  Hammering reload sucks.
- o Have both the trained evidence (if present) and current evidence on the
-   show clues page.
 
  o Suggestions?
 """
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -61,9 +54,15 @@ except NameError:
     True, False = 1, 0
 
 import re
-import time
-import bisect
 import cgi
+import time
+import types
+import bisect
+
+try:
+    from sets import Set
+except ImportError:
+    from compatsets import Set
 
 import tokenizer
 import UserInterface
@@ -82,20 +81,15 @@ parm_ini_map = (
     ('POP3 Proxy Options',  None),
     ('pop3proxy',           'remote_servers'),
     ('pop3proxy',           'listen_ports'),
-    ('html_ui',             'display_to'),
-    ('html_ui',             'allow_remote_connections'),
-    ('html_ui',             'http_authentication'),
-    ('html_ui',             'http_user_name'),
-    ('html_ui',             'http_password'),
-    ('Header Options',      None),
-    ('Headers',             'notate_to'),
-    ('Headers',             'notate_subject'),
     ('SMTP Proxy Options',  None),
     ('smtpproxy',           'remote_servers'),
     ('smtpproxy',           'listen_ports'),
     ('smtpproxy',           'ham_address'),
     ('smtpproxy',           'spam_address'),
     ('smtpproxy',           'use_cached_message'),
+    ('Header Options',      None),
+    ('Headers',           'notate_to'),
+    ('Headers',           'notate_subject'),
     ('Storage Options',  None),
     ('Storage',             'persistent_storage_file'),
     ('Storage',             'messageinfo_storage_file'),
@@ -137,6 +131,20 @@ adv_map = (
     ('Tokenizer',           'replace_nonascii_chars'),
     ('Tokenizer',           'summarize_email_prefixes'),
     ('Tokenizer',           'summarize_email_suffixes'),
+    ('Training Options',   None),
+    ('Hammie',              'train_on_filter'),
+    ('Interface Options',   None),
+    ('html_ui',             'display_headers'),
+    ('html_ui',             'display_received_time'),
+    ('html_ui',             'display_score'),
+    ('html_ui',             'display_adv_find'),
+    ('html_ui',             'default_ham_action'),
+    ('html_ui',             'default_spam_action'),
+    ('html_ui',             'default_unsure_action'),
+    ('html_ui',             'allow_remote_connections'),
+    ('html_ui',             'http_authentication'),
+    ('html_ui',             'http_user_name'),
+    ('html_ui',             'http_password'),
 )
 
 class ProxyUserInterface(UserInterface.UserInterface):
@@ -149,6 +157,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         state = proxy_state
         self.state_recreator = state_recreator # ugly
         self.app_for_version = "POP3 Proxy"
+        self.previous_sort = None
 
     def onHome(self):
         """Serve up the homepage."""
@@ -157,14 +166,17 @@ class ProxyUserInterface(UserInterface.UserInterface):
         statusTable = self.html.statusTable.clone()
         if not state.servers:
             statusTable.proxyDetails = "No POP3 proxies running.<br/>"
+        findBox = self._buildBox('Word query', 'query.gif',
+                                 self.html.wordQuery)
+        if not options["html_ui", "display_adv_find"]:
+            del findBox.advanced
         content = (self._buildBox('Status and Configuration',
                                   'status.gif', statusTable % stateDict)+
                    self._buildBox('Train on proxied messages',
                                   'train.gif', self.html.reviewText) +
                    self._buildTrainBox() +
                    self._buildClassifyBox() +
-                   self._buildBox('Word query', 'query.gif',
-                                  self.html.wordQuery) +
+                   findBox +
                    self._buildBox('Find message', 'query.gif',
                                   self.html.findMessage)
                    )
@@ -182,7 +194,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         for m in messages:
             messageName = state.getNewMessageName()
             message = state.unknownCorpus.makeMessage(messageName)
-            message.setSubstance(m)
+            message.setPayload(m)
             state.unknownCorpus.addMessage(message)
 
         # Return a link Home.
@@ -212,9 +224,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         for the list (eg. "Friday, November 15, 2002"), the start of the prior
         page or zero if there isn't one, likewise the start of the given page,
         and likewise the start of the next page."""
-        # Fetch all the message keys and sort them into timestamp order.
+        # Fetch all the message keys
         allKeys = state.unknownCorpus.keys()
-        allKeys.sort()
 
         # The default start timestamp is derived from the most recent message,
         # or the system time if there are no messages (not that it gets used).
@@ -243,30 +254,79 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Return the keys and their date.
         return keys, date, prior, start, end
 
-    def _appendMessages(self, table, keyedMessageInfo, label):
+    def _sortMessages(self, messages, sort_order):
+        """Sorts the message by the appropriate attribute.  If this was the
+        previous sort order, then reverse it."""
+        if sort_order is None or sort_order == "received":
+            # Default sorting, which is in reverse order of appearance.
+            # This is complicated because the 'received' info is the key.
+            messages.sort()
+            if self.previous_sort == sort_order:
+                messages.reverse()
+                self.previous_sort = None
+            else:
+                self.previous_sort = 'received'
+            return messages
+        else:
+            tmplist = [(getattr(x[1], sort_order), x) for x in messages]
+        tmplist.sort()
+        if self.previous_sort == sort_order:
+            tmplist.reverse()
+            self.previous_sort = None
+        else:
+            self.previous_sort = sort_order
+        return [x for (key, x) in tmplist]
+
+    def _appendMessages(self, table, keyedMessageInfo, label, sort_order):
         """Appends the rows of a table of messages to 'table'."""
         stripe = 0
-        if not options["html_ui", "display_to"]:
-            del table.to_header
-        nrows = options["html_ui", "rows_per_section"]
-        for key, messageInfo in keyedMessageInfo[:nrows]:
+
+        keyedMessageInfo = self._sortMessages(keyedMessageInfo, sort_order)
+        for key, messageInfo in keyedMessageInfo:
+            unused, unused, messageInfo.received = \
+                    self._getTimeRange(self._keyToTimestamp(key))
             row = self.html.reviewRow.clone()
             if label == 'Spam':
-                row.spam.checked = 1
+                r_att = getattr(row, options["html_ui",
+                                           "default_spam_action"])
             elif label == 'Ham':
-                row.ham.checked = 1
+                r_att = getattr(row, options["html_ui",
+                                           "default_ham_action"])
             else:
-                row.defer.checked = 1
-            row.subject = messageInfo.subjectHeader
-            row.subject.title = messageInfo.bodySummary
-            row.subject.href="view?key=%s&corpus=%s" % (key, label)
-            row.from_ = messageInfo.fromHeader
-            if options["html_ui", "display_to"]:
-                row.to_ = messageInfo.toHeader
+                r_att = getattr(row, options["html_ui",
+                                           "default_unsure_action"])
+            setattr(r_att, "checked", 1)
+
+            row.optionalHeadersValues = '' # make way for real list
+            for header in options["html_ui", "display_headers"]:
+                header = header.lower()
+                text = getattr(messageInfo, "%sHeader" % (header,))
+                if header == "subject":
+                    # Subject is special, because it links to the body.
+                    # If the user doesn't display the subject, then there
+                    # is no link to the body.
+                    h = self.html.reviewRow.linkedHeaderValue.clone()
+                    h.text.title = messageInfo.bodySummary
+                    h.text.href = "view?key=%s&corpus=%s" % (key, label)
+                else:
+                    h = self.html.reviewRow.headerValue.clone()
+                h.text = text
+                row.optionalHeadersValues += h
+
+            # Apart from any message headers, we may also wish to display
+            # the message score, and the time the message was received.
+            if options["html_ui", "display_score"]:
+                row.score_ = messageInfo.score
             else:
-                del row.to_
-            subj = cgi.escape(messageInfo.subjectHeader)
+                del row.score_
+            if options["html_ui", "display_received_time"]:
+                row.received_ = messageInfo.received
+            else:
+                del row.received_
+
+            subj = messageInfo.subjectHeader
             row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
+            row.tokens.href="showclues?key=%s&subject=%s&tokens=1" % (key, subj)
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
             row = str(row).replace('TYPE', label).replace('KEY', key)
             table += row
@@ -349,34 +409,72 @@ class ProxyUserInterface(UserInterface.UserInterface):
             start = self._keyToTimestamp(params['prior'])
 
         # Else if an id has been specified, just show that message
+        # Else if search criteria have been specified, show the messages
+        # that match those criteria.
         elif params.get('find') is not None:
+            prior = this = next = 0
+            keys = Set()        # so we don't end up with duplicates
+            push = keys.add
+            try:
+                max_results = int(params['max_results'])
+            except ValueError:
+                max_results = 1
             key = params['find']
+            if params.has_key('ignore_case'):
+                ic = True
+            else:
+                ic = False
             error = False
             if key == "":
                 error = True
-                page = "<p>You must enter an id to find.</p>"
-            elif state.unknownCorpus.get(key) == None:
-                # maybe this message has been moved to the spam
-                # or ham corpus
-                if state.hamCorpus.get(key) != None:
-                    sourceCorpus = state.hamCorpus
-                elif state.spamCorpus.get(key) != None:
-                    sourceCorpus = state.spamCorpus
+                page = "<p>You must enter a search string.</p>"
+            else:
+                if len(keys) < max_results and \
+                   params.has_key('id'):
+                    if state.unknownCorpus.get(key):
+                        push((key, state.unknownCorpus))
+                    elif state.hamCorpus.get(key):
+                        push((key, state.hamCorpus))
+                    elif state.spamCorpus.get(key):
+                        push((key, state.spamCorpus))
+                if params.has_key('subject') or params.has_key('body') or \
+                   params.has_key('headers'):
+                    # This is an expensive operation, so let the user know
+                    # that something is happening.
+                    self.write('<p>Searching...</p>')
+                    for corp in [state.unknownCorpus, state.hamCorpus,
+                                   state.spamCorpus]:
+                        for k in corp.keys():
+                            if len(keys) >= max_results:
+                                break
+                            msg = corp[k]
+                            msg.load()
+                            if params.has_key('subject'):
+                                if self._contains(msg['Subject'], key, ic):
+                                    push((k, corp))
+                            if params.has_key('body'):
+                                msg_body = msg.as_string()
+                                msg_body = msg_body[msg_body.index('\r\n\r\n'):]
+                                if self._contains(msg_body, key, ic):
+                                    push((k, corp))
+                            if params.has_key('headers'):
+                                for nm, val in msg.items():
+                                    if self._contains(nm, key, ic) or \
+                                       self._contains(val, key, ic):
+                                        push((k, corp))
+                if len(keys):
+                    title = "Found message%s" % (['','s'][len(keys)>1],)
+                    keys = list(keys)
                 else:
-                    error = True
-                    page = "<p>Could not find message with id '"
-                    page += key + "' - maybe it expired.</p>"
-            if error == True:
-                title = "Did not find message"
-                box = self._buildBox(title, 'status.gif', page)
-                self.write(box)
-                self.write(self._buildBox('Find message', 'query.gif',
-                                          self.html.findMessage))
-                self._writePostamble()
-                return
-            keys.append(params['find'])
-            prior = this = next = 0
-            title = "Found message"
+                    page = "<p>Could not find any matching messages. " \
+                           "Maybe they expired?</p>"
+                    title = "Did not find message"
+                    box = self._buildBox(title, 'status.gif', page)
+                    self.write(box)
+                    self.write(self._buildBox('Find message', 'query.gif',
+                                              self.html.findMessage))
+                    self._writePostamble()
+                    return
 
         # Else show the most recent day's page, as decided by _buildReviewKeys.
         else:
@@ -390,10 +488,14 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             options["Headers", "header_spam_string"]: [],
                             }
         for key in keys:
+            if isinstance(key, types.TupleType):
+                key, sourceCorpus = key
+            else:
+                sourceCorpus = state.unknownCorpus
             # Parse the message, get the judgement header and build a message
             # info object for each message.
-            cachedMessage = sourceCorpus[key]
-            message = spambayes.mboxutils.get_message(cachedMessage.getSubstance())
+            message = sourceCorpus[key]
+            message.load()
             judgement = message[options["Headers",
                                         "classification_header_name"]]
             if judgement is None:
@@ -404,7 +506,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             keyedMessageInfo[judgement].append((key, messageInfo))
 
         # Present the list of messages in their groups in reverse order of
-        # appearance.
+        # appearance, by default, or according to the specified sort order.
         if keys:
             page = self.html.reviewtable.clone()
             if prior:
@@ -414,6 +516,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 page.next.value = next
                 del page.nextButton.disabled
             templateRow = page.reviewRow.clone()
+
             page.table = ""  # To make way for the real rows.
             for header, label in ((options["Headers",
                                            "header_unsure_string"], 'Unsure'),
@@ -423,11 +526,25 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                            "header_spam_string"], 'Spam')):
                 messages = keyedMessageInfo[header]
                 if messages:
-                    subHeader = str(self.html.reviewSubHeader)
+                    sh = self.html.reviewSubHeader.clone()
+                    # Setup the header row
+                    sh.optionalHeaders = ''
+                    h = self.html.headerHeader.clone()
+                    for header in options["html_ui", "display_headers"]:
+                        h.headerLink.href = 'review?sort=%sHeader' % \
+                                            (header.lower(),)
+                        h.headerName = header.title()
+                        sh.optionalHeaders += h
+                    if not options["html_ui", "display_score"]:
+                        del sh.score_header
+                    if not options["html_ui", "display_received_time"]:
+                        del sh.received_header
+                    subHeader = str(sh)
                     subHeader = subHeader.replace('TYPE', label)
                     page.table += self.html.blankRow
                     page.table += subHeader
-                    self._appendMessages(page.table, messages, label)
+                    self._appendMessages(page.table, messages, label,
+                                         params.get('sort'))
 
             page.table += self.html.trainRow
             if title == "":
@@ -443,23 +560,33 @@ class ProxyUserInterface(UserInterface.UserInterface):
         self.write(box)
         self._writePostamble()
 
+    def _contains(self, a, b, ignore_case=False):
+        """Return true if substring b is part of string a."""
+        assert(isinstance(a, types.StringTypes))
+        assert(isinstance(b, types.StringTypes))
+        if ignore_case:
+            a = a.lower()
+            b = b.lower()
+        return a.find(b) >= 0
+
     def onView(self, key, corpus):
         """View a message - linked from the Review page."""
         self._writePreamble("View message", parent=('review', 'Review'))
         message = state.unknownCorpus.get(key)
         if message:
-            self.write("<pre>%s</pre>" % cgi.escape(message.getSubstance()))
+            self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
         else:
             self.write("<p>Can't find message %r. Maybe it expired.</p>" % key)
         self._writePostamble()
 
-    def onShowclues(self, key, subject):
+    def onShowclues(self, key, subject, tokens='0'):
         """Show clues for a message - linked from the Review page."""
+        tokens = bool(int(tokens)) # needs the int, as bool('0') is True
         self._writePreamble("Message clues", parent=('review', 'Review'))
-        message = state.unknownCorpus.get(key).getSubstance()
+        message = state.unknownCorpus.get(key).as_string()
         message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
         if message:
-            results = self._buildCluesTable(message, subject)
+            results = self._buildCluesTable(message, subject, tokens)
             del results.classifyAnother
             self.write(results)
         else:
@@ -468,12 +595,32 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
     def _makeMessageInfo(self, message):
         """Given an email.Message, return an object with subjectHeader,
-        fromHeader and bodySummary attributes.  These objects are passed into
-        appendMessages by onReview - passing email.Message objects directly
-        uses too much memory."""
+        bodySummary and other header (as needed) attributes.  These objects
+        are passed into appendMessages by onReview - passing email.Message
+        objects directly uses too much memory."""
         subjectHeader = message["Subject"] or "(none)"
-        fromHeader = message["From"] or "(none)"
-        toHeader = message["To"] or "(none)"
+        headers = {"subject" : subjectHeader}
+        for header in options["html_ui", "display_headers"]:
+            headers[header.lower()] = (message[header] or "(none)")
+        score = message[options["Headers", "score_header_name"]]
+        if score:
+            # the score might have the log info at the end
+            op = score.find('(')
+            if op >= 0:
+                score = score[:op]
+            try:
+                score = "%.2f%%" % (float(score)*100,)
+            except ValueError:
+                # Hmm.  The score header should only contain a floating
+                # point number.  What's going on here, then?
+                score = "Err"  # Let the user know something is wrong.
+        else:
+            # If the lookup fails, this means that the "include_score"
+            # option isn't activated. We have the choice here to either
+            # calculate it now, which is pretty inefficient, since we have
+            # already done so, or to admit that we don't know what it is.
+            # We'll go with the latter.
+            score = "?"
         try:
             part = typed_subpart_iterator(message, 'text', 'plain').next()
             text = part.get_payload()
@@ -499,9 +646,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
         class _MessageInfo:
             pass
         messageInfo = _MessageInfo()
-        messageInfo.subjectHeader = self._trimHeader(subjectHeader, 50, True)
-        messageInfo.fromHeader = self._trimHeader(fromHeader, 40, True)
-        messageInfo.toHeader = self._trimHeader(toHeader, 40, True)
+        for headerName, headerValue in headers.items():
+            headerValue = self._trimHeader(headerValue, 45, True)
+            setattr(messageInfo, "%sHeader" % (headerName,), headerValue)
+        messageInfo.score = score
         messageInfo.bodySummary = self._trimHeader(text, 200)
         return messageInfo
 

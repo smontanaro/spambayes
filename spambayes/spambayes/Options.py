@@ -758,14 +758,55 @@ defaults = {
      field to trust this only address.""",
      IP_LIST, RESTORE),
 
-    ("display_to", "Display To: in message review", False,
+    ("display_headers", "Headers to display in message review", ("Subject", "From"),
      """When reviewing messages via the web user interface, you are
-     presented with the message subject, the address the message is
-     from, and its classification.  If you set this option, you will
-     also be shown the address the message was to.  This might be
-     useful if you receive mail from multiple accounts, or if you
-     want to quickly identify mail received via a mailing list.""",
+     presented with various information about the message.  By default, you
+     are shown the subject and who the message is from.  You can add other
+     message headers to display, however, such as the address the message
+     is to, or the date that the message was sent.""",
+     HEADER_NAME, RESTORE),
+
+    ("display_received_time", "Display date received in message review", False,
+     """When reviewing messages via the web user interface, you are
+     presented with various information about the message.  If you set
+     this option, you will be shown the date that the message was received.
+     """,
      BOOLEAN, RESTORE),
+
+    ("display_score", "Display score in message review", False,
+     """When reviewing messages via the web user interface, you are
+     presented with various information about the message.  If you
+     set this option, this information will include the score that
+     the message received when it was classified.  You might wish to
+     see this purely out of curiousity, or you might wish to only
+     train on messages that score towards the boundaries of the
+     classification areas.  Note that in order to use this option,
+     you must also enable the option to include the score in the
+     message headers.""",
+     BOOLEAN, RESTORE),
+
+    ("display_adv_find", "Display the advanced find query", False,
+     """Present advanced options in the 'Word Query' box on the front page,
+     including wildcard and regular expression searching.""",
+     BOOLEAN, RESTORE),
+
+    ("default_ham_action", "Default training for ham", "ham",
+     """When presented with the review list in the web interface,
+     which button would you like checked by default when the message
+     is classified as ham?""",
+     ("ham", "spam", "discard", "defer"), RESTORE),
+
+    ("default_spam_action", "Default training for spam", "spam",
+     """When presented with the review list in the web interface,
+     which button would you like checked by default when the message
+     is classified as spam?""",
+     ("ham", "spam", "discard", "defer"), RESTORE),
+
+    ("default_unsure_action", "Default training for unsure", "defer",
+     """When presented with the review list in the web interface,
+     which button would you like checked by default when the message
+     is classified as unsure?""",
+     ("ham", "spam", "discard", "defer"), RESTORE),
 
     ("http_authentication", "HTTP Authentication", "None",
      """This option lets you choose the security level of the web interface.

@@ -476,7 +476,7 @@ class BayesProxy(POP3ProxyBase):
                         not isSuppressedBulkHam and not isTooBig):
                         # Write the message into the Unknown cache.
                         message = state.unknownCorpus.makeMessage(msg.getId())
-                        message.setSubstance(msg.as_string())
+                        message.setPayload(msg.as_string())
                         state.unknownCorpus.addMessage(message)
 
                 # We'll return the message with the headers added.  We take
@@ -492,7 +492,6 @@ class BayesProxy(POP3ProxyBase):
                     headers.append(re.sub(r'\r?\n', '\r\n', header))
                 body = re.split(r'\n\r?\n', messageText, 1)[1]
                 messageText = "\r\n".join(headers) + "\r\n\r\n" + body
-
             except:
                 # Something nasty happened while parsing or classifying -
                 # report the exception in a hand-appended header and recover.
@@ -750,10 +749,10 @@ def prepare(state):
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
-    import sb_smtpproxy
-    servers, proxyPorts = sb_smtpproxy.LoadServerInfo()
-    proxyListeners.extend(sb_smtpproxy.CreateProxies(servers, proxyPorts,
-                                                     state))
+    from spambayes import smtpproxy
+    servers, proxyPorts = smtpproxy.LoadServerInfo()
+    proxyListeners.extend(smtpproxy.CreateProxies(servers, proxyPorts,
+                                                  state))
 
     # setup info for the web interface
     state.buildServerStrings()

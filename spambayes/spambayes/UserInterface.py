@@ -261,96 +261,205 @@ class UserInterface(BaseUserInterface):
         self.write(results)
         self._writePostamble()
 
-    def _buildCluesTable(self, message, subject=None):
+    ev_re = re.compile("%s:(.*?)(?:\n\S|\n\n)" % \
+                       re.escape(options["Headers",
+                                         "evidence_header_name"]),
+                       re.DOTALL)
+    sc_re = re.compile("%s:(.*)\n" % \
+                       re.escape(options["Headers", "score_header_name"]))
+
+    def _fillCluesTable(self, clues):
+        accuracy = 6
         cluesTable = self.html.cluesTable.clone()
         cluesRow = cluesTable.cluesRow.clone()
         del cluesTable.cluesRow   # Delete dummy row to make way for real ones
-        (probability, clues) = classifier.spamprob(tokenizer.tokenize(message),\
-                                                    evidence=True)
+        fetchword = classifier._wordinfoget
         for word, wordProb in clues:
-            cluesTable += cluesRow % (cgi.escape(word), wordProb)
+            record = fetchword(word)
+            if record:
+                nham = record.hamcount
+                nspam = record.spamcount
+                if wordProb is None:
+                    wordProb = classifier.probability(record)
+            elif word != "*H*" and word != "*S*":
+                nham = nspam = 0
+            else:
+                nham = nspam = "-"
+            if wordProb is None:
+                wordProb = "-"
+            else:
+                wordProb = round(float(wordProb), accuracy)
+            cluesTable += cluesRow % (cgi.escape(word), wordProb,
+                                      nham, nspam)
+        return cluesTable
+    
+    def _buildCluesTable(self, message, subject=None, show_tokens=False):
+        tokens = tokenizer.tokenize(message)
+        if show_tokens:
+            clues = []
+            for tok in tokens:
+                clues.append((tok, None))
+            probability = classifier.spamprob(tokens)
+            cluesTable = self._fillCluesTable(clues)
+            head_name = "Tokens"
+        else:
+            (probability, clues) = classifier.spamprob(tokens, evidence=True)
+            cluesTable = self._fillCluesTable(clues)
+            head_name = "Clues"
 
         results = self.html.classifyResults.clone()
-        results.probability = probability
+        results.probability = "%.2f%% (%s)" % (probability*100, probability)
         if subject is None:
-            heading = "Clues:"
+            heading = "%s: (%s)" % (head_name, len(clues))
         else:
-            heading = "Clues for: " + subject
+            heading = "%s for: %s (%s)" % (head_name, subject, len(clues))
         results.cluesBox = self._buildBox(heading, 'status.gif', cluesTable)
+        if not show_tokens:
+            mo = self.sc_re.search(message)
+            if mo:
+                # Also display the score the message received when it was
+                # classified.
+                prob = float(mo.group(1).strip())
+                results.orig_prob_num = "%.2f%% (%s)" % (prob*100, prob)
+            else:
+                del results.orig_prob
+            mo = self.ev_re.search(message)
+            if mo:
+                # Also display the clues as they were when the message was
+                # classified.
+                clues = []
+                evidence = mo.group(1).strip().split(';')
+                for clue in evidence:
+                    word, prob = clue.strip().split(': ')
+                    clues.append((word.strip("'"), prob))
+                cluesTable = self._fillCluesTable(clues)
+
+                if subject is None:
+                    heading = "Original clues: (%s)" % (len(evidence),)
+                else:
+                    heading = "Original clues for: %s (%s)" % (subject,
+                                                               len(evidence),)
+                orig_results = self._buildBox(heading, 'status.gif',
+                                              cluesTable)
+                results.cluesBox += orig_results
+        else:
+            del results.orig_prob
         return results
 
-    def onWordquery(self, word):
-        wildcard_limit = 10
-        statsBoxes = []
-        if word == "":
-            stats = "You must enter a word."
-            statsBoxes.append(self._buildBox("Statistics for %r" % \
-                                             cgi.escape(word),
-                                             'status.gif', stats))
-        else:
-            word = word.lower()
-            if word[-1] == '*':
-                # Wildcard search - list all words that start with word[:-1]
-                word = word[:-1]
-                reached_limit = False
-                for w in classifier._wordinfokeys():
-                    if not reached_limit and len(statsBoxes) > wildcard_limit:
-                        reached_limit = True
-                        over_limit = 0
-                    if w.startswith(word):
-                        if reached_limit:
-                            over_limit += 1
-                        else:
-                            wordinfo = classifier._wordinfoget(w)
-                            stats = self.html.wordStats.clone()
-                            stats.spamcount = wordinfo.spamcount
-                            stats.hamcount = wordinfo.hamcount
-                            stats.spamprob = classifier.probability(wordinfo)
-                            box = self._buildBox("Statistics for %r" % \
-                                                 cgi.escape(w),
-                                                 'status.gif', stats)
-                            statsBoxes.append(box)
-                if len(statsBoxes) == 0:
-                    stats = "There are no words that begin with '%s' " \
-                            "in the database." % (word,)
-                    # We build a box for each word; I'm not sure this is
-                    # produces the nicest results, but it's ok with a
-                    # limited number of words.
-                    statsBoxes.append(self._buildBox("Statistics for %s" % \
-                                                     cgi.escape(word),
-                                                     'status.gif', stats))
-                elif reached_limit:
-                    if over_limit == 1:
-                        singles = ["was", "match", "is"]
-                    else:
-                        singles = ["were", "matches", "are"]
-                    stats = "There %s %d additional %s that %s not " \
-                            "shown here." % (singles[0], over_limit,
-                                             singles[1], singles[2])
-                    box = self._buildBox("Statistics for '%s*'" % \
-                                         cgi.escape(word), 'status.gif',
-                                         stats)
-                    statsBoxes.append(box)
-            else:
-                # Optimised version for non-wildcard searches
-                wordinfo = classifier._wordinfoget(word)
-                if wordinfo:
-                    stats = self.html.wordStats.clone()
-                    stats.spamcount = wordinfo.spamcount
-                    stats.hamcount = wordinfo.hamcount
-                    stats.spamprob = classifier.probability(wordinfo)
-                else:
-                    stats = "%r does not exist in the database." % cgi.escape(word)
-                statsBoxes.append(self._buildBox("Statistics for %r" % \
-                                                 cgi.escape(word),
-                                                 'status.gif', stats))
+    def onWordquery(self, word, query_type="basic", max_results='10',
+                    ignore_case=False):
+        # It would be nice if the default value for max_results here
+        # always matched the value in ui.html.
+        try:
+            max_results = int(max_results)
+        except ValueError:
+            # Ignore any invalid number, like "foo"
+            max_results = 10
+
+        original_word = word
 
         query = self.html.wordQuery.clone()
         query.word.value = "%s" % (word,)
+        for q_type in [query.advanced.basic,
+                               query.advanced.wildcard,
+                               query.advanced.regex]:
+            if query_type == q_type.id:
+                q_type.checked = 'checked'
+                if query_type != "basic":
+                    del query.advanced.max_results.disabled
+        if ignore_case:
+            query.advanced.ignore_case.checked = 'checked'
+        query.advanced.max_results.value = str(max_results)
         queryBox = self._buildBox("Word query", 'query.gif', query)
+        if not options["html_ui", "display_adv_find"]:
+            del queryBox.advanced
+
+        stats = []
+        if word == "":
+            stats.append("You must enter a word.")
+        elif query_type == "basic" and not ignore_case:
+            wordinfo = classifier._wordinfoget(word)
+            if wordinfo:
+                stat = (word, wordinfo.spamcount, wordinfo.hamcount,
+                        classifier.probability(wordinfo))
+            else:
+                stat = "%r does not exist in the database." % \
+                       cgi.escape(word)
+            stats.append(stat)
+        else:
+            if query_type != "regex":
+                word = re.escape(word)
+            if query_type == "wildcard":
+                word = word.replace("\\?", ".")
+                word = word.replace("\\*", ".*")
+
+            flags = 0
+            if ignore_case:
+                flags = re.IGNORECASE
+            r = re.compile(word, flags)
+
+            reached_limit = False
+            for w in classifier._wordinfokeys():
+                if not reached_limit and len(stats) >= max_results:
+                    reached_limit = True
+                    over_limit = 0
+                if r.match(w):
+                    if reached_limit:
+                        over_limit += 1
+                    else:
+                        wordinfo = classifier._wordinfoget(w)
+                        stat = (w, wordinfo.spamcount, wordinfo.hamcount,
+                                classifier.probability(wordinfo))
+                        stats.append(stat)
+            if len(stats) == 0 and max_results > 0:
+                stat = "There are no words that begin with '%s' " \
+                        "in the database." % (word,)
+                stats.append(stat)
+            elif reached_limit:
+                if over_limit == 1:
+                    singles = ["was", "match", "is"]
+                else:
+                    singles = ["were", "matches", "are"]
+                stat = "There %s %d additional %s that %s not " \
+                       "shown here." % (singles[0], over_limit,
+                                        singles[1], singles[2])
+                stats.append(stat)
+
         self._writePreamble("Word query")
-        for box in statsBoxes:
-            self.write(box)
+        if len(stats) == 1:
+            if isinstance(stat, types.TupleType):
+                stat = self.html.wordStats.clone()
+                word = stats[0][0]
+                stat.spamcount = stats[0][1]
+                stat.hamcount = stats[0][2]
+                stat.spamprob = "%.6f" % stats[0][3]
+            else:
+                stat = stats[0]
+                word = original_word
+            row = self._buildBox("Statistics for '%s'" % \
+                                 cgi.escape(word),
+                                 'status.gif', stat)
+            self.write(row)
+        else:
+            page = self.html.multiStats.clone()
+            page.multiTable = "" # make way for the real rows
+            page.multiTable += self.html.multiHeader.clone()
+            stripe = 0
+            for stat in stats:
+                if isinstance(stat, types.TupleType):
+                    row = self.html.statsRow.clone()
+                    row.word, row.spamcount, row.hamcount = stat[:3]
+                    row.spamprob = "%.6f" % stat[3]
+                    setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe])
+                    stripe = stripe ^ 1
+                    page.multiTable += row
+                else:
+                    self.write(self._buildBox("Statistics for '%s'" % \
+                                              cgi.escape(original_word),
+                                              'status.gif', stat))
+            self.write(self._buildBox("Statistics for '%s'" % \
+                                      cgi.escape(original_word), 'status.gif',
+                                      page))
         self.write(queryBox)
         self._writePostamble()
 

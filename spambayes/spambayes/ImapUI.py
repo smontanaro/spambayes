@@ -102,6 +102,8 @@ adv_map = (
     ('Tokenizer',           'replace_nonascii_chars'),
     ('Tokenizer',           'summarize_email_prefixes'),
     ('Tokenizer',           'summarize_email_suffixes'),
+    ('Interface Options',   None),
+    ('html_ui',             'display_adv_find'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):
@@ -133,12 +135,15 @@ class IMAPUserInterface(UserInterface.UserInterface):
         &nbsp;You can also <a href='filterfolders'>configure folders to
         filter</a><br />and <a
         href='trainingfolders'>Configure folders to train</a>"""
+        findBox = self._buildBox('Word query', 'query.gif',
+                                 self.html.wordQuery)
+        if not options["html_ui", "display_adv_find"]:
+            del findBox.advanced
         content = (self._buildBox('Status and Configuration',
                                   'status.gif', statusTable % stateDict)+
                    self._buildTrainBox() +
                    self._buildClassifyBox() +
-                   self._buildBox('Word query', 'query.gif',
-                                  self.html.wordQuery)
+                   findBox
                    )
         self._writePreamble("Home")
         self.write(content)

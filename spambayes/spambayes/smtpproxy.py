@@ -35,16 +35,8 @@ This method is suitable for those using POP3 Proxy and/or IMAP Filter, and
 avoids any potential problems with the mailer altering messages before
 forwarding/bouncing them.
 
-Usage:
-    smtpproxy [options]
-
-	note: option values with spaces must be enclosed in double quotes
-
-        options:
-            -d  dbname  : pickled training database filename
-            -D  dbname  : dbm training database filename
-            -h          : help
-            -v          : verbose mode
+To use, enter the required SMTP server data in your configuration file and
+run sb_server.py
 """
 
 # This module is part of the spambayes project, which is Copyright 2002-3
@@ -369,7 +361,7 @@ class SMTPTrainer(object):
         self.imap = imap
     
     def extractSpambayesID(self, data):
-        msg = sbheadermessage_from_string(data)
+        msg = message_from_string(data)
 
         # The nicest MUA is one that forwards the header intact.
         id = msg.get(options["Headers", "mailid_header_name"])
@@ -504,59 +496,9 @@ def LoadServerInfo():
 
 def CreateProxies(servers, proxyPorts, trainer):
     """Create BayesSMTPProxyListeners for all the given servers."""
-    # allow for old versions of pop3proxy
-    if not isinstance(trainer, SMTPTrainer):
-        trainer = SMTPTrainer(trainer.bayes, trainer)
     proxyListeners = []
     for (server, serverPort), proxyPort in zip(servers, proxyPorts):
         listener = BayesSMTPProxyListener(server, serverPort, proxyPort,
                                           trainer)
         proxyListeners.append(listener)
     return proxyListeners
-
-def main():
-    """Runs the proxy until a 'KILL' command is received or someone hits
-    Ctrl+Break."""
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hvd:D:')
-    except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
-        sys.exit()
-
-    bdbname = options["Storage", "persistent_storage_file"]
-    useDBM = options["Storage", "persistent_use_database"]
-
-    for opt, arg in opts:
-        if opt == '-h':
-            print >>sys.stderr, __doc__
-            sys.exit()
-        elif opt == '-d':
-            useDBM = False
-            bdbname = arg
-        elif opt == '-D':
-            useDBM = True
-            bdbname = arg
-        elif opt == '-v':
-            options["globals", "verbose"] = True
-
-    bdbname = os.path.expanduser(bdbname)
-    
-    if options["globals", "verbose"]:
-        print "Loading database %s..." % (bdbname),
-    
-    if useDBM:
-        classifier = storage.DBDictClassifier(bdbname)
-    else:
-        classifier = storage.PickledClassifier(bdbname)
-
-    if options["globals", "verbose"]:
-        print "Done."            
-
-    servers, proxyPorts = LoadServerInfo()
-    trainer = SMTPTrainer(classifier)
-    proxyListeners = CreateProxies(servers, proxyPorts, trainer)
-    Dibbler.run()
-
-
-if __name__ == '__main__':
-    main()

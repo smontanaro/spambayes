@@ -5,7 +5,6 @@
 Classes:
     Corpus - a collection of Messages
     ExpiryCorpus - a "young" Corpus
-    Message - a subject of Spambayes training
     MessageFactory - creates a Message
 
 Abstract:
@@ -64,7 +63,7 @@ Abstract:
     messages persist.
 
     MessageFactory is a required factory class, because Corpus is
-    designed to do lazy initialization of messages and as an abstract
+    designed to do lazy initialization of messages and, as an abstract
     class, must know how to create concrete instances of the correct
     class.
 
@@ -73,7 +72,7 @@ To Do:
 
     '''
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -114,7 +113,7 @@ class Corpus:
         self.factory = factory    # factory for the correct Message subclass
 
     def addObserver(self, observer):
-        '''Register an observer, which must implement
+        '''Register an observer, which should implement
         onAddMessage, onRemoveMessage'''
 
         self.observers.append(observer)
@@ -191,21 +190,12 @@ class Corpus:
     def takeMessage(self, key, fromcorpus):
         '''Move a Message from another corpus to this corpus'''
 
-        # XXX Hack: Calling msg.getSubstance() here ensures that the
-        # message substance is in memory.  If it isn't, when addMessage()
-        # calls message.store(), which calls message.getSubstance(), that
-        # will try to load the substance from the as-yet-unwritten new file.
         msg = fromcorpus[key]
-        msg.getSubstance()
+        msg.load() # ensure that the substance has been loaded
         fromcorpus.removeMessage(msg)
         self.addMessage(msg)
 
     def get(self, key, default=None):
-        # the old version would never return the default,
-        # it would just create a new message, even if that
-        # message did not exist in the cache
-        # we need to check for the key in our msgs, but we can't check
-        # for None, because that signifies a non-cached message
         if self.msgs.get(key, "") is "":
             return default
         else:
@@ -213,7 +203,6 @@ class Corpus:
 
     def __getitem__(self, key):
         '''Corpus is a dictionary'''
-
         amsg = self.msgs.get(key)
 
         if amsg is None:
@@ -224,12 +213,10 @@ class Corpus:
 
     def keys(self):
         '''Message keys in the Corpus'''
-
         return self.msgs.keys()
 
     def __iter__(self):
         '''Corpus is iterable'''
-
         for key in self.keys():
             try:
                 yield self[key]
@@ -238,12 +225,10 @@ class Corpus:
 
     def __str__(self):
         '''Instance as a printable string'''
-
         return self.__repr__()
 
     def __repr__(self):
         '''Instance as a representative string'''
-
         raise NotImplementedError
 
     def makeMessage(self, key):
@@ -260,7 +245,6 @@ class ExpiryCorpus:
 
     def __init__(self, expireBefore):
         '''Constructor'''
-
         self.expireBefore = expireBefore
 
     def removeExpiredMessages(self):
@@ -273,153 +257,6 @@ class ExpiryCorpus:
                 self.removeMessage(msg)
 
 
-class Message:
-    '''Abstract Message class'''
-
-    def __init__(self):
-        '''Constructor()'''
-
-        # The text of the message headers and body are held in attributes
-        # called 'hdrtxt' and 'payload', created on demand in __getattr__
-        # by calling load(), which should in turn call setSubstance().
-        # This means you don't need to remember to call load() before
-        # using these attributes.
-
-    def __getattr__(self, attributeName):
-        '''On-demand loading of the message text.'''
-
-        if attributeName in ('hdrtxt', 'payload'):
-            self.load()
-        try:
-            return self.__dict__[attributeName]
-        except KeyError:
-            raise AttributeError, attributeName
-
-    def load(self):
-        '''Method to load headers and body'''
-
-        raise NotImplementedError
-
-    def store(self):
-        '''Method to persist a message'''
-
-        raise NotImplementedError
-
-    def remove(self):
-        '''Method to obliterate a message'''
-
-        raise NotImplementedError
-
-    def __repr__(self):
-        '''Instance as a representative string'''
-
-        raise NotImplementedError
-
-    def __str__(self):
-        '''Instance as a printable string'''
-
-        return self.getSubstance()
-
-    def name(self):
-        '''Message may have a unique human readable name'''
-
-        return self.__repr__()
-
-    def key(self):
-        '''The key for this instance'''
-
-        raise NotImplementedError
-
-    def setSubstance(self, sub):
-        '''set this message substance'''
-
-        bodyRE = re.compile(r"\r?\n(\r?\n)(.*)", re.DOTALL+re.MULTILINE)
-        bmatch = bodyRE.search(sub)
-        if bmatch:
-            self.payload = bmatch.group(2)
-            self.hdrtxt = sub[:bmatch.start(2)]
-        else:
-            # malformed message - punt
-            self.payload = sub
-            self.hdrtxt = ""
-
-    def getSubstance(self):
-        '''Return this message substance'''
-
-        return self.hdrtxt + self.payload
-
-    def setSpamprob(self, prob):
-        '''Score of the last spamprob calc, may not be persistent'''
-
-        self.spamprob = prob
-
-    def tokenize(self):
-        '''Returns substance as tokens'''
-
-        return tokenizer.tokenize(self.getSubstance())
-
-    def createTimeStamp(self):
-        '''Returns the create time of this message'''
-        # Should return a timestamp like time.time()
-
-        raise NotImplementedError
-
-    def getFrom(self):
-        '''Return a message From header content'''
-
-        if self.hdrtxt:
-            match = re.search(r'^From:(.*)$', self.hdrtxt, re.MULTILINE)
-            return match.group(1)
-        else:
-            return None
-
-    def getSubject(self):
-        '''Return a message Subject header contents'''
-
-        if self.hdrtxt:
-            match = re.search(r'^Subject:(.*)$', self.hdrtxt, re.MULTILINE)
-            return match.group(1)
-        else:
-            return None
-
-    def getDate(self):
-        '''Return a message Date header contents'''
-
-        if self.hdrtxt:
-            match = re.search(r'^Date:(.*)$', self.hdrtxt, re.MULTILINE)
-            return match.group(1)
-        else:
-            return None
-
-    def getHeadersList(self):
-        '''Return a list of message header tuples'''
-
-        hdrregex = re.compile(r'^([A-Za-z0-9-_]*): ?(.*)$', re.MULTILINE)
-        data = re.sub(r'\r?\n\r?\s',' ',self.hdrtxt,re.MULTILINE)
-        match = hdrregex.findall(data)
-
-        return match
-
-    def getHeaders(self):
-        '''Return message headers as text'''
-
-        return self.hdrtxt
-
-    def getPayload(self):
-        '''Return the message body'''
-
-        return self.payload
-
-    def stripSBDHeader(self):
-        '''Removes the X-Spambayes-Disposition: header from the message'''
-
-        # This is useful for training, where a spammer may be spoofing
-        # our header, to make sure that our header doesn't become an
-        # overweight clue to hamminess
-
-        raise NotImplementedError
-
-
 class MessageFactory:
     '''Abstract Message Factory'''
 
@@ -429,7 +266,6 @@ class MessageFactory:
 
     def create(self, key):
         '''Create a message instance'''
-
         raise NotImplementedError
 
 

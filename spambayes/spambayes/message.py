@@ -87,22 +87,24 @@ except NameError:
     def bool(val):
         return not not val
 
-import sys
 import os
 import types
+import math
 import re
+import sys
+import types
+import shelve
 
-import email            # for message_from_string
+import email
 import email.Message
 import email.Parser
 
-from spambayes.tokenizer import tokenize
+from spambayes import dbmstorage
 from spambayes.Options import options
+from spambayes.tokenizer import tokenize
 
 from cStringIO import StringIO
 
-from spambayes import dbmstorage
-import shelve
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
@@ -285,7 +287,15 @@ class SBHeaderMessage(Message):
         self[options['Headers','classification_header_name']] = disposition
 
         if options['Headers','include_score']:
-            self[options['Headers','score_header_name']] = str(prob)
+            disp = str(prob)
+            if options["Headers", "header_score_logarithm"]:
+                if prob<=0.005 and prob>0.0:
+                    x=-math.log10(prob)
+                    disp += " (%d)"%x
+                if prob>=0.995 and prob<1.0:
+                    x=-math.log10(1.0-prob)
+                    disp += " (%d)"%x
+            self[options['Headers','score_header_name']] = disp
 
         if options['Headers','include_thermostat']:
             thermostat = '**********'
