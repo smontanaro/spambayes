@@ -636,6 +636,7 @@ class State:
         self.bayes = None
         self.platform_mutex = None
         self.prepared = False
+        self.can_stop = True
         self.init()
 
         # Load up the other settings from Option.py / bayescustomize.ini
