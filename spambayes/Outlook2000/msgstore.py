@@ -985,18 +985,27 @@ class MAPIMsgStoreMsg:
         # This is designed to fake up some SMTP headers for messages
         # on an exchange server that do not have such headers of their own
         prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, \
-                   PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME
+                   PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME, \
+                   PR_SENDER_NAME_A
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         subject = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         sender = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         to = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
         cc = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
         delivery_time = data[4][1]
+        alt_sender = self._GetPotentiallyLargeStringProp(prop_ids[5],
+                                                         data[5])
         headers = ["X-Exchange-Message: true"]
-        if subject: headers.append("Subject: "+subject)
-        if sender: headers.append("From: "+sender)
-        if to: headers.append("To: "+to)
-        if cc: headers.append("CC: "+cc)
+        if subject:
+            headers.append("Subject: "+subject)
+        if sender:
+            headers.append("From: "+sender)
+        elif alt_sender:
+            headers.append("From: "+alt_sender)
+        if to:
+            headers.append("To: "+to)
+        if cc:
+            headers.append("CC: "+cc)
         if delivery_time:
             from time import timezone
             from email.Utils import formatdate
