@@ -294,6 +294,14 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         return msg
 
     def SetField(self, prop, val):
+        # XXX If the SpamProb (Hammie, whatever) property is passed in as an
+        # XXX int, Outlook displays the field as all blanks, and sorting on
+        # XXX it doesn't do anything, etc.  I don't know why.  Since I'm
+        # XXX running Python 2.2.2, the _MapiTypeMap above confuses ints
+        # XXX with bools, but the problem persists even if I comment out the
+        # XXX PT_BOOLEAN entry from that dict.  Dumping in prints below show
+        # XXX that type_tag is 3 then, and that matches the defn of PT_I4 in
+        # XXX my system header files.
         self._EnsureObject()
         if type(prop)!=type(0):
             props = ( (mapi.PS_PUBLIC_STRINGS, prop), )
