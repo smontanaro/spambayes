@@ -34,7 +34,9 @@ Where OPTIONS is one or more of:
         quiet mode; no output
         
     -n  train mail residing in "new" directory, in addition to "cur" directory,
-        which is always trained
+        which is always trained (Maildir only)
+
+    -r  remove mail which was trained on (Maildir only)
 """
 
 try:
@@ -45,6 +47,7 @@ except NameError:
 
 import sys, os, getopt
 from spambayes import hammie, mboxutils
+from spambayes.Options import options
 
 program = sys.argv[0]
 TRAINED_HDR = "X-Spambayes-Trained"
@@ -62,9 +65,9 @@ def msg_train(h, msg, is_spam, force):
         return False
 
     if is_spam:
-        spamtxt = "spam"
+        spamtxt = options["Headers", "header_spam_string"]
     else:
-        spamtxt = "ham"
+        spamtxt = options["Headers", "header_ham_string"]
     oldtxt = msg.get(TRAINED_HDR)
     if force:
         # Train no matter what.
@@ -82,10 +85,10 @@ def msg_train(h, msg, is_spam, force):
 
     return True
 
-def maildir_train(h, path, is_spam, force):
+def maildir_train(h, path, is_spam, force, removetrained):
     """Train bayes with all messages from a maildir."""
 
-    if loud: print "  Reading as Maildir"
+    if loud: print "  Reading %s as Maildir" % (path,)
 
     import time
     import socket
@@ -96,11 +99,13 @@ def maildir_train(h, path, is_spam, force):
     trained = 0
 
     for fn in os.listdir(path):
-        counter += 1
         cfn = os.path.join(path, fn)
         tfn = os.path.normpath(os.path.join(path, "..", "tmp",
                            "%d.%d_%d.%s" % (time.time(), pid,
                                             counter, host)))
+        if (os.path.isdir(cfn)):
+            continue
+        counter += 1
         if loud:
             sys.stdout.write("  %s        \r" % fn)
             sys.stdout.flush()
@@ -116,6 +121,8 @@ def maildir_train(h, path, is_spam, force):
         # XXX: This will raise an exception on Windows.  Do any Windows
         # people actually use Maildirs?
         os.rename(tfn, cfn)
+        if (removetrained):
+            os.unlink(cfn)
 
     if loud:
         print ("  Trained %d out of %d messages                " %
@@ -207,15 +214,15 @@ def mhdir_train(h, path, is_spam, force):
         print ("  Trained %d out of %d messages                " %
                (trained, counter))
 
-def train(h, path, is_spam, force, trainnew):
+def train(h, path, is_spam, force, trainnew, removetrained):
     if not os.path.exists(path):
         raise ValueError("Nonexistent path: %s" % path)
     elif os.path.isfile(path):
         mbox_train(h, path, is_spam, force)
     elif os.path.isdir(os.path.join(path, "cur")):
-        maildir_train(h, os.path.join(path, "cur"), is_spam, force)
+        maildir_train(h, os.path.join(path, "cur"), is_spam, force, removetrained)
         if trainnew:
-            maildir_train(h, os.path.join(path, "new"), is_spam, force)
+            maildir_train(h, os.path.join(path, "new"), is_spam, force, removetrained)
     elif os.path.isdir(path):
         mhdir_train(h, path, is_spam, force)
     else:
@@ -236,7 +243,7 @@ def main():
     global loud
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hfqnd:D:g:s:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:D:g:s:')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -247,6 +254,7 @@ def main():
     usedb = None
     force = False
     trainnew = False
+    removetrained = False
     good = []
     spam = []
     for opt, arg in opts:
@@ -262,6 +270,8 @@ def main():
             good.append(arg)
         elif opt == '-s':
             spam.append(arg)
+        elif opt == "-r":
+            removetrained = True
         elif opt == "-d":
             usedb = True
             pck = arg
@@ -278,12 +288,12 @@ def main():
 
     for g in good:
         if loud: print "Training ham (%s):" % g
-        train(h, g, False, force, trainnew)
+        train(h, g, False, force, trainnew, removetrained)
         save = True
 
     for s in spam:
         if loud: print "Training spam (%s):" % s
-        train(h, s, True, force, trainnew)
+        train(h, s, True, force, trainnew, removetrained)
         save = True
 
     if save:
