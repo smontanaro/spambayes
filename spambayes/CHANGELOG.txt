@@ -1,5 +1,6 @@
 (Next Release)
 ==============
+Richie Hindle  26/08/2003  Fix [ 743131 ] Specifying a POP3 server on the pop3proxy command line but no local port number (ie. no -l) now works again, defaulting to local port 110.
 Tony Meyer     19/08/2003  Allow @ and = in paths.
 Mark Hammond   18/08/2003  Improve the starting/stopping of the pop3proxy service
 Tony Meyer     18/08/2003  Allow the pop3proxy_service to start smtpproxy as well
