@@ -1,86 +1,79 @@
-<h3>For MacOS 9</h3>
-<h4>before anything</h4>
-<p>Due to MacOS multitasking, the popproxy does not work very fast. On a
-Cube 
-or a  G4 400, I found it usable but not much. YMMV.
-To handle network connection to <em>localhost</em> it is easier to add a
-host file. If you don't have one already, create one with any text editor.</p>
-<p>Its name must be "hosts". It should be located in the "Preference" folder.
-Its content should be similar to:
-<pre>
-localhost CNAME yourmac.example.com
-yourmac.example.com A 127.0.0.1
-</pre></p>
-<p>The localhost and 127.0.0.1 values must be exactly like this. If you
-don't 
-know the right value to use for yourmac.example.com, put
-anything that looks like this. The end of the first line must be the same as
-the beginning of the second line.</p>
-<p>When this file is created, go to the "TCP/IP" control panel. Set the user level
-to Administrator. Click on "Use a host file" and select this file. Save
-your changes.</p>
-<p>On the Mac, you can transform a Python script into a double-clickable
-applet. Just drag & drop the pop3proxy.py script onto the BuildApplet
-application. You'll get a double-clickable pop3proxy application.</p>
-<p>Start pop3proxy and open up a web browser to http://localhost:8880.
-Click on the Configuration link.</p>
-<p>Ensure that the servers line looks like:
-<pre>
-pop3proxy_servers: pop.videotron.ca:110,mail.ulaval.ca:110
-</pre>
-And that the ports line looks like:
-<pre>
-pop3proxy_ports: 110, 6111
-</pre>
-<h4>Configuring Entourage</h4>
-<p>
-<ul>
-<li>Go to the Tools menu and choose Accounts.</li>
-<li>Click on New and choose POP.</li>
-<li>Fill in the various fields. For the POP server field, put "localhost".</li>
-<li>For the videotron account, you are done.</li>
-<li>For the ulaval account,  in the "Advance receive option" windows click on
-the "Ignore the default POP port" check box and type in 6111.</li>
-</ul>
-</p>
-<h4>Filtering with Entourage</h4>
-<p>The rule can be:
-<pre>
-If
-    Specific header: X-Spambayes-Classification Contains ham
-then    
-    do nothing
-If
-    Specific header: X-Spambayes-Classification Contains spam
-then    
-    Move message to folder Spam
-If
-    Specific header: X-Spambayes-Classification Contains unsure
-then    
-    Move message to folder Unsure
-</pre>
+Additional Information about using the POP3 Proxy.
+==================================================
 
-<h4>Configuring Eudora</h4>
-<p>In Eudora, you will be able to reach only one pop server, since you can
+For MacOS 9
+-----------
+As a result of the MacOS multitasking, the proxy may not work very fast
+(reports suggest that at least a Cube or G4 400 is necessary; YMMV).
+
+To handle a network connection to 'localhost', it is easiest to add a host
+file.  If you don't have one already, create a text file called "hosts" in
+the "Preferences" folder.  The content of the file should be:
+	localhost CNAME yourmac.example.com
+	yourmac.example.com	A 127.0.0.1
+The localhost and 127.0.0.1 values must be exactly like this.  If you don't
+know the right value to use for "yourmac.example.com", put anything that
+looks like this.  The end of the first line must be the same as the start of
+the second line.
+When this file is created, go to the "TCP/IP" control panl.  Set the user
+level to 'Administrator'.  Click on "Use a host file" and select this file.
+Save your changes.
+
+On the Mac, you can transform a Python script into a double-clickable
+applet. Just drag & drop the pop3proxy.py script onto the BuildApplet
+application. You'll get a double-clickable pop3proxy application.
+
+To setup:
+  1. Start pop3proxy and open up a web browser to http://localhost:8880.
+  2. Click on the Configuration link.
+  3. Ensure that the servers line looks like:
+	pop3proxy_servers: pop.example.com:110,mail.example.com:110
+  4. And that the ports line looks like:
+	pop3proxy_ports: 110, 111
+
+To configure Entourage:
+  1. Go to the 'Tools' menu and choose 'Accounts'.
+  2. Click on 'New' and choose 'POP'.
+  3. Fill in the various fields. For the POP server field, put "localhost".
+  4. For the pop.example.com account, you are done.
+  5. For the mail.example.com account,  in the "Advance receive option"
+     window click on the "Ignore the default POP port" check box and type
+     in 111.
+
+To filter with Entourage:
+The rule can be:
+	If
+	    Specific header: X-Spambayes-Classification Contains ham
+	then    
+	    do nothing
+	If
+	    Specific header: X-Spambayes-Classification Contains spam
+	then    
+	    Move message to folder Spam
+	If
+	    Specific header: X-Spambayes-Classification Contains unsure
+	then    
+	    Move message to folder Unsure
+
+To configure Eudora:
+In Eudora, you will be able to reach only one pop server, since you can
 configure only one port number for POP. But on this server, you can access
-more than one account.</p>
-<p>Go to the Tool menu and choose Personalities.</p>
-<p>Create an new personality with the POP server as "localhost".</p>
-<p>With the proposed "bayescustomize.ini" you will be able to talk only to
-the videotron server.</p>
-<h4>Filtering with Eudora</h4>
-<p>The rule can be:
-<pre>
-Match
-    Header: X-Spambayes-Classification contains ham
-Action    
-    do nothing
-Match
-    Header: X-Spambayes-Classification contains spam
-Action    
-    Transfer To Spam
-Match
-    Header: X-Spambayes-Classification contains unsure
-Action    
-    Transfer To Unsure
-</pre>
+more than one account.
+  1. Go to the 'Tools' menu and choose 'Personalities'.
+  2. Create a new personality with the POP server as "localhost".
+  Note: You will be able to talk only to the pop.example.com server.
+
+To filter with Eudora:
+The rule can be:
+	Match
+	    Header: X-Spambayes-Classification contains ham
+	Action    
+	    do nothing
+	Match
+	    Header: X-Spambayes-Classification contains spam
+	Action    
+	    Transfer To Spam
+	Match
+	    Header: X-Spambayes-Classification contains unsure
+	Action    
+	    Transfer To Unsure
