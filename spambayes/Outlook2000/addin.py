@@ -364,27 +364,8 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # generator would miss it, so we process it synchronously.
         if not self.use_timer or not item.UnRead:
             ms = self.manager.message_store
-            # The object can sometimes change underneath us (most noticably
-            # with hotmail, which presumably has greater 'synchronization'
-            # issues than tightly bound stores.  We accept this error exactly
-            # 2 times (once as we have seen it, and twice as it can't hurt ;)
-            for i in range(3):
-                try:
-                    msgstore_message = ms.GetMessage(item)
-                    ProcessMessage(msgstore_message, self.manager)
-                    break
-                except ms.ObjectChangedException:
-                    # try again.
-                    self.manager.LogDebug(1, "Got object changed error - trying again...")
-                    continue
-                except ms.MsgStoreException, details:
-                    print "Unexpected error fetching message"
-                    traceback.print_exc()
-                    print details
-                    break
-            else:
-                print "WARNING: Could not filter a message, as we got an " \
-                      "'object changed' exception 3 times!"
+            msgstore_message = ms.GetMessage(item)
+            ProcessMessage(msgstore_message, self.manager)
         else:
             self._StartTimer()
 
