@@ -474,7 +474,7 @@ Sorry, but you can't.  However, Outlook has an excellent "auto-archive"
 facility which can be used to the same effect - simply configure
 auto-archive to periodically delete your Spam folder.
 
-It is recommended that you configure auto-complete to keep at least a 
+It is recommended that you configure auto-archive to keep at least a 
 few days of Spam around, should the SpamBayes database become corrupt and 
 require you to perform a full re-train.
 
