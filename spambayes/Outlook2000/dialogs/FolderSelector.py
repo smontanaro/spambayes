@@ -57,9 +57,10 @@ def _BuildFoldersMAPI(manager, folder_id):
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
     children = []
+    order = (((PR_DISPLAY_NAME_A, mapi.TABLE_SORT_ASCEND),),0,0)
     rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,
                                        PR_STORE_ENTRYID,
-                                       PR_DISPLAY_NAME_A), None, None, 0)
+                                       PR_DISPLAY_NAME_A), None, order, 0)
     for (eid_tag, eid),(storeeid_tag, store_eid), (name_tag, name) in rows:
         # Note the eid we get here is short-term - hence we must
         # re-fetch from the object itself (which is what our manager does,
