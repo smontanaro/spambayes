@@ -116,6 +116,10 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# The ConfigParser included with Python 2.2 is not exensible in this
+# fashion.  The wise Python developers realised this (sort of) and changed
+# this for Python 2.3.  We offer a version of the 2.3 ConfigParser
+# for those using 2.2, however.
 from CompatConfigParser import ConfigParser, ParsingError
 from CompatConfigParser import DEFAULTSECT, NoSectionError, NoOptionError
 from os import rename, remove, tempnam
@@ -172,22 +176,47 @@ class UpdatableConfigParser(ConfigParser):
                     self._pruned[sect] = None
         return existed
 
+    def add_section(self, section):
+        sect = {}
+        sect["__name__"] = section
+        self._sections[section] = sect
+
+    def add_option(self, section, option, value, original_file="<???>"):
+        if not self.has_section(section):
+            self.add_section(section)
+        if self.record_original_values == True:
+            self._updateDataIncludingOriginalValue(original_file, section,
+                                                   option, value)
+        else:
+            self._updateDataNoOriginalValue(original_file, section, option)
+            if original_file == "<???>":
+                return
+            sectdict = {}
+            optdict = {}
+            if self._changed_options.has_key(original_file):
+                sectdict = self._changed_options[original_file]
+                if sectdict.has_key(section):
+                    optdict = sectdict[section]
+            optdict[option] = value
+            sectdict[section] = optdict
+            self._changed_options[original_file] = sectdict
+
     def set(self, section, option, value):
         # c.f. ConfigParser.set()
-        print "setting", section, option, value
         ConfigParser.set(self, section, option, value)
         if self.record_original_values == False:
-            for file, sect in self._data.items():
-                if sect == section:
-                    sectdict = {}
-                    optdict = {}
-                    if self._changed_options.has_key(file):
-                        sectdict = self._changed_options[file]
-                        if sectdict.has_key(section):
-                            optdict = sectdict[section]
-                    optdict[option] = value
-                    sectdict[section] = optdict
-                    self._changed_options[file] = sectdict
+            for (sect, opt), files in self._data.items():
+                for file in files:
+                    if sect == section:
+                        sectdict = {}
+                        optdict = {}
+                        if self._changed_options.has_key(file):
+                            sectdict = self._changed_options[file]
+                            if sectdict.has_key(section):
+                                optdict = sectdict[section]
+                        optdict[option] = value
+                        sectdict[section] = optdict
+                        self._changed_options[file] = sectdict
 
     def _read(self, fp, fpname):
         # c.f. ConfigParser._read()
@@ -286,7 +315,7 @@ class UpdatableConfigParser(ConfigParser):
 
     def _updateDataNoOriginalValue(self, filename, sectname, optname):
         if self._data.has_key((sectname, optname)):
-            existing_data = self._data[(sectname, optname)]
+            existing_files = self._data[(sectname, optname)]
             if filename not in existing_files:
                 existing_files += filename,
             self._data[(sectname, optname)] = existing_files

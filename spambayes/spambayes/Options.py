@@ -1121,6 +1121,13 @@ class Option(object):
         strval += "\"%s\"\n\n" % (str(self.doc()))
         return strval
 
+    def write_config(self, file):
+        '''Output value in configuration file format.'''
+        file.write(self.name)
+        file.write(':')
+        file.write(str(self.value))
+        file.write('\n')
+
 class OptionsClass(object):
     def __init__(self):
         self._config = UpdatableConfigParser.UpdatableConfigParser()
@@ -1128,6 +1135,17 @@ class OptionsClass(object):
 
     def update_file(self, file):
         '''Update the specified configuration file.'''
+        # The underlying config object doesn't get kept up-to-date
+        # because option values are stored in the nice option objects
+        # and the config object can't handle those.  So we do a quick
+        # update here (no-one else access the config object anyway).
+        for sect, opt in self._options.keys():
+            if self._config.has_option(sect, opt):
+                self._config.set(sect, opt, str(self.get(sect, opt)))
+            else:
+                self._config.add_option(sect, opt,
+                                        str(self.get(sect, opt)),
+                                        optionsPathname)
         self._config.update_file(file)
 
     def load_defaults(self):
@@ -1197,7 +1215,7 @@ class OptionsClass(object):
         '''Get an option.'''
         if sect is None or opt is None:
             return None
-        return self._options[sect, opt].value
+        return self._options[sect, opt].get()
 
     def __getitem__(self, key):
         return self.get(key[0], key[1])
@@ -1206,12 +1224,9 @@ class OptionsClass(object):
         '''Set an option.'''
         if sect is None or opt is None:
             raise KeyError
-        if not self._options.has_key((sect, opt)):
-            o = Option(opt)
-            self._options[sect, opt] = o
         self.convert(sect, opt, val)
-        if self._options[sect, opt].is_valid(val):
-            self._options[sect, opt].value = val
+        if self.is_valid(sect, opt, val):
+            self._options[sect, opt].set(val)
         else:
             print "Attempted to set [%s] %s with invalid value %s (%s)" % \
                   (sect, opt, val, type(val))
@@ -1259,7 +1274,7 @@ class OptionsClass(object):
                     value = getattr(c, fetcher)(section, option)
                     if converter is not None:
                         value = converter(value)
-                self._options[section, option].set(value)
+                self.set(section, option, value)
                 # just for the moment, here's some more
                 # backwards compatability - this will go
                 # away very soon, so don't rely on this working
@@ -1271,7 +1286,18 @@ class OptionsClass(object):
     def display(self):
         '''Display options in a config file form.'''
         output = StringIO.StringIO()
-        self._config.write(output)
+        keys = self._options.keys()
+        keys.sort()
+        currentSection = None
+        for sect, opt in keys:
+            if sect != currentSection:
+                if currentSection is not None:
+                    output.write('\n')
+                output.write('[')
+                output.write(sect)
+                output.write("]\n")
+                currentSection = sect
+            self._options[sect, opt].write_config(output)
         return output.getvalue()
 
     def display_full(self):
@@ -1280,10 +1306,9 @@ class OptionsClass(object):
        # as it once was, this returns all the information, i.e.
        # the doc, default values, and so on
        output = StringIO.StringIO()
-       keys = self._options.keys()
-       keys.sort()
-       for (s, o) in keys:
-           output.write(self._options[s, o].as_nice_string(s))
+       for sect in self._config.sections():
+           for opt in self._config.options(sect):
+               output.write(self.as_nice_string(sect, opt))
        return output.getvalue()
 
 
