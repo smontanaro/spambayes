@@ -691,10 +691,11 @@ defaults = {
      HEADER_NAME, RESTORE),
 
     ("include_trained", _("Add trained header"), True,
-     _("""sb_mboxtrain.py can add a header that details how a message was
-     trained, which lets you keep track of it, and appropriately
-     re-train messages.  However, if you would rather mboxtrain didn't
-     rewrite the message files, you can disable this option."""),
+     _("""sb_mboxtrain.py and sb_filter.py can add a header that details
+     how a message was trained, which lets you keep track of it, and
+     appropriately re-train messages.  However, if you would rather
+     mboxtrain/sb_filter didn't rewrite the message files, you can disable
+     this option."""),
      BOOLEAN, RESTORE),
 
     ("trained_header_name", _("Trained header name"), "X-Spambayes-Trained",
