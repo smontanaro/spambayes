@@ -266,30 +266,51 @@ class SBHeaderMessage(Message):
         add optional headers if needed.'''
         
         if prob < options['Categorization','ham_cutoff']:
-            disposition = options['Hammie','header_ham_string']
+            disposition = options['Headers','header_ham_string']
         elif prob > options['Categorization','spam_cutoff']:
-            disposition = options['Hammie','header_spam_string']
+            disposition = options['Headers','header_spam_string']
         else:
-            disposition = options['Hammie','header_unsure_string']
+            disposition = options['Headers','header_unsure_string']
         self.RememberClassification(disposition)
-        self[options['Hammie','header_name']] = disposition
+        self[options['Headers','classification_header_name']] = disposition
         
-        if options['pop3proxy','include_prob']:
-            self[options['pop3proxy','prob_header_name']] = str(prob)
+        if options['Headers','include_score']:
+            self[options['Headers','score_header_name']] = str(prob)
             
-        if options['pop3proxy','include_thermostat']:
+        if options['Headers','include_thermostat']:
             thermostat = '**********'
-            self[options['pop3proxy','thermostat_header_name']] = \
+            self[options['Headers','thermostat_header_name']] = \
                                thermostat[:int(prob*10)]
                                
-        if options['pop3proxy','include_evidence']:
-            hco = options['Hammie','clue_mailheader_cutoff']
+        if options['Headers','include_evidence']:
+            hco = options['Headers','clue_mailheader_cutoff']
             sco = 1 - hco
             evd = []
             for word, score in clues:
                 if (word[0] == '*' or score <= hco or score >= sco):
                     evd.append("%r: %.2f" % (word, score))
-            self[options['pop3proxy','evidence_header_name']] = "; ".join(evd)
+            self[options['Headers','evidence_header_name']] = "; ".join(evd)
+
+        # These are pretty ugly, but no-one has a better idea about how to
+        # allow filtering in 'stripped down' mailers like Outlook Express,
+        # so for the moment, they stay in.
+        if options["pop3proxy", "notate_to"] \
+           and disposition == options["Headers", "header_spam_string"]:
+            # add 'spam' as recip only if spam
+            try:
+                self.replace_header("To", "%s,%s" % (disposition,
+                                                     self["To"]))
+            except KeyError:
+                self["To"] = disposition
+
+        if options["pop3proxy", "notate_subject"] \
+           and disposition == options["Hammie", "header_spam_string"]:
+            # add 'spam' to subject if spam
+            try:
+                self.replace_header("Subject", "%s,%s" % (disposition,
+                                                          self["Subject"]))
+            except KeyError:
+                self["Subject"] = disposition
         
         if "header" in options['pop3proxy','add_mailid_to']:
             self[options['pop3proxy','mailid_header_name']] = self.id
