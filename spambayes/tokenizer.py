@@ -511,6 +511,10 @@ del aliases # Not needed any more
 # Curious, but not worth digging into.  Boosting the lower bound to 4 is a
 # worse idea:  f-p and f-n rates both suffered significantly then.  I didn't
 # try testing with lower bound 2.
+# 
+# Anthony Baxter found that boosting the option skip_max_word_size to 20
+# from it's default of 12 produced a quite dramatic decrease in the number
+# of 'unsure' messages.
 
 
 # textparts(msg) returns a set containing all the text components of msg.
@@ -1049,7 +1053,7 @@ class Tokenizer:
         for x in x2n.items():
             yield "header:%s:%d" % x
 
-    def tokenize_body(self, msg):
+    def tokenize_body(self, msg, maxword=options.skip_max_word_size):
         """Generate a stream of tokens from an email Message.
 
         HTML tags are always stripped from text/plain sections.
@@ -1117,7 +1121,7 @@ class Tokenizer:
             for w in text.split():
                 n = len(w)
                 # Make sure this range matches in tokenize_word().
-                if 3 <= n <= 12:
+                if 3 <= n <= maxword:
                     yield w
 
                 elif n >= 3:
