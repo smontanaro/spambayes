@@ -28,7 +28,8 @@ def TestFailed(msg):
 
 def WaitForFilters():
     import pythoncom
-    for i in range(100):
+    # Must wait longer than normal, so when run with a timer we still work.
+    for i in range(500):
         pythoncom.PumpWaitingMessages()
         sleep(0.01)
 
@@ -319,23 +320,36 @@ def run_tests(manager):
     TestHamFilter(driver)
     driver.CleanAllTestMessages()
 
-def test(manager = None):
+def test(manager):
     # Run the tests - called from our plugin.
+    import msgstore
     try:
+        msgstore.test_suite_running = True
         # setup config to save info with the message, and test
-        print "Running tests with save_spam_info=True"
+        print "*" * 10, "Running tests with save_spam_info=True, timer off"
+        manager.config.experimental.timer_start_delay = 0
+        manager.config.experimental.timer_interval = 0
         manager.config.filter.save_spam_info = True
+        manager.addin.FiltersChanged() # to ensure correct filtler in place
         run_tests(manager)
         # do it again with the same config, just to prove we can.
-        print "Running them again with save_spam_info=True"
+        print "*" * 10, "Running them again with save_spam_info=True"
+        run_tests(manager)
+        # enable the timer.
+        manager.config.experimental.timer_start_delay = 1000
+        manager.config.experimental.timer_interval = 500
+        manager.addin.FiltersChanged() # to switch to timer based filters.
+        print "*" * 10, "Running them again with save_spam_info=True, and timer enabled"
         run_tests(manager)
         # and with save_spam_info False.
-        print "Running tests with save_spam_info=False"
+        print "*" * 10, "Running tests with save_spam_info=False"
         manager.config.filter.save_spam_info = False
         run_tests(manager)
     finally:
         # Always restore configuration to how we started.
+        msgstore.test_suite_running = False
         manager.LoadConfig()
+        manager.addin.FiltersChanged() # restore original filters.
 
 if __name__=='__main__':
     print "NOTE: This will NOT work from the command line"
