@@ -92,6 +92,7 @@ import os, sys, re, errno, getopt, time, traceback, socket, cStringIO
 from thread import start_new_thread
 from email.Header import Header
 
+import smtpproxy
 import spambayes.message
 from spambayes import Dibbler
 from spambayes import storage
@@ -488,8 +489,6 @@ class BayesProxy(POP3ProxyBase):
                 body = re.split(r'\n\r?\n', messageText, 1)[1]
                 messageText = "\r\n".join(headers) + "\r\n\r\n" + body
 
-                crashMe()
-
             except:
                 # Something nasty happened while parsing or classifying -
                 # report the exception in a hand-appended header and recover.
@@ -739,7 +738,6 @@ def prepare(state):
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
-    import smtpproxy
     servers, proxyPorts = smtpproxy.LoadServerInfo()
     smtpproxy.CreateProxies(servers, proxyPorts, state)
 
