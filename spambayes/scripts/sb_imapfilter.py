@@ -150,6 +150,7 @@ INTERNALDATE_RE = re.compile(r"(INTERNALDATE) (\"\d{1,2}\-[A-Za-z]{3,3}\-" +
                              r"\d{2,4} \d{2,2}\:\d{2,2}\:\d{2,2} " +
                              r"[\+\-]\d{4,4}\")")
 RFC822_RE = re.compile(r"(RFC822) (\{[\d]+\})")
+BODY_PEEK_RE = re.compile(r"(BODY\[\]) (\{[\d]+\})")
 RFC822_HEADER_RE = re.compile(r"(RFC822.HEADER) (\{[\d]+\})")
 UID_RE = re.compile(r"(UID) ([\d]+)")
 FETCH_RESPONSE_RE = re.compile(r"([0-9]+) \(([" + \
@@ -183,9 +184,10 @@ def _extract_fetch_data(response):
     #  RFC822
     #  UID
     #  RFC822.HEADER
+    #  BODY.PEEK
     # All others are ignored.
     for r in [FLAGS_RE, INTERNALDATE_RE, RFC822_RE, UID_RE,
-              RFC822_HEADER_RE]:
+              RFC822_HEADER_RE, BODY_PEEK_RE]:
         mo = r.search(response)
         if mo is not None:
             if LITERAL_RE.match(mo.group(2)):
@@ -331,7 +333,8 @@ class IMAPMessage(message.SBHeaderMessage):
         message.Message.__init__(self)
         self.folder = None
         self.previous_folder = None
-        self.rfc822_command = "BODY.PEEK[]"
+        self.rfc822_command = "(BODY.PEEK[])"
+        self.rfc822_key = "BODY[]"
         self.got_substance = False
         self.invalid = False
 
@@ -381,9 +384,11 @@ class IMAPMessage(message.SBHeaderMessage):
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         except IMAP4.error:
             self.rfc822_command = "RFC822"
+            self.rfc822_key = "RFC822"
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         if response[0] != "OK":
             self.rfc822_command = "RFC822"
+            self.rfc822_key = "RFC822"
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         self._check(response, "uid fetch")
         data = _extract_fetch_data(response[1][0])
@@ -392,7 +397,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # we go through the hoops of creating a new message, and then
         # copying over all its internals.
         try:
-            new_msg = email.Parser.Parser().parsestr(data["RFC822"])
+            new_msg = email.Parser.Parser().parsestr(data[self.rfc822_key])
         except email.Errors.MessageParseError, e:
             # Yikes!  Barry set this to return at this point, which
             # would work ok for training (IIRC, that's all he's
