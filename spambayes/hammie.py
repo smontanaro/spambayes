@@ -43,6 +43,7 @@ import cPickle as pickle
 
 import mboxutils
 import classifier
+from Options import options
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
@@ -53,7 +54,7 @@ DISPHEADER = "X-Hammie-Disposition"
 DEFAULTDB = "hammie.db"
 
 # Probability at which a message is considered spam
-SPAM_THRESHOLD = 0.9
+SPAM_THRESHOLD = options.spam_cutoff
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
@@ -139,12 +140,13 @@ class PersistentBayes(classifier.Bayes):
 
     """A persistent Bayes classifier.
 
-    This is just like classifier.Bayes, except that the dictionary
-    is a database.  You take less disk this way, I think, and you can
-    pretend it's persistent.  It's much slower training, but much faster
-    checking, and takes less memory all around.
+    This is just like classifier.Bayes, except that the dictionary is a
+    database.  You take less disk this way and you can pretend it's
+    persistent.  The tradeoffs vs. a pickle are: 1. it's slower
+    training, but faster checking, and 2. it needs less memory to run,
+    but takes more space on the hard drive.
 
-    On destruction, an instantiation of this class will write it's state
+    On destruction, an instantiation of this class will write its state
     to a special key.  When you instantiate a new one, it will attempt
     to read these values out of that key again, so you can pick up where
     you left off.
