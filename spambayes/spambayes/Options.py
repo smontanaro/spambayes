@@ -797,7 +797,7 @@ defaults = {
      try 110, or if that doesn't work, try 8110.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("allow_remote_connections", "Allowed remote connections", "localhost",
+    ("allow_remote_connections", "Allowed remote POP3 connections", "localhost",
      """Enter a list of trusted IPs, separated by commas. Remote POP
      connections from any of them will be allowed. You can trust any
      IP using a single '*' as field value. You can also trust ranges of
@@ -835,7 +835,7 @@ defaults = {
      specify the same number of ports as servers, separated by commas.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("allow_remote_connections", "Allowed remote connections", "localhost",
+    ("allow_remote_connections", "Allowed remote SMTP connections", "localhost",
      """Enter a list of trusted IPs, separated by commas. Remote SMTP
      connections from any of them will be allowed. You can trust any
      IP using a single '*' as field value. You can also trust ranges of
@@ -892,7 +892,7 @@ defaults = {
      line overrides this option.""",
      BOOLEAN, RESTORE),
 
-    ("allow_remote_connections", "Allowed remote connections", "localhost",
+    ("allow_remote_connections", "Allowed remote UI connections", "localhost",
      """Enter a list of trusted IPs, separated by commas. Remote
      connections from any of them will be allowed. You can trust any
      IP using a single '*' as field value. You can also trust ranges of
