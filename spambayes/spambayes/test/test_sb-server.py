@@ -7,7 +7,7 @@ POP3 proxy can be connected to, that incoming mail is classified,
 that pipelining is removed from the CAPA[bility] query, and that the
 web ui is present.
 
-The -t option runs a fake POP3 server on port 8810.  This is the
+The -t option runs a fake POP3 server on port 8110.  This is the
 same server that the -z option uses, and may be separately run for
 other testing purposes.
 
