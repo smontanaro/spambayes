@@ -564,8 +564,7 @@ alternate = None
 if hasattr(os, 'getenv'):
     alternate = os.getenv('BAYESCUSTOMIZE')
 if alternate:
-    r = re.compile(r'(.*?\.ini) *',re.IGNORECASE)
-    filenames = r.findall(alternate)
+    filenames = alternate.split(os.pathsep)
     options.mergefiles(filenames)
     optionsPathname = os.path.abspath(filenames[-1])
 else:
