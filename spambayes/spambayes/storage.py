@@ -606,6 +606,8 @@ def open_storage(data_source_name, useDB=True):
     else:
         klass = PickledClassifier
     try:
+        if isinstance(data_source_name), type(())):
+            return klass(*data_source_name)
         return klass(data_source_name)
     except dbmstorage.error, e:
         if str(e) == "No dbm modules available!":

@@ -18,6 +18,7 @@ To Do:
    many, many attributes to the options object) as soon as all the
    modules are changed over.
 """
+
 import os
 
 __all__ = ['options']
@@ -551,19 +552,18 @@ defaults = {
      HEADER_NAME, RESTORE),
 
     # The three disposition names are added to the header as the following
-    # Three words:
+    # three words:
     ("header_spam_string", "Spam disposition name", "spam",
      """The header that Spambayes inserts into each email has a name,
-     (Header Name, above), and a value.  If the classifier determines
-     that this email is probably spam, it places a header named as
-     above with a value as specified by this string.  The default
+     (Classification eader name, above), and a value.  If the classifier
+     determines that this email is probably spam, it places a header named
+     as above with a value as specified by this string.  The default
      value should work just fine, but you may change it to anything
      that you wish.""",
      HEADER_VALUE, RESTORE),
 
     ("header_ham_string", "Ham disposition name", "ham",
-     """As for Spam Designation, but for emails classified as
-     Ham.""",
+     """As for Spam Designation, but for emails classified as Ham.""",
      HEADER_VALUE, RESTORE),
 
     ("header_unsure_string", "Unsure disposition name", "unsure",
@@ -574,7 +574,7 @@ defaults = {
      HEADER_VALUE, RESTORE),
 
     ("header_score_digits", "Accuracy of reported score", 2,
-     """Accuracy of the score in the header in decimal digits""",
+     """Accuracy of the score in the header in decimal digits.""",
      INTEGER, RESTORE),
 
     ("header_score_logarithm", "Augment score with logarithm", False,
@@ -587,7 +587,7 @@ defaults = {
      """You can have Spambayes insert a header with the calculated spam
      probability into each mail.  If you can view headers with your
      mailer, then you can see this information, which can be interesting
-     and even instructive if you're a serious Spambayes junkie.""",
+     and even instructive if you're a serious SpamBayes junkie.""",
      BOOLEAN, RESTORE),
 
     ("score_header_name", "Probability (score) header name", "X-Spambayes-Spam-Probability",
@@ -635,32 +635,37 @@ defaults = {
      The default is to show all clues, but you can reduce that by setting
      showclue to a lower value, such as 0.1""",
      REAL, RESTORE),
+
+    ("add_unique_id", "Add unique spambayes id", True,
+     """If you wish to be able to find a specific message (via the 'find'
+     box on the home page), or use the SMTP proxy to train using cached
+     messages, you will need to know the unique id of each message.  This
+     option adds this information to a header added to each message.""",
+     BOOLEAN, RESTORE),
   ),
 
-  # pop3proxy settings - pop3proxy also respects the options in the Hammie
-  # section, with the exception of the extra header details at the moment.
-  # The only mandatory option is pop3proxy_servers, eg.
+  # pop3proxy settings: The only mandatory option is pop3proxy_servers, eg.
   # "pop3.my-isp.com:110", or a comma-separated list of those.  The ":110"
   # is optional.  If you specify more than one server in pop3proxy_servers,
   # you must specify the same number of ports in pop3proxy_ports.
   "pop3proxy" : (
     ("remote_servers", "Remote Servers", (),
-     """The Spambayes POP3 proxy intercepts incoming email and classifies
+     """The SpamBayes POP3 proxy intercepts incoming email and classifies
      it before sending it on to your email client.  You need to specify
      which POP3 server(s) you wish it to intercept - a POP3 server
      address typically looks like "pop3.myisp.net".  If you use more than
      one server, simply separate their names with commas.  You can get
      these server names from your existing email configuration, or from
      your ISP or system administrator.  If you are using Web-based email,
-     you can't use the Spambayes POP3 proxy (sorry!).  In your email
+     you can't use the SpamBayes POP3 proxy (sorry!).  In your email
      client's configuration, where you would normally put your POP3 server
      address, you should now put the address of the machine running
-     Spambayes.""",
+     SpamBayes.""",
      SERVER, DO_NOT_RESTORE),
 
     ("listen_ports", "SpamBayes Ports", (),
      """Each POP3 server that is being monitored must be assigned to a
-     'port' in the Spambayes POP3 proxy.  This port must be different for
+     'port' in the SpamBayes POP3 proxy.  This port must be different for
      each monitored server, and there must be a port for
      each monitored server.  Again, you need to configure your email
      client to use this port.  If there are multiple servers, you must
@@ -687,24 +692,26 @@ defaults = {
      """""",
      PATH, DO_NOT_RESTORE),
 
-    ("notate_to", "Notate to", False,
-     """Some email clients (Outlook Express, for example) can only
-     set up filtering rules on a limited set of headers.  These
-     clients cannot test for the existence/value of an arbitrary
-     header and filter mail based on that information.  To
-     accomodate these kind of mail clients, the Notate To: can be
-     checked, which will add "spam", "ham", or "unsure" to the
-     recipient list.  A filter rule can then use this to see if
-     one of these words (followed by a comma) is in the recipient
-     list, and route the mail to an appropriate folder, or take
-     whatever other action is supported and appropriate for the
-     mail classification.""",
-     BOOLEAN, RESTORE),
+    ("notate_to", "Notate to", (),
+     """Some email clients (Outlook Express, for example) can only set up
+     filtering rules on a limited set of headers.  These clients cannot
+     test for the existence/value of an arbitrary header and filter mail
+     based on that information.  To accomodate these kind of mail clients,
+     you can add "spam", "ham", or "unsure" to the recipient list.  A
+     filter rule can then use this to see if one of these words (followed
+     by a comma) is in the recipient list, and route the mail to an
+     appropriate folder, or take whatever other action is supported and
+     appropriate for the mail classification.
 
-    ("notate_subject", "Classify in subject: header", False,
+     As it interferes with replying, you may only wish to do this for
+     spam messages; simply tick the boxes of the classifications take
+     should be identified in this fashion.""",
+     ("ham", "spam", "unsure"), RESTORE),
+
+    ("notate_subject", "Classify in subject: header", (),
      """This option will add the same information as 'Notate To',
      but to the start of the mail subject line.""",
-     BOOLEAN, RESTORE),
+     ("ham", "spam", "unsure"), RESTORE),
 
     ("cache_messages", "Cache messages", True,
      """You can disable the pop3proxy caching of messages.  This
@@ -726,27 +733,13 @@ defaults = {
      to prevent that traffic showing up in 'Review messages'.""",
      BOOLEAN, RESTORE),
 
-    ("add_mailid_to", "Add unique spambayes id", (),
-     """If you wish to be able to find a specific message (via the 'find'
-     box on the home page), or use the SMTP proxy to
-     train, you will need to know the unique id of each message.  If your
-     mailer allows you to view all message headers, and includes all these
-     headers in forwarded/bounced mail, then the best place for this id
-     is in the headers of incoming mail.  Unfortunately, some mail clients
-     do not offer these capabilities.  For these clients, you will need to
-     have the id added to the body of the message.  If you are not sure,
-     the safest option is to use both.""",
-     ("header", "body"), True),
-
-    ("strip_incoming_mailids", "Strip incoming spambayes ids", False,
-     """If you receive messages from other spambayes users, you might
-     find that incoming mail (generally replies) already has an id,
-     particularly if they have set the id to appear in the body (see
-     above).  This might confuse the SMTP proxy when it tries to identify
-     the message to train, and make it difficult for you to identify
-     the correct id to find a message.  This option strips all spambayes
-     ids from incoming mail.""",
-     BOOLEAN, RESTORE),
+    ("no_cache_large_messages", "Maximum size of cached messages", 0,
+     """Where message caching is enabled, this option suppresses caching
+     of messages which are larger than this value.  If you receive a lot
+     of messages that include large attachments (and are correctly
+     classified), you may not wish to cache these.  If you set this to
+     zero (0), then this option will have no effect.""",
+     INTEGER, RESTORE),
   ),
 
   "smtpproxy" : (
@@ -791,6 +784,20 @@ defaults = {
      an address that is not a valid email address, like
      spam@nowhere.nothing.""",
      EMAIL_ADDRESS, RESTORE),
+
+    ("use_cached_message", "Lookup message in cache", False,
+     """If this option is set, then the smtpproxy will attempt to
+     look up the messages sent to it (for training) in the POP3 proxy cache
+     or IMAP filter folders, and use that message as the training data.
+     This avoids any problems where your mail client might change the
+     message when forwarding, contaminating your training data.  If you can
+     be sure that this won't occur, then the id-lookup can be avoided.
+
+     Note that Outlook Express users cannot use the lookup option (because
+     of the way messages are forwarded), and so if they wish to use the
+     SMTP proxy they must enable this option (but as messages are altered,
+     may not get the best results, and this is not recommended).""",
+     BOOLEAN, RESTORE),
   ),
 
   "html_ui" : (
@@ -974,5 +981,3 @@ else:
 
 if not optionsPathname:
     optionsPathname = os.path.abspath('bayescustomize.ini')
-# Set verbosity of this options instance to an option value!
-options.verbose = options["globals", "verbose"]

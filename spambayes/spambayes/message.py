@@ -70,7 +70,7 @@ To Do:
 
     """
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -110,23 +110,36 @@ class MessageInfoDB:
     def __init__(self, db_name, mode='c'):
         self.mode = mode
         self.db_name = db_name
-        self.dbm = dbmstorage.open(self.db_name, self.mode)
-        self.db = shelve.Shelf(self.dbm)
+        try:
+            self.dbm = dbmstorage.open(self.db_name, self.mode)
+        except dbmstorage.error:
+            # This probably means that we don't have a dbm module
+            # available.  Print out a warning, and continue on
+            # (not persisting any of this data).
+            if options["globals", "verbose"]:
+                print "Warning: no dbm modules available for MessageInfoDB"
+            self.dbm = self.db = None
+        if self.dbm:
+            self.db = shelve.Shelf(self.dbm)
 
     def store(self):
-        self.db.sync()
+        if self.db:
+            self.db.sync()
 
     def _getState(self, msg):
-        try:
-            (msg.c, msg.t) = self.db[msg.getId()]
-        except KeyError:
-            pass
+        if self.db:
+            try:
+                (msg.c, msg.t) = self.db[msg.getId()]
+            except KeyError:
+                pass
 
     def _setState(self, msg):
-        self.db[msg.getId()] = (msg.c, msg.t)
+        if self.db:
+            self.db[msg.getId()] = (msg.c, msg.t)
 
     def _delState(self, msg):
-        del self.db[msg.getId()]
+        if self.db:
+            del self.db[msg.getId()]
 
 # This should come from a Mark Hammond idea of a master db
 # For the moment, we get the name of another file from the options,
@@ -204,28 +217,26 @@ class Message(email.Message.Message):
 
     def GetClassification(self):
         if self.c == 's':
-            return options['Hammie','header_spam_string']
-        if self.c == 'h':
-            return options['Hammie','header_ham_string']
-        if self.c == 'u':
-            return options['Hammie','header_unsure_string']
-
+            return options['Headers','header_spam_string']
+        elif self.c == 'h':
+            return options['Headers','header_ham_string']
+        elif self.c == 'u':
+            return options['Headers','header_unsure_string']
         return None
 
     def RememberClassification(self, cls):
         # this must store state independent of options settings, as they
         # may change, which would really screw this database up
 
-        if cls == options['Hammie','header_spam_string']:
+        if cls == options['Headers','header_spam_string']:
             self.c = 's'
-        elif cls == options['Hammie','header_ham_string']:
+        elif cls == options['Headers','header_ham_string']:
             self.c = 'h'
-        elif cls == options['Hammie','header_unsure_string']:
+        elif cls == options['Headers','header_unsure_string']:
             self.c = 'u'
         else:
             raise ValueError, \
                   "Classification must match header strings in options"
-
         self.modified()
 
     def GetTrained(self):
@@ -310,41 +321,32 @@ class SBHeaderMessage(Message):
         # These are pretty ugly, but no-one has a better idea about how to
         # allow filtering in 'stripped down' mailers like Outlook Express,
         # so for the moment, they stay in.
-        if options["pop3proxy", "notate_to"] \
-           and disposition == options["Headers", "header_spam_string"]:
-            # add 'spam' as recip only if spam
+        if disposition in options["pop3proxy", "notate_to"]:
             try:
                 self.replace_header("To", "%s,%s" % (disposition,
                                                      self["To"]))
             except KeyError:
                 self["To"] = disposition
 
-        if options["pop3proxy", "notate_subject"] \
-           and disposition == options["Hammie", "header_spam_string"]:
-            # add 'spam' to subject if spam
+        if disposition in options["pop3proxy", "notate_subject"]:
             try:
                 self.replace_header("Subject", "%s,%s" % (disposition,
                                                           self["Subject"]))
             except KeyError:
                 self["Subject"] = disposition
 
-        if "header" in options['pop3proxy','add_mailid_to']:
+        if options['Headers','add_unique_id']:
             self[options['pop3proxy','mailid_header_name']] = self.id
 
-# This won't work for now, because email.Message does not isolate message body
-# This is also not consistent with the function of this method...
-#        if options.pop3proxy_add_mailid_to.find("body") != -1:
-#            body = body[:len(body)-3] + \
-#                   options.pop3proxy_mailid_header_name + ": " \
-#                    + messageName + "\r\n.\r\n"
-
     def delSBHeaders(self):
-        del self[options['Hammie','header_name']]
-        del self[options['pop3proxy','mailid_header_name']]
-        del self[options['Hammie','header_name'] + "-ID"]  # test mode header
-        del self[options['pop3proxy','prob_header_name']]
-        del self[options['pop3proxy','thermostat_header_name']]
-        del self[options['pop3proxy','evidence_header_name']]
+        del self[options['Headers','classification_header_name']]
+        del self[options['Headers','mailid_header_name']]
+        del self[options['Headers','classification_header_name'] + "-ID"]  # test mode header
+        del self[options['Headers','prob_header_name']]
+        del self[options['Headers','thermostat_header_name']]
+        del self[options['Headers','evidence_header_name']]
+        del self[options['Headers','score_header_name']]
+        del self[options['Headers','trained_header_name']]
 
 # These perform similar functions to email.message_from_string()
 def message_from_string(s, _class=Message, strict=False):

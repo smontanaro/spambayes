@@ -586,6 +586,7 @@ class OptionsClass(object):
         if self.conversion_table.has_key((sect, opt)):
             sect, opt = self.conversion_table[sect, opt]
         return self._options[sect, opt]
+
     def get(self, sect, opt):
         '''Get an option value.'''
         if self.conversion_table.has_key((sect, opt)):
@@ -694,7 +695,9 @@ PATH = r"[\w \$\.\-~:\\/\*\@\=]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
-IP_LIST = r"\*|localhost|((\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5]),?)+"
+IP_LIST = r"\*|localhost|((\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*|[01]?\d" \
+          r"\d?|2[04]\d|25[0-5])\.(\*|[01]?\d\d?|2[04]\d|25[0-5])\.(\*" \
+          r"|[01]?\d\d?|2[04]\d|25[0-5]),?)+"
 # IMAP seems to allow any character at all in a folder name,
 # but we want to use the comma as a delimiter for lists, so
 # we don't allow this.  If anyone has folders with commas in the

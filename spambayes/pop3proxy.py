@@ -446,9 +446,9 @@ class BayesProxy(POP3ProxyBase):
                     (command == 'TOP' and
                      len(args) == 2 and args[1] == '99999999')):
                     cls = msg.GetClassification()
-                    if cls == options["Hammie", "header_ham_string"]:
+                    if cls == options["Headers", "header_ham_string"]:
                         state.numHams += 1
-                    elif cls == options["Hammie", "header_spam_string"]:
+                    elif cls == options["Headers", "header_spam_string"]:
                         state.numSpams += 1
                     else:
                         state.numUnsure += 1
@@ -456,15 +456,21 @@ class BayesProxy(POP3ProxyBase):
                     # Suppress caching of "Precedence: bulk" or
                     # "Precedence: list" ham if the options say so.
                     isSuppressedBulkHam = \
-                        (cls == options["Hammie", "header_ham_string"] and
+                        (cls == options["Headers", "header_ham_string"] and
                          options["pop3proxy", "no_cache_bulk_ham"] and
                          msg.get('precedence') in ['bulk', 'list'])
+
+                    # Suppress large messages if the options say so.
+                    size_limit = options["pop3proxy",
+                                         "no_cache_large_messages"]
+                    isTooBig = size_limit > 0 and \
+                               len(messageText) > size_limit
 
                     # Cache the message.  Don't pollute the cache with test
                     # messages or suppressed bulk ham.
                     if (not state.isTest and
                         options["pop3proxy", "cache_messages"] and
-                        not isSuppressedBulkHam):
+                        not isSuppressedBulkHam and not isTooBig):
                         # Write the message into the Unknown cache.
                         message = state.unknownCorpus.makeMessage(msg.getId())
                         message.setSubstance(msg.as_string())
@@ -609,22 +615,7 @@ class State:
                         '_pop3proxy_test.pickle'   # This is never saved.
         filename = options["Storage", "persistent_storage_file"]
         filename = os.path.expanduser(filename)
-        if self.useDB:
-            if '::' in filename:
-                sql_types = {"pgsql" : storage.PGClassifier,
-                             "mysql" : storage.mySQLClassifier,
-                             }
-                sql_type, rest = filename.split('::', 1)
-                if sql_types.has_key(sql_type.lower()):
-                    self.bayes = sql_types[sql_type.lower()](filename)
-                else:
-                    # yikes! raise some sort of NoSuchClassifierError
-                    pass
-            else:
-                self.bayes = storage.DBDictClassifier(filename)
-        else:
-            self.bayes = storage.PickledClassifier(filename)
-        print "Done."
+        self.bayes = storage.open_storage(filename, self.useDB)
 
         # Don't set up the caches and training objects when running the self-test,
         # so as not to clutter the filesystem.
@@ -758,7 +749,7 @@ def start(state):
 
 def stop(state):
     state.bayes.store()
-    # should we be calling socket.shutdown(2) and close() for each
+    # should we be calling socket.shutdown(2) and close_when_done() for each
     # BayesProxy object?
 
 # ===================================================================

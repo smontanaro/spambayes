@@ -246,21 +246,15 @@ class Hammie:
         self.bayes.store()
 
 
-def open(filename, usedb=True, mode='r'):
+def open(filename, useDB=True, mode='r'):
     """Open a file, returning a Hammie instance.
 
     If usedb is False, open as a pickle instead of a DBDict.  mode is
 
     used as the flag to open DBDict objects.  'c' for read-write (create
     if needed), 'r' for read-only, 'w' for read-write.
-
     """
-
-    if usedb:
-        b = storage.DBDictClassifier(filename, mode)
-    else:
-        b = storage.PickledClassifier(filename)
-    return Hammie(b)
+    return Hammie(storage.open_storage((filename, mode), useDB)
 
 
 if __name__ == "__main__":
