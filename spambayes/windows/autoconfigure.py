@@ -164,7 +164,7 @@ def configure_eudora(config_location):
     # and I think the .toc file is automatically created).  Left for
     # another day, however.
     filter_filename = "%s%sFilters.pce" % (config_location, os.sep)
-    spam_folder_name = "Junk Mail"
+    spam_folder_name = "Junk"
     unsure_folder_name = "Possible Junk"
     header_name = options["Headers", "classification_header_name"]
     spam_tag = options["Headers", "header_spam_string"]
