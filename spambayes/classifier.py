@@ -549,10 +549,10 @@ class GrahamBayes(object):
         fiddle = options.adjust_probs_by_evidence_mass
         for word,record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
-            hamcount = HAMBIAS * record.hamcount
-            spamcount = SPAMBIAS * record.spamcount
-            hamratio = min(1.0, hamcount / nham)
-            spamratio = min(1.0, spamcount / nspam)
+            hamcount = min(HAMBIAS * record.hamcount, nham)
+            spamcount = min(SPAMBIAS * record.spamcount, nspam)
+            hamratio = hamcount / nham
+            spamratio = spamcount / nspam
 
             prob = spamratio / (hamratio + spamratio)
             if prob < MIN_SPAMPROB:
@@ -573,10 +573,9 @@ class GrahamBayes(object):
                 # will pick up on the clues with the most evidence backing
                 # them up).
                 dist = prob - 0.5
-                if dist:
-                    sum = float(record.hamcount + record.spamcount)
-                    dist *= sum / (sum + 1.0)
-                    prob = 0.5 + dist
+                sum = hamcount + spamcount
+                dist *= sum / (sum + 0.1)
+                prob = 0.5 + dist
 
             if record.spamprob != prob:
                 record.spamprob = prob
