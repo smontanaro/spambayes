@@ -2,9 +2,13 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<p>Beta release 1 of version 1.0 of the SpamBayes project is now available.
+<p>Version 1.0 (Release Candidate 1) of the SpamBayes project is now available.
 <p>This release is primarily to shake out those last few bugs on the way to a final 1.0
 release. Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
+
+<p>You may like to view the <a href="http://sourceforge.net/project/shownotes.php?release_id=235814">release notes</a>
+or the <a href="http://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=235814"
+       >files that make up this release</a>.
 
 <h2>Microsoft Windows</h2>
 <p>Microsoft Windows users are encouraged to use the installation program to 
