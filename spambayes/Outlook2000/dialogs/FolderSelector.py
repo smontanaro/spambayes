@@ -25,11 +25,11 @@ class FolderSpec:
 # We started with a CDO version - but CDO sucks for lots of reasons I
 # wont even start to mention.
 # So we moved to an Extended MAPI version with is nice and fast - screams
-# along!  Except it doesn't work in all cases with Exchange (which 
+# along!  Except it doesn't work in all cases with Exchange (which
 # strikes Mark as extremely strange given that the Extended MAPI Python
 # bindings were developed against an Exchange Server - but Mark doesn't
 # have an Exchange server handy these days, and really doesn't give a
-# rat's arse <wink>
+# rat's arse <wink>).
 # So finally we have an Outlook object model version!
 #########################################################################
 ## CDO version of a folder walker.
@@ -68,7 +68,9 @@ def _BuildFoldersMAPI(msgstore, folder):
     # Get the hierarchy table for it.
     table = folder.GetHierarchyTable(0)
     children = []
-    rows = mapi.HrQueryAllRows(table, (PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_A), None, None, 0)
+    rows = mapi.HrQueryAllRows(table, (PR_ENTRYID,
+                                       PR_STORE_ENTRYID,
+                                       PR_DISPLAY_NAME_A), None, None, 0)
     for (eid_tag, eid),(storeeid_tag, store_eid), (name_tag, name) in rows:
         folder_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
         spec = FolderSpec(folder_id, name)
@@ -89,8 +91,9 @@ def BuildFolderTreeMAPI(session):
         if is_def:
             default_store_id = hex_eid
 
-        msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL | mapi.MAPI_DEFERRED_ERRORS)
-        hr, data = msgstore.GetProps( ( PR_IPM_SUBTREE_ENTRYID,), 0)
+        msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
+                                                      mapi.MAPI_DEFERRED_ERRORS)
+        hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,), 0)
         subtree_eid = data[0][1]
         folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
         folder_id = hex_eid, mapi.HexFromBin(subtree_eid)
@@ -102,11 +105,12 @@ def BuildFolderTreeMAPI(session):
 ## <sob> - An Outlook object model version
 def _BuildFolderTreeOutlook(session, parent):
     children = []
-    for i in range (parent.Folders.Count):
-        folder = parent.Folders [i+1]
-        spec = FolderSpec ((folder.StoreID, folder.EntryID), folder.Name.encode("mbcs", "replace"))
-        if folder.Folders != None:
-            spec.children = _BuildFolderTreeOutlook (session, folder)
+    for i in range(parent.Folders.Count):
+        folder = parent.Folders[i+1]
+        spec = FolderSpec((folder.StoreID, folder.EntryID),
+                          folder.Name.encode("mbcs", "replace"))
+        if folder.Folders:
+            spec.children = _BuildFolderTreeOutlook(session, folder)
         children.append(spec)
     return children
 
@@ -127,11 +131,21 @@ IDC_BUTTON_CLEARALL = win32ui.IDC_BUTTON2
 IDC_LIST_FOLDERS = win32ui.IDC_LIST1
 
 class FolderSelector(dialog.Dialog):
-    style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
+    style = (win32con.DS_MODALFRAME |
+             win32con.WS_POPUP |
+             win32con.WS_VISIBLE |
+             win32con.WS_CAPTION |
+             win32con.WS_SYSMENU |
+             win32con.DS_SETFONT)
     cs = win32con.WS_CHILD | win32con.WS_VISIBLE
-    treestyle = cs | win32con.WS_BORDER | commctrl.TVS_HASLINES | commctrl.TVS_LINESATROOT | \
-                commctrl.TVS_CHECKBOXES | commctrl.TVS_HASBUTTONS | \
-                commctrl.TVS_DISABLEDRAGDROP | commctrl.TVS_SHOWSELALWAYS
+    treestyle = (cs |
+                 win32con.WS_BORDER |
+                 commctrl.TVS_HASLINES |
+                 commctrl.TVS_LINESATROOT |
+                 commctrl.TVS_CHECKBOXES |
+                 commctrl.TVS_HASBUTTONS |
+                 commctrl.TVS_DISABLEDRAGDROP |
+                 commctrl.TVS_SHOWSELALWAYS)
     dt = [
         # Dialog itself.
         ["", (0, 0, 247, 215), style, None, (8, "MS Sans Serif")],
@@ -146,7 +160,12 @@ class FolderSelector(dialog.Dialog):
         [BUTTON,         'C&lear All',          IDC_BUTTON_CLEARALL,  (190, 58,  50, 14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
     ]
 
-    def __init__ (self, mapi, selected_ids = None, single_select = False, checkbox_state = False, checkbox_text = None, desc_noun = "Select", desc_noun_suffix = "ed"):
+    def __init__ (self, mapi, selected_ids=None,
+                              single_select=False,
+                              checkbox_state=False,
+                              checkbox_text=None,
+                              desc_noun="Select",
+                              desc_noun_suffix="ed"):
         assert not single_select or selected_ids is None or len(selected_ids)<=1
         dialog.Dialog.__init__ (self, self.dt)
         self.single_select = single_select
@@ -193,15 +212,26 @@ class FolderSelector(dialog.Dialog):
             if self.single_select:
                 mask = state = 0
             else:
-                if self.selected_ids and self.InIDs(child.folder_id, self.selected_ids):
+                if (self.selected_ids and
+                        self.InIDs(child.folder_id, self.selected_ids)):
                     state = INDEXTOSTATEIMAGEMASK(IIL_CHECKED)
                     num_children_selected += 1
                 else:
                     state = INDEXTOSTATEIMAGEMASK(IIL_UNCHECKED)
                 mask = commctrl.TVIS_STATEIMAGEMASK
             item_id = self._MakeItemParam(child)
-            hitem = self.list.InsertItem(hParent, 0, (None, state, mask, text, bitmapCol, bitmapSel, cItems, item_id))
-            if self.single_select and self.selected_ids and self.InIDs(child.folder_id, self.selected_ids):
+            hitem = self.list.InsertItem(hParent, 0,
+                                         (None,
+                                          state,
+                                          mask,
+                                          text,
+                                          bitmapCol,
+                                          bitmapSel,
+                                          cItems,
+                                          item_id))
+            if (self.single_select and
+                    self.selected_ids and
+                    self.InIDs(child.folder_id, self.selected_ids)):
                 self.list.SelectItem(hitem)
 
             num_children_selected += self._InsertSubFolders(hitem, child)
@@ -231,7 +261,8 @@ class FolderSelector(dialog.Dialog):
 
     def _YieldCheckedChildren(self):
         if self.single_select:
-            # If single-select, the checked state is not used, just the selected state.
+            # If single-select, the checked state is not used, just the
+            # selected state.
             try:
                 h = self.list.GetSelectedItem()
             except win32ui.error:
@@ -270,9 +301,12 @@ class FolderSelector(dialog.Dialog):
         self.list.SetImageList(self.imageList, commctrl.LVSIL_NORMAL)
         if self.single_select:
             # Remove the checkbox style from the list for single-selection
-            style = win32api.GetWindowLong(self.list.GetSafeHwnd(), win32con.GWL_STYLE)
+            style = win32api.GetWindowLong(self.list.GetSafeHwnd(),
+                                           win32con.GWL_STYLE)
             style = style & ~commctrl.TVS_CHECKBOXES
-            win32api.SetWindowLong(self.list.GetSafeHwnd(), win32con.GWL_STYLE, style)
+            win32api.SetWindowLong(self.list.GetSafeHwnd(),
+                                   win32con.GWL_STYLE,
+                                   style)
             # Hide "clear all"
             self.GetDlgItem(IDC_BUTTON_CLEARALL).ShowWindow(win32con.SW_HIDE)
 
@@ -282,7 +316,7 @@ class FolderSelector(dialog.Dialog):
 #            tree = BuildFolderTreeCDO(self.mapi)
 #        else:
 #            # Extended MAPI.
-#            tree = BuildFolderTreeMAPI(self.mapi)            
+#            tree = BuildFolderTreeMAPI(self.mapi)
         self._InsertSubFolders(0, tree)
         self.selected_ids = [] # wipe this out while we are alive.
         self._UpdateStatus()
@@ -310,7 +344,9 @@ class FolderSelector(dialog.Dialog):
                 if len(names) < 20:
                     names.append(info[3])
 
-            status_string = "%s%s %d folder" % (self.select_desc_noun, self.select_desc_noun_suffix, num_checked)
+            status_string = "%s%s %d folder" % (self.select_desc_noun,
+                                                self.select_desc_noun_suffix,
+                                                num_checked)
             if num_checked != 1:
                 status_string += "s"
             self.SetDlgItemText(IDC_STATUS1, status_string)
