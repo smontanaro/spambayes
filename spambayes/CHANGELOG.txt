@@ -1,3 +1,13 @@
+(Next Release)
+==============
+Richie Hindle  28/07/2003  Made the pop3proxy work with fetchmail.
+Richie Hindle  22/07/2003  You can once again specify local addresses as well as ports for the pop3proxy to listen on (was broken in 1.0a3 and 1.0a4).
+Richie Hindle  19/07/2003  pop3proxy: Print a traceback as well as adding an X-Spambayes-Exception header when there's an exception raised while processing a message.
+Richie Hindle  18/07/2003  pop3proxy:  "ASCII decoding error" problem fixed.
+Richie Hindle  07/07/2003  Added no_cache_bulk_ham option: suppresses caching of 'Precedence: bulk' ham, to stop mailing list traffic swamping the web UI's training page.
+Richie Hindle  07/07/2003  Prevent the "Show clues" links on the web UI's training page from word-wrapping and making all the table rows two lines high.
+
+
 Alpha Release 4
 ===============
 Tony Meyer  04/07/2003  Fix SF#761677 ("mboxtrain.py's -n optionhas no effect")
