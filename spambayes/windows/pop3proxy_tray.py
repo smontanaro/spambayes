@@ -72,27 +72,54 @@ class MainWindow(object):
                                          message_map)
 
         # Get the custom icon
-        iconPathName = "%s\\windows\\resources\\sbicon.ico" % \
+        startedIconPathName = "%s\\windows\\resources\\sb-started.ico" % \
+                       (os.path.dirname(pop3proxy.__file__),)
+        stoppedIconPathName = "%s\\windows\\resources\\sb-stopped.ico" % \
                        (os.path.dirname(pop3proxy.__file__),)
         # When 1.0a6 is released, the above line will need to change to:
 ##        iconPathName = "%s\\..\\windows\\resources\\sbicon.ico" % \
 ##                       (os.path.dirname(pop3proxy.__file__),)
-        if os.path.isfile(iconPathName):
+        if os.path.isfile(startedIconPathName) and os.path.isfile(stoppedIconPathName):
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
-            hicon = LoadImage(hinst, iconPathName, win32con.IMAGE_ICON, 0,
-                              0, icon_flags)
+            self.hstartedicon = LoadImage(hinst, startedIconPathName, win32con.IMAGE_ICON, 0,
+                                          0, icon_flags)
+            self.hstoppedicon = LoadImage(hinst, stoppedIconPathName, win32con.IMAGE_ICON, 0,
+                                          0, icon_flags)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
-        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, "SpamBayes")
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
         self.started = False
+        self.tip = None
 
         # Start up pop3proxy
         # XXX This needs to be finished off.
         # XXX This should determine if we are using the service, and if so
         # XXX start that, and if not kick pop3proxy off in a separate thread.
         pop3proxy.prepare(state=pop3proxy.state)
-        self.StartProxyThread()
+        self.StartStop()
+
+    def BuildToolTip(self):
+        tip = None
+        if self.started == True:
+            #%i spam %i unsure %i session %i active
+            tip = "SpamBayes %i spam %i ham %i unsure %i sessions %i active" %\
+            (pop3proxy.state.numSpams, pop3proxy.state.numHams, pop3proxy.state.numUnsure,
+             pop3proxy.state.totalSessions, pop3proxy.state.activeSessions)
+        else:
+            tip = "SpamBayes is not running"
+        return tip
+            
+
+    def UpdateIcon(self, hicon=None):
+        flags = NIF_TIP
+        if hicon is not None:
+            flags |= NIF_ICON
+        else:
+            hicon = 0
+        self.tip = self.BuildToolTip()
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, self.tip)
+        Shell_NotifyIcon(NIM_MODIFY, nid)
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
@@ -100,6 +127,9 @@ class MainWindow(object):
         PostQuitMessage(0)
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
+        if lparam==win32con.WM_MOUSEMOVE:
+            if self.tip != self.BuildToolTip():
+                self.UpdateIcon()
         if lparam==win32con.WM_LBUTTONUP:
             # We ignore left clicks
             pass
@@ -156,10 +186,12 @@ class MainWindow(object):
             self.started = False
             self.control_functions[START_STOP_ID] = ("Start SpamBayes",
                                                      self.StartStop)
+            self.UpdateIcon(self.hstoppedicon)
         else:
             self.StartProxyThread()
             self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
                                                      self.StartStop)
+            self.UpdateIcon(self.hstartedicon)
 
     def OpenInterface(self):
         webbrowser.open_new("http://localhost:%d/" % \
