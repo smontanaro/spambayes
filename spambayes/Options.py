@@ -121,8 +121,8 @@ show_ham_hi: 0.0
 show_false_positives: True
 show_false_negatives: False
 
-# Near the end of Driver.test(), you can get a listing of the "best
-# discriminators" in the words from the training sets.  These are the
+# Near the end of Driver.test(), you can get a listing of the 'best
+# discriminators' in the words from the training sets.  These are the
 # words whose WordInfo.killcount values are highest, meaning they most
 # often were among the most extreme clues spamprob() found.  The number
 # of best discriminators to show is given by show_best_discriminators;
