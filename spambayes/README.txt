@@ -1,323 +1,407 @@
-Copyright (C) 2002 Python Software Foundation; All Rights Reserved
+Copyright (C) 2002-3 Python Software Foundation; All Rights Reserved
 
 The Python Software Foundation (PSF) holds copyright on all material
 in this project.  You may use it under the terms of the PSF license;
 see LICENSE.txt.
 
 
-Assorted clues.
+Overview
+========
+
+SpamBayes is a tool used to segregate unwanted mail (spam) from the mail you
+want (ham).  Before SpamBayes can be your spam filter of choice you need to
+train it on representative samples of email you receive.  After it's been
+trained, you use SpamBayes to classify new mail according to its spamminess
+and hamminess qualities.
+
+When SpamBayes filters your email, it compares each unclassified message
+against the information it saved from training and makes a decision about
+whether it thinks the message qualifies as ham or spam, or if it's unsure
+about how to classify the message.  It then passes this information on to
+your mail client.  Unless you are using IMAP or Outlook, this means it adds
+a header to each message, X-SpamBayes-Classification: spam|ham|unsure.  You
+can then filter on this header, to file away suspected spam into its own
+mail folder for example.  IMAP and Outlook both have the capacity to do the
+filtering themselves, so the header is not necessary.
+
+If you have any questions that this document does not answer, you should
+definately try the SpamBayes website <http://spambayes.org>, and in
+particular, try reading the list of frequently asked questions:
+<http://spambayes.org/faq.html>
 
 
-What's Here?
-============
-Lots of mondo cool undocumented code.  What else could there be <wink>?
+Prerequisites
+=============
 
-The focus of this project so far has not been to produce the fastest or
-smallest filters, but to set up a flexible pure-Python implementation
-for doing algorithm research.  Lots of people are making fast/small
-implementations, and it takes an entirely different kind of effort to
-make genuine algorithm improvements.  I think we've done quite well at
-that so far.  The focus of this codebase may change to small/fast
-later -- as is, the false positive rate has gotten too small to measure
-reliably across test sets with 4000 hams + 2750 spams, but the false
-negative rate is still over 1%.  Later:  the f-n rate has also gotten
-too small to measure reliably across that much training data.
+You need to have Python 2.2 or later (2.3 is recommended).  You can
+download Python from <http://www.python.org/download/>.
+Many distributions of unix now ship with Python - try typing 'python' 
+at a shell prompt.
 
-The code in this project requires Python 2.2 (or later).
+You also need version 2.4.3 or above of the Python "email" package.
+If you're running Python 2.2.3 or above then you already have a good
+version of the email package.
 
-You should definately check out the FAQ:
-http://spambayes.org/faq.html
+If not, you can download email version 2.5 from <http://mimelib.sf.net>
+and install it - unpack the archive, cd to the email-2.5 directory and
+type "python setup.py install".  This will install it into your Python
+site-packages directory.  You'll also need to move aside the standard
+"email" library - go to your Python "Lib" directory and rename "email"
+to "email_old".
 
-
-Primary Core Files
-==================
-Options.py
-    Uses ConfigParser to allow fiddling various aspects of the classifier,
-    tokenizer, and test drivers.  Create a file named bayescustomize.ini to
-    alter the defaults.  Modules wishing to control aspects of their
-    operation merely do
-
-        from Options import options
-
-    near the start, and consult attributes of options.  To see what options
-    are available, import Options.py and do
-
-        print Options.options.display_full()
-
-    This will print out a detailed description of each option, the allowed
-    values, and so on.  (You can pass in a section or section and option
-    name to display_full if you don't want the whole list).
-
-    As an alternative to bayescustomize.ini, you can set the environment
-    variable BAYESCUSTOMIZE to a list of one or more .ini files, these will
-    be read in, in order, and applied to the options. This allows you to
-    tweak individual runs by combining fragments of .ini files.  The
-    character used to separate different .ini files is platform-dependent.
-    On Unix, Linux and Mac OS X systems it is ':'.  On Windows it is ';'.
-    On Mac OS 9 and earlier systems it is a NL character.
-
-    *NOTE* The separator character changed after the second alpha version of
-    the first release.  Previously, if multiple files were specified in
-    BAYESCUSTOMIZE they were space-separated.
-
-classifier.py
-    The classifier, which is the soul of the method.
-
-tokenizer.py
-    An implementation of tokenize() that Tim can't seem to help but keep
-    working on <wink>.  Generates a token stream from a message, which
-    the classifier trains on or predicts against.
-
-chi2.py
-    A collection of statistics functions.
+To run the Outlook plug-in from source, you also need have the win32com
+extensions installed (win32all-149 or above), which you can get from
+<http://starship.python.net/crew/mhammond>.
 
 
-Apps
-====
-hammie.py
-    A spamassassin-like filter which uses tokenizer and classifier (above).
+Getting the software
+====================
 
-hammiefilter.py
-    A simpler hammie front-end that doesn't print anything.  Useful for
-    procmail filering and scoring from your MUA.
-
-mboxtrain.py
-    Trainer for Maildir, MH, or mbox mailboxes.  Remembers which
-    messages it saw the last time you ran it, and will only train on new
-    messages or messages which should be retrained.  
-
-    The idea is to run this automatically every night on your Inbox and
-    Spam folders, and then sort misclassified messages by hand.  This
-    will work with any IMAP4 mail client, or any client running on the
-    server.
-
-pop3proxy.py
-    A spam-classifying POP3 proxy.  It adds a spam-judgement header to
-    each mail as it's retrieved, so you can use your email client's
-    filters to deal with them without needing to fiddle with your email
-    delivery system.
-
-    Also acts as a web server providing a user interface that allows you
-    to train the classifier, classify messages interactively, and query
-    the token database.  This piece will at some point be split out into
-    a separate module.
-
-smtpproxy.py
-   A message training SMTP proxy.  It sits between your email client and
-   your SMTP server and intercepts mail to set ham and spam addresses.
-   A unique spambayes id is extracted from the message and it is
-   (re)trained appropriately.  All other mail is simply passed through
-   to the SMTP server.
-
-mailsort.py
-    A delivery agent that uses a CDB of word probabilities and delivers
-    a message to one of two Maildir message folders, depending on the
-    classifier score.  Note that both Maildirs must be on the same
-    device.
-
-hammiesrv.py
-    A stab at making hammie into a client/server model, using XML-RPC.
-
-hammiecli.py
-    A client for hammiesrv.
-
-imapfilter.py
-    A spam-classifying and training application for use with IMAP servers.
-    You can specify folders that contain mail to train as ham/spam, and
-    folders that contain mail to classify, and the filter will do so.
-    Note that this is currently in very early development and not
-    recommended for production use.
+If you don't already have it, you can download the latest release of
+SpamBayes from <http://spambayes.org/download.html>.
 
 
-Test Driver Core
-================
-Tester.py
-    A test-driver class that feeds streams of msgs to a classifier
-    instance, and keeps track of right/wrong percentages and lists
-    of false positives and false negatives.
-
-TestDriver.py
-    A flexible higher layer of test helpers, building on Tester above.
-    For example, it's usable for building simple test drivers, NxN test
-    grids, and N-fold cross-validation drivers.  See also rates.py,
-    cmp.py, and table.py below.
-
-msgs.py
-    Some simple classes to wrap raw msgs, and to produce streams of
-    msgs.  The test drivers use these.
-
-
-Concrete Test Drivers
-=====================
-mboxtest.py
-    A concrete test driver like timtest.py, but working with a pair of
-    mailbox files rather than the specialized timtest setup.
-
-timcv.py
-    An N-fold cross-validating test driver.  Assumes "a standard" data
-        directory setup (see below)) rather than the specialized mboxtest
-        setup.
-    N classifiers are built.
-    1 run is done with each classifier.
-    Each classifier is trained on N-1 sets, and predicts against the sole
-        remaining set (the set not used to train the classifier).
-    mboxtest does the same.
-    This (or mboxtest) is the preferred way to test when possible:  it
-        makes best use of limited data, and interpreting results is
-        straightforward.
-
-timtest.py
-    A concrete test driver like mboxtest.py, but working with "a standard"
-        test data setup (see below).  This runs an NxN test grid, skipping
-        the diagonal.
-    N classifiers are built.
-    N-1 runs are done with each classifier.
-    Each classifier is trained on 1 set, and predicts against each of
-        the N-1 remaining sets (those not used to train the classifier).
-    This is a much harder test than timcv, because it trains on N-1 times
-        less data, and makes each classifier predict against N-1 times
-        more data than it's been taught about.
-    It's harder to interpret the results of timtest (than timcv) correctly,
-        because each msg is predicted against N-1 times overall.  So, e.g.,
-        one terribly difficult spam or ham can count against you N-1 times.
-
-
-Test Utilities
-==============
-rates.py
-    Scans the output (so far) produced by TestDriver.Drive(), and captures
-    summary statistics.
-
-cmp.py
-    Given two summary files produced by rates.py, displays an account
-    of all the f-p and f-n rates side-by-side, along with who won which
-    (etc), the change in total # of unique false positives and negatives,
-    and the change in average f-p and f-n rates.
-
-table.py
-    Summarizes the high-order bits from any number of summary files,
-    in a compact table.
-
-fpfn.py
-    Given one or more TestDriver output files, prints list of false
-    positive and false negative filenames, one per line.
-
-
-Test Data Utilities
-===================
-cleanarch
-    A script to repair mbox archives by finding "Unix From" lines that
-    should have been escaped, and escaping them.
-
-unheader.py
-    A script to remove unwanted headers from an mbox file.  This is mostly
-    useful to delete headers which incorrectly might bias the results.
-    In default mode, this is similar to 'spamassassin -d', but much, much
-    faster.
-
-loosecksum.py
-    A script to calculate a "loose" checksum for a message.  See the text of
-    the script for an operational definition of "loose".
-
-rebal.py
-    Evens out the number of messages in "standard" test data folders (see
-    below).  Needs generalization (e.g., Ham and 4000 are hardcoded now).
-
-mboxcount.py
-    Count the number of messages (both parseable and unparseable) in
-    mbox archives.
-
-split.py
-splitn.py
-    Split an mbox into random pieces in various ways.  Tim recommends
-    using "the standard" test data set up instead (see below).
-
-splitndirs.py
-    Like splitn.py (above), but splits an mbox into one message per file in
-    "the standard" directory structure (see below).  This does an
-    approximate split; rebal.py (above) can be used afterwards to even out
-    the number of messages per folder.
-
-runtest.sh
-    A bourne shell script (for Unix) which will run some test or other.
-    I (Neale) will try to keep this updated to test whatever Tim is
-    currently asking for.  The idea is, if you have a standard directory
-    structure (below), you can run this thing, go have some tea while it
-    works, then paste the output to the spambayes list for good karma.
-
-
-Standard Test Data Setup
+For the Really Impatient
 ========================
-Barry gave me mboxes, but the spam corpus I got off the web had one spam
-per file, and it only took two days of extreme pain to realize that one msg
-per file is enormously easier to work with when testing:  you want to split
-these at random into random collections, you may need to replace some at
-random when testing reveals spam mistakenly called ham (and vice versa),
-etc -- even pasting examples into email is much easier when it's one msg
-per file (and the test drivers make it easy to print a msg's file path).
 
-The directory structure under my spambayes directory looks like so:
+If you get your mail from a POP3 server, then all you should need to do
+to get running is change your mail client to send and receive mail from
+"localhost", and then run "python pop3proxy.py -b" in the directory you
+expanded the SpamBayes source into.  This will open a web browser window
+- click the "Configuration" link at the top right and fill in the various
+settings.
 
-Data/
-    Spam/
-        Set1/ (contains 1375 spam .txt files)
-        Set2/            ""
-        Set3/            ""
-        Set4/            ""
-        Set5/            ""
-        Set6/            ""
-        Set7/            ""
-        Set9/            ""
-        Set9/            ""
-        Set10/           ""
-	reservoir/ (contains "backup spam")
-    Ham/
-        Set1/ (contains 2000 ham .txt files)
-        Set2/            ""
-        Set3/            ""
-        Set4/            ""
-        Set5/            ""
-        Set6/            ""
-        Set7/            ""
-        Set8/            ""
-        Set9/            ""
-        Set10/           ""
-        reservoir/ (contains "backup ham")
 
-Every file at the deepest level is used (not just files with .txt
-extensions).  The files don't need to have a "Unix From"
-header before the RFC-822 message (i.e. a line of the form "From
-<address> <date>").
+Installation
+============
 
-If you use the same names and structure, huge mounds of the tedious testing
-code will work as-is.  The more Set directories the merrier, although you
-want at least a few hundred messages in each one.  The "reservoir"
-directories contain a few thousand other random hams and spams.  When a ham
-is found that's really spam, move it into a spam directory, then use the
-rebal.py utility to rebalance the Set directories moving random message(s)
-into and/or out of the reservoir directories.  The reverse works as well
-(finding ham in your spam directories).
+The first thing you need to do is run "setup.py install" in the directory
+that you expanded the SpamBayes archive into.  This will install all the
+files that you need into the correct locations.  After this, you can
+delete that directory; it is no longer required.
 
-The hams are 20,000 msgs selected at random from a python-list archive.
-The spams are essentially all of Bruce Guenter's 2002 spam archive:
+Before you begin
+----------------
 
-    <http://www.em.ca/~bruceg/spam/>
+It's a good idea to train SpamBayes before you start using it, although
+this isn't compulsory.  You need to save your incoming email for awhile,
+segregating it into two piles, known spam (bad mail) and known ham (good
+mail).  It's best to train on recent email, because your interests and the
+nature of what spam looks like change over time.  Once you've collected a
+fair portion of each (anything is better than nothing, but it helps to have
+a couple hundred of each), you can tell SpamBayes, "Here's my ham and my
+spam".  It will then process that mail and save information about different
+patterns which appear in ham and spam.  That information is then used
+during the filtering stage.  See the "Training" section below for details.
 
-The sets are grouped into pairs in the obvious way:  Spam/Set1 with
-Ham/Set1, and so on.  For each such pair, timtest trains a classifier on
-that pair, then runs predictions on each of the other pairs.  In effect,
-it's a NxN test grid, skipping the diagonal.  There's no particular reason
-to avoid predicting against the same set trained on, except that it
-takes more time and seems the least interesting thing to try.
+Outlook plug-in
+---------------
 
-Later, support for N-fold cross validation testing was added, which allows
-more accurate measurement of error rates with smaller amounts of training
-data.  That's recommended now.  timcv.py is to cross-validation testing
-as the older timtest.py is to grid testing.  timcv.py has grown additional
-arguments to allow using only a random subset of messages in each Set.
+For information about how to use the Outlook plug-in, please read the
+"about.html" file in the Outlook2000 directory.
 
-CAUTION:  The parititioning of your corpora across directories should
-be random.  If it isn't, bias creeps in to the test results.  This is
-usually screamingly obvious under the NxN grid method (rates vary by a
-factor of 10 or more across training sets, and even within runs against
-a single training set), but harder to spot using N-fold c-v.
+
+POP3 Proxy
+----------
+
+You need to configure your email client to talk to the proxies instead of
+the real email servers.  Change your equivalent of "pop3.example.com" to
+"localhost" (or to the name of the machine you're running the proxy on) in
+your email client's setup, and do the same with your equivalent of
+"smtp.example.com".
+
+Now launch pop3proxy, either by running the "pop3proxy_service.py" script
+(for those using Windows 2000, Windows NT or Windows XP), or the
+"pop3proxy.py" script (for everyone else).
+
+All you need to do to configure SpamBayes is to open a web page to
+<http://localhost:8880>, click on the "Configuration" link at the top
+right, and fill in the relevant details.  Everything should be ok with the
+defaults, except for the POP3 and SMTP server information at the top, which
+is required.  Note that *nix users may not have permission to bind ports
+lower than 1025, so instead of proxying on ports 25 and 110, you should
+chose higher numbers, such as 1025 and 1110.
+
+When you check your mail in your mail client now, messages should have an
+addition SpamBayes header (you may not be able to see this by default).
+You should be able to create a mail folder called "Spam" and set up a
+filtering rule that puts emails with an "X-Spambayes-Classification: spam"
+header into that folder.
+
+
+IMAP Filter
+-----------
+
+To configure SpamBayes, run the "imapfilter.py" script, and open a web page
+to <http://localhost:8880>, click on the "Configuration" link at the top
+right, and fill in the relevant details.  Everything should be ok with the
+defaults, except for the server information at the top.
+
+You now need to let SpamBayes know which IMAP folders it should work with.
+Use the "configure folders to filter" and "configure folders to train"
+links on the web page <http://localhost:8880> to do this.  The 'filter'
+folders are those that will have mail that you want to identify as either
+ham (good) or spam (bad) - this will probably be your Inbox.  The 'train'
+folders are those that contain examples of ham and spam, to assist SpamBayes
+with its classification.  (Folders can be used for both training and
+filtering).
+
+You then need to set the IMAP filter up to run periodically.  At the moment,
+you'll need to do this from a command (or DOS) prompt.  You should run the
+command "python imapfilter.py -c -t -l 5".  The '-c' means that the script
+should classify new mail, the '-t' means that the script should train any
+mail that you have told it to, and the '-l 5' means that the script should
+execute every five minutes (you can change this as required).
+
+
+Procmail filtering
+------------------
+
+Many people on Unix-like systems have procmail available as an optional or
+as the default local delivery agent.  Integrating SpamBayes checking with
+Procmail is straightforward.
+
+First, create a SpamBayes database, by running "hammiefilter.py -n".  If
+you have some mail around that you can use to train it, do you (see the
+"command line training" section below).  Note that if you don't, all your
+mail will start out as 'unsure'.
+
+Now, create a .spambayesrc file.  There are lots of options you could have
+in here, but for the moment, just have these:
+
+    [Storage]
+    persistent_use_database = True
+    persistent_storage_file = ~/.hammiedb
+
+(Replace the latter with the location of the .hammiedb file that
+hammiefilter created in the first step).
+
+Once you've trained SpamBayes on your
+collection of know ham and spam, you can use the hammie.py script to
+classify incoming mail like so:
+
+    :0 fw:hamlock
+    | /usr/local/bin/hammie.py -f -d -p $HOME/hammie.db
+
+The above Procmail recipe tells it to run /usr/local/bin/hammie.py in filter
+mode (-f), and to use the training results stored in the dbm-style file
+~/hammie.db.  While hammie.py is runnning, Procmail uses the lock file
+hamlock to prevent multiple invocations from stepping on each others' toes.
+(It's not strictly necessary in this case since no files on-disk are
+modified, but Procmail will still complain if you don't specify a lock
+file.)
+
+The result of running hammie.py in filter mode is that Procmail will use the
+output from the run as the mail message for further processing downstream.
+Hammie.py inserts an X-SpamBayes-Classification header in the output message
+which looks like:
+
+    X-SpamBayes-Classification: ham; 0.00; '*H*': 1.00; '*S*': 0.00; 'python': 0.00;
+	'linux,': 0.01; 'desirable': 0.01; 'cvs,': 0.01; 'perl.': 0.02;
+	...
+
+You can then use this to segregate your messages into various inboxes, like
+so:
+
+    :0
+    * ^X-SpamBayes-Classification: spam
+    spam
+
+    :0
+    * ^X-SpamBayes-Classification: unsure
+    unsure
+
+The first recipe catches all messages which hammie.py classified as spam.
+The second catches all messages about which it was unsure.  The combination
+allows you to isolate spam from your good mail and tuck away messages it was
+unsure about so you can scan them more closely.
+
+
+VM and Gnus
+-----------
+
+VM and Gnus are mail readers distributed with Emacs and XEmacs.  The
+SpamBayes.el file in the contrib directory contains code and
+instructions for VM and Gnus integration.
+
+
+Training
+========
+
+POP3 Proxy
+----------
+
+You can train the system through the web interface: <http://localhost:8880>.
+Follow the "Review messages" link and you'll see a list of the emails that
+the system has seen so far.  Check the appropriate boxes and hit Train.
+The messages disappear and if you go back to the home page you'll see that
+the "Total emails trained" has increased.
+
+Alternatively, when you receive an incorrectly classified message, you can
+forward it to the SMTP proxy for training.  If the message should have been
+classified as spam, forward or bounce the message to
+spambayes_spam@localhost, and if the message should have been classified as
+ham, forward it to spambayes_ham@localhost.  You can still review the
+training through the web interface, if you wish to do so.
+
+Note that some mail clients (particularly Outlook Express) do not forward
+all headers when you bounce, forward or redirect mail.  For these clients,
+you will need to use the web interface to train.
+
+Once you've done this on a few spams and a few hams, you'll find that the
+X-Spambayes-Classification header is getting it right most of the time.
+The more you train it the more accurate it gets.  There's no need to train
+it on every message you receive, but you should train on a few spams and a
+few hams on a regular basis.  You should also try to train it on about the
+same number of spams as hams.
+
+You can train it on lots of messages in one go by either using the Hammie
+script as explained in the "Command-line training" section, or by giving
+messages to the web interface via the "Train" form on the Home page.  You
+can train on individual messages (which is tedious) or using mbox files.
+
+
+IMAP Filter
+-----------
+
+If you are running the IMAP filter with the '-t' switch, as described above,
+then all you need to do to train is move examples of mail into the
+appropriate folders, via your mail client (for example, move mail that was
+not classified as spam into (one of) the folder(s) that you specified as
+a spam training folder in the steps above.
+                                           
+
+Command-line training
+---------------------
+
+Given a pair of Unix mailbox format files (each message starts with a line
+which begins with 'From '), one containing nothing but spam and the other
+containing nothing but ham, you can train Spambayes using a command like
+
+    hammie.py -g ~/tmp/newham -s ~/tmp/newspam
+
+The above command is command-line-centric (eg. unix, or Windows command
+prompt).  You can also use the web interface for training as detailed above.
+
+
+Overview
+========
+
+[This section will tell you more about how and what SpamBayes is, but does
+not contain any additional information about setting it up.]
+
+There are eight main components to the SpamBayes system:
+
+ o A database.  Loosely speaking, this is a collection of words and
+   associated spam and ham probabilities.  The database says "If a message
+   contains the word 'Viagra' then there's a 98% chance that it's spam, and
+   a 2% chance that it's ham."  This database is created by training - you
+   give it messages, tell it whether those messages are ham or spam, and it
+   adjusts its probabilities accordingly.  How to train it is covered
+   below.  By default it lives in a file called "hammie.db".
+
+ o The tokeniser/classifier.  This is the core engine of the system.  The
+   tokenizer splits emails into tokens (words, roughly speaking), and the
+   classifier looks at those tokens to determine whether the message looks
+   like spam or not.  You don't use the tokeniser/classifier directly -
+   it powers the other parts of the system.
+
+ o The POP3 proxy.  This sits between your email client (Eudora, Outlook
+   Express, etc) and your incoming email server, and adds the
+   classification header to emails as you download them.  A typical
+   user's email setup looks like this:
+
+       +-----------------+                              +-------------+
+       | Outlook Express |      Internet or intranet    |             |
+       |  (or similar)   | <--------------------------> | POP3 server |
+       |                 |                              |             |
+       +-----------------+                              +-------------+
+
+   The POP3 server runs either at your ISP for internet mail, or somewhere
+   on your internal network for corporate mail.  The POP3 proxy sits in the
+   middle and adds the classification header as you retrieve your email:
+
+       +-----------------+        +------------+        +-------------+
+       | Outlook Express |        | SpamBayes  |        |             |
+       |  (or similar)   | <----> | POP3 proxy | <----> | POP3 server |
+       |                 |        |            |        |             |
+       +-----------------+        +------------+        +-------------+
+
+   So where you currently have your email client configured to talk to
+   say, "pop3.my-isp.com", you instead configure the *proxy* to talk to
+   "pop3.my-isp.com" and configure your email client to talk to the proxy.
+   The POP3 proxy can live on your PC, or on the same machine as the POP3
+   server, or on a different machine entirely, it really doesn't matter.
+   Say it's living on your PC, you'd configure your email client to talk
+   to "localhost".  You can configure the proxy to talk to multiple POP3
+   servers, if you have more than one email account.
+
+ o The SMTP proxy.  This sits between your email client (Eudora, Outlook
+   Express, etc) and your outgoing email server.  Any mail sent to
+   SpamBayes_spam@localhost or SpamBayes_ham@localhost is intercepted
+   and trained appropriately.  A typical user's email setup looks like
+   this:
+
+       +-----------------+                              +-------------+
+       | Outlook Express |      Internet or intranet    |             |
+       |  (or similar)   | <--------------------------> | SMTP server |
+       |                 |                              |             |
+       +-----------------+                              +-------------+
+
+   The SMTP server runs either at your ISP for internet mail, or somewhere
+   on your internal network for corporate mail.  The SMTP proxy sits in the
+   middle and checks for mail to train on as you send your email:
+
+       +-----------------+        +------------+        +-------------+
+       | Outlook Express |        | SpamBayes  |        |             |
+       |  (or similar)   | <----> | SMTP proxy | <----> | SMTP server |
+       |                 |        |            |        |             |
+       +-----------------+        +------------+        +-------------+
+
+   So where you currently have your email client configured to talk to
+   say, "smtp.my-isp.com", you instead configure the *proxy* to talk to
+   "smtp.my-isp.com" and configure your email client to talk to the proxy.
+   The SMTP proxy can live on your PC, or on the same machine as the SMTP
+   server, or on a different machine entirely, it really doesn't matter.
+   Say it's living on your PC, you'd configure your email client to talk
+   to "localhost".  You can configure the proxy to talk to multiple SMTP
+   servers, if you have more than one email account.
+
+ o The web interface.  This is a server that runs alongside the POP3 proxy,
+   SMTP proxy, and IMAP filter (see below) and lets you control it through
+   the web.  You can upload emails to it for training or classification,
+   query the probabilities database ("How many of my emails really *do*
+   contain the word Viagra"?), find particular messages, and most
+   importantly, train it on the emails you've received.  When you start
+   using the system, unless you train it using the Hammie script it will
+   classify most things as Unsure, and often make mistakes.  But it keeps
+   copies of all the email's its seen, and through the web interface you
+   can train it by going through a list of all the emails you've received
+   and checking a Ham/Spam box next to each one.  After training on a few
+   messages (say 20 spams and 20 hams), you'll find that it's getting it
+   right most of the time.   The web training interface automatically
+   checks the Ham/Spam boxes according to what it thinks, so all you need
+   to do it correct the odd mistake - it's very quick and easy.
+
+ o The Outlook plug-in.  For Outlook 2000 and Outlook XP users (not Outlook
+   Express) this lets you manage the whole thing from within Outlook.  You
+   set up a Ham folder and a Spam folder, and train it simply by dragging
+   messages into those folders.  Alternatively there are buttons to do the
+   same thing. And it integrates into Outlook's filtering system to make it
+   easy to file all the suspected spam into its own folder, for instance.
+
+ o The Hammie script.  This does three jobs: command-line training,
+   procmail filtering, and XML-RPC.  See below for details of how to use
+   Hammie for training, and how to use it as procmail filter.  Hammie can
+   also run as an XML-RPC server, so that a programmer can write code that
+   uses a remote server to classify emails programmatically - see
+   hammiesrv.py.
+
+ o The IMAP filter.  This is a cross between the POP3 proxy and the Outlook
+   plugin.  If your mail sits on an IMAP server, you can use the this to
+   filter your mail.  You can designate folders that contain mail to train
+   as ham and folders that contain mail to train as spam, and the filter
+   does this for you.  You can also designate folders to filter, along with
+   a folder for messages SpamBayes is unsure about, and a folder for
+   suspected spam. When new mail arrives, the filter will move mail to the
+   appropriate location (ham is left in the original folder).
