@@ -1,11 +1,24 @@
 #! /usr/bin/env python
+# At the moment, this requires Python 2.3 from CVS (heapq, Set, enumerate).
 
-NSETS = 5
-SPAMDIRS = ["Data/Spam/Set%d" % i for i in range(1, NSETS+1)]
-HAMDIRS  = ["Data/Ham/Set%d" % i for i in range(1, NSETS+1)]
-SPAMHAMDIRS = zip(SPAMDIRS, HAMDIRS)
+# A test driver using "the standard" test directory structure.  See also
+# rates.py and cmp.py for summarizing results.
+
+"""Usage: %(program)s [options]
+
+Where:
+    -h
+        Show usage and exit.
+    -n int
+        Number of Set directories (Data/Spam/Set1, ... and Data/Ham/Set1, ...).
+        This is required.
+
+In addition, an attempt is made to import bayescustomize.  If that exists,
+it can be used to change the settings in Options.options.
+"""
 
 import os
+import sys
 from sets import Set
 import cPickle as pickle
 from heapq import heapreplace
@@ -13,6 +26,14 @@ from heapq import heapreplace
 import Tester
 import classifier
 from tokenizer import tokenize
+
+def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
+    if msg:
+        print >> sys.stderr, msg
+        print >> sys.stderr
+    print >> sys.stderr, __doc__ % globals()
+    sys.exit(code)
 
 class Hist:
     def __init__(self, nbuckets=20):
@@ -216,12 +237,19 @@ class Driver:
         self.trained_ham_hist += local_ham_hist
         self.trained_spam_hist += local_spam_hist
 
-def drive():
-    d = Driver()
+def drive(nsets):
+    import Options
 
-    for spamdir, hamdir in SPAMHAMDIRS:
+    print Options.options.display()
+
+    spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
+    hamdirs  = ["Data/Ham/Set%d" % i for i in range(1, nsets+1)]
+    spamhamdirs = zip(spamdirs, hamdirs)
+
+    d = Driver()
+    for spamdir, hamdir in spamhamdirs:
         d.train(MsgStream(hamdir), MsgStream(spamdir))
-        for sd2, hd2 in SPAMHAMDIRS:
+        for sd2, hd2 in spamhamdirs:
             if (sd2, hd2) == (spamdir, hamdir):
                 continue
             d.test(MsgStream(hd2), MsgStream(sd2))
@@ -229,4 +257,26 @@ def drive():
     d.alldone()
 
 if __name__ == "__main__":
-    drive()
+    import getopt
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:')
+    except getopt.error, msg:
+        usage(1, msg)
+
+    nsets = None
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-n':
+            nsets = int(arg)
+
+    if args:
+        usage(1, "Positional arguments not supported")
+
+    try:
+        import bayescustomize
+    except ImportError:
+        pass
+
+    drive(nsets)
