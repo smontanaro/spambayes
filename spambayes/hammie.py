@@ -104,8 +104,8 @@ class DBDict:
 
     """
 
-    def __init__(self, dbname, iterskip=()):
-        self.hash = anydbm.open(dbname, 'c')
+    def __init__(self, dbname, mode, iterskip=()):
+        self.hash = anydbm.open(dbname, mode)
         self.iterskip = iterskip
 
     def __getitem__(self, key):
@@ -184,10 +184,11 @@ class PersistentBayes(classifier.Bayes):
     # XXX: Another idea: cache stuff in memory.  But by then maybe we
     # should just use ZODB.
 
-    def __init__(self, dbname):
+    def __init__(self, dbname, mode):
         classifier.Bayes.__init__(self)
         self.statekey = "saved state"
-        self.wordinfo = DBDict(dbname, (self.statekey,))
+        self.wordinfo = DBDict(dbname, mode, (self.statekey,))
+        self.dbmode = mode
 
         self.restore_state()
 
@@ -196,7 +197,8 @@ class PersistentBayes(classifier.Bayes):
         self.save_state()
 
     def save_state(self):
-        self.wordinfo[self.statekey] = (self.nham, self.nspam)
+        if self.dbmode != 'r':
+            self.wordinfo[self.statekey] = (self.nham, self.nspam)
 
     def restore_state(self):
         if self.wordinfo.has_key(self.statekey):
@@ -382,12 +384,12 @@ def score(hammie, msgs, reverse=0):
                 print hammie.formatclues(clues)
     return (spams, hams)
 
-def createbayes(pck=DEFAULTDB, usedb=False):
+def createbayes(pck=DEFAULTDB, usedb=False, mode='r'):
     """Create a Bayes instance for the given pickle (which
     doesn't have to exist).  Create a PersistentBayes if
     usedb is True."""
     if usedb:
-        bayes = PersistentBayes(pck)
+        bayes = PersistentBayes(pck, mode)
     else:
         bayes = None
         try:
@@ -426,13 +428,16 @@ def main():
     reverse = 0
     do_filter = False
     usedb = USEDB
+    mode = 'r'
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
         elif opt == '-g':
             good.append(arg)
+            mode = 'c'
         elif opt == '-s':
             spam.append(arg)
+            mode = 'c'
         elif opt == '-p':
             pck = arg
         elif opt == "-d":
@@ -450,7 +455,7 @@ def main():
 
     save = False
 
-    bayes = createbayes(pck, usedb)
+    bayes = createbayes(pck, usedb, mode)
     h = Hammie(bayes)
 
     for g in good:
