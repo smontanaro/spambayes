@@ -374,7 +374,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if sender: headers.append("From: "+sender)
         if to: headers.append("To: "+to)
         if cc: headers.append("CC: "+cc)
-        return "\n".join(headers)
+        return "\n".join(headers) + "\n"
 
     def _EnsureObject(self):
         if self.mapi_object is None:
