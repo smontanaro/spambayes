@@ -1,6 +1,6 @@
 ;; spambayes.el -- integrate spambayes into Gnus and VM
 ;; Copyright (C) 2003 Neale Pickett <neale@woozle.org>
-;; Time-stamp: <2003-06-06 10:07:09 neale>
+;; Time-stamp: <2003-10-14 21:59:11 neale>
 
 ;; This is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
@@ -18,39 +18,39 @@
 
 ;; Purpose:
 ;;
-;; Functions to put spambayes into Gnus.  
-;;
-;; This assumes you are already filtering with a procmail recipie
-;; similar to:
-;;
-;;   :0fw
-;;   | hammiefilter.py -t
-;;
-;; If you can't run procmail on all your incoming messages, you shold
-;; have a look at spam.el, which is included with Oort Gnus.
-;;
-;; This binds "B s" to "refile as spam", and "B h" to "refile as ham".
-;; After refiling, the message is rescored and respooled.  I haven't yet
-;; run across a case where refiling doesn't change a message's score
-;; well into the ham or spam range.  If this happens to you, please let
-;; me know.
+;; Functions to put spambayes into Gnus and VM.
 
-;; Installation:
-;;
-;;
 ;; GNUS
 ;; ----
 ;; To install, just drop this file in your load path, and insert the
 ;; following lines in ~/.gnus:
 ;;
-;; (load-library "spambayes")
-;; (add-hook
-;;  'gnus-sum-load-hook
-;;  (lambda nil
-;;    (define-key gnus-summary-mode-map [(B) (s)] 'spambayes-gnus-refile-as-spam)
-;;    (define-key gnus-summary-mode-map [(B) (h)] 'spambayes-gnus-refile-as-ham)))
+;; (setq gnus-sum-load-hook
+;;   (lambda ()
+;;     (require 'spambayes)
+;;     (define-key gnus-summary-mode-map [(B) (s)] 'spambayes-gnus-refile-as-spam)
+;;     (define-key gnus-summary-mode-map [(B) (h)] 'spambayes-gnus-refile-as-ham)))
+;;
+;; In summary mode, "B h" will refile a message as ham, and "B s",
+;; appropriately enough, will refile a message as spam.
 ;;
 ;;
+;; You can also put the following in ~/.gnus to run messages through the
+;; filter as Gnus reads them in:
+;;
+;;  (setq nnmail-prepare-incoming-message-hook 'spambayes-filter-buffer)
+;;
+;; You can then use Gnus message splitting (looking at the
+;; X-Spambayes-Classification header) to file messages based on the
+;; spambayes score.
+;;
+;; Some folks may prefer using procmail to score messages when they
+;; arrive.  See README.txt in the distribution for more information on
+;; how to do this.
+
+
+
+
 ;; VM (Courtesy of Prabhu Ramachandran <prabhu@aero.iitm.ernet.in>)
 ;; ----
 ;; Put the following in ~/.vm:
@@ -69,7 +69,7 @@
 ;;         ("X-Spambayes-Classification:" ("unsure" . "~/vmmail/UNSURE"))
 ;;         )
 ;; )
-;; 
+;;
 ;; Hitting the 'A' key will refile messages to the SPAM and UNSURE folders.
 ;;
 ;; The following visible header list might also be useful:
@@ -82,13 +82,27 @@
 ;;      "X-Spambayes-Classification:"))
 
 
-(defvar spambayes-spam-group "spam"
-  "Group name for spam messages")
+(defvar spambayes-filter-program "/usr/local/bin/sb_filter.py"
+  "Path to the sb_filter program.")
 
-(defvar spambayes-hammiefilter "~/src/spambayes/hammiefilter.py"
-  "Path to the hammiefilter program")
-
+
 ;; Gnus
+
+(defun spambayes-filter-buffer (&optional buffer)
+  "Filter a buffer through Spambayes.
+
+This pipes the a buffer through Spambayes, which adds its headers.  The
+output of Spambayes replaces the contents of the buffer.  If no buffer
+is specified, the current buffer is used.
+"
+  (shell-command-on-region
+   (point-min)
+   (point-max)
+   (concat
+    spambayes-filter-program
+    " -f")
+   (or buffer (current-buffer))
+   t))
 
 (defun spambayes-gnus-retrain (is-spam)
   "Retrain on all processable articles, or the one under the cursor.
@@ -107,7 +121,7 @@ false if you want to retrain as ham.
 		       (point-min)
 		       (point-max)
 		       (concat
-			spambayes-hammiefilter
+			spambayes-filter-program
 			(if is-spam " -s" " -g")
 			" -f")
 		       (current-buffer)
@@ -127,16 +141,17 @@ false if you want to retrain as ham.
 (defun spambayes-gnus-refile-as-spam ()
   "Retrain and refilter all process-marked messages as spam, then respool them"
   (interactive)
-  (spambayes-retrain 't)
+  (spambayes-gnus-retrain 't)
   (gnus-summary-respool-article nil (gnus-group-method gnus-newsgroup-name)))
 
 (defun spambayes-gnus-refile-as-ham ()
   "Retrain and refilter all process-marked messages as ham, then respool them"
   (interactive)
-  (spambayes-retrain nil)
+  (spambayes-gnus-retrain nil)
   (gnus-summary-respool-article nil (gnus-group-method gnus-newsgroup-name)))
 
 
+
 ;;; VM
 
 (defun spambayes-vm-retrain (is-spam)
@@ -147,9 +162,9 @@ false if you want to retrain as ham.
 "
   (interactive)
   (message (concat "Retraining" (if is-spam " as SPAM" " as HAM") " ..."))
-  (vm-pipe-message-to-command 
-   (concat spambayes-hammiefilter (if is-spam " -s" " -g") " -f") nil)
-  (message (concat "Done retraining messages" 
+  (vm-pipe-message-to-command
+   (concat spambayes-filter-program (if is-spam " -s" " -g") " -f") nil)
+  (message (concat "Done retraining messages"
                    (if is-spam " as SPAM" " as HAM") ".") )
 )
 
@@ -164,3 +179,5 @@ false if you want to retrain as ham.
   (interactive)
   (spambayes-vm-retrain nil)
 )
+
+(provide 'spambayes)

@@ -32,9 +32,9 @@
 *+  -t
         [EXPERIMENTAL] filter and train based on the result (you must
         make sure to untrain all mistakes later)
-*   -g
+*+  -g
         [EXPERIMENTAL] (re)train as a good (ham) message
-*   -s
+*+  -s
         [EXPERIMENTAL] (re)train as a bad (spam) message
 *   -G
         [EXPERIMENTAL] untrain ham (only use if you've already trained
@@ -78,10 +78,17 @@ procmail recipe to filter and train in one step:
     | %(program)s -t
 
 
-mutt configuration.  This binds the 'H' key to retrain the message as
+mutt configuration:  This binds the 'H' key to retrain the message as
 ham, and prompt for a folder to move it to.  The 'S' key retrains as
-spam, and moves to a 'spam' folder.
-    XXX: add this
+spam, and moves to a 'spam' folder.  See contrib/muttrc in the spambayes
+distribution for other neat mutt tricks.
+
+  macro index S "|sb_filter.py -s | procmail\n"
+  macro pager S "|sb_filter.py -s | procmail\n"
+  macro index H "|sb_filter.py -g | procmail\n"
+  macro pager H "|sb_filter.py -g | procmail\n"
+  color index red black "~h 'X-Spambayes-Disposition: spam' ~F"
+
 
 """
 
