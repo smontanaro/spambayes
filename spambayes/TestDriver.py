@@ -110,8 +110,14 @@ class Driver:
         self.trained_ham_hist = Hist()
         self.trained_spam_hist = Hist()
 
-    # CAUTION:  this just doesn't work for incrememental training when
-    # options.use_central_limit is in effect.
+    # CAUTION:  When options.use_central_limit{,2,3} is in effect, this
+    # adds the new population statistics to the existing population statistics
+    # (if any), but the existing population statistics are no longer correct
+    # due to the new data we just added (which can change spamprobs, and
+    # even the *set* of extreme words).  There's no thoroughly correct way
+    # to repair this short of recomputing the population statistics for
+    # every msg *ever* trained on.  It's currently unknown how badly this
+    # cheat may affect results.
     def train(self, ham, spam):
         print "-> Training on", ham, "&", spam, "...",
         c = self.classifier
@@ -121,8 +127,8 @@ class Driver:
         c.compute_population_stats(ham, False)
         c.compute_population_stats(spam, True)
 
-    # CAUTION:  this just doesn't work for incrememental training when
-    # options.use_central_limit is in effect.
+    # CAUTION:  this doesn't work at all for incrememental training when
+    # options.use_central_limit{,2,3} is in effect.
     def untrain(self, ham, spam):
         print "-> Forgetting", ham, "&", spam, "...",
         c = self.classifier
