@@ -103,4 +103,7 @@ class CommandButtonProcessor(ButtonProcessor):
 
     def GetPopupHelpText(self, ctrlid):
         assert ctrlid == self.control_id
-        return " ".join(self.func.__doc__.split())
+        doc = self.func.__doc__
+        if doc is None:
+            return ""
+        return " ".join(doc.split())
