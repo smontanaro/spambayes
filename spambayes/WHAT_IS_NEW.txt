@@ -1,0 +1,127 @@
+This file covers the major changes between each release.  For more details,
+the reader is referred to the changelog, or for extreme details, to the
+check-ins archive.
+
+Changes are broken into sections for each application, plus one that will
+probably only interest developers, and one for everything else.
+
+Any actions necessary to move to this release from the previous release are
+noted in the "Transition" section.
+
+New in Alpha Release 3
+======================
+
+Outlook Plugin
+--------------
+ o The Outlook Plugin now works with bsddb[3] databases, and uses them
+   rather than pickles, if available.
+ o The Outlook Plugin now stores files in the "correct" windows directory.
+   These will be automatically migrated.
+ o Show all tokens in message when showing clues in Outlook plugin.
+ o Fix a bug in the Outlook plugin test code.
+ o Only create "Spam" field on mail items in Outlook plugin.
+ o MAPI exceptions are better handled.
+ o Errors when hotmail connector cannot save the message are suppressed.
+ o Tokens are listed one per line in Show Clues.
+ o Messages can be scored after training.
+ o Plugin *may* now work correctly in non-English locales.
+
+POP3 Proxy
+----------
+ o The POP3 Proxy can now include the classification in the "To" or
+   "Subject" headers, which allows Outlook Express users to perform
+   filtering on the classification.
+ o The POP3 Proxy can add an id (as a header or in the body) to track
+   emails.  This can be used with the SMTP Proxy, or to find a particular
+   message from the web interface.
+ o Added include_score option to (optionally) note the score of the message
+   in a header.
+ o Added level (thermostat) and evidence headers for pop3proxy.
+ o Added pop3proxy_server to allow pop3proxy to run as a Windows service.
+ o Improved configuration page for the user interface.
+ o A "Show Clues" button next to each message in the "Review" page of the
+   web interface.
+ o Messages in the "unknown" cache are expired, just like those in the
+   "ham" and "spam" caches.
+ o Messages are expired (if old enough) each time a client connects to the
+   proxy, rather than on the proxy startup.
+ o pop3proxy_port, pop3proxy_server_name and pop3proxy_server_port options
+   were removed (these were deprecated in Alpha 2).
+ o If a file is removed from the cache (not by the proxy) this no longer
+   causes an exception.
+ o Messages received in quick succession (within the same second) may not
+   have been visible in the "review" page; fixed this.
+ o Added "Refresh" button to "Review" page.
+ o Improved proxying of "STAT" POP3 command so that a guess at the message
+   size is returned.
+ o Web interface encourage browsers not to cache the pages.
+
+Developer
+---------
+ o Added base message classes for use by all Spambayes applications -
+   currently used by the IMAP filter and POP3 proxy.
+ o Major rework of the configuration file loading and format of Options.py.
+ o Test code moved out of pop3proxy.py.
+ o Web interface code abstracted out of pop3proxy.py.
+
+General
+-------
+ o A utility to dump the contents of a CDB database.
+ o -c and -d options to mailsort.py
+ o A basic filter for Lotus Notes.
+ o A SMTP Proxy to allow training via forwarding/bouncing messages.
+ o Various files to test "incremental training" (or "self training").
+ o Option to mkgraph to spit out counts *or* error rates, and n-day
+   averages *or* cumulative.
+ o Note when the subject charset is invalid (rather than raising an
+   exception).
+ o A filter for IMAP.
+ o A script to test the effectiveness of following URLs in messages when
+   insufficient clues are otherwise present.
+
+
+Transition
+==========
+ o If you are using the Outlook Plugin and a recent bsddb or bsddb3 is
+   available, you will need to do a full retrain.
+ o If you had set the environment variable BAYESCUSTOMIZE to point to more
+   than one configuration file, you will need to change the separator
+   character from a space to the path separator for your platform (a
+   semi-colon on windows, a colon on *nix and a newline on Mac OS9)
+ o If your old configuration file used the pop3proxy_port,
+   pop3proxy_server_name or pop3proxy_server_port options, these will no
+   longer work.  Copy the values in them and use the web interface to
+   update your configuration file.
+ o Your old configuration file more than likely includes deprecated
+   settings.  The old settings will still work for the moment, but you
+   should take the time to update them.  The "convert_config_file.py"
+   script will convert the file for you, without loss of comments, and
+   avoiding whitespace changes where possible.
+ o If you are using POP3 proxy, you should use the web interface to set the
+   location of the "message info" database (a full pathname is
+   recommended).
+ o If you are using POP3 proxy, it is recommended (but not required) that
+   you do a full retrain to take advantage of the "message info" database.
+
+
+Reported Bugs Fixed
+===================
+The following bugs tracked via the Sourceforge system were fixed:
+677804, 642740, 685746, 693423, 696995, 696476, 697120, 698852, 700165,
+704921, 707491, 725307, 725616, 725307, 725466, 726255, 728886, 715248,
+733247
+
+A url containing the details of these bugs can be made by appending the
+bug number to this url:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&aid=
+
+
+Feature Requests Added
+======================
+The following feature requests tracked via the Sourceforge system were
+fixed:
+690928, 703283
+
+A url containing the details of these feature requests can be made by
+appending the request number to this url:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498104&aid=
