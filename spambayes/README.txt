@@ -59,6 +59,10 @@ TestDriver.py
     grids, and N-fold cross validation drivers.  See also rates.py and
     cmp.py below.
 
+msgs.py
+    Some simple classes to wrap raw msgs, and to produce streams of
+    msgs.  The test drivers use these.
+
 
 Apps
 ====
