@@ -636,7 +636,7 @@ _storage_types = {"dbm" : DBDictClassifier,
                   "mysql" : mySQLClassifier,
                   }
 
-def open_storage(data_source_name, useDB=True):
+def open_storage(data_source_name, useDB=True, mode=None):
     """Return a storage object appropriate to the given parameters.
 
     By centralizing this code here, all the applications will behave
@@ -647,8 +647,7 @@ def open_storage(data_source_name, useDB=True):
     the type of database.  If the source name doesn't include "::",
     then a DBDictClassifier is used."""
     if useDB:
-        if (isinstance(data_source_name, types.StringTypes) and
-            data_source_name.find('::') != -1):
+        if data_source_name.find('::') != -1:
             db_type, rest = data_source_name.split('::', 1)
             if _storage_types.has_key(db_type.lower()):
                 klass = _storage_types[db_type.lower()]
@@ -660,17 +659,17 @@ def open_storage(data_source_name, useDB=True):
     else:
         klass = PickledClassifier
     try:
-        if isinstance(data_source_name, type(())):
-            return klass(*data_source_name)
+        if mode is not None:
+            return klass(data_source_name, mode)
         return klass(data_source_name)
     except dbmstorage.error, e:
         if str(e) == "No dbm modules available!":
             # We expect this to hit a fair few people, so warn them nicely,
             # rather than just printing the trackback.
-            print >> sys.stderr, """\
-You do not have a dbm module available to use.  You need to either use a
-pickle (see the FAQ), use Python 2.3 (or above), or install a dbm module
-such as bsddb (see http://sf.net/projects/pybsddb)."""
+            print >> sys.stderr, "You do not have a dbm module available " \
+                  "to use.  You need to either use a pickle (see the FAQ)" \
+                  ", use Python 2.3 (or above), or install a dbm module " \
+                  "such as bsddb (see http://sf.net/projects/pybsddb)."
             import sys
             sys.exit()
 
