@@ -54,6 +54,10 @@ To run the Outlook plug-in from source, you also need have the win32com
 extensions installed (win32all-149 or above), which you can get from
 <http://starship.python.net/crew/mhammond>.
 
+When installing SpamBayes on some *nix systems, such as Debian, you may need
+to install the python-dev package.  This can be done with a command like
+"apt-get install python-dev" (this may vary between distributions).
+
 
 Getting the software
 ====================
