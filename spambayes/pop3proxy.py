@@ -445,9 +445,18 @@ class BayesProxy(POP3ProxyBase):
                     else:
                         state.numUnsure += 1
 
-                    # Cache the message; don't pollute the cache with test messages.
-                    if not state.isTest \
-                        and options["pop3proxy", "cache_messages"]:
+                    # Suppress caching of "Precedence: bulk" or
+                    # "Precedence: list" ham if the options say so.
+                    isSuppressedBulkHam = \
+                        (cls == options["Hammie", "header_ham_string"] and
+                         options["pop3proxy", "no_cache_bulk_ham"] and
+                         msg.get('precedence') in ['bulk', 'list'])
+
+                    # Cache the message.  Don't pollute the cache with test
+                    # messages or suppressed bulk ham.
+                    if (not state.isTest and
+                        options["pop3proxy", "cache_messages"] and
+                        not isSuppressedBulkHam):
                         # Write the message into the Unknown cache.
                         message = state.unknownCorpus.makeMessage(msg.getId())
                         message.setSubstance(msg.as_string())

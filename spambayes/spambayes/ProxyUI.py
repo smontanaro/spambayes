@@ -83,6 +83,7 @@ parm_ini_map = (
     ('pop3proxy',           'remote_servers'),
     ('pop3proxy',           'listen_ports'),
     ('pop3proxy',           'cache_messages'),
+    ('pop3proxy',           'no_cache_bulk_ham'),
     ('html_ui',             'display_to'),
     ('Header Options',      None),
     ('pop3proxy',           'notate_to'),
@@ -488,7 +489,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Most of the work here is done by the parent class, but
         # we have a few extra checks
         errmsg = UserInterface.UserInterface.verifyInput(self, parms)
-        
+
         # check for equal number of pop3servers and ports
         slist = list(parms['pop3proxy_remote_servers'])
         plist = list(parms['pop3proxy_listen_ports'])

@@ -217,7 +217,7 @@ defaults = {
      is False)""",
      BOOLEAN, RESTORE),
   ),
-           
+
   # These options control how a message is categorized
   "Categorization" : (
     # spam_cutoff and ham_cutoff are used in Python slice sense:
@@ -257,7 +257,7 @@ defaults = {
      are classified as Unsure.""",
      REAL, RESTORE),
   ),
- 
+
   # These control various displays in class TestDriver.Driver, and
   # Tester.Test.
   "TestDriver" : (
@@ -388,7 +388,7 @@ defaults = {
      it is just in case you are paranoid <wink>.""",
      BOOLEAN, RESTORE),
   ),
- 
+
   "Classifier": (
     ("max_discriminators", "Maximum number of extreme words", 150,
      """The maximum number of extreme words to look at in a msg, where
@@ -415,14 +415,14 @@ defaults = {
      tend toward unknown_word_prob.  All reports were that a value near 0.4
      worked best, so this does not seem to be corpus-dependent.""",
      REAL, RESTORE),
- 
+
     ("minimum_prob_strength", "Minimum probability strength", 0.1,
      """When scoring a message, ignore all words with
      abs(word.spamprob - 0.5) < minimum_prob_strength.
      This may be a hack, but it has proved to reduce error rates in many
      tests.  0.1 appeared to work well across all corpora.""",
      REAL, RESTORE),
- 
+
     ("use_gary_combining", "Use gary-combining", False,
      """The combining scheme currently detailed on the Robinson web page.
      The middle ground here is touchy, varying across corpus, and within
@@ -430,7 +430,7 @@ defaults = {
      extreme scores (near 0.0 or 1.0), but the tail ends of the ham and
      spam distributions overlap.""",
      BOOLEAN, RESTORE),
- 
+
     ("use_chi_squared_combining", "Use chi-squared combining", True,
      """For vectors of random, uniformly distributed probabilities,
      -2*sum(ln(p_i)) follows the chi-squared distribution with 2*n degrees
@@ -464,7 +464,7 @@ defaults = {
     # than min(# ham trained on, # spam trained on) justifies.  I *expect*
     # this option will go away (and become the default), but people *with*
     # strong imbalance need to test it first.
-    
+
     ("experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
      """If your training database has significantly (3 times) more ham than
      spam, or vice versa, you may start seeing an increase in incorrect
@@ -477,18 +477,18 @@ defaults = {
      to retrain your database if you change this option.""",
      BOOLEAN, RESTORE),
   ),
- 
+
   "Hammie": (
     ("debug_header", "Add debug header", False,
      """Enable debugging information in the header.""",
      BOOLEAN, RESTORE),
- 
+
     ("debug_header_name", "Debug header name", "X-Spambayes-Debug",
      """Name of a debugging header for spambayes hackers, showing the
      strongest clues that have resulted in the classification in the
      standard header.""",
      HEADER_NAME, RESTORE),
- 
+
     ("train_on_filter", "Train when filtering", False,
      """Train when filtering?  After filtering a message, hammie can then
      train itself on the judgement (ham or spam).  This can speed things up
@@ -560,7 +560,7 @@ defaults = {
      value should work just fine, but you may change it to anything
      that you wish.""",
      HEADER_VALUE, RESTORE),
- 
+
     ("header_ham_string", "Ham disposition name", "ham",
      """As for Spam Designation, but for emails classified as
      Ham.""",
@@ -572,11 +572,11 @@ defaults = {
      the Ham and Spam Cutoffs).  Emails that have this classification
      should always be the subject of training.""",
      HEADER_VALUE, RESTORE),
- 
+
     ("header_score_digits", "Accuracy of reported score", 2,
      """Accuracy of the score in the header in decimal digits""",
      INTEGER, RESTORE),
-    
+
     ("header_score_logarithm", "Augment score with logarithm", False,
      """Set this to "True", to augment scores of 1.00 or 0.00 by a
      logarithmic "one-ness" or "zero-ness" score (basically it shows the
@@ -670,7 +670,7 @@ defaults = {
     ("cache_use_gzip", "Use gzip", False,
      """""",
      BOOLEAN, RESTORE),
-    
+
     ("cache_expiry_days", "Days before cached messages expire", 7,
      """""",
      INTEGER, RESTORE),
@@ -678,11 +678,11 @@ defaults = {
     ("spam_cache", "Spam cache directory", "pop3proxy-spam-cache",
      """""",
      PATH, DO_NOT_RESTORE),
-    
+
     ("ham_cache", "Ham cache directory", "pop3proxy-ham-cache",
      """""",
      PATH, DO_NOT_RESTORE),
-    
+
     ("unknown_cache", "Unknown cache directory", "pop3proxy-unknown-cache",
      """""",
      PATH, DO_NOT_RESTORE),
@@ -714,6 +714,16 @@ defaults = {
      be able to do further training unless you re-enable it.
      Thus, you should only turn caching off when you are satisfied
      with the filtering that Spambayes is doing for you.""",
+     BOOLEAN, RESTORE),
+
+    ("no_cache_bulk_ham", "Suppress caching of bulk ham", False,
+     """Where message caching is enabled, this option suppresses caching
+     of messages which are classified as ham and marked as
+     'Precedence: bulk' or 'Precedence: list'.  If you subscribe to a
+     high-volume mailing list then your 'Review messages' page can be
+     overwhelmed with list messages, making training a pain.  Once you've
+     trained Spambayes on enough list traffic, you can use this option
+     to prevent that traffic showing up in 'Review messages'.""",
      BOOLEAN, RESTORE),
 
     ("add_mailid_to", "Add unique spambayes id", (),
@@ -857,7 +867,7 @@ defaults = {
     ("unsure_folder", "Folder for unsure messages", "",
      """""",
      IMAP_FOLDER, DO_NOT_RESTORE),
-    
+
     ("spam_folder", "Folder for suspected spam", "",
      """""",
      IMAP_FOLDER, DO_NOT_RESTORE),
@@ -898,7 +908,7 @@ defaults = {
      folder.""",
      IMAP_FOLDER, DO_NOT_RESTORE),
   ),
- 
+
   "globals" : (
     ("verbose", "Verbose", False,
      """""",
