@@ -56,10 +56,15 @@ class MsgStoreException(Exception):
         Exception.__init__(self, mapi_exception, extra_msg)
     def __str__(self):
         try:
-            return "%s: %s" % (self.__class__.__name__,
-                               GetCOMExceptionString(self.mapi_exception))
+            if self.mapi_exception is not None:
+                err_str = GetCOMExceptionString(self.mapi_exception)
+            else:
+                err_str = self.extra_msg or ''
+            return "%s: %s" % (self.__class__.__name__, err_str)
+         # Python silently consumes exceptions here, and uses
+         # <unprintable object>
         except:
-            print "Error __str__"
+            print "FAILED to str() a MsgStore exception!"
             import traceback
             traceback.print_exc()
 
@@ -243,8 +248,11 @@ class MAPIMsgStore:
     def NormalizeID(self, item_id):
         assert type(item_id)==type(()), \
                "Item IDs must be a tuple (not a %r)" % item_id
-        store_id, entry_id = item_id
-        return mapi.BinFromHex(store_id), mapi.BinFromHex(entry_id)
+        try:
+            store_id, entry_id = item_id
+            return mapi.BinFromHex(store_id), mapi.BinFromHex(entry_id)
+        except ValueError:
+            raise MsgStoreException(None, "The specified ID '%s' is invalid" % (item_id,))
 
     def _GetSubFolderIter(self, folder):
         table = folder.GetHierarchyTable(0)
@@ -263,7 +271,11 @@ class MAPIMsgStore:
 
     def GetFolderGenerator(self, folder_ids, include_sub):
         for folder_id in folder_ids:
-            folder_id = self.NormalizeID(folder_id)
+            try:
+                folder_id = self.NormalizeID(folder_id)
+            except MsgStoreException, details:
+                print "NOTE: Skipping invalid folder", details
+                continue
             try:
                 folder = self._OpenEntry(folder_id)
                 table = folder.GetContentsTable(0)

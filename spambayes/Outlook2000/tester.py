@@ -11,11 +11,14 @@
 from __future__ import generators
 
 from win32com.client import constants
+import sys
 from time import sleep
 import copy
 import rfc822
 import cStringIO
 import threading
+
+import msgstore
 
 from win32com.mapi import mapi, mapiutil
 import pythoncom
@@ -31,6 +34,17 @@ class TestFailure(Exception):
 
 def TestFailed(msg):
     raise TestFailure(msg)
+
+def AssertRaises(exception, func, *args):
+    try:
+        func(*args)
+        raise TestFailed("Function '%s' should have raised '%r', but it worked!" % \
+                         (func, exception))
+    except:
+        exc_type = sys.exc_info()[0]
+        if exc_type == exception or issubclass(exc_type, exception):
+            return
+        raise
 
 filter_event = threading.Event()
 
@@ -351,17 +365,18 @@ def _DoTestHamFilter(driver, folder):
     msg.Delete()
 
 def TestHamFilter(driver):
-    _DoTestHamFilter(driver, driver.folder_watch)
-    # Try again, with the secondary folder if it exists (it is likely one
-    # is the inbox and one isn't, so may be useful)
-    if driver.folder_watch_2 is not None:
-        _DoTestHamFilter(driver, driver.folder_watch_2)
-        # Now test our incremental train logic
-        _DoTestHamTrain(driver, driver.folder_watch, driver.folder_watch_2)
-    else:
-        print "Skipping testing secondary watch folder filtering - " \
-              "only one watch folder is configured"
-    print "Created a Ham message, and saw it remain in place."
+    # Execute the 'ham' test in every folder we watch.
+    mgr = driver.manager
+    gen = mgr.message_store.GetFolderGenerator(
+                        mgr.config.filter.watch_folder_ids,
+                        mgr.config.filter.watch_include_sub)
+    num = 0
+    for f in gen:
+        print "Running ham filter tests on folder '%s'" % f.GetFQName()
+        f = f.GetOutlookItem()
+        _DoTestHamFilter(driver, f)
+        num += 1
+    print "Created a Ham message, and saw it remain in place (in %d watch folders.)" % num
 
 def TestUnsureFilter(driver):
     # Create a spam message in the Inbox - it should get immediately filtered
@@ -441,7 +456,6 @@ def run_nonfilter_tests(manager):
     # And now some other 'sanity' checks.
     # Check messages we are unable to score.
     # Must enable the filtering code for this test
-    import msgstore
     msgstore.test_suite_running = False
     try:
         print "Scanning all your good mail and spam for some sanity checks..."
@@ -481,17 +495,40 @@ def run_nonfilter_tests(manager):
     finally:
         msgstore.test_suite_running = True
 
+def run_invalid_id_tests(manager):
+    # Do some tests with invalid message and folder IDs.
+    print "Doing some 'invalid ID' tests - you should see a couple of warning, but no errors or tracebacks"
+    id_no_item = ('0000','0000') # this ID is 'valid' - but there will be no such item
+    id_invalid = ('xxxx','xxxx') # this ID is 'invalid' in that the hex-bin conversion fails
+    id_empty1 = ('','')
+    id_empty2 = ()
+    bad_ids = id_no_item, id_invalid, id_empty1, id_empty2
+    for id in bad_ids:
+        AssertRaises(msgstore.MsgStoreException, manager.message_store.GetMessage, id)
+    # Test 'GetFolderGenerator' works with invalid ids.
+    for id in bad_ids:
+        AssertRaises(msgstore.MsgStoreException, manager.message_store.GetFolder, id)
+        ids = manager.config.filter.watch_folder_ids[:]
+        ids.append(id)
+        found = 0
+        for f in manager.message_store.GetFolderGenerator(ids, False):
+            found += 1
+        if found > len(manager.config.filter.watch_folder_ids):
+            raise TestFailed("Seemed to find the extra folder")
+        names = manager.FormatFolderNames(ids, False)
+        if names.find("<unknown") < 0:
+            raise TestFailed("Couldn't find unknown folder in names '%s'" % names)
+    print "Finished 'invalid ID' tests"
+    
 ###############################################################################
 # "Failure" tests - execute some tests while provoking the msgstore to simulate
 # various MAPI errors.  Although not complete, it does help exercise our code
 # paths through the code.
 def _restore_mapi_failure():
-    import msgstore
     msgstore.test_suite_failure = None
     msgstore.test_suite_failure_request = None
     
 def _setup_for_mapi_failure(checkpoint, hr):
-    import msgstore
     assert msgstore.test_suite_running, "msgstore should already know its running"
     assert not msgstore.test_suite_failure, "should already have torn down previous failure"
     msgstore.test_suite_failure = pythoncom.com_error, \
@@ -546,6 +583,7 @@ def do_failure_tests(manager):
         _do_single_failure_ham_test(driver, "MAPIMsgStoreMsg.Save", -2146644781)
         # SetReadState???
         _do_single_failure_spam_test(driver, "MAPIMsgStoreMsg._DoCopyMove", mapi.MAPI_E_TABLE_TOO_BIG)
+       
     finally:
         manager.verbose = old_verbose
 
@@ -568,7 +606,6 @@ def filter_message_with_event(msg, mgr, all_actions=True):
         filter_event.set()
 
 def test(manager):
-    import msgstore
     from dialogs import SetWaitCursor
     SetWaitCursor(1)
 
@@ -586,6 +623,7 @@ def test(manager):
         # filtering tests take alot of time - do them last.
         run_filter_tests(manager)
         run_failure_tests(manager)
+        run_invalid_id_tests(manager)
         print "*" * 20
         print "Test suite finished without error!"
         print "*" * 20
