@@ -525,6 +525,33 @@ def ShowClues(mgr, explorer):
                             DisplayName="Original Message")
     new_msg.Display()
 
+# Event function fired from the "Empty Spam Folder" UI item.
+def EmptySpamFolder(mgr):
+    config = mgr.config.filter
+    ms = mgr.message_store
+    spam_folder_id = getattr(config, "spam_folder_id")
+    try:
+        spam_folder = ms.GetFolder(spam_folder_id)
+    except ms.MsgStoreException:
+        mgr.LogDebug(0, "ERROR: Unable to open the spam folder for emptying - " \
+                        "spam messages were not deleted")
+    else:
+        try:
+            if spam_folder.GetItemCount() > 0:
+                message = "Are you sure you want to permanently delete all items " \
+                          "in the \"%s\" folder?" % spam_folder.name
+                if mgr.AskQuestion(message):
+                    mgr.LogDebug(2, "Emptying spam from folder '%s'" % spam_folder.GetFQName())
+                    import manager
+                    spam_folder.EmptyFolder(manager._GetParent())
+            else:
+                mgr.LogDebug(2, "Spam folder '%s' was already empty" % spam_folder.GetFQName())
+                message = "The \"%s\" folder is already empty." % spam_folder.name
+                mgr.ReportInformation(message)
+        except:
+            mgr.LogDebug(0, "Error emptying spam folder '%s'!" % spam_folder.GetFQName())
+            traceback.print_exc()
+
 def CheckLatestVersion(manager):
     from spambayes.Version import get_version_string, get_version_number, fetch_latest_dict
     if hasattr(sys, "frozen"):
@@ -859,10 +886,19 @@ class ExplorerWithEvents:
                            Tag = "SpamBayesCommand.FilterNow")
             self._AddControl(popup,
                            constants.msoControlButton,
+                           ButtonEvent, (EmptySpamFolder, self.manager),
+                           Caption="Empty Spam Folder",
+                           Enabled=True,
+                           Visible=True,
+                           BeginGroup=True,
+                           Tag = "SpamBayesCommand.EmptySpam")
+            self._AddControl(popup,
+                           constants.msoControlButton,
                            ButtonEvent, (CheckLatestVersion, self.manager,),
                            Caption="Check for new version",
                            Enabled=True,
                            Visible=True,
+                           BeginGroup=True,
                            Tag = "SpamBayesCommand.CheckVersion")
             helpPopup = self._AddControl(
                             popup,
@@ -903,6 +939,7 @@ class ExplorerWithEvents:
                            Caption="Execute test suite",
                            Enabled=True,
                            Visible=True,
+                           BeginGroup=True,
                            Tag = "SpamBayesCommand.TestSuite")
         self.have_setup_ui = True
 

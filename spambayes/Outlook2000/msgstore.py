@@ -34,6 +34,8 @@ CLEAR_RN_PENDING = 0x00000020
 CLEAR_NRN_PENDING = 0x00000040
 SUPPRESS_RECEIPT = 0x1
 
+FOLDER_DIALOG = 0x00000002
+
 USE_DEFERRED_ERRORS = mapi.MAPI_DEFERRED_ERRORS # or set to zero to see what changes <wink>
 
 #import warnings
@@ -644,6 +646,26 @@ class MAPIMsgStoreFolder:
         folder = self.OpenEntry()
         ret = folder.CreateFolder(type, name, comments, None, flags)
         return self._FolderFromMAPIFolder(ret)
+
+    def GetItemCount(self):
+        try:
+            folder = self.OpenEntry()
+            return folder.GetContentsTable(0).GetRowCount(0)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
+        
+    # EmptyFolder() *permanently* deletes ALL messages and subfolders from
+    # this folder without deleting the folder itself.
+    #
+    # WORD OF WARNING:  This is a *very dangerous* function that has the
+    # potential to destroy a user's mail.  Don't even *think* about calling
+    # this function on anything but the Certain Spam folder!
+    def EmptyFolder(self, parentWindow):
+        try:
+            folder = self.OpenEntry()
+            folder.EmptyFolder(parentWindow, None, FOLDER_DIALOG)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
 
     def DoesFolderHaveOutlookField(self, field_name):
         # Returns True if the specified folder has an *Outlook* field with
