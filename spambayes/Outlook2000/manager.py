@@ -484,10 +484,13 @@ class BayesManager:
             print "Saving configuration:"
             self.config._dump()
             print " ->", self.config_filename
+        assert self.config, "Have no config to save!"
         SavePickle(self.config, self.config_filename)
 
     def Save(self):
-        self.SaveConfig()
+        # No longer save the config here - do it explicitly when changing it
+        # (prevents lots of extra pickle writes, for no good reason.  Other
+        # alternative is a dirty flag for config - this is simpler)
         if self.bayes_dirty:
             self.SaveBayes()
         else:
