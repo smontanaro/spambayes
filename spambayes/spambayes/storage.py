@@ -576,7 +576,6 @@ class Trainer:
 
     def onAddMessage(self, message):
         '''A message is being added to an observed corpus.'''
-
         self.train(message)
 
     def train(self, message):
@@ -587,10 +586,11 @@ class Trainer:
 
         self.bayes.learn(message.tokenize(), self.is_spam)
 #                         self.updateprobs)
+        message.setId(message.key())
+        message.RememberTrained(self.is_spam)
 
     def onRemoveMessage(self, message):
         '''A message is being removed from an observed corpus.'''
-
         self.untrain(message)
 
     def untrain(self, message):
@@ -603,35 +603,30 @@ class Trainer:
 #                           self.updateprobs)
         # can raise ValueError if database is fouled.  If this is the case,
         # then retraining is the only recovery option.
+        message.RememberTrained(None)
 
     def trainAll(self, corpus):
         '''Train all the messages in the corpus'''
-
         for msg in corpus:
             self.train(msg)
 
     def untrainAll(self, corpus):
         '''Untrain all the messages in the corpus'''
-
         for msg in corpus:
             self.untrain(msg)
 
 
 class SpamTrainer(Trainer):
     '''Trainer for spam'''
-
     def __init__(self, bayes, updateprobs=NO_UPDATEPROBS):
         '''Constructor'''
-
         Trainer.__init__(self, bayes, True, updateprobs)
 
 
 class HamTrainer(Trainer):
     '''Trainer for ham'''
-
     def __init__(self, bayes, updateprobs=NO_UPDATEPROBS):
         '''Constructor'''
-
         Trainer.__init__(self, bayes, False, updateprobs)
 
 class NoSuchClassifierError(Exception):

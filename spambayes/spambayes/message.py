@@ -93,7 +93,9 @@ import math
 import re
 import sys
 import types
+import errno
 import shelve
+import pickle
 
 import email
 import email.Message
@@ -107,24 +109,9 @@ from cStringIO import StringIO
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
-class MessageInfoDB:
-    def __init__(self, db_name, mode='c'):
-        self.mode = mode
+class MessageInfoBase(object):
+    def __init__(self, db_name):
         self.db_name = db_name
-        try:
-            self.dbm = dbmstorage.open(self.db_name, self.mode)
-            self.db = shelve.Shelf(self.dbm)
-        except dbmstorage.error:
-            # This probably means that we don't have a dbm module
-            # available.  Print out a warning, and continue on
-            # (not persisting any of this data).
-            if options["globals", "verbose"]:
-                print "Warning: no dbm modules available for MessageInfoDB"
-            self.dbm = self.db = None
-
-    def store(self):
-        if self.db is not None:
-            self.db.sync()
 
     def _getState(self, msg):
         if self.db is not None:
@@ -136,10 +123,72 @@ class MessageInfoDB:
     def _setState(self, msg):
         if self.db is not None:
             self.db[msg.getId()] = (msg.c, msg.t)
+            self.store()
 
     def _delState(self, msg):
         if self.db is not None:
             del self.db[msg.getId()]
+            self.store()
+
+class MessageInfoPickle(MessageInfoBase):
+    def __init__(self, db_name, pickle_type=1):
+        MessageInfoBase.__init__(self, db_name)
+        self.mode = pickle_type
+        self.load()
+
+    def load(self):
+        try:
+            fp = open(self.db_name, 'rb')
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                # New pickle
+                self.db = {}
+            else:
+                raise
+        else:
+            self.db = pickle.load(fp)
+            fp.close()
+
+    def close(self):
+        # we keep no resources open - nothing to do
+        pass
+
+    def store(self):
+        fp = open(self.db_name, 'wb')
+        pickle.dump(self.db, fp, self.mode)
+        fp.close()
+
+class MessageInfoDB(MessageInfoBase):
+    def __init__(self, db_name, mode='c'):
+        MessageInfoBase.__init__(self, db_name)
+        self.mode = mode
+        self.load()
+
+    def load(self):        
+        try:
+            self.dbm = dbmstorage.open(self.db_name, self.mode)
+            self.db = shelve.Shelf(self.dbm)
+        except dbmstorage.error:
+            # This probably means that we don't have a dbm module
+            # available.  Print out a warning, and continue on
+            # (not persisting any of this data).
+            if options["globals", "verbose"]:
+                print "Warning: no dbm modules available for MessageInfoDB"
+            self.dbm = self.db = None
+
+    def __del__(self):
+        self.close()
+
+    def close(self):        
+        # Close our underlying database.  Better not assume all databases
+        # have close functions!
+        def noop(): pass
+        getattr(self.db, "close", noop)()
+        getattr(self.dbm, "close", noop)()
+
+    def store(self):
+        if self.db is not None:
+            self.db.sync()
 
 # This should come from a Mark Hammond idea of a master db
 # For the moment, we get the name of another file from the options,
@@ -147,7 +196,10 @@ class MessageInfoDB:
 # Once there is a master db, this option can be removed.
 message_info_db_name = options["Storage", "messageinfo_storage_file"]
 message_info_db_name = os.path.expanduser(message_info_db_name)
-msginfoDB = MessageInfoDB(message_info_db_name)
+if options["Storage", "persistent_use_database"]:
+    msginfoDB = MessageInfoDB(message_info_db_name)
+else:
+    msginfoDB = MessageInfoPickle(message_info_db_name)
 
 class Message(email.Message.Message):
     '''An email.Message.Message extended for Spambayes'''
@@ -181,7 +233,7 @@ class Message(email.Message.Message):
         prs._parsebody(self, fp)
 
     def setId(self, id):
-        if self.id:
+        if self.id and self.id != id:
             raise ValueError, "MsgId has already been set, cannot be changed"
 
         if id is None:
