@@ -115,7 +115,7 @@ Google to search for stuff.  For example, searching for
 
     site:mail.python.org sb_server -checkins
 
-would search for messages which mention sb_server but exclude checkin
+would search for messages which mention sb_server but exclude check-in
 messages.
 
 .. _SpamBayes list: http://mail.python.org/mailman/listinfo/spambayes
@@ -130,8 +130,9 @@ What do I need to install SpamBayes?
 ------------------------------------
 
 Unless you want to run from the source code, all you need is the
-SpamBayes installer.  At present, unless you want to use the Outlook
-plug-in, you must run from source.  This will change in the near future.
+SpamBayes installer.  At present, any Windows users using Outlook or using
+any other mail client and retrieving mail via POP3 can use the installer.
+At present, all other users must run from source.
 
 If you want to run from source, you must have a recent version of
 Python installed on your computer, version 2.2 or later.  (Don't ask about
@@ -172,7 +173,9 @@ There are eight main components to the SpamBayes system:
 
 3. The POP3 proxy.  This sits between your email client (Eudora, Outlook
    Express, etc) and your incoming email server, and adds the classification
-   header to emails as you download them.  A typical user's email setup
+   header to emails as you download them.  The proxy is run by the sb_server
+   script, and, on Windows, can be controlled via a 'tray application' (an
+   icon that appears in the tray next to the clock). A typical user's email setup
    looks like this::
 
     +-----------------+                       +-------------+
@@ -356,7 +359,7 @@ also add a "trained" label to the message in question as a visual reminder
 that you've already added the message to your training database.
 
 Users limited to POP3/IMAP communications to the server can use the POP3_ or
-proxy or IMAP_ filter which are part of the SpamBayes source.
+proxy or IMAP_ filter which are part of the SpamBayes package.
 
 .. _POP3: applications.html#sb_server
 .. _IMAP: applications.html#imap
@@ -1246,6 +1249,11 @@ a general rule, we've found that with the tokenizer, "stupid beats smart"
 results than a more general approach that just generates tokens and throws
 them at the classifier. See also the file NEWTRICKS.txt in the source
 distribution - we're filing neat ideas here.
+
+If you're interested in trying out other people's cool ideas, as well as your
+own, then check out the current experimental options (these start with "x-",
+and are available via the web interface on the Experimental Configuration page)
+and give us some feedback about how they work for you.
 
 
 Are there plans to develop a server-side SpamBayes solution?
