@@ -2,7 +2,8 @@
 # At the moment, this requires Python 2.3 from CVS
 
 # A driver for the classifier module.  Currently mostly a wrapper around
-# existing stuff.
+# existing stuff.  Neale Pickett <neale@woozle.org> is the person to
+# blame for this.
 
 """Usage: %(program)s [options]
 
@@ -40,6 +41,9 @@ import cPickle as pickle
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
+# Name of the header to add in filter mode
+DISPHEADER = "X-Hammie-Disposition"
+
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
 from timtoken import tokenize
@@ -74,7 +78,7 @@ class DBDict:
         else:
             raise KeyError(key)
 
-    def __setitem__(self, key, val): 
+    def __setitem__(self, key, val):
         v = pickle.dumps(val, 1)
         self.hash[key] = v
 
@@ -85,7 +89,7 @@ class DBDict:
         k = self.hash.first()
         while k != None:
             key = k[0]
-            val = pickle.loads(k[1])
+            val = self.__getitem__(key)
             if key not in self.iterskip:
                 if fn:
                     yield fn((key, val))
@@ -233,7 +237,7 @@ def filter(bayes, input, output):
         disp = "Yes"
     disp += "; %.2f" % prob
     disp += "; " + formatclues(clues)
-    msg.add_header("X-Spam-Disposition", disp)
+    msg.add_header(DISPHEADER, disp)
     output.write(str(msg))
 
 def score(bayes, msgs):
