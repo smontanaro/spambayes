@@ -25,6 +25,9 @@ too small to measure reliably across that much training data.
 
 The code in this project requires Python 2.2 (or later).
 
+You should definately check out the FAQ:
+http://spambayes.org/faq.html
+
 
 Primary Core Files
 ==================

@@ -33,7 +33,7 @@ versions = {
             "InterfaceVersion":            0.02,
             "InterfaceDescription":        "SpamBayes POP3 Proxy Web Interface Alpha2",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
-            using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
         "Lotus Notes Filter" : {
             "Version":          0.01,
@@ -54,7 +54,7 @@ versions = {
             "InterfaceVersion":            0.01,
             "InterfaceDescription":        "SpamBayes IMAP Filter Web Interface Alpha1",
             "Full Description": """%(Description)s, version %(Version)s (%(Date)s),
-            using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
+using %(InterfaceDescription)s, version %(InterfaceVersion)s""",
         },
     },
 }

@@ -243,3 +243,8 @@ Mark Hammond    03/06/03    Clean up toolbar images.
 Mark Hammond    04/06/03    In Outlook plugin, no longer default to the "Inbox" (see also SF#741797 ('Does not filter incoming mail')).
 Mark Hammond    04/06/03    In Outlook plugin, when filtering, saving the spam score is no longer fatal.
 Tony Meyer  04/06/03    In muttrc, fix incorrect Spambayes header name.
+Mark Hammond    05/06/03    Add a version information repository.
+Mark Hammond    05/06/03    Change Outlook plugin to use new version information repository.
+Neale Pickett   06/06/03    Integrated code for the VM mailer into spambayes.el
+Tony Meyer  08/06/03    Add pop3proxy, hammie, smtpproxy & imapfilter version information.
+Skip Montanaro  10/06/03    Correction to VM mailer addition to spambayes.el
