@@ -65,7 +65,7 @@ DEFAULTDB = os.path.expanduser(options.hammiefilter_persistent_storage_file)
 # This will work unless a user had hammie.db as their value for
 # persistent_storage_file
 if DEFAULTDB == options.default("Storage", "persistent_storage_file"):
-    DEFAULTDB = "~/.hammiedb"
+    DEFAULTDB = os.path.expanduser(os.path.join("~", ".hammiedb"))
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options.spam_cutoff
