@@ -161,6 +161,9 @@ def trainer(mgr, config, progress):
 
     real_trainer(classifier_data, config, mgr.message_store, progress)
     
+    if progress.stop_requested():
+        return
+    
     if rebuild:
         assert mgr.classifier_data is not classifier_data
         mgr.classifier_data.Adopt(classifier_data)
