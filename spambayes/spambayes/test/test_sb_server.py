@@ -2,7 +2,7 @@
 
 """Test the POP3 proxy is working correctly.
 
-When using the -z command line option, carries out a test that the
+Given no command line options, carries out a test that the
 POP3 proxy can be connected to, that incoming mail is classified,
 that pipelining is removed from the CAPA[bility] query, and that the
 web ui is present.
@@ -16,12 +16,11 @@ Usage:
     test_sb-server.py [options]
 
         options:
-            -z      : Runs a self-test and exits.
             -t      : Runs a fake POP3 server on port 8110 (for testing).
             -h      : Displays this help message.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -75,6 +74,10 @@ Yeah, Page Templates are a bit more clever, sadly, DTML methods aren't :-(
 
 Chris
 """
+
+# An example of a particularly nasty malformed message - where there is
+# no body, and no separator, which would at one point slip through
+# SpamBayes.  This is an example that Tony made up.
 
 malformed1 = """From: ta-meyer@ihug.co.nz
 Subject: No body, and no separator"""
@@ -224,7 +227,8 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
             try:
                 headers, body = message.split('\n\n', 1)
             except ValueError:
-                return "+OK\r\n%s\r\n.\r\n" % message
+                return "+OK %d octets\r\n%s\r\n.\r\n" % (len(message),
+                                                         message)
             bodyLines = body.split('\n')[:maxLines]
             message = headers + '\r\n\r\n' + '\n'.join(bodyLines)
             return "+OK\r\n%s\r\n.\r\n" % message
@@ -363,12 +367,13 @@ def test():
 def run():
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htz')
+        opts, args = getopt.getopt(sys.argv[1:], 'ht')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    runSelfTest = False
+    state.isTest = True
+    runSelfTest = True
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
@@ -376,9 +381,7 @@ def run():
         elif opt == '-t':
             state.isTest = True
             state.runTestServer = True
-        elif opt == '-z':
-            state.isTest = True
-            runSelfTest = True
+            runSelfTest = False
 
     state.createWorkers()
 
@@ -393,8 +396,6 @@ def run():
         TestListener()
         asyncore.loop()
 
-    else:
-        print >>sys.stderr, __doc__
 
 if __name__ == '__main__':
     run()
