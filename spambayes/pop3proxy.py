@@ -86,10 +86,10 @@ class POP3ProxyBase(asynchat.async_chat):
         asynchat.async_chat.__init__(self, clientSocket)
         self.request = ''
         self.set_terminator('\r\n')
-        serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        serverSocket.connect((serverName, serverPort))
-        self.serverFile = serverSocket.makefile()
-        self.push(self.serverFile.readline())
+        self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serverSocket.connect((serverName, serverPort))
+        self.serverIn = self.serverSocket.makefile('r')  # For reading only
+        self.push(self.serverIn.readline())
 
     def handle_connect(self):
         """Suppress the asyncore "unhandled connect event" warning."""
@@ -134,7 +134,7 @@ class POP3ProxyBase(asynchat.async_chat):
         isFirstLine = True
         seenAllHeaders = False
         while True:
-            line = self.serverFile.readline()
+            line = self.serverIn.readline()
             if not line:
                 # The socket's been closed by the server, probably by QUIT.
                 isClosing = True
@@ -172,14 +172,12 @@ class POP3ProxyBase(asynchat.async_chat):
         """Asynchat override."""
         # Send the request to the server and read the reply.
         if self.request.strip().upper() == 'KILL':
-            self.serverFile.write('QUIT\r\n')
-            self.serverFile.flush()
+            self.serverSocket.sendall('QUIT\r\n')
             self.send("+OK, dying.\r\n")
             self.shutdown(2)
             self.close()
             raise SystemExit
-        self.serverFile.write(self.request + '\r\n')
-        self.serverFile.flush()
+        self.serverSocket.sendall(self.request + '\r\n')
         if self.request.strip() == '':
             # Someone just hit the Enter key.
             command, args = ('', '')
@@ -199,7 +197,7 @@ class POP3ProxyBase(asynchat.async_chat):
         # the rest of the message.
         if timedOut:
             while True:
-                line = self.serverFile.readline()
+                line = self.serverIn.readline()
                 if not line:
                     # The socket's been closed by the server.
                     isClosing = True
@@ -528,22 +526,26 @@ def test():
         testServerReady.set()
         asyncore.loop(map=testSocketMap)
 
+    proxyReady = threading.Event()
     def runProxy():
         # Name the database in case it ever gets auto-flushed to disk.
         bayes = hammie.createbayes('_pop3proxy.db')
         BayesProxyListener('localhost', 8110, 8111, bayes)
         bayes.learn(tokenizer.tokenize(spam1), True)
         bayes.learn(tokenizer.tokenize(good1), False)
+        proxyReady.set()
         asyncore.loop()
 
     threading.Thread(target=runTestServer).start()
     testServerReady.wait()
     threading.Thread(target=runProxy).start()
+    proxyReady.wait()
 
     # Connect to the proxy.
     proxy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     proxy.connect(('localhost', 8111))
-    assert proxy.recv(100) == "+OK ready\r\n"
+    response = proxy.recv(100)
+    assert response == "+OK ready\r\n"
 
     # Stat the mailbox to get the number of messages.
     proxy.send("stat\r\n")
