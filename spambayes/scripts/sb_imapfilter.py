@@ -237,11 +237,17 @@ class IMAPSession(BaseIMAP):
                 if self.do_expunge:
                     # It is faster to do close() than a single
                     # expunge when we log out (because expunge returns
-                    # a list of all the deleted messages, that we don't do
+                    # a list of all the deleted messages which we don't do
                     # anything with)
                     imap.close()
             # We *always* use SELECT and not EXAMINE, because this
             # speeds things up considerably.
+            if folder == "":
+                # This is Python bug #845560 - if the empty string is
+                # passed, we get a traceback, not just an 'invalid folder'
+                # error, so print out a warning and exit.
+                print "Tried to select an invalid folder"
+                sys.exit(-1)
             response = self.select(folder, None)
             if response[0] != "OK":
                 print "Invalid response to select %s:\n%s" % (folder,
