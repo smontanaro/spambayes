@@ -569,12 +569,9 @@ class UserInterface(BaseUserInterface):
                         value = False
                     elif value == "Yes":
                         value = True
-                if options.multiple_values_allowed(sect, opt):
-                    if value == "":
+                if options.multiple_values_allowed(sect, opt) and \
+                   value == "":
                         value = ()
-                    else:
-                        if type(value) != types.TupleType:
-                            value = (value,)
                 value = options.convert(sect, opt, value)
             if not options.is_valid(sect, opt, value):
                 errmsg += '<li>\'%s\' is not a value valid for [%s] %s' % \

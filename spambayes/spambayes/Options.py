@@ -1188,7 +1188,9 @@ class Option(object):
         # considered valid input (and 0 and 1 don't look as nice)
         # So, just for the 2.2 people, we have this helper function
         try:
-            if type(self.allowed_values) == types.BooleanType:
+            if type(self.allowed_values) == types.TupleType and \
+               len(self.allowed_values) > 0 and \
+               type(self.allowed_values[0]) == types.BooleanType:
                 return True
             return False
         except AttributeError:
