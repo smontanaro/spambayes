@@ -135,7 +135,7 @@ class DBDict:
         return self.__iter__(lambda k: k[1])
 
 
-class PersistentGrahamBayes(classifier.Bayes):
+class PersistentBayes(classifier.Bayes):
 
     """A persistent Bayes classifier.
 
@@ -335,10 +335,10 @@ def score(hammie, msgs):
 
 def createbayes(pck=DEFAULTDB, usedb=False):
     """Create a Bayes instance for the given pickle (which
-    doesn't have to exist).  Create a PersistentGrahamBayes if
+    doesn't have to exist).  Create a PersistentBayes if
     usedb is True."""
     if usedb:
-        bayes = PersistentGrahamBayes(pck)
+        bayes = PersistentBayes(pck)
     else:
         bayes = None
         try:
