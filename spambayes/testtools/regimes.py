@@ -85,8 +85,29 @@ class fnunsure:
 
 ###
 ### This is a training regime for the incremental.py harness.
-### It does guess-based training on all messages, followed by
-### correction to perfect at the end of each group.
+### It does perfect training for all messages not already
+### properly classified with extreme confidence.
+###
+
+class nonedge:
+    def __init__(self):
+        pass
+
+    def group_action(self, which, test):
+        pass
+
+    def guess_action(self, which, test, guess, actual, msg):
+        if guess[0] != actual:
+            return actual
+        if 0.005 < guess[1] and guess[1] < 0.995:
+            return actual
+        return 0
+
+
+###
+### This is a training regime for the incremental.py harness.
+### It does perfect training on all messages, followed by
+### untraining after 120 groups have gone by.
 ###
 
 class expire4months:
