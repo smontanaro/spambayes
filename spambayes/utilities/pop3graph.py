@@ -24,12 +24,14 @@ def main(argv):
             return
 
     # Create the corpuses and the factory that reads the messages.
-    if options.pop3proxy_cache_use_gzip:
+    if options["pop3proxy", "cache_use_gzip"]:
         messageFactory = GzipFileMessageFactory()
     else:
         messageFactory = FileMessageFactory()
-    spamCorpus = FileCorpus(messageFactory, options.pop3proxy_spam_cache)
-    hamCorpus = FileCorpus(messageFactory, options.pop3proxy_ham_cache)
+    spamCorpus = FileCorpus(messageFactory, options["pop3proxy",
+                                                    "spam_cache"])
+    hamCorpus = FileCorpus(messageFactory, options["pop3proxy",
+                                                   "ham_cache"])
 
     # Read in all the trained messages.
     allTrained = {}
@@ -54,7 +56,8 @@ def main(argv):
     successByCount = []
     for key in keys:
         message = allTrained[key]
-        disposition = message[options.hammie_header_name]
+        disposition = message[options["Headers",
+                                      "classification_header_name"]]
         if (message._pop3CacheDisposition == disposition):
             successful += 1
         count += 1

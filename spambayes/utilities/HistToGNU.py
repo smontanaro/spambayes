@@ -71,10 +71,11 @@ def main():
     except getopt.error, msg:
         usage(1, msg)
 
-    if not args and options.save_histogram_pickles:
+    if not args and options["TestDriver", "save_histogram_pickles"]:
         args = []
         for f in ('ham', 'spam'):
-            fname = "%s_%shist.pik" % (options.pickle_basename, f)
+            fname = "%s_%shist.pik" % (options["TestDriver",
+                                               "pickle_basename"], f)
             args.append(fname)
 
     if args:
