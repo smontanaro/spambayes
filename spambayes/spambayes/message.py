@@ -80,12 +80,16 @@ except NameError:
         return not not val
 
 import os
+import sys
 import types
 import math
 import re
 import errno
 import shelve
-import pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import traceback
 
 import email
@@ -109,18 +113,41 @@ class MessageInfoBase(object):
     def __init__(self, db_name):
         self.db_name = db_name
 
+    def __len__(self):
+        return len(self.db)
+
     def load_msg(self, msg):
         if self.db is not None:
             try:
-                attributes = self.db[msg.getId()]
+                try:
+                    attributes = self.db[msg.getDBKey()]
+                except pickle.UnpicklingError:
+                    # The old-style Outlook message info db didn't use
+                    # shelve, so get it straight from the dbm.
+                    if hasattr(self, "dbm"):
+                        attributes = self.dbm[msg.getDBKey()]
+                    else:
+                        raise
             except KeyError:
-                pass
+                # Set to None, as it's not there.
+                for att in msg.stored_attributes:
+                    setattr(msg, att, None)
             else:
                 if not isinstance(attributes, types.ListType):
-                    # Old-style message info db, which only
-                    # handles storing 'c' and 't'.
-                    (msg.c, msg.t) = attributes
-                    return
+                    # Old-style message info db
+                    if isinstance(attributes, types.TupleType):
+                        # sb_server/sb_imapfilter, which only handled
+                        # storing 'c' and 't'.
+                        (msg.c, msg.t) = attributes
+                        return
+                    elif isinstance(attributes, types.StringTypes):
+                        # Outlook plug-in, which only handled storing 't',
+                        # and did it as a string.
+                        msg.t = {"0" : False, "1" : True}[attributes]
+                        return
+                    else:
+                        print >> sys.stderr, "Unknown message info type"
+                        sys.exit(1)
                 for att, val in attributes:
                     setattr(msg, att, val)
 
@@ -129,12 +156,12 @@ class MessageInfoBase(object):
             attributes = []
             for att in msg.stored_attributes:
                 attributes.append((att, getattr(msg, att)))
-            self.db[msg.getId()] = attributes
+            self.db[msg.getDBKey()] = attributes
             self.store()
 
     def remove_msg(self, msg):
         if self.db is not None:
-            del self.db[msg.getId()]
+            del self.db[msg.getDBKey()]
             self.store()
 
 class MessageInfoPickle(MessageInfoBase):
@@ -240,6 +267,7 @@ class Message(email.Message.Message):
         nm, typ = database_type()
         self.message_info_db = open_storage(nm, typ)
         self.stored_attributes = ['c', 't',]
+        self.getDBKey = self.getId
         self.id = None
         self.c = None
         self.t = None
