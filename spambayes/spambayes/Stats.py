@@ -52,13 +52,17 @@ except NameError:
 
 class Stats(object):
     def __init__(self, spam_threshold, unsure_threshold, messageinfo_db,
-                 ham_string, unsure_string, spam_string):
+                 ham_string, unsure_string, spam_string, fp_cost, fn_cost,
+                 unsure_cost):
         self.messageinfo_db = messageinfo_db
         self.spam_threshold = spam_threshold
         self.unsure_threshold = unsure_threshold
         self.ham_string = ham_string
         self.unsure_string = unsure_string
         self.spam_string = spam_string
+        self.fp_cost = fp_cost
+        self.fn_cost = fn_cost
+        self.unsure_cost = unsure_cost
         # Reset session stats.
         self.Reset()
         # Load persistent stats.
@@ -228,6 +232,15 @@ class Stats(object):
                 100.0 * (data["num_spam_correct"] + \
                          data["num_unsure_trained_spam"]) / \
                          data["total_spam"]
+
+        data["total_cost"] = data["num_trained_ham_fp"] * self.fp_cost + \
+                             data["num_trained_spam_fn"] * self.fn_cost + \
+                             data["num_unsure"] * self.unsure_cost
+        # If there was no filtering done, what would the cost have been?
+        # (Assuming that any spam in the inbox earns the cost of a fn)
+        no_filter_cost = data["num_spam"] * self.fn_cost
+        data["cost_savings"] = no_filter_cost - data["total_cost"]
+
         return data
 
     def _AddPercentStrings(self, data, dp):
@@ -344,6 +357,11 @@ class Stats(object):
         if format_dict["total_ham"]:
             push((_("Good incorrectly identified:%(tab)s%(perc_ham_incorrect_s)s (+ %(perc_ham_unsure_s)s unsure)") \
                  % format_dict) % format_dict)
+        if format_dict["total_spam"] or format_dict["total_ham"]:
+            push("")
+
+        push(_("Total cost of spam:%(tab)s$%(total_cost).2f") % format_dict)
+        push(_("SpamBayes savings:%(tab)s$%(cost_savings).2f") % format_dict)
 
         return chunks
 
