@@ -9,6 +9,8 @@ import traceback
 import operator
 import win32api, win32con, win32gui
 
+import timer, thread
+
 import win32com.client
 import win32com.client.gencache
 import pythoncom
@@ -330,6 +332,7 @@ def GetStorageManagerClass():
 # Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=0):
+        self.owner_thread_ident = thread.get_ident() # check we aren't multi-threaded
         self.never_configured = True
         self.reported_error_map = {}
         self.reported_startup_error = False
@@ -339,6 +342,8 @@ class BayesManager:
         self.outlook = outlook
         self.dialog_parser = None
         self.test_suite_running = False
+        self.received_ham = self.received_unsure = self.received_spam = 0
+        self.notify_timer_id = None
 
         import_early_core_spambayes_stuff()
 
@@ -785,6 +790,7 @@ class BayesManager:
 
     def Close(self):
         global _mgr
+        self._KillNotifyTimer()
         self.classifier_data.Close()
         self.config = self.options = None
         if self.message_store is not None:
@@ -907,6 +913,64 @@ class BayesManager:
         SetWaitCursor(1)
         os.startfile(url)
         SetWaitCursor(0)
+
+    def HandleNotification(self, disposition):
+        if self.config.notification.notify_sound_enabled:
+            if disposition == "Yes":
+                self.received_spam += 1
+            elif disposition == "No":
+                self.received_ham += 1
+            else:
+                self.received_unsure += 1
+            self._StartNotifyTimer()
+        
+    def _StartNotifyTimer(self):
+        # First kill any existing timer
+        self._KillNotifyTimer()
+        # And start a new timer.
+        delay = self.config.notification.notify_accumulate_delay
+        self._DoStartNotifyTimer(delay)
+        pass
+        
+    def _DoStartNotifyTimer(self, delay):
+        assert thread.get_ident() == self.owner_thread_ident
+        assert self.notify_timer_id is None, "Shouldn't start a timer when already have one"
+        assert type(delay)==type(0.0), "Timer values are float seconds"
+        # And start a new timer.
+        assert delay, "No delay means no timer!"
+        delay = int(delay*1000) # convert to ms.
+        self.notify_timer_id = timer.set_timer(delay, self._NotifyTimerFunc)
+        self.LogDebug(1, "Notify timer started - id=%d, delay=%d" % (self.notify_timer_id, delay))
+        
+    def _KillNotifyTimer(self):
+        assert thread.get_ident() == self.owner_thread_ident
+        if self.notify_timer_id is not None:
+            timer.kill_timer(self.notify_timer_id)
+            self.LogDebug(2, "The notify timer with id=%d was stopped" % self.notify_timer_id)
+            self.notify_timer_id = None
+        
+    def _NotifyTimerFunc(self, event, time):
+        # Kill the timer first
+        assert thread.get_ident() == self.owner_thread_ident
+        self.LogDebug(1, "The notify timer with id=%s fired" % self.notify_timer_id)
+        self._KillNotifyTimer()
+        
+        import winsound
+        config = self.config.notification
+        sound_opts = winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NOSTOP | winsound.SND_NODEFAULT
+        self.LogDebug(3, "Notify received ham=%d, unsure=%d, spam=%d" %
+                      (self.received_ham, self.received_unsure, self.received_spam))
+        if self.received_ham > 0 and len(config.notify_ham_sound) > 0:
+            self.LogDebug(3, "Playing ham sound '%s'" % config.notify_ham_sound)
+            winsound.PlaySound(config.notify_ham_sound, sound_opts)
+        elif self.received_unsure > 0 and len(config.notify_unsure_sound) > 0:
+            self.LogDebug(3, "Playing unsure sound '%s'" % config.notify_unsure_sound)
+            winsound.PlaySound(config.notify_unsure_sound, sound_opts)
+        elif self.received_spam > 0 and len(config.notify_spam_sound) > 0:
+            self.LogDebug(3, "Playing spam sound '%s'" % config.notify_spam_sound)
+            winsound.PlaySound(config.notify_spam_sound, sound_opts)
+        # Reset received counts to zero after notify.
+        self.received_ham = self.received_unsure = self.received_spam = 0
 
 _mgr = None
 

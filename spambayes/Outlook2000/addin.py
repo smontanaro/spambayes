@@ -222,6 +222,8 @@ def ProcessMessage(msgstore_message, manager):
                   % (msgstore_message.GetSubject(),
                      folder_name,
                      disposition)
+
+            manager.HandleNotification(disposition)
         else:
             print "Spam filtering is disabled - ignoring new message"
     except manager.message_store.NotFoundException:
