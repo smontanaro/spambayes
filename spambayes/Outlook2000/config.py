@@ -197,10 +197,11 @@ defaults = {
         """The folder SpamBayes moves or copies spam to.""",
         FOLDER_ID, DO_NOT_RESTORE),
     ("spam_threshold", "The score necessary to be considered 'certain' spam", 90.0,
-        """""",
+        """Any message with a Spam score greater than or equal to this value
+        will be considered spam, and processed accordingly.""",
         REAL, RESTORE),
     ("spam_action", "The action to take for new spam", "Untouched",
-        """""",
+        """The action that should be taken as Spam messages arrive.""",
         FILTER_ACTION, RESTORE),
     ("spam_mark_as_read", "Should filtered spam also be marked as 'read'", False,
         """Determines if spam messages are marked as 'Read' as they are
@@ -214,10 +215,12 @@ defaults = {
         """The folder SpamBayes moves or copies uncertain messages to.""",
         FOLDER_ID, DO_NOT_RESTORE),
     ("unsure_threshold", "The score necessary to be considered 'unsure'", 15.0,
-        """""",
+        """Any message with a Spam score greater than or equal to this value
+        (but less than the spam threshold) will be considered spam, and
+        processed accordingly.""",
         REAL, RESTORE),
     ("unsure_action", "The action to take for new uncertain messages", "Untouched",
-        """""",
+        """The action that should be taken as unsure messages arrive.""",
         FILTER_ACTION, RESTORE),
     ("unsure_mark_as_read", "Should filtered uncertain message also be marked as 'read'", False,
         """Determines if unsure messages are marked as 'Read' as they are
@@ -235,10 +238,12 @@ defaults = {
         """""",
         BOOLEAN, DO_NOT_RESTORE),
     ("only_unread", "Only filter unread messages?", False,
-        """When scoring messages, should only messages that are unread be considered?""",
+        """When scoring messages, should only messages that are unread be
+        considered?""",
         BOOLEAN, RESTORE),
     ("only_unseen", "Only filter previously unseen ?", False,
-        """""",
+        """When scoring messages, should only messages that have never
+        previously Spam scored be considered?""",
         BOOLEAN, RESTORE),
     ("action_all", "Perform all filter actions?", True,
         """When scoring the messages, should all items be performed (such as
