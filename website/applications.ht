@@ -100,7 +100,7 @@ seen previously.</p>
 the IMAP filter works, moving mail to the correct folder as it arrives.
 This is not a full-featured plug-in like the Outlook plug-in, though;
 it is run from the command line.  Note that this is comparatively unused
-and although no problems have been reported with it, should be used with
+and, although no problems have been reported with it, should be used with
 caution.</p>
 
 <h4>Requirements</h4>
