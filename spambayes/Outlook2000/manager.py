@@ -4,6 +4,7 @@ import cPickle
 import os
 import sys
 import errno
+import shutil
 
 import win32com.client
 import win32com.client.gencache
@@ -137,10 +138,13 @@ class BayesManager:
         self.addin = None
         self.verbose = verbose
         self.application_directory = os.path.dirname(this_filename)
+        self.data_directory = self.LocateDataDirectory()
+        self.MigrateDataDirectory()
         if not os.path.isabs(config_base):
-            config_base = os.path.join(self.application_directory,
+            config_base = os.path.join(self.data_directory,
                                        config_base)
         config_base = os.path.abspath(config_base)
+
         self.ini_filename = config_base + "_bayes_customize.ini"
         self.config_filename = config_base + "_configuration.pck"
 
@@ -161,13 +165,53 @@ class BayesManager:
         self.LoadBayes()
         self.message_store = msgstore.MAPIMsgStore(outlook)
 
-    # Outlook gives us thread grief :(
+    # Outlook used to give us thread grief - now we avoid Outlook
+    # from threads, but this remains a worthwhile abstraction.
     def WorkerThreadStarting(self):
         pythoncom.CoInitialize()
 
     def WorkerThreadEnding(self):
         pythoncom.CoUninitialize()
 
+    def LocateDataDirectory(self):
+        # Locate the best directory the our data files.
+        from win32com.shell import shell, shellcon
+        try:
+            appdata = shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0)
+            path = os.path.join(appdata, "SpamBayes")
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            return path
+        except pythoncom.com_error:
+            # Function doesn't exist on early win95,
+            # and it may just fail anyway!
+            return self.application_directory
+        except EnvironmentError:
+            # Can't make the directory.
+            return self.application_directory
+            
+    def MigrateDataDirectory(self):
+        # A bit of a nod to save people doing a full retrain.
+        # Try and locate our files in the old location, and move
+        # then to the new one.
+        # Also used first time SpamBayes is run - this will cause
+        # the ini file to be *copied* to the correct directory
+        self._MigrateFile("default_bayes_customize.ini", False)
+        self._MigrateFile("default_bayes_database.pck")
+        self._MigrateFile("default_bayes_database.db")
+        self._MigrateFile("default_message_database.pck")
+        self._MigrateFile("default_message_database.db")
+        self._MigrateFile("default_configuration.pck")
+
+    def _MigrateFile(self, filename, do_move = True):
+        src = os.path.join(self.application_directory, filename)
+        dest = os.path.join(self.data_directory, filename)
+        if os.path.isfile(src) and not os.path.isfile(dest):
+            if do_move:
+                shutil.move(src, dest)
+            else:
+                shutil.copyfile(src, dest)
+        
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
         for eid in folder_ids:
