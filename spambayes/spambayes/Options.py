@@ -770,6 +770,15 @@ defaults = {
      The localhost IP will always be trusted. Type 'localhost' in the
      field to trust this only address.""",
      IP_LIST, RESTORE),
+
+    ("retrieval_timeout", "Retrieval timeout", 30,
+     """When proxying mesasges, time out after this length of time if
+     all the headers have been received.  The rest of the mesasge will
+     proxy straight through.  Some clients have a short timeout period,
+     and will give up on waiting for the message if this is too long.
+     Note that the shorter this is, the less of long messages will be
+     used for classifications (i.e. results may be effected).""",
+     REAL, RESTORE),
   ),
 
   "smtpproxy" : (

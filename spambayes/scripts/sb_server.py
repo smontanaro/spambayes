@@ -64,7 +64,6 @@ User interface improvements:
  o Once the pieces are on separate pages, make the paste box bigger.
  o Deployment: Windows executable?  atlaxwin and ctypes?  Or just
    webbrowser?
- o Save the stats (num classified, etc.) between sessions.
  o "Reload database" button.
 
 
@@ -97,7 +96,7 @@ Gimmicks:
  o Zoe...!
 """
 
-import os, sys, re, errno, getopt, time, traceback, socket, cStringIO
+import os, sys, re, errno, getopt, time, traceback, socket, cStringIO, email
 from thread import start_new_thread
 from email.Header import Header
 
@@ -239,11 +238,13 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
             self.push(self.response)
             self.response = ''
 
-        # Time out after 30 seconds for message-retrieval commands if
-        # all the headers are down.  The rest of the message will proxy
-        # straight through.
+        # Time out after some seconds (30 by default) for message-retrieval
+        # commands if all the headers are down.  The rest of the message
+        # will proxy straight through.
+        # See also [ 870524 ] Make the message-proxy timeout configurable
         if self.command in ['TOP', 'RETR'] and \
-           self.seenAllHeaders and time.time() > self.startTime + 30:
+           self.seenAllHeaders and time.time() > \
+           self.startTime + options["pop3proxy", "retrieval_timeout"]:
             self.onResponse()
             self.response = ''
         # If that's a complete response, handle it.
@@ -468,7 +469,8 @@ class BayesProxy(POP3ProxyBase):
             ok, messageText = response.split('\n', 1)
 
             try:
-                msg = spambayes.message.sbheadermessage_from_string(messageText)
+                msg = email.message_from_string(messageText,
+                          _class=spambayes.message.SBHeaderMessage)
                 msg.setId(state.getNewMessageName())
                 # Now find the spam disposition and add the header.
                 (prob, clues) = state.bayes.spamprob(msg.asTokens(),\

@@ -80,6 +80,7 @@ import asyncore
 import socket
 import operator
 import re
+import time
 import getopt
 import sys, os
 
@@ -112,7 +113,8 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
     """Minimal POP3 server, for testing purposes.  Doesn't support
     UIDL.  USER, PASS, APOP, DELE and RSET simply return "+OK"
     without doing anything.  Also understands the 'KILL' command, to
-    kill it.  The mail content is the example messages above.
+    kill it, and a 'SLOW' command, to change to really slow retrieval.
+    The mail content is the example messages above.
     """
 
     def __init__(self, clientSocket, socketMap):
@@ -122,7 +124,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         Dibbler.BrighterAsyncChat.set_socket(self, clientSocket, socketMap)
         self.maildrop = [spam1, good1]
         self.set_terminator('\r\n')
-        self.okCommands = ['USER', 'PASS', 'APOP', 'NOOP',
+        self.okCommands = ['USER', 'PASS', 'APOP', 'NOOP', 'SLOW',
                            'DELE', 'RSET', 'QUIT', 'KILL']
         self.handlers = {'CAPA': self.onCapa,
                          'STAT': self.onStat,
@@ -131,6 +133,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
                          'TOP': self.onTop}
         self.push("+OK ready\r\n")
         self.request = ''
+        self.push_delay = 0.0 # 0.02 is a useful value for testing.
 
     def collect_incoming_data(self, data):
         """Asynchat override."""
@@ -147,20 +150,31 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
             self.push("+OK (we hope)\r\n")
             if command == 'QUIT':
                 self.close_when_done()
-            if command == 'KILL':
+            elif command == 'KILL':
                 self.socket.shutdown(2)
                 self.close()
                 raise SystemExit
+            elif command == 'SLOW':
+                self.push_delay = 1.0
         else:
             handler = self.handlers.get(command, self.onUnknown)
-            self.push(handler(command, args))   # Or push_slowly for testing
+            self.push_slowly(handler(command, args))
         self.request = ''
 
     def push_slowly(self, response):
-        """Useful for testing."""
-        for c in response:
-            self.push(c)
-            time.sleep(0.02)
+        """Sometimes we push out the response slowly to try and generate
+        timeouts.  If the delay is 0, this just does a regular push."""
+        if self.push_delay:
+            for c in response.split('\n'):
+                if c and c[-1] == '\r':
+                    self.push(c + '\n')
+                else:
+                    # We want to trigger onServerLine, so need the '\r',
+                    # so modify the message just a wee bit.
+                    self.push(c + '\r\n')
+                time.sleep(self.push_delay * len(c))
+        else:
+            self.push(response)
 
     def onCapa(self, command, args):
         """POP3 CAPA command.  This lies about supporting pipelining for
@@ -290,7 +304,7 @@ def test():
     assert response.find("STLS") >= 0
 
     # Ask for the capabilities via the proxy, and verify that the proxy
-    # is filtering out the PIPELINING capability.
+    # is filtering out the STLS capability.
     proxy.send("capa\r\n")
     response = proxy.recv(1000)
     assert response.find("STLS") == -1
@@ -309,6 +323,19 @@ def test():
         while response.find('\n.\r\n') == -1:
             response = response + proxy.recv(1000)
         assert response.find(options["Headers", "classification_header_name"]) >= 0
+
+    # Check that the proxy times out when it should.
+    options["pop3proxy", "retrieval_timeout"] = 30
+    options["Headers", "include_evidence"] = False
+    assert spam1.find('\n\n') > options["pop3proxy", "retrieval_timeout"]
+    print "This test is rather slow..."
+    proxy.send("slow\r\n")
+    response = proxy.recv(100)
+    assert response.find("OK") != -1
+    proxy.send("retr 1\r\n")
+    response = proxy.recv(1000)
+    assert len(response) < len(spam1)
+    print "Slow test done.  Thanks for waiting!"
 
     # Smoke-test the HTML UI.
     httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
