@@ -1101,11 +1101,13 @@ class ExplorerWithEvents:
                         show_delete_as = True
             except:
                 print "Error finding the MAPI folders for a folder switch event"
-                self.manager.ReportError("You must configure the Possible Spam/Spam folder\n" \
-                                         "(Maybe you deleted the folder, rather than " \
-                                         "the items in it?  If so, create a new folder " \
-                                         "and use the Manager to select it)",
-                                         "Invalid Configuration")
+                # As this happens once per move, we should only display it once.
+                self.manager.ReportErrorOnce(
+                    "There appears to be a problem with the SpamBayes"
+                    " configuration\r\n\r\nPlease select the SpamBayes"
+                    " manager, and run the\r\nConfiguration Wizard to"
+                    " reconfigure the filter.",
+                    "Invalid SpamBayes Configuration")
                 traceback.print_exc()
         if self.but_recover_as is not None:
             self.but_recover_as.Visible = show_recover_as
