@@ -425,14 +425,15 @@ class FolderSelector(FolderSelector_Parent):
         else:
             win32gui.SendMessage(child, win32con.BM_SETCHECK, self.checkbox_state)
         self.list = self.GetDlgItem("IDC_LIST_FOLDERS")
-
-        fname = os.path.join(os.path.dirname(__file__), "resources/folders.bmp")
+        import resources
+        mod_handle, mod_bmp, extra_flags = \
+             resources.GetImageParamsFromBitmapID(self.dialog_parser, "IDB_FOLDERS")
         bitmapMask = win32api.RGB(0,0,255)
-        self.imageList = win32gui.ImageList_LoadImage(0, fname,
+        self.imageList = win32gui.ImageList_LoadImage(mod_handle, mod_bmp,
                                                         16, 0,
                                                         bitmapMask,
                                                         win32con.IMAGE_BITMAP,
-                                                        win32con.LR_LOADFROMFILE)
+                                                        extra_flags)
         win32gui.SendMessage( self.list,
                                 commctrl.TVM_SETIMAGELIST,
                                 commctrl.TVSIL_NORMAL, self.imageList )
@@ -465,7 +466,8 @@ class FolderSelector(FolderSelector_Parent):
         if self.timer_id is not None:
             timer.kill_timer(self.timer_id)
         self.item_map = None
-        win32gui.ImageList_Destroy(self.imageList)
+        if self.imageList:
+            win32gui.ImageList_Destroy(self.imageList)
         FolderSelector_Parent.OnDestroy(self, hwnd, msg, wparam, lparam)
 
     def OnCommand(self, hwnd, msg, wparam, lparam):
