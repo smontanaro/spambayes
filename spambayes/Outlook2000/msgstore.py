@@ -743,21 +743,27 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 try:
                     msg = email.message_from_string(text + "\n\n")
                 except email.Errors.BoundaryError:
-                    # But even this doesn't get *everything*.  We can still see:
-                    #  "multipart message with no defined boundary"
-                    # so now it is time to turn into a butcher - hack out
-                    # the Content-Type header, so we see it as plain text.
-                    butcher_pos = text.lower().find("\ncontent-type: ")
-                    if butcher_pos < 0:
-                        # This error just just gunna get caught below anyway
-                        raise RuntimeError(
-                            "email package croaked with boundary error, but "
-                            "there appears to be no 'Content-Type' header")
-                    # Put it back together, skipping the original "\n" but
-                    # leaving the header leaving "\nSpamBayes-Content-Type: "
-                    butchered = text[:butcher_pos] + "\nSpamBayes-" + \
-                                text[butcher_pos+1:] + "\n\n"
-                    msg = email.message_from_string(butchered)
+                    msg = None
+            except email.Errors.HeaderParseError:
+                # This exception can come from parsing the header *or* the
+                # body of a mime message.
+                msg = None
+            # But even this doesn't get *everything*.  We can still see:
+            #  "multipart message with no defined boundary" or the
+            # HeaderParseError above.  Time to get brutal - hack out
+            # the Content-Type header, so we see it as plain text.
+            if msg is None:
+                butcher_pos = text.lower().find("\ncontent-type: ")
+                if butcher_pos < 0:
+                    # This error just just gunna get caught below anyway
+                    raise RuntimeError(
+                        "email package croaked with a MIME related error, but "
+                        "there appears to be no 'Content-Type' header")
+                # Put it back together, skipping the original "\n" but
+                # leaving the header leaving "\nSpamBayes-Content-Type: "
+                butchered = text[:butcher_pos] + "\nSpamBayes-" + \
+                            text[butcher_pos+1:] + "\n\n"
+                msg = email.message_from_string(butchered)
         except:
             print "FAILED to create email.message from: ", `text`
             raise
