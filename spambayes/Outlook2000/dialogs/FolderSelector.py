@@ -88,7 +88,7 @@ def _BuildFoldersMAPI(manager, folder_spec):
                 else:
                     spec.children = None # Flag as "not yet built"
                 children.append(spec)
-        except pythoncom.com_error, details
+        except pythoncom.com_error, details:
             # Users have reported failure here - it is not clear if the
             # entire tree is going to fail, or just this folder
             print "** Unable to open child folder - ignoring"
