@@ -37,7 +37,13 @@ def DictExtractor(bayes):
         yield k, v
 
 def DBExtractor(bayes):
-    import bsddb
+    # We use bsddb3 now if we can
+    try:
+        import bsddb3 as bsddb
+        bsddb_error = bsddb.DBNotFoundError
+    except ImportError:
+        import bsddb
+        bsddb_error = bsddb.error
     key = bayes.dbm.first()[0]
     if key not in ["saved state"]:
         yield key, bayes._wordinfoget(key)
@@ -45,6 +51,8 @@ def DBExtractor(bayes):
         try:
             key = bayes.dbm.next()[0]
         except bsddb.error:
+            break
+        except bsddb_error:
             break
         if key not in ["saved state"]:
             yield key, bayes._wordinfoget(key)
