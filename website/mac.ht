@@ -4,7 +4,9 @@ Author: spambayes
 
 <h1>Spambayes on Mac OS<sup><font size="-2">1</font></sup></h1>
 
-<p>TBD.
+<p>There is no special support for email programs on Mac OS.  The <a
+href="applications.html#pop3">pop3proxy</a> application is known to work on
+Mac OS X and Mac OS 9.
 
 <h2>Notes</h2>
 
