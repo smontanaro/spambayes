@@ -188,7 +188,7 @@ class BrighterAsyncChat(asynchat.async_chat):
     def __init__(self, conn=None, map=None):
         """See `asynchat.async_chat`."""
         asynchat.async_chat.__init__(self, conn)
-        self._map = map
+        self.__map = map
         self._closed = False
 
     def handle_connect(self):
@@ -215,7 +215,7 @@ class BrighterAsyncChat(asynchat.async_chat):
     def close(self):
         """Remove this object from the correct socket map."""
         self._closed = True
-        self.del_channel(self._map)
+        self.del_channel(self.__map)
         self.socket.close()
 
 
