@@ -46,12 +46,19 @@ parm_ini_map = \
     'p3servers':    ('pop3proxy',       'pop3proxy_servers'),
     'p3ports':      ('pop3proxy',       'pop3proxy_ports'),
     'p3notate':     ('pop3proxy',       'pop3proxy_notate_to'),
+    'p3addid':      ('pop3proxy',       'pop3proxy_add_mailid_to'),
+    'p3stripid':    ('pop3proxy',       'pop3proxy_strip_incoming_mailids'),
+    'smtpservers':  ('smtpproxy',       'smtpproxy_servers'),
+    'smtpports':    ('smtpproxy',       'smtpproxy_ports'),
+    'smtpham':      ('smtpproxy',       'smtpproxy_ham_address'),
+    'smtpspam':     ('smtpproxy',       'smtpproxy_spam_address'),
    }
 
 # "Restore defaults" ignores these, because it would be pointlessly
 # destructive - they default to being empty, so you gain nothing by
 # restoring them.
-noRestore = ('pop3proxy_servers', 'pop3proxy_ports', 'pop3_notate_to')
+noRestore = ('pop3proxy_servers', 'pop3proxy_ports', 'pop3_notate_to',
+             'smtpproxy_servers', 'smtpproxy_ports')
 
 # This governs the order in which the options appear on the configurator
 # page, and the headings and help text that are used.
@@ -74,10 +81,10 @@ page_layout = \
         ("p3ports", "Ports",
          """Each POP3 server that is being monitored must be assigned to a
          'port' in the Spambayes POP3 proxy.  This port must be different for
-         each monitored server, and there MUST be a port for each monitored
-         server.  Again, you need to configure your email client to use this
-         port.  If there are multiple servers, you must specify the same
-         number of ports as servers, separated by commas."""),
+         each monitored server, and there <strong>must</strong> be a port for
+         each monitored server.  Again, you need to configure your email
+         client to use this port.  If there are multiple servers, you must
+         specify the same number of ports as servers, separated by commas."""),
          
         ("p3notate", "Notate To",
          """Some email clients (Outlook Express, for example) can only set
@@ -90,6 +97,67 @@ page_layout = \
          recipient list, and route the mail to an appropriate folder, or take
          whatever other action is supported and appropriate for the mail
          classification."""),
+
+        ("p3addid", "Add id tag",
+         """If you wish to be able to find a specific message (via the 'find'
+         box on the <a href="home">home</a> page), or use the SMTP proxy to
+         train, you will need to know the unique id of each message.  If your
+         mailer allows you to view all message headers, and includes all these
+         headers in forwarded/bounced mail, then the best place for this id
+         is in the headers of incoming mail.  Unfortunately, some mail clients
+         do not offer these capabilities.  For these clients, you will need to
+         have the id added to the body of the message.  If you are not sure,
+         the safest option is to use both.  Valid options include neither
+         the header nor the body (leave this blank), header only ("header"),
+         body only ("body"), or both ("header body")."""),
+
+        ("p3stripid", "Strip incoming ids",
+         """If you receive messages from other spambayes users, you might
+         find that incoming mail (generally replies) already has an id,
+         particularly if they have set the id to appear in the body (see
+         above).  This might confuse the SMTP proxy when it tries to identify
+         the message to train, and make it difficult for you to identify
+         the correct id to find a message.  This option strips all spambayes
+         ids from incoming mail."""),
+    )),
+
+    ("SMTP Options",
+    (   ("smtpservers", "Servers",
+         """The Spambayes SMTP proxy intercepts outgoing email - if you have
+         sent it to one of the addresses below, it is examined for an id and
+         the message corresponding to that id is trained as ham/spam.  All
+         other mail is sent along to your outgoing mail server.  You need to
+         specify which SMTP server(s) you wish it to intercept - a SMTP server
+         address typically looks like "smtp.myisp.net".  If you use more than
+         one server, simply separate their names with commas.  You can get
+         these server names from your existing email configuration, or from
+         your ISP or system administrator.  If you are using Web-based email,
+         you can't use the Spambayes SMTP proxy (sorry!).  In your email
+         client's configuration, where you would normally put your SMTP server
+         address, you should now put the address of the machine running
+         Spambayes."""),
+
+        ("smtpports", "Ports",
+         """Each SMTP server that is being monitored must be assigned to a
+         'port' in the Spambayes SMTP proxy.  This port must be different for
+         each monitored server, and there <strong>must</strong> be a port for
+         each monitored server.  Again, you need to configure your email
+         client to use this port.  If there are multiple servers, you must
+         specify the same number of ports as servers, separated by commas."""),
+         
+        ("smtpham", "Ham Address",
+         """When a message is received that you wish to train on (for example,
+         one that was incorrectly classified), you need to forward or bounce
+         it to one of two special addresses so that the SMTP proxy can identify
+         it.  If you wish to train it as ham, forward or bounce it to this
+         address.  You will want to use an address that is <strong>not</strong>
+         a valid email address, like ham@nowhere.nothing."""),
+
+        ("smtpspam", "Spam Address",
+         """As with Ham Address above, but the address that you need to forward
+         or bounce mail that you wish to train as spam.  You will want to use
+         an address that is <strong>not</strong> a valid email address, like
+         spam@nowhere.nothing."""),
     )),
 
     ("Statistics Options",
