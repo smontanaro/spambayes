@@ -210,8 +210,7 @@ class Classifier:
         True, you're telling the classifier this message is definitely spam,
         else that it's definitely not spam.
         """
-        if options["Classifier", "x-use_bigrams"] and \
-           isinstance(wordstream, types.GeneratorType):
+        if options["Classifier", "x-use_bigrams"]:
             wordstream = self._enhance_wordstream(wordstream)
         self._add_msg(wordstream, is_spam)
 
@@ -220,8 +219,7 @@ class Classifier:
 
         Pass the same arguments you passed to learn().
         """
-        if options["Classifier", "x-use_bigrams"] and \
-           isinstance(wordstream, types.GeneratorType):
+        if options["Classifier", "x-use_bigrams"]:
             wordstream = self._enhance_wordstream(wordstream)
         self._remove_msg(wordstream, is_spam)
 
