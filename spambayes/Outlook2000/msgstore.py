@@ -807,7 +807,9 @@ class MAPIMsgStoreMsg:
         self.dirty = False
 
         # For use with the spambayes.message messageinfo database.
-        self.stored_attributes = ['t',]
+        self.stored_attributes = ['t', 'original_folder']
+        self.t = None
+        self.original_folder = None
 
     def getDBKey(self):
         # Long lived search key.
@@ -1243,6 +1245,9 @@ class MAPIMsgStoreMsg:
         self._EnsureObject()
         try:
             folder = self.GetFolder()
+            # Also save this information in our messageinfo database, which
+            # means that restoring should work even with IMAP.
+            self.original_folder = folder.id[0], folder.id[1]
             props = ( (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderStoreID"),
                       (mapi.PS_PUBLIC_STRINGS, "SpamBayesOriginalFolderID")
                       )
@@ -1273,6 +1278,9 @@ class MAPIMsgStoreMsg:
             help_test_suite("MAPIMsgStoreMsg.GetRememberedFolder")
             return self.msgstore.GetFolder(folder_id)
         except:
+            # Try to get it from the message info database, if possible
+            if self.original_folder:
+                return self.msgstore.GetFolder(self.original_folder)
             print "Error locating origin of message", self
             return None
 

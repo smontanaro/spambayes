@@ -43,6 +43,7 @@ def filter_message(msg, mgr, all_actions=True):
                         # filter, else the save will fail.
                         if all_actions:
                             msg.RememberMessageCurrentFolder()
+                            mgr.classifier_data.message_db.store_msg(msg)
                         msg.Save()
                         break
                     except ms.ObjectChangedException:

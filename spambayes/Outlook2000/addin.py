@@ -691,6 +691,9 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # Record this recovery in our stats.
             self.manager.stats.RecordManualClassification(False,
                                     self.manager.score(msgstore_message))
+            # Record the original folder, in case this message is not where
+            # it was after filtering, or has never been filtered.
+            msgstore_message.RememberMessageCurrentFolder()
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Moving and spam training message '%s' - " % (subject,),
@@ -746,6 +749,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # *before* we do the move (and saving after is hard))
             try:
                 subject = msgstore_message.GetSubject()
+                self.manager.classifier_data.message_db.load_msg(msgstore_message)
                 restore_folder = msgstore_message.GetRememberedFolder()
                 if restore_folder is None or \
                    msgstore_message.GetFolder() == restore_folder:
