@@ -118,9 +118,10 @@ class BayesManager:
                     if self.verbose > 1:
                         print "Created the UserProperty!"
                 except pythoncom.com_error:
-                    import traceback
-                    print "Failed to create the field"
-                    traceback.print_exc()
+                    pass # We know, we know...
+##                    import traceback
+##                    print "Failed to create the field"
+##                    traceback.print_exc()
         # else no items in this folder - not much worth doing!
         if include_sub:
             # Recurse down the folder list.
