@@ -95,6 +95,30 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(self.s.num_trained_spam, 1)
         self.assertEqual(self.s.num_trained_spam_fn, 1)
 
+    def test_record_fp_class(self):
+        self.s.RecordTraining(True,
+                              old_class=options["Headers",
+                                                "header_spam_string"])
+        self.assertEqual(self.s.num_trained_ham, 1)
+        self.assertEqual(self.s.num_trained_ham_fp, 1)
+
+    def test_record_fn_class(self):
+        self.s.RecordTraining(False,
+                              old_class=options["Headers",
+                                                "header_ham_string"])
+        self.assertEqual(self.s.num_trained_spam, 1)
+        self.assertEqual(self.s.num_trained_spam_fn, 1)
+
+    def test_no_record_fp(self):
+        self.s.RecordTraining(True)
+        self.assertEqual(self.s.num_trained_ham, 1)
+        self.assertEqual(self.s.num_trained_ham_fp, 0)
+
+    def test_no_record_fn(self):
+        self.s.RecordTraining(False)
+        self.assertEqual(self.s.num_trained_spam, 1)
+        self.assertEqual(self.s.num_trained_spam_fn, 0)
+
     def test_record_train_spam(self):
         self.s.RecordTraining(False, 1.0)
         self.assertEqual(self.s.num_trained_spam, 1)

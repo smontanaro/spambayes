@@ -77,6 +77,7 @@ class Stats(object):
             self.messageinfo_db.set_statistics_start_date(self.from_date)
 
     def RecordClassification(self, score):
+        """Record that a message has been classified this session."""
         if score >= self.options["Categorization", "spam_cutoff"]:
             self.num_spam += 1
         elif score >= self.options["Categorization", "ham_cutoff"]:
@@ -84,18 +85,34 @@ class Stats(object):
         else:
             self.num_ham += 1
 
-    def RecordTraining(self, as_ham, old_score):
+    def RecordTraining(self, as_ham, old_score=None, old_class=None):
+        """Record that a message has been trained this session.
+
+        If old_score and old_class are None, then the message had not
+        previously been trained (e.g. using the "Train" box on the web
+        interface), and so cannot be considered a fp or fn).
+
+        If both old_score and old_class are specified, old_score is used.
+        """
+        # XXX Why, oh why, does this function have as_ham, when every
+        # XXX other function has isSpam???
         if as_ham:
             self.num_trained_ham += 1
             # If we are recovering an item that is in the "spam" threshold,
             # then record it as a "false positive"
-            if old_score > self.options["Categorization", "spam_cutoff"]:
+            if old_score is not None and \
+               old_score > self.options["Categorization", "spam_cutoff"]:
+                self.num_trained_ham_fp += 1
+            elif old_class == self.options["Headers", "header_spam_string"]:
                 self.num_trained_ham_fp += 1
         else:
             self.num_trained_spam += 1
             # If we are deleting as Spam an item that was in our "good"
             # range, then record it as a false negative.
-            if old_score < self.options["Categorization", "ham_cutoff"]:
+            if old_score is not None and \
+               old_score < self.options["Categorization", "ham_cutoff"]:
+                self.num_trained_spam_fn += 1
+            elif old_class == self.options["Headers", "header_ham_string"]:
                 self.num_trained_spam_fn += 1
 
     def CalculatePersistentStats(self):
