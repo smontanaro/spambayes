@@ -36,10 +36,9 @@ hammie.py
 mboxtest.py
     A concrete test driver like timtest.py (see below), but working
     with a pair of mailbox files rather than the specialized timtest
-    setup.  Note that the validity of results from mboxtest.py have
-    yet to be confirmed.
+    setup.
 
-timtoken.py
+tokenizer.py
     An implementation of tokenize() that Tim can't seem to help but keep
     working on <wink>.
 
