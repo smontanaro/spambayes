@@ -113,21 +113,30 @@ def import_early_core_spambayes_stuff():
                                               ".."))
         sys.path.insert(0, parent)
 
-def import_core_spambayes_stuff(ini_filename):
-    if "spambayes.Options" in sys.modules:
-        # Manager probably being re-initialized (via the Outlook 'addin' GUI
-        # Check that nothing has changed underneath us.
-        if __debug__:
-            import spambayes.Options
-            assert spambayes.Options.optionsPathname == \
-                   ini_filename.encode(filesystem_encoding), \
-                   "'spambayes.Options' was imported too early, with the " \
-                   "incorrect directory %r" \
-                   % (spambayes.Options.optionsPathname,)
-        return
+def import_core_spambayes_stuff(ini_filenames):
     global bayes_classifier, bayes_tokenize, bayes_storage
-    # ini_filename is Unicode, but environ not unicode aware
-    os.environ["BAYESCUSTOMIZE"] = ini_filename.encode(filesystem_encoding)
+    if "spambayes.Options" in sys.modules:
+        # The only thing we are worried about here is spambayes.Options
+        # being imported before we have determined the INI files we need to
+        # use.
+        # The only way this can happen otherwise is when the addin is
+        # de-selected then re-selected via the Outlook GUI - and when
+        # running from source-code, it never appears in this list.
+        # So this should never happen from source-code, and if it does, then
+        # the developer has recently changed something that causes the early
+        # import
+        assert hasattr(sys, "frozen")
+        # And we don't care (we could try and reload the engine options,
+        # but these are very unlikely to have changed)
+        return
+    # ini_filenames may contain Unicode, but environ not unicode aware.
+    # Convert if necessary.
+    use_names = []
+    for name in ini_filenames:
+        if isinstance(name, unicode):
+            name = name.encode(filesystem_encoding)
+        use_names.append(name)
+    os.environ["BAYESCUSTOMIZE"] = os.pathsep.join(use_names)
     from spambayes import classifier
     from spambayes.tokenizer import tokenize
     from spambayes import storage
@@ -374,9 +383,18 @@ class BayesManager:
         self.message_store = msgstore.MAPIMsgStore(outlook)
         self.LoadConfig()
 
-        bayes_options_filename = os.path.join(self.data_directory,
-                                              "default_bayes_customize.ini")
-        import_core_spambayes_stuff(bayes_options_filename)
+        # Load the options for the classifier.  We support
+        # default_bayes_customize.ini in the app directory and user data
+        # directory (version 0.8 and earlier, we copied the app one to the
+        # user dir - that was a mistake - but supporting a version in that
+        # directory wasn't.
+        bayes_option_filenames = []
+        # data dir last so options there win.
+        for look_dir in [self.application_directory, self.data_directory]:
+            look_file = os.path.join(look_dir, "default_bayes_customize.ini")
+            if os.path.isfile(look_file):
+                bayes_option_filenames.append(look_file)
+        import_core_spambayes_stuff(bayes_option_filenames)
 
         bayes_base = os.path.join(self.data_directory, "default_bayes_database")
         mdb_base = os.path.join(self.data_directory, "default_message_database")
@@ -490,9 +508,9 @@ class BayesManager:
         # A bit of a nod to save people doing a full retrain.
         # Try and locate our files in the old location, and move
         # them to the new one.
-        # Also used first time SpamBayes is run - this will cause
-        # the ini file to be *copied* to the correct directory
-        self._MigrateFile("default_bayes_customize.ini", False)
+        # Note that this is migrating data for very old versions of the
+        # plugin (before the first decent binary!).  The next time it is
+        # touched it can die :) 
         self._MigrateFile("default_bayes_database.pck")
         self._MigrateFile("default_bayes_database.db")
         self._MigrateFile("default_message_database.pck")
@@ -502,15 +520,14 @@ class BayesManager:
     # Copy a file from the application_directory to the data_directory.
     # By default (do_move not specified), the source file is deleted.
     # Pass do_move=False to leave the original file.
-    def _MigrateFile(self, filename, do_move = True):
+    def _MigrateFile(self, filename):
         src = os.path.join(self.application_directory, filename)
         dest = os.path.join(self.data_directory, filename)
         if os.path.isfile(src) and not os.path.isfile(dest):
             # shutil in 2.2 and earlier don't contain 'move'.
             # Win95 and Win98 don't support MoveFileEx.
             shutil.copyfile(src, dest)
-            if do_move:
-                os.remove(src)
+            os.remove(src)
 
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
