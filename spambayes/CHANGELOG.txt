@@ -2,6 +2,7 @@
 
 Alpha Release 5
 ===============
+Richie Hindle  01/09/2003  Fix [ 797890 ] "assert hamcount <= nham" problem.
 Tony Meyer     01/09/2003  Fix [ spambayes-Bugs-796996 ] smtp server not started until restart.
 Richie Hindle  01/09/2003  Integrated [ 791393 ] HTTP Authentication, which closes #791319.
 Tony Meyer     01/09/2003  Added [ 796832 ] Word query should show all words starting with certain text 

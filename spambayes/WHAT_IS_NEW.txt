@@ -40,6 +40,7 @@ Outlook Plugin
 
 POP3 Proxy / SMTP Proxy / POP3 Proxy Service
 --------------------------------------------
+ o Fixed "assert hamcount <= nham" problem.
  o Starting and stopping the POP3 Proxy service (for Windows NT, Windows
    2000 and Windows XP users) has been improved.  Most noticeably, this
    means that the SMTP Proxy will start (if it is needed) as well.
