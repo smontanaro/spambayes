@@ -183,8 +183,10 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     try:
         while True:
             msg = hambone.next()
-            tdict[msg["message-id"]] = True
-            nhamleft += 1
+            score = store.spamprob(tokenize(msg))
+            if score > ham_cutoff:
+                tdict[msg["message-id"]] = True
+                nhamleft += 1
     except StopIteration:
         if nhamleft: print nhamleft, "untrained hams"
 
@@ -192,8 +194,10 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     try:
         while True:
             msg = spamcan.next()
-            tdict[msg["message-id"]] = True
-            nspamleft += 1
+            score = store.spamprob(tokenize(msg))
+            if score < spam_cutoff:
+                tdict[msg["message-id"]] = True
+                nspamleft += 1
     except StopIteration:
         if nspamleft: print nspamleft, "untrained spams"
 
