@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "dialogs.h"
 
@@ -14,6 +14,185 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ADVANCED DIALOGEX 0, 0, 248, 185
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "Filter timer",IDC_STATIC,7,0,234,104
+    CONTROL         "",IDC_DELAY1_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,16,18,148,22
+    LTEXT           "Processing start delay",IDC_STATIC,14,9,101,8
+    EDITTEXT        IDC_DELAY1_TEXT,165,25,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,208,27,28,8
+    CONTROL         "",IDC_DELAY2_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,16,60,148,22
+    LTEXT           "Delay between new mail check",IDC_STATIC,14,47,101,8
+    EDITTEXT        IDC_DELAY2_TEXT,165,69,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,207,69,28,8
+    CONTROL         "Timer only applies to Inbox",IDC_INBOX_TIMER_ONLY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,89,104,10
+    GROUPBOX        "Read States",IDC_STATIC,7,104,234,63
+    LTEXT           "When a message is deleted as spam, change its read state to",
+                    IDC_STATIC,17,115,198,8
+    LTEXT           "When a message is recovered from spam, change its read state to",
+                    IDC_STATIC,14,139,214,8
+    COMBOBOX        IDC_DEL_SPAM_RS,25,124,97,54,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_RECOVER_RS,25,149,97,63,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Log Level",IDC_STATIC,7,174,31,8
+    EDITTEXT        IDC_VERBOSE_LOG,45,171,40,14,ES_AUTOHSCROLL
+END
+
+IDD_MANAGER DIALOGEX 0, 0, 275, 291
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "SpamBayes"
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,158,270,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,216,270,50,14
+    CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
+                    SS_REALSIZEIMAGE,0,0,275,52
+    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,9,64,255,202
+    LTEXT           "SpamBayes Version Here",IDC_VERSION,14,55,238,8
+    PUSHBUTTON      "About",IDC_ABOUT_BTN,9,270,50,14
+END
+
+IDD_FILTER_FOLDERS DIALOGEX 0, 0, 244, 183
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    LTEXT           "Filter the following folders as messages arrive",
+                    IDC_STATIC,11,9,168,11
+    CONTROL         "Folder names...\nLine 2",IDC_FOLDER_WATCH,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,10,20,177,12
+    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,187,19,50,14
+END
+
+IDD_FILTER_SPAM DIALOGEX 0, 0, 251, 147
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    LTEXT           "Filter the following folders as messages arrive",
+                    IDC_STATIC,8,9,168,11
+    CONTROL         "Folder names...\nLine 2",IDC_FOLDER_WATCH,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,7,20,177,12
+    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,192,19,50,14
+    GROUPBOX        "Certain Spam",IDC_STATIC,7,43,235,80
+    LTEXT           "To be considered certain spam, a message must score at least",
+                    IDC_STATIC,13,52,212,10
+    CONTROL         "",IDC_SLIDER_CERTAIN,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,13,62,165,22
+    EDITTEXT        IDC_EDIT_CERTAIN,184,63,51,14,ES_AUTOHSCROLL
+    LTEXT           "and these mesages should be:",IDC_STATIC,13,82,107,10
+    COMBOBOX        IDC_ACTION_CERTAIN,13,93,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "to folder",IDC_STATIC,75,95,31,10
+    CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,120,93,59,14
+    PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,93,50,14
+    CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,110,81,10
+END
+
+IDD_FILTER_UNSURE DIALOGEX 0, 0, 249, 124
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    LTEXT           "To be considered uncertain, a message must score at least",
+                    IDC_STATIC,12,11,212,10
+    CONTROL         "",IDC_SLIDER_UNSURE,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,12,18,165,20
+    EDITTEXT        IDC_EDIT_UNSURE,183,24,54,14,ES_AUTOHSCROLL
+    LTEXT           "and these mesages should be:",IDC_STATIC,12,38,107,10
+    COMBOBOX        IDC_ACTION_UNSURE,12,49,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "to folder",IDC_STATIC,74,52,31,10
+    CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,119,49,59,14
+    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,49,50,14
+    CONTROL         "Mark posiible spam as read",IDC_MARK_UNSURE_AS_READ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,70,101,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ADVANCED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 241
+        BOTTOMMARGIN, 180
+    END
+
+    IDD_MANAGER, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 284
+    END
+
+    IDD_FILTER_FOLDERS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 237
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+
+    IDD_FILTER_SPAM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 244
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 140
+    END
+
+    IDD_FILTER_UNSURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 242
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 117
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_SBLOGO              BITMAP                  "sblogo.bmp"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
 // English (Australia) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENA)
@@ -27,48 +206,41 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
 // Dialog
 //
 
-IDD_MANAGER DIALOGEX 0, 0, 242, 201
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_GENERAL DIALOGEX 0, 0, 253, 172
+STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE
 EXSTYLE WS_EX_CONTEXTHELP
-CAPTION "SpamBayes"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
-    CONTROL         "SpamBayes version xxx",IDC_VERSION,"Static",
-                    SS_LEFTNOWORDWRAP | WS_GROUP,8,4,230,11
-    GROUPBOX        "Training",IDC_STATIC,8,17,227,103
-    LTEXT           "Training is the process of giving examples of both good and bad email to the system so it can classify future email",
-                    IDC_STATIC,17,27,215,17
+    GROUPBOX        "Training",IDC_STATIC,8,2,240,103
+    LTEXT           "Training is the process of giving examples of both good and bad email to the system so it can classify future email.",
+                    IDC_STATIC,17,12,222,17
     LTEXT           "Automatically train that a message is good when:",
-                    IDC_STATIC,15,50,208,10
+                    IDC_STATIC,15,35,208,10
     CONTROL         "It is moved from a spam folder back to the Inbox",
                     IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,20,60,204,9
+                    WS_TABSTOP,17,45,204,9
     LTEXT           "Automatically train that a message is spam when:",
-                    IDC_STATIC,15,74,208,10
+                    IDC_STATIC,15,59,208,10
     CONTROL         "It is moved to the certain-spam folder",
                     IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,20,85,204,9
+                    WS_TABSTOP,17,70,204,9
     CONTROL         "123 spam messages; 456 good messages",
                     IDC_TRAINING_STATUS,"Static",SS_LEFTNOWORDWRAP | 
-                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,15,98,146,14
-    PUSHBUTTON      "Train Now...",IDC_BUT_TRAIN_NOW,167,98,63,14
-    GROUPBOX        "Filtering",IDC_STATIC,7,122,228,57
+                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,15,83,223,14
+    GROUPBOX        "Filtering",IDC_STATIC,7,107,241,60
     LTEXT           "Filtering defines how spam is handled as it arrives",
-                    IDC_STATIC,15,131,202,8
+                    IDC_STATIC,15,117,205,8
     CONTROL         "Enable &Filtering",IDC_BUT_FILTER_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,143,120,11
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,128,66,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
-                    IDC_FILTER_STATUS,15,157,146,18,SS_SUNKEN
-    PUSHBUTTON      "Filter Now...",IDC_BUT_FILTER_NOW,167,141,63,14
-    PUSHBUTTON      "Define Filters...",IDC_BUT_FILTER_DEFINE,167,160,63,14
-    PUSHBUTTON      "About...",IDC_BUT_ABOUT,99,184,62,14
-    DEFPUSHBUTTON   "Close",IDOK,167,184,62,14
+                    IDC_FILTER_STATUS,15,143,223,18,SS_SUNKEN
+    CONTROL         "Save Spam Score",IDC_SAVE_SPAM_SCORE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,165,128,72,10
 END
 
 IDD_TRAINING DIALOGEX 0, 0, 241, 140
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
-CAPTION "Training"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Folders with known good messages.",IDC_STATIC,7,6,131,
@@ -89,13 +261,11 @@ BEGIN
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
                     92,166,11
     LTEXT           "",IDC_PROGRESS_TEXT,7,108,227,10
-    DEFPUSHBUTTON   "Close",IDOK,184,119,50,14
 END
 
-IDD_FILTER_NOW DIALOGEX 0, 0, 244, 182
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_FILTER_NOW DIALOGEX 0, 0, 244, 178
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
-CAPTION "Filter Now"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Filter the following folders",IDC_STATIC,8,9,168,11
@@ -118,13 +288,11 @@ BEGIN
                     129,230,11
     LTEXT           "Static",IDC_PROGRESS_TEXT,7,144,227,10
     PUSHBUTTON      "Filter Now",IDC_START,7,161,50,14
-    DEFPUSHBUTTON   "Close",IDOK,187,161,50,14
 END
 
-IDD_FILTER DIALOGEX 0, 0, 249, 239
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_FILTER DIALOGEX 0, 0, 249, 252
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
-CAPTION "Filter Rules"
 FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Filter the following folders as messages arrive",
@@ -133,43 +301,45 @@ BEGIN
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
                     WS_GROUP,7,20,177,12
     PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,192,19,50,14
-    GROUPBOX        "Certain Spam",IDC_STATIC,7,43,235,65
+    GROUPBOX        "Certain Spam",IDC_STATIC,7,43,235,80
     LTEXT           "To be considered certain spam, a message must score at least",
                     IDC_STATIC,13,52,212,10
     CONTROL         "Slider1",IDC_SLIDER_CERTAIN,"msctls_trackbar32",
-                    TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,13,62,165,12
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,62,165,22
     EDITTEXT        IDC_EDIT_CERTAIN,184,63,51,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,13,76,107,10
-    COMBOBOX        IDC_ACTION_CERTAIN,13,88,55,40,CBS_DROPDOWNLIST | 
+    LTEXT           "and these mesages should be:",IDC_STATIC,13,82,107,10
+    COMBOBOX        IDC_ACTION_CERTAIN,13,93,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,75,90,31,10
+    LTEXT           "to folder",IDC_STATIC,75,95,31,10
     CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,120,88,59,14
-    PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,88,50,14
-    GROUPBOX        "Possible Spam",IDC_STATIC,7,114,235,68
+                    WS_GROUP,120,93,59,14
+    PUSHBUTTON      "Browse",IDC_BROWSE_CERTAIN,184,93,50,14
+    GROUPBOX        "Possible Spam",IDC_STATIC,6,127,235,81
     LTEXT           "To be considered uncertain, a message must score at least",
-                    IDC_STATIC,13,124,212,10
+                    IDC_STATIC,12,138,212,10
     CONTROL         "Slider1",IDC_SLIDER_UNSURE,"msctls_trackbar32",
-                    TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,13,137,165,12
-    EDITTEXT        IDC_EDIT_UNSURE,184,137,54,14,ES_AUTOHSCROLL
-    LTEXT           "and these mesages should be:",IDC_STATIC,13,150,107,10
-    COMBOBOX        IDC_ACTION_UNSURE,13,161,55,40,CBS_DROPDOWNLIST | 
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,12,145,165,20
+    EDITTEXT        IDC_EDIT_UNSURE,183,151,54,14,ES_AUTOHSCROLL
+    LTEXT           "and these mesages should be:",IDC_STATIC,12,165,107,10
+    COMBOBOX        IDC_ACTION_UNSURE,12,176,55,40,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "to folder",IDC_STATIC,75,164,31,10
+    LTEXT           "to folder",IDC_STATIC,74,179,31,10
     CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,120,161,59,14
-    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,184,161,50,14
-    GROUPBOX        "Good messages",IDC_STATIC,7,185,235,25
+                    WS_GROUP,119,176,59,14
+    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,176,50,14
+    GROUPBOX        "Good messages",IDC_STATIC,9,212,235,25
     LTEXT           "All other messages are considered good, and are not filtered",
-                    IDC_STATIC,14,196,212,10
-    PUSHBUTTON      "Filter Now...",IDC_BUT_FILTER_NOW,7,218,50,14
-    PUSHBUTTON      "Close",IDOK,192,218,50,14
+                    IDC_STATIC,16,223,212,10
+    CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,110,81,10
+    CONTROL         "Mark posiible spam as read",IDC_MARK_UNSURE_AS_READ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,196,101,10
 END
 
-IDD_FOLDER_SELECTOR DIALOG DISCARDABLE  0, 0, 247, 215
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_FOLDER_SELECTOR DIALOG  0, 0, 247, 215
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "Tahoma"
 BEGIN
@@ -188,25 +358,48 @@ BEGIN
 END
 
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_GENERAL, DIALOG
+    BEGIN
+        RIGHTMARGIN, 248
+        BOTTOMMARGIN, 167
+    END
+
+    IDD_FILTER, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 244
+        HORZGUIDE, 127
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "dialogs.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
     "// spambayes dialog definitions\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"

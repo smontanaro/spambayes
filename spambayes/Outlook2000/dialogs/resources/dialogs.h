@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by dialogs.rc
 //
 #define IDD_MANAGER                     101
@@ -7,6 +7,12 @@
 #define IDD_FILTER                      103
 #define IDD_FILTER_NOW                  104
 #define IDD_FOLDER_SELECTOR             105
+#define IDD_ADVANCED                    106
+#define IDB_BITMAP1                     107
+#define IDD_GENERAL                     108
+#define IDD_FILTER_FOLDERS              109
+#define IDD_FILTER_SPAM                 110
+#define IDD_FILTER_UNSURE               111
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -52,14 +58,34 @@
 #define IDC_BUT_CLEARALL                1042
 #define IDC_STATUS1                     1043
 #define IDC_STATUS2                     1044
+#define IDC_MARK_SPAM_AS_READ           1048
+#define IDC_SAVE_SPAM_SCORE             1050
+#define IDC_MARK_UNSURE_AS_READ         1051
+#define IDC_ADVANCED_BTN                1055
+#define IDC_DELAY1_SLIDER               1056
+#define IDC_DELAY1_TEXT                 1057
+#define IDC_DELAY2_SLIDER               1058
+#define IDC_DELAY2_TEXT                 1059
+#define IDC_INBOX_TIMER_ONLY            1060
+#define IDC_VERBOSE_LOG                 1061
+#define IDB_SBLOGO                      1062
+#define IDC_LOGO_GRAPHIC                1063
+#define IDC_USE_DELAY1                  1064
+#define IDC_USE_DELAY2                  1065
+#define IDC_TAB                         1068
+#define IDC_BUTTON1                     1069
+#define IDC_ABOUT_BTN                   1070
+#define IDC_DEL_SPAM_RS                 1071
+#define IDC_RECOVER_RS                  1072
+#define IDC_EDIT1                       1073
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
+#define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1074
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
