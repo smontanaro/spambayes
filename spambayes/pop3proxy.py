@@ -497,17 +497,18 @@ class BayesProxy(POP3ProxyBase):
                     state.numUnsure += 1
 
             if options.pop3proxy_strip_incoming_mailids == True:
-                s = re.compile(options.pop3proxy_mailid_header_name + ': [\d-]+[\\r]?[\\n]?')
+                s = re.compile(options.pop3proxy_mailid_header_name + \
+                               ': [\d-]+[\\r]?[\\n]?')
                 messageText = s.sub('', messageText)
 
             headers, body = re.split(r'\n\r?\n', messageText, 1)
             messageName = state.getNewMessageName()
-            if command == 'RETR' and not state.isTest \
-                and options.pop3proxy_add_mailid_header == True:
-                if options.pop3proxy_mailid_as_header == True:
+            id_header = ""
+            if command == 'RETR' and not state.isTest:
+                if options.pop3proxy_add_mailid_to.find("header") != -1:
                     id_header = options.pop3proxy_mailid_header_name + ": " \
                             + messageName + "\r\n"
-                if options.pop3proxy_mailid_in_msgbody == True:
+                if options.pop3proxy_add_mailid_to.find("body") != -1:
                     body = body[:len(body)-3] + \
                            options.pop3proxy_mailid_header_name + ": " \
                             + messageName + "\r\n.\r\n"
