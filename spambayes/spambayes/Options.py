@@ -644,7 +644,7 @@ defaults = {
   # is optional.  If you specify more than one server in pop3proxy_servers,
   # you must specify the same number of ports in pop3proxy_ports.
   "pop3proxy" : (
-    ("remote_servers", "Servers", (),
+    ("remote_servers", "Remote Servers", (),
      """The Spambayes POP3 proxy intercepts incoming email and classifies
      it before sending it on to your email client.  You need to specify
      which POP3 server(s) you wish it to intercept - a POP3 server
@@ -658,7 +658,7 @@ defaults = {
      Spambayes.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("listen_ports", "Ports", (),
+    ("listen_ports", "SpamBayes Ports", (),
      """Each POP3 server that is being monitored must be assigned to a
      'port' in the Spambayes POP3 proxy.  This port must be different for
      each monitored server, and there must be a port for
@@ -751,7 +751,7 @@ defaults = {
 
   "smtpproxy" : (
 
-    ("remote_servers", "Servers", (),
+    ("remote_servers", "Remote Servers", (),
      """The Spambayes SMTP proxy intercepts outgoing email - if you
      forward mail to one of the addresses below, it is examined for an id
      and the message corresponding to that id is trained as ham/spam.  All
@@ -767,7 +767,7 @@ defaults = {
      Spambayes.""",
      SERVER, DO_NOT_RESTORE),
 
-    ("listen_ports", "Ports", (),
+    ("listen_ports", "SpamBayes Ports", (),
      """Each SMTP server that is being monitored must be assigned to a
      'port' in the Spambayes SMTP proxy.  This port must be different for
      each monitored server, and there must be a port for
