@@ -62,12 +62,6 @@ def usage(code, msg=''):
         print >> sys.stderr, msg
     sys.exit(code)
 
-def _factory(fp):
-    try:
-        return email.message_from_file(fp)
-    except email.Errors.MessageParseError:
-        return ''
-
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hgn:s:v', ['help'])
