@@ -20,7 +20,13 @@ from spambayes.message import Message, SBHeaderMessage, MessageInfoPickle
 # one message of each type (the tests should all handle this ok) then
 # Richie's hammer.py script has code for generating any number of
 # randomly composed email messages.
-from test_sb_server import good1, spam1
+from test_sb_server import good1, spam1, malformed1
+
+try:
+    __file__
+except NameError:
+    # Python 2.2 compatibility.
+    __file__ = sys.argv[0]
 
 TEMP_PICKLE_NAME = os.path.join(os.path.dirname(__file__), "temp.pik")
 TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
@@ -452,6 +458,66 @@ class SBHeaderMessageTest(unittest.TestCase):
         for header in headers:
             self.assert_(header not in self.msg.keys())
 
+    def test_delNotations(self):
+        # Add each type of notation to each header and check that it
+        # is removed.
+        for headername in ["subject", "to"]:
+            for disp in (self.ham, self.spam, self.unsure):
+                # Add a notation to the header
+                header = self.msg[headername]
+                self.assert_(disp not in header)
+                options["Headers", "notate_%s" % (headername,)] = \
+                                   (self.ham, self.unsure, self.spam)
+                prob = {self.ham:self.g_prob, self.spam:self.s_prob,
+                        self.unsure:self.u_prob}[disp]
+                self.msg.addSBHeaders(prob, self.clues)
+                self.assert_(disp in self.msg[headername])
+                # Remove it
+                self.msg.delNotations()
+                self.assertEqual(self.msg[headername], header)
+
+    def test_delNotations_missing(self):
+        # Check that nothing is removed if the disposition is not
+        # there.
+        for headername in ["subject", "to"]:
+            for disp in (self.ham, self.spam, self.unsure):
+                # Add a notation to the header
+                header = self.msg[headername]
+                self.assert_(disp not in header)
+                options["Headers", "notate_%s" % (headername,)] = ()
+                prob = {self.ham:self.g_prob, self.spam:self.s_prob,
+                        self.unsure:self.u_prob}[disp]
+                self.msg.addSBHeaders(prob, self.clues)
+                self.assert_(disp not in self.msg[headername])
+                # Remove it
+                self.msg.delNotations()
+                self.assertEqual(self.msg[headername], header)
+
+    def test_delNotations_only_once(self):
+        # Check that only one disposition is removed, even if more than
+        # one is present.
+        for headername in ["subject", "to"]:
+            for disp in (self.ham, self.spam, self.unsure):
+                # Add a notation to the header
+                header = self.msg[headername]
+                self.assert_(disp not in header)
+                options["Headers", "notate_%s" % (headername,)] = \
+                                   (self.ham, self.unsure, self.spam)
+                prob = {self.ham:self.g_prob, self.spam:self.s_prob,
+                        self.unsure:self.u_prob}[disp]
+                self.msg.addSBHeaders(prob, self.clues)
+                self.assert_(disp in self.msg[headername])
+                header2 = self.msg[headername]
+                # Add a second notation
+                self.msg.addSBHeaders(prob, self.clues)
+                self.assert_(disp in
+                             self.msg[headername].replace(disp, "", 1))
+                # Remove it
+                self.msg.delNotations()
+                self.assertEqual(self.msg[headername], header2)
+                # Restore for next time round the loop
+                self.msg.replace_header(headername, header)
+
 
 class MessageInfoBaseTest(unittest.TestCase):
     def setUp(self, fn=TEMP_PICKLE_NAME):
@@ -606,8 +672,8 @@ class UtilitiesTest(unittest.TestCase):
         details = "\r\n.".join(details.strip().split('\n'))
         headerName = 'X-Spambayes-Exception'
         header = email.Header.Header(details, header_name=headerName)
-        self.assertEqual(msg[headerName].replace('\n', '\r\n'),
-                         str(header).replace('\n', '\r\n'))
+        self.assertEqual(msg[headerName].replace('\r\n', '\n'),
+                         str(header).replace('\r\n', '\n'))
 
     def test_insert_exception_header(self):
         # Cause an exception to insert.
@@ -634,6 +700,16 @@ class UtilitiesTest(unittest.TestCase):
         headerName = options["Headers", "mailid_header_name"]
         header = email.Header.Header(id, header_name=headerName)
         self.assertEqual(msg[headerName], str(header).replace('\n', '\r\n'))
+
+    def test_insert_exception_header_no_separator(self):
+        # Cause an exception to insert.
+        try:
+            raise Exception("Test")
+        except Exception:
+            pass
+        msg, details = insert_exception_header(malformed1)
+        self._verify_details(details)
+        self._verify_exception_header(msg, details)
     
 
 def suite():
