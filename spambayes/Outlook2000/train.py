@@ -128,8 +128,8 @@ def trainer(mgr, config, progress):
     rebuild = config.training.rebuild
     rescore = config.training.rescore
 
-    if not config.training.ham_folder_ids or not config.training.spam_folder_ids:
-        progress.error("You must specify at least one spam, and one good folder")
+    if not config.training.ham_folder_ids and not config.training.spam_folder_ids:
+        progress.error("You must specify at least one spam or one good folder")
         return
 
     if rebuild:
@@ -150,7 +150,7 @@ def trainer(mgr, config, progress):
         classifier_data = mgr.classifier_data
 
     # We do this in possibly 3 stages - train, filter, save
-    # re-scoring is much slower and training (as we actually have to save
+    # re-scoring is much slower than training (as we actually have to save
     # the message back.)
     # Saving is really slow sometimes, but we only have 1 tick for that anyway
     if rescore:
