@@ -264,6 +264,10 @@ use_tim_combining: False
 # does well across test sets; while these cutoffs are rarely optimal, they
 # get close to optimal.
 use_chi_squared_combining: False
+
+# Use a weighted average of chi-combining and gary-combining.
+use_mixed_combining: False
+mixed_combining_chi_weight: 0.9
 """
 
 int_cracker = ('getint', None)
@@ -316,6 +320,9 @@ all_options = {
                    'robinson_minimum_prob_strength': float_cracker,
                    'use_tim_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
+
+                   'use_mixed_combining': boolean_cracker,
+                   'mixed_combining_chi_weight': float_cracker,
                    },
 }
 
