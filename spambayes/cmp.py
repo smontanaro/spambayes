@@ -9,8 +9,6 @@ stdout.
 import sys
 f1n, f2n = sys.argv[1:3]
 
-NSETS = 5
-
 # Return
 #  (list of all f-p rates,
 #   list of all f-n rates,
@@ -20,11 +18,11 @@ NSETS = 5
 def suck(f):
     fns = []
     fps = []
-    for block in range(NSETS):
-        # Skip, e.g.,
-        # Training on Data/Ham/Set1 & Data/Spam/Set1 ... 4000 hams & 2750 spams
-        f.readline()
-        for inner in range(NSETS - 1):
+    while 1:
+        line = f.readline()
+        if line.startswith('total'):
+            break
+        if not line.startswith('Training'):
             # A line with an f-p rate and an f-n rate.
             p, n = map(float, f.readline().split())
             fps.append(p)
@@ -32,7 +30,7 @@ def suck(f):
 
     # "total false pos 8 0.04"
     # "total false neg 249 1.81090909091"
-    fptot = int(f.readline().split()[-2])
+    fptot = int(line.split()[-2])
     fntot = int(f.readline().split()[-2])
     return fps, fns, fptot, fntot
 
