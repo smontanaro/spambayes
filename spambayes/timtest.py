@@ -237,10 +237,10 @@ class Driver:
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)
 
-        if options.show_best_discriminators:
+        if options.show_best_discriminators > 0:
             print
             print "    best discriminators:"
-            stats = [(-1, None) for i in range(30)]
+            stats = [(-1, None)] * options.show_best_discriminators
             smallest_killcount = -1
             for w, r in c.wordinfo.iteritems():
                 if r.killcount > smallest_killcount:
