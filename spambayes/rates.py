@@ -30,7 +30,10 @@ import sys
 """
 
 def doit(basename):
-    ifile = file(basename + '.txt')
+    try:
+        ifile = file(basename + '.txt')
+    except IOError:
+        ifile = file(basename)
     interesting = filter(lambda line: line.startswith('-> '), ifile)
     ifile.close()
 
