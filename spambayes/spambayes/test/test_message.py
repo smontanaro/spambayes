@@ -333,21 +333,21 @@ class SBHeaderMessageTest(unittest.TestCase):
     def test_notate_to_ham(self):
         options["Headers", "notate_to"] = (self.ham,)
         self.msg.addSBHeaders(self.g_prob, self.clues)
-        disp, orig = self.msg["To"].split(';', 1)
+        disp, orig = self.msg["To"].split(',', 1)
         self.assertEqual(orig, self.to)
         self.assertEqual(disp, "%s@spambayes.invalid" % (self.ham,))
 
     def test_notate_to_unsure(self):
         options["Headers", "notate_to"] = (self.ham, self.unsure)
         self.msg.addSBHeaders(self.u_prob, self.clues)
-        disp, orig = self.msg["To"].split(';', 1)
+        disp, orig = self.msg["To"].split(',', 1)
         self.assertEqual(orig, self.to)
         self.assertEqual(disp, "%s@spambayes.invalid" % (self.unsure,))
 
     def test_notate_to_spam(self):
         options["Headers", "notate_to"] = (self.ham, self.spam, self.unsure)
         self.msg.addSBHeaders(self.s_prob, self.clues)
-        disp, orig = self.msg["To"].split(';', 1)
+        disp, orig = self.msg["To"].split(',', 1)
         self.assertEqual(orig, self.to)
         self.assertEqual(disp, "%s@spambayes.invalid" % (self.spam,))
 
@@ -398,7 +398,7 @@ class SBHeaderMessageTest(unittest.TestCase):
             self.ham = options["Headers", "header_ham_string"]
             result = self.test_notate_to_ham()
             # Just be sure that it's using the new value.
-            self.assertEqual(self.msg["To"].split(';', 1)[0],
+            self.assertEqual(self.msg["To"].split(',', 1)[0],
                              "bacon@spambayes.invalid")
         finally:
             # If we leave these changed, then lots of other tests will
