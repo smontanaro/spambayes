@@ -61,10 +61,6 @@ This module includes the following classes:
 """
 
 todo = """
- o Message flags are currently not persisted, but should be.  The
-   IMAPFileMessage class should be extended to do this.  The same
-   goes for the 'internaldate' of the message.  These could be put
-   in the message info database, no doubt.
  o The RECENT flag should be unset at some point, but when?  The
    RFC says that a message is recent if this is the first session
    to be notified about the message.  Perhaps this can be done
@@ -91,7 +87,7 @@ todo = """
  o Suggestions?
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-4
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -158,6 +154,11 @@ class IMAPMessage(message.Message):
 
     def __init__(self, date):
         message.Message.__init__(self)
+        # We want to persist more information than the generic
+        # Message class.
+        self.stored_attributes.extend(["date", "deleted", "flagged",
+                                       "seen", "draft", "recent",
+                                       "answered"])
         self.date = date
         self.clear_flags()
 
@@ -185,7 +186,7 @@ class IMAPMessage(message.Message):
             yield "\\SEEN"
         if self.draft:
             yield "\\DRAFT"
-        if self.draft:
+        if self.recent:
             yield "\\RECENT"
 
     def getInternalDate(self):
