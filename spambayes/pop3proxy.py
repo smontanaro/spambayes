@@ -140,6 +140,7 @@ except ImportError:
 import os, sys, re, operator, errno, getopt, time, bisect, binascii
 import socket, asyncore, asynchat, cgi
 import mailbox, email.Header
+from thread import start_new_thread
 from email.Iterators import typed_subpart_iterator
 import spambayes
 from spambayes import storage, tokenizer, mboxutils, PyMeldLite, Dibbler
@@ -390,12 +391,17 @@ class BayesProxy(POP3ProxyBase):
           RETR.  I'm assuming that the email client will either not
           make multiple calls, or will cope with the headers being
           different.
+
+     o USER:
+        o Does no processing based on the USER command itself, but
+          expires any old messages in the three caches.
     """
 
     def __init__(self, clientSocket, serverName, serverPort):
         POP3ProxyBase.__init__(self, clientSocket, serverName, serverPort)
         self.handlers = {'STAT': self.onStat, 'LIST': self.onList,
-                         'RETR': self.onRetr, 'TOP': self.onTop}
+                         'RETR': self.onRetr, 'TOP': self.onTop,
+                         'USER': self.onUser}
         state.totalSessions += 1
         state.activeSessions += 1
         self.isClosed = False
@@ -569,6 +575,15 @@ class BayesProxy(POP3ProxyBase):
         much of the body as the TOP command retrieves."""
         # Easy (but see the caveat in BayesProxy.__doc__).
         return self.onRetr(command, args, response)
+
+    def onUser(self, command, args, response):
+        """Spins off three separate threads that expires any old messages
+        in the three caches, but does not do any processing of the USER
+        command itself."""
+        start_new_thread(state.spamCorpus.removeExpiredMessages, ())
+        start_new_thread(state.hamCorpus.removeExpiredMessages, ())
+        start_new_thread(state.unknownCorpus.removeExpiredMessages, ())
+        return response
 
     def onUnknown(self, command, args, response):
         """Default handler; returns the server's response verbatim."""
@@ -1297,9 +1312,14 @@ class State:
                                             options.pop3proxy_unknown_cache,
                                             '[0123456789]*', cacheSize=20)
 
-            # Expire old messages from the trained corpuses.
+            # Given that (hopefully) users will get to the stage
+            # where they do not need to do any more regular training to
+            # be satisfied with spambayes' performance, we expire old
+            # messages from not only the trained corpii, but the unknown
+            # as well.
             self.spamCorpus.removeExpiredMessages()
             self.hamCorpus.removeExpiredMessages()
+            self.unknownCorpus.removeExpiredMessages()
 
             # Create the Trainers.
             self.spamTrainer = storage.SpamTrainer(self.bayes)
