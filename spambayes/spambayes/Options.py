@@ -543,7 +543,7 @@ defaults = {
     ("cache_expiry_days", "Days before cached messages expire", 7,
      """Messages will be expired from the cache after this many days.
      After this time, you will no longer be able to train on these messages
-     (note this does not effect the copy of the message that you have in
+     (note this does not affect the copy of the message that you have in
      your mail client).""",
      INTEGER, RESTORE),
 
