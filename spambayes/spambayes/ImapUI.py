@@ -110,7 +110,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         global parm_map
         # Only offer SSL if it is available
         try:
-            from imaplib import IMAP_SSL
+            from imaplib import IMAP4_SSL
         except ImportError:
             parm_list = list(parm_map)
             parm_list.remove(("imap", "use_ssl"))
