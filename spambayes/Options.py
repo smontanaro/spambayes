@@ -110,12 +110,20 @@ replace_nonascii_chars: False
 # For a binary classifier, make ham_cutoff == spam_cutoff.
 # ham_cutoff > spam_cutoff doesn't make sense.
 #
-# The defaults are for the all-default Robinson scheme, which makes a
-# binary decision with no middle ground.  The precise value that works
-# best is corpus-dependent, and values into the .600's have been known
-# to work best on some data.
-ham_cutoff:  0.560
-spam_cutoff: 0.560
+# The defaults here (.2 and .9) may be appropriate for the default chi-
+# combining scheme.  Cutoffs for chi-combining typically aren't touchy,
+# provided you're willing to settle for "really good" instead of "optimal".
+# Tim found that .3 and .8 worked very well for well-trained systems on
+# his personal email, and his large comp.lang.python test.  If just beginning
+# training, or extremely fearful of mistakes, 0.05 and 0.95 may be more
+# appropriate for you.
+#
+# Picking good values for gary-combining is much harder, and appears to be
+# corpus-dependent, and within a single corpus dependent on how much
+# training has been done.  Values from 0.50 thru the low 0.60's have been
+# reported to work best by various testers on their data.
+ham_cutoff:  0.20
+spam_cutoff: 0.90
 
 # Number of buckets in histograms.
 nbuckets: 200
@@ -243,7 +251,7 @@ robinson_minimum_prob_strength: 0.1
 # a corpus across amounts of training data.  It almost never gives extreme
 # scores (near 0.0 or 1.0), but the tail ends of the ham and spam
 # distributions overlap.
-use_gary_combining: True
+use_gary_combining: False
 
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
 # follows the chi-squared distribution with 2*n degrees of freedom.  That's
@@ -262,7 +270,7 @@ use_gary_combining: True
 # get close to optimal.  With more training data, Tim has had good luck
 # with ham_cutoff=0.30 and spam_cutoff=0.80 across three test data sets
 # (original c.l.p data, his own email, and newer general python.org traffic).
-use_chi_squared_combining: False
+use_chi_squared_combining: True
 """
 
 int_cracker = ('getint', None)

@@ -8,8 +8,8 @@
 # via tag Last-Graham.  This made many demonstrated improvements in error
 # rates over Paul's original description.
 #
-# This code implements Gary Robinson's suggestions, which are well explained
-# on his webpage:
+# This code implements Gary Robinson's suggestions, the core of which are
+# well explained on his webpage:
 #
 #    http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
 #
@@ -18,13 +18,15 @@
 # sometimes much better.  It also has "a middle ground", which people like:
 # the scores under Paul's scheme were almost always very near 0 or very near
 # 1, whether or not the classification was correct.  The false positives
-# and false negatives under Gary's scheme generally score in a narrow range
-# around the corpus's best spam_cutoff value.
+# and false negatives under Gary's basic scheme (use_gary_combining) generally
+# score in a narrow range around the corpus's best spam_cutoff value.
+# However, it doesn't appear possible to guess the best spam_cutoff value in
+# advance, and it's touchy.
 #
-# The chi-combining scheme here gets closer to the theoretical basis of
-# Gary's combining scheme, and does give extreme scores, but also has a
-# very useful middle ground (small # of msgs spread across a large range
-# of scores).
+# The chi-combining scheme used by default here gets closer to the theoretical
+# basis of Gary's combining scheme, and does give extreme scores, but also
+# has a very useful middle ground (small # of msgs spread across a large range
+# of scores, and good cutoff values aren't touchy).
 #
 # This implementation is due to Tim Peters et alia.
 
@@ -33,14 +35,8 @@ import time
 from sets import Set
 
 from Options import options
-
-if options.use_chi_squared_combining:
-    from chi2 import chi2Q
-    LN2 = math.log(2)
-
-# The maximum number of extreme words to look at in a msg, where "extreme"
-# means with spamprob farthest away from 0.5.
-MAX_DISCRIMINATORS = options.max_discriminators # 150
+from chi2 import chi2Q
+LN2 = math.log(2)       # used frequently by chi-combining
 
 PICKLE_VERSION = 1
 
