@@ -11,9 +11,9 @@ This is a list of common problems, and hopefully their solutions.&nbsp;
 Please feel free to suggest additional topics.&nbsp; Currently, we have
 the following problems listed:<br>
 <ul>
+  <li><a href="#NoToolbar">Toolbar items appear, but fail to work</a></li>
+  <li><a href="#Error_during_load">Addin loads with an error message</a></li>
   <li><a href="#Addin_doesnt_load">Addin doesn't load</a></li>
-  <li><a href="#NoToolbar">Addin loads, but no toolbar items can be
-seen</a></li>
   <li><a href="#Messages_fail_to_filter">Messages fail to filter</a></li>
   <li><a href="#Messages_have_incorrect_or_unexpected">Messages have
 incorrect or unexpected Spam values</a></li>
@@ -27,27 +27,61 @@ online version of this document</a> for problems added since
 release.&nbsp; If you must send someone a mail about SpamBayes, <a
  href="#mail">please read this first</a>.<br>
 <hr style="width: 100%; height: 2px;">
+<h2><a name="NoToolbar"></a>Toolbar items appear, but fail to work</h2>
+If the toolbar items fail to work, we are faciing one of two problems.<br>
+<ul>
+  <li>The addin has failed to load.&nbsp; In this case, along with the
+toolbars failing to work, SpamBayes will not be filtering or scoring
+any messages.&nbsp; To fix this, see the <a href="#Addin_doesnt_load">Addin
+doesn't load instructions</a>.</li>
+</ul>
+<ul>
+  <li>If the addin has loaded (ie, is filtering and scoring mail) but
+the toolbar items don't, we have struck a common problem with the
+toolbars.&nbsp; Follow the instructions below.<br>
+  </li>
+</ul>
+First we will try deleting the toolbar, and if that fails, completely
+reset all Outlook toolbars.&nbsp; Perform the following steps.<br>
+<ul>
+  <li>Right-click on any Outlook toolbar, and select Customize.</li>
+  <li>In the dialog that appears, locate SpamBayes in the list of
+toolbars, and select it.</li>
+  <li>Click on the Delete button.&nbsp; Outlook will ask for
+confirmation that you want to delete the SpamBayes toolbar.&nbsp;
+Select OK.</li>
+  <li>Close the customize dialog.&nbsp; The SpamBayes toolbar no longer
+appear.</li>
+  <li>Restart Outlook.&nbsp; SpamBayes will re-create the toolbar.</li>
+</ul>
+If all else fails, you can completely reset the Outlook toolbars by
+removing the file <span style="font-style: italic;">\Documents and
+Settings\{username}\Application Data\Microsoft\Outlook\outcmd.dat</span>.&nbsp;
+Although this is undocumented by Microsoft, we have never heard reports
+of problems.&nbsp; If you are paranoid, simply rename this file so that
+you have a copy.&nbsp; This has solved all toolbar problems for
+everyone who has reported one!<br>
+<h2><a name="Error_during_load"></a>Addin loads with an error message</h2>
+In this case, when you start Outlook you receive a message indicating
+that SpamBayes could not be initialized.<br>
+This means that SpamBayes has loaded, but struck an error during
+initialization.&nbsp; If the information in the error message does not
+indicate the nature of the error, please <a href="#ReportABug">report
+a bug</a> (making sure you <a href="#CheckLog">attach the log file</a>)<br>
 <h2><a name="Addin_doesnt_load"></a>Addin doesn't load</h2>
-When you start Outlook, there is no SpamBayes item in the
-toolbar, and no filtering occurs.&nbsp; To resolve this:<br>
-<br>
+If you start Outlook but there was no error message, the SpamBayes
+toolbar items do not work and new messages have no Spam score or
+filtering applied, then the plugin has probably become disabled.<br>
 <ul>
   <li><a href="#CheckLog">Check the log file</a>.&nbsp; If a log file
 for this session exists, then see if it contains an error.&nbsp; If
-not, then the addin may be operating, but simply not displaying the
-toolbar items.&nbsp; <a href="#NoToolbar">Follow this procedure to
-restore the toolbar</a>.&nbsp; If there is an error in the log file,
-please <a href="#ReportABug">report
-a bug</a>.&nbsp; If no log file for this session exists, continue the
-following steps.</li>
+not, check the date and time of the log - it is probably a log from the
+last time it did work, so is no help to us.&nbsp; If a log does exist,
+please <a href="#ReportABug">report a bug.</a><br>
+  </li>
 </ul>
 <ul>
-  <li><a href="#InstallationType">Determine your
-installation type</a>.&nbsp; <br>
-  </li>
-  <li>If you are running a binary version (ie, you downloaded a single
-installation program), then perform the following
-steps:</li>
+  <li>Check that Outlook shows the addin as enabled.</li>
 </ul>
 <ol>
   <ol>
@@ -84,56 +118,16 @@ Microsoft Outlook</span>.&nbsp; <br>
     <li>Restart Outlook 2002.</li>
   </ol>
 </ol>
+If you are running from source code, the addin will not appear in the
+above steps.&nbsp; Please re-register the
+addin, as per the README.txt file.
 <ul>
-  <li>If you are running from source code, please re-register the
-addin, as per the README.txt file.</li>
 </ul>
 If none of that works, I am stumped!
 <ol>
   <ol>
   </ol>
 </ol>
-<h2><a name="NoToolbar"></a>Addin loads, but no toolbar items can be
-seen</h2>
-If it appears the addin has loaded and is working correctly (ie, <a
- href="#CheckLog">checking the log file</a> indicates normal operation)
-but you can not see any toolbar items for the addin, try the
-following:.&nbsp;
-<ul>
-  <li>Make sure that you are displaying the 'SpamBayes' toolbar -
-select
-View -&gt; Toolbars, and ensure that "SpamBayes" is selected.<br>
-  </li>
-  <li>Try resetting the toolbars:
-    <ol>
-      <li>Select <span style="font-style: italic;">View</span>-&gt; <span
- style="font-style: italic;">Toolbars</span>-&gt; <span
- style="font-style: italic;">Customize</span> to display
-the toolbar options dialog</li>
-      <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
-select the 'Standard' toolbar,
-and click <span style="font-style: italic;">Reset</span></li>
-      <li>Restart Outlook </li>
-    </ol>
-  </li>
-  <li>Try deleting the SpamBayes toolbar</li>
-  <ol>
-    <li>Select <span style="font-style: italic;">View</span>-&gt; <span
- style="font-style: italic;">Toolbars</span>-&gt; <span
- style="font-style: italic;">Customize</span> to display
-the toolbar options dialog</li>
-    <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
-select the 'SpamBayes' toolbar,
-and click <span style="font-style: italic;">Delete</span></li>
-    <li><span style="font-style: italic;">Restart Outlook<br>
-      </span></li>
-  </ol>
-</ul>
-If all else fails, you can completely reset the Outlook toolbars by
-removing the file <span style="font-style: italic;">\Documents and
-Settings\{username}\Application Data\Microsoft\Outlook\outcmd.dat</span>.&nbsp;
-Although this is undocumented by Microsoft, we have never heard reports
-of problems - but you may like to make a copy of the file just in case.<br>
 <ul>
 </ul>
 <h2><a name="Messages_fail_to_filter"></a>Messages fail to filter</h2>

@@ -4,187 +4,54 @@
   <title>About SpamBayes</title>
 </head>
 <body>
+<img src="docs/images/sblogo.jpg" title="" alt="Logo"
+ style="width: 380px; height: 77px;">
 <h1>SpamBayes Outlook Plugin</h1>
-Thank you for trying the SpamBayes anti-spam Outlook addin.&nbsp; You
-can view this documentation at any time by starting Outlook, selecting
-the <span style="font-style: italic;">SpamBayes Manager</span> option
-from the new <span style="font-style: italic;">SpamBayes </span>toolbar
-you will see, and selecting the <span style="font-style: italic;">About
-</span>button.<br>
-<br>
-This plugin provides a spam filter based on statistical analysis of
-your personal mail. &nbsp;Unlike other spam detection systems,
-SpamBayes
-actually learns what you consider spam, and continually adapts as both
-your regular email and spam patterns change.&nbsp; There are no builtin
-rules, so anything you consider spam will be treated as spam by this
-system, even if it does not conform to the traditional definitions of
-spam.<br>
-<br>
-Some time must be spent configuring the system, and performing initial
-training.&nbsp; Once this has been completed, you will find the filter
-amazingly effective and making very few errors.<br>
-<br>
-Bear in mind that this is an early version, and there are plenty of
-things to improve, particularly related to the initial configuration
-and
-training process.&nbsp; Please bear with us, and see the <a
- href="docs/troubleshooting.html">troubleshooting guide</a> should you
-have problems..&nbsp; This is free software, so your help is needed -
-please see the <a href="http://spambayes.sourceforge.net">main project
-page</a> for information.<br>
-<br>
-If you want a better picture of how the plugin actually operates, see <a
- href="#Using_the_plugin">using the plugin</a>.&nbsp; Also here you
-will find information on:<br>
-<ul>
-  <li><a href="#Installing_and_Configuring">Installing and configuring
-the plugin</a></li>
-  <li><a href="#Field">Viewing the Spam score field.</a></li>
-  <li><a href="#Filtering">Configuring the plugin for filtering</a></li>
-  <li><a href="#Your_help_is_needed">How you can help improve this free
-software.</a></li>
-</ul>
-If you would like to see some additional options you can set, please
-see the <a href="docs/configuration.html">configuration guide</a>.&nbsp;
-If you have any problems, please see the <a
- href="docs/troubleshooting.html">troubleshooting guide</a>.&nbsp; You
-may also like to browse the <a
- href="http://spambayes.sourceforge.net/faq.html#outlook-plugin">Outlook
-section of the online SpamBayes Frequently Asked Questions (FAQ)</a>.<br>
-<h2><a name="Using_the_plugin"></a>Using the plugin<br>
-</h2>
-As messages arrive, they are given a "spam score".&nbsp; This score is
-the measure of how "spammy" the system has decided a mail is, with 100%
-being certain spam, and 0% meaning the message is certainly not
-spam.&nbsp; The SpamBayes addin uses three different spam categories
-based on these scores to classify mail into one of three categories -
-certain spam, unsure, and good messages.&nbsp; Good messages are often
-known in the anti-spam community as <span style="font-style: italic;">ham</span>.<br>
-Mail that is classified as good is never touched by this plugin - they
-will remain in your inbox, or be filtered normally by Outlook's builtin
-rules.&nbsp; Mail that is classified as either unsure, or certain spam
-is moved into different folders for future review.<br>
-There are three ways in which the system can get things wrong:
-<ul>
-  <li>A spam stays in your inbox.&nbsp; This is known as a <span
- style="font-style: italic;">false negative</span>.&nbsp; In this case
-you can either drag the message to the Spam folder or click on the <span
- style="font-style: italic;">Delete as Spam</span> button on the
-Outlook
-toolbar.&nbsp; In both cases, the message will be trained as spam and
-will be moved to the spam folder.</li>
-  <li>Any message is moved to the unsure folder.&nbsp; In this case,
-the system is simply unsure about the message, and moves it to the
-possible spam folder for human review.&nbsp; All unsure messages should
-be manually classified; good messages can either be dragged back to the
-inbox, or have the <span style="font-style: italic;">Recover from Spam</span>
-toolbar button clicked, while spam messages can either be dragged to
-the
-Spam folder or have the <span style="font-style: italic;">Delete as
-Spam</span>
-toobar button clicked.&nbsp; In all cases, the system will
-automatically
-be trained appropriately.</li>
-  <li>A wanted (ham) message is moved to the Spam folder. This is known
-as a <span style="font-style: italic;">false positive</span>.<span
- style="font-style: italic;"></span><span style="font-style: italic;"></span>&nbsp;In
-this case you can either drag the message back to the folder from which
-it came (generally the inbox), or click on the <span
- style="font-style: italic;">Recover from Spam</span> button.&nbsp; In
-both cases the message will be trained as good, and moved back to the
-original folder.</li>
-</ul>
-Note that in all cases, as you take corrective action on the mail, the
-system is also trained.&nbsp; This makes it less likely that another
-similar mail will be incorrectly classified in the future.<br>
-<br />
-<h2><a name="Installing_and_Configuring"></a>Installing and Configuring
-the plugin</h2>
-If you download the installer version of this plugin (ie, you
-downloaded a .EXE file you use to install), then everything is installed
-and just needs to be configured.&nbsp; If you downloaded the sourcecode
-version of the plugin, please view README.txt for installation
-instructions.<br />
-Configuring the plugin requires the following steps:<br/><br/>
-<table cellpadding="2" cellspacing="2" border="0"
- style="text-align: left; width: 100%;">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;">
-      <ol>
-        <li style="margin-bottom: 1em;">Confirm the plugin is installed:<br/>
-Start Outlook, select your Inbox, then look at your Outlook
-toolbar.&nbsp; Just below the standard Toolbar, you should see a new
-toolbar with a <span style="font-style: italic;">SpamBayes</span>
-dropdown button.&nbsp; If this button appears, then the plugin is
-correctly installed and ready to use.&nbsp; If the button does not
-appear, please see <a href="docs/troubleshooting.html">the
-troubleshooting guide</a>.</li>
-        <li style="margin-bottom: 1em;">Create <span style="font-style: italic;">
-        Spam</span> and <span style="font-style: italic;">Unsure</span> folders<br />
-Use the normal Outlook functions to create two new folders.&nbsp; These
-can be named anything you like, and can appear anywhere in the folder
-hierarchy you choose - however, it is recommended you call them
-something like <span style="font-style: italic;">Spam</span> and <span
- style="font-style: italic;">Possible Spam</span>.</li>
-        <li style="margin-bottom: 1em;">Manually create initial training data<br/>
-Go through your <span style="font-style: italic;">Inbox, Deleted Items</span>
-and any other folders likely to have spam, and move as much as possible
-to the new Spam folder you just created.&nbsp; Try and get as much Spam
-out of your inbox as possible, as your inbox will form the initial set
-of good messages we train on.&nbsp; Don't worry too much about missing
-one or two spam - the system is likely to find them for you as we
-rescore your existing email.<br/><br/>
-If your Inbox is so full of Spam you don't know where to start, you may
-like to create a temporary folder for the purposes of training your
-good messages.&nbsp; Copy some examples of your good messages to this
-new folder (roughly the same number as Spam you are training on is
-best) and nominate this temporary folder instead of your Inbox.&nbsp;
-Once trained, you can dispose of this folder.</li>
-        <li style="margin-bottom: 1em;">Configure and Train SpamBayes<br/>
-Now we have our folders setup with some initial training data, we can
-configure the plugin.&nbsp; From the <span style="font-style: italic;">SpamBayes</span>
-button on the toolbar select <span style="font-style: italic;">SpamBayes
-Manager...</span>&nbsp; This will display the main dialog, as shown to
-the right.</li>
-        <li style="margin-bottom: 1em;">Select Train Now, and the training dialog, also shown to
-the right will appear.&nbsp; You will need to select your Inbox as the
-folder for good messages, and your new Spam folder as the source of
-junk messages.&nbsp; Ensure that <span style="font-style: italic;">Score
-messages after training</span> is selected, so we can see how effective
-our Inbox cleanup was.</li>
-        <li style="margin-bottom: 1em;">Click on the Train Now button, and a progress indicator
-will be displayed as your messages are trained and scored.&nbsp; When
-finished, close the training window to return
-to the SpamBayes window.</li>
-      </ol>
-      </td>
-      <td style="vertical-align: top;"><img
- src="docs/images/manager-select.jpg" title="" alt="SpamBayes Toolbar"
- style="width: 354px; height: 138px;"><br>
-      <div style="text-align: center;">The SpamBayes Toolbar<br>
-      <br>
-      <img src="docs/images/manager.jpg" title="" alt="SpamBayes manager"
- style="width: 369px; height: 352px;"><br>
-      <div style="text-align: center;">The SpamBayes Manager dialog<br>
-      <br>
-      <img src="docs/images/training.jpg" title="" alt=""
- style="width: 368px; height: 253px;"><br>
-      </div>
-      <div style="text-align: center;">The training dialog<br>
-      </div>
-      <br>
-      </td>
-    </tr>
-  </tbody>
-</table>
-There are some additional options that can be set outside of the user
-interface - please see the <a href="docs/configuration.html">configuration
-guide</a> for more details.<br>
-<h2><a name="Field"></a>Viewing and Using the Spam Score Field</h2>
+<p style="font-weight: bold;">A spam filter based on statistical
+analysis of
+your personal mail.</p>
+If you are new to SpamBayes, see <a href="docs/welcome.html">Welcome
+To Spambayes</a>.<br>
+If you want to add the Spam field to your Outlook views, <a
+ href="file:///e:/src/spambayes/Outlook2000/about.html#Field">follow
+these instructions</a>.<br>
+If you need help configuring SpamBayes, see our <a
+ href="docs/configuration.html">Configuration Guide</a>.<br>
+If you are having problems with SpamBayes, please see the <a
+ href="docs/troubleshooting.html">Troubleshooting Guide</a>.<br>
+<h3>Other links of interest</h3>
+<p>The <a href="http://www.spambayes.org/">main SpamBayes project page</a>.<br>
+The <a href="http://www.spambayes.org/faq.html">online SpamBayes FAQ</a><br>
+How to <a href="http://www.spambayes.org/donations.html">make a
+donation</a>.<br>
+</p>
+<h3>Tips and Common Problems<br>
+</h3>
+<p><span style="font-weight: bold;">Filtering in the background:</span>
+When Outlook is under load, SpamBayes may occasionally miss some
+messages (as Outlook doesn't tell us they appeared).&nbsp; Also, if you
+use builtin Outlook rules, you may find that occasionally they fails to
+filter messages they normally would (as both SpamBayes and the builtin
+rules "fight" over processing the message).&nbsp; Both of these
+problems can generally be solved by enabling background filtering of
+messages, via the SpamBayes Manager's <span style="font-style: italic;">Advanced</span>
+tab. </p>
+<p><span style="font-weight: bold;">Toobars stop working:</span> Many
+people report that occasionally the toolbars will stop working.&nbsp;
+See the <a href="docs/troubleshooting.html">troubleshooting guide</a>
+for more details on how to fix this.</p>
+<p><span style="font-weight: bold;">Toolbars remain after uninstall:</span>
+If you uninstall SpamBayes, the toobar items will remain when you next
+start Outlook.&nbsp; You can delete the toolbar by right-clicking on
+it, then selecting Customize.&nbsp; Our <a
+ href="docs/troubleshooting.html">troubleshooting guide</a> has alot
+more information on toolbars.<br>
+</p>
+<h3><a name="Field"></a>Viewing and Using the Spam Score Field</h3>
 A custom property named <span style="font-style: italic;">Spam</span>
-is added to all Outlook messages scored.&nbsp; You can teach Outlook to
+is added to all Outlook messages scored, but Outlook does not allow us
+to automatically add this to your views.&nbsp; However, you can teach
+Outlook to
 display this field as a column in any table view, like the standard
 Messages view.
 <p> This takes some work, and has to be done again for every folder in
@@ -258,16 +125,6 @@ to display rows with suspected spam messages in green italic. However,
 for whatever reason, the Outlook Rules Wizard does not allow creating
 rules based on user-defined fields. That's why this addin supplies its
 own filtering rules.<br>
-<h2><a name="Filtering"></a>Configuring the plugin for filtering</h2>
-Once the system is trained and configured, you are ready to enable the
-filtering capabilities.&nbsp; From the SpamBayes manager, select <span
- style="font-style: italic;">Filters</span>.&nbsp; From this dialog you
-can select all the folders that you wish to watch for spam.&nbsp; You
-also configure the folder where you want the certain spam and unsure
-messages to be moved to.<br>
-Once this is done, you simply enable filtering from the main dialog,
-and sit back and wait for spam!&nbsp; See <a href="#Using_the_plugin">using
-the plugin</a> for further details.<br>
 <h2><a name="Your_help_is_needed"></a>Your help is needed!</h2>
 <p>This is free software.&nbsp; Please offer any help you are able
 to.&nbsp; In particular, contributions to this documentation are
