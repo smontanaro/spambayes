@@ -198,6 +198,17 @@ robinson_probability_s: 0.45
 # all corpora.
 robinson_minimum_prob_strength: 0.1
 
+# There's a strange asymmetry in the scheme, where multiple occurrences of
+# a word in a msg are ignored during scoring, but all add to the spamcount
+# (or hamcount) during training.  This imbalance couldn't be altered without
+# hurting results under the Graham scheme, but it may well be better to
+# treat things the same way during training under the Robinson schems.  Set
+# this to true to try that.
+# NOTE:  In Tim's tests this decreased both the ham and spam mean scores,
+# the former more than the latter.  Therefore you'll probably want a smaller
+# spam_cutoff value when this is enabled.
+count_duplicates_only_once_in_training: False
+
 ###########################################################################
 # Speculative options for Gary Robinson's central-limit ideas.  These may go
 # away, or a bunch of incompatible stuff above may go away.
@@ -256,6 +267,7 @@ all_options = {
                    'robinson_probability_x': float_cracker,
                    'robinson_probability_s': float_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
+                   'count_duplicates_only_once_in_training': boolean_cracker,
 
                    'use_central_limit': boolean_cracker,
                    'use_central_limit2': boolean_cracker,

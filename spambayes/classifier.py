@@ -281,6 +281,8 @@ class Bayes(object):
         wordinfo = self.wordinfo
         wordinfoget = wordinfo.get
         now = time.time()
+        if options.count_duplicates_only_once_in_training:
+            wordstream = Set(wordstream)
         for word in wordstream:
             record = wordinfoget(word)
             if record is None:
@@ -303,6 +305,8 @@ class Bayes(object):
             self.nham -= 1
 
         wordinfoget = self.wordinfo.get
+        if options.count_duplicates_only_once_in_training:
+            wordstream = Set(wordstream)
         for word in wordstream:
             record = wordinfoget(word)
             if record is not None:
