@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>Troubleshooting SpamBayes sb_server</title>
+</head>
+<body>
+<h1>Troubleshooting SpamBayes sb_server</h1>
+This is a list of common problems, and hopefully their solutions.
+Please feel free to suggest additional topics. Currently, we have
+the following problems listed:<br>
+<ul>
+  <li><a href="#NothingHappens">I did the SpamBayes configuration, but my mail doesn't filter</a></li>
+  <li><a href="#ExceptionHeader">Mail doesn't filter and there is a "X-SpamBayes-Exception header"</a></li>
+  <li><a href="#All_other_problems">All other problems</a></li>
+</ul>
+Some other resources that may be useful in tracking down any problems:<br>
+<ul>
+  <li>There is an <a href="http://spambayes.org/faq.html">online
+FAQ for SpamBayes</a> with lots of information.</li>
+  <li>The <a
+ href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/windows/docs/troubleshooting.html?rev=HEAD">latest
+online version of this document</a> may have information added since
+release.</li>
+</ul>
+If you must send someone a mail about SpamBayes, <a href="#mail">please
+read this first</a>.<br>
+
+<hr style="width: 100%; height: 2px;">
+
+<h2><a name="NothingHappens"></a>I did the SpamBayes configuration, but my mail doesn't filter</h2>
+<p>Have you changed your mail client to connect to "localhost", instead of
+directly to your mail server?  SpamBayes acts as a "proxy", which means
+that your mail client asks for new mail via SpamBayes, so that SpamBayes
+can add some information to incoming mail about what type of mail it thinks
+that message is.</p>
+
+<h2><a name="ExceptionHeader"></a>Mail doesn't filter and there is a "X-SpamBayes-Exception header"</h2>
+<p>If mail stops filtering, have a look at the headers of a message.
+If it doesn't have a "X-SpamBayes-Classification" header, but does have
+a "X-SpamBayes-Exception" header, this means that something is going
+wrong when SpamBayes tries to classify the message.  It's ok if this
+happens with one or two messages, but if this happens to every message,
+something is wrong.</p>
+<p>The most common reason is that something has happened to your
+database - if this is the case, then the Exception header probably has
+"DBRunRecovery" in it.  Information about this problem rapidly changes,
+so please see the <a href="http://spambayes.org/faq.html">online FAQ</a>
+for more information.</p>
+<p>For all other problems, please <a href="mail">send us a mail</a>,
+including a copy of the information in the X-SpamBayes exception header.</p>
+
+<h2><a name="All_other_problems"></a>All other problems</h2>
+<p>If you are simply unsure about what SpamBayes is doing, please <a
+ href="#mail">send a mail to the </a><a href="#mail">SpamBayes mailing
+list</a>
+with as much information as possible. If you are fairly sure you
+have struck a bug, then please <a href="#ReportABug">report it</a>.
+Please do not mail any of the contributors directly.</p>
+
+<hr style="width: 100%; height: 2px;">
+
+<h2>Process Descriptions</h2>
+<p>This explains some of the processes above in more detail.</p>
+
+<h3><a name="InstallationType"></a>Determine your installation type.</h3>
+<p>If you are running from Python source code, and installed Python, plus
+SpamBayes as separate components, then you are running the <span
+ style="font-style: italic;">source code version</span>. If you
+downloaded an installer .EXE file, then you are running the <span
+ style="font-style: italic;">binary version</span>.</p>
+
+<h3><a name="CheckLog"></a>Check the log file</h3>
+<p><a href="#InstallationType">Determine your installation type</a>.
+If you are running the source code version, you will need to run
+sb_server in a command window to get the error messages, unless you
+are running as a service.<br />
+If you are running as a service and/or the binary version, then SpamBayes
+writes a log in your Windows temp directory. This directory is generally
+<span style="font-style: italic;">\WINDOWS\TEMP</span> for Windows 9x,
+or <span style="font-style: italic;">\Documents and
+Settings\{username}\Local
+Settings\Temp</span> for Windows 2000/XP.</p>
+
+<p>Note that by default, in Windows 2000 and XP, Windows Explorer will not
+show the <span style="font-style: italic;">Local Settings</span>
+directory, as it is hidden. You can convince Windows Explorer to
+show this directory (and therefore allow you to see the <span
+ style="font-style: italic;">Temp</span> directory under it by doing
+either:<br />
+<ul>
+  <li>Select the folder <span style="font-style: italic;">\Documents
+and Settings\{username}</span>. This directory should be
+reflected in the Address Bar. In the Address Bar, simply type at
+the end "\Local Settings" (thereby giving that full path name), and
+press <span style="font-style: italic;">Enter</span>. Explorer
+will then show this folder.</li>
+</ul>
+or
+<ul>
+  <li>Select <span style="font-style: italic;">Tools-&gt;Folder Options</span>,
+select the <span style="font-style: italic;">View</span> tab, and in
+the list, select <span style="font-style: italic;">Show hidden files
+and folders</span>. Select OK. This folder will now be
+visible. You may like to then reset this option back to the default value.
+  </li>
+</ul>
+</p>
+
+<p>For binary users, the log file for the most recent execution of
+sb_server is named <span style="font-style: italic;">SpamBayesServer1.log
+</span>, the second most recent is named <span style="font-style: italic;">
+SpamBayesServer2.log</span>, and so on for the four previous runs. For
+those that run as a service, the files are named <span
+ style="font-style: italic;">SpamBayesService1.log</span>, and so on. You
+can view these files with notepad. Usually, you will simply see messages
+which indicate that SpamBayes is doing its job; however in some cases there
+will be errors in this file. If there are errors, please
+<a href="#ReportABug">report a bug</a>.</p>
+
+<h3><a name="LocateDataDirectory"></a>Locating your Data Directory</h3>
+<p>SpamBayes stores all configuration and database information in a single
+directory. By default, this directory is located under the user's
+<span style="font-style: italic;">Application Data</span>
+directory.  At the top of the Configuration Page in the web interface
+the full path to your configuration file is listed - this will almost
+certainly be in your Data Directory. If you need to locate it by hand, on
+Windows NT/2000/XP, it will probably be <span style="font-style: italic;">
+C:\Documents and Settings\[username]\Application Data\Spambayes</span>, or
+on other versions of Windows it will probably be
+<span style="font-style: italic;">C:\Windows\Application Data\Spambayes</span>.
+Note that the <span style="font-style: italic;">Application Data </span>
+folder may be hidden, so Windows Explorer may not show it by default,
+but you can enter the path into the Address Bar and Explorer will open it.
+<br />
+Note that by modifying the configuration files, you can tell SpamBayes
+to store this data in any directory, so it is possible your data is
+being stored elsewhere - contact your network administrator if this
+appears to be the case.</p>
+
+<h3>Report a bug</h3>
+<p>All SpamBayes bugs are maintained in <a
+ href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">this
+page at sourceforge</a>. Please have a check of the bugs already
+reported to see if your bug has already been reported. If not,
+open a new bug, making sure to set the Category to <span
+ style="font-style: italic;">pop3proxy</span>, and setting the Group to
+ the appropriate version. Please also ensure you
+attach the <a href="#CheckLog">log file</a> to the bug.<br />
+If you are unsure about the bug, or need any assistance, please <a
+ href="#mail">send a mail</a>.</p>
+
+<h3><a name="mail"></a>Send a mail</h3>
+<p>If all else fails, you may want to send someone a mail. Please
+make sure you have read this document thoroughly before doing do.<br />
+Your mail should be sent to the <a href="mailto:spambayes@python.org">
+SpamBayes mailing list (spambayes@python.org)</a>
+<span style="font-weight: bold;">Please do not mail any of the contributors
+directly</span> (see "good karma" below).<br />
+Please ensure this mail contains:<br />
+<ul>
+  <li>the version of Windows you are using</li>
+  <li>the version of SpamBayes</li>
+  <li>any log files.</li>
+</ul></p>
+
+<p>If you also mention that you read this trouble-shooting guide and are
+still stuck, then you will be more likely to get answered! (And
+if you can <a href="http://mail.python.org/mailman/listinfo/spambayes">
+subscribe to this mailing list</a> and help answer other questions, good
+karma will come your way!)</p>
+</body>
+</html>
