@@ -135,6 +135,7 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
     if server != "":
         if ':' in server:
             server, port = server.split(':', 1)
+            port = int(port)
         else:
             port = 8080
         if options["globals", "proxy_username"]:
