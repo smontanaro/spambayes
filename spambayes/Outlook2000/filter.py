@@ -78,7 +78,7 @@ def filterer(mgr, progress):
         dispositions.update(this_dispositions)
         if progress.stop_requested():
             return
-    # All done - report what we did.    
+    # All done - report what we did.
     err_text = ""
     if dispositions.has_key("Error"):
         err_text = " (%d errors)" % dispositions["Error"]

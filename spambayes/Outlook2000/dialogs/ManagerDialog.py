@@ -27,7 +27,7 @@ class ManagerDialog(dialog.Dialog):
     csts = cs | win32con.WS_TABSTOP
     training_intro = "Training is the process of giving examples of both good and bad email to the system so it can classify future email"
     filtering_intro = "Filtering defines how spam is handled as it arrives"
-    
+
     dt = [
         # Dialog itself.
         ["Anti-Spam", (0, 0, 242, 191), style, None, (8, "MS Sans Serif")],
@@ -38,12 +38,12 @@ class ManagerDialog(dialog.Dialog):
                                                 -1,                  (15,40,208,10), cs],
         [BUTTON,          "It is moved from a spam folder back to the Inbox",
                                                 IDC_BUT_TRAIN_FROM_SPAM_FOLDER,(20,50,204,9), csts | win32con.BS_AUTOCHECKBOX],
-        
+
         [STATIC,          "Automatically train that a message is spam when",
                                                 -1,                  (15,64,208,10), cs],
         [BUTTON,          "It is moved to the certain-spam folder",
                                                 IDC_BUT_TRAIN_TO_SPAM_FOLDER,(20,75,204,9), csts | win32con.BS_AUTOCHECKBOX],
-        
+
         [STATIC,          "",                   IDC_TRAINING_STATUS, (15,88,146,14),       cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
         [BUTTON,          'Train Now...',       IDC_BUT_TRAIN_NOW,   (167,88,63,14),       csts | win32con.BS_PUSHBUTTON],
 
@@ -71,7 +71,7 @@ class ManagerDialog(dialog.Dialog):
             (IDC_BUT_TRAIN_FROM_SPAM_FOLDER, "self.mgr.config.training.train_recovered_spam"),
             (IDC_BUT_TRAIN_TO_SPAM_FOLDER, "self.mgr.config.training.train_manual_spam"),
         ]
-        
+
         dialog.Dialog.__init__(self, self.dt)
 
     def OnInitDialog(self):
@@ -124,7 +124,7 @@ class ManagerDialog(dialog.Dialog):
                 watch_names = self.mgr.FormatFolderNames(config.watch_folder_ids, config.watch_include_sub)
                 filter_status = "Watching '%s'. Spam managed in '%s', unsure managed in '%s'" \
                                 % (watch_names, certain_spam_name, unsure_name)
-                
+
         self.GetDlgItem(IDC_BUT_FILTER_ENABLE).EnableWindow(ok_to_enable)
         enabled = config.enabled
         self.GetDlgItem(IDC_BUT_FILTER_ENABLE).SetCheck(ok_to_enable and enabled)
@@ -132,7 +132,7 @@ class ManagerDialog(dialog.Dialog):
 
     def OnButAbout(self, id, code):
         if code == win32con.BN_CLICKED:
-            
+
             fname = os.path.join(os.path.dirname(__file__), os.pardir, "about.html")
             fname = os.path.abspath(fname)
             print fname

@@ -212,7 +212,7 @@ class FilterArrivalsDialog(dialog.Dialog):
             idc_edit = IDC_EDIT_UNSURE
         slider_pos = slider.GetPos()
         self.SetDlgItemText(idc_edit, "%d" % slider_pos)
- 
+
     def _InitSlider(self, idc_slider, idc_edit):
         slider = self.GetDlgItem(idc_slider)
         slider.SetRange(0, 100, 0)
@@ -284,7 +284,7 @@ class FilterNowDialog(AsyncDialogBase):
         [BUTTON,          action_all,           IDC_BUT_ACT_ALL,     (15,49,126,10), csts | win32con.BS_AUTORADIOBUTTON],
         [BUTTON,          action_score,         IDC_BUT_ACT_SCORE,   (15,62,203,10), csts | win32con.BS_AUTORADIOBUTTON],
 
-        
+
         [BUTTON,          only_group,           -1,                  (7,84,230,35),  cs   | win32con.BS_GROUPBOX | win32con.WS_GROUP],
         [BUTTON,          only_unread,          IDC_BUT_UNREAD,      (15,94,149,9),  csts | win32con.BS_AUTOCHECKBOX],
         [BUTTON,          only_unseen,          IDC_BUT_UNSEEN,      (15,106,149,9), csts | win32con.BS_AUTOCHECKBOX],

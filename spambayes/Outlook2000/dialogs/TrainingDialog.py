@@ -75,7 +75,7 @@ class TrainingDialog(AsyncDialogBase):
         # defined in the filters, use it.
         if len(self.config.spam_folder_ids)==0 and self.mgr.config.filter.spam_folder_id:
             self.config.spam_folder_ids = [self.mgr.config.filter.spam_folder_id]
-        
+
         names = []
         for eid in self.config.ham_folder_ids:
             try:

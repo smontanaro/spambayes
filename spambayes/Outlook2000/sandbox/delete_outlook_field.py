@@ -68,7 +68,7 @@ def DeleteField(folder, name):
     mapi_folder = mapi_msgstore.OpenEntry(mapi.BinFromHex(folder.EntryID),
                                           None,
                                           mapi.MAPI_MODIFY | mapi.MAPI_DEFERRED_ERRORS)
-    
+
     table = mapi_folder.GetContentsTable(0)
     prop_ids = PR_ENTRYID,
     table.SetColumns(prop_ids, 0)
@@ -151,7 +151,7 @@ subfolder in your default store.
 """ % os.path.basename(sys.argv[0])
     print msg
 
-    
+
 def main():
     import getopt
     try:

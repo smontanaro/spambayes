@@ -362,7 +362,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # property is the same for two objects, assume that these
         # objects use the same name-to-identifier mapping.
         # [MarkH: Note MAPIUUID object are supported and hashable]
-        
+
         # XXX If the SpamProb (Hammie, whatever) property is passed in as an
         # XXX int, Outlook displays the field as all blanks, and sorting on
         # XXX it doesn't do anything, etc.  I don't know why.  Since I'm

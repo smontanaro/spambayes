@@ -112,7 +112,7 @@ class BayesManager:
                     ups.Add(self.config.field_score_name,
                            # "Integer" from the UI doesn't exist!
                            # 'olNumber' doesn't seem to work with PT_INT*
-                           win32com.client.constants.olCombination, 
+                           win32com.client.constants.olCombination,
                            True) # Add to folder
                     item.Save()
                     if self.verbose > 1:
@@ -129,7 +129,7 @@ class BayesManager:
             while folder is not None:
                 self.EnsureOutlookFieldsForFolder(folder.EntryID, True)
                 folder = folders.GetNext()
-    
+
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
             raise ManagerError("The file '%s' must exist before the "

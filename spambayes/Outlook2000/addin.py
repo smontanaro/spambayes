@@ -299,7 +299,7 @@ class OutlookAddin:
             if not new_hooks.has_key(k):
                 self.folder_hooks[k]._obj_.close()
         self.folder_hooks = new_hooks
-        
+
     def _HookFolderEvents(self, folder_ids, include_sub, HandlerClass):
         new_hooks = {}
         for msgstore_folder in self.manager.message_store.GetFolderGenerator(
