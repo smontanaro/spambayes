@@ -118,6 +118,10 @@ if sys.platform == 'darwin':
         newsoft = min(hard, max(soft, 1024*2048))
         resource.setrlimit(resource.RLIMIT_STACK, (newsoft, hard))
 
+# exception may be raised if we are already running and check such things.
+class AlreadyRunningException(Exception):
+    pass
+
 # number to add to STAT length for each msg to fudge for spambayes headers
 HEADER_SIZE_FUDGE_FACTOR = 512
 
@@ -547,6 +551,49 @@ class BayesProxy(POP3ProxyBase):
         """Default handler; returns the server's response verbatim."""
         return response
 
+# Implementations of a mutex or other resource which can prevent
+# multiple servers starting at once.  Platform specific as no reasonable
+# cross-platform solution exists (however, an old trick is to use a
+# directory for a mutex, as a "create/test" atomic API generally exists.
+# Will return a handle to be later closed, or may throw AlreadyRunningException
+def open_platform_mutex():
+    if sys.platform.startswith("win"):
+        try:
+            import win32event, win32api, winerror, win32con
+            import pywintypes, ntsecuritycon
+            # ideally, the mutex name could include either the username,
+            # or the munged path to the INI file - this would mean we
+            # would allow multiple starts so long as they weren't for
+            # the same user.  However, as of now, the service version
+            # is likely to start as a different user, so a single mutex
+            # is best for now.
+            # XXX - even if we do get clever with another mutex name, we
+            # should consider still creating a non-exclusive
+            # "SpamBayesServer" mutex, if for no better reason than so
+            # an installer can check if we are running
+            mutex_name = "SpamBayesServer"
+            try:
+                hmutex = win32event.CreateMutex(None, True, mutex_name)
+            except win32event.error, details:
+                # If another user has the mutex open, we get an "access denied"
+                # error - this is still telling us what we need to know.
+                if details[0] != winerror.ERROR_ACCESS_DENIED:
+                    raise
+                raise AlreadyRunningException
+            # mutex opened - now check if we actually created it.
+            if win32api.GetLastError()==winerror.ERROR_ALREADY_EXISTS:
+                win32api.CloseHandle(hmutex)
+                raise AlreadyRunningException
+            return hmutex
+        except ImportError:
+            # no win32all - no worries, just start
+            pass
+    return None
+
+def close_platform_mutex(mutex):
+    if sys.platform.startswith("win"):
+        if mutex is not None:
+            mutex.Close()
 
 # This keeps the global state of the module - the command-line options,
 # statistics like how many mails have been classified, the handle of the
@@ -557,10 +604,17 @@ class State:
         The default settings are read from Options.py and bayescustomize.ini
         and are then overridden by the command-line processing code in the
         __main__ code below."""
+        self.logFile = None
+        self.bayes = None
+        self.platform_mutex = None
+        self.prepared = False
+        self.init()
+
+    def init(self):
+        assert not self.prepared, "init after prepare, but before close"
         # Open the log file.
         if options["globals", "verbose"]:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
-
         self.servers = []
         self.proxyPorts = []
         if options["pop3proxy", "remote_servers"]:
@@ -600,6 +654,31 @@ class State:
         self.lastBaseMessageName = ''
         self.uniquifier = 2
 
+    def close(self):
+        assert self.prepared, "closed without being prepared!"
+        self.servers = None
+        if self.bayes is not None:
+            # Only store a non-empty db.
+            if self.bayes.nham != 0 and self.bayes.nspam != 0:
+                state.bayes.store()
+            self.bayes.close()
+            self.bayes = None
+
+        self.spamCorpus = self.hamCorpus = self.unknownCorpus = None
+        self.spamTrainer = self.hamTrainer = None
+
+        self.prepared = False
+        close_platform_mutex(self.platform_mutex)
+        self.platform_mutex = None
+
+    def prepare(self):
+        # If we can, prevent multiple servers from running at the same time.
+        self.platform_mutex = open_platform_mutex()
+    
+        # Do whatever we've been asked to do...
+        self.createWorkers()
+        self.prepared = True
+        
     def buildServerStrings(self):
         """After the server details have been set up, this creates string
         versions of the details, for display in the Status panel."""
@@ -716,18 +795,14 @@ def _recreateState():
     # Close the existing listeners and create new ones.  This won't
     # affect any running proxies - once a listener has created a proxy,
     # that proxy is then independent of it.
+    # (but won't closing the database screw them?)
     for proxy in proxyListeners:
         proxy.close()
     del proxyListeners[:]
 
-    # Close the database (if there is one); we should anyway, and gdbm
-    # complains if we try to reopen it without closing it first.
-    if hasattr(state, "bayes"):
-        # Only store a non-empty db.
-        if state.bayes.nham != 0 and state.bayes.nspam != 0:
-            state.bayes.store()
-        state.bayes.close()
-
+    # Close the state (which saves if necessary)
+    state.close()
+    # And get a new one going.
     state = State()
 
     prepare(state)
@@ -745,9 +820,8 @@ def main(servers, proxyPorts, uiPort, launchUI):
     Dibbler.run(launchBrowser=launchUI)
 
 def prepare(state):
-    # Do whatever we've been asked to do...
-    state.createWorkers()
-
+    state.init()
+    state.prepare()
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
@@ -760,8 +834,12 @@ def prepare(state):
     state.buildServerStrings()
 
 def start(state):
-    # kick everything off    
-    main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+    # kick everything off
+    assert state.prepared, "starting before preparing state"
+    try:
+        main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+    finally:
+        state.close()
 
 def stop(state):
     # Shutdown as though through the web UI.  This will save the DB, allow
@@ -820,7 +898,13 @@ def run():
         if len(args) > 0 and state.proxyPorts == []:
             state.proxyPorts = [('', 110)]
 
-        prepare(state=state)
+        try:
+            prepare(state=state)
+        except AlreadyRunningException:
+            print  >>sys.stderr, \
+                   "ERROR: The proxy is already running on this machine."
+            print  >>sys.stderr, "Please stop the existing proxy and try again"
+            return
         start(state=state)
 
     else:

@@ -25,8 +25,8 @@ import sys
 import webbrowser
 import thread
 import traceback
-import socket
 
+verbose = 0
 # This should just be imported from dialogs.dlgutils, but
 # I'm not sure that we can import from the Outlook2000
 # directory, because I don't think it gets installed.
@@ -40,6 +40,7 @@ def SetWaitCursor(wait):
     win32gui.SetCursor(hCursor)
 
 import win32con
+import winerror
 from win32api import *
 from win32gui import *
 from win32api import error as win32api_error
@@ -107,13 +108,28 @@ runningStatus = (SERVICE_START_PENDING, SERVICE_RUNNING, SERVICE_CONTINUE_PENDIN
 stoppedStatus = (SERVICE_PAUSED, SERVICE_STOP_PENDING, SERVICE_STOPPED)
 serviceName = "pop3proxy"
 
+def IsServerRunningAnywhere():
+    import win32event
+    mutex_name = "SpamBayesServer"
+    try:
+        hmutex = win32event.CreateMutex(None, True, mutex_name)
+        try:
+            return GetLastError()==winerror.ERROR_ALREADY_EXISTS
+        finally:
+            hmutex.Close()
+    except win32event.error, details:
+        if details[0] != winerror.ERROR_ACCESS_DENIED:
+            raise
+        # Mutex created by some other user - it does exist!
+        return True
+
 class MainWindow(object):
     def __init__(self):
         # The ordering here is important - it is the order that they will
         # appear in the menu.  As dicts don't have an order, this means
         # that the order is controlled by the id.  Any items where the
         # function is None will appear as separators.
-        self.control_functions = {START_STOP_ID : ("Stop SpamBayes", self.StartStop),
+        self.control_functions = {START_STOP_ID : ("Stop SpamBayes", self.Stop),
                                   1025 : ("-", None),
                                   1026 : ("Review messages ...", self.OpenReview),
                                   1027 : ("View information ...", self.OpenInterface),
@@ -127,8 +143,11 @@ class MainWindow(object):
             win32con.WM_COMMAND: self.OnCommand,
             WM_TASKBAR_NOTIFY : self.OnTaskbarNotify,
         }
-        self.use_service = True
-        #self.use_service = False
+        self.have_prepared_state = False
+        self.last_started_state = None
+        # Only bothering to try the service on Windows NT platforms
+        self.use_service = \
+                GetVersionEx()[3]==win32con.VER_PLATFORM_WIN32_NT
 
         # Create the Window.
         hinst = GetModuleHandle(None)
@@ -170,43 +189,18 @@ class MainWindow(object):
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, 
             "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
-        self.started = self.IsPortBound()
+        self.started = IsServerRunningAnywhere()
         self.tip = None
-      
-        try:
-            if self.use_service and self.IsServiceAvailable():
-                if self.GetServiceStatus() in runningStatus:
-                    self.started = True
-            else:
-                print "Service not availible. Using thread."
-                self.use_service = False
-                self.started = False
-        except:
-            print "Usage of service failed. Reverting to thread."
+        if self.use_service and not self.IsServiceAvailable():
+            print "Service not availible. Using thread."
             self.use_service = False
-            self.started = False
-
+      
         # Start up sb_server
-        # XXX This needs to be finished off.
-        # XXX This should determine if we are using the service, and if so
-        # XXX start that, and if not kick sb_server off in a separate thread.
-        if not self.use_service:
-            sb_server.prepare(state=sb_server.state)
         if not self.started:
-            self.StartStop()
-
-    def IsPortBound(self):        
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.25)
-        inuse = False
-        try:
-            s.bind(("0.0.0.0",options["html_ui", "port"],))
-        except:
-            inuse = True
-        s.close()
-        s = None
-        return inuse
-
+            self.Start()
+        else:
+            print "The server is already running externally - not starting " \
+                  "a local server"
 
     def BuildToolTip(self):
         tip = None
@@ -233,19 +227,25 @@ class MainWindow(object):
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, self.tip)
         if self.started:
             self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
-                                                     self.StartStop)
+                                                     self.Stop)
         else:
             self.control_functions[START_STOP_ID] = ("Start SpamBayes",
-                                         self.StartStop)
+                                         self.Start)
         Shell_NotifyIcon(NIM_MODIFY, nid)
 
     def IsServiceAvailable(self):
-        schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
-        schService   = OpenService(schSCManager, serviceName,
-                                   SERVICE_QUERY_STATUS)
-        if schService:
-            CloseServiceHandle(schService)
-        return schService != None
+        try:
+            schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
+            schService   = OpenService(schSCManager, serviceName,
+                                       SERVICE_QUERY_STATUS)
+            if schService:
+                CloseServiceHandle(schService)
+            return schService != None
+        except win32api_error, details:
+            if details[0] != winerror.ERROR_SERVICE_DOES_NOT_EXIST:
+                print "Unexpected windows error querying for service"
+                print details
+            return False
 
     def GetServiceStatus(self):
         schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
@@ -339,9 +339,10 @@ class MainWindow(object):
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_MOUSEMOVE:
-            if self.tip != self.BuildToolTip() or self.started != self.IsPortBound():
-                self.started = self.IsPortBound()
+            if self.tip != self.BuildToolTip():
                 self.UpdateIcon()
+            else:
+                self.CheckCurrentState()
         if lparam==win32con.WM_LBUTTONUP:
             # We ignore left clicks
             pass
@@ -352,6 +353,9 @@ class MainWindow(object):
             # XXX include SetDefault(), which it needs to...
             self.OpenInterface()
         elif lparam==win32con.WM_RBUTTONUP:
+            # check our state before creating the menu, so it reflects the
+            # true "running state", not just what we thought it was last.
+            self.CheckCurrentState()
             menu = CreatePopupMenu()
             ids = self.control_functions.keys()
             ids.sort()
@@ -390,24 +394,87 @@ class MainWindow(object):
         DestroyWindow(self.hwnd)
         PostQuitMessage(0)
         
-    def StartProxyThread(self):
-        args = (sb_server.state,)
-        thread.start_new_thread(sb_server.start, args)
+    def _ProxyThread(self):
         self.started = True
+        try:
+            sb_server.start(sb_server.state)
+        finally:
+            self.started = False
+            self.have_prepared_state = False
 
-    def StartStop(self):
+    def StartProxyThread(self):
+        thread.start_new_thread(self._ProxyThread, ())
+
+    def Start(self):
+        self.CheckCurrentState()
+        if self.started:
+            print "Ignoring start request - server already running"
+            return
         if self.use_service:
+            if verbose: print "Doing 'Start' via service"
             if self.GetServiceStatus() in stoppedStatus:
                 self.StartService()
             else:
-                self.StopService()
+                print "Service was already running - ignoring!"
         else:
-            if self.started:
+            # Running it internally.
+            if verbose: print "Doing 'Start' internally"
+            if not self.have_prepared_state:
+                try:
+                    sb_server.prepare(state=sb_server.state)
+                    self.have_prepared_state = True
+                except sb_server.AlreadyRunningException:
+                    msg = "The proxy is already running on this " \
+                          "machine - please\r\n stop the existing " \
+                          "proxy, and try again."
+                    self.ShowMessage(msg)
+                    return
+            self.StartProxyThread()
+        self.started = True
+        self.UpdateUIState()
+        
+    def Stop(self):
+        self.CheckCurrentState()
+        if not self.started:
+            print "Ignoring stop request - server doesn't appear to be running"
+            return
+        try:
+            use_service = self.use_service
+            if use_service:
+                # XXX - watch out - if service status is "stopping", trying
+                # to start is likely to fail until it actually gets to
+                # "stopped"
+                if verbose: print "Doing 'Stop' via service"
+                if self.GetServiceStatus() not in stoppedStatus:
+                    self.StopService()
+                else:
+                    print "Service was already stopped - weird - falling " \
+                          "back to a socket based quit"
+                    use_service = False
+            if not use_service:
+                if verbose: print "Stopping local server"
                 sb_server.stop(sb_server.state)
-                self.started = False
+        except:
+            print "There was an error stopping the server"
+            traceback.print_exc()
+        # but either way, assume it stopped for the sake of our UI
+        self.started = False
+        self.UpdateUIState()
+
+    def CheckCurrentState(self):
+        self.started = IsServerRunningAnywhere()
+        self.UpdateUIState()
+        
+    def UpdateUIState(self):
+        if self.started != self.last_started_state:
+            self.UpdateIcon()
+            if self.started:
+                self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
+                                                         self.Stop)
             else:
-                self.StartProxyThread()
-        self.UpdateIcon()
+                self.control_functions[START_STOP_ID] = ("Start SpamBayes",
+                                             self.Start)
+            self.last_started_state = self.started
 
     def OpenInterface(self):
         if self.started:
