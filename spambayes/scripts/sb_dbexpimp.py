@@ -26,10 +26,11 @@ Abstract:
     for research purposes, database sharing purposes, or for new users to
     have a 'seed' database to start with.
 
-    Database merging - multiple databases can be merged into one quite easily
-    by specifying -m on an import.  This will add the two database
-    nham and nspams together (assuming the two databases do not share corpora)
-    and for wordinfo conflicts, will add spamcount and hamcount together.
+    Database merging - multiple databases can be merged into one quite
+    easily by specifying -m on an import.  This will add the two database
+    nham and nspams together (assuming the two databases do not share
+    corpora) and for wordinfo conflicts, will add spamcount and hamcount
+    together.
 
     Spambayes software release migration - an export can be executed before
     a release upgrade, as part of the installation script.  Then, after the
@@ -67,8 +68,8 @@ Examples:
     Import mybayes.db.export into a new DBM mybayes.db
         sb_dbexpimp -i -d mybayes.db -f mybayes.db.export
 
-    Export, then import (reorganize) new pickled mybayes.db
-        sb_dbexpimp -e -i -n -p mybayes.db -f mybayes.db.export
+    Merge home.db.export into an existing DBM work.db
+        sb_dbexpimp -i -m -d work.db -f home.db.export
 
     Convert a bayes database from pickle to DBM
         sb_dbexpimp -e -p abayes.db -f abayes.export
@@ -195,7 +196,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     else:
         impType = "Merging"
 
-    print "%s database %s using file %s" % (impType, dbFN, inFN)
+    print "%s file %s into database %s" % (impType, inFN, dbFN)
 
     for (word, hamcount, spamcount) in rdr:
         word = uunquote(word)
