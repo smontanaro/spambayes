@@ -55,7 +55,13 @@ and a "spam probability" ("*S*"). A typical spam will have a high *S*
 and low *H*, while a ham will have high *H* and low *S*. In the case where
 the message looks entirely unlike anything the system's been trained on,
 you can end up with a low *H* and low *S* - this is the code saying "I don't
-know what this message is". So at the end of the processing, you end up 
+know what this message is". 
+Some messages can even have both a high *H* and a high *S*, telling you 
+basically that the message looks very much like ham, but also very much 
+like spam. In this case spambayes is also unsure where the message 
+should be classified, and the final score will be near 0.5.</p>
+
+<p>So at the end of the processing, you end up 
 with three possible results - "Spam", "Ham", or "Unsure". It's possible to
 tweak the high and low cutoffs for the Unsure window - this trades off 
 unsure messages vs possible false positives or negatives.</P>
