@@ -2,7 +2,7 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<p>Version 1.0.2 of the SpamBayes project is now available.
+<p>Version 1.0.3 of the SpamBayes project is now available.
 <p>This is a bugfix release - it is funtionally identical to 1.0, but includes
 fixes for a number of bugs.  We expect it to prove to be quite stable and
 usable by most people; as a result (and since we are hard at work on the
@@ -10,8 +10,8 @@ upcoming 1.1 release) we expect that this will be the last release in the
 1.0.x line. Feedback to
 <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
 
-<p>You may like to view the <a href="https://sourceforge.net/project/shownotes.php?release_id=299864">release notes</a>
-or the <a href="https://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=299864">
+<p>You may like to view the <a href="https://sourceforge.net/project/shownotes.php?release_id=300483">release notes</a>
+or the <a href="https://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=300483">
 files that make up this release</a>.
 
 <h2>Microsoft Windows</h2>
@@ -47,20 +47,20 @@ to the
 public key</a>, which has a key id of F23F732A.</p>
 
 <ul>
-<li><tt>00b6abc3db4526f6f47bfb4f550e9769</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.exe?download">spambayes-1.0.2.exe</a>
-(3,414,543 bytes,
-<a href="sigs/spambayes-1.0.2.exe.asc">sig</a>)
+<li><tt>1cceedb8126b5eb47b8dae87c5569b71</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.3.exe?download">spambayes-1.0.3.exe</a>
+(3,561,768 bytes,
+<a href="sigs/spambayes-1.0.3.exe.asc">sig</a>)
 </li>
-<li><tt>2af4ed220b49b1816496a7ea2f6c18d9</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.tar.gz?download">spambayes-1.0.2.tar.gz</a>
-(696,512 bytes,
-<a href="sigs/spambayes-1.0.2.tar.gz.asc">sig</a>)
+<li><tt>9a21109d5c8eeed1514ee3c60e6046aa</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.3.tar.gz?download">spambayes-1.0.3.tar.gz</a>
+(696,822 bytes,
+<a href="sigs/spambayes-1.0.3.tar.gz.asc">sig</a>)
 </li>
-<li><tt>af31f385f82c0ea46e0e1614c47e8ec2</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.zip?download">spambayes-1.0.2.zip</a>
-(953,903 bytes,
-<a href="sigs/spambayes-1.0.2.zip.asc">sig</a>)
+<li><tt>67754dacf12708e4ed402b2e117d563a</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.3.zip?download">spambayes-1.0.3.zip</a>
+(954,299 bytes,
+<a href="sigs/spambayes-1.0.3.zip.asc">sig</a>)
 </li>
 </ul>
 

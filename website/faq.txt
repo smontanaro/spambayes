@@ -1491,8 +1491,8 @@ doesn't get updated, so it just looks like the message hasn't moved.
 
 We believe that this is an Outlook problem that we are triggering (but
 we do not know of any way to work around it.  Please let us know if you
-have more information than we do!).  If you are using Exchange 2003 you
-can enable 'cached mode' and that typically fixes it.
+have more information than we do!).  If you are using Exchange 2003 and
+Outlook 2003 you can enable 'cached mode' and that typically fixes it.
 
 We suspect that this applies to particular combinations of Outlook and
 Exchange versions.  It seems to be newer versions of Outlook (earliest
