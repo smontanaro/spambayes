@@ -73,6 +73,29 @@ class install_scripts(parent):
                             pass
         return parent.run(self)
 
+scripts=['scripts/sb_client.py',
+         'scripts/sb_dbexpimp.py',
+         'scripts/sb_filter.py',
+         'scripts/sb_imapfilter.py',
+         'scripts/sb_mailsort.py',
+         'scripts/sb_mboxtrain.py',
+         'scripts/sb_notesfilter.py',
+         'scripts/sb_pop3dnd.py',
+         'scripts/sb_server.py',
+         'scripts/sb_unheader.py',
+         'scripts/sb_upload.py',
+         'scripts/sb_xmlrpcserver.py',
+         'scripts/sb_chkopts.py',
+        ]
+
+if sys.platform == 'win32':
+    # Also install the pop3proxy_service and pop3proxy_tray scripts.
+    # pop3proxy_service is only needed for installation and removal,
+    # but pop3proxy_tray needs to be used all the time.  Neither is
+    # any use on a non-win32 platform.
+    scripts.append('windows/pop3proxy_service.py')
+    scripts.append('windows/pop3proxy_tray.py')
+
 setup(
     name='spambayes',
     version = __version__,
@@ -81,20 +104,7 @@ setup(
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
     cmdclass = {'install_scripts': install_scripts},
-    scripts=['scripts/sb_client.py',
-             'scripts/sb_dbexpimp.py',
-             'scripts/sb_filter.py',
-             'scripts/sb_imapfilter.py',
-             'scripts/sb_mailsort.py',
-             'scripts/sb_mboxtrain.py',
-             'scripts/sb_notesfilter.py',
-             'scripts/sb_pop3dnd.py',
-             'scripts/sb_server.py',
-             'scripts/sb_unheader.py',
-             'scripts/sb_upload.py',
-             'scripts/sb_xmlrpcserver.py',
-             'scripts/sb_chkopts.py',
-            ],
+    scripts=scripts,
     packages = [
         'spambayes',
         'spambayes.resources',
