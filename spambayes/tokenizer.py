@@ -603,8 +603,9 @@ message_id_re = re.compile(r'\s*<[^@]+@([^>]+)>\s*')
 # break things like "Python/Perl comparison?" up.  OTOH, I don't want to
 # break up the unitized numbers in spammish subject phrases like "Increase
 # size 79%" or "Now only $29.95!".  Then again, I do want to break up
-# "Python-Dev".
+# "Python-Dev".  Runs of punctuation are also interesting in subject lines.
 subject_word_re = re.compile(r"[\w\x80-\xff$.%]+")
+punctuation_run_re = re.compile(r'\W+')
 
 fname_sep_re = re.compile(r'[/\\:]')
 
@@ -951,6 +952,8 @@ class Tokenizer:
         for w in subject_word_re.findall(x):
             for t in tokenize_word(w):
                 yield 'subject:' + t
+        for w in punctuation_run_re.findall(x):
+            yield 'subject:' + w
 
         # Dang -- I can't use Sender:.  If I do,
         #     'sender:email name:python-list-admin'
