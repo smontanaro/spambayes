@@ -2,7 +2,7 @@
 # These are extensions to basic Control Processors that are linked with 
 # SpamBayes options.
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2003
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -70,6 +70,41 @@ class BoolButtonProcessor(OptionControlProcessor):
         check = not not check # force bool!
         self.SetOptionValue(check)
 
+class RadioButtonProcessor(OptionControlProcessor):
+    def OnCommand(self, wparam, lparam):
+        code = win32api.HIWORD(wparam)
+        if code == win32con.BN_CLICKED:
+            self.UpdateValue_FromControl()
+    def UpdateControl_FromValue(self):
+        value = self.option.get()
+        i = 0
+        first = chwnd = self.GetControl()
+        while chwnd:
+            print "have control", chwnd, i, value
+            if i==value:
+                win32gui.SendMessage(chwnd, win32con.BM_SETCHECK, 1)
+                break
+            chwnd = win32gui.GetNextDlgGroupItem(self.window.hwnd,
+                                               chwnd,
+                                               False)
+            assert chwnd!=first, "Back where I started!"
+            i += 1
+        else:
+            assert 0, "Could not find control for value %s" % value
+    def UpdateValue_FromControl(self):
+        all_ids = [self.control_id] + self.other_ids
+        chwnd = self.GetControl()
+        i = 0
+        while chwnd:
+            checked = win32gui.SendMessage(chwnd, win32con.BM_GETCHECK)
+            if checked:
+                self.SetOptionValue(i)
+                break
+            chwnd = win32gui.GetNextDlgGroupItem(self.window.hwnd, chwnd, False)
+            i += 1
+        else:
+            assert 0, "Couldn't find a checked button"
+    
 # A "Combo" processor, that loads valid strings from the option.
 class ComboProcessor(OptionControlProcessor):
     def __init__(self, window, control_ids, option,text=None):
