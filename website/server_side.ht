@@ -129,3 +129,55 @@ in order to have 95% of their junk email not in their Inbox.</p>
 notes explaining how he set up server-side filtering with SpamBayes and
 an IMAP server</a>, using imapfilter.py (now sb_imapfilter.py) and
 hammiefilter.py (now sb_filter.py).</p>
+
+<h2>An Alternate method of Server Mail filtering in Linux or Unix
+environments</h2>
+<p>Aaron Konstam has given us this description of the setup used at
+Trinity University.</p>
+
+<p>As opposed to other suggested server filtering setups with SpamBayes
+this approach has the advantage that although the server is doing all the
+filtering each, user on a client machine has complete control of the
+training of the filtering process to meet his or her own tastes. It is
+ideal for the university student lab environment but could be used in
+commercial environments as well.</p>
+
+<p>The basis of this method is that all the user directories as well as
+the password authentication data are kept on the server.  The
+authentication data is made available to all the client machines through a
+well known Unix and Linux service called NIS. Any user can sit at any
+machine and log in using the same password, change passwords and make any
+other changes to their user environment.</p>
+
+<p>The home directories are NFS mounted from the server on all the client
+machines. Therefore, the users home directory on the client machine is
+identical to the one on the server. The user has access to his hammie.db
+file, his personal configuration file and all the SpamBayes software that
+has been installed on the clients. Of course the SpamBayes software is also
+installed on ther server.</p>
+
+<p>Mail is filtered by the server using a .procmailrc file in the user's
+directory that runs sb_filter.py. One further thing, which should be
+obvious, is that we have created MX records so that all mail addressed to a
+client is actually delivered to the server.</p>
+
+<p>Training can easily be done with a simple script such as:</p>
+
+<pre>
+#!/bin/bash
+#script: trainsb
+
+/usr/bin/sb_mboxtrain.py -d $HOME/.hammie.db -g  $HOME/Mail/$1 -s $HOME/Mail/$2
+</pre>
+
+<p>used as follows: <pre>trainsb ham spam</pre></p>
+
+<p>Notice that no proxy servers of any kind are necessary for the user to
+read their mail, train it, manipulate it or do anything else they want to
+do. However, if they want to use the web interface on the local client
+machine to train their mail that is also available to them.</p>
+
+<p>As a side note we run our lab Windows machines in exactly the same way.
+There is a server for authenticating users and user's directories are kept
+on a central server.  One imagines one could train users mail in exactly
+the same way on our Windows machines in our labs.</p>
