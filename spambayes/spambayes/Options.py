@@ -1130,14 +1130,16 @@ class Option(object):
             return self.is_valid_single(value)
 
     def is_valid_multiple(self, value):
-
-        if value is None or value == "":
+        if value is None:
             # always allow a multiple value option to be set to nothing
             return True
-
-        tv = type(value)
         
+        tv = type(value)
         if tv in types.StringTypes:
+            if value == "":
+                # always allow a multiple value option to be set to ""
+                return True
+
             if type(self.allowed_values) in types.StringTypes:
                 # allowed value is a regex, use it to make value into a tuple
                 vals = self._split_values(value)
@@ -1146,9 +1148,16 @@ class Option(object):
                 vals = (value,)
         elif tv == types.TupleType or tv == type(Set()):
             # value is being passed in as a tuple or a Set.  In this case,
-            # allowed values *must* be a tuple, because a regex can only
-            # execute against a string.  This condition indicates a
-            # programming error.
+            # allowed values *must* be a tuple, because a regex
+            # can only execute against a string.  This condition indicates
+            # a programming error.
+            # XXX This is not true, sadly.  For example the safe_headers
+            # XXX options (in Tokenizer) is a set, but has a regex that
+            # XXX describes the individual (string) elements of the set
+            # XXX This whole things needs work, so for the moment, fake
+            # XXX it.
+            if tv == type(Set()):
+                return True
             if not type(self.allowed_values) == types.TupleType:
                 raise TypeError, \
 """Attempt to set multiple value option %s with an allowed_values regex
@@ -1166,7 +1175,7 @@ tuple, or Set.""" % (self.name)
         # then it's likely that the allowed_values regex did not find
         # any matches.  At any rate, this is not an allowed value, but
         # it is not an exception.
-
+        # XXX This is not true, as a Set can be empty...
         if len(vals) == 0:
             return False
 
