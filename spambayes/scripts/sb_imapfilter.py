@@ -671,7 +671,7 @@ class IMAPFolder(object):
                                              "mailid_header_name"]) + \
                            "\:\s*(\d+(?:\-\d)?)"
         # Search for our custom id first, for backwards compatibility.
-        for id_header in [custom_header_id, "Message-ID\: ?\<([^\>]+)\>"]:
+        for id_header in [custom_header_id, "Message-ID\: ?\<([^\n\>]+)\>"]:
             mo = re.search(id_header, data["RFC822.HEADER"], re.IGNORECASE)
             if mo:
                 msg.setId(mo.group(1))
