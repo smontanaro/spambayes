@@ -165,6 +165,14 @@ class Driver:
         if options.show_histograms:
             printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
 
+        if options.save_histogram_pickles:
+            for f, h in (('ham', self.global_ham_hist), ('spam', self.global_spam_hist)):
+                fname = "%s_%shist.pik" % (options.pickle_basename, f)
+                print "    saving %s histogram pickle to %s" %(f, fname)
+                fp = file(fname, 'wb')
+                pickle.dump(h, fp, 1)
+                fp.close()
+
     def test(self, ham, spam):
         c = self.classifier
         t = self.tester
