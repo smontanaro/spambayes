@@ -3,7 +3,7 @@
 """A client for hammiesrv.
 
 Just feed it your mail on stdin, and it spits out the same message
-with a new X-Hammie-Disposition header.
+with the spambayes score in a new X-Spambayes-Disposition header.
 
 """
 
