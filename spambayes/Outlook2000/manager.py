@@ -428,15 +428,7 @@ class BayesManager:
         went into determining the score.  Else just the score is returned.
         """
         email = msg.GetEmailPackageObject()
-        result = self.bayes.spamprob(bayes_tokenize(email), evidence)
-        if evidence:
-            score, the_evidence = result
-        else:
-            score = result
-        if evidence:
-            return score, the_evidence
-        else:
-            return score
+        return self.bayes.spamprob(bayes_tokenize(email), evidence)
 
     def ShowManager(self):
         def do_train(dlg):
