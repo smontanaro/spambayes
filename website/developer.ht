@@ -11,7 +11,7 @@ exercise. That's not to say you <i>can't</i> use this stuff, but if it
 eats your email and signs you up to news.admin.net-abuse.email, don't
 come crying &lt;wink&gt;.
 </p>
-<p>This project works with either the absolute bleeding edge of python code, available from <a href="https://sourceforge.net/cvs/?group_id=5470">CVS on sourceforge</a>, or with Python 2.2.1 (not 2.2, or 2.1.3).
+<p>This project works with either the absolute bleeding edge of python code, available from <a href="https://sourceforge.net/cvs/?group_id=5470">CVS on sourceforge</a>, or with Python 2.2 (not 2.1.x or earlier).
 </p>
 <p>The spambayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>
 </p>
