@@ -40,10 +40,11 @@ Options.py
 
     near the start, and consult attributes of options.
 
-    As an alternative to bayescustomize.ini, you can set the environment
-    variable BAYESCUSTOMIZE to a list of one or more .ini files, these will
-    be read in, in order, and applied to the options. This allows you to
-    tweak individual runs by combining fragments of .ini files.
+    As an alternative to bayescustomize.ini, you can set the
+    environment variable BAYESCUSTOMIZE to a whitespace-separated list
+    of one or more .ini files, these will be read in, in order, and
+    applied to the options. This allows you to tweak individual runs
+    by combining fragments of .ini files.
 
 classifier.py
     An implementation of a Graham-like classifier.
