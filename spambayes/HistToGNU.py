@@ -44,8 +44,7 @@ def outputHist(hist,f=sys.stdout):
     """Output the Hist object to file f"""
     for i in range(len(hist.buckets)):
         n = hist.buckets[i]
-        if n:
-            f.write("%.3f %d\n" % ( (100.0 * i) / hist.nbuckets, n))
+        f.write("%.3f %d\n" % ( (100.0 * i) / hist.nbuckets, n))
 
 def plot(files):
     """given a list of files, create gnu-plot file"""
