@@ -386,7 +386,12 @@ class IMAPSession(BaseIMAP):
         for msg in response:
             msg_data = self._extract_fetch_data(msg)
             if msg_data:
-                data[msg_data["message_number"]] = msg_data
+                # Maybe there are two about the same message number!
+                num = msg_data["message_number"]
+                if num in data:
+                    data[num].update(msg_data)
+                else:
+                    data[num] = msg_data
         return data
 
 
