@@ -628,6 +628,32 @@ reading the wrong section of the FAQ <wink>, and (2) there is a slim chance
 that SpamBayes is at fault - please use the normal bug reporting procedures.
 
 
+Help!  I deleted the Unsure/Spam folder.
+----------------------------------------
+Firstly, if you haven't emptied your Deleted Items folder, you can probably
+find the unsure/spam folder in it and recover it that way.  The little plus
+next to the Deleted Items folder will reveal it (if there's no plus, there's
+no folder to recover), and you can drag it to where it belongs.
+
+Otherwise, you need to open up the SpamBayes Manager dialog, click the
+"Filtering" tab, and reenter the folder selection (you might need to create
+a new unsure/spam folder first - just like you'd create a folder normally).
+The dialog will probably have "<unknown folder>" in the place where the
+unsure/spam folder used to be.  Just click Browse and select the correct
+folder.
+
+This should always work.  If you're really stuck, though, you can reset
+your configuration completely (you'll have to redo any setup, but *not*
+any training) by deleting the appropriate .ini file from your `Data Directory`_.
+You want to remove the .ini ("Configuration file") that has the same
+name as your Outlook profile (for some, this will be something generic like
+"Outlook.ini", or "Outlook Internet Settings.ini").  Just remove or rename
+this file and your configuration will be reset.  Then select the folders as you
+would normally.
+
+.. _`Data Directory`: #can-i-back-up-the-outlook-database-should-i-do-this
+
+
 How do I uninstall the plug-in?
 -------------------------------
 
