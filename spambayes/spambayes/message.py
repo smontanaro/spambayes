@@ -186,6 +186,11 @@ class Message(email.Message.Message):
         
     def getId(self):
         return self.id
+
+    def copy(self, old_msg):
+        self.setPayload(old_msg.payload())  # this is expensive...
+        self.setClassification(old_msg.getClassification())
+        self.setTraining(old_msg.getTraining())
         
     def addSBHeaders(self, prob, clues):
         '''Add hammie header, and remember message's classification.  Also,
@@ -274,6 +279,13 @@ class Message(email.Message.Message):
     
     def getClassification(self):
         return self.c
+
+    def setClassification(self, cls):
+        if cls == 's' or cls == 'h' or cls == 'u' or cls is None:
+            self.c = cls
+            self.modified()
+        else:
+            raise ValueError
         
     def isTrndSpam(self):
         return self.t == 's'
@@ -311,7 +323,14 @@ class Message(email.Message.Message):
     
     def getTraining(self):
         return self.t
-        
+
+    def setTraining(self, trn):
+        if trn == 's' or trn == 'h' or trn is None:
+            self.t = trn
+            self.modified()
+        else:
+            raise ValueError
+         
     def __repr__(self):
         return "core.Message%r" % repr(self.__getstate__())
 
