@@ -8,41 +8,42 @@ from win32com.client import Dispatch, constants
 import pythoncom
 import rule
 
-from hammie import Hammie
+def filter_message(message, mgr):
+    try:
+        headers = message.Fields[0x7D001E].Value
+        headers = headers.encode('ascii', 'replace')
+        body = message.Text.encode('ascii', 'replace')
+        text = headers + body
+    except pythoncom.com_error, d:
+        print "Failed to get a message: %s" % (d,)
+        return
+
+    prob = mgr.hammie.score(text, evidence=False)
+    num_rules = 0
+    for rule in mgr.config.rules:
+        if rule.enabled:
+            try:
+                if rule.Act(mgr, message, prob):
+                    num_rules += 1
+            except:
+                print "Rule failed!"
+                import traceback
+                traceback.print_exc()
+    return num_rules
 
 def filter_folder(f, mgr, progress, filter):
     only_unread = filter.only_unread
-    hammie = Hammie(mgr.bayes)
     num_messages = 0
+    hammie = mgr.hammie
     for message in mgr.YieldMessageList(f):
         if progress.stop_requested():
             break
         progress.tick()
         if only_unread and not message.Unread:
             continue
-
-        try:
-            headers = message.Fields[0x7D001E].Value
-            headers = headers.encode('ascii', 'replace')
-            body = message.Text.encode('ascii', 'replace')
-            text = headers + body
-        except pythoncom.com_error, d:
-            progress.warning("Failed to get a message: %s" % (str(d),) )
-            continue
-
-        prob, clues = hammie.score(text, evidence=True)
-        did_this_message = False
-        for rule in mgr.config.rules:
-            if rule.enabled:
-                try:
-                    if rule.Act(mgr, message, prob):
-                        did_this_message = True
-                except:
-                    print "Rule failed!"
-                    import traceback
-                    traceback.print_exc()
-        if did_this_message:
+        if filter_message(message, mgr):
             num_messages += 1
+        
     return num_messages
 
 

@@ -2,6 +2,8 @@ import pythoncom
 from win32com.client import constants
 import time
 
+MAPI_E_NOT_FOUND = -2147221233
+
 class Rule:
     def __init__(self):
         self.name = "New Rule"
@@ -43,16 +45,26 @@ class Rule:
         if prob < self.min or prob > self.max:
             return False
         # Do mods before we move.
+        dirty = False
         outlook_ns = mgr.GetOutlookForCurrentThread().GetNamespace("MAPI")
-        outlook_message = outlook_ns.GetItemFromID(msg.ID)
+        try:
+            outlook_message = outlook_ns.GetItemFromID(msg.ID)
+        except pythoncom.com_error, (hr, desc, exc, arg):
+            if not exc or exc[5] != MAPI_E_NOT_FOUND:
+                raise
+            print "Warning: Can't open the message - it has probably been moved"
+            return False
+
         if self.flag_message:
             outlook_message.FlagRequest = "Check Spam"
             outlook_message.FlagStatus = constants.olFlagMarked
-            outlook_message.Save()
-        if self.write_field:
+            dirty = True
+        if self.write_field:            
             format = 4 # 4=2 decimal, 3=1 decimal - index in "field chooser" combo when type=Number.
             prop = outlook_message.UserProperties.Add(self.write_field_name, constants.olNumber, True, format)
             prop.Value = prob
+            dirty = True
+        if dirty:        
             outlook_message.Save()
 
         if self.action == "None":
@@ -60,7 +72,6 @@ class Rule:
         elif self.action == "Copy":
             outlook_message.Copy(outlook_ns.GetFolderFromID(self.folder_id))
         elif self.action == "Move":
-            print "moving", self.flag_message
             outlook_message.Move(outlook_ns.GetFolderFromID(self.folder_id))
         else:
             print "Eeek - bad action", self.action

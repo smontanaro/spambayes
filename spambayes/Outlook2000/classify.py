@@ -12,7 +12,7 @@ from tokenizer import tokenize
 from hammie import createbayes, Hammie
 
 def classify_folder( f, mgr, config, progress):
-    hammie = Hammie(mgr.bayes)
+    hammie = mgr.hammie
     messages = f.Messages
     pythoncom.CoInitialize() # We are called on a different thread.
     # We must get outlook in this thread - can't use the main thread :(
@@ -29,8 +29,7 @@ def classify_folder( f, mgr, config, progress):
             headers = headers.encode('ascii', 'replace')
             body = message.Text.encode('ascii', 'replace')
             text = headers + body
-
-            prob, clues = hammie.score(text, evidence=True)
+            prob = hammie.score(text, evidence=False)
             added_prop = False
             try:
                 if outlook_ns is not None:

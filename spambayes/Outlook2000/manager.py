@@ -5,20 +5,33 @@ import os
 import sys
 import thread
 
-import classifier
-from tokenizer import tokenize
 import win32com.client
 import win32com.client.gencache
 import pythoncom
 
+import config
+
+try:
+    this_filename = os.path.abspath(__file__)
+except NameError:
+    this_filename = os.path.abspath(sys.argv[0])
+
+# This is a little of a hack <wink>.  We are generally in a child directory of the
+# bayes code.  To help installation, we handle the fact that this may not be
+# on sys.path.
+try:
+    import classifier
+except ImportError:
+    parent = os.path.abspath(os.path.join(os.path.dirname(this_filename), ".."))
+    sys.path.insert(0, parent)
+    del parent
+    import classifier
+
+import hammie
+
 # Suck in CDO type lib
 win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}',
                                       0, 1, 21, bForDemand=True)
-
-try:
-    this_filename = __file__
-except NameError:
-    this_filename = sys.argv[0]
 
 class ManagerError(Exception):
     pass
@@ -74,6 +87,7 @@ class BayesManager:
                                self.ini_filename, self.bayes_filename))
         bayes = None
         try:
+            os.environ["BAYESCUSTOMIZE"]=self.ini_filename
             bayes = cPickle.load(open(self.bayes_filename,'rb'))
             print "Loaded bayes database from '%s'" % (self.bayes_filename,)
         except IOError:
@@ -89,6 +103,7 @@ class BayesManager:
             print ("Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
         self.bayes = bayes
+        self.hammie = hammie.Hammie(bayes)
         self.bayes_dirty = False
 
     def LoadConfig(self):
@@ -107,12 +122,16 @@ class BayesManager:
                 print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
         except (AttributeError, ImportError):
-            ret = _ConfigurationRoot()
+            ret = config.ConfigurationRoot()
+            print "FAILED to load configuration from '%s' - using default:" % (self.config_filename,)
+            import traceback
+            traceback.print_exc()
+        except IOError, details:
+            # File-not-found - less serious.
+            ret = config.ConfigurationRoot()
             if self.verbose > 1:
-                print ("FAILED to load configuration from '%s "
-                       "- using default:" % self.config_filename)
-                import traceback
-                traceback.print_exc()
+                # filename included in exception!
+                print "IOError loading configuration (%s) - using default:" % (details)
         return ret
 
     def InitNewBayes(self):
@@ -182,60 +201,64 @@ class BayesManager:
             yield message
             message = messages.GetNext()
 
-# configuration stuff we persist.
-class _ConfigurationContainer:
-    def __init__(self, **kw):
-        self.__dict__.update(kw)
-    def __setstate__(self, state):
-        self.__init__() # ensure any new/default values setup
-        self.__dict__.update(state)
-    def _dump(self, thisname="<root>", level=0):
-        import pprint
-        prefix = "  " * level
-        print "%s%s:" % (prefix, thisname)
-        for name, ob in self.__dict__.items():
-            d = getattr(ob, "_dump", None)
-            if d is None:
-                print "%s %s: %s" % (prefix, name, pprint.pformat(ob))
-            else:
-                d(name, level+1)
-
-class _ConfigurationRoot(_ConfigurationContainer):
-    def __init__(self):
-        self.training = _ConfigurationContainer(
-            ham_folder_ids = [],
-            ham_include_sub = False,
-            spam_folder_ids = [],
-            spam_include_sub = False,
-            )
-        self.classify = _ConfigurationContainer(
-            folder_ids = [],
-            include_sub = False,
-            field_name = "SpamProb",
-            )
-        self.filter = _ConfigurationContainer(
-            folder_ids = [],
-            include_sub = False,
-            )
-        self.filter_now = _ConfigurationContainer(
-            folder_ids = [],
-            include_sub = False,
-            only_unread = False,
-            )
-        self.rules = []
-
-
 _mgr = None
 
-def GetManager():
+def GetManager(verbose=1):
     global _mgr
     if _mgr is None:
-        _mgr = BayesManager()
+        _mgr = BayesManager(verbose=verbose)
+    # If requesting greater verbosity, honour it
+    if verbose > _mgr.verbose:
+        _mgr.verbose = verbose
     return _mgr
 
-if __name__=='__main__':
+def ShowManager(mgr):
+    def do_train(dlg):
+        import train
+        import dialogs.TrainingDialog
+        d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
+        d.DoModal()
+        
+    def do_classify(dlg):
+        import classify
+        import dialogs.ClassifyDialog
+        d = dialogs.ClassifyDialog.ClassifyDialog(dlg.mgr, classify.classifier)
+        d.DoModal()
+
+    def do_filter(dlg):
+        import filter, rule
+        import dialogs.FilterDialog
+        d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, rule.Rule, filter.filterer)
+        d.DoModal()
+        
+    import dialogs.ManagerDialog
+    d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, do_classify)
+    d.DoModal()
+
+def main(verbose_level = 1):
     try:
-        mgr = BayesManager()
+        mgr = GetManager(verbose=verbose_level)
     except ManagerError, d:
         print "Error initializing Bayes manager"
         print d
+        return 1
+    ShowManager(mgr)
+    mgr.Save()
+    mgr.Close()
+
+def usage():
+    print "Usage: manager [-v ...]"
+    sys.exit(1)
+        
+if __name__=='__main__':
+    verbose = 1
+    import getopt
+    opts, args = getopt.getopt(sys.argv[1:], "v")
+    if args:
+        usage()
+    for opt, val in opts:
+        if opt=="-v":
+            verbose += 1
+        else:
+            usage()
+    main(verbose)
