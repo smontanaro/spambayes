@@ -298,14 +298,14 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "SpamBayes will not be effective until it is trained.",
                     IDC_STATIC,11,8,191,14
-    PUSHBUTTON      "About...",IDC_BUT_ABOUT,214,140,60,15
+    PUSHBUTTON      "About Training...",IDC_BUT_ABOUT,209,140,65,15
     LTEXT           "SpamBayes is a system that learns about good and bad mail based on examples you provide.  It comes with no built-in rules, so must have some training information before it will be effective.",
                     IDC_STATIC,11,21,263,30
     LTEXT           "In this case, SpamBayes will begin by filtering all mail to an 'Unsure' folder.  You can then use the 'Delete as Spam' and 'Recover from Spam' buttons to train each message as it arrives.  Slowly SpamBayes will learn about your mail.",
                     IDC_STATIC,22,61,252,29
     LTEXT           "This option will close the wizard, and provide instructions how to sort your mail.  You will then be able to configure SpamBayes and have it be immediately effective at filtering your mail",
                     IDC_STATIC,22,106,252,27
-    LTEXT           "For more information on training, click the About button.",
+    LTEXT           "For more information, click the About Training button.",
                     IDC_STATIC,11,143,187,12
     CONTROL         "I want to continue without training, and let SpamBayes learn as it goes",
                     IDC_BUT_UNTRAINED,"Button",BS_AUTORADIOBUTTON | WS_GROUP,

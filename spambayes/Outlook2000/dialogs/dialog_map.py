@@ -207,6 +207,9 @@ class TabProcessor(ControlProcessor):
 def ShowAbout(window):
     """Opens the SpamBayes documentation in a browser"""
     window.manager.ShowHtml("about.html")
+def ShowTrainingDoc(window):
+    """Opens documentation on SpamBayes training in a browser"""
+    window.manager.ShowHtml("docs/welcome.html")
 def ShowDataFolder(window):
     """Uses Windows Explorer to show where SpamBayes data and configuration
     files are stored
@@ -486,7 +489,7 @@ dialog_map = {
         ),
     "IDD_WIZARD_TRAINING_IS_IMPORTANT" : (
         (BoolButtonProcessor,     "IDC_BUT_TRAIN IDC_BUT_UNTRAINED",    "Wizard.will_train_later"),
-        (CommandButtonProcessor,  "IDC_BUT_ABOUT", ShowAbout, ()),
+        (CommandButtonProcessor,  "IDC_BUT_ABOUT", ShowTrainingDoc, ()),
     ),
     "IDD_WIZARD_FOLDERS_REST": (
         (wiz.EditableFolderIDProcessor,"IDC_FOLDER_CERTAIN IDC_BROWSE_SPAM",
