@@ -401,18 +401,12 @@ def runTest(useGzip):
                                     'fctestunsurecorpus', 'MSG*', 2)
 
 
-    print '\n\nIterate the unsure corpus, to make sure cache size \
-is managed correctly.  We should not see MSG00003 in this iteration.'
+    print '\n\nIterate the unsure corpus twice, to make sure cache size \
+is managed correctly, and to make sure iteration is repeatable. \
+We should not see MSG00003 in this iteration.'
     for msg in unsurecorpus:
         print msg.key()    # don't print msg, too much information
-    for msg in unsurecorpus:
-        print msg.key()    # don't print msg, too much information
-
-
-    print '\n\nIterate the unsure corpus with a filter, to make sure \
-the filtering mechanism is working correctly.  We should not see \
-MSG00004 in this iteration.'
-#    unsurecorpus.setFilter('richie')
+    print '...and again'
     for msg in unsurecorpus:
         print msg.key()    # don't print msg, too much information
 

@@ -104,7 +104,6 @@ class Corpus:
         self.cacheSize = cacheSize  # max number of messages in memory
         self.observers = []       # observers of this corpus
         self.factory = factory    # factory for the correct Message subclass
-        self.mfilter = None       # regex to filter messages
 
     def addObserver(self, observer):
         '''Register an observer, which must implement
@@ -151,14 +150,6 @@ class Corpus:
         # This method should probably not be overridden
 
         key = message.key()
-        sub = message.getSubstance()
-        
-        if self.mfilter != None:
-            match = re.match(self.mfilter, sub, re.DOTALL)
-            if not match:
-                print 'not cacheing %s because it does not \
-match the corpus filter' % (key)
-                raise KeyError, message
 
         if Verbose:
             print 'placing %s in corpus cache' % (key)
@@ -238,16 +229,6 @@ match the corpus filter' % (key)
         msg = self.factory.create(key)
 
         return msg
-
-    def setFilter(self, sub):
-        '''set this message filter'''
-        
-        self.mfilter = sub
-        
-    def getFilter(self):
-        '''Return this message filter'''
-        
-        return self.mfilter
         
 
 class ExpiryCorpus:
