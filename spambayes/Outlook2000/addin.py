@@ -531,7 +531,7 @@ def CheckLatestVersion(manager):
             os.startfile(url)
     else:
         msg = "The latest available version is %s\r\n\r\n" \
-              "You already have the latest version." % latest_ver_string
+              "No later version is available." % latest_ver_string
         win32ui.MessageBox(msg, "SpamBayes")
 
 # A hook for whatever tests we have setup
