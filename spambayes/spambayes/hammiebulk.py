@@ -68,8 +68,8 @@ if DEFAULTDB == options.default("Storage", "persistent_storage_file"):
     DEFAULTDB = os.path.expanduser(os.path.join("~", ".hammiedb"))
 
 # Probability at which a message is considered spam
-SPAM_THRESHOLD = options.spam_cutoff
-HAM_THRESHOLD = options.ham_cutoff
+SPAM_THRESHOLD = options["Categorization", "spam_cutoff"]
+HAM_THRESHOLD = options["Categorization", "ham_cutoff"]
 
 
 def train(h, msgs, is_spam):
