@@ -743,7 +743,10 @@ to train an unsure or incorrect identification.
 It is also safe to delete any messages that you have already trained on using
 the "Delete as Spam" and "Recover from Spam" buttons.  All the information
 that SpamBayes needs to know about trained messages is stored in a separate
-file.
+file.  The information in the `non-Outlook version of this question`_ also
+applies, and may be of interest.
+
+.. _`non-Outlook version of this question`: #do-i-need-to-keep-spam-after-it-has-been-trained-if-so-for-how-long
 
 
 Using SpamBayes
