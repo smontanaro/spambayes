@@ -40,6 +40,7 @@ os.chdir(sb_dir)
 # Rest of the standard Python modules we use.
 import traceback
 import threading
+import cStringIO
 
 # The spambayes imports we need.
 import pop3proxy
@@ -117,7 +118,27 @@ class Service(win32serviceutil.ServiceFramework):
     def ServerThread(self):
         state = pop3proxy.state
         state.buildServerStrings()
-        pop3proxy.main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+        try:
+            try:
+                pop3proxy.main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+            except SystemExit:
+                # user requested shutdown
+                print "pop3proxy service shutting down due to user request"
+            except:
+                # Otherwise an error we should log.
+                ob = cStringIO.StringIO()
+                traceback.print_exc(file=ob)
+
+                message = "The pop3proxy service failed with an " \
+                          "unexpected error\r\n\r\n" + ob.getvalue()
+
+                # print it too, so any other log we have gets it.
+                print message
+                # Log an error event to the event log.
+                import servicemanager
+                servicemanager.LogErrorMsg(message)
+        finally:
+            self.SvcStop()
 
 if __name__=='__main__':
     win32serviceutil.HandleCommandLine(Service)
