@@ -34,6 +34,8 @@ import sys
 """
 
 def doit(basename):
+    if basename.endswith('.txt'):
+        basename = basename[:-4]
     try:
         ifile = file(basename + '.txt')
     except IOError:
