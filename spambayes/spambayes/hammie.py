@@ -254,7 +254,7 @@ def open(filename, useDB=True, mode='r'):
     used as the flag to open DBDict objects.  'c' for read-write (create
     if needed), 'r' for read-only, 'w' for read-write.
     """
-    return Hammie(storage.open_storage((filename, mode), useDB)
+    return Hammie(storage.open_storage((filename, mode), useDB))
 
 
 if __name__ == "__main__":
