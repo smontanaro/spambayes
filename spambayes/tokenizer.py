@@ -587,7 +587,6 @@ def crack_filename(fname):
 
 def tokenize_word(word, _len=len):
     n = _len(word)
-
     # Make sure this range matches in tokenize().
     if 3 <= n <= 12:
         yield word
@@ -603,43 +602,19 @@ def tokenize_word(word, _len=len):
             yield 'email name:' + p1
             yield 'email addr:' + p2
 
-        # If there are any high-bit chars,
-        # tokenize it as byte 5-grams.
-        # XXX This really won't work for high-bit languages -- the scoring
-        # XXX scheme throws almost everything away, and one bad phrase can
-        # XXX generate enough bad 5-grams to dominate the final score.
-        # XXX This also increases the database size substantially.
-        elif has_highbit_char(word):
-            for i in xrange(n-4):
-                yield "5g:" + word[i : i+5]
-        """
-        # If there are any high-bit chars, tokenize it as byte 3-grams.
-        # XXX This really won't work for high-bit languages -- the scoring
-        # XXX scheme throws almost everything away, and one bad phrase can
-        # XXX generate enough bad 3-grams to dominate the final score.
-        # XXX This also increases the database size substantially.
-        elif has_highbit_char(word):
-            counthi = 0
-            ch1 = ch2 = ''
-            for ch in word:
-                if ord(ch) >= 128:
-                    counthi += 1
-                yield "3g:%s" % (ch1 + ch2 + ch)
-                ch1 = ch2
-                ch2 = ch
-            ratio = round(counthi * 20.0 / len(word)) * 5
-            yield "8bit%%:%d" % ratio
-        """
         else:
-            # It's a long string of "normal" chars.  Ignore it.
-            # For example, it may be an embedded URL (which we already
-            # tagged), or a uuencoded line.
             # There's value in generating a token indicating roughly how
             # many chars were skipped.  This has real benefit for the f-n
             # rate, but is neutral for the f-p rate.  I don't know why!
             # XXX Figure out why, and/or see if some other way of summarizing
             # XXX this info has greater benefit.
             yield "skip:%c %d" % (word[0], n // 10 * 10)
+            if has_highbit_char(word):
+                hicount = 0
+                for i in map(ord, word):
+                    if i >= 128:
+                        hicount += 1
+                yield "8bit%%:%d" % round(hicount * 100.0 / len(word))
 
 # Generate tokens for:
 #    Content-Type
@@ -800,6 +775,41 @@ def crack_uuencode(text):
 
     return ''.join(new_text), tokens
 
+def crack_urls(text):
+    new_text = []
+    clues = []
+    pushclue = clues.append
+    i = 0
+    while True:
+        # Invariant:  Through text[:i], all non-URL text is in new_text, and
+        # clues contains clues for all URLs.  text[i:] hasn't been looked at
+        # yet.
+        m = url_re.search(text, i)
+        if not m:
+            new_text.append(text[i:])
+            break
+        proto, guts = m.groups()
+        start, end = m.span()
+        new_text.append(text[i : start])
+        new_text.append(' ')
+
+        pushclue("proto:" + proto)
+        # Lose the trailing punctuation for casual embedding, like:
+        #     The code is at http://mystuff.org/here?  Didn't resolve.
+        # or
+        #     I found it at http://mystuff.org/there/.  Thanks!
+        assert guts
+        while guts and guts[-1] in '.:?!/':
+            guts = guts[:-1]
+        for i, piece in enumerate(guts.split('/')):
+            prefix = "%s%s:" % (proto, i < 2 and str(i) or '>1')
+            for chunk in urlsep_re.split(piece):
+                pushclue(prefix + chunk)
+
+        i = end
+
+    return ''.join(new_text), clues
+
 class Tokenizer:
 
     def get_message(self, obj):
@@ -941,19 +951,9 @@ class Tokenizer:
                 yield t
 
             # Special tagging of embedded URLs.
-            for proto, guts in url_re.findall(text):
-                yield "proto:" + proto
-                # Lose the trailing punctuation for casual embedding, like:
-                #     The code is at http://mystuff.org/here?  Didn't resolve.
-                # or
-                #     I found it at http://mystuff.org/there/.  Thanks!
-                assert guts
-                while guts and guts[-1] in '.:?!/':
-                    guts = guts[:-1]
-                for i, piece in enumerate(guts.split('/')):
-                    prefix = "%s%s:" % (proto, i < 2 and str(i) or '>1')
-                    for chunk in urlsep_re.split(piece):
-                        yield prefix + chunk
+            text, tokens = crack_urls(text)
+            for t in tokens:
+                yield t
 
             # Anthony Baxter reported goodness from tokenizing src= params.
             # XXX This made no difference in my tests:  both error rates
