@@ -139,7 +139,7 @@ try:
 except ImportError:
     import StringIO
 
-import os, sys, re, operator, errno, getopt, time, bisect
+import os, sys, re, operator, errno, getopt, time, bisect, binascii
 import socket, asyncore, asynchat, cgi
 import mailbox, email.Header
 from email.Iterators import typed_subpart_iterator
@@ -645,7 +645,10 @@ class UserInterface(Dibbler.HTTPPlugin):
         only work for Latin character sets, but hey, it works for Francois
         Granger's name.  8-)"""
 
-        sections = email.Header.decode_header(field)
+        try:
+            sections = email.Header.decode_header(field)
+        except binascii.Error:
+            sections = [(field, None)]
         field = ' '.join([text for text, unused in sections])
         if len(field) > limit:
             field = field[:limit-3] + "..."
