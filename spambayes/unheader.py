@@ -37,7 +37,8 @@ def deSA(msg):
             if pcte:
                 msg['Content-Transfer-Encoding'] = pcte
 
-            subj = re.sub(r'\*\*\*\*\*SPAM\*\*\*\*\* ', '', msg['Subject'])
+            subj = re.sub(r'\*\*\*\*\*SPAM\*\*\*\*\* ', '',
+                          msg['Subject'] or "")
             if subj != msg["Subject"]:
                 msg.replace_header("Subject", subj)
 
