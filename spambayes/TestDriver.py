@@ -128,6 +128,7 @@ class Driver:
     def __init__(self):
         self.falsepos = Set()
         self.falseneg = Set()
+        self.unsure = Set()
         self.global_ham_hist = Hist()
         self.global_spam_hist = Hist()
         self.ntimes_finishtest_called = 0
@@ -186,6 +187,11 @@ class Driver:
     def alldone(self):
         if options.show_histograms:
             printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
+        
+        print "-> <stat> cost for all runs: $%.2f" % (
+               len(self.falsepos) * options.best_cutoff_fp_weight +
+               len(self.falseneg) * options.best_cutoff_fn_weight +
+               len(self.unsure) * options.best_cutoff_unsure_weight)
 
         if options.save_histogram_pickles:
             for f, h in (('ham', self.global_ham_hist),
@@ -229,6 +235,12 @@ class Driver:
 
         print "-> <stat> false positive %:", t.false_positive_rate()
         print "-> <stat> false negative %:", t.false_negative_rate()
+        print "-> <stat> unsure %:", t.unsure_rate()
+        print "-> <stat> cost: $%.2f" % (
+               t.nham_wrong * options.best_cutoff_fp_weight +
+               t.nspam_wrong * options.best_cutoff_fn_weight +
+               (t.nham_unsure + t.nspam_unsure) *
+               options.best_cutoff_unsure_weight)
 
         newfpos = Set(t.false_positives()) - self.falsepos
         self.falsepos |= newfpos
@@ -250,6 +262,18 @@ class Driver:
         if not options.show_false_negatives:
             newfneg = ()
         for e in newfneg:
+            print '*' * 78
+            prob, clues = c.spamprob(e, True)
+            printmsg(e, prob, clues)
+
+        newunsure = Set(t.unsures()) - self.unsure
+        self.unsure |= newunsure
+        print "-> <stat> %d new unsure" % len(newunsure)
+        if newunsure:
+            print "    new unsure:", [e.tag for e in newunsure]
+        if not options.show_unsure:
+            newunsure = ()
+        for e in newunsure:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)

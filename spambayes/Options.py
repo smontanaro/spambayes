@@ -102,9 +102,20 @@ generate_long_skips: True
 [TestDriver]
 # These control various displays in class TestDriver.Driver, and Tester.Test.
 
-# A message is considered spam iff it scores greater than spam_cutoff.
-# This is corpus-dependent, and values into the .600's have been known
+# spam_cutoff and ham_cutoff are used in Python slice sense:
+#    A msg is considered    ham if its score is in 0:ham_cutoff
+#    A msg is considered unsure if its score is in ham_cutoff:spam_cutoff
+#    A msg is considered   spam if its score is in spam_cutoff:
+#
+# So it's unsure iff  ham_cutoff <= score < spam_cutoff.
+# For a binary classifier, make ham_cutoff == spam_cutoff.
+# ham_cutoff > spam_cutoff doesn't make sense.
+#
+# The defaults are for the all-default Robinson scheme, which makes a
+# binary decision with no middle ground.  The precise value that works
+# best is corpus-dependent, and values into the .600's have been known
 # to work best on some data.
+ham_cutoff:  0.560
 spam_cutoff: 0.560
 
 # Number of buckets in histograms.
@@ -146,6 +157,7 @@ show_ham_hi: 0.0
 
 show_false_positives: True
 show_false_negatives: False
+show_unsure: False
 
 # Near the end of Driver.test(), you can get a listing of the 'best
 # discriminators' in the words from the training sets.  These are the
@@ -311,12 +323,14 @@ all_options = {
                    'show_spam_hi': float_cracker,
                    'show_false_positives': boolean_cracker,
                    'show_false_negatives': boolean_cracker,
+                   'show_unsure': boolean_cracker,
                    'show_histograms': boolean_cracker,
                    'show_best_discriminators': int_cracker,
                    'save_trained_pickles': boolean_cracker,
                    'save_histogram_pickles': boolean_cracker,
                    'pickle_basename': string_cracker,
                    'show_charlimit': int_cracker,
+                   'ham_cutoff': float_cracker,
                    'spam_cutoff': float_cracker,
                    'spam_directories': string_cracker,
                    'ham_directories': string_cracker,

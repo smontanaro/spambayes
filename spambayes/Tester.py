@@ -35,12 +35,15 @@ class Test:
         # The number of test instances correctly and incorrectly classified.
         self.nham_right = 0
         self.nham_wrong = 0
+        self.nham_unsure = 0;
         self.nspam_right = 0
         self.nspam_wrong = 0
+        self.nspam_unsure = 0;
 
         # Lists of bad predictions.
         self.ham_wrong_examples = []    # False positives:  ham called spam.
         self.spam_wrong_examples = []   # False negatives:  spam called ham.
+        self.unsure_examples = []       # ham and spam in middle ground
 
     # Train the classifier on streams of ham and spam.  Updates probabilities
     # before returning, and resets test results.
@@ -84,25 +87,33 @@ class Test:
             prob = guess(example)
             if callback:
                 callback(example, prob)
-            is_spam_guessed = prob > options.spam_cutoff
-            correct = is_spam_guessed == is_spam
+            is_ham_guessed  = prob <  options.ham_cutoff
+            is_spam_guessed = prob >= options.spam_cutoff
             if is_spam:
                 self.nspam_tested += 1
-                if correct:
+                if is_spam_guessed:
                     self.nspam_right += 1
-                else:
+                elif is_ham_guessed:
                     self.nspam_wrong += 1
                     self.spam_wrong_examples.append(example)
+                else:
+                    self.nspam_unsure += 1
+                    self.unsure_examples.append(example)
             else:
                 self.nham_tested += 1
-                if correct:
+                if is_ham_guessed:
                     self.nham_right += 1
-                else:
+                elif is_spam_guessed:
                     self.nham_wrong += 1
                     self.ham_wrong_examples.append(example)
+                else:
+                    self.nham_unsure += 1
+                    self.unsure_examples.append(example)
 
-        assert self.nham_right + self.nham_wrong == self.nham_tested
-        assert self.nspam_right + self.nspam_wrong == self.nspam_tested
+        assert (self.nham_right + self.nham_wrong + self.nham_unsure ==
+                self.nham_tested)
+        assert (self.nspam_right + self.nspam_wrong + self.nspam_unsure ==
+                self.nspam_tested)
 
     def false_positive_rate(self):
         """Percentage of ham mistakenly identified as spam, in 0.0..100.0."""
@@ -112,12 +123,18 @@ class Test:
         """Percentage of spam mistakenly identified as ham, in 0.0..100.0."""
         return self.nspam_wrong * 1e2 / self.nspam_tested
 
+    def unsure_rate(self):
+        return ((self.nham_unsure + self.nspam_unsure) * 1e2 /
+                (self.nham_tested + self.nspam_tested))
+
     def false_positives(self):
         return self.ham_wrong_examples
 
     def false_negatives(self):
         return self.spam_wrong_examples
 
+    def unsures(self):
+        return self.unsure_examples
 
 class _Example:
     def __init__(self, name, words):
@@ -128,20 +145,22 @@ class _Example:
 
 _easy_test = """
     >>> from classifier import Bayes
+    >>> from Options import options
+    >>> options.ham_cutoff = options.spam_cutoff = 0.5
 
-    >>> good1 = _Example('', ['a', 'b', 'c'] * 10)
-    >>> good2 = _Example('', ['a', 'b'] * 10)
-    >>> bad1 = _Example('', ['d'] * 10)
+    >>> good1 = _Example('', ['a', 'b', 'c'])
+    >>> good2 = _Example('', ['a', 'b'])
+    >>> bad1 = _Example('', ['c', 'd'])
 
     >>> t = Test(Bayes())
     >>> t.train([good1, good2], [bad1])
     >>> t.predict([_Example('goodham', ['a', 'b']),
-    ...            _Example('badham', ['d'])
+    ...            _Example('badham', ['d'])    # FP
     ...           ], False)
-    >>> t.predict([_Example('goodspam', ['d', 'd']),
-    ...            _Example('badspam1', ['c']),
-    ...            _Example('badspam2', ['a'] * 15 + ['d'] * 1000),
-    ...            _Example('badspam3', ['d', 'a', 'b', 'c'])
+    >>> t.predict([_Example('goodspam', ['d']),
+    ...            _Example('badspam1', ['a']), # FN
+    ...            _Example('badspam2', ['a', 'b']),    # FN
+    ...            _Example('badspam3', ['d', 'a', 'b'])    # FN
     ...           ], True)
 
     >>> t.nham_tested
@@ -161,6 +180,11 @@ _easy_test = """
     75.0
     >>> [e.name for e in t.false_negatives()]
     ['badspam1', 'badspam2', 'badspam3']
+
+    >>> [e.name for e in t.unsures()]
+    []
+    >>> t.unsure_rate()
+    0.0
 """
 
 __test__ = {'easy': _easy_test}
