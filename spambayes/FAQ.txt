@@ -100,3 +100,39 @@ A: Spambayes looks for your configuration file in three places - if it
    anything in the BAYESCUSTOMIZE variable, then it checks the current
    working directory and your home directory for a bayescustomize.ini or
    .spambayesrc file (respectively).
+
+Q: The clues for my mail are all in lower case, but "FREE" is a much
+   better clue than "free".  Why do you force everything into lower
+   case?
+A: This was very carefully weighed up.  On the positive side, removing
+   case does hide information (and we're not really sure what it does
+   to non-English languages), but on the negative side, it makes the
+   database a lot bigger, and requires more training.  In the end, 
+   testing with case removed resulted in no change in the false
+   positive rate, and a small reduction in the false negative rate,
+   so that's what we do.  There is one exception: we keep case in
+   subject lines, because testing showed an improvement if we did
+   that.
+
+Q: Forget tokenising words - you should use character n-grams!
+A: This was quite carefully tested.  Character 3-grams gave five times
+   as many false positives, and twice as many false negatives as
+   splitting on whitespace (words).  Character 5-grams came fairly
+   close to words with false positives, but the number of false
+   negatives was worse than with 3-grams.  n-grams also creates many
+   more unique tokens, which means much slower operation.
+
+   In addition, it's much harder to figure out *why* a message scored
+   as it did with n-grams.  On the other hand, words are easy to
+   understand.
+
+   There was, however, one area where n-grams were much better: detecting
+   spam in Asian languages.  Since a 'word' in an Asian language message
+   ends up being an entire line, words don't work very well at all.
+
+Q: Why don't short words or long words show up in the clues?
+A: Words less than 3 characters long are skipped, and words greater than
+   12 characters long are converted into a special 'long-word' token.
+   These numbers (3 and 12) were determined by brute force testing, and
+   produced the best overall results (including compared to no upper
+   or lower limits).
