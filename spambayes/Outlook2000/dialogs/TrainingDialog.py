@@ -43,7 +43,7 @@ class TrainingDialog(AsyncDialogBase):
         [STATIC,          '',                   IDC_PROGRESS_TEXT,    (  7,  84, 227,  10), cs ],
 
         [BUTTON,          'Close',              win32con.IDOK,        (184,  97,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
-        
+
     ]
     disable_while_running_ids = [IDC_BROWSE_HAM, IDC_BROWSE_SPAM, win32con.IDOK]
 
@@ -101,7 +101,7 @@ class TrainingDialog(AsyncDialogBase):
             self.trainer(self.mgr, self.progress)
         finally:
             self.mgr.WorkerThreadEnding()
-            
+
 ##if __name__=='__main__':
 ##    d=TrainingDialog(None)
 ##    d.DoModal()

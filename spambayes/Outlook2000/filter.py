@@ -20,7 +20,7 @@ def filter_folder(f, mgr, progress, filter):
         progress.tick()
         if only_unread and not message.Unread:
             continue
-        
+
         try:
             headers = message.Fields[0x7D001E].Value
             headers = headers.encode('ascii', 'replace')
@@ -45,7 +45,7 @@ def filter_folder(f, mgr, progress, filter):
             num_messages += 1
     return num_messages
 
-        
+
 def filterer(mgr, progress, filter):
     if not filter.folder_ids:
         progress.error("You must specify at least one folder")
@@ -68,7 +68,7 @@ def filterer(mgr, progress, filter):
 def main():
     import manager
     mgr = manager.GetManager()
-    
+
     import dialogs.FilterDialog
     d = dialogs.FilterDialog.FilterArrivalsDialog(mgr, rule.Rule, filterer)
     d.DoModal()

@@ -92,27 +92,27 @@ class AsyncDialogBase(dialog.Dialog):
             self.StartProcess()
 
     def StartProcess(self):
-            if self.running:
-                self.progress.request_stop()
-            else:
-                for id in self.disable_while_running_ids:
-                    self.GetDlgItem(id).EnableWindow(0)
-                self.SetDlgItemText(IDC_START, self.process_stop_text)
-                self.SetDlgItemText(IDC_PROGRESS_TEXT, "")
-                self.GetDlgItem(IDC_PROGRESS).ShowWindow(win32con.SW_SHOW)
-                # Local function for the thread target that notifies us when finished.
-                def thread_target(h, progress):
-                    try:
-                        self.progress = progress
-                        self.seen_finished = False
-                        self.running = True
-                        self._DoProcess()
-                    finally:
-                        win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())
-                        self.running = False
-                        self.progress = None
+        if self.running:
+            self.progress.request_stop()
+        else:
+            for id in self.disable_while_running_ids:
+                self.GetDlgItem(id).EnableWindow(0)
+            self.SetDlgItemText(IDC_START, self.process_stop_text)
+            self.SetDlgItemText(IDC_PROGRESS_TEXT, "")
+            self.GetDlgItem(IDC_PROGRESS).ShowWindow(win32con.SW_SHOW)
+            # Local function for the thread target that notifies us when finished.
+            def thread_target(h, progress):
+                try:
+                    self.progress = progress
+                    self.seen_finished = False
+                    self.running = True
+                    self._DoProcess()
+                finally:
+                    win32api.PostMessage(h, MYWM_FINISHED, self.progress.stop_requested())
+                    self.running = False
+                    self.progress = None
 
-                # back to the program :)
-                import threading
-                t = threading.Thread(target=thread_target, args =(self.GetSafeHwnd(), _Progress(self)))
-                t.start()
+            # back to the program :)
+            import threading
+            t = threading.Thread(target=thread_target, args =(self.GetSafeHwnd(), _Progress(self)))
+            t.start()

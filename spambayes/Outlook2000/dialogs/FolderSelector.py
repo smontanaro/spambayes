@@ -83,7 +83,7 @@ class FolderSelector(dialog.Dialog):
         self.single_select = single_select
         self.next_item_id = 1
         self.item_map = {}
-        
+
         self.select_desc_noun = desc_noun
         self.select_desc_noun_suffix = desc_noun_suffix
         self.selected_ids = selected_ids
@@ -156,11 +156,11 @@ class FolderSelector(dialog.Dialog):
             spec = self.item_map[info[7]]
             yield info, spec
             return # single-hit yield.
-            
+
         for info, spec in self._YieldAllChildren():
-                checked = (info[1] >> 12) - 1
-                if checked:
-                    yield info, spec
+            checked = (info[1] >> 12) - 1
+            if checked:
+                yield info, spec
 
     def OnInitDialog (self):
         caption = "%s folder" % (self.select_desc_noun,)

@@ -49,12 +49,12 @@ class Rule:
             outlook_message.FlagRequest = "Check Spam"
             outlook_message.FlagStatus = constants.olFlagMarked
             outlook_message.Save()
-        if self.write_field:            
+        if self.write_field:
             format = 4 # 4=2 decimal, 3=1 decimal - index in "field chooser" combo when type=Number.
             prop = outlook_message.UserProperties.Add(self.write_field_name, constants.olNumber, True, format)
             prop.Value = prob
             outlook_message.Save()
-        
+
         if self.action == "None":
             pass
         elif self.action == "Copy":
@@ -66,4 +66,3 @@ class Rule:
             print "Eeek - bad action", self.action
 
         return True
-

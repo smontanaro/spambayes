@@ -30,7 +30,7 @@ class RuleList:
         else:
             parent.HookCommand(self.OnButAdd, idc_add)
             self.butAdd = parent.GetDlgItem(idc_add)
-    
+
         if idc_remove is None: self.butRemove = None
         else:
             parent.HookCommand(self.OnButRemove, idc_remove)
@@ -39,7 +39,7 @@ class RuleList:
         else:
             parent.HookCommand(self.OnButEdit, idc_edit)
             self.butEdit = parent.GetDlgItem(idc_edit)
-        
+
         self.Refresh()
 
     def PushEnabledStates(self):
@@ -141,7 +141,7 @@ class RuleList:
         if code == win32con.BN_CLICKED:
             self.SyncEnabledStates()
             index = self.GetSelectedRuleIndex()
-            
+
             rule = copy.copy(self.rules[index])
             d = RuleDialog.RuleDialog(rule, self.parent.mgr)
             if d.DoModal()==win32con.IDOK:
@@ -174,7 +174,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         [BUTTON,          "&Delete",            IDC_BUT_DELETE,      ( 119,151,  50,  14), cs | win32con.WS_TABSTOP | win32con.WS_DISABLED],
         [BUTTON,          "&Edit...",           IDC_BUT_EDIT,        ( 179,151,  50,  14), cs | win32con.WS_TABSTOP | win32con.WS_DISABLED],
         ["SysTreeView32", None,                 IDC_LIST_RULES,      ( 14,  52, 216,  95), treestyle | win32con.WS_TABSTOP],
-        
+
         [BUTTON,         '&Filter Now...',      IDC_BUT_FILTERNOW,   (  7, 177,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
         [BUTTON,         'Close',               win32con.IDOK,       (179, 177,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
     ]
@@ -184,7 +184,7 @@ class FilterArrivalsDialog(dialog.Dialog):
         self.rule_factory = rule_factory
         self.filterer = filterer
         dialog.Dialog.__init__(self, self.dt)
-        
+
     def OnInitDialog(self):
         self.list = RuleList(self, IDC_LIST_RULES, self.mgr.config.rules, self.rule_factory, IDC_BUT_NEW, IDC_BUT_DELETE, IDC_BUT_EDIT)
         self.HookCommand(self.OnButBrowse, IDC_BROWSE)
@@ -251,7 +251,7 @@ class FilterNowDialog(AsyncDialogBase):
 
         ["msctls_progress32", '',               IDC_PROGRESS,        ( 10, 170, 227,  11), cs | win32con.WS_BORDER],
         [STATIC,          '',                   IDC_PROGRESS_TEXT,   ( 10, 186, 227,  10), cs ],
-        
+
         [BUTTON,         process_start_text,    IDC_START,           (  7, 200,  60,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
         [BUTTON,         'Close',               win32con.IDOK,       (187, 200,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
     ]
@@ -262,7 +262,7 @@ class FilterNowDialog(AsyncDialogBase):
         self.filterer = filterer
         self.rule_factory = rule_factory
         AsyncDialogBase.__init__ (self, self.dt)
-        
+
     def OnInitDialog(self):
         self.list = RuleList(self, IDC_LIST_RULES, self.mgr.config.rules, self.rule_factory)
         self.HookCommand(self.OnButBrowse, IDC_BROWSE)

@@ -50,7 +50,7 @@ class RuleDialog(dialog.Dialog):
         [BUTTON,          "Create a flag on the message", IDC_FLAG,  ( 11, 137, 109,  16), csts | win32con.BS_AUTOCHECKBOX],
         [BUTTON,          "Write spam score to field", IDC_WRITE_FIELD, (11,151,108,  15), csts | win32con.BS_AUTOCHECKBOX],
         [EDIT,            "",                   IDC_FIELD_NAME,      (120, 152,  59,  14), csts | win32con.ES_AUTOHSCROLL | win32con.WS_BORDER],
-        
+
         [BUTTON,         'OK',                  win32con.IDOK,       (129, 178,  50,  14), csts | win32con.BS_DEFPUSHBUTTON],
         [BUTTON,         'Cancel',              win32con.IDCANCEL,   (192, 178,  50,  14), csts | win32con.BS_PUSHBUTTON],
     ]
@@ -60,7 +60,7 @@ class RuleDialog(dialog.Dialog):
         self.mgr = mgr
         self.folder_id = rule.folder_id
         dialog.Dialog.__init__ (self, self.dt)
-        
+
     def OnInitDialog(self):
         rule = self.rule
         self.SetDlgItemText(IDC_RULE_NAME, rule.name)
@@ -71,7 +71,7 @@ class RuleDialog(dialog.Dialog):
         edit = self.GetDlgItem(IDC_FIELD_NAME)
         edit.SetWindowText(rule.write_field_name)
         edit.EnableWindow(rule.write_field)
-        
+
         self._InitSlider(IDC_SLIDER_HIGH, IDC_EDIT_HIGH)
         self._InitSlider(IDC_SLIDER_LOW, IDC_EDIT_LOW)
         self.HookMessage (self.OnSlider, win32con.WM_HSCROLL)
@@ -139,7 +139,7 @@ class RuleDialog(dialog.Dialog):
             assert slider.GetSafeHwnd() == lParam
             idc_edit = IDC_EDIT_LOW
         self.SetDlgItemText(idc_edit, "%.2f" % (slider.GetPos() / 100.0))
-        
+
     def _InitSlider(self, idc_slider, idc_edit):
         slider = self.GetDlgItem(idc_slider)
         slider.SetRange(0, 100, 0)
@@ -167,7 +167,7 @@ class RuleDialog(dialog.Dialog):
             return False
         setattr(rule, attr, val)
         return True
-        
+
     def OnOK(self):
         rule = self.rule
         if not self._CheckEdit(IDC_EDIT_HIGH, rule, "max") or \
@@ -212,7 +212,7 @@ if __name__=='__main__':
     class Manager: pass
     mgr = Manager()
     mgr.mapi = mapi
-            
+
 
     rule = Rule()
     d = RuleDialog(rule, mgr)

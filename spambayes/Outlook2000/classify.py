@@ -47,7 +47,7 @@ def classify_folder( f, mgr, config, progress):
                 added_prop = False
             if not  added_prop:
                 message.Fields.Add(config.field_name, 5, prob)
-                
+
             message.Update()
         except pythoncom.com_error, d:
             progress.warning("Failed to get a message: %s" % (str(d),) )
@@ -77,7 +77,7 @@ def classifier(mgr, progress):
 def main():
     import manager
     mgr = manager.GetManager()
-    
+
     import dialogs.ClassifyDialog
     d = dialogs.ClassifyDialog.ClassifyDialog(mgr, classifier)
     d.DoModal()

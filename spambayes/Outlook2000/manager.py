@@ -42,7 +42,7 @@ class BayesManager:
         self._tls = {thread.get_ident(): {"outlook": outlook} }
         self.outlook = outlook
         os.chdir(cwd)
-        
+
         self.LoadBayes()
 
     # Outlook gives us thread grief :(
@@ -62,7 +62,7 @@ class BayesManager:
             existing = win32com.client.Dispatch("Outlook.Application")
             self._tls[thread.get_ident()]["outlook"] = existing
         return existing
-        
+
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
             raise ManagerError("The file '%s' must exist before the database '%s' can be opened or created" % (self.ini_filename, self.bayes_filename))
@@ -99,9 +99,9 @@ class BayesManager:
         return ret
 
     def InitNewBayes(self):
-            os.environ["BAYESCUSTOMIZE"]=self.ini_filename
-            self.bayes = classifier.Bayes()
-            self.bayes_dirty = True
+        os.environ["BAYESCUSTOMIZE"]=self.ini_filename
+        self.bayes = classifier.Bayes()
+        self.bayes_dirty = True
 
     def SaveBayes(self):
         bayes = self.bayes
@@ -181,7 +181,7 @@ class _ConfigurationContainer:
                 print "%s %s: %s" % (prefix, name, pprint.pformat(ob))
             else:
                 d(name, level+1)
-                
+
 class _ConfigurationRoot(_ConfigurationContainer):
     def __init__(self):
         self.training = _ConfigurationContainer(
@@ -205,7 +205,7 @@ class _ConfigurationRoot(_ConfigurationContainer):
             only_unread = False,
             )
         self.rules = []
-       
+
 
 _mgr = None
 
@@ -221,4 +221,3 @@ if __name__=='__main__':
     except ManagerError, d:
         print "Error initializing Bayes manager"
         print d
-        

@@ -31,7 +31,7 @@ class ClassifyDialog(AsyncDialogBase):
         # Children
         [STATIC,          info_text,            -1,                   (  7,  6, 227,  16), cs ],
         [STATIC,          classify_text,        -1,                   (  7, 29, 131,  11), cs ],
-        
+
         [STATIC,          "",                   IDC_STATIC_FOLDERS,   (  7,  40, 167,  12), cs | win32con.SS_SUNKEN | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE],
         [BUTTON,          '&Browse',            IDC_BROWSE,           (184,  40,  50,  14), cs | win32con.BS_PUSHBUTTON | win32con.WS_TABSTOP],
 
@@ -43,7 +43,7 @@ class ClassifyDialog(AsyncDialogBase):
         [STATIC,          '',                   IDC_PROGRESS_TEXT,    (  7,  96, 227,  10), cs ],
 
         [BUTTON,          'Close',              win32con.IDOK,        (184, 109,  50,  14), cs | win32con.BS_DEFPUSHBUTTON | win32con.WS_TABSTOP],
-        
+
     ]
     disable_while_running_ids = [IDC_FIELDNAME, IDC_BROWSE, win32con.IDOK]
 

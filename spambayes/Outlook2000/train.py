@@ -76,7 +76,7 @@ def main():
     d = dialogs.TrainingDialog.TrainingDialog(mgr, trainer)
     d.DoModal()
 
-    mgr.Save()    
+    mgr.Save()
     mgr.Close()
 
 if __name__ == "__main__":
