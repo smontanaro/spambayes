@@ -4,21 +4,27 @@ Author: spambayes
 
 <h1>Spambayes on Windows</h1>
 
+<p>This page has information for <a href="#outlook">users of Microsoft Outlook</a>,
+and for <a href="#non-outlook">all other mail clients</a>
+
 <h2>Outlook 2000/Outlook XP</h2>
 
-<p>If you are using Outlook 2000 or Outlook XP (<strong>not</strong> Outlook 
-Express) you should be able to simply download and run the 
-<a href="http://prdownloads.sourceforge.net/spambayes/SpamBayes-Outlook-Setup-007.exe?download">Outlook 
-plug-in installer</a> (<a href="http://starship.python.net/crew/mhammond/downloads/SpamBayes-Outlook-Setup-007.exe">alternate 
-download site</a>).  A separate Python installation is not necessary. 
-<a href="http://starship.python.net/crew/mhammond/spambayes/">Mark's
-website</a> has more details on this package.</p>
+<h3>Latest Release</h3>
+<p>The latest release is <b>Version 008</b> - see the 
+<a href="http://sourceforge.net/project/shownotes.php?release_id=183129">release notes</a>
+or <a href="http://prdownloads.sourceforge.net/spambayes/SpamBayes-Outlook-Setup-008.exe?download">download the installation program</a>.
+</p>
 
-<p>Note that all users who installed version 006 or earlier of the plugin are 
-recommended to upgrade to the 007 release.</p>
-
-<p>The Outlook add-in works with all versions of Windows, and all 
-versions of Outlook 2000 and later - see below for more details.</p>
+<h3>General Information</h3>
+<p>
+The Outlook addin is an application of the SpamBayes project.  It works with 
+Outlook 2000 and later on Windows 98 and later.  <b>It does not work with 
+Outlook Express</b> - see <a href="#non-outlook">below for other options</a>
+</p>
+<p>In general, you should download and install the latest version, as shown 
+above.  Older versions and the release notes can be viewed at the
+<a href="https://sourceforge.net/project/showfiles.php?group_id=61702">spambayes releases page</a>.
+</p>
 
 <p>If you have a problem, the best way to help make progress is to look for
 a similar existing <a
@@ -27,15 +33,7 @@ report</a> and add any useful information you may have, or to open a new bug
 report if your problem seems to be a new one.  Please be sure to go through
 the <a
 href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html"">
-troubleshooting.html</a> file that is installed with the plugin.  </p>
-
-<h3>Compatibility</h3>
-
-<p>As far as we know, the latest release of the plugin works with all
-versions of Windows and Outlook 2000 and later (Outlook 2003 should have 
-the latest Technical Release installed).  If you have a problem, please follow
-the bug reporting steps above; we will endeavour to keep this page
-up to date.</p>
+troubleshooting.html</a> file that is installed with the plugin.</p>
 
 <h3>Installing the Outlook Client From Source</h3>
 
@@ -66,9 +64,9 @@ To do this, you will need three pieces of software:
 <p>Once you have all three bits downloaded, run the Python installer then
 the win32all installer.  Finally, double-click the addin.py script in the
 Outlook2000 folder of the Spambayes distribution and you should be good to
-go.</p>
+go.  See the README.txt file in the Outlook2000 directory for more details</p>
 
-<h2>Other Mail Clients</h2>
+<a name="non-outlook"><h2>Non Outlook Solutions</h2>
 
 <p>If you use any other mail client on Windows, you currently need to
 install a recent version of <a href="http://www.python.org/">Python</a> and
