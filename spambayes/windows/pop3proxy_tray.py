@@ -133,6 +133,9 @@ class MainWindow(object):
         function()
 
     def OnExit(self):
+        if self.started:
+            pop3proxy.stop(pop3proxy.state)
+            self.started = False
         DestroyWindow(self.hwnd)
         sys.exit()
         
