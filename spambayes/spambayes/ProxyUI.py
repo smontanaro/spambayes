@@ -84,6 +84,7 @@ parm_ini_map = (
     ('pop3proxy',           'listen_ports'),
     ('pop3proxy',           'cache_messages'),
     ('pop3proxy',           'no_cache_bulk_ham'),
+    ('pop3proxy',           'no_cache_large_messages'),
     ('html_ui',             'display_to'),
     ('html_ui',             'allow_remote_connections'),
     ('Header Options',      None),
@@ -92,8 +93,6 @@ parm_ini_map = (
     ('Headers',             'include_score'),
     ('Headers',             'include_thermostat'),
     ('Headers',             'include_evidence'),
-    ('pop3proxy',           'add_mailid_to'),
-    ('pop3proxy',           'strip_incoming_mailids'),
     ('SMTP Proxy Options',  None),
     ('smtpproxy',           'remote_servers'),
     ('smtpproxy',           'listen_ports'),
@@ -107,7 +106,6 @@ parm_ini_map = (
     ('Categorization',      'spam_cutoff'),
     ('Classifier',          'experimental_ham_spam_imbalance_adjustment'),
 )
-
 
 class ProxyUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
