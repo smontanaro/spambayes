@@ -1,0 +1,8 @@
+recursive-include spambayes *.py
+recursive-include pspam *.py *.txt *.ini *.sh
+recursive-include hammie *.py *.sh *.txt procmailrc
+recursive-include Outlook2000 *.py *.txt *.ini *.html *.bmp
+recursive-include utilities *.py *.txt
+recursive-include testtools *.py *.txt
+include *.txt *.py *.gif 
+
