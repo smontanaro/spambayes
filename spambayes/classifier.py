@@ -470,6 +470,7 @@ class GrahamBayes(object):
         """
 
         from math import frexp
+        mindist = options.robinson_minimum_prob_strength
 
         # A priority queue to remember the MAX_DISCRIMINATORS best
         # probabilities, where "best" means largest distance from 0.5.
@@ -488,7 +489,7 @@ class GrahamBayes(object):
                 prob = record.spamprob
 
             distance = abs(prob - 0.5)
-            if distance > smallest_best:
+            if distance >= mindist and distance > smallest_best:
                 heapreplace(nbest, (distance, prob, word, record))
                 smallest_best = nbest[0][0]
 

@@ -95,9 +95,10 @@ mine_received_headers: False
 # training sets.  As the size of the training sets increase, there's not
 # yet any bound in sight for how low this can go (0.075 would work as
 # well as 0.90 on Tim's large c.l.py data).
-# For Gary Robinson's scheme, 0.50 works best for *us*.  Other people
-# who have implemented Graham's scheme, and stuck to it in most respects,
-# report values closer to 0.70 working best for them.
+# For Gary Robinson's scheme, some value between 0.50 and 0.60 has worked
+# best in all reports so far.  Note that you can easily deduce the effect
+# of setting spam_cutoff to any particular value by studying the score
+# histograms -- there's no need to run a test again to see what would happen.
 spam_cutoff: 0.90
 
 # Number of buckets in histograms.
@@ -152,6 +153,7 @@ max_discriminators: 16
 ###########################################################################
 # Speculative options for Gary Robinson's ideas.  These may go away, or
 # a bunch of incompatible stuff above may go away.
+# CAUTION:  evidence to date suggest setting spam_cutoff
 
 # Use Gary's scheme for combining probabilities.
 use_robinson_combining: False
@@ -164,6 +166,20 @@ robinson_probability_x: 0.5
 
 # Use Gary's scheme for ranking probabilities.
 use_robinson_ranking: False
+
+# When scoring a message, ignore all words with
+# abs(word.spamprob - 0.5) < robinson_minimum_prob_strength.
+# By default (0.0), nothing is ignored.
+# Tim got a pretty clear improvement in f-n rate on his hasn't-improved-in-
+# a-long-time large c.l.py test by using 0.1.  No other values have been
+# tried yet.
+# Neil Schemenauer also reported good results from 0.1, making the all-
+# Robinson scheme match the all-default Graham-like scheme on a smaller
+# and different corpus.
+# NOTE:  Changing this may change the best spam_cutoff value for your
+# corpus.  Since one effect is to separate the means more, you'll probably
+# want a higher spam_cutoff.
+robinson_minimum_prob_strength: 0.0
 """
 
 int_cracker = ('getint', None)
@@ -206,6 +222,7 @@ all_options = {
                    'robinson_probability_a': float_cracker,
                    'robinson_probability_x': float_cracker,
                    'use_robinson_ranking': boolean_cracker,
+                   'robinson_minimum_prob_strength': float_cracker,
                    },
 }
 
