@@ -6,47 +6,61 @@ rebal.py - rebalance a ham or spam test directory
 usage: rebal.py [ options ]
 options:
    -d     - dry run; display what would be moved, but don't do it [%(DRYRUN)s]
-   -r res - specify an alternate reservoir [%(RESDIR)s]
-   -s set - specify an alternate Set prefix [%(SETPREFIX)s]
    -n num - specify number of files per Set dir desired [%(NPERDIR)s]
-   -v     - tell user what's happening [%(VERBOSE)s]
-   -q     - be quiet about what's happening [not %(VERBOSE)s]
-   -c     - confirm file moves into Set directory [%(CONFIRM)s]
-   -Q     - don't confirm moves; this is independent of -v/-q
+   -t     - top directory, holding Set and reservoir subdirs [%(TOPDIR)s]
+
+   -v     - tell user what's happening; opposite of -q [%(VERBOSE)s]
+   -q     - be quiet about what's happening; opposite of -v [not %(VERBOSE)s]
+
+   -c     - confirm file moves into Set directory; opposite of -Q [%(CONFIRM)s]
+   -Q     - don't confirm moves; opposite of -c; independent of -v/-q
+
    -h     - display this message and quit
 
-Moves files among the Set subdirectories and a reservoir directory as
-necessary.  You should execute this script from the directory containing your
-Data directory.  By default, the Set1, Set2, ..., and reservoir subdirectories
-under (relative path) Data/Ham/ are rebalanced; this can be changed with the
--s argument.  The script will work with a variable number of Set directories,
-but they must already exist, and the reservoir directory must also exist.
+If you have a non-standard test setup, you can use -r/-s instead of -t:
+   -r res - specify an alternate reservoir [%(RESDIR)s]
+   -s set - specify an alternate Set prefix [%(SETPREFIX)s]
+
+Moves files randomly among the Set subdirectories and a reservoir directory to
+leave -n files in each Set directory.  By default, the Set1, Set2, ..., and
+reservoir subdirectories under (relative path) Data/Ham/ are rebalanced; this
+can be changed with the -t option.  The script will work with a variable
+number of Set directories, but they must already exist, and the reservoir
+directory must also exist.
 
 It's recommended that you run with the -d (dry run) option first, to see what
 the script would do without actually moving any files.  If, e.g., you
 accidentally mix up spam Sets with your Ham reservoir, it could be very
 difficult to recover from that mistake.
 
-Example:
-
-    rebal.py -r reservoir -s Set -n 300
-
-This will move random files between the directory 'reservoir' and the
-various subdirectories prefixed with 'Set', making sure no more than 300
-files are left in the 'Set' directories when finished.
-
-Example:
-
-Suppose you want to shuffle your Set files around, winding up with 300 files
-in each one, you can execute:
-
-    rebal.py -n 0
-    rebal.py -n 300 -Q
-
-The first run will move all files from the various Data/Ham/Set directories
-to the Data/Ham/reservoir directory.  The second run will randomly parcel
-out 300 files to each of the Data/Ham/Set directories.
+See the module comments for examples.
 """
+
+# Examples:
+#
+#    rebal.py -n 300
+#
+# Moves files among the Set1, Set2, ..., and reservoir directories under
+# Data/Ham/, leaving 300 files in each Set directory.
+#
+#    rebal.py -t Data/Spam -n 300
+#
+# The same, but under Data/Spam/.
+#
+#    rebal.py -r reservoir -s Set -n 300
+#
+# The same, but under the Set1, Set2, ..., and reservoir directories
+# in the current directory.
+#
+# Supposing you want to shuffle your Set files around randomly, winding up
+# with 300 files in each one, you can execute:
+#
+#    rebal.py -n 0
+#    rebal.py -n 300 -Q
+#
+# The first moves all files from the various Data/Ham/Set directories to the
+# Data/Ham/reservoir directory.  The second run randomly parcels out 300 files
+# to each of the Data/Ham/Set directories.
 
 import os
 import sys
@@ -63,8 +77,9 @@ except NameError:
 
 # defaults
 NPERDIR = 4000
-RESDIR = 'Data/Ham/reservoir'
-SETPREFIX = 'Data/Ham/Set'
+TOPDIR = os.path.join('Data', 'Ham')
+RESDIR = os.path.join(TOPDIR, 'reservoir')
+SETPREFIX = os.path.join(TOPDIR, 'Set')
 VERBOSE = True
 CONFIRM = True
 DRYRUN = False
@@ -72,6 +87,7 @@ DRYRUN = False
 def usage(msg=None):
     if msg:
         print >> sys.stderr, str(msg)
+        print >> sys.stderr
     print >> sys.stderr, __doc__ % globals()
 
 def migrate(f, targetdir, verbose):
@@ -82,7 +98,7 @@ def migrate(f, targetdir, verbose):
        a file with f's basename already existed in targetdir.
     """
 
-    base = os.path.split(f)[-1]
+    base = os.path.basename(f)
     out = os.path.join(targetdir, base)
     while os.path.exists(out):
         basename, ext = os.path.splitext(base)
@@ -91,18 +107,17 @@ def migrate(f, targetdir, verbose):
     if verbose:
         print "moving", f, "to", out
     os.rename(f, out)
-    return os.path.split(out)[-1]
+    return os.path.basename(out)
 
 def main(args):
     nperdir = NPERDIR
-    resdir = RESDIR
-    setprefix = SETPREFIX
     verbose = VERBOSE
     confirm = CONFIRM
     dryrun = DRYRUN
+    topdir = resdir = setprefix = None
 
     try:
-        opts, args = getopt.getopt(args, "dr:s:n:vqcQh")
+        opts, args = getopt.getopt(args, "dr:s:t:n:vqcQh")
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
@@ -110,6 +125,8 @@ def main(args):
     for opt, arg in opts:
         if opt == "-n":
             nperdir = int(arg)
+        elif opt == "-t":
+            topdir = arg
         elif opt == "-r":
             resdir = arg
         elif opt == "-s":
@@ -130,17 +147,33 @@ def main(args):
         else:
             raise SystemError("internal error on option '%s'" % opt)
 
+    # Derive setprefix and resdir from topdir, if the latter was given.
+    if topdir is not None:
+        if resdir is not None or setprefix is not None:
+            usage("-t can't be specified with -r or -s")
+            return -1
+        setprefix = os.path.join(topdir, "Set")
+        resdir = os.path.join(topdir, "reservoir")
+    else:
+        if setprefix is None:
+            setprefix = SETPREFIX
+        if resdir is None:
+            resdir = RESDIR
+
+    if not os.path.exists(resdir):
+        print >> sys.stderr, "reservoir directory %s doesn't exist" % resdir
+        return 1
     res = os.listdir(resdir)
 
     dirs = glob.glob(setprefix + "*")
-    if dirs == []:
+    if not dirs:
         print >> sys.stderr, "no directories starting with", setprefix, "exist."
         return 1
 
     # stuff <- list of (directory, files) pairs, where directory is the
     # name of a Set subdirectory, and files is a list of files in that dir.
     stuff = []
-    n = len(res)
+    n = len(res)    # total number of all files
     for d in dirs:
         fs = os.listdir(d)
         n += len(fs)
