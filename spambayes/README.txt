@@ -66,7 +66,7 @@ For the Really Impatient
 
 If you get your mail from a POP3 server, then all you should need to do
 to get running is change your mail client to send and receive mail from
-"localhost", and then run "python pop3proxy.py -b" in the directory you
+"localhost", and then run "python sb_server.py -b" in the directory you
 expanded the SpamBayes source into.  This will open a web browser window
 - click the "Configuration" link at the top right and fill in the various
 settings.
@@ -112,7 +112,7 @@ your email client's setup, and do the same with your equivalent of
 
 Now launch pop3proxy, either by running the "pop3proxy_service.py" script
 (for those using Windows 2000, Windows NT or Windows XP), or the
-"pop3proxy.py" script (for everyone else).
+"sb_server.py" script (for everyone else).
 
 All you need to do to configure SpamBayes is to open a web page to
 <http://localhost:8880>, click on the "Configuration" link at the top
@@ -137,10 +137,10 @@ be based on the headers only, not the body.  This is not recommended.
 IMAP Filter
 -----------
 
-To configure SpamBayes, run the "imapfilter.py" script, and open a web page
-to <http://localhost:8880>, click on the "Configuration" link at the top
-right, and fill in the relevant details.  Everything should be ok with the
-defaults, except for the server information at the top.
+To configure SpamBayes, run the "sb_imapfilter.py" script, and open a web
+page to <http://localhost:8880>, click on the "Configuration" link at the
+top right, and fill in the relevant details.  Everything should be ok with
+the defaults, except for the server information at the top.
 
 You now need to let SpamBayes know which IMAP folders it should work with.
 Use the "configure folders to filter" and "configure folders to train"
@@ -153,7 +153,7 @@ filtering).
 
 You then need to set the IMAP filter up to run periodically.  At the moment,
 you'll need to do this from a command (or DOS) prompt.  You should run the
-command "python imapfilter.py -c -t -l 5".  The '-c' means that the script
+command "python sb_imapfilter.py -c -t -l 5".  The '-c' means that the script
 should classify new mail, the '-t' means that the script should train any
 mail that you have told it to, and the '-l 5' means that the script should
 execute every five minutes (you can change this as required).
@@ -166,7 +166,7 @@ Many people on Unix-like systems have procmail available as an optional or
 as the default local delivery agent.  Integrating SpamBayes checking with
 Procmail is straightforward.
 
-First, create a SpamBayes database, by running "hammiefilter.py -n".  If
+First, create a SpamBayes database, by running "sb_filter.py -n".  If
 you have some mail around that you can use to train it, do you (see the
 "command line training" section below).  Note that if you don't, all your
 mail will start out as 'unsure'.
@@ -186,7 +186,7 @@ collection of know ham and spam, you can use the hammie.py script to
 classify incoming mail like so:
 
     :0 fw:hamlock
-    | /usr/local/bin/hammie.py -f -d -p $HOME/hammie.db
+    | /usr/local/bin/hammie.py -f -d -p $HOME/.hammie.db
 
 The above Procmail recipe tells it to run /usr/local/bin/hammie.py in filter
 mode (-f), and to use the training results stored in the dbm-style file
@@ -198,7 +198,7 @@ file.)
 
 The result of running hammie.py in filter mode is that Procmail will use the
 output from the run as the mail message for further processing downstream.
-Hammie.py inserts an X-SpamBayes-Classification header in the output message
+hammie.py inserts an X-SpamBayes-Classification header in the output message
 which looks like:
 
     X-SpamBayes-Classification: ham; 0.00; '*H*': 1.00; '*S*': 0.00; 'python': 0.00;
