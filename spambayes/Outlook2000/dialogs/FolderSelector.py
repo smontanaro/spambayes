@@ -115,6 +115,10 @@ def BuildFolderTreeMAPI(session, ignore_ids):
             msgstore = session.OpenMsgStore(0, eid, None, mapi.MDB_NO_MAIL |
                                                           mapi.MAPI_DEFERRED_ERRORS)
             hr, data = msgstore.GetProps((PR_IPM_SUBTREE_ENTRYID,)+ignore_ids, 0)
+            # It appears that not all stores have a subtree.
+            if PROP_TYPE(data[0][0]) != PT_BINARY:
+                print "FolderSelector dialog found message store without a subtree - ignoring"
+                continue
             subtree_eid = data[0][1]
             ignore_eids = [item[1] for item in data[1:] if PROP_TYPE(item[0])==PT_BINARY]
         except pythoncom.com_error, details:
