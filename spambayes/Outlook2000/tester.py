@@ -18,6 +18,8 @@ import rfc822
 import cStringIO
 import threading
 
+from spambayes.storage import STATE_KEY
+
 import msgstore
 
 from win32com.mapi import mapi, mapiutil
@@ -70,7 +72,7 @@ def DBExtractor(bayes):
         import bsddb
         bsddb_error = bsddb.error
     key = bayes.dbm.first()[0]
-    if key not in ["saved state"]:
+    if key != STATE_KEY:
         yield key, bayes._wordinfoget(key)
     while True:
         try:
@@ -79,7 +81,7 @@ def DBExtractor(bayes):
             break
         except bsddb_error:
             break
-        if key not in ["saved state"]:
+        if key != STATE_KEY:
             yield key, bayes._wordinfoget(key)
 
 # Find the top 'n' words in the Spam database that are clearly

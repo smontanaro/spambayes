@@ -149,6 +149,8 @@ class PickledClassifier(classifier.Classifier):
 WORD_DELETED = "D"
 WORD_CHANGED = "C"
 
+STATE_KEY = 'saved state'
+
 class DBDictClassifier(classifier.Classifier):
     '''Classifier object persisted in a caching database'''
 
@@ -156,7 +158,7 @@ class DBDictClassifier(classifier.Classifier):
         '''Constructor(database name)'''
 
         classifier.Classifier.__init__(self)
-        self.statekey = "saved state"
+        self.statekey = STATE_KEY
         self.mode = mode
         self.db_name = db_name
         self.load()
@@ -310,7 +312,7 @@ class SQLClassifier(classifier.Classifier):
         '''Constructor(database name)'''
 
         classifier.Classifier.__init__(self)
-        self.statekey = "saved state"
+        self.statekey = STATE_KEY
         self.db_name = db_name
         self.load()
 

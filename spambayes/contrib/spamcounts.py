@@ -26,6 +26,7 @@ import csv
 
 from spambayes.Options import options
 from spambayes.tokenizer import tokenize
+from spambayes.storage import STATE_KEY
 
 prog = sys.argv[0]
 
@@ -60,7 +61,7 @@ def print_spamcounts(tokens, db, use_re):
 
     S = options["Classifier", "unknown_word_strength"]
     x = options["Classifier", "unknown_word_prob"]
-    _, ns, nh = db["saved state"]
+    _, ns, nh = db[STATE_KEY]
 
     writer = csv.writer(sys.stdout)
     writer.writerow(("token", "nspam", "nham", "spam prob"))
