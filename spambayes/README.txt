@@ -66,10 +66,10 @@ For the Really Impatient
 
 If you get your mail from a POP3 server, then all you should need to do
 to get running is change your mail client to send and receive mail from
-"localhost", and then run "python sb_server.py -b" in the directory you
-expanded the SpamBayes source into.  This will open a web browser window
-- click the "Configuration" link at the top right and fill in the various
-settings.
+"localhost", and then run "python setup.py install" and then
+"python scripts/sb_server.py -b" in the directory you expanded the
+SpamBayes source into.  This will open a web browser window - click the
+"Configuration" link at the top right and fill in the various settings.
 
 
 Installation
