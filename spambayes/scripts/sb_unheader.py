@@ -83,7 +83,7 @@ def process_mailbox(f, dosa=1, pats=None):
     gen = email.Generator.Generator(sys.stdout, maxheaderlen=0)
     for msg in mailbox.PortableUnixMailbox(f, Parser().parse):
         process_message(msg, dosa, pats)
-        gen(msg, unixfrom=1)
+        gen.flatten(msg, unixfrom=1)
 
 def process_maildir(d, dosa=1, pats=None):
     parser = Parser()
@@ -96,7 +96,8 @@ def process_maildir(d, dosa=1, pats=None):
         tmpfn = os.path.join(d, "tmp", os.path.basename(fn))
         tmpfile = open(tmpfn, "w")
         print "writing to %s" % tmpfn
-        email.Generator.Generator(tmpfile, maxheaderlen=0)(msg, unixfrom=0)
+        gen = email.Generator.Generator(tmpfile, maxheaderlen=0)
+        gen.flatten(msg, unixfrom=0)
 
         os.rename(tmpfn, fn)
 
