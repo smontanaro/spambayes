@@ -69,7 +69,10 @@ Notes:
   plugin from source.</li>
 
   <li><a name="2">Outlook XP SP2</a> is known to work.  Earlier versions are
-  known to have some issues.</li>
+  known to have some issues.  If you're having problems and are behind on
+  installing service packs from Microsoft (for the OS or for Outlook),
+  catch up on that first -- Outlook and OS bugs affect the add-in too!
+  </li>
 
   <li><a name="3">We can use some</a> people to help check out the
   highlighted configurations in the table.  If you can help, please send
