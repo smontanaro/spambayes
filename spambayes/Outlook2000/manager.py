@@ -550,8 +550,9 @@ class BayesManager:
             return
             
         folder = msgstore_folder.GetOutlookItem()
+        folder_name = msgstore_folder.GetFQName()
         self.LogDebug(2, "Checking folder '%s' for field '%s'" \
-                  % (folder.Name.encode("mbcs", "replace"), self.config.general.field_score_name))
+                  % (folder_name, self.config.general.field_score_name))
         items = folder.Items
         item = items.GetFirst()
         while item is not None:
@@ -580,10 +581,14 @@ class BayesManager:
                     item.Save()
                     self.LogDebug(2, "Created the UserProperty!")
                 except pythoncom.com_error, details:
-                    print "Warning: failed to create the Outlook " \
-                          "user-property in folder '%s'" \
-                          % (folder.Name.encode("mbcs", "replace"),)
-                    print "", details
+                    if msgstore.IsReadOnlyCOMException(details):
+                        self.LogDebug(1, "The folder '%s' is read-only - user property can't be added" % \
+                                      (folder_name,))
+                    else:
+                        print "Warning: failed to create the Outlook " \
+                              "user-property in folder '%s'" \
+                              % (folder_name,)
+                        print "", details
             if include_sub:
                 # Recurse down the folder list.
                 folders = item.Parent.Folders

@@ -14,6 +14,7 @@ from win32com.client import Dispatch, constants
 from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
 import pythoncom
+import winerror
 
 # Additional MAPI constants we dont have in Python
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
@@ -82,6 +83,10 @@ class NotFoundException(MsgStoreException):
 class ReadOnlyException(MsgStoreException):
     pass
 
+# The object has changed since it was opened.
+class ObjectChangedException(MsgStoreException):
+    pass
+
 # Utility functions for exceptions.  Convert a COM exception to the best
 # manager exception.
 def MsgStoreExceptionFromCOMException(com_exc):
@@ -89,31 +94,42 @@ def MsgStoreExceptionFromCOMException(com_exc):
         return NotFoundException(com_exc)
     if IsReadOnlyCOMException(com_exc):
         return ReadOnlyException(com_exc)
+    scode = NormalizeCOMException(com_exc)[0]
+    # And simple scode based ones.
+    if scode == mapi.MAPI_E_OBJECT_CHANGED:
+        return ObjectChangedException(com_exc)
     return MsgStoreException(com_exc)
+
+def NormalizeCOMException(exc_val):
+    hr, msg, exc, arg_err = exc_val
+    if hr == winerror.DISP_E_EXCEPTION and exc:
+        # 'client' exception - unpack 'exception object'
+        wcode, source, msg, help1, help2, hr = exc
+    return hr, msg, exc, arg_err
 
 # Build a reasonable string from a COM exception tuple
 def GetCOMExceptionString(exc_val):
-    hr, msg, exc, arg_err = exc_val
+    hr, msg, exc, arg_err = NormalizeCOMException(exc_val)
     err_string = mapiutil.GetScodeString(hr)
     return "Exception 0x%x (%s): %s" % (hr, err_string, msg)
 
 # Does this exception probably mean "object not found"?
 def IsNotFoundCOMException(exc_val):
-    hr, msg, exc, arg_err = exc_val
+    hr, msg, exc, arg_err = NormalizeCOMException(exc_val)
     return hr in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]
 
 # Does this exception probably mean "object not available 'cos you ain't logged
 # in, or 'cos the server is down"?
 def IsNotAvailableCOMException(exc_val):
-    hr, msg, exc, arg_err = exc_val
+    hr, msg, exc, arg_err = NormalizeCOMException(exc_val)
     return hr == mapi.MAPI_E_FAILONEPROVIDER
 
 def IsReadOnlyCOMException(exc_val):
     # This seems to happen for IMAP mails (0x800cccd3)
     # and also for hotmail messages (0x8004dff7)
     known_failure_codes = -2146644781, -2147164169
+    exc_val = NormalizeCOMException(exc_val)
     return exc_val[0] in known_failure_codes
-
     
 def ReportMAPIError(manager, what, exc_val):
     hr, exc_msg, exc, arg_err = exc_val
