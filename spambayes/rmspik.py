@@ -4,37 +4,21 @@
 
 """Usage: %(program)s  [options] [central_limit_pickle_file]
 
-An example analysis program showing to access info from a central-limit
-pickle file created by clgen.py.  This program produces histograms of
-various things.
-
-Scores for all predictions are saved at the end of binary pickle clim.pik.
-This contains two lists of tuples, the first list with a tuple for every
-ham predicted, the second list with a tuple for every spam predicted.  Each
-tuple has these values:
-
-    tag         the msg identifier
-    is_spam     True if msg came from a spam Set, False if from a ham Set
-    zham        the msg zscore relative to the population ham
-    zspam       the msg zscore relative to the population spam
-    hmean       the raw mean ham score
-    smean       the raw mean spam score
-    n           the number of clues used to judge this msg
-
-Note that hmean and smean are the same under use_central_limit; they're
-very likely to differ under use_central_limit2.
-
-Where:
+Options
     -h
         Show usage and exit.
+
+Analyzes a pickle produced by clgen.py, and displays what would happen
+if Rob Hooft's "RMS ZScore" scheme had been used to determine certainty
+instead.
 
 If no file is named on the cmdline, clim.pik is used.
 """
 
-surefactor = 1000 # This is basically the inverse of the accepted fp/fn rate
-punsure = False # Print unsure decisions (otherwise only sure-but-false)
+surefactor = 1000   # This is basically the inverse of the accepted fp/fn rate
+punsure = False     # Print unsure decisions (otherwise only sure-but-false)
 
-import sys,math,os
+import sys, math, os
 import cPickle as pickle
 
 program = sys.argv[0]
@@ -48,16 +32,17 @@ def usage(code, msg=''):
     sys.exit(code)
 
 def chance(x):
-    if x>=0:
+    # XXX These 3 lines are a disaster for spam using the original
+    # use_central_limit.  Replacing with x = abs(x)/sqrt(2) works
+    # very well then.
+    if x >= 0:
         return 1.0
-    x=-x/math.sqrt(2)
-    if x<1.4:
+    x = -x / math.sqrt(2.0)
+    if x < 1.4:
         return 1.0
-    assert x>=1.4
-    x=float(x)
-    pre=math.exp(-x**2)/math.sqrt(math.pi)/x
-    post=1-(1/(2*x**2))
-    return pre*post
+    pre = math.exp(-x**2) / math.sqrt(math.pi) / x
+    post = 1.0 - (1.0 / (2.0 * x**2))
+    return pre * post
 
 knownfalse = {}
 
@@ -78,6 +63,16 @@ def prknown(tag):
     bn = os.path.basename(tag)
     if bn in knownfalse:
         print " ==>", knownfalse[bn]
+
+#   Pickle tuple contents:
+#
+#   0 tag         the msg identifier
+#   1 is_spam     True if msg came from a spam Set, False if from a ham Set
+#   2 zham        the msg zscore relative to the population ham
+#   3 zspam       the msg zscore relative to the population spam
+#   4 hmean       the raw mean ham score
+#   5 smean       the raw mean spam score
+#   6 n           the number of clues used to judge this msg
 
 def drive(fname):
     print 'Reading', fname, '...'
