@@ -472,12 +472,12 @@ class IMAPMessage(message.SBHeaderMessage):
             response = imap.uid("STORE", id_to_remove, "+FLAGS.SILENT",
                                 "(\\Deleted \\Seen)")
             self._check(response, 'store')
-        new_id = multiple_ids[-1]
-        
-        # Let's hope it doesn't, but, just in case, if the search
-        # turns up empty, we make the assumption that the new
-        # message is the last one with a recent flag
-        if new_id == "":
+        if multiple_ids:
+            new_id = multiple_ids[-1]
+        else:
+            # Let's hope it doesn't, but, just in case, if the search
+            # turns up empty, we make the assumption that the new
+            # message is the last one with a recent flag
             response = imap.uid("SEARCH", "RECENT")
             new_id = response[1][0]
             if new_id.find(' ') > -1:
@@ -633,6 +633,7 @@ class IMAPFolder(object):
                 (prob, clues) = classifier.spamprob(msg.asTokens(),
                                                     evidence=True)
                 # add headers and remember classification
+                msg.delSBHeaders()
                 msg.addSBHeaders(prob, clues)
 
                 cls = msg.GetClassification()
