@@ -218,8 +218,8 @@ class IMAPSession(imaplib.IMAP4):
         
     def SelectFolder(self, folder):
         '''A method to point ensuing imap operations at a target folder'''
-        if self.current_folder != folder:
-            if self.current_folder != None:
+        if self.current_folder != None:
+            if self.current_folder != folder:
                 if self.do_expunge:
                     # It is faster to do close() than a single
                     # expunge when we log out (because expunge returns
@@ -515,8 +515,8 @@ class IMAPFilter(object):
             t = time.time()
 
         # Select the spam folder and unsure folder to make sure they exist
-        imap.SelectFolder(self.spam_folder)
-        imap.SelectFolder(self.unsure_folder)
+        imap.SelectFolder(self.spam_folder.name)
+        imap.SelectFolder(self.unsure_folder.name)
             
         for filter_folder in options["imap", "filter_folders"]:
             # Select the folder to make sure it exists
