@@ -377,8 +377,8 @@ class IMAPMessage(message.SBHeaderMessage):
         substance of this message.'''
         if self.got_substance:
             return
-        assert(self.id, "Cannot get substance of message without an id")
-        assert(self.uid, "Cannot get substance of message without an UID")
+        assert self.id, "Cannot get substance of message without an id"
+        assert self.uid, "Cannot get substance of message without an UID"
         imap.SelectFolder(self.folder.name)
         try:
             try:
@@ -493,9 +493,9 @@ class IMAPMessage(message.SBHeaderMessage):
         '''Save message to imap server.'''
         # we can't actually update the message with IMAP
         # so what we do is create a new message and delete the old one
-        assert(self.folder is not None,
-               "Can't save a message that doesn't have a folder.")
-        assert(self.id, "Can't save a message that doesn't have an id.")
+        assert self.folder is not None,\
+               "Can't save a message that doesn't have a folder."
+        assert self.id, "Can't save a message that doesn't have an id."
         response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
         self._check(response, 'fetch (flags internaldate)')
         data = _extract_fetch_data(response[1][0])

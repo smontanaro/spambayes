@@ -200,10 +200,10 @@ class FileMessage(message.SBHeaderMessage):
 
     def pathname(self):
         '''Derive the pathname of the message file'''
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
-        assert(self.directory is not None,
-               "Must set directory before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
+        assert self.directory is not None, \
+               "Must set directory before using FileMessage instances."
         return os.path.join(self.directory, self.file_name)
 
     def load(self):
@@ -219,8 +219,8 @@ class FileMessage(message.SBHeaderMessage):
         if self.loaded:
             return
 
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
 
         if options["globals", "verbose"]:
             print 'loading', self.file_name
@@ -245,8 +245,8 @@ class FileMessage(message.SBHeaderMessage):
     def store(self):
         '''Write the Message substance to the file'''
 
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
 
         if options["globals", "verbose"]:
             print 'storing', self.file_name
@@ -296,14 +296,14 @@ class FileMessage(message.SBHeaderMessage):
 
     def name(self):
         '''A unique name for the message'''
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
         return self.file_name
 
     def key(self):
         '''The key of this message in the msgs dictionary'''
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
         return self.file_name
 
     def __repr__(self):
@@ -359,8 +359,8 @@ class GzipFileMessage(FileMessage):
     '''Message that persists as a zipped file system artifact.'''
     def store(self):
         '''Write the Message substance to the file'''
-        assert(self.file_name is not None,
-               "Must set filename before using FileMessage instances.")
+        assert self.file_name is not None, \
+               "Must set filename before using FileMessage instances."
 
         if options["globals", "verbose"]:
             print 'storing', self.file_name

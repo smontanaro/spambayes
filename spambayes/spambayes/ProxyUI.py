@@ -617,8 +617,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
     def _contains(self, a, b, ignore_case=False):
         """Return true if substring b is part of string a."""
-        assert(isinstance(a, types.StringTypes))
-        assert(isinstance(b, types.StringTypes))
+        assert isinstance(a, types.StringTypes)
+        assert isinstance(b, types.StringTypes)
         if ignore_case:
             a = a.lower()
             b = b.lower()
