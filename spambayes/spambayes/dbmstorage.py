@@ -2,6 +2,8 @@
 
 from spambayes.Options import options
 import sys
+import whichdb
+import os
 
 class error(Exception):
     pass
@@ -45,9 +47,14 @@ open_funcs = {
     "gdbm": open_gdbm,
     }
 
-def open(*args):
-    dbm_type = options["globals", "dbm_type"].lower()
+def open(db_name, mode):
+    if os.path.exists(db_name):
+        # let the file tell us what db to use
+        dbm_type = whichdb.whichdb(db_name)
+    else:
+        # fresh file - open with what the user specified
+        dbm_type = options["globals", "dbm_type"].lower()
     f = open_funcs.get(dbm_type)
-    if not f:
-        raise error("Unknown dbm type in options file")
-    return f(*args)
+    if f is None:
+        raise error("Unknown dbm type: %s" % dbm_type)
+    return f(db_name, mode)
