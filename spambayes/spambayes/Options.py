@@ -414,6 +414,22 @@ smtpproxy_ham_address = spambayes_ham@localhost
 smtpproxy_spam_address = spambayes_spam@localhost
 smtpproxy_shutdown_address = spambayes_shutdown@localhost
 
+[imap]
+imap_server:
+# the default IMAP port is 143, or 993 if using SSL
+imap_port: 143
+imap_username:
+imap_password:
+imap_expunge: False
+imap_inbox: inbox
+imap_unsure_folder:
+imap_spam_folder:
+# comma delimited list of folders that will be examined for messages
+# to train as ham
+imap_ham_train_folders:
+# as for imap_ham_train_folders, but scan for messages to train as spam
+imap_spam_train_folders:
+
 [html_ui]
 html_ui_port: 8880
 html_ui_launch_browser: False
@@ -532,6 +548,17 @@ all_options = {
                   'smtpproxy_servers' : string_cracker,
                   'smtpproxy_ports' : string_cracker, 
                   },
+    'imap': {'imap_server' : string_cracker,
+             'imap_port' : int_cracker,
+             'imap_username' : string_cracker,
+             'imap_password' : string_cracker,
+             'imap_inbox' : string_cracker,
+             'imap_unsure_folder' : string_cracker,
+             'imap_spam_folder' : string_cracker,
+             'imap_ham_train_folders' : string_cracker,
+             'imap_spam_train_folders' : string_cracker,
+             'imap_expunge' : boolean_cracker, 
+            },
     'html_ui': {'html_ui_port': int_cracker,
                 'html_ui_launch_browser': boolean_cracker,
                 'html_ui_allow_remote_connections': boolean_cracker,
