@@ -4,6 +4,7 @@ import sys, os, shutil
 from manager import GetManager
 
 files_per_directory = 400
+default_directory = "..\\testtools\\Data"
 
 def BuildBuckets(manager):
     store = manager.message_store
@@ -98,7 +99,7 @@ def main():
         usage()
 
     if len(args)==0:
-        directory = os.path.join(os.path.dirname(sys.argv[0]), "..\\testtools\\Data")
+        directory = os.path.join(os.path.dirname(sys.argv[0]), default_directory)
     else:
         directory = args[0]
 
@@ -124,11 +125,11 @@ Export the folders defined in the Outlook Plugin to a test directory.
 The directory structure is as defined in the parent README.txt file,
 in the "Standard Test Data Setup" section.
 
-If 'directory' is not specified, '..\\testtools\Data' is assumed.
+If 'directory' is not specified, '%s' is assumed.
 
 If 'directory' exists, it will be recursively deleted before
 the export (but you will be asked to confirm unless -q is given).""" \
-            % (os.path.basename(sys.argv[0]), files_per_directory)
+            % (os.path.basename(sys.argv[0]), files_per_directory, default_directory)
     sys.exit(1)
 
 if __name__=='__main__':
