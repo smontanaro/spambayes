@@ -35,6 +35,7 @@ To Do:
  o Suggestions?
 
 """
+
 # This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
@@ -135,13 +136,6 @@ class Option(object):
     
     def is_valid(self, value):
         '''Check if this is a valid value for this option.'''
-# XXX This test is in the original code, but makes no sense....
-# XXX self.allowed_values defaults to None, and if that is the
-# XXX current value, then whatever is passed would be invalid
-# XXX I agree this is a silly state to be in, but it is possible
-# XXX I suppose that self.allowed_values should default to *any*
-# XXX rather than None, but I'm not sure how to express that,
-# XXX unless the regex r"." is correct.
         if self.allowed_values is None:
             return False
 
@@ -689,7 +683,7 @@ BOOLEAN = (False, True)
 SERVER = r"([\w\.\-]+(:[\d]+)?)"  # in the form server:port
 PORT = r"[\d]+"
 EMAIL_ADDRESS = r"[\w\-\.]+@[\w\-\.]+"
-PATH = r"[\w\.\-~:\\/\*]+"
+PATH = r"[\w\$\.\-~:\\/\*]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
