@@ -18,7 +18,7 @@ Abstract:
     point.  This would allow us to, for example, see how many messages
     have been trained differently than their classification, for fp/fn
     assessment purposes.
-    
+
     Message is an extension of the email package Message class, to
     include persistent message information. The persistent state
     -currently- consists of the message id, its current
@@ -28,39 +28,39 @@ Abstract:
 
     SBHeaderMessage extends Message to include spambayes header specific
     manipulations.
-    
+
 Usage:
     A typical classification usage pattern would be something like:
-    
+
     >>> msg = spambayes.message.SBHeaderMessage()
     >>> msg.setPayload(substance) # substance comes from somewhere else
     >>> id = msg.setIdFromPayload()
-    
+
     >>> if id is None:
     >>>     msg.setId(time())   # or some unique identifier
-     
+
     >>> msg.delSBHeaders()      # never include sb headers in a classification
-    
-    >>> # bayes object is your responsibility   
+
+    >>> # bayes object is your responsibility
     >>> (prob, clues) = bayes.spamprob(msg.asTokens(), evidence=True)
 
     >>> msg.addSBHeaders(prob, clues)
-    
-    
+
+
     A typical usage pattern to train as spam would be something like:
-    
+
     >>> msg = spambayes.message.SBHeaderMessage()
     >>> msg.setPayload(substance) # substance comes from somewhere else
     >>> id = msg.setId(msgid)     # id is a fname, outlook msg id, something...
 
     >>> msg.delSBHeaders()        # never include sb headers in a train
-    
+
     >>> if msg.getTraining() == False:   # could be None, can't do boolean test
     >>>     bayes.unlearn(msg.asTokens(), False)  # untrain the ham
-    
+
     >>> bayes.learn(msg.asTokens(), True) # train as spam
     >>> msg.rememberTraining(True)
-    
+
 
 To Do:
     o Master DB module, or at least make the msginfodb name an options parm
@@ -127,7 +127,7 @@ class MessageInfoDB:
 
     def _delState(self, msg):
         del self.db[msg.getId()]
-        
+
 # This should come from a Mark Hammond idea of a master db
 # For the moment, we get the name of another file from the options,
 # so that these files don't litter lots of working directories.
@@ -146,7 +146,7 @@ class Message(email.Message.Message):
         self.id = None
         self.c = None
         self.t = None
-        
+
         # non-persistent state includes all of email.Message.Message state
 
     # This function (and it's hackishness) can be avoided by using the
@@ -166,7 +166,7 @@ class Message(email.Message.Message):
         # we may want to do some header parsing error handling here
         # to try to extract important headers regardless of malformations
         prs._parsebody(self, fp)
-        
+
     def setId(self, id):
         if self.id:
             raise ValueError, "MsgId has already been set, cannot be changed"
@@ -175,11 +175,11 @@ class Message(email.Message.Message):
             raise ValueError, "MsgId must not be None"
 
         if not type(id) in types.StringTypes:
-            raise TypeError, "Id must be a string" 
-            
+            raise TypeError, "Id must be a string"
+
         self.id = id
         msginfoDB._getState(self)
-        
+
     def getId(self):
         return self.id
 
@@ -197,7 +197,7 @@ class Message(email.Message.Message):
         # \r\n *only*).  imaplib *should* take care of this for us (in the
         # append function), but does not, so we do it here
         return self._force_CRLF(email.Message.Message.as_string(self))
-        
+
     def modified(self):
         if self.id:    # only persist if key is present
             msginfoDB._setState(self)
@@ -235,7 +235,7 @@ class Message(email.Message.Message):
         # isSpam == None means no training has been done
         self.t = isSpam
         self.modified()
-         
+
     def __repr__(self):
         return "spambayes.message.Message%r" % repr(self.__getstate__())
 
@@ -249,10 +249,10 @@ class Message(email.Message.Message):
 class SBHeaderMessage(Message):
     '''Message class that is cognizant of Spambayes headers.
     Adds routines to add/remove headers for Spambayes'''
-    
+
     def __init__(self):
         Message.__init__(self)
-        
+
     def setIdFromPayload(self):
         try:
             self.setId(self[options['pop3proxy','mailid_header_name']])
@@ -264,7 +264,7 @@ class SBHeaderMessage(Message):
     def addSBHeaders(self, prob, clues):
         '''Add hammie header, and remember message's classification.  Also,
         add optional headers if needed.'''
-        
+
         if prob < options['Categorization','ham_cutoff']:
             disposition = options['Headers','header_ham_string']
         elif prob > options['Categorization','spam_cutoff']:
@@ -273,15 +273,15 @@ class SBHeaderMessage(Message):
             disposition = options['Headers','header_unsure_string']
         self.RememberClassification(disposition)
         self[options['Headers','classification_header_name']] = disposition
-        
+
         if options['Headers','include_score']:
             self[options['Headers','score_header_name']] = str(prob)
-            
+
         if options['Headers','include_thermostat']:
             thermostat = '**********'
             self[options['Headers','thermostat_header_name']] = \
                                thermostat[:int(prob*10)]
-                               
+
         if options['Headers','include_evidence']:
             hco = options['Headers','clue_mailheader_cutoff']
             sco = 1 - hco
@@ -311,7 +311,7 @@ class SBHeaderMessage(Message):
                                                           self["Subject"]))
             except KeyError:
                 self["Subject"] = disposition
-        
+
         if "header" in options['pop3proxy','add_mailid_to']:
             self[options['pop3proxy','mailid_header_name']] = self.id
 
