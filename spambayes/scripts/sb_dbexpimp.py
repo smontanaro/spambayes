@@ -27,7 +27,7 @@ Abstract:
     have a 'seed' database to start with.
 
     Database merging - multiple databases can be merged into one quite easily
-    by simply not specifying -n on an import.  This will add the two database
+    by specifying -m on an import.  This will add the two database
     nham and nspams together (assuming the two databases do not share corpora)
     and for wordinfo conflicts, will add spamcount and hamcount together.
 
