@@ -85,6 +85,10 @@ def filter_message(msg, mgr, all_actions=True):
 
         return disposition
     except:
+        # Have seen MAPI_E_TABLE_TOO_BIG errors reported here when doing the
+        # move, but in what is probably a semi-corrupt pst.
+        # However, this *is* a legitimate error to get if the target folder
+        # has > 16,383 entries.
         print "Failed filtering message!", msg
         import traceback
         traceback.print_exc()
