@@ -66,7 +66,6 @@ except NameError:
 
 import os
 import sys
-import types
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
 import cPickle as pickle
