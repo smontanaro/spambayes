@@ -202,13 +202,13 @@ class IMAPSession(BaseIMAP):
     def __init__(self, server, port, debug=0, do_expunge=False):
         try:
             BaseIMAP.__init__(self, server, port)
-        except:
+        except (BaseIMAP.error, socket.gaierror, socket.error):
             # A more specific except would be good here, but I get
             # (in Python 2.2) a generic 'error' and a 'gaierror'
             # if I pass a valid domain that isn't an IMAP server
             # or invalid domain (respectively)
             print "Invalid server or port, please check these settings."
-            sys.exit(-1)
+            sys.exit()
         self.debug = debug
         # For efficiency, we remember which folder we are currently
         # in, and only send a select command to the IMAP server if
@@ -222,7 +222,7 @@ class IMAPSession(BaseIMAP):
         try:
             BaseIMAP.login(self, username, pwd)  # superclass login
         except BaseIMAP.error, e:
-            if str(e) == "permission denied":
+            if str(e) == "permission denied" or str(e) == "Login failed.":
                 print "There was an error logging in to the IMAP server."
                 print "The userid and/or password may be incorrect."
                 sys.exit()
