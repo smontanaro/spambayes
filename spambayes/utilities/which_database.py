@@ -78,15 +78,18 @@ def main():
             print "Your storage %s is a: pickle" % (hammie,)
             return
 
-    str = whichdb.whichdb(hammie)
-    if str == "dbhash":
+    db_type = whichdb.whichdb(hammie)
+    if db_type == "dbhash":
         # could be dbhash or bsddb3
         try:
             db = dbhash.open(hammie, "c")
         except:
             print "Your storage %s is a: bsddb3" % (hammie,)
             return
-    print "Your storage %s is a: %s" % (hammie, str)
+    elif db_type is None:
+        print "Your storage %s either does not exist, or is unreadable." % \
+              (hammie,)
+    print "Your storage %s is a: %s" % (hammie, db_type)
 
 if __name__ == "__main__":
     main()
