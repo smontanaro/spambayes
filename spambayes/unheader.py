@@ -16,14 +16,22 @@ def unheader(msg, pat):
         if pat.match(hdr):
             del msg[hdr]
 
+# remain compatible with 2.2.1 - steal replace_header from 2.3 source
 class Message(email.Message.Message):
-    def replace_header(self, hdr, newval):
-        """replace first value for hdr with newval"""
-        hdr = hdr.lower()
-        for i in range(len(self._headers)):
-            k, v = self._headers[i]
-            if k.lower() == hdr:
-                self._headers[i] = (k, newval)
+    def replace_header(self, _name, _value):
+        """Replace a header.
+
+        Replace the first matching header found in the message, retaining
+        header order and case.  If no matching header was found, a
+        KeyError is raised.
+        """
+        _name = _name.lower()
+        for i, (k, v) in zip(range(len(self._headers)), self._headers):
+            if k.lower() == _name:
+                self._headers[i] = (k, _value)
+                break
+        else:
+            raise KeyError, _name
 
 class Parser(email.Parser.HeaderParser):
     def __init__(self):
