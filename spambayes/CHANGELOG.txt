@@ -1,7 +1,41 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
-Future Release
-==============
+Release 1.1a1
+=============
+Tony Meyer        13/10/2004  Add Classifier.use_bigrams option to the Advanced options page for sb_server and imapfilter.
+Tony Meyer        13/10/2004  Fix mySQL storage option for the case where the server does not support rollbacks.
+Tony Meyer        07/10/2004  Add patch from Graham Ashton to allow users of sb_upload.py to not just upload, but also train.
+Sjoerd Mullender  02/10/2004  imapfilter: Quote the search string that tries to find the message again that was just saved.
+Kenny Pitt        02/10/2004  Outlook: Change "Delete as Spam" button to "Spam" and "Recover from Spam" button to "Not Spam".
+Tony Meyer        01/10/2004  Instead of treating notate_to just like notate_subject, we convert the classification into an email address.
+Tony Meyer        30/09/2004  Implement [ 940643 ] Add ham_folder option
+Tony Meyer        30/09/2004  Fix [ 903905 ] IMAP Configuration Error
+Tony Meyer        29/09/2004  Fix [ 1036601 ] typo on advanced config web page
+Tony Meyer        15/09/2004  sb_upload: Clarify docstring so that it's mroe clear what this script does. The -n / --null command line option didn't actually do anything; change it so that it does.
+Sjoerd Mullender  20/08/2004  imapfilter: Fix the regular expression to match the Message-ID header by stopping on newline.
+Skip Montanaro    18/08/2004  tte.py: Seems better to try and alternate ham/spam scoring instead of scoring all the hams in a batch and all the spams.
+Kenny Pitt        11/08/2004  First pass at moving help text out of the Python source and into the ui.html file.
+Tony Meyer        10/08/2004  Warn people using spam_cutoff/ham_cutoff values of 0.5 or lower/higher.  Also warn them if the ham_cutoff is higher than the spam_cutoff.
+Tony Meyer        09/08/2004  Change [Classifier] x-use_bigrams to a normal, not experimental option.
+Tony Meyer        06/08/2004  imapfilter: isinstance check is wrong, so will never be true, so literals in the folder list will never be handled correctly.
+Tony Meyer        05/08/2004  Remove all traces of the experimental imbalance option.
+Tony Meyer        05/08/2004  Remove support code for two deprecated options: [Tokenizer] x-extract_dow and [Tokenizer] x-generate_time_buckets. 
+Tony Meyer        04/08/2004  Add basic unit tests for imapfilter.
+Tony Meyer        04/08/2004  Factor out X-Spambayes-Exception header code to message.py, and get imapfilter to use this.
+Tony Meyer        04/08/2004  imapfilter: Keep going if just one folder is bad (training/filtering).
+Tony Meyer        04/08/2004  imapfilter: Switch to using the Message-ID header id as our id, unless one can't be found, in which case we use our one.
+Tony Meyer        04/08/2004  imapfilter: General sb_imapfilter tidy-up.
+Tony Meyer        04/08/2004  imapfilter: Remove the layers of attempting to fetch.
+Tony Meyer        04/08/2004  imapfilter: Change the way the get_substance method works (renaming it in the process).
+Tony Meyer        04/08/2004  imapfilter: Be less restrictive about the error returned when logging in fails.
+Sjoerd Mullender  03/08/2004  message.py: Don't round-trip the message being tokenized to a string.
+Tony Meyer        03/08/2004  Implement [ 909088 ] remove STLS pop3 capability
+Skip Montanaro    26/07/2004  tte.py: Generalize the spam:ham ratio flag to include the ham value instead of having it be implicitly 1.
+Skip Montanaro    25/07/2004  tte.py: Add --ratio=N flag to allow the user to adjust the ratio of spam to ham.
+Tony Meyer        23/07/2004  For proxy handler for version checking, the proxy port needs to be an integer, not a string.
+Tony Meyer        22/07/2004  pop3proxy_tray: Do what the Outlook plug-in does and give the user the "string" version of the version number.
+Tony Meyer        22/07/2004  Fix proxy handler for checking for latest version when username/password isn't given.  Fix for Python 2.4
+Kenny Pitt        22/07/2004  Improve display names for "allow_remote_connections" options to be less confusing.
 Tony Meyer        19/07/2004  Fix [ 990700 ] Changes to asyncore in Python 2.4 break ServerLineReader
 Kenny Pitt        17/07/2004  Add an "Empty Spam Folder" option to the plug-in dropdown menu. (Patch [831941])
 Kenny Pitt        17/07/2004  Fix [941639] and [986353].  Use a non-standard extension for our py2exe created zip to get around Windows extensions that automatically expand zip files.
