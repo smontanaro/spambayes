@@ -382,7 +382,7 @@ class Classifier:
             l = wordstream
             tokens = [(l[i],"%s %s" % (l[i],l[(i+1)%len(l)]),
                        l[(i+1)%len(l)]) for i in xrange(len(l))]
-            
+
             # Run through all the triplets and add the strongest
             # clue from each (note also the comment above explaining
             # how duplicates are treated).
@@ -408,10 +408,9 @@ class Classifier:
         return [t[1:] for t in clues]
 
     def _worddistanceget(self, word):
-        unknown = options["Classifier", "unknown_word_prob"]
         record = self._wordinfoget(word)
         if record is None:
-            prob = unknown
+            prob = options["Classifier", "unknown_word_prob"]
         else:
             prob = self.probability(record)
         distance = abs(prob - 0.5)
@@ -450,7 +449,7 @@ class Classifier:
                 p = q
             except StopIteration:
                 break
-            
+
     def _wordinfokeys(self):
         return self.wordinfo.keys()
 
