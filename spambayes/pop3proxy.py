@@ -25,7 +25,16 @@ For safety, and to help debugging, the whole POP3 conversation is
 written out to _pop3proxy.log for each run.
 """
 
-import sys, re, operator, errno, getopt, cPickle, socket, asyncore, asynchat
+# This module is part of the spambayes project, which is Copyright 2002
+# The Python Software Foundation and is covered by the Python Software
+# Foundation license.
+
+__author__ = "Richie Hindle <richie@entrian.com>"
+__credits__ = "Tim Peters, Neale Pickett, all the spambayes contributors."
+
+
+import sys, re, operator, errno, getopt, cPickle, time
+import socket, asyncore, asynchat
 import classifier, tokenizer, hammie
 
 HEADER_FORMAT = '%s: %%s\r\n' % hammie.DISPHEADER
@@ -75,7 +84,6 @@ class POP3ProxyBase(asynchat.async_chat):
     def __init__(self, clientSocket, serverName, serverPort):
         asynchat.async_chat.__init__(self, clientSocket)
         self.request = ''
-        self.isClosing = False
         self.set_terminator('\r\n')
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serverSocket.connect((serverName, serverPort))
@@ -109,10 +117,16 @@ class POP3ProxyBase(asynchat.async_chat):
             return False
     
     def readResponse(self, command, args):
-        """Reads the POP3 server's response.  Also sets self.isClosing
-        to True if the server closes the socket, which tells
-        found_terminator() to close when the response has been sent.
+        """Reads the POP3 server's response and returns a tuple of
+        (response, isClosing, timedOut).  isClosing is True if the
+        server closes the socket, which tells found_terminator() to
+        close when the response has been sent.  timedOut is set if the
+        request was still arriving after 30 seconds, and tells
+        found_terminator() to proxy the remainder of the response.
         """
+        isClosing = False
+        timedOut = False
+        startTime = time.time()
         isMulti = self.isMultiline(command, args)
         responseLines = []
         isFirstLine = True
@@ -120,7 +134,7 @@ class POP3ProxyBase(asynchat.async_chat):
             line = self.serverFile.readline()
             if not line:
                 # The socket's been closed by the server, probably by QUIT.
-                self.isClosing = True
+                isClosing = True
                 break
             elif not isMulti or (isFirstLine and line.startswith('-ERR')):
                 # A single-line response.
@@ -134,9 +148,15 @@ class POP3ProxyBase(asynchat.async_chat):
                 # A normal line - append it to the response and carry on.
                 responseLines.append(line)
             
+            # Time out after 30 seconds - found_terminator() knows how
+            # to deal with this.
+            if time.time() > startTime + 30:
+                timedOut = True
+                break
+            
             isFirstLine = False
         
-        return ''.join(responseLines)
+        return ''.join(responseLines), isClosing, timedOut
     
     def collect_incoming_data(self, data):
         """Asynchat override."""
@@ -145,12 +165,6 @@ class POP3ProxyBase(asynchat.async_chat):
     def found_terminator(self):
         """Asynchat override."""
         # Send the request to the server and read the reply.
-        # XXX When the response is huge, the email client can time out.
-        # It should read as much as it can from the server, then if the
-        # response is still coming after say 30 seconds, it should
-        # classify the message based on that and send back the headers
-        # and the body so far.  Then it should become a simple
-        # one-packet-at-a-time proxy for the rest of the response.
         if self.request.strip().upper() == 'KILL':
             self.serverFile.write('QUIT\r\n')
             self.serverFile.flush()
@@ -167,7 +181,7 @@ class POP3ProxyBase(asynchat.async_chat):
             splitCommand = self.request.strip().split(None, 1)
             command = splitCommand[0].upper()
             args = splitCommand[1:]
-        rawResponse = self.readResponse(command, args)
+        rawResponse, isClosing, timedOut = self.readResponse(command, args)
         
         # Pass the request and the raw response to the subclass and
         # send back the cooked response.
@@ -175,11 +189,29 @@ class POP3ProxyBase(asynchat.async_chat):
         self.push(cookedResponse)
         self.request = ''
         
-        # If readResponse() decided that the server had closed its
-        # socket, close this one when the response has been sent.
-        if self.isClosing:
-            self.close_when_done()
+        # If readResponse() timed out, we still need to read and proxy
+        # the rest of the message.
+        if timedOut:
+            while True:
+                line = self.serverFile.readline()
+                if not line:
+                    # The socket's been closed by the server.
+                    isClosing = True
+                    break
+                elif line == '.\r\n':
+                    # The termination line.
+                    self.push(line)
+                    break
+                else:
+                    # A normal line.
+                    self.push(line)
     
+        # If readResponse() or the loop above decided that the server
+        # has closed its socket, close this one when the response has
+        # been sent.
+        if isClosing:
+            self.close_when_done()
+        
     def handle_error(self):
         """Let SystemExit cause an exit."""
         type, v, t = sys.exc_info()
@@ -491,7 +523,8 @@ def test():
         asyncore.loop(map=testSocketMap)
     
     def runProxy():
-        bayes = hammie.createbayes()
+        # Name the database in case it ever gets auto-flushed to disk.
+        bayes = hammie.createbayes('_pop3proxy.db')
         BayesProxyListener('localhost', 8110, 8111, bayes)
         bayes.learn(tokenizer.tokenize(spam1), True)
         bayes.learn(tokenizer.tokenize(good1), False)
