@@ -1080,19 +1080,27 @@ class Tokenizer:
             addrlist = msg.get_all(field, [])
             if not addrlist:
                 yield field + ":none"
-            for addrs in addrlist:
-                for rname,ename in email.Utils.getaddresses([addrs]):
-                    if rname:
-                        for rname,rcharset in email.Header.decode_header(rname):
-                            for w in rname.lower().split():
-                                for t in tokenize_word(w):
-                                    yield field+'realname:'+t
-                            if rcharset is not None:
-                                yield field+'charset:'+rcharset
-                    if ename:
-                        for w in ename.lower().split('@'):
-                            for t in tokenize_word(w):
-                                yield field+'email:'+t
+                continue
+
+            noname_count = 0
+            for name, addr in email.Utils.getaddresses(addrlist):
+                if name:
+                    for name, charset in email.Header.decode_header(name):
+                        yield "%s:name:%s" % (field, name.lower())
+                        if charset is not None:
+                            yield "%s:charset:%s" % (field, charset)
+                else:
+                    noname_count += 1
+                if addr:
+                    for w in addr.lower().split('@'):
+                        yield "%s:addr:%s" % (field, w)
+                else:
+                    yield field + ":addr:none"
+
+            if noname_count:
+                yield "%s:no real name:2**%d" % (field,
+                                                 round(log2(noname_count)))
+
         # To:
         # Cc:
         # Count the number of addresses in each of the recipient headers.
