@@ -548,6 +548,11 @@ else:
         return Set(filter(lambda part: part.get_main_type('text') == 'text',
                           msg.walk()))
 
+def octetparts(msg):
+    return Set(filter(lambda part:
+                      part.get_content_type() == 'application/octet-stream',
+                      msg.walk()))
+
 url_re = re.compile(r"""
     (https? | ftp)  # capture the protocol
     ://             # skip the boilerplate
@@ -991,7 +996,17 @@ class Tokenizer:
         sections, options.ignore_redundant_html controls whether the HTML
         part is ignored.  Except in special cases, it's recommended to
         leave that at its default of false.
+
+        If options.check_octets is True, the first few undecoded characters
+        of application/octet-stream parts of the message body become tokens.
         """
+
+        if options.check_octets:
+            # Find, decode application/octet-stream parts of the body,
+            # tokenizing the first few characters of each chunk
+            for part in octetparts(msg):
+                text = part.get_payload(decode=False)
+                yield "octet:%s" % text[:options.octet_prefix_size]
 
         # Find, decode (base64, qp), and tokenize textual parts of the body.
         for part in textparts(msg):

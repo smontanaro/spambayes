@@ -49,6 +49,11 @@ retain_pure_html_tags: False
 # the multipart/alternative as spam, regardless of content).
 ignore_redundant_html: False
 
+# If true, the first few characters of application/octet-stream sections
+# are used, undecoded.  What 'few' means is decided by octet_prefix_size.
+check_octets: False
+octet_prefix_size: 5
+
 # Generate tokens just counting the number of instances of each kind of
 # header line, in a case-sensitive way.
 #
@@ -192,6 +197,8 @@ all_options = {
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'mine_received_headers': boolean_cracker,
+                  'check_octets': boolean_cracker,
+                  'octet_prefix_size': int_cracker,
                   'basic_header_tokenize': boolean_cracker,
                   'basic_header_tokenize_only': boolean_cracker,
                   'basic_header_skip': ('get', lambda s: Set(s.split())),
