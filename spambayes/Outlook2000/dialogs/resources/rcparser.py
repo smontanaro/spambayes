@@ -119,9 +119,8 @@ class RCParser:
         """
         f = open(rcFileName)
         self.open(f)
-        while self.token!=None and self.token[0:4]!="IDD_":
-            self.getToken()
-        while self.token!=None and self.token[0:4]=="IDD_":
+        self.getToken()
+        while self.token!=None:
             self.parse()
             self.getToken()
         f.close()
@@ -130,10 +129,19 @@ class RCParser:
         self.lex.commenters = "//#"
 
     def parse(self):
+        deep = 0
         if self.token == None:
             more == None
-        elif "LANGUAGE" == self.token:
-            more = self.lang()
+        elif "BEGIN" == self.token:
+            deep = 1
+            while deep!=0:
+                self.getToken()
+                if "BEGIN" == self.token:
+                    deep += 1
+                elif "END" == self.token:
+                    deep -= 1
+        elif "IDD_" != self.token[:4]:
+            self.getToken()
         else:
             possibleDlgName = self.token
             self.getToken()
