@@ -680,7 +680,11 @@ class ProxyUserInterface(UserInterface.UserInterface):
         """Given an email.Message, return an object with subjectHeader,
         bodySummary and other header (as needed) attributes.  These objects
         are passed into appendMessages by onReview - passing email.Message
-        objects directly uses too much memory."""
+        objects directly uses too much memory.
+        """
+        # Remove notations before displaying - see:
+        # [ 848365 ] Remove subject annotations from message review page
+        message.delNotations()
         subjectHeader = message["Subject"] or "(none)"
         headers = {"subject" : subjectHeader}
         for header in options["html_ui", "display_headers"]:

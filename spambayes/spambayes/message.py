@@ -131,7 +131,9 @@ class MessageInfoBase(object):
             except KeyError:
                 # Set to None, as it's not there.
                 for att in msg.stored_attributes:
-                    setattr(msg, att, None)
+                    # Don't overwrite.
+                    if not hasattr(msg, att):
+                        setattr(msg, att, None)
             else:
                 if not isinstance(attributes, types.ListType):
                     # Old-style message info db
@@ -451,9 +453,20 @@ class SBHeaderMessage(Message):
                         lineLength = 8
             self[headerName] = "".join(wrappedEvd)
 
-        # These are pretty ugly, but no-one has a better idea about how to
-        # allow filtering in 'stripped down' mailers like Outlook Express,
-        # so for the moment, they stay in.
+        if options['Headers','add_unique_id']:
+            self[options['Headers','mailid_header_name']] = self.id
+
+        self.addNotations()            
+
+    def addNotations(self):
+        """Add the appropriate string to the subject: and/or to: header.
+
+        This is a reasonably ugly method of including the classification,
+        but no-one has a better idea about how to allow filtering in
+        'stripped down' mailers (i.e. Outlook Express), so, for the moment,
+        this is it.
+        """
+        disposition = self.GetClassification()
         # options["Headers", "notate_to"] (and notate_subject) can be
         # either a single string (like "spam") or a tuple (like
         # ("unsure", "spam")).  In Python 2.3 checking for a string in
@@ -487,8 +500,42 @@ class SBHeaderMessage(Message):
             except KeyError:
                 self["Subject"] = disposition
 
-        if options['Headers','add_unique_id']:
-            self[options['Headers','mailid_header_name']] = self.id
+    def delNotations(self):
+        """If present, remove our notation from the subject: and/or to:
+        header of the message.
+
+        This is somewhat problematic, as we cannot be 100% positive that we
+        added the notation.  It's almost certain to be us with the to:
+        header, but someone else might have played with the subject:
+        header.  However, as long as the user doesn't turn this option on
+        and off, this will all work nicely.
+
+        See also [ 848365 ] Remove subject annotations from message review
+                            page
+        """
+        subject = self["Subject"]
+        ham = options["Headers", "header_ham_string"] + ','
+        spam = options["Headers", "header_spam_string"] + ','
+        unsure = options["Headers", "header_unsure_string"] + ','
+        if options["Headers", "notate_subject"]:
+            for disp in (ham, spam, unsure):
+                if subject.startswith(disp):
+                    self.replace_header("Subject", subject[len(disp):])
+                    # Only remove one, maximum.
+                    break
+        to = self["To"]
+        ham = "%s@spambayes.invalid;" % \
+              (options["Headers", "header_ham_string"],)
+        spam = "%s@spambayes.invalid;" % \
+               (options["Headers", "header_spam_string"],)
+        unsure = "%s@spambayes.invalid;" % \
+                 (options["Headers", "header_unsure_string"],)
+        if options["Headers", "notate_to"]:
+            for disp in (ham, spam, unsure):
+                if to.startswith(disp):
+                    self.replace_header("To", to[len(disp):])
+                    # Only remove one, maximum.
+                    break
 
     def currentSBHeaders(self):
         """Return a dictionary containing the current values of the
@@ -516,6 +563,9 @@ class SBHeaderMessage(Message):
         del self[options['Headers','evidence_header_name']]
         del self[options['Headers','score_header_name']]
         del self[options['Headers','trained_header_name']]
+        # Also delete notations - typically this is called just before
+        # training, and we don't want them there for that.
+        self.delNotations()
 
 # Utility function to insert an exception header into the given RFC822 text.
 # This is used by both sb_server and sb_imapfilter, so it's handy to have
