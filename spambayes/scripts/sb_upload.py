@@ -2,7 +2,12 @@
 
 """
 Read a message or a mailbox file on standard input, upload it to a
-web browser and write it to standard output.
+web server and write it to standard output.
+
+By default, this sends the message to the SpamBayes sb_server web
+interface, which will save the message in the 'unknown' cache, ready
+for you to classify it.  It does not do any training, just saves it
+ready for you to classify.
 
 usage:  %(progname)s [-h] [-n] [-s server] [-p port] [-r N]
                      [-o section:option:value]
@@ -128,7 +133,8 @@ def main(argv):
         sys.exit(1)
 
     data = sys.stdin.read()
-    sys.stdout.write(data)
+    if not null:
+        sys.stdout.write(data)
     if random.random() < prob:
         try:
             post_multipart("%s:%d"%(server,port), "/upload", [],
