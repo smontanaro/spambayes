@@ -26,8 +26,14 @@ Tester.py
     instance, and keeps track of right/wrong percentages, and lists
     of false positives and false negatives.
 
+mboxtest.py
+    A concrete test driver like timtest.py (see below), but working
+    with a pair of mailbox files rather than the specialized timtest
+    setup.  Note that the validity of results from mboxtest.py have
+    yet to be confirmed.
+
 timtoken.py
-    Am implementation of tokenize() that Tim can't seem to help but keep
+    An implementation of tokenize() that Tim can't seem to help but keep
     working on <wink>.
 
 timtest.py
