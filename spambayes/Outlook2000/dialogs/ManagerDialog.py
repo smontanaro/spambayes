@@ -27,6 +27,7 @@ IDC_BUT_FILTER_ENABLE = 1030
 IDC_BUT_ADVANCED= 1031
 IDC_TRAINING_STATUS = 1032
 IDC_FILTER_STATUS = 1033
+IDC_VERSION = 1034
 
 class ManagerDialog(dialog.Dialog):
     style = win32con.DS_MODALFRAME | win32con.WS_POPUP | win32con.WS_VISIBLE | win32con.WS_CAPTION | win32con.WS_SYSMENU | win32con.DS_SETFONT
@@ -37,34 +38,35 @@ class ManagerDialog(dialog.Dialog):
 
     dt = [
         # Dialog itself.
-        ["Anti-Spam", (0, 0, 242, 191), style, None, (8, "MS Sans Serif")],
+        ["SpamBayes", (0, 0, 242, 201), style, None, (8, "MS Sans Serif")],
+        [STATIC,          "",                   IDC_VERSION,         (8,4,230,11),   cs | win32con.SS_LEFTNOWORDWRAP],
         # Training
-        [BUTTON,          "Training",           -1,                  (8,7,227,103), cs   | win32con.BS_GROUPBOX],
-        [STATIC,          training_intro,       -1,                  (15,17,215,17), cs],
+        [BUTTON,          "Training",           -1,                  (8,17,227,103), cs   | win32con.BS_GROUPBOX],
+        [STATIC,          training_intro,       -1,                  (15,27,215,17), cs],
         [STATIC,          "Automatically train that a message is good when",
-                                                -1,                  (15,40,208,10), cs],
+                                                -1,                  (15,50,208,10), cs],
         [BUTTON,          "It is moved from a spam folder back to the Inbox",
-                                                IDC_BUT_TRAIN_FROM_SPAM_FOLDER,(20,50,204,9), csts | win32con.BS_AUTOCHECKBOX],
+                                                IDC_BUT_TRAIN_FROM_SPAM_FOLDER,(20,60,204,9), csts | win32con.BS_AUTOCHECKBOX],
 
         [STATIC,          "Automatically train that a message is spam when",
-                                                -1,                  (15,64,208,10), cs],
+                                                -1,                  (15,74,208,10), cs],
         [BUTTON,          "It is moved to the certain-spam folder",
-                                                IDC_BUT_TRAIN_TO_SPAM_FOLDER,(20,75,204,9), csts | win32con.BS_AUTOCHECKBOX],
+                                                IDC_BUT_TRAIN_TO_SPAM_FOLDER,(20,85,204,9), csts | win32con.BS_AUTOCHECKBOX],
 
-        [STATIC,          "",                   IDC_TRAINING_STATUS, (15,88,146,14),       cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
-        [BUTTON,          'Train Now...',       IDC_BUT_TRAIN_NOW,   (167,88,63,14),       csts | win32con.BS_PUSHBUTTON],
+        [STATIC,          "",                   IDC_TRAINING_STATUS, (15,98,146,14),       cs   | win32con.SS_LEFTNOWORDWRAP | win32con.SS_CENTERIMAGE | win32con.SS_SUNKEN],
+        [BUTTON,          'Train Now...',       IDC_BUT_TRAIN_NOW,   (167,98,63,14),       csts | win32con.BS_PUSHBUTTON],
 
         # Filter
-        [BUTTON,          "Filtering",          -1,                   (7,112,228,57), cs   | win32con.BS_GROUPBOX],
-        [STATIC,          filtering_intro,      -1,                   (15,121,202,8), cs],
-        [BUTTON,          'Enable &filtering',  IDC_BUT_FILTER_ENABLE,(20,133,120,11),csts | win32con.BS_AUTOCHECKBOX],
-        [STATIC,          "",                   IDC_FILTER_STATUS,    (15,147,146,18),cs   | win32con.SS_SUNKEN],
-        [BUTTON,          'Filter Now...',      IDC_BUT_FILTER_NOW,   (167,131,63,14),   csts | win32con.BS_PUSHBUTTON],
-        [BUTTON,          'Define filters...',  IDC_BUT_FILTER_DEFINE,(167,150,63,14),csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,          "Filtering",          -1,                   (7,122,228,57), cs   | win32con.BS_GROUPBOX],
+        [STATIC,          filtering_intro,      -1,                   (15,131,202,8), cs],
+        [BUTTON,          'Enable &filtering',  IDC_BUT_FILTER_ENABLE,(20,143,120,11),csts | win32con.BS_AUTOCHECKBOX],
+        [STATIC,          "",                   IDC_FILTER_STATUS,    (15,157,146,18),cs   | win32con.SS_SUNKEN],
+        [BUTTON,          'Filter Now...',      IDC_BUT_FILTER_NOW,   (167,141,63,14),   csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,          'Define filters...',  IDC_BUT_FILTER_DEFINE,(167,160,63,14),csts | win32con.BS_PUSHBUTTON],
 
-        [BUTTON,         'Advanced...',         IDC_BUT_ADVANCED,     (15,174,62,14), csts | win32con.BS_PUSHBUTTON | win32con.WS_DISABLED],
-        [BUTTON,         'About...',            IDC_BUT_ABOUT,        (99,174,62,14), csts | win32con.BS_PUSHBUTTON],
-        [BUTTON,         'Close',               win32con.IDOK,        (167,174,62,14),csts | win32con.BS_DEFPUSHBUTTON],
+        #[BUTTON,         'Advanced...',         IDC_BUT_ADVANCED,     (15,184,62,14), csts | win32con.BS_PUSHBUTTON | win32con.WS_DISABLED ],
+        [BUTTON,         'About...',            IDC_BUT_ABOUT,        (99,184,62,14), csts | win32con.BS_PUSHBUTTON],
+        [BUTTON,         'Close',               win32con.IDOK,        (167,184,62,14),csts | win32con.BS_DEFPUSHBUTTON],
     ]
 
     def __init__(self, mgr, do_train, do_filter, define_filter):
@@ -84,6 +86,12 @@ class ManagerDialog(dialog.Dialog):
         dialog.Dialog.__init__(self, self.dt)
 
     def OnInitDialog(self):
+        from spambayes.Version import get_version_string
+        version_key = "Full Description"
+        if hasattr(sys, "frozen"):
+            version_key += " Binary"
+        self.SetDlgItemText(IDC_VERSION, get_version_string("Outlook", version_key))
+        
 ##        self.HookCommand(self.OnButAdvanced, IDC_BUT_ADVANCED)
         self.HookCommand(self.OnButAbout, IDC_BUT_ABOUT)
         self.HookCommand(self.OnButDoSomething, IDC_BUT_TRAIN_NOW)
