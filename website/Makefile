@@ -21,6 +21,8 @@ f = Version.__file__;\
 print (os.path.splitext(f)[0]+".py").replace("\\", "/");\
 ')
 
+$(shell python scripts\create_experimental_pages.py)
+
 $(TARGETS): links.h
 
 FAQ_TITLE=SpamBayes FAQ
