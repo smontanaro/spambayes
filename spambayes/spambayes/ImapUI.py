@@ -126,6 +126,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onHome(self):
         """Serve up the homepage."""
         stateDict = self.classifier.__dict__.copy()
+        stateDict["warning"] = ""
         stateDict.update(self.classifier.__dict__)
         statusTable = self.html.statusTable.clone()
         del statusTable.proxyDetails

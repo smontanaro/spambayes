@@ -699,6 +699,33 @@ class State:
         filename = os.path.expanduser(filename)
         self.bayes = storage.open_storage(filename, self.useDB)
 
+        # Status message
+        nspam = self.bayes.nspam
+        nham = self.bayes.nham
+        if nspam > 10 and nham > 10:
+            db_ratio = nham/float(nspam)
+            big = small = None
+            if db_ratio > 5.0:
+                big = "ham"
+                small = "spam"
+            elif db_ratio < (1/5.0):
+                big = "spam"
+                small = "ham"
+            if big is not None:                
+                self.warning = "%s\nWarning: you have much more %s than %s - " \
+                               "SpamBayes works best with approximately even " \
+                               "numbers of ham and spam." % (db_status, big,
+                                                             small)
+            else:
+                self.warning = ""
+        elif nspam > 0 or nham > 0:
+            self.warning = "Database only has %d good and %d spam - you should " \
+                           "consider performing additional training." % (nham, nspam)
+        else:
+            self.warning = "Database has no training information.  SpamBayes " \
+                           "will classify all messages as 'unsure', " \
+                           "ready for you to train."
+
         # Don't set up the caches and training objects when running the self-test,
         # so as not to clutter the filesystem.
         if not self.isTest:
