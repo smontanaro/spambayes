@@ -808,7 +808,8 @@ class MAPIMsgStoreMsg:
         self.dirty = False
 
         # For use with the spambayes.message messageinfo database.
-        self.stored_attributes = ['c', 't', 'original_folder']
+        self.stored_attributes = ['c', 't', 'original_folder',
+                                  'date_modified']
         self.t = None
         self.c = None
         self.date_modified = None

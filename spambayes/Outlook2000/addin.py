@@ -468,6 +468,18 @@ def ShowClues(mgr, explorer):
     push("<br>\n")
     push("# ham trained on: %d<br>\n" % c.nham)
     push("# spam trained on: %d<br>\n" % c.nspam)
+    push("<br>\n")
+
+    # Report last modified date.
+    modified_date = msgstore_message.date_modified
+    if modified_date:
+        from time import localtime, strftime
+        modified_date = localtime(modified_date)
+        date_string = strftime("%a, %d %b %Y %I:%M:%S %p", modified_date)
+        push("As at %s:<br>\n" % (date_string,))
+    else:
+        push("The last time this message was classified or trained:<br>\n")
+
     # Score when the message was classified - this will hopefully help
     # people realise that it may not necessarily be the same, and will
     # help diagnosing any 'wrong' scoring reported.
@@ -481,18 +493,18 @@ def ShowClues(mgr, explorer):
             original_class = "unsure"
         else:
             original_class = "good"
-    push("<br>\n")
     if original_score is None:
-        push("This message has not been filtered.")
+        push("This message had not been filtered.")
     else:
         original_score = round(original_score)
-        push("When this message was last filtered, it was classified " \
-             "as %s (it scored %d%%)." % (original_class, original_score))
+        push("This message was classified as %s (it scored %d%%)." % \
+             (original_class, original_score))
     # Report whether this message has been trained or not.
     push("<br>\n")
-    push("This message has %sbeen trained%s." % \
+    push("This message had %sbeen trained%s." % \
          {False : ("", " as ham"), True : ("", " as spam"),
           None : ("not ", "")}[msgstore_message.t])
+
     # Format the clues.
     push("<h2>%s Significant Tokens</h2>\n<PRE>" % len(clues))
     push("<strong>")
@@ -696,6 +708,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # Record the original folder, in case this message is not where
             # it was after filtering, or has never been filtered.
             msgstore_message.RememberMessageCurrentFolder()
+            msgstore_message.Save()
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Moving and spam training message '%s' - " % (subject,),

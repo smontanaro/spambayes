@@ -112,6 +112,7 @@ def filter_message(msg, mgr, all_actions=True):
             mgr.stats.RecordClassification(prob)
             mgr.classifier_data.message_db.store_msg(msg)
             mgr.classifier_data.dirty = True
+            mgr.classifier_data.SavePostIncrementalTrain()
         return disposition
     except:
         print "Failed filtering message!", msg
