@@ -559,7 +559,7 @@ class UserInterface(BaseUserInterface):
         for name, value in parms.items():
             if name[-2:-1] == '-':
                 if parms.has_key(name[:-2]):
-                    parms[name[:-2]].append(value)
+                    parms[name[:-2]] += (value,)
                 else:
                     parms[name[:-2]] = (value,)
                 del parms[name]
