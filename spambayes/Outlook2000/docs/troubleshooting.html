@@ -17,6 +17,9 @@ the following problems listed:<br>
   <li><a href="#Messages_fail_to_filter">Messages fail to filter</a></li>
   <li><a href="#Messages_have_incorrect_or_unexpected">Messages have
 incorrect or unexpected Spam values</a></li>
+  <li><a href="#register-all-users">SpamBayes is not available for all
+users on the machine</a><br>
+  </li>
   <li><a href="#All_other_problems">All other problems</a></li>
 </ul>
 There is also an <a href="http://spambayes.sourceforge.net/faq.html">online
@@ -97,7 +100,7 @@ button.</li>
 button.</li>
     <li>If the SpamBayes addin is not listed, then SpamBayes should be
 reinstalled (Note that running <span style="font-style: italic;">regsvr32.exe
-spambayes_addin.dll</span> from the SpamBayes directory may also solve
+outlook_addin.dll</span> from the SpamBayes directory may also solve
 this problem)</li>
     <li>If the SpamBayes addin is listed but not checked, then simply
 check it and close the dialog.</li>
@@ -191,6 +194,31 @@ you have probably stumbled across a bug - please mail the clues to the
 mailing list.</li>
   </ul>
 </ul>
+<h2><a name="register-all-users"></a>SpamBayes is not available for all
+users on the machine.</h2>
+When SpamBayes is installed, by default it is available only for the
+user who installed it.&nbsp; This is to allow SpamBayes to appear in
+Microsoft Outlook's Com-Addin list, and therefore able to be activated
+and de-activated by the user inside Outlook.<br>
+It is possible to register the addin so it is available to all users on
+a particular machine, which can be useful in enterprise arrangements
+where users have 'roaming profiles'<br>
+To register SpamBayes in this way, you must execute the command
+(obviously with the correct patch substituted):<br>
+<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; regsvr32.exe
+/i:hkey_local_machine "c:\Program Files\SpamBayes\bin\outlook_addin.dll"</span><br>
+If you <a href="#CheckLog">check the installation log</a> after
+performing such an install, you should see the following messages:<br>
+<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registered:
+SpamBayes.OutlookAddin </span><br style="font-style: italic;">
+<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registration
+complete.</span><br style="font-style: italic;">
+<span style="font-style: italic;">&nbsp;&nbsp;&nbsp; Registration (in
+HKEY_LOCAL_MACHINE) complete.</span><br style="font-style: italic;">
+Note the last line, which does not exist when registration is performed
+only for the current user.&nbsp; Once you have performed this
+registration, the Addin will be available for all users - but as noted
+above, it will no longer appear in Outlook's Com-Addin list.<br>
 <h2><a name="All_other_problems"></a>All other problems</h2>
 If you are simply unsure about what SpamBayes is doing, please <a
  href="#mail">send a
