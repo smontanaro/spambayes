@@ -391,8 +391,8 @@ setting directory, e.g.::
 10. Add the following two lines. Use whatever ports you assigned to
     pop3proxy and smtpproxy for the dominant personality::
 
-    POPPort=1110
-    SMTPPort=1115
+	POPPort=1110
+	SMTPPort=1115
 
 11. Setting for other personalities are kept in sections beginning with
     ``[Persona-personality_name]``. For each personality make the same
