@@ -5,7 +5,6 @@ import win32con
 import commctrl
 import win32ui
 import win32api
-import pythoncom
 from win32com.client import constants
 
 from DialogGlobals import *
@@ -330,10 +329,11 @@ class FilterNowDialog(AsyncDialogBase):
     def UpdateFolderNames(self):
         names = []
         for eid in self.mgr.config.filter_now.folder_ids:
-            try:
-                name = self.mgr.message_store.GetFolder(eid).name
-            except pythoncom.com_error:
+            folder = self.mgr.message_store.GetFolder(eid)
+            if folder is None:
                 name = "<unknown folder>"
+            else:
+                name = folder.name
             names.append(name)
         self.SetDlgItemText(IDC_FOLDER_NAMES, "; ".join(names))
 

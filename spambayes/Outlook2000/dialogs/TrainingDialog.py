@@ -5,7 +5,6 @@ import win32con
 import commctrl
 import win32ui
 import win32api
-import pythoncom
 from win32com.client import constants
 
 #these are the atom numbers defined by Windows for basic dialog controls
@@ -78,19 +77,21 @@ class TrainingDialog(AsyncDialogBase):
 
         names = []
         for eid in self.config.ham_folder_ids:
-            try:
-                name = self.mgr.message_store.GetFolder(eid).name
-            except pythoncom.com_error:
+            folder = self.mgr.message_store.GetFolder(eid)
+            if folder is None:
                 name = "<unknown folder>"
+            else:
+                name = folder.name
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_HAM, "; ".join(names))
 
         names = []
         for eid in self.config.spam_folder_ids:
-            try:
-                name = self.mgr.message_store.GetFolder(eid).name
-            except pythoncom.com_error:
+            folder = self.mgr.message_store.GetFolder(eid)
+            if folder is None:
                 name = "<unknown folder>"
+            else:
+                name = folder.name
             names.append(name)
         self.SetDlgItemText(IDC_STATIC_SPAM, "; ".join(names))
 

@@ -38,10 +38,18 @@ def filter_message(msg, mgr, all_actions=True):
                 pass
             elif action.startswith("co"): # copied
                 dest_folder = mgr.message_store.GetFolder(folder_id)
-                msg.CopyTo(dest_folder)
+                if dest_folder is None:
+                    print "ERROR: Unable to open the folder to Copy the " \
+                          "message - this message was not copied"
+                else:
+                    msg.CopyTo(dest_folder)
             elif action.startswith("mo"): # Moved
                 dest_folder = mgr.message_store.GetFolder(folder_id)
-                msg.MoveTo(dest_folder)
+                if dest_folder is None:
+                    print "ERROR: Unable to open the folder to Move the " \
+                          "message - this message was not moved"
+                else:
+                    msg.MoveTo(dest_folder)
             else:
                 raise RuntimeError, "Eeek - bad action '%r'" % (action,)
 

@@ -50,7 +50,6 @@ class FolderSpec:
 #########################################################################
 from win32com.mapi import mapi
 from win32com.mapi.mapitags import *
-import pythoncom
 
 def _BuildFoldersMAPI(manager, folder_id):
     folder = manager.message_store.GetFolder(folder_id).OpenEntry()
@@ -66,11 +65,7 @@ def _BuildFoldersMAPI(manager, folder_id):
         # re-fetch from the object itself (which is what our manager does,
         # so no need to do it explicitly - just believe folder.id over eid)
         temp_id = mapi.HexFromBin(store_eid), mapi.HexFromBin(eid)
-        try:
-            child_folder = manager.message_store.GetFolder(temp_id)
-        except pythoncom.com_error:
-            # Bad folder for some reason - ignore it.
-            child_folder = None
+        child_folder = manager.message_store.GetFolder(temp_id)
         if child_folder is not None:
             spec = FolderSpec(child_folder.GetID(), name)
             # If we have no children at all, indicate

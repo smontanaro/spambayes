@@ -171,10 +171,11 @@ class BayesManager:
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
         for eid in folder_ids:
-            try:
-                name = self.message_store.GetFolder(eid).name
-            except pythoncom.com_error:
+            folder = self.message_store.GetFolder(eid)
+            if folder is None:
                 name = "<unknown folder>"
+            else:
+                name = folder.name
             names.append(name)
         ret = '; '.join(names)
         if include_sub:
@@ -196,6 +197,11 @@ class BayesManager:
         # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
         msgstore_folder = self.message_store.GetFolder(folder_id)
+        if msgstore_folder is None:
+            print "Checking a folder for our field failed - "\
+                  "there is no such folder."
+            return
+            
         folder = msgstore_folder.GetOutlookItem()
         if self.verbose > 1:
             print "Checking folder '%s' for our field '%s'" \

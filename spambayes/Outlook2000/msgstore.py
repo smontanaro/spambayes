@@ -204,8 +204,17 @@ class MAPIMsgStore(MsgStore):
     def GetFolderGenerator(self, folder_ids, include_sub):
         for folder_id in folder_ids:
             folder_id = self.NormalizeID(folder_id)
-            folder = self._OpenEntry(folder_id)
-            table = folder.GetContentsTable(0)
+            try:
+                folder = self._OpenEntry(folder_id)
+                table = folder.GetContentsTable(0)
+            except pythoncom.com_error, (hr, msg, exc, arg_err):
+                # We will ignore *all* such errors for the time
+                # being, but warn for results we don't know about.
+                if hr not in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]:
+                    print "WARNING: Unexpected MAPI error opening folder"
+                    print "Error:", mapiutil.GetScodeString(hr)
+                    print "Exception Message:", msg
+                continue
             rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
             yield MAPIMsgStoreFolder(self, folder_id, props[0][1],
                                      table.GetRowCount(0))
@@ -221,8 +230,17 @@ class MAPIMsgStore(MsgStore):
                          mapi.BinFromHex(folder_id.EntryID)
         else:
             folder_id = self.NormalizeID(folder_id)
-        folder = self._OpenEntry(folder_id)
-        table = folder.GetContentsTable(0)
+        try:
+            folder = self._OpenEntry(folder_id)
+            table = folder.GetContentsTable(0)
+        except pythoncom.com_error, (hr, msg, exc, arg_err):
+            # We will ignore *all* such errors for the time
+            # being, but warn for results we don't know about.
+            if hr not in [mapi.MAPI_E_OBJECT_DELETED, mapi.MAPI_E_NOT_FOUND]:
+                print "WARNING: Unexpected MAPI error opening folder"
+                print "Error:", mapiutil.GetScodeString(hr)
+                print "Exception Message:", msg
+            return None
         # Ensure we have a long-term ID.
         rc, props = folder.GetProps( (PR_ENTRYID, PR_DISPLAY_NAME_A), 0)
         folder_id = folder_id[0], props[0][1]

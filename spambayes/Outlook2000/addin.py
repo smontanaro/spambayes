@@ -545,7 +545,7 @@ class ExplorerWithEvents:
             try:
                 mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
                 look_id = self.manager.config.filter.spam_folder_id
-                if look_id:
+                if mapi_folder is not None and look_id:
                     look_folder = self.manager.message_store.GetFolder(look_id)
                     if mapi_folder == look_folder:
                         # This is the Spam folder - only show "recover"
@@ -553,7 +553,7 @@ class ExplorerWithEvents:
                         show_delete_as = False
                 # Check if uncertain
                 look_id = self.manager.config.filter.unsure_folder_id
-                if look_id:
+                if mapi_folder is not None and look_id:
                     look_folder = self.manager.message_store.GetFolder(look_id)
                     if mapi_folder == look_folder:
                         show_recover_as = True
