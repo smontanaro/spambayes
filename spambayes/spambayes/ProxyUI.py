@@ -124,7 +124,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         stateDict.update(state.bayes.__dict__)
         statusTable = self.html.statusTable.clone()
         if not state.servers:
-            statusTable.proxyDetails = "No POP3 proxies running."
+            statusTable.proxyDetails = "No POP3 proxies running.<br/>"
         content = (self._buildBox('Status and Configuration',
                                   'status.gif', statusTable % stateDict)+
                    self._buildBox('Train on proxied messages',
