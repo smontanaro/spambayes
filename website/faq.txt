@@ -508,9 +508,13 @@ This directory is located in the "Application Data" directory.  If you have
 version 008 of the plug-in, or higher, you can locate this directory by
 using the `Show Data Folder` button on the `Advanced` tab of the main
 `SpamBayes` manager dialog.  If you need to locate it by hand, on Windows
-NT/2000/XP, it will probably be:
+2000/XP, it will probably be:
 
     C:\\Documents and Settings\\[username]\\Application Data\\Spambayes
+
+With Windows NT, it will probably be:
+
+   C:\\WinNT\\profiles\\[username]\\Application Data
 
 On other versions of Windows, it will probably be:
 
