@@ -116,7 +116,7 @@ defaults = {
             during this period, the timer will be reset and delay will start again.""",
             INTEGER, RESTORE),
         ("timer_interval", "The interval between subsequent timer checks (in ms)", 1000,
-            """Once the a new message timer found a new message, how long should
+            """Once the new message timer finds a new message, how long should
             SpamBayes wait before checking for another new message, assuming no
             other new messages arrive.  Should a new message arrive during this
             process, the timer will reset, meaning that timer_start_delay will
