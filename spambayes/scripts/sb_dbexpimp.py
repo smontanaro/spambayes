@@ -54,6 +54,9 @@ Usage:
                      file will be created.  If specified, the imported
                      wordinfo will be merged into an existing database.
                      Run dbExpImp -h for more information.
+            -o: section:option:value :
+                     set [section, option] in the options database to value
+
             -h     : help
 
 Examples:
@@ -232,7 +235,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:D:f:')
+        opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:D:f:o:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -265,6 +268,8 @@ if __name__ == '__main__':
             newDBM = False
         elif opt == '-v':
             options["globals", "verbose"] = True
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
 
     if (dbFN and flatFN):
         if exp:
