@@ -17,7 +17,7 @@ to localhost, rather than directly to your POP3 server.  Additionally, add
 a new IMAP account, also connecting to localhost.  Setup the application
 via the web interface, and you are ready to go.  Good messages will appear
 as per normal, but you will also have two new incoming folders, one for
-spam and one for ham.
+spam and one for unsure messages.
 
 To train SpamBayes, use the spam folder, and the 'train_as_ham' folder.
 Any messages in these folders will be trained appropriately.  This means
@@ -37,17 +37,20 @@ into the appropriate training folder).
 
 This SpamBayes application is designed to work with Outlook Express, and
 provide the same sort of ease of use as the Outlook plugin.  Although the
-majority of development and testing has been done with Outlook Express,
-any mail client that supports both IMAP and POP3 should be able to use this
-application - if the client enables the user to work with an IMAP account
-and POP3 account side-by-side (and move messages between them), then it
-should work equally as well as Outlook Express.
+majority of development and testing has been done with Outlook Express and
+Eudora, any mail client that supports both IMAP and POP3 should be able to
+use this application - if the client enables the user to work with an IMAP
+account and POP3 account side-by-side (and move messages between them),
+then it should work equally as well.
 
 This module includes the following classes:
+ o IMAPMessage
+ o DynamicIMAPMessage
  o IMAPFileMessage
  o IMAPFileMessageFactory
  o IMAPMailbox
  o SpambayesMailbox
+ o SpambayesInbox
  o Trainer
  o SpambayesAccount
  o SpambayesIMAPServer
@@ -60,7 +63,8 @@ This module includes the following classes:
 todo = """
  o Message flags are currently not persisted, but should be.  The
    IMAPFileMessage class should be extended to do this.  The same
-   goes for the 'internaldate' of the message.
+   goes for the 'internaldate' of the message.  These could be put
+   in the message info database, no doubt.
  o The RECENT flag should be unset at some point, but when?  The
    RFC says that a message is recent if this is the first session
    to be notified about the message.  Perhaps this can be done
@@ -79,6 +83,11 @@ todo = """
    threads, and not the IMAP server.  We need to monitor the thread
    that we kick off, and if it dies, we should die too.  Need to figure
    out how to do this in twisted.
+ o Apparently, twisted.internet.app is deprecated, and we should
+   use twisted.application instead.  Need to figure out what that means!
+ o We could have a distinction between messages classified as spam
+   and messages to train as spam.  At the moment we force users into
+   the 'incremental training' system available with the Outlook plug-in.
  o Suggestions?
 """
 
@@ -157,8 +166,8 @@ class IMAPMessage(message.Message):
         """Retrieve a group of message headers."""
         headers = {}
         for header, value in self.items():
-            if (header.upper() in names and not negate) or names == ():
-                headers[header.upper()] = value
+            if (header.lower() in names and not negate) or names == ():
+                headers[header.lower()] = value
         return headers
 
     def getFlags(self):
@@ -546,7 +555,7 @@ class SpambayesMailbox(IMAPMailbox):
                 value = False
             elif mode == 1:
                 value = True
-            for flag in flags:
+            for flag in flags or (): # flags might be None
                 if flag == '(' or flag == ')':
                     continue
                 if flag == "SEEN" and value == True and msg.seen == False:
@@ -590,6 +599,7 @@ class SpambayesInbox(SpambayesMailbox):
     def createMessages(self):
         """Create the special messages that live in this mailbox."""
         state.buildStatusStrings()
+        # This about message could have a bit more content!
         about = 'Subject: About SpamBayes\r\n' \
                  'From: "SpamBayes" <no-reply@localhost>\r\n\r\n' \
                  'See <http://spambayes.org>.\r\n'
@@ -603,6 +613,9 @@ class SpambayesInbox(SpambayesMailbox):
         # XXX statistics
         # XXX information from sb_server homepage about number
         # XXX   of messages classified etc.
+        # XXX one with a link to the configuration page
+        # XXX   (or maybe even the configuration page itself,
+        # XXX    in html!)
 
     def isWriteable(self):
         """Get the read/write status of the mailbox."""
@@ -737,11 +750,15 @@ class MyBayesProxy(POP3ProxyBase):
           of the message.
     """
 
-    intercept_message = 'From: "Spambayes" <no-reply@localhost>\n' \
-                        'Subject: Spambayes Intercept\n\nA message ' \
-                        'was intercepted by Spambayes (it scored %s).\n' \
-                        '\nYou may find it in the Spam or Unsure ' \
-                        'folder.\n\n.\n'
+    # This message could be a bit more informative - it could at least
+    # say whether it's the spam or unsure folder.  It could give
+    # information about who the message was from, or what the subject
+    # was, if people thought that would be a good idea.
+    intercept_message = 'From: "Spambayes" <no-reply@localhost>\r\n' \
+                        'Subject: Spambayes Intercept\r\n\r\nA message ' \
+                        'was intercepted by Spambayes (it scored %s).\r\n' \
+                        '\r\nYou may find it in the Spam or Unsure ' \
+                        'folder.\r\n\r\n'
 
     def __init__(self, clientSocket, serverName, serverPort, spam, unsure):
         POP3ProxyBase.__init__(self, clientSocket, serverName, serverPort)
@@ -788,31 +805,77 @@ class MyBayesProxy(POP3ProxyBase):
         """Classifies the message.  If the result is ham, then simply
         pass it through.  If the result is an unsure or spam, move it
         to the appropriate IMAP folder."""
+        # XXX This is all almost from sb_server!  We could just
+        # XXX extract that out into a function and call it here.
+
         # Use '\n\r?\n' to detect the end of the headers in case of
         # broken emails that don't use the proper line separators.
         if re.search(r'\n\r?\n', response):
+            # Remove the trailing .\r\n before passing to the email parser.
+            # Thanks to Scott Schlesier for this fix.
+            terminatingDotPresent = (response[-4:] == '\n.\r\n')
+            if terminatingDotPresent:
+                response = response[:-3]
+
             # Break off the first line, which will be '+OK'.
             ok, messageText = response.split('\n', 1)
 
-            prob = state.bayes.spamprob(tokenize(messageText))
-            if prob < options["Categorization", "ham_cutoff"]:
-                # Return the +OK and the message with the header added.
-                state.numHams += 1
-                return ok + "\n" + messageText
-            elif prob > options["Categorization", "spam_cutoff"]:
-                dest_folder = self.spam_folder
-                state.numSpams += 1
-            else:
-                dest_folder = self.unsure_folder
-                state.numUnsure += 1
-            msg = StringIO.StringIO(messageText)
-            date = imaplib.Time2Internaldate(time.time())[1:-1]
-            dest_folder.addMessage(msg, (), date)
+            try:
+                msg = message.SBHeaderMessage()
+                msg.setPayload(messageText)
+                # Now find the spam disposition and add the header.
+                (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
+                                 evidence=True)
 
-            # We have to return something, because the client is expecting
-            # us to.  We return a short message indicating that a message
-            # was intercepted.
-            return ok + "\n" + self.intercept_message % (prob,)
+                msg.addSBHeaders(prob, clues)
+
+                # Check for "RETR" or "TOP N 99999999" - fetchmail without
+                # the 'fetchall' option uses the latter to retrieve messages.
+                if (command == 'RETR' or
+                    (command == 'TOP' and
+                     len(args) == 2 and args[1] == '99999999')):
+                    cls = msg.GetClassification()
+                    dest_folder = None
+                    if cls == options["Headers", "header_ham_string"]:
+                        state.numHams += 1
+                        headers = []
+                        for name, value in msg.items():
+                            header = "%s: %s" % (name, value)
+                            headers.append(re.sub(r'\r?\n', '\r\n', header))
+                        body = re.split(r'\n\r?\n', messageText, 1)[1]
+                        messageText = "\r\n".join(headers) + "\r\n\r\n" + body
+                    elif prob > options["Categorization", "spam_cutoff"]:
+                        dest_folder = self.spam_folder
+                        state.numSpams += 1
+                    else:
+                        dest_folder = self.unsure_folder
+                        state.numUnsure += 1
+                    if dest_folder:
+                        msg = StringIO.StringIO(msg.as_string())
+                        date = imaplib.Time2Internaldate(time.time())[1:-1]
+                        dest_folder.addMessage(msg, (), date)
+
+                        # We have to return something, because the client
+                        # is expecting us to.  We return a short message
+                        # indicating that a message was intercepted.
+                        messageText = self.intercept_message % (prob,)
+            except:
+                stream = cStringIO.StringIO()
+                traceback.print_exc(None, stream)
+                details = stream.getvalue()
+                detailLines = details.strip().split('\n')
+                dottedDetails = '\n.'.join(detailLines)
+                headerName = 'X-Spambayes-Exception'
+                header = Header(dottedDetails, header_name=headerName)
+                headers, body = re.split(r'\n\r?\n', messageText, 1)
+                header = re.sub(r'\r?\n', '\r\n', str(header))
+                headers += "\n%s: %s\r\n\r\n" % (headerName, header)
+                messageText = headers + body
+                print >>sys.stderr, details
+            retval = ok + "\n" + messageText
+            if terminatingDotPresent:
+                retval += '.\r\n'
+            return retval
         else:
             # Must be an error response.
             return response
