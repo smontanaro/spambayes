@@ -10,10 +10,12 @@ def BuildBuckets(manager):
     store = manager.message_store
     config = manager.config
     num_ham = num_spam = 0
-    for folder in store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
+    for folder in store.GetFolderGenerator(config.training.spam_folder_ids,
+                                           config.training.spam_include_sub):
         for msg in folder.GetMessageGenerator():
             num_spam += 1
-    for folder in store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
+    for folder in store.GetFolderGenerator(config.training.ham_folder_ids,
+                                           config.training.ham_include_sub):
         for msg in folder.GetMessageGenerator():
             num_ham += 1
     num_buckets = min(num_ham, num_spam)/ FILES_PER_DIRECTORY
@@ -57,10 +59,10 @@ def export(directory):
     config = manager.config
 
     num_spam, num_ham, buckets = BuildBuckets(manager)
-    print "Have %d spam, and %d ham to export, spread over %d directories." \
-          % (num_spam, num_ham, len(buckets))
+    print "Have", num_spam, "spam and", num_ham, "ham to export,",
+    print "spread over", len(buckets), "directories."
 
-    for sub in ["Spam", "Ham"]:
+    for sub in "Spam", "Ham":
         if os.path.exists(os.path.join(directory, sub)):
             shutil.rmtree(os.path.join(directory, sub))
         for b in buckets:
@@ -68,13 +70,19 @@ def export(directory):
             os.makedirs(d)
 
     print "Exporting spam..."
-    num = _export_folders(manager, os.path.join(directory, "Spam"), buckets,
-                          config.training.spam_folder_ids, config.training.spam_include_sub)
+    num = _export_folders(manager,
+                          os.path.join(directory, "Spam"),
+                          buckets,
+                          config.training.spam_folder_ids,
+                          config.training.spam_include_sub)
     print "Exported", num, "spam messages."
 
     print "Exporting ham..."
-    num = _export_folders(manager, os.path.join(directory, "Ham"), buckets,
-                          config.training.ham_folder_ids, config.training.ham_include_sub)
+    num = _export_folders(manager,
+                          os.path.join(directory, "Ham"),
+                          buckets,
+                          config.training.ham_folder_ids,
+                          config.training.ham_include_sub)
     print "Exported", num, "ham messages."
 
 def main():
@@ -98,18 +106,18 @@ def main():
 
     if len(args) > 1:
         usage("Only one directory name can be specified.")
-
-    if len(args)==0:
-        directory = os.path.join(os.path.dirname(sys.argv[0]), DEFAULT_DIRECTORY)
-    else:
+    elif args:
         directory = args[0]
+    else:
+        directory = os.path.join(os.path.dirname(sys.argv[0]),
+                                 DEFAULT_DIRECTORY)
 
     directory = os.path.abspath(directory)
     print "This program will export your Outlook Ham and Spam folders"
-    print "to the directory '%s'" % (directory,)
+    print "to the directory '%s'" % directory
     if os.path.exists(directory):
         print "*******"
-        print "WARNING: all existing files in '%s' will be deleted" % (directory,)
+        print "WARNING: all existing files in '%s' will be deleted" % directory
         print "*******"
     if not quiet:
         raw_input("Press enter to continue, or Ctrl+C to abort.")
@@ -137,7 +145,9 @@ If 'directory' is not specified, '%s' is assumed.
 
 If 'directory' exists, it will be recursively deleted before
 the export (but you will be asked to confirm unless -q is given).""" \
-            % (os.path.basename(sys.argv[0]), FILES_PER_DIRECTORY, DEFAULT_DIRECTORY)
+            % (os.path.basename(sys.argv[0]),
+               FILES_PER_DIRECTORY,
+               DEFAULT_DIRECTORY)
     sys.exit(1)
 
 if __name__=='__main__':
