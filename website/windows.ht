@@ -55,12 +55,13 @@ Outlook plugin fares with them.</p>
 </tr>
 <tr>
 <td>Outlook 2002 (XP)</td>
-    <td>&nbsp;</td>                 <!-- Win95 -->
-    <td>&nbsp;</td>                 <!-- Win98 -->
-    <td>&nbsp;</td>		    <!-- WinMe -->
-    <td>&nbsp;</td>		    <!-- Win2k -->
-    <td>works w/ installer 002</td> <!-- WinXP Pro -->
-    <td>&nbsp;</td>		    <!-- WinXP Home -->
+    <td>&nbsp;</td>                      <!-- Win95 -->
+    <td>1.0a2 source or CVS works,
+        installer 002 fails</td>         <!-- Win98 -->
+    <td>installer 002 fails</td>         <!-- WinMe -->
+    <td>&nbsp;</td>		         <!-- Win2k -->
+    <td>installer 002 works</td>         <!-- WinXP Pro -->
+    <td>&nbsp;</td>		         <!-- WinXP Home -->
 </tr>
 </table>
 </p>
