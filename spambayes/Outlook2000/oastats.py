@@ -84,15 +84,16 @@ class Stats:
         The percentages will be accurate to the given number of decimal
         points.
         """
+        chunks = []
+        push = chunks.append
         num_seen = self.num_ham + self.num_spam + self.num_unsure
         if not session_only:
             totals = self.totals
             num_seen += (totals["num_ham"] + totals["num_spam"] +
                          totals["num_unsure"])
+        push(_("Messages classified: %d") % num_seen);
         if num_seen==0:
-            return [_("SpamBayes has processed zero messages")]
-        chunks = []
-        push = chunks.append
+            return chunks
         if session_only:
             num_ham = self.num_ham
             num_spam = self.num_spam
@@ -116,37 +117,137 @@ class Stats:
         perc_ham = 100.0 * num_ham / num_seen
         perc_spam = 100.0 * num_spam / num_seen
         perc_unsure = 100.0 * num_unsure / num_seen
+        num_ham_correct = num_ham - num_deleted_spam_fn
+        num_spam_correct = num_spam - num_recovered_good_fp
+        num_correct = num_ham_correct + num_spam_correct
+        num_incorrect = num_deleted_spam_fn + num_recovered_good_fp
+        perc_correct = 100.0 * num_correct / num_seen
+        perc_incorrect = 100.0 * num_incorrect / num_seen
+        perc_fp = 100.0 * num_recovered_good_fp / num_seen
+        perc_fn = 100.0 * num_deleted_spam_fn / num_seen
+        num_unsure_trained_ham = num_recovered_good - num_recovered_good_fp
+        num_unsure_trained_spam = num_deleted_spam - num_deleted_spam_fn
+        num_unsure_not_trained = num_unsure - num_unsure_trained_ham - num_unsure_trained_spam
+        if num_unsure:
+            perc_unsure_trained_ham = 100.0 * num_unsure_trained_ham / num_unsure
+            perc_unsure_trained_spam = 100.0 * num_unsure_trained_spam / num_unsure
+            perc_unsure_not_trained = 100.0 * num_unsure_not_trained / num_unsure
+        else:
+            perc_unsure_trained_ham = 0.0
+            perc_unsure_trained_spam = 0.0
+            perc_unsure_not_trained = 0.0
+        total_ham = num_ham_correct + num_recovered_good
+        total_spam = num_spam_correct + num_deleted_spam
+        if total_ham:
+            perc_ham_incorrect = 100.0 * num_recovered_good_fp / total_ham
+            perc_ham_unsure = 100.0 * num_unsure_trained_ham / total_ham
+            perc_ham_incorrect_or_unsure = \
+                100.0 * (num_recovered_good_fp + num_unsure_trained_ham) / total_ham
+        else:
+            perc_ham_incorrect = 0.0
+            perc_ham_unsure = 0.0
+            perc_ham_incorrect_or_unsure = 0.0
+        if total_spam:
+            perc_spam_correct = 100.0 * num_spam_correct / total_spam
+            perc_spam_unsure = 100.0 * num_unsure_trained_spam / total_spam
+            perc_spam_correct_or_unsure = \
+                100.0 * (num_spam_correct + num_unsure_trained_spam) / total_spam
+        else:
+            perc_spam_correct = 100.0
+            perc_spam_unsure = 0.0
+            perc_spam_incorrect_or_unsure = 100.0
         format_dict = locals().copy()
         del format_dict["self"]
         del format_dict["push"]
         del format_dict["chunks"]
         format_dict.update(dict(perc_spam=perc_spam, perc_ham=perc_ham,
-                                perc_unsure=perc_unsure, num_seen=num_seen))
+                                perc_unsure=perc_unsure, num_seen=num_seen,
+                                num_correct=num_correct, num_incorrect=num_incorrect,
+                                perc_correct=perc_correct, perc_incorrect=perc_incorrect,
+                                perc_fp=perc_fp, perc_fn=perc_fn,
+                                num_unsure_trained_ham=num_unsure_trained_ham,
+                                num_unsure_trained_spam=num_unsure_trained_spam,
+                                num_unsure_not_trained=num_unsure_not_trained,
+                                perc_unsure_trained_ham=perc_unsure_trained_ham,
+                                perc_unsure_trained_spam=perc_unsure_trained_spam,
+                                perc_unsure_not_trained=perc_unsure_not_trained,
+                                perc_ham_incorrect=perc_ham_incorrect,
+                                perc_ham_unsure=perc_ham_unsure,
+                                perc_ham_incorrect_or_unsure=perc_ham_incorrect_or_unsure,
+                                perc_spam_correct=perc_spam_correct,
+                                perc_spam_unsure=perc_spam_unsure,
+                                perc_spam_correct_or_unsure=perc_spam_correct_or_unsure))
         format_dict["perc_ham_s"] = "%%(perc_ham).%df%%(perc)s" \
                                     % (decimal_points,)
         format_dict["perc_spam_s"] = "%%(perc_spam).%df%%(perc)s" \
                                      % (decimal_points,)
         format_dict["perc_unsure_s"] = "%%(perc_unsure).%df%%(perc)s" \
                                        % (decimal_points,)
+        format_dict["perc_correct_s"] = "%%(perc_correct).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_incorrect_s"] = "%%(perc_incorrect).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_fp_s"] = "%%(perc_fp).%df%%(perc)s" \
+                                    % (decimal_points,)
+        format_dict["perc_fn_s"] = "%%(perc_fn).%df%%(perc)s" \
+                                    % (decimal_points,)
+        format_dict["perc_spam_correct_s"] = "%%(perc_spam_correct).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_spam_unsure_s"] = "%%(perc_spam_unsure).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_spam_correct_or_unsure_s"] = "%%(perc_spam_correct_or_unsure).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_ham_incorrect_s"] = "%%(perc_ham_incorrect).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_ham_unsure_s"] = "%%(perc_ham_unsure).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_ham_incorrect_or_unsure_s"] = "%%(perc_ham_incorrect_or_unsure).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_unsure_trained_ham_s"] = "%%(perc_unsure_trained_ham).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_unsure_trained_spam_s"] = "%%(perc_unsure_trained_spam).%df%%(perc)s" \
+                                       % (decimal_points,)
+        format_dict["perc_unsure_not_trained_s"] = "%%(perc_unsure_not_trained).%df%%(perc)s" \
+                                       % (decimal_points,)
         format_dict["perc"] = "%"
-        push((_("SpamBayes has processed %(num_seen)d messages - " \
-             "%(num_ham)d (%(perc_ham_s)s) good, " \
-             "%(num_spam)d (%(perc_spam_s)s) spam " \
-             "and %(num_unsure)d (%(perc_unsure_s)s) unsure") \
+        
+        push((_("\tGood:\t%(num_ham)d (%(perc_ham_s)s)") \
+             % format_dict) % format_dict)
+        push((_("\tSpam:\t%(num_spam)d (%(perc_spam_s)s)") \
+             % format_dict) % format_dict)
+        push((_("\tUnsure:\t%(num_unsure)d (%(perc_unsure_s)s)") \
+             % format_dict) % format_dict)
+        push("")
+
+        push((_("Classified correctly:\t%(num_correct)d (%(perc_correct_s)s of total)") \
+             % format_dict) % format_dict)
+        push((_("Classified incorrectly:\t%(num_incorrect)d (%(perc_incorrect_s)s of total)") \
+             % format_dict) % format_dict)
+        if num_incorrect:
+            push((_("\tFalse positives:\t%(num_recovered_good_fp)d (%(perc_fp_s)s of total)") \
+                 % format_dict) % format_dict)
+            push((_("\tFalse negatives:\t%(num_deleted_spam_fn)d (%(perc_fn_s)s of total)") \
+                 % format_dict) % format_dict)
+        push("")
+        
+        push(_("Manually classified as good:\t%(num_recovered_good)d") % format_dict)
+        push(_("Manually classified as spam:\t%(num_deleted_spam)d") % format_dict)
+        push("")
+
+        if num_unsure:
+            push((_("Unsures trained as good:\t%(num_unsure_trained_ham)d (%(perc_unsure_trained_ham_s)s of unsures)") \
+                 % format_dict) % format_dict)
+            push((_("Unsures trained as spam:\t%(num_unsure_trained_spam)d (%(perc_unsure_trained_spam_s)s of unsures)") \
+                 % format_dict) % format_dict)
+            push((_("Unsures not trained:\t\t%(num_unsure_not_trained)d (%(perc_unsure_not_trained_s)s of unsures)") \
+                 % format_dict) % format_dict)
+            push("")
+
+        push((_("Spam correctly identified:\t%(perc_spam_correct_s)s (+ %(perc_spam_unsure_s)s unsure)") \
+             % format_dict) % format_dict)
+        push((_("Ham incorrectly identified:\t%(perc_ham_incorrect_s)s (+ %(perc_ham_unsure_s)s unsure)") \
              % format_dict) % format_dict)
 
-        if num_recovered_good:
-            push(_("%(num_recovered_good)d message(s) were manually " \
-                 "classified as good (with %(num_recovered_good_fp)d " \
-                 "being false positives)") % format_dict)
-        else:
-            push(_("No messages were manually classified as good"))
-        if num_deleted_spam:
-            push(_("%(num_deleted_spam)d message(s) were manually " \
-                 "classified as spam (with %(num_deleted_spam_fn)d " \
-                 "being false negatives)") % format_dict)
-        else:
-            push(_("No messages were manually classified as spam"))
         return chunks
 
 if __name__=='__main__':
