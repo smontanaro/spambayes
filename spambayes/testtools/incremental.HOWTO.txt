@@ -24,6 +24,12 @@ There are a few steps to doing incremental training tests:
    into chronological order (by topmost Received header) and
    then groups them by 24-hour period.
 
+   Note that you need to have either Python 2.3b1 or a *nix
+   version of Python to run the sort+group.py script.
+   Note also that this script will run through *all* the
+   files in the Data directory, not just those in Data/Ham
+   and Data/Spam.
+
 3. Distribute the corpora into multiple sets so you can do
    multiple similar runs to gauge validity of the results
    (similar to a cross-validation, but not really).  When

@@ -72,9 +72,9 @@ class CountCostCounter(CostCounter):
     def spam(self, scr):
         self._total += 1
         self._spam += 1
-        if scr < options.ham_cutoff:
+        if scr < options["Categorization", "ham_cutoff"]:
             self._fn += 1
-        elif scr < options.spam_cutoff:
+        elif scr < options["Categorization", "spam_cutoff"]:
             self._unsure += 1
             self._unsurespam += 1
         else:
@@ -83,9 +83,9 @@ class CountCostCounter(CostCounter):
     def ham(self, scr):
         self._total += 1
         self._ham += 1
-        if scr > options.spam_cutoff:
+        if scr > options["Categorization", "spam_cutoff"]:
             self._fp += 1
-        elif scr > options.ham_cutoff:
+        elif scr > options["Categorization", "ham_cutoff"]:
             self._unsure += 1
             self._unsureham += 1
         else:
@@ -117,41 +117,46 @@ def zd(x,y):
 class StdCostCounter(CostCounter):
     name = "Standard Cost"
     def spam(self, scr):
-        if scr < options.ham_cutoff:
-            self.total += options.best_cutoff_fn_weight
-        elif scr < options.spam_cutoff:
-            self.total += options.best_cutoff_unsure_weight
+        if scr < options["Categorization", "ham_cutoff"]:
+            self.total += options["TestDriver", "best_cutoff_fn_weight"]
+        elif scr < options["Categorization", "spam_cutoff"]:
+            self.total += options["TestDriver", "best_cutoff_unsure_weight"]
 
     def ham(self, scr):
-        if scr > options.spam_cutoff:
-            self.total += options.best_cutoff_fp_weight
-        elif scr > options.ham_cutoff:
-            self.total += options.best_cutoff_unsure_weight
+        if scr > options["Categorization", "spam_cutoff"]:
+            self.total += options["TestDriver", "best_cutoff_fp_weight"]
+        elif scr > options["Categorization", "ham_cutoff"]:
+            self.total += options["TestDriver", "best_cutoff_unsure_weight"]
 
 class FlexCostCounter(CostCounter):
     name = "Flex Cost"
     def _lambda(self, scr):
-        if scr < options.ham_cutoff:
+        if scr < options["Categorization", "ham_cutoff"]:
             return 0
-        elif scr > options.spam_cutoff:
+        elif scr > options["Categorization", "spam_cutoff"]:
             return 1
         else:
-            return (scr - options.ham_cutoff) / (
-                      options.spam_cutoff - options.ham_cutoff)
+            return (scr - options["Categorization", "ham_cutoff"]) / (
+                      options["Categorization", "spam_cutoff"] \
+                      - options["Categorization", "ham_cutoff"])
 
     def spam(self, scr):
-        self.total += (1 - self._lambda(scr)) * options.best_cutoff_fn_weight
+        self.total += (1 - self._lambda(scr)) * options["TestDriver",
+                                                        "best_cutoff_fn_weight"]
 
     def ham(self, scr):
-        self.total += self._lambda(scr) * options.best_cutoff_fp_weight
+        self.total += self._lambda(scr) * options["TestDriver",
+                                                  "best_cutoff_fp_weight"]
 
 class Flex2CostCounter(FlexCostCounter):
     name = "Flex**2 Cost"
     def spam(self, scr):
-        self.total += (1 - self._lambda(scr))**2 * options.best_cutoff_fn_weight
+        self.total += (1 - self._lambda(scr))**2 * options["TestDriver",
+                                                           "best_cutoff_fn_weight"]
 
     def ham(self, scr):
-        self.total += self._lambda(scr)**2 * options.best_cutoff_fp_weight
+        self.total += self._lambda(scr)**2 * options["TestDriver",
+                                                     "best_cutoff_fp_weight"]
 
 def default():
     return CompositeCostCounter([
@@ -181,6 +186,6 @@ if __name__=="__main__":
     cc.spam(1)
     cc.ham(0.5)
     cc.spam(0.5)
-    options.spam_cutoff=0.7
-    options.ham_cutoff=0.4
+    options["Categorization", "spam_cutoff"]=0.7
+    options["Categorization", "ham_cutoff"]=0.4
     print cc
