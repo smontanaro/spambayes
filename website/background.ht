@@ -43,7 +43,28 @@ showed that very good classifiers can be gotten by looking only at
 message bodies, or by looking only at message headers.  Looking at both
 does best, of course.</p>
 
-<!-- correlation of clues, ... -->
+<p>Tokenizing of headers is an area of much experimentation. At the
+moment, the only source of historical information is in the source
+code, as comments. At the moment, a bunch of email headers are broken
+apart, and tagged with the name of the header and the token. Recipient
+(to/cc) headers are broken apart in a variety of ways - for instance,
+we count the number of recipients, and generate a token for the nearest
+power of two to the number. Optionally, "Recieved" lines are parsed for
+various tokens.</p>
+
+<p>It's likely that remaining "easy wins" in the tokenizing are buried
+in some new way of tokenizing the headers. If you have ideas, try them
+out, and <a href="#testing">test them</a>. For instance, no-one's tried
+generating a token that measures the difference in the time in the Date:
+header, and the time that the message arrived at the user's mailbox.
+</p>
+
+<p>Another issue that cropped up quite quickly was that certain types
+of clues were highly correlated. For instance, if the message was a
+HTML spam, you'd get things like "font", "table", "#FF0000" and the
+like. This caused any other HTML spam to be marked solidly as spam,
+but also unnecessarily penalised the non-spam HTML messages. In the
+end, the best results were found by stripping out most HTML clues.</p>
 
 <h3>Combining and Scoring</h3>
 
@@ -137,10 +158,34 @@ and how they addressed you, to the kinds of products and services it's
 offering.</p>
 
 <h3>Training</h3>
-<p class="todo">TBD</p>
+<p>Training is the process of feeding known ham and spam into the tokenizer
+to generate the probabilities that the classifier then uses to generate it's
+decisions. A variety of approaches to training have been tried - things that
+we found:
+<ul>
+<li>the system generates remarkably good results on very few trained messages,
+although obviously, the more the better.
+<li>training on an extremely large number of messages actually starts to produce
+a slightly poorer result (once you're training on thousands and thousands of
+messages).
+<li>severe imbalance between the number of ham and spam being trained causes
+some problems - there's a flag 'experimental_ham_spam_imbalance_adjustment'
+that you can set in your bayescustomize.ini file to attempt to compensate for
+this.
+<li>It's <b>really</b> important that you're careful about selecting your
+training sets to be from the same sources, where-ever possible. Several 
+people got caught out by training on current spam, and old ham. The system
+very quickly picked up that anything with a 'Date:' field with a year of
+2001 was ham. If you can't get ham and spam from the same source, make sure
+the tokenizer isn't going to pick up on the non-clues.
+<li>"mistake-based training" - where you only train on messages that the
+system got wrong - results in the system taking a lot longer to get really
+good at what it does. You're better off feeding it the things it gets
+right, as well as the things it gets wrong.
+</ul>
+</p>
 
-<h3>Testing</h3>
-<p class="todo">TBD, describe test setup</p>
+<a name="testing"><h3>Testing</h3></a>
 <p>One big difference between spambayes and many other open source projects is
 that there's a large amount of testing done. Before any change to the tokenizer
 or the algorithms was checked in, it was necessary to show that the change 
@@ -151,7 +196,16 @@ kept showing up was <font size="+1">Stupid beats smart.</font> That is, a
 fiddly and delicate piece of tokenization magic would often produce worse
 results than something that just took a brute force "just grab everything"
 approach. </p>
-<p>
+
+<p>The testing architecture has been in place since the start of the project.
+The most thorough test script is Tim's cross validation script, 
+<tt>timcv.py</tt>. This script takes a number of sets of spam and ham. It
+trains on all but the first set of spam and ham, then fires the first set
+of spam and ham through, and checks how it goes at rating them. It then
+repeats this for each set in turn - train on all but the set being tested,
+then test the set.
+</p>
+
 
 <h2>Mailing list archives</h2>
 <p>There's a lot of background on what's been tried available from
