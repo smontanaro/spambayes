@@ -537,25 +537,16 @@ class SpambayesMailbox(IMAPMailbox):
 
 class SpambayesInbox(SpambayesMailbox):
     """A special mailbox that holds status messages from SpamBayes."""
-    def __init__(self, id, message_db):
+    def __init__(self, id, state):
         IMAPMailbox.__init__(self, "INBOX", "spambayes", id)
-        self.mdb = message_db
+        self.mdb = state.mdb
         self.UID_validity = id
         self.nextUID = 1
         self.unseen_count = 0
         self.recent_count = 0
         self.storage = {}
         self.createMessages()
-        s_thres = options["Categorization", "spam_cutoff"]
-        u_thres = options["Categorization", "ham_cutoff"]
-        fp_cost = options["TestDriver", "best_cutoff_fp_weight"]
-        fn_cost = options["TestDriver", "best_cutoff_fn_weight"]
-        unsure_cost = options["TestDriver", "best_cutoff_unsure_weight"]
-        h_string = options["Headers", "header_ham_string"]
-        s_string = options["Headers", "header_spam_string"]
-        u_string = options["Headers", "header_unsure_string"]
-        self.stats = Stats(s_thres, u_thres, message_db, h_string, u_string,
-                           s_string, fp_cost, fn_cost, unsure_cost)
+        self.stats = state.stats
 
     def buildStatusMessage(self, body=False, headers=False):
         """Build a message containing the current status message.
@@ -606,7 +597,7 @@ class SpambayesInbox(SpambayesMailbox):
             if body:
                 msg.append('\r\n')
         if body:
-            msg.extend(s.GetStats(use_html=False))
+            msg.extend(self.stats.GetStats(use_html=False))
         return "\r\n".join(msg)
 
     def createMessages(self):
@@ -917,12 +908,18 @@ class IMAPState(State):
         """There aren't many workers in an IMAP State - most of the
         work is done elsewhere.  We do need to load the classifier,
         though, and build the status strings."""
+        # Load token and message databases.
         if not hasattr(self, "DBName"):
             self.DBName, self.useDB = storage.database_type([])
         self.bayes = storage.open_storage(self.DBName, self.useDB)
         if not hasattr(self, "MBDName"):
             self.MDBName, self.useMDB = message.database_type()
         self.mdb = message.open_storage(self.MDBName, self.useMDB)
+
+        # Load stats manager.
+        self.stats = Stats(options, self.mdb)
+
+        # Build status strings.
         self.buildStatusStrings()
 
     def buildServerStrings(self):
@@ -954,7 +951,7 @@ def prepare():
     spam_train_cache = os.path.join(options["Storage", "ham_cache"], "..",
                                     "spam_to_train")
     spam_train_box = SpambayesMailbox("TrainAsSpam", 3, spam_train_cache)
-    inbox = SpambayesInbox(4, state.mdb)
+    inbox = SpambayesInbox(4, state)
 
     spam_trainer = Trainer(spam_train_box, True)
     ham_trainer = Trainer(ham_train_box, False)

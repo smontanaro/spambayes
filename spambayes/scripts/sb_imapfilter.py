@@ -97,6 +97,8 @@ try:
 except ImportError:
     import StringIO
 
+from spambayes import Stats
+from spambayes import message
 from spambayes.Options import options, get_pathname_option
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
@@ -1027,6 +1029,7 @@ def run():
         print "Loading database %s..." % (bdbname),
 
     classifier = storage.open_storage(bdbname, useDBM)
+    message_db = message.open_storage(*message.database_type())
 
     if options["globals", "verbose"]:
         print "Done."
@@ -1082,9 +1085,13 @@ def run():
             imap = None
         else:
             imap = IMAPSession(server, port, imapDebug, doExpunge)
+
+        # Load stats manager.
+        stats = Stats(options, message_db)
+        
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap, pwd,
-                                              IMAPSession))
+                                              IMAPSession, stats=stats))
         launchBrowser=launchUI or options["html_ui", "launch_browser"]
         if sleepTime:
             # Run in a separate thread, as we have more work to do.

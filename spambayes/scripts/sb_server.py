@@ -110,6 +110,7 @@ from email.Header import Header
 
 import spambayes.message
 from spambayes import i18n
+from spambayes import Stats
 from spambayes import Dibbler
 from spambayes import storage
 from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
@@ -803,7 +804,13 @@ class State:
         if not hasattr(self, "DBName"):
             self.DBName, self.useDB = storage.database_type([])
         self.bayes = storage.open_storage(self.DBName, self.useDB)
-        
+        if not hasattr(self, "MBDName"):
+            self.MDBName, self.useMDB = message.database_type()
+        self.mdb = message.open_storage(self.MDBName, self.useMDB)
+
+        # Load stats manager.
+        self.stats = Stats(options, self.mdb)
+
         self.buildStatusStrings()
 
         # Don't set up the caches and training objects when running the self-test,

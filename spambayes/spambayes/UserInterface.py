@@ -266,12 +266,13 @@ class UserInterface(BaseUserInterface):
     """Serves the HTML user interface."""
 
     def __init__(self, bayes, config_parms=(), adv_parms=(),
-                 lang_manager=None):
+                 lang_manager=None, stats=None):
         """Load up the necessary resources: ui.html and helmet.gif."""
         BaseUserInterface.__init__(self, lang_manager)
         self.classifier = bayes
         self.parm_ini_map = config_parms
         self.advanced_options_map = adv_parms
+        self.stats = stats
         self.app_for_version = None # subclasses must fill this in
 
     def onClassify(self, file, text, which):
@@ -920,15 +921,14 @@ class UserInterface(BaseUserInterface):
 
     def onStats(self):
         """Provide statistics about previous SpamBayes activity."""
-        # Caching this information somewhere would be a good idea,
-        # rather than regenerating it every time.  If people complain
-        # about it being too slow, then do this!
-        # XXX The Stats object should be generated once, when we start up,
-        # XXX and then just called, here.
-        s = Stats.Stats()
         self._writePreamble("Statistics")
-        stats = s.GetStats(use_html=True)
-        stats = self._buildBox("Statistics", None, "<br/><br/>".join(stats))
+        if self.stats:
+            stats = self.stats.GetStats(use_html=True)
+            stats = self._buildBox("Statistics", None,
+                                   "<br/><br/>".join(stats))
+        else:
+            stats = self._buildBox("Statistics", None,
+                                   "Statistics not available")
         self.write(stats)
         self._writePostamble(help_topic="stats")
 
