@@ -71,7 +71,7 @@ something back to the project, you have a few options:
   the `I'm not a programmer but still want to help`_ question for more 
   details.
 
-* Dontate money to the Python Software Foundations.  For more 
+* Donate money to the Python Software Foundations.  For more 
   information, including why you would want to donate to the PSF,
   please see our `donations page`_.
 
@@ -92,7 +92,7 @@ There are four mailing lists which support Spambayes:
    Spambayes or help other users.
 
 2. The `Spambayes developers list`_ provides a forum for people
-   maintaining and improving the pacakge.
+   maintaining and improving the package.
 
 3. The `Spambayes announcements list`_ is a low-volume list where
    announcements about new releases are posted.
@@ -342,6 +342,75 @@ IMAP_ proxies which are part of the Spambayes source.
 
 .. _POP3: http://spambayes.sf.net/applications.html#pop3
 .. _IMAP: http://spambayes.sf.net/applications.html#imap
+
+
+How do I configure Eudora for use with Spambayes?
+-------------------------------------------------
+
+Note: The following instructions have been verified using Eudora 5.1
+under Windows. If anyone is using Eudora under Max OS please let us
+know if the configuration is the same as Windows.
+
+Eudora does not allow configuring the server port through the
+normal options dialogue. However a large number of options are exposed
+in an initialization file (eudora.ini) read at startup. The contents
+of the initialization file are documented by clicking on Help->Topics
+and searching on EUDORA.INI (you may want to print this help page for
+future reference.) Depending on how you installed Eudora, eudora.ini
+is located either in the Eudora install directory or the user's
+setting directory, e.g.::
+
+  C:\Documents and Settings\userid\ApplicationData\Qualcomm\Eudora\eudora.ini
+
+1. Locate ``eudora.ini``.
+
+2. Make two copies - ``eudoraok.ini`` for backup and ``eudorame.ini`` to
+   modify.
+
+3. Configure pop3proxy for each of Eudora's personalities' POP3 servers,
+   specifying a separate port for each. For example 1110, 1120, 1130 and
+   1140 for four personalities. Do the same for smtpproxy - for example
+   1115, 1125, 1135 and 1145 corresponding to the four POP3 servers.
+
+4. Close Eudora.
+
+5. Open ``eudorame.ini`` with a text editor - Notepad for example. **Do not
+   use a word processor to edit the initialization file**.
+
+6. Find the section starting with ``[Settings]``. This contains settings for
+   the dominant personality.
+
+7. Find the line beginning ``POPAccount``. The last part of the account name
+   starting with ``@`` is the server. Change it to ``@localhost``.
+
+8. Find the lines beginning ``SMTPServer`` and ``POPServer``. They will have
+   the server names defined for your dominant personality.
+
+9. Change both server names to ``localhost``.
+
+10, Add the following two lines. Use whatever ports you assigned to
+    pop3proxy and smtpproxy for the dominant personality::
+
+    POPPort=1110
+    SMTPPort=1115
+
+11. Setting for other personalities are kept in sections beginning with
+    ``[Persona-personality_name]``. For each personality make the same
+    changes as you made for the dominant personality, substituting the
+    proper port numbers.
+
+12. Copy ``eudorame.ini`` to ``eudora.ini`` and re-start Eudora.
+
+13. In the password dialog for each personality you should see ``localhost``
+    where you used to see the actual server name. This may take some getting
+    used to at first. Since every personality will now have a server named
+    localhost you will have to know what order Eudora prompts for the user
+    id's and passwords.
+
+14. If there are any problems, close Eudora, copy eudoraok.ini to eudora.ini
+    and restart Eudora. This will restore Eudora's original configuration
+    until the problem can be resolved.
+
 
 
 Outlook Plugin
