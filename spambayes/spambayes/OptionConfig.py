@@ -36,10 +36,9 @@ except NameError:
     True, False = 1, 0
 
 from spambayes import Dibbler, PyMeldLite
-from spambayes.Options import options, optionsPathname, defaults
+from spambayes.Options import options, optionsPathname
 import sys
-from ConfigParser import NoSectionError, ConfigParser
-from StringIO import StringIO
+import ConfigParser
 
 # This control dictionary maps http request parameters and template fields
 # to ConfigParser sections and options.  The key matches both the input
@@ -287,6 +286,20 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
         self.html.shutdownTableCell = "&nbsp;"
 
     def onConfig(self):
+        # start with the options config file, add bayescustomize.ini to it
+        bcini = ConfigParser.ConfigParser()
+
+        # this is a pain...
+        for sect in options._config.sections():
+            for opt in options._config.options(sect):
+                try:
+                    bcini.set(sect, opt, options._config.get(sect, opt))
+                except ConfigParser.NoSectionError:
+                    bcini.add_section(sect)
+                    bcini.set(sect, opt, options._config.get(sect, opt))
+
+        bcini.read(optionsPathname)
+
         # Start with an empty config form then add the sections.
         html = self.html.clone()
         html.mainContent = self.html.configForm.clone()
@@ -319,7 +332,7 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             # value.
             isFirstRow = True
             for name, label, fldtype, validInput, unusedHelp in values:
-                currentValue = options._config.get(parm_ini_map[name][PIMapSect], \
+                currentValue = bcini.get(parm_ini_map[name][PIMapSect], \
                                          parm_ini_map[name][PIMapOpt])
 
                 # Populate the rows with the details and add them to the table.
@@ -396,15 +409,7 @@ class OptionsConfigurator(Dibbler.HTTPPlugin):
             self.write(html)
             return
 
-        for name, value in parms.items():
-           if name in parm_ini_map.keys():
-              options._config.set(parm_ini_map[name][PIMapSect], \
-                                  parm_ini_map[name][PIMapOpt], value)
-           
-        op = open(optionsPathname, "r")
-        options._config.update_file(op)
-        options._update()
-        op.close()
+        updateIniFile(parms)
         self.proxyUI.reReadOptions()
 
         html.mainContent.heading = "Options Changed"
@@ -590,27 +595,51 @@ number of servers specified</li>\n'
 
     return errmsg
 
-def restoreIniDefaults():
+def updateIniFile(parms):
+
     # Get the pathname of the ini file as discovered by the Options module.
-    # note that the behaviour of this function has subtly changed
-    # previously options were removed from the config file, now the config
-    # file is updated to match the defaults
     inipath = optionsPathname
 
-    c = ConfigParser()
-    d = StringIO(defaults)
-    c.readfp(d)
-    del d
+    bcini = ConfigParser.ConfigParser()
+    bcini.read(inipath)
+
+    for httpParm in parm_ini_map:
+        map = parm_ini_map[httpParm]
+        sect = map[PIMapSect]
+        opt = map[PIMapOpt]
+
+        try:
+            val = parms[httpParm]
+        except KeyError:
+            continue
+
+        try:
+            bcini.add_section(sect)
+        except ConfigParser.DuplicateSectionError:
+            pass
+
+        bcini.set(sect, opt, val)
+
+    o = open(inipath, 'wt')
+    bcini.write(o)
+    o.close()
+
+def restoreIniDefaults():
+
+    # Get the pathname of the ini file as discovered by the Options module.
+    inipath = optionsPathname
+
+    bcini = ConfigParser.ConfigParser()
+    bcini.read(inipath)
 
     # Only restore the settings that appear on the form.
     for section, option in parm_ini_map.values():
         if option not in noRestore:
             try:
-               options._config.set(section, option,
-                                    c.get(section,option))
-            except NoSectionError:
+                bcini.remove_option(section, option)
+            except ConfigParser.NoSectionError:
                 pass    # Already missing.
-    op = open(inipath)
-    options._config.update_file(op)
-    options._update()
-    op.close()
+
+    o = open(inipath, 'wt')
+    bcini.write(o)
+    o.close()
