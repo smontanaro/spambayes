@@ -537,6 +537,7 @@ class GrahamBayes(object):
                 record.spamcount += 1
             else:
                 record.hamcount += 1
+            wordinfo[word] = record
 
             if self.DEBUG:
                 print "new count for %r = %d" % (word,
