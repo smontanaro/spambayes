@@ -40,7 +40,7 @@ def DBExtractor(bayes):
     # We use bsddb3 now if we can
     try:
         import bsddb3 as bsddb
-        bsddb_error = bsddb.DBNotFoundError
+        bsddb_error = bsddb.db.DBNotFoundError
     except ImportError:
         import bsddb
         bsddb_error = bsddb.error
