@@ -352,7 +352,7 @@ This is a known problem with the 002 release of the plug-in (or earlier).
 What is probably happening is that Outlook is not shutting down properly
 or completely, or is being forced to shut down too quickly.  This version
 of the plug-in only saves training/configuration data on shut-down, so
-this can result in training/configuraton being lost.  To get around this
+this can result in training/configuration being lost.  To get around this
 problem, exit Outlook (not by restarting/shutting down the machine), and
 make sure that it is completely shut down (use the Task Manager to check).
 This should save your training and configuration.  The 003 release (and
