@@ -49,6 +49,7 @@ except NameError:
     True, False = 1, 0
 
 import sys, os, getopt, email
+import shutil
 from spambayes import hammie
 from spambayes.Options import options, get_pathname_option
 
@@ -145,6 +146,8 @@ def maildir_train(h, path, is_spam, force, removetrained):
         f = file(tfn, "wb")
         f.write(msg.as_string())
         f.close()
+        shutil.copystat(cfn, tfn)
+
         # XXX: This will raise an exception on Windows.  Do any Windows
         # people actually use Maildirs?
         os.rename(tfn, cfn)
@@ -244,6 +247,7 @@ def mhdir_train(h, path, is_spam, force):
         f = file(tfn, "wb")
         f.write(msg.as_string())
         f.close()
+        shutil.copystat(cfn, tfn)
 
         # XXX: This will raise an exception on Windows.  Do any Windows
         # people actually use MH directories?
