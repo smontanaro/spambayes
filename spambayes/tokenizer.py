@@ -577,13 +577,21 @@ has_highbit_char = re.compile(r"[\x80-\xff]").search
 # Cheap-ass gimmick to probabilistically find HTML/XML tags.
 html_re = re.compile(r"""
     <
-    [^\s<>]     # e.g., don't match 'a < b' or '<<<' or 'i << 5' or 'a<>b'
-    [^>]{0,128} # search for the end '>', but don't run wild
+    (?![\s<>])  # e.g., don't match 'a < b' or '<<<' or 'i<<5' or 'a<>b'
+    (?:
+        # style sheets can be very long
+        style\b     # maybe it's <style>, or maybe <style type=...>, etc.
+        .{0,2048}?
+        </style
+    |   # so can comments
+        !--
+        .{0,2048}?
+        --
+    |   # guessing that other tags are usually "short"
+        [^>]{0,256} # search for the end '>', but don't run wild
+    )
     >
-""", re.VERBOSE)
-
-# An equally cheap-ass gimmick to strip style sheets
-stylesheet_re = re.compile(r"<style>.{0,2000}?</style>", re.DOTALL)
+""", re.VERBOSE | re.DOTALL)
 
 received_host_re = re.compile(r'from (\S+)\s')
 received_ip_re = re.compile(r'\s[[(]((\d{1,3}\.?){4})[\])]')
@@ -1046,7 +1054,6 @@ class Tokenizer:
             # Remove HTML/XML tags.
             if (part.get_content_type() == "text/plain" or
                     not options.retain_pure_html_tags):
-                text = stylesheet_re.sub(' ', text)
                 text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.
