@@ -175,6 +175,9 @@ class Message(email.Message.Message):
 
         Nicked the regex from smtplib.quotedata.
         """
+        #XXX Tim doesn't like this regex.  He will study it to
+        #XXX see if he can learn to like it, or come up with
+        #XXX something he likes better.  - Tim
         return re.sub(r'(?:\r\n|\n|\r(?!\n))', "\r\n", data)
 
     def as_string(self):
@@ -193,11 +196,11 @@ class Message(email.Message.Message):
 
     def GetClassification(self):
         if self.c == 's':
-            return options.header_spam_string
+            return options['hammie','header_spam_string']
         if self.c == 'h':
-            return options.header_ham_string
+            return options['hammie','header_ham_string']
         if self.c == 'u':
-            return options.header_unsure_string
+            return options['hammie','header_unsure_string']
 
         return None
 
@@ -205,14 +208,11 @@ class Message(email.Message.Message):
         # this must store state independent of options settings, as they
         # may change, which would really screw this database up
 
-        # an unrecognized string here is interpreted as unsure.  Should
-        # that condition actually raise an exception instead?
-
-        if cls == options.header_spam_string:
+        if cls == options['hammie','header_spam_string']:
             self.c = 's'
-        elif cls == options.header_ham_string:
+        elif cls == options['hammie','header_ham_string']:
             self.c = 'h'
-        elif cls == options.header_unsure_string:
+        elif cls == options['hammie','header_unsure_string']:
             self.c = 'u'
         else:
             raise ValueError, \
@@ -247,7 +247,7 @@ class SBHeaderMessage(Message):
         
     def setIdFromPayload(self):
         try:
-            self.setId(self[options.pop3proxy_mailid_header_name])
+            self.setId(self[options['pop3proxy','mailid_header_name']])
         except KeyError:
             return None
 
@@ -257,36 +257,33 @@ class SBHeaderMessage(Message):
         '''Add hammie header, and remember message's classification.  Also,
         add optional headers if needed.'''
         
-        if prob < options.ham_cutoff:
-            disposition = options.header_ham_string
-        elif prob > options.spam_cutoff:
-            disposition = options.header_spam_string
+        if prob < options['hammie','ham_cutoff']:
+            disposition = options['hammie','header_ham_string']
+        elif prob > options['hammie','spam_cutoff']:
+            disposition = options['hammie','header_spam_string']
         else:
-            disposition = options.header_unsure_string
+            disposition = options['hammie','header_unsure_string']
         self.RememberClassification(disposition)
-        self[options.hammie_header_name] = disposition
+        self[options['hammie','header_name']] = disposition
         
-        if options.pop3proxy_include_prob:
-            self[options.pop3proxy_prob_header_name] = prob
+        if options['pop3proxy','include_prob']:
+            self[options['pop3proxy','prob_header_name']] = prob
             
-        if options.pop3proxy_include_thermostat:
+        if options['pop3proxy','include_thermostat']:
             thermostat = '**********'
-            self[options.pop3proxy_thermostat_header_name] = \
+            self[options['pop3proxy','thermostat_header_name']] = \
                                thermostat[:int(prob*10)]
                                
-        if options.pop3proxy_include_evidence:
+        if options['pop3proxy','include_evidence']:
             evd = "; ".join(["%r: %.2f" % (word, score)
-                     for word, score in clues
-                     if (word[0] == '*' or
-                         score <= options.clue_mailheader_cutoff or
-                         score >= 1.0 - options.clue_mailheader_cutoff)])
-            self[options.pop3proxy_evidence_header_name] = evd
+             for word, score in clues
+             if (word[0] == '*' or
+                 score <= options['hammie','clue_mailheader_cutoff'] or
+                 score >= 1.0 - options['hammie','clue_mailheader_cutoff'])])
+            self[options['pop3proxy','evidence_header_name']] = evd
         
-        if options.pop3proxy_add_mailid_to.find("header") != -1:
-            self[options.pop3proxy_mailid_header_name] = self.id
-
-#        print self._headers
- #       print self.as_string()
+        if options['pop3proxy','add_mailid_to'].find("header") != -1:
+            self[options['pop3proxy','mailid_header_name']] = self.id
 
 # This won't work for now, because email.Message does not isolate message body
 # This is also not consistent with the function of this method...
@@ -296,9 +293,9 @@ class SBHeaderMessage(Message):
 #                    + messageName + "\r\n.\r\n"
 
     def delSBHeaders(self):
-        del self[options.hammie_header_name]
-        del self[options.pop3proxy_mailid_header_name]
-        del self[options.hammie_header_name + "-ID"]  # test mode header
-        del self[options.pop3proxy_prob_header_name]
-        del self[options.pop3proxy_thermostat_header_name]
-        del self[options.pop3proxy_evidence_header_name]
+        del self[options['hammie','header_name']]
+        del self[options['pop3proxy','mailid_header_name']]
+        del self[options['hammie','header_name' + "-ID"]]  # test mode header
+        del self[options['pop3proxy','prob_header_name']]
+        del self[options['pop3proxy','thermostat_header_name']]
+        del self[options['pop3proxy','evidence_header_name']]
