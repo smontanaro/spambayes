@@ -36,7 +36,6 @@ def usage(msg=None):
 
 def extractmessages(features, mapdb, hamfile, spamfile):
     """extract messages which contain given features"""
-    i = 0
     hamids = {}
     spamids = {}
 
@@ -55,8 +54,8 @@ def extractmessages(features, mapdb, hamfile, spamfile):
 
     # now run through each mailbox in hamids and spamids and print
     # matching messages to relevant ham or spam files
-    i = 0
     for mailfile in hamids:
+        i = 0
         msgids = hamids[mailfile]
         for msg in getmbox(mailfile):
             if msg.get("message-id") in msgids:
@@ -67,6 +66,7 @@ def extractmessages(features, mapdb, hamfile, spamfile):
     print
 
     for mailfile in spamids:
+        i = 0
         msgids = spamids[mailfile]
         for msg in getmbox(mailfile):
             if msg.get("message-id") in msgids:
