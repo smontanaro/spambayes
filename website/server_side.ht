@@ -36,7 +36,7 @@ spambayes unix  -       n       n       -       -       pipe
 <li>Here's what the hammiewrapper.sh file looks like:<br />
 <pre>
 #!/bin/sh
-/usr/bin/hammiefilter.py -d /var/spambayes/hammie.db -f | /usr/sbin/sendmail -f $*
+/usr/local/bin/sb_filter.py -d /var/spambayes/hammie.db -f | /usr/sbin/sendmail -f $*
 </pre></li>
 </ol>
 
