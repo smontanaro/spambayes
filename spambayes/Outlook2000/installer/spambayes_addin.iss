@@ -17,7 +17,7 @@ InfoBeforeFile=installation_notes.rtf
 [Files]
 Source: "dist\spambayes_addin.dll"; DestDir: "{app}"; Flags: ignoreversion regserver
 Source: "dist\*.*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
-Source: "dist\docs\welcome.html"; DestDir: "{app}"; Flags: isreadme
+Source: "dist\docs\welcome.html"; DestDir: "{app}\docs"; Flags: isreadme
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\support"
