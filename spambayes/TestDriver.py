@@ -187,11 +187,22 @@ class Driver:
     def alldone(self):
         if options.show_histograms:
             printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
-        
-        print "-> <stat> cost for all runs: $%.2f" % (
-               len(self.falsepos) * options.best_cutoff_fp_weight +
-               len(self.falseneg) * options.best_cutoff_fn_weight +
-               len(self.unsure) * options.best_cutoff_unsure_weight)
+
+        nham = self.global_ham_hist.n
+        nspam = self.global_spam_hist.n
+        nfp = len(self.falsepos)
+        nfn = len(self.falseneg)
+        nun = len(self.unsure)
+        print "-> <stat> all runs false positives:", nfp
+        print "-> <stat> all runs false negatives:", nfn
+        print "-> <stat> all runs unsure:", nun
+        print "-> <stat> all runs false positive %:", (nfp * 1e2 / nham)
+        print "-> <stat> all runs false negative %:", (nfn * 1e2 / nspam)
+        print "-> <stat> all runs unsure %:", (nun * 1e2 / (nham + nspam))
+        print "-> <stat> all runs cost: $%.2f" % (
+              nfp * options.best_cutoff_fp_weight +
+              nfn * options.best_cutoff_fn_weight +
+              nun * options.best_cutoff_unsure_weight)
 
         if options.save_histogram_pickles:
             for f, h in (('ham', self.global_ham_hist),
