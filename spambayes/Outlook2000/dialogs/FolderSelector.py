@@ -152,6 +152,9 @@ def BuildFolderTreeMAPI(session, ignore_ids):
         root.children.append(spec)
     return root
 
+# XXX - Note - the following structure code has been copied into the new
+# XXX - win32gui_struct module.  One day we can rip this in preference
+# XXX - for this new standard win32all module
 # Helpers for the ugly win32 structure packing/unpacking
 def _GetMaskAndVal(val, default, mask, flag):
     if val is None:
@@ -252,6 +255,7 @@ def UnpackTVDISPINFO(lparam):
     hwndFrom, id, code, buf_item = struct.unpack(format, buf)
     item = UnpackTVItem(buf_item)
     return hwndFrom, id, code, item
+# XXX - end of code copied to win32gui_struct.py
 
 #########################################################################
 ## The dialog itself
