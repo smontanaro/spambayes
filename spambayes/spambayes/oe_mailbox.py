@@ -1,31 +1,59 @@
+"""
+Simple Python library for Outlook Express mailbox handling, and some
+other Outlook Express utility functions.
+
+Functions:
+    getDBXFilesList()
+        Returns a list containing the DBX file names for current user
+    getMbox(dbxPath)
+        Returns an mbox converted from a DBX file
+    getRegistryKey()
+        Returns the root key for current user's Outlook Express settings
+    getStorePath()
+        Returns the path where DBX files are stored for current user
+    train(dbxPath, isSpam)
+        Trains a DBX file as spam or ham through Hammie
+"""
+
 from __future__ import generators
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-# Simple Python library for Outlook Express mailboxes handling
-# Based on C++ work by Arne Schloh <oedbx@aroh.de>
-
-__author__ = "Romain Guy"
+__author__  = "Romain Guy <romain.guy@jext.org>"
 __credits__ = "All the SpamBayes folk"
+
+# Based on C++ work by Arne Schloh <oedbx@aroh.de>
 
 import binascii
 import os
+import re
 import struct
+import mailbox
 import msgs
-import StringIO
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 import sys
-from time import gmtime, strftime
+from time import *
 
 try:
     import win32api
     import win32con
+    import win32gui
     from win32com.shell import shell, shellcon
 except ImportError:
-    # Not win32, or win32all not installed.
+    # Not win32, or pywin32 not installed.
     # Some functions will not work, but some will.
-    win32api = win32con = shell = shellcon = None
+    win32api = win32con = win32gui = shell = shellcon = None
+
+import hammie
+import oe_mailbox
+import mboxutils
+
+from spambayes.Options import options
 
 ###########################################################################
 ## DBX FILE HEADER
@@ -452,7 +480,7 @@ def convertToMbox(content):
 
         if address and entries:
             tree = dbxTree(dbxStream, address, entries)
-            dbxBuffer = ""
+            dbxBuffer = []
 
             for i in range(entries):
                 address = tree.getValue(i)
@@ -467,10 +495,11 @@ def convertToMbox(content):
                     # standards.  It would be better to extract this
                     # data from the message itself, as this will
                     # result in incorrect tokens.
-                    dbxBuffer += "From spambayes@spambayes.org %s\n%s" \
-                                 % (strftime("%a %b %d %H:%M:%S MET %Y",
-                                             gmtime()), message.getText())
-            content = dbxBuffer
+                    dbxBuffer.append("From spambayes@spambayes.org %s\n%s" \
+                                     % (strftime("%a %b %d %H:%M:%S MET %Y",
+                                                 gmtime()),
+                                        message.getText()))
+            content = "".join(dbxBuffer)
     dbxStream.close()
     return content
 
@@ -478,15 +507,9 @@ def OEIdentityKeys():
     """Return the OE identity keys.
 
     Tested with Outlook Express 6.0 with Windows XP."""
-    if sys.platform != "win32":
-        # AFAIK, there is only a Win32 OE, and a Mac OE.
-        # The Mac OE should be easy enough, but I don't know
-        # where the dbx files are stored (I presume they are in the
-        # same format).
-        raise NotImplementedError
     if win32api is None:
         # Delayed import error from top.
-        raise ImportError("win32all not installed")
+        raise ImportError("pywin32 not installed")
 
     reg = win32api.RegOpenKeyEx(win32con.HKEY_USERS, "")
     user_index = 0
@@ -526,28 +549,39 @@ def OEIdentityKeys():
                 continue
             yield subkey
 
+def OECurrentUserKey():
+    """Returns the root registry key for current user Outlook
+    Express settings."""
+    if win32api is None:
+        # Delayed import error from top.
+        raise ImportError("pywin32 not installed")
+    key    = "Identities"
+    reg    = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
+    id     = win32api.RegQueryValueEx(reg, "Default User ID")[0]
+    subKey = "%s\\%s\\Software\\Microsoft\\Outlook Express\\5.0" % (key, id)
+    return subKey
+
 def OEStoreRoot():
     """Return the path to the Outlook Express Store Root.
 
     Tested with Outlook Express 6.0 with Windows XP."""
-    # Run through the identity keys, using the first that
-    # works.
-    raw = ""
-    for identity in OEIdentityKeys():
-        try:
-            raw = win32api.RegQueryValueEx(identity, "Store Root")
-        except win32api.error:
-            pass
-        else:
-            break
+    subKey = OECurrentUserKey()
+    reg    = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, subKey)
+    path   = win32api.RegQueryValueEx(reg, "Store Root")[0]
     # I can't find a shellcon to that is the same as %UserProfile%,
     # so extract it from CSIDL_LOCAL_APPDATA
     UserDirectory = shell.SHGetFolderPath \
                     (0, shellcon.CSIDL_LOCAL_APPDATA, 0, 0)
     parts = UserDirectory.split(os.sep)
     UserProfile = os.sep.join(parts[:-2])
-    raw = raw[0].replace("%UserProfile%", UserProfile)
-    return raw
+    return path.replace("%UserProfile%", UserProfile)
+
+def OEDBXFilesList():
+    """Returns a list of DBX files for current user."""
+    path = OEStoreRoot()
+    dbx_re = re.compile('.+\.dbx')
+    dbxs = [f for f in os.listdir(path) if dbx_re.search(f) != None]
+    return dbxs
 
 def OEAccountKeys(permission = None):
     """Return registry keys for each of the OE mail accounts, along
@@ -679,13 +713,8 @@ def test():
         elif opt == '-p':
             print_message = True
 
-    if args:
-        MAILBOX_DIR = args[0]
-    else:
-        MAILBOX_DIR = OEStoreRoot()
-
-    files = [os.path.join(MAILBOX_DIR, file) for file in \
-             os.listdir(MAILBOX_DIR) if os.path.splitext(file)[1] == '.dbx']
+    MAILBOX_DIR = OEStoreRoot()
+    files = [os.path.join(MAILBOX_DIR, f) for f in OEDBXFilesList()]
 
     for file in files:
         try:
@@ -723,10 +752,11 @@ def test():
                             print
                             print message.getText()
 
+            dbx.close()
+
         except Exception, (strerror):
             print strerror
 
-        dbx.close()
 
 if __name__ == '__main__':
     test()
