@@ -538,14 +538,14 @@ BEGIN
     CONTROL         "Train that a message is good when it is moved from a spam folder back to the Inbox.",
                     IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,127,204,18
-    LTEXT           "Clicking 'Not Spam' should",IDC_STATIC,10,148,
+    LTEXT           "Clicking 'Not Spam' button should",IDC_STATIC,10,148,
                     115,10
     COMBOBOX        IDC_RECOVER_RS,127,145,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Train that a message is spam when it is moved to the spam folder.",
                     IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,11,163,204,16
-    LTEXT           "Clicking 'Spam' should",IDC_STATIC,10,183,104,
+    LTEXT           "Clicking 'Spam' button should",IDC_STATIC,10,183,104,
                     10
     COMBOBOX        IDC_DEL_SPAM_RS,127,180,114,54,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
