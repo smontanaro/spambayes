@@ -115,6 +115,10 @@ proxy_info = {}
 only_slurp_base = False
 url_dict = {}
 
+# Exception to raise when we should skip the URL
+class IgnoreURLException(Exception):
+    pass
+
 def body_tokens(msg):
     tokens = Tokenizer().tokenize_body(msg)
     for tok in tokens:
@@ -163,15 +167,19 @@ class SlurpingClassifier(Classifier):
                         print >> sys.stderr, "Slurping:", url, "..."
                     try:
                         f = urllib2.urlopen(url)
+                        # Anything that isn't text/html is ingored
+                        content_type = f.headers.get('content-type')
+                        if not content_type.startswith("text/html"):
+                            raise IgnoreURLException("content type='%s'" % (content_type,))
                         page = f.read()
                         f.close()
                         headers = str(f.headers)
                         page = headers + "\r\n" + page
                         if options["globals", "verbose"]:
                             print >> sys.stderr, "Slurped."
-                    except (IOError, socket.error):
+                    except (IgnoreURLException, IOError, socket.error), details:
                         url_dict[url] = 0.5
-                        print >> sys.stderr, "Couldn't get", url
+                        print >> sys.stderr, "Couldn't get %s (%s)" % (url, details)
                     if not url_dict.has_key(url) or url_dict[url] != 0.5:
                         # Create a fake Message object since Tokenizer is
                         # designed to deal with them.
@@ -221,6 +229,7 @@ def setup(proxy={}, filename=None):
     # read any url cache    
     if os.path.exists(filename):
         f = file(filename, "r")
+        global url_dict
         url_dict = pickle.load(f)
         f.close()
 
