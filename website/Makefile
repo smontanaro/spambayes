@@ -5,8 +5,8 @@
 #            FAQ (.txt->.ht->.html) and the rest (.ht->.html)
 # install: rsync the locally generated content (excluding Version.cfg)
 # version: generate download/Version.cfg, and rsync to the website.
-#          Ensure you have *installed* the latest SpamBayes CVS before
-#          making this target.
+#          Ensure you have *installed* (not just 'cvs up'd) the latest 
+#          SpamBayes CVS before making this target.
 
 # this def'n must occur before the include!
 EXTRA_TARGETS = reply.txt faq.html default.css
