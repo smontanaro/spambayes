@@ -600,6 +600,74 @@ to `the question about getting SpamBayes to delete spam`_.
 .. _`the question about getting SpamBayes to delete spam`: #how-can-i-configure-spambayes-to-delete-spam-rather-than-moving-it
 
 
+Some of my mail is going missing!
+---------------------------------
+
+The plug-in *can not* delete your mail - if it arrived in Outlook, then
+either it's still there, or something else removed it.
+
+Check that the mail isn't in your 'Spam' folder *or* your 'Unsure'
+folder, and that you are checking the correct folders (i.e. go to the
+'Filtering' tab of the SpamBayes dialog, and click on 'Browse' next to
+the two movement options and check that you're moving to the folders you
+think that you are).
+
+You can try to search for the mail, too, using Outlook's 'Advanced Find'
+(in the 'Tools' menu).  Even if you don't know the subject of the 'missing'
+mail, you can search for all messages that have arrived since a certain date
+or time.
+
+Sometimes mail is in the Inbox (or another folder), but not visible.  This,
+too, isn't SpamBayes's doing.  You can set Outlook up to only show a subset
+of the messages in the folder, with a "View Filter".  The Outlook documentation
+has more information about this (although the 'Advanced Find' will still
+show the message).
+
+Note that if you are using sb_server to receive your mail, then (1) you're
+reading the wrong section of the FAQ <wink>, and (2) there is a slim chance
+that SpamBayes is at fault - please use the normal bug reporting procedures.
+
+
+How do I uninstall the plug-in?
+-------------------------------
+
+Note that if you simply want to disable the plug-in for a while, you can
+do this by unticking the "Enable SpamBayes" box on the front page of the
+"Manager" dialog.
+
+If you installed the plug-in from source, then you simply need to re-run the
+"addin.py" script, with the parameter "--unregister", and then delete the
+toolbar in Outlook.
+
+Otherwise, you uninstall the plug-in like you uninstall (almost) any other
+Windows program, using the "Add/Remove Programs" Control Panel.  You'll see
+the plug-in listed under "S" for "SpamBayes".  This will stop remove all the
+program files that the plug-in installed, and stop the plug-in from working.
+It would be a good idea to do this while Outlook is *not* running.
+
+Note that this does *not* remove your personal setup files (deliberately).
+This includes your databases and configuration files.  This means that if you
+later reinstall the plug-in (or a later version), those files will still be
+there, ready to use.  If you wish to remove these as well, you can remove them
+like you would delete any other file (move them to the Recycle Bin).  The
+`backup question`_ explains where you can find these files.
+
+Note that `a bug with the plug-in`_ means that the SpamBayes toolbar is not
+deleted on uninstall - although it *will* stop working.  You can delete this
+yourself in Outlook: right-click on the toolbar, choose "Customize", then
+select the SpamBayes toolbar and click "Delete".
+
+Recently, there have been reports that the uninstaller has left some entries
+in the registry - if this is the case with you, please add to that `bug tracker`_;
+the next release will hopefully resolve this issue.  These should be harmless,
+but if they bother you (and you are confident mucking about with the registry,
+which we do *not* recommend), then you can remove those keys yourself.
+
+.. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
+.. _`bug tracker`: http://sourceforge.net/tracker/index.php?func=detail&aid=832183&group_id=61702&atid=498103
+.. _`a bug with the plug-in`: http://sourceforge.net/tracker/index.php?func=detail&aid=675811&group_id=61702&atid=498103
+
+
 Using SpamBayes
 ===============
 
