@@ -8,6 +8,8 @@
 # move this test message back around, and watch the incremental retrain
 # in action.  Also checks that the message correctly remains classified
 # after a message move.
+from __future__ import generators
+
 from win32com.client import constants
 from time import sleep
 
