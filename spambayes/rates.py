@@ -26,7 +26,7 @@ Training on Data/Ham/Set1 & Data/Spam/Set1 ... 4000 hams & 2750 spams
     false negative: 1.34545454545
     new false positives: ['Data/Ham/Set2/66645.txt']
 """
-pat1 = re.compile(r'\s*Training on Data/').match
+pat1 = re.compile(r'\s*Training on ').match
 pat2 = re.compile(r'\s+false (positive|negative): (.*)').match
 pat3 = re.compile(r"\s+new false (positives|negatives): \[(.+)\]").match
 
