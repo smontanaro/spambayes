@@ -1,5 +1,6 @@
 # Test sb_imapfilter script.
 
+import re
 import sys
 import time
 import email
@@ -17,7 +18,7 @@ from spambayes import message
 from spambayes import Dibbler
 from spambayes.Options import options
 from spambayes.classifier import Classifier
-from sb_imapfilter import BadIMAPResponseError
+from sb_imapfilter import run, BadIMAPResponseError
 from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder, IMAPFilter
 
 IMAP_PORT = 8143
@@ -757,6 +758,36 @@ class SFBugsTest(BaseIMAPFilterTest):
         pass
 
 
+class InterfaceTest(unittest.TestCase):
+    def setUp(self):
+        print "\nThis test takes slightly over one second."
+        self.saved_server = options["imap", "server"]
+        options["imap", "server"] = ""
+        thread.start_new_thread(run, (True,))
+        # Wait for it to be ready.
+        time.sleep(1)
+
+    def tearDown(self):
+        options["imap", "server"] = self.saved_server
+        # Shutdown as though through the web UI.
+        from urllib import urlopen, urlencode
+        urlopen('http://localhost:%d/save' % options["html_ui", "port"],
+                urlencode({'how': _('Save & shutdown')})).read()
+
+    def test_UI(self):
+        # Smoke-test the HTML UI.
+        httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        httpServer.connect(('localhost', options["html_ui", "port"]))
+        httpServer.send("get / HTTP/1.0\r\n\r\n")
+        response = ''
+        while 1:
+            packet = httpServer.recv(1024)
+            if not packet: break
+            response += packet
+        self.assert_(re.search(r"(?s)<html>.*SpamBayes IMAP Filter.*</html>",
+                               response))
+
+
 def suite():
     suite = unittest.TestSuite()
     for cls in (IMAPSessionTest,
@@ -764,6 +795,7 @@ def suite():
                 IMAPFolderTest,
                 IMAPFilterTest,
                 SFBugsTest,
+                InterfaceTest,
                ):
         suite.addTest(unittest.makeSuite(cls))
     return suite
