@@ -940,10 +940,18 @@ SpamBayes' case, always the wrong one.  Some versions of dumbdbm have a bug
 that will cause database corruption, but you shouldn't be using it anyway,
 as it is very inefficient.  Instead, either
 `use a pickle <#how-do-i-use-a-pickle-for-storage>`_ or install `pybsddb`_
-(bsddb3) and use that instead.  If you are not sure which database systems
+(bsddb3) and use that instead.
+
+If you are not sure which database systems
 you have available, and/or which one you are currently using, there is a
 script in the utilities folder called `which_database.py`_ that will display
-this information (Windows users should run it from a command prompt).
+this information (Windows users should run it from a command prompt).  This
+file is only included in releases after 1.0a4 - if you are using an earlier
+version, you can download it from cvs, or just go by the name(s) of the
+database file(s).  If you have a single file, probably called ``hammie.db``,
+then you are probably not using dumbdbm.  If you have three files (probably
+called ``hammie.db.dir``, ``hammie.db.dat`` and ``hammie.db.bak``), then you
+most likely are using dumbdbm, and should stop.
 
 Support for dumbdbm will be dropped in a future release.
                     
