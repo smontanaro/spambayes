@@ -558,7 +558,12 @@ def tokenize(obj):
     if isinstance(obj, email.Message.Message):
         msg = obj
     elif hasattr(obj, "readline"):
-        msg = email.message_from_file(obj)
+        try:
+            msg = email.message_from_file(obj)
+        except email.Errors.MessageParseError:
+            yield 'control: MessageParseError'
+            # XXX Fall back to the raw body text?
+            return
     else:
         try:
             msg = email.message_from_string(obj)
