@@ -569,5 +569,38 @@ class Bayes(object):
         else:
             return score
 
-    if options.use_central_limit2:
+    if options.use_central_limit2 or options.use_central_limit3:
         spamprob = central_limit_spamprob2
+
+    def central_limit_compute_population_stats3(self, msgstream, is_spam):
+        from math import ldexp, log
+
+        sum = sumsq = n = 0
+        for msg in msgstream:
+            n += 1
+            probsum = 0.0
+            clues = self._getclues(msg)
+            for prob, word, record in clues:
+                if is_spam:
+                    probsum += log(prob)
+                else:
+                    probsum += log(1.0 - prob)
+            mean = long(ldexp(probsum / len(clues), 64))
+            sum += mean
+            sumsq += mean * mean
+
+        mean = ldexp(sum, -64) / n
+        var = sumsq * n - sum**2
+        var = ldexp(var, -128) / n**2
+
+        if is_spam:
+            self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
+            self.spammean, self.spamvar = mean, var
+            print 'spammean', self.spammean, 'spamvar', self.spamvar
+        else:
+            self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
+            self.hammean, self.hamvar = mean, var
+            print 'hammean', self.hammean, 'hamvar', self.hamvar
+
+    if options.use_central_limit3:
+        compute_population_stats = central_limit_compute_population_stats3

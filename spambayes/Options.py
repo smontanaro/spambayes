@@ -217,6 +217,7 @@ use_central_limit: False
 # Same as use_central_limit, except takes logarithms of probabilities and
 # probability complements (p and 1-p) instead.
 use_central_limit2: False
+use_central_limit3: False
 
 # For now, a central-limit scheme considers its decision "certain" if the
 # ratio of the zscore with larger magnitude to the zscore with smaller
@@ -275,6 +276,7 @@ all_options = {
 
                    'use_central_limit': boolean_cracker,
                    'use_central_limit2': boolean_cracker,
+                   'use_central_limit3': boolean_cracker,
                    'zscore_ratio_cutoff': float_cracker,
                    },
 }
