@@ -79,7 +79,9 @@ def normIP(p):
 
     Must have 0.0 <= p <= 1.0.
     """
-    return normIQ(1.0 - p)
+    z = normIQ(1.0 - p)
+    # One Newton step should double the # of good digits.
+    return z + (p - normP(z)) / normZ(z)
 
 def main():
     from Histogram import Hist
