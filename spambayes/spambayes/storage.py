@@ -565,8 +565,9 @@ class mySQLClassifier(SQLClassifier):
             return None
 
 
-# Flags that the Trainer will recognise.
-NO_TRAINING_FLAG = "no_training"
+# Flags that the Trainer will recognise.  These should be or'able integer
+# values (i.e. 1, 2, 4, 8, etc.).
+NO_TRAINING_FLAG = 1
 
 class Trainer:
     '''Associates a Classifier object and one or more Corpora, \
@@ -579,7 +580,7 @@ class Trainer:
         self.is_spam = is_spam
         self.updateprobs = updateprobs
 
-    def onAddMessage(self, message, flags=None):
+    def onAddMessage(self, message, flags=0):
         '''A message is being added to an observed corpus.'''
         # There are no flags that we currently care about, so
         # get rid of the variable so that PyChecker doesn't bother us.
@@ -597,13 +598,13 @@ class Trainer:
         message.setId(message.key())
         message.RememberTrained(self.is_spam)
 
-    def onRemoveMessage(self, message, flags=None):
+    def onRemoveMessage(self, message, flags=0):
         '''A message is being removed from an observed corpus.'''
         # If a message is being expired from the corpus, we do
         # *NOT* want to untrain it, because that's not what's happening.
         # If this is the case, then flags will include NO_TRAINING_FLAG.
         # There are no other flags we currently use.
-        if flags.find(NO_TRAINING_FLAG) < 0:
+        if not (flags & NO_TRAINING_FLAG):
             self.untrain(message)
 
     def untrain(self, message):

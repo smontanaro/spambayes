@@ -117,7 +117,7 @@ class Corpus:
 
         self.observers.append(observer)
 
-    def addMessage(self, message, observer_flags=None):
+    def addMessage(self, message, observer_flags=0):
         '''Add a Message to this corpus'''
 
         if options["globals", "verbose"]:
@@ -133,7 +133,7 @@ class Corpus:
             if hasattr(obs, "onAddMessage"):
                 obs.onAddMessage(message, observer_flags)
 
-    def removeMessage(self, message, observer_flags=None):
+    def removeMessage(self, message, observer_flags=0):
         '''Remove a Message from this corpus'''
         key = message.key()
         if options["globals", "verbose"]:

@@ -139,7 +139,7 @@ filter'''
         # perform superclass processing *LAST!*
         Corpus.Corpus.addMessage(self, message)
 
-    def removeMessage(self, message, observer_flags=None):
+    def removeMessage(self, message, observer_flags=0):
         '''Remove a Message from this corpus'''
         if options["globals", "verbose"]:
             print 'removing',message.key(),'from corpus'
