@@ -43,6 +43,7 @@ except NameError:
 
 import re
 import cgi
+import types
 
 import UserInterface
 from spambayes.Options import options, optionsPathname
@@ -207,10 +208,22 @@ class IMAPUserInterface(UserInterface.UserInterface):
             self.write(content)
             self._writePostamble()
             return
-        username = options["imap", "username"][0]
-        if username == "":
+        username = options["imap", "username"]
+        if isinstance(username, types.TupleType):
+            username = username[0]
+        if not username:
             content = self._buildBox("Error", None,
                                      """Must specify username first.""")
+            self.write(content)
+            self._writePostamble()
+            return
+        if not self.imap_pwd:
+            self.imap_pwd = options["imap", "password"]
+            if isinstance(self.imap_pwd, types.TupleType):
+                self.imap_pwd = self.imap_pwd[0]
+        if not self.imap_pwd:
+            content = self._buildBox("Error", None,
+                                     """Must specify password first.""")
             self.write(content)
             self._writePostamble()
             return
