@@ -91,7 +91,7 @@ def migrate(f, targetdir, verbose):
     if verbose:
         print "moving", f, "to", out
     os.rename(f, out)
-    return os.path.split(f)[-1]
+    return os.path.split(out)[-1]
 
 def main(args):
     nperdir = NPERDIR
