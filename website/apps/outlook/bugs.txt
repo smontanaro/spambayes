@@ -4,7 +4,6 @@ SpamBayes Outlook Addin Frequently Reported Bugs
 
 :Date: $Date$
 :Version: $Revision$
-:Web site: http://spambayes.sourceforge.net/
 
 .. Please note that until there's a Q&A-specific construct available in
    Docutils, this FAQ will use section titles for questions.  Therefore
@@ -13,6 +12,9 @@ SpamBayes Outlook Addin Frequently Reported Bugs
 
 .. contents::
 .. sectnum::
+
+Frequently Reported Bugs
+========================
 
 This page has general information on the most reported bugs for the Outlook
 Addin.  All bugs are managed at `SourceForge`_, but in an attempt to save 
@@ -36,9 +38,6 @@ has all the details.
 .. _SourceForge bug database: http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse
 .. _Frequently Asked Questions: http://spambayes.sourceforge.net/faq.html
 .. _Troubleshooting Guide: http://cvs.sourceforge.net/viewcvs.py/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD
-
-Frequently Reported Bugs
-========================
 
 Installation fails with "DLL Registration" error
 ------------------------------------------------
