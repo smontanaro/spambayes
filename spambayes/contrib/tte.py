@@ -33,6 +33,8 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 
 -v        Be very verbose, spewing all sorts of stuff out to stderr.
 
+-R        Walk backwards through the mailbox.
+
 
 Note: The -c command line argument isn't quite as benign as it might first
 appear.  Since the tte protocol trains on the same number of ham and spam
@@ -80,7 +82,7 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-def train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose):
+def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
     smisses = hmisses = round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
@@ -88,6 +90,9 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose):
     while round < maxrounds and (hmisses or smisses or round == 0):
         hambone = mboxutils.getmbox(ham)
         spamcan = mboxutils.getmbox(spam)
+        if reverse:
+            hambone = reversed(list(hambone))
+            spamcan = reversed(list(spamcan))
         round += 1
 
         if verbose:
@@ -152,11 +157,11 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose):
 
 def main(args):
     try:
-        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:v",
+        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:vR",
                                    ["help", "good=", "spam=",
                                     "database=", "pickle=", "verbose",
                                     "option=", "max=", "maxrounds=",
-                                    "cullext="])
+                                    "cullext=", "reverse"])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
@@ -165,6 +170,7 @@ def main(args):
     maxmsgs = 0
     maxrounds = MAXROUNDS
     verbose = False
+    reverse = False
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -181,6 +187,8 @@ def main(args):
             maxmsgs = int(arg)
         elif opt in ("-r", "--maxrounds"):
             maxrounds = int(arg)
+        elif opt in ("-R", "--reverse"):
+            reverse = True
         elif opt in ('-o', '--option'):
             Options.options.set_from_cmdline(arg, sys.stderr)
             
@@ -198,7 +206,7 @@ def main(args):
     store = storage.open_storage(dbname, usedb)
 
     tdict = {}
-    train(store, ham, spam, maxmsgs, maxrounds, tdict, verbose)
+    train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose)
 
     store.store()
 
