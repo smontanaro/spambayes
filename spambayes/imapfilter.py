@@ -238,6 +238,47 @@ class IMAPSession(imaplib.IMAP4):
             self.current_folder = folder
             return response
 
+    def folder_list(self):
+        '''Return a alphabetical list of all folders available on the
+        server'''
+        response = self.list()
+        if response[0] != "OK":
+            return []
+        all_folders = response[1]
+        folders = []
+        for fol in all_folders:
+            r = re.compile(r"\(([\w\\ ]*)\) ")
+            m = r.search(fol)
+            name_attributes = fol[:m.end()-1]
+            # IMAP is a truly odd protocol.  The delimiter is
+            # only the delimiter for this particular folder - each
+            # folder *may* have a different delimiter
+            self.folder_delimiter = fol[m.end()+1:m.end()+2]
+            # a bit of a hack, but we really need to know if this is
+            # the case
+            if self.folder_delimiter == ',':
+                print """WARNING: Your imap server uses commas as the folder
+                delimiter.  This may cause unpredictable errors."""
+            folders.append(fol[m.end()+5:-1])
+        folders.sort()
+        return folders
+
+    def FindMessage(self, id):
+        '''A (potentially very expensive) method to find a message with
+        a given spambayes id (header), and return a message object (no
+        substance).'''
+        # If efficiency becomes a concern, what we could do is store a
+        # dict of key-to-folder, and look in that folder first.  (It might
+        # have moved independantly of us, so we would still have to search
+        # if we didn't find it).  For the moment, we do an search through
+        # all folders, alphabetically.
+        for folder_name in self.folder_list():
+            fol = IMAPFolder(folder_name)
+            for msg in fol:
+                if msg.id == id:
+                    return msg
+        return None
+
 class IMAPMessage(message.SBHeaderMessage):
     def __init__(self):
         message.Message.__init__(self)
@@ -414,14 +455,14 @@ class IMAPFolder(object):
         return response[1][0].split(' ')
 
     def __getitem__(self, key):
-        '''Return message (no substance) matching the given uid.'''
+        '''Return message (no substance) matching the given *uid*.'''
         # We don't retrieve the substances of the message here - you need
         # to call msg.get_substance() to do that.
         imap.SelectFolder(self.name)
         # Using RFC822.HEADER.LINES would be better here, but it seems
         # that not all servers accept it, even though it is in the RFC
         response = imap.uid("FETCH", key, "RFC822.HEADER")
-        self._check(response, "uid fetch header lines")
+        self._check(response, "uid fetch header")
         data = _extract_fetch_data(response[1][0])
 
         msg = IMAPMessage()
@@ -464,6 +505,7 @@ class IMAPFolder(object):
         for msg in self:
             if msg.GetTrained() == (not isSpam):
                 msg.get_substance()
+                msg.delSBHeaders()
                 classifier.unlearn(msg.asTokens(), not isSpam)
                 # Once the message has been untrained, it's training memory
                 # should reflect that on the off chance that for some reason
@@ -473,6 +515,7 @@ class IMAPFolder(object):
 
             if msg.GetTrained() is None:
                 msg.get_substance()
+                msg.delSBHeaders()
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)

@@ -88,6 +88,7 @@ except NameError:
         return not not val
 
 import sys
+import os
 import types
 import re
 
@@ -127,8 +128,13 @@ class MessageInfoDB:
     def _delState(self, msg):
         del self.db[msg.getId()]
         
-# this should come from a Mark Hammond idea of a master db
-msginfoDB = MessageInfoDB("spambayes.messageinfo.db")
+# This should come from a Mark Hammond idea of a master db
+# For the moment, we get the name of another file from the options,
+# so that these files don't litter lots of working directories.
+# Once there is a master db, this option can be removed.
+message_info_db_name = options["Storage", "messageinfo_storage_file"]
+message_info_db_name = os.path.expanduser(message_info_db_name)
+msginfoDB = MessageInfoDB(message_info_db_name)
 
 class Message(email.Message.Message):
     '''An email.Message.Message extended for Spambayes'''

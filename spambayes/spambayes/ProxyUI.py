@@ -100,6 +100,7 @@ parm_ini_map = (
     ('Storage',             'persistent_storage_file'),
     ('Categorization',      'ham_cutoff'),
     ('Categorization',      'spam_cutoff'),
+    ('Storage',             'messageinfo_storage_file'),
 )
 
 
@@ -339,17 +340,18 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Build the lists of messages: spams, hams and unsure.
         if len(keys) == 0:
             keys, date, prior, this, next = self._buildReviewKeys(start)
-        keyedMessageInfo = {options.header_spam_string: [],
-                            options.header_ham_string: [],
-                            options.header_unsure_string: []}
+        keyedMessageInfo = {options["Headers", "header_spam_string"]: [],
+                            options["Headers", "header_ham_string"]: [],
+                            options["Headers", "header_unsure_string"]: []}
         for key in keys:
             # Parse the message, get the judgement header and build a message
             # info object for each message.
             cachedMessage = sourceCorpus[key]
             message = spambayes.mboxutils.get_message(cachedMessage.getSubstance())
-            judgement = message[options.hammie_header_name]
+            judgement = message[options["Headers",
+                                        "classification_header_name"]]
             if judgement is None:
-                judgement = options.header_unsure_string
+                judgement = options["Headers", "header_unsure_string"]
             else:
                 judgement = judgement.split(';')[0].strip()
             messageInfo = self._makeMessageInfo(message)
@@ -367,9 +369,13 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 del page.nextButton.disabled
             templateRow = page.reviewRow.clone()
             page.table = ""  # To make way for the real rows.
-            for header, label in ((options.header_spam_string, 'Spam'),
-                                  (options.header_ham_string, 'Ham'),
-                                  (options.header_unsure_string, 'Unsure')):
+            for header, label in ((options["Headers",
+                                           "header_spam_string"], 'Spam'),
+                                  (options["Headers",
+                                           "header_ham_string"], 'Ham'),
+                                  (options["Headers",
+                                           "header_unsure_string"],
+                                   'Unsure')):
                 messages = keyedMessageInfo[header]
                 if messages:
                     subHeader = str(self.html.reviewSubHeader)

@@ -613,6 +613,16 @@ defaults = {
      the name will be taken to be relative to the current working
      directory.""",
      FILE_WITH_PATH, DO_NOT_RESTORE),
+
+    ("messageinfo_storage_file", "Message information file name", "spambayes.messageinfo.db",
+     """Spambayes builds a database of information about messages
+     that it has already seen and trained or classified.  This
+     database is used to ensure that these messages are retrained
+     or reclassified (unless specifically requested to).  This option
+     specifies the name of the database file.  If you don't give a
+     full pathname, the name will be taken to be relative to the current
+     working directory.""",
+     FILE_WITH_PATH, DO_NOT_RESTORE),
   ),
 
   # These options control the various headers that some Spambayes

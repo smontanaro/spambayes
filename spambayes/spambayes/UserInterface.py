@@ -97,7 +97,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
   
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
-        return options.html_ui_allow_remote_connections or \
+        return options["html_ui", "allow_remote_connections"] or \
                clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
 
     def _writePreamble(self, name, parent=None, showImage=True):

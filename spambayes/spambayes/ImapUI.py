@@ -88,6 +88,7 @@ parm_map = (
     ('Storage',               'persistent_storage_file'),
     ('Categorization',        'ham_cutoff'),
     ('Categorization',        'spam_cutoff'),
+    ('Storage',               'messageinfo_storage_file'),
 )
 
 class IMAPUserInterface(UserInterface.UserInterface):
@@ -141,7 +142,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onFilterfolders(self):
         self._writePreamble("Select Filter Folders")
         self._login_to_imap()
-        available_folders = self._folder_list()
+        available_folders = self.imap.folder_list()
         content = self.html.configForm.clone()
         content.configFormContent = ""
         content.introduction = """This page allows you to change which
@@ -190,7 +191,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
     def onTrainingfolders(self):
         self._writePreamble("Select Training Folders")
         self._login_to_imap()
-        available_folders = self._folder_list()
+        available_folders = self.imap.folder_list()
         content = self.html.configForm.clone()
         content.configFormContent = ""
         content.introduction = """This page allows you to change which
@@ -258,28 +259,3 @@ class IMAPUserInterface(UserInterface.UserInterface):
             folderTable += folderRow
         return self._buildBox(options.display_name(section, option),
                               None, folderTable)
-
-    def _folder_list(self):
-        '''Return a alphabetical list of all folders available
-        on the server'''
-        response = self.imap.list()
-        if response[0] != "OK":
-            return []
-        all_folders = response[1]
-        folders = []
-        for fol in all_folders:
-            r = re.compile(r"\(([\w\\ ]*)\) ")
-            m = r.search(fol)
-            name_attributes = fol[:m.end()-1]
-            # IMAP is a truly odd protocol.  The delimiter is
-            # only the delimiter for this particular folder - each
-            # folder *may* have a different delimiter
-            self.folder_delimiter = fol[m.end()+1:m.end()+2]
-            # a bit of a hack, but we really need to know if this is
-            # the case
-            if self.folder_delimiter == ',':
-                print """WARNING: Your imap server uses commas as the folder
-                delimiter.  This may cause unpredictable errors."""
-            folders.append(fol[m.end()+5:-1])
-        folders.sort()
-        return folders
