@@ -1059,7 +1059,8 @@ class UserInterface(Dibbler.HTTPPlugin):
         cluesTable = self.html.cluesTable.clone()
         cluesRow = cluesTable.cluesRow.clone()
         del cluesTable.cluesRow   # Delete dummy row to make way for real ones
-        (probability, clues) = state.bayes.spamprob(tokenizer.tokenize(message), evidence=True)
+        (probability, clues) = state.bayes.spamprob(tokenizer.tokenize(message),\
+                                                    evidence=True)
         for word, wordProb in clues:
             cluesTable += cluesRow % (cgi.escape(word), wordProb)
 
