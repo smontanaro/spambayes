@@ -778,6 +778,29 @@ For example::
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
 
 
+The "Recover From Spam" button no longer appears.
+-------------------------------------------------
+
+First, check that Outlook isn't hiding it for you.  If toolbars run out of
+space, Outlook automatically hides buttons for you (we have no control over
+which buttons are hidden).  If this has happened there will be little
+down-arrows at the end of the toolbar - click those and the missing button
+will appear.  To stop this happening, you have to move the SpamBayes toolbar
+to somewhere where there will always be room for the three buttons.
+
+Next, check that you're in the right folder.  This button only appears
+when you are in the 'unsure' and 'spam' folders.  Open up the SpamBayes
+Manager dialog, and go to the Filtering tab.  Click the browse button next
+to the 'unsure' and 'spam' folders and write down the hierarchy to get to
+the selected folder (for example, "Personal Folders->Inbox->Possible Junk").
+Now, close the Manager dialog, and, in Outlook, navigate to the folders
+based on the hierarchy that you wrote down (to make sure that you aren't in
+another folder with the same name).
+
+If neither of these works, then please submit a bug report, attaching a copy
+of your most recent log file.
+
+
 How do I uninstall the plug-in?
 -------------------------------
 
