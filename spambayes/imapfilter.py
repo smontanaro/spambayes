@@ -721,10 +721,16 @@ or training will be performed."""
         # The options class is ahead of us here:
         #   it knows that imap:server will eventually be able to have
         #   multiple values, but for the moment, we just use the first one
-        server = options["imap", "server"][0]
-        username = options["imap", "username"][0]
+        server = options["imap", "server"]
+        if len(server) > 0:
+            server = server[0]
+        username = options["imap", "username"]
+        if len(username) > 0:
+            username = username[0]
         if not promptForPass:
-            pwd = options["imap", "password"][0]
+            pwd = options["imap", "password"]
+            if len(pwd) > 0:
+                pwd = pwd[0]
     else:
         if not launchUI:
             print "You need to specify both a server and a username."
