@@ -247,6 +247,13 @@ robinson_probability_s: 0.45
 # all corpora.
 robinson_minimum_prob_strength: 0.1
 
+# The combining scheme currently detailed on Gary Robinon's web page.
+# The middle ground here is touchy, varying across corpus, and within
+# a corpus across amounts of training data.  It almost never gives extreme
+# scores (near 0.0 or 1.0), but the tail ends of the ham and spam
+# distributions overlap.
+use_gary_combining: True
+
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
 # follows the chi-squared distribution with 2*n degrees of freedom.  That's
 # the "provably most-sensitive" test Gary's original scheme was monotonic
@@ -261,7 +268,9 @@ robinson_minimum_prob_strength: 0.1
 # measures via (S-H+1)/2 instead of via S/(S+H)).
 # In practice, it appears that setting ham_cutoff=0.05, and spam_cutoff=0.95,
 # does well across test sets; while these cutoffs are rarely optimal, they
-# get close to optimal.
+# get close to optimal.  With more training data, Tim has had good luck
+# with ham_cutoff=0.30 and spam_cutoff=0.80 across three test data sets
+# (original c.l.p data, his own email, and newer general python.org traffic).
 use_chi_squared_combining: False
 
 # Use a weighted average of chi-combining and gary-combining.
@@ -318,6 +327,7 @@ all_options = {
                    'robinson_probability_x': float_cracker,
                    'robinson_probability_s': float_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
+                   'use_gary_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
 
                    'use_mixed_combining': boolean_cracker,

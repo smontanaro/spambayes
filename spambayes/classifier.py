@@ -19,7 +19,12 @@
 # the scores under Paul's scheme were almost always very near 0 or very near
 # 1, whether or not the classification was correct.  The false positives
 # and false negatives under Gary's scheme generally score in a narrow range
-# around the corpus's best spam_cutoff value
+# around the corpus's best spam_cutoff value.
+#
+# THe chi-combining scheme here gets closer to the theoretical basis of
+# Gary's combining scheme, and does give extreme scores, but also has a
+# very useful middle ground (small # of msgs spread across a large range
+# of scores).
 #
 # This implementation is due to Tim Peters et alia.
 
@@ -168,7 +173,8 @@ class Bayes(object):
         else:
             return prob
 
-    spamprob = gary_spamprob    # may be replaced by one of the next ones
+    if options.use_gary_combining:
+        spamprob = gary_spamprob
 
     # Across vectors of length n, containing random uniformly-distributed
     # probabilities, -2*sum(ln(p_i)) follows the chi-squared distribution
