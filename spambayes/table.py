@@ -102,6 +102,8 @@ def windowsfy(fn):
     else:
         return fn
 
+fname = "filename: "
+fnam2 = "          "
 ratio = "ham:spam: "
 rat2  = "          "
 fptot = "fp total: "
@@ -124,6 +126,18 @@ for filename in sys.argv[1:]:
     filename = windowsfy(filename)
     (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
      hamdevall, spamdevall) = suck(file(filename))
+    if filename.endswith('.txt'):
+        filename = filename[:-4]
+    filename = filename[filename.rfind('/')+1:]
+    filename = filename[filename.rfind("\\")+1:]
+    if len(fname) > len(fnam2):
+        fname += "        "
+        fname = fname[0:(len(fnam2) + 8)]
+        fnam2 += " %7s" % filename
+    else:
+        fnam2 += "        "
+        fnam2 = fnam2[0:(len(fname) + 8)]
+        fname += " %7s" % filename
     if len(ratio) > len(rat2):
         ratio += "        "
         ratio = ratio[0:(len(rat2) + 8)]
@@ -148,8 +162,11 @@ for filename in sys.argv[1:]:
     k = (spamdevall[0] - hamdevall[0]) / (spamdevall[1] + hamdevall[1])
     kval  += "%8.2f" % k
 
+print fname
+if len(fnam2.strip()) > 0:
+    print fnam2
 print ratio
-if ":"[0] in rat2:
+if len(rat2.strip()) > 0:
     print rat2
 print fptot
 print fpper
