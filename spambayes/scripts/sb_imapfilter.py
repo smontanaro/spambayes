@@ -52,6 +52,8 @@ todo = """
       password method that we are using at the moment.  Neither of the
       servers I have access to offer any alternative method, however.  If
       someone's does, then it would be nice to offer this.
+      Thanks to #1169939 we now support CRAM_MD5 if available.  It'd still
+      be good to support others, though.
     o Usernames should be able to be literals as well as quoted strings.
       This might help if the username/password has special characters like
       accented characters.
@@ -79,6 +81,7 @@ import os
 import re
 import time
 import sys
+import hmac
 import getopt
 import types
 import thread
@@ -191,11 +194,24 @@ class IMAPSession(BaseIMAP):
         self.sock.setblocking(True)
         return "".join(buffer)
 
+    def authenticate_cram_md5(self, username, pwd):
+        """Authenticate (login) with CRAM-MD5.
+
+        See RFC 2195 and SpamBayes patch #1169939
+        """
+        def cram_md5(response):
+            return " ".join([username,
+                             hmac.HMAC(pwd, response).hexdigest()])
+        self.authenticate('CRAM-MD5', cram_md5)
+
     def login(self, username, pwd):
         """Log in to the IMAP server, catching invalid username/password."""
         assert self.connected, "Must be connected before logging in."
         try:
-            BaseIMAP.login(self, username, pwd)  # superclass login
+            if 'AUTH=CRAM-MD5' in self.capabilities:
+                self.authenticate_cram_md5(username, pwd)
+            else:
+                BaseIMAP.login(self, username, pwd)  # superclass login
         except BaseIMAP.error, e:
             msg = "There was an error logging in to the IMAP server." \
                   " The username (%s) and/or password may " \
