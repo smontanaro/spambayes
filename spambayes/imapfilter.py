@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import generators
-
 """An IMAP filter.  An IMAP message box is scanned and all non-scored
 messages are scored and (where necessary) filtered.
 
@@ -21,8 +19,9 @@ Usage:
             -c          : classify inbox
             -h          : help
             -v          : verbose mode
-            -e          : sets expunge to the *opposite* of options.imap_expunge
+            -e y/n      : sets expunge to the *opposite* of options.imap_expunge
             -i debuglvl : a somewhat mysterious imaplib debugging level
+            -l minutes  : period of time between filtering operations
 
 Examples:
 
@@ -38,7 +37,6 @@ Examples:
 To Do:
     o Find a better way to remove old msg from info database when saving
       modified messages
-    o Use DELETE rather than storing //DELETED flag when saving modified messages
     o Web UI for configuration and setup. Tony thinks it would be
         nice if there was a web ui to this for the initial setup (i.e. like
         pop3proxy), which offered a list of folders to filter/train/etc.  It
@@ -53,7 +51,7 @@ To Do:
       for example).  It would probably be nicer if it was continually
       running (like pop3proxy, for example) and periodically checked for
       any new messages to process (with the RECENT command).  The period
-      could be an option.
+      could be an option.  This is partially done with the -l operand.
     o Suggestions?
 """
 
@@ -63,6 +61,8 @@ To Do:
 
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "Tim Stone, All the Spambayes folk."
+
+from __future__ import generators
 
 try:
     True, False
@@ -342,7 +342,7 @@ class IMAPFilter(object):
 if __name__ == '__main__':
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htcvei:d:D:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htcvl:e:i:d:D:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -353,6 +353,7 @@ if __name__ == '__main__':
     doClassify = False
     doExpunge = options.imap_expunge
     imapDebug = 0
+    sleepTime = 0
 
     for opt, arg in opts:
         if opt == '-h':
@@ -371,9 +372,18 @@ if __name__ == '__main__':
         elif opt == '-v':
             options.verbose = True
         elif opt == '-e':
-            doExpunge = not doExpunge
+            if arg == 'y':
+                doExpunge = True
+            else:
+                doExpunge = False
         elif opt == '-i':
             imapDebug = int(arg)
+        elif opt == '-l':
+            sleepTime = int(arg) * 60
+
+    if not (doClassify or doTrain):
+        print "-c and/or -t operands must be specified"
+        sys.exit()
 
     bdbname = os.path.expanduser(bdbname)
     
@@ -389,10 +399,20 @@ if __name__ == '__main__':
         print "Done."            
                 
     imap_filter = IMAPFilter(classifier, imapDebug)
+    print sleepTime
+    while 1:
+        if doTrain:
+            if options.verbose:
+                print "Training"
+            imap_filter.Train()
+        if doClassify:
+            if options.verbose:
+                print "Classifying"
+            imap_filter.Filter()
 
-    if doTrain:
-        imap_filter.Train()
-    if doClassify:
-        imap_filter.Filter()
+        if sleepTime:
+            time.sleep(sleepTime)
+        else:
+            break
         
     imap_filter.Logout(doExpunge)
