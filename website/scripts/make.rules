@@ -48,11 +48,27 @@ HTROOT = 	$(shell $(SCRIPTDIR)/calcroot.py $(ROOT_OFFSET))
 HTFLAGS =	$(HTALLFLAGS) -r $(HTROOT)
 HTRELDIR =	.
 
+# docutils 'html.py' script.
+DUHTML = html.py
+
 GENERATED_HTML= $(SOURCES:.ht=.html)
 
-.SUFFIXES:	.ht .html
+.SUFFIXES:	.txt .ht .html
 .ht.html:
 		$(HT2HTML) $(HTFLAGS) $(HTRELDIR)/$<
+
+# Use a single rule to go from .txt -> .html (otherwise we would
+# need a custom rule for our special .ht -> .html command
+.txt.html:
+	$(DUHTML) $< > faq.body.tmp
+	echo "Title: $(FAQ_TITLE)" > $*.ht
+	echo "Contact-URL: $(ROOT_DIR)/contact.html" >> $*.ht
+	echo "Author-Email: SpamBayes@python.org" >> $*.ht
+	echo "Author: SpamBayes" >> $*.ht
+	echo "" >> $*.ht
+	cat faq.body.tmp | sed -e '1,/<body>/d' -e '/<\/body>/,$$d' >> $*.ht
+	rm faq.body.tmp
+	$(HT2HTML) -f -s SpamBayesFAQGenerator -r $(ROOT_DIR) $(HTRELDIR)/$*.ht
 
 all: $(TARGETS)
 
@@ -70,7 +86,7 @@ install: all local_install
 	  false; \
 	fi
 	@echo Push to $(LIVE_DEST) ...
-	rsync --rsh=$(RSYNC_RSH) -v -r -l -t --update $(LOCAL_INCLUDE) $(GLOBAL_EXCLUDES) $(EXCLUDE_FROM) ./ $(LIVE_DEST)
+	rsync --rsh=$(RSYNC_RSH) -v -r -l -t --update $(LOCAL_INCLUDE) $(GLOBAL_EXCLUDES) $(EXCLUDE_FROM) ./* $(LIVE_DEST)
 
 validate:	$(TARGETS)
 	for f in $(TARGETS); \
