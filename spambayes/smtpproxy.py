@@ -27,6 +27,12 @@ except NameError:
 
 
 todo = """
+It would be nice if spam/ham could be bulk forwarded to the proxy,
+rather than one by one.  This would require separating the different
+messages and extracting the correct ids.  Simply changing to find
+*all* the ids in a message, rather than stopping after one *might*
+work, but I don't really know.  Richie Hindle suggested something along
+these lines back in September '02.
 
 Testing:
 

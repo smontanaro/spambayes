@@ -389,6 +389,7 @@ pop3proxy_persistent_use_database: True
 pop3proxy_persistent_storage_file: hammie.db
 pop3proxy_notate_to: False
 pop3proxy_notate_subject: False
+pop3proxy_include_prob: False
 pop3proxy_cache_messages: True
 # valid options for pop3proxy_add_mailid_to include
 # "", "header", "body", and "header body"
@@ -509,6 +510,7 @@ all_options = {
                   'pop3proxy_persistent_storage_file': string_cracker,
                   'pop3proxy_notate_to' : boolean_cracker,
                   'pop3proxy_notate_subject' : boolean_cracker,
+                  'pop3proxy_include_prob' : boolean_cracker,
                   'pop3proxy_cache_messages' : boolean_cracker,
                   'pop3proxy_add_mailid_to' : string_cracker,
                   'pop3proxy_mailid_header_name' : string_cracker,

@@ -71,7 +71,7 @@ User interface improvements:
  o Deployment: Windows executable?  atlaxwin and ctypes?  Or just
    webbrowser?
  o Can it cleanly dynamically update its status display while having a
-   POP3 converation?  Hammering reload sucks.
+   POP3 conversation?  Hammering reload sucks.
  o Save the stats (num classified, etc.) between sessions.
  o "Reload database" button.
 
@@ -512,8 +512,12 @@ class BayesProxy(POP3ProxyBase):
                             + messageName + "\r\n.\r\n"
             else:
                 id_header = options.hammie_header_name + "-ID: Test\r\n"
-                            
-            header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
+
+            if options.pop3proxy_include_prob:
+                header = '%s: %s, %s\r\n' % (options.hammie_header_name,
+                                             disposition, prob)
+            else:
+                header = '%s: %s\r\n' % (options.hammie_header_name, disposition)
             headers = headers + "\n" + header + id_header + "\r\n"
             
             if options.pop3proxy_notate_to \

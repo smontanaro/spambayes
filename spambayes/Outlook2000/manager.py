@@ -174,7 +174,7 @@ class BayesManager:
         pythoncom.CoUninitialize()
 
     def LocateDataDirectory(self):
-        # Locate the best directory the our data files.
+        # Locate the best directory for our data files.
         from win32com.shell import shell, shellcon
         try:
             appdata = shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0)
