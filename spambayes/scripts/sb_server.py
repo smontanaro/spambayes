@@ -717,6 +717,11 @@ def _recreateState():
         proxy.close()
     del proxyListeners[:]
 
+    # Close the database; we should anyway, and gdbm complains if we
+    # try to reopen it without closing it first.
+    state.bayes.store()
+    state.bayes.close()
+
     prepare(state)
     _createProxies(state.servers, state.proxyPorts)
     
