@@ -99,13 +99,9 @@ mine_message_ids: False
 # These control various displays in class TestDriver.Driver, and Tester.Test.
 
 # A message is considered spam iff it scores greater than spam_cutoff.
-# If using Graham's combining scheme, 0.90 seems to work best for "small"
-# training sets.  As the size of the training sets increase, there's not
-# yet any bound in sight for how low this can go (0.075 would work as
-# well as 0.90 on Tim's large c.l.py data).
-# For Gary Robinson's scheme, some value between 0.50 and 0.60 has worked
-# best in all reports so far.
-spam_cutoff: 0.90
+# This is corpus-dependent, and values into the .600's have been known
+# to work best on some data.
+spam_cutoff: 0.570
 
 # Number of buckets in histograms.
 nbuckets: 40
@@ -173,48 +169,37 @@ spam_directories: Data/Spam/Set%d
 ham_directories: Data/Ham/Set%d
 
 [Classifier]
-# Fiddling these can have extreme effects.  See classifier.py for comments.
-hambias: 2.0
-spambias: 1.0
+# The maximum number of extreme words to look at in a msg, where "extreme"
+# means with spamprob farthest away from 0.5.  150 appears to work well
+# across all corpora tested.
+max_discriminators: 150
 
-min_spamprob: 0.01
-max_spamprob: 0.99
-unknown_spamprob: 0.5
-
-max_discriminators: 16
-
-###########################################################################
-# Speculative options for Gary Robinson's ideas.  These may go away, or
-# a bunch of incompatible stuff above may go away.
-
-# Use Gary's scheme for combining probabilities.
-use_robinson_combining: False
-
-# Use Gary's scheme for computing probabilities, along with its "a" and
-# "x" parameters.
-use_robinson_probability: False
-robinson_probability_a: 1.0
+# These two control the prior assumption about word probabilities.
+# "x" is essentially the probability given to a word that's never been
+# seen before.  Nobody has reported an improvement via moving it away
+# from 1/2.
+# "a" adjusts how much weight to give the prior assumption relative to
+# the probabilities estimated by counting.  At a=0, the counting estimates
+# are believed 100%, even to the extent of assigning certainty (0 or 1)
+# to a word that's appeared in only ham or only spam.  This is a disaster.
+# As "a" tends toward infintity, all probabilities tend toward "x".  All
+# reports were that a value near 0.2 worked best, so this doesn't seem to
+# be corpus-dependent.
+# XXX Gary Robinson has since renamed "a" to "s", and redone his formulas
+# XXX to make it a measure of belief strength rather than "a number" from
+# XXX 0 to infinity.  We haven't caught up to that yet.
+robinson_probability_a: 0.225
 robinson_probability_x: 0.5
-
-# Use Gary's scheme for ranking probabilities.
-use_robinson_ranking: False
 
 # When scoring a message, ignore all words with
 # abs(word.spamprob - 0.5) < robinson_minimum_prob_strength.
-# By default (0.0), nothing is ignored.
-# Tim got a pretty clear improvement in f-n rate on his hasn't-improved-in-
-# a-long-time large c.l.py test by using 0.1.  No other values have been
-# tried yet.
-# Neil Schemenauer also reported good results from 0.1, making the all-
-# Robinson scheme match the all-default Graham-like scheme on a smaller
-# and different corpus.
-# NOTE:  Changing this may change the best spam_cutoff value for your
-# corpus.  Since one effect is to separate the means more, you'll probably
-# want a higher spam_cutoff.
-robinson_minimum_prob_strength: 0.0
+# This may be a hack, but it has proved to reduce error rates in many
+# tests over Robinson's base scheme.  0.1 appeared to work well across
+# all corpora.
+robinson_minimum_prob_strength: 0.1
 
 ###########################################################################
-# More speculative options for Gary Robinson's central-limit.  These may go
+# Speculative options for Gary Robinson's central-limit ideas.  These may go
 # away, or a bunch of incompatible stuff above may go away.
 
 # Use a central-limit approach for scoring.
@@ -267,17 +252,9 @@ all_options = {
                    'compute_best_cutoffs_from_histograms': boolean_cracker,
                    'best_cutoff_fp_weight': float_cracker,
                   },
-    'Classifier': {'hambias': float_cracker,
-                   'spambias': float_cracker,
-                   'min_spamprob': float_cracker,
-                   'max_spamprob': float_cracker,
-                   'unknown_spamprob': float_cracker,
-                   'max_discriminators': int_cracker,
-                   'use_robinson_combining': boolean_cracker,
-                   'use_robinson_probability': boolean_cracker,
+    'Classifier': {'max_discriminators': int_cracker,
                    'robinson_probability_a': float_cracker,
                    'robinson_probability_x': float_cracker,
-                   'use_robinson_ranking': boolean_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
 
                    'use_central_limit': boolean_cracker,

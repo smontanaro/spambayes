@@ -1,7 +1,25 @@
-# This is an implementation of the Bayes-like spam classifier sketched
-# by Paul Graham at <http://www.paulgraham.com/spam.html>.  We say
-# "Bayes-like" because there are many ad hoc deviations from a
-# "normal" Bayesian classifier.
+# An implementation of a Bayes-like spam classifier.
+#
+# Paul Graham's original description:
+#
+#     http://www.paulgraham.com/spam.html
+#
+# A highly fiddled version of that can be retrieved from our CVS repository,
+# via tag Last-Graham.  This made many demonstrated improvements in error
+# rates over Paul's original description.
+#
+# This code implements Gary Robinson's suggestions, which are well explained
+# on his webpage:
+#
+#    http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
+#
+# This is theoretically cleaner, and in testing has performed at least as
+# well as our highly tuned Graham scheme did, often slightly better, and
+# sometimes much better.  It also has "a middle ground", which people like:
+# the scores under Paul's scheme were almost always very near 0 or very near
+# 1, whether or not the classification was correct.  The false positives
+# and false negatives under Gary's scheme generally score in a narrow range
+# around the corpus's best spam_cutoff value
 #
 # This implementation is due to Tim Peters et alia.
 
@@ -11,169 +29,9 @@ from sets import Set
 
 from Options import options
 
-# The count of each word in ham is artificially boosted by a factor of
-# HAMBIAS, and similarly for SPAMBIAS.  Graham uses 2.0 and 1.0.  Final
-# results are very sensitive to the HAMBIAS value.  On my 5x5 c.l.py
-# test grid with 20,000 hams and 13,750 spams split into 5 pairs, then
-# across all 20 test runs (for each pair, training on that pair then scoring
-# against the other 4 pairs), and counting up all the unique msgs ever
-# identified as false negative or positive, then compared to HAMBIAS 2.0,
-#
-# At HAMBIAS 1.0
-#    total unique false positives goes up   by a factor of 7.6 ( 23 -> 174)
-#    total unique false negatives goes down by a factor of 2   (337 -> 166)
-#
-# At HAMBIAS 3.0
-#    total unique false positives goes down by a factor of 4.6 ( 23 ->   5)
-#    total unique false negatives goes up   by a factor of 2.1 (337 -> 702)
-
-HAMBIAS  = options.hambias  # 2.0
-SPAMBIAS = options.spambias # 1.0
-
-# "And then there is the question of what probability to assign to words
-# that occur in one corpus but not the other. Again by trial and error I
-# chose .01 and .99.".  However, the code snippet clamps *all* probabilities
-# into this range.  That's good in principle (IMO), because no finite amount
-# of training data is good enough to justify probabilities of 0 or 1.  It
-# may justify probabilities outside this range, though.
-MIN_SPAMPROB = options.min_spamprob # 0.01
-MAX_SPAMPROB = options.max_spamprob # 0.99
-
-# The spam probability assigned to words never seen before.  Graham used
-# 0.2 here.  Neil Schemenauer reported that 0.5 seemed to work better.  In
-# Tim's content-only tests (no headers), boosting to 0.5 cut the false
-# negative rate by over 1/3.  The f-p rate increased, but there were so few
-# f-ps that the increase wasn't statistically significant.  It also caught
-# 13 more spams erroneously classified as ham.  By eyeball (and common
-# sense <wink>), this has most effect on very short messages, where there
-# simply aren't many high-value words.  A word with prob 0.5 is (in effect)
-# completely ignored by spamprob(), in favor of *any* word with *any* prob
-# differing from 0.5.  At 0.2, an unknown word favors ham at the expense
-# of kicking out a word with a prob in (0.2, 0.8), and that seems dubious
-# on the face of it.
-UNKNOWN_SPAMPROB = options.unknown_spamprob # 0.5
-
-# "I only consider words that occur more than five times in total".
-# But the code snippet considers words that appear at least five times.
-# This implementation follows the code rather than the explanation.
-# (In addition, the count compared is after multiplying it with the
-# appropriate bias factor.)
-#
-# Twist:  Graham used MINCOUNT=5.0 here.  I got rid of it:  in effect,
-# given HAMBIAS=2.0, it meant we ignored a possibly perfectly good piece
-# of spam evidence unless it appeared at least 5 times, and ditto for
-# ham evidence unless it appeared at least 3 times.  That certainly does
-# bias in favor of ham, but multiple distortions in favor of ham are
-# multiple ways to get confused and trip up.  Here are the test results
-# before and after, MINCOUNT=5.0 on the left, no MINCOUNT on the right;
-# ham sets had 4000 msgs (so 0.025% is one msg), and spam sets 2750:
-#
-# false positive percentages
-#     0.000  0.000  tied
-#     0.000  0.000  tied
-#     0.100  0.050  won    -50.00%
-#     0.000  0.025  lost  +(was 0)
-#     0.025  0.075  lost  +200.00%
-#     0.025  0.000  won   -100.00%
-#     0.100  0.100  tied
-#     0.025  0.050  lost  +100.00%
-#     0.025  0.025  tied
-#     0.050  0.025  won    -50.00%
-#     0.100  0.050  won    -50.00%
-#     0.025  0.050  lost  +100.00%
-#     0.025  0.050  lost  +100.00%
-#     0.025  0.000  won   -100.00%
-#     0.025  0.000  won   -100.00%
-#     0.025  0.075  lost  +200.00%
-#     0.025  0.025  tied
-#     0.000  0.000  tied
-#     0.025  0.025  tied
-#     0.100  0.050  won    -50.00%
-#
-# won   7 times
-# tied  7 times
-# lost  6 times
-#
-# total unique fp went from 9 to 13
-#
-# false negative percentages
-#     0.364  0.327  won    -10.16%
-#     0.400  0.400  tied
-#     0.400  0.327  won    -18.25%
-#     0.909  0.691  won    -23.98%
-#     0.836  0.545  won    -34.81%
-#     0.618  0.291  won    -52.91%
-#     0.291  0.218  won    -25.09%
-#     1.018  0.654  won    -35.76%
-#     0.982  0.364  won    -62.93%
-#     0.727  0.291  won    -59.97%
-#     0.800  0.327  won    -59.13%
-#     1.163  0.691  won    -40.58%
-#     0.764  0.582  won    -23.82%
-#     0.473  0.291  won    -38.48%
-#     0.473  0.364  won    -23.04%
-#     0.727  0.436  won    -40.03%
-#     0.655  0.436  won    -33.44%
-#     0.509  0.218  won    -57.17%
-#     0.545  0.291  won    -46.61%
-#     0.509  0.254  won    -50.10%
-#
-# won  19 times
-# tied  1 times
-# lost  0 times
-#
-# total unique fn went from 168 to 106
-#
-# So dropping MINCOUNT was a huge win for the f-n rate, and a mixed bag
-# for the f-p rate (but the f-p rate was so low compared to 4000 msgs that
-# even the losses were barely significant).  In addition, dropping MINCOUNT
-# had a larger good effect when using random training subsets of size 500;
-# this makes intuitive sense, as with less training data it was harder to
-# exceed the MINCOUNT threshold.
-#
-# Still, MINCOUNT seemed to be a gross approximation to *something* valuable:
-# a strong clue appearing in 1,000 training msgs is certainly more trustworthy
-# than an equally strong clue appearing in only 1 msg.  I'm almost certain it
-# would pay to develop a way to take that into account when scoring.  In
-# particular, there was a very specific new class of false positives
-# introduced by dropping MINCOUNT:  some c.l.py msgs consisting mostly of
-# Spanish or French.  The "high probability" spam clues were innocuous
-# words like "puedo" and "como", that appeared in very rare Spanish and
-# French spam too.  There has to be a more principled way to address this
-# than the MINCOUNT hammer, and the test results clearly showed that MINCOUNT
-# did more harm than good overall.
-
-
-# The maximum number of words spamprob() pays attention to.  Graham had 15
-# here.  If there are 8 indicators with spam probabilities near 1, and 7
-# near 0, the math is such that the combined result is near 1.  Making this
-# even gets away from that oddity (8 of each allows for graceful ties,
-# which favor ham).
-#
-# XXX That should be revisited.  Stripping HTML tags from plain text msgs
-# XXX later addressed some of the same problem cases.  The best value for
-# XXX MAX_DISCRIMINATORS remains unknown, but increasing it a lot is known
-# XXX to hurt.
-# XXX Later:  tests after cutting this back to 15 showed no effect on the
-# XXX f-p rate, and a tiny shift in the f-n rate (won 3 times, tied 8 times,
-# XXX lost 9 times).  There isn't a significant difference, so leaving it
-# XXX at 16.
-#
-# A twist:  When staring at failures, it wasn't unusual to see the top
-# discriminators *all* have values of MIN_SPAMPROB and MAX_SPAMPROB.  The
-# math is such that one MIN_SPAMPROB exactly cancels out one MAX_SPAMPROB,
-# yielding no info at all.  Then whichever flavor of clue happened to reach
-# MAX_DISCRIMINATORS//2 + 1 occurrences first determined the final outcome,
-# based on almost no real evidence.
-#
-# So spamprob() was changed to save lists of *all* MIN_SPAMPROB and
-# MAX_SPAMPROB clues.  If the number of those are equal, they're all ignored.
-# Else the flavor with the smaller number of instances "cancels out" the
-# same number of instances of the other flavor, and the remaining instances
-# of the other flavor are fed into the probability computation.  This change
-# was a pure win, lowering the false negative rate consistently, and it even
-# managed to tickle a couple rare false positives into "not spam" terrority.
-MAX_DISCRIMINATORS = options.max_discriminators # 16
+# The maximum number of extreme words to look at in a msg, where "extreme"
+# means with spamprob farthest away from 0.5.
+MAX_DISCRIMINATORS = options.max_discriminators # 150
 
 PICKLE_VERSION = 1
 
@@ -272,89 +130,56 @@ class Bayes(object):
         where evidence is a list of (word, probability) pairs.
         """
 
-        # A priority queue to remember the MAX_DISCRIMINATORS best
-        # probabilities, where "best" means largest distance from 0.5.
-        # The tuples are (distance, prob, word, wordinfo[word]).
-        nbest = [(-1.0, None, None, None)] * MAX_DISCRIMINATORS
-        smallest_best = -1.0
+        from math import frexp
 
-        wordinfoget = self.wordinfo.get
-        now = time.time()
-        mins = []   # all words w/ prob MIN_SPAMPROB
-        maxs = []   # all words w/ prob MAX_SPAMPROB
-        # Counting a unique word multiple times hurts, although counting one
-        # at most two times had some benefit whan UNKNOWN_SPAMPROB was 0.2.
-        # When that got boosted to 0.5, counting more than once became
-        # counterproductive.
-        for word in Set(wordstream):
-            record = wordinfoget(word)
-            if record is None:
-                prob = UNKNOWN_SPAMPROB
-            else:
-                record.atime = now
-                prob = record.spamprob
+        # This combination method is due to Gary Robinson; see
+        # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
 
-            distance = abs(prob - 0.5)
-            if prob == MIN_SPAMPROB:
-                mins.append((distance, prob, word, record))
-            elif prob == MAX_SPAMPROB:
-                maxs.append((distance, prob, word, record))
-            elif distance > smallest_best:
-                # Subtle:  we didn't use ">" instead of ">=" just to save
-                # calls to heapreplace().  The real intent is that if
-                # there are many equally strong indicators throughout the
-                # message, we want to favor the ones that appear earliest:
-                # it's expected that spam headers will often have smoking
-                # guns, and, even when not, spam has to grab your attention
-                # early (& note that when spammers generate large blocks of
-                # random gibberish to throw off exact-match filters, it's
-                # always at the end of the msg -- if they put it at the
-                # start, *nobody* would read the msg).
-                heapreplace(nbest, (distance, prob, word, record))
-                smallest_best = nbest[0][0]
-
-        # Compute the probability.  Note:  This is what Graham's code did,
-        # but it's dubious for reasons explained in great detail on Python-
-        # Dev:  it's missing P(spam) and P(not-spam) adjustments that
-        # straightforward Bayesian analysis says should be here.  It's
-        # unclear how much it matters, though, as the omissions here seem
-        # to tend in part to cancel out distortions introduced earlier by
-        # HAMBIAS.  Experiments will decide the issue.
-        clues = []
-
-        # First cancel out competing extreme clues (see comment block at
-        # MAX_DISCRIMINATORS declaration -- this is a twist on Graham).
-        if mins or maxs:
-            if len(mins) < len(maxs):
-                shorter, longer = mins, maxs
-            else:
-                shorter, longer = maxs, mins
-            tokeep = min(len(longer) - len(shorter), MAX_DISCRIMINATORS)
-            # They're all good clues, but we're only going to feed the tokeep
-            # initial clues from the longer list into the probability
-            # computation.
-            for dist, prob, word, record in shorter + longer[tokeep:]:
-                record.killcount += 1
-                if evidence:
-                    clues.append((word, prob))
-            for x in longer[:tokeep]:
-                heapreplace(nbest, x)
-
-        prob_product = inverse_prob_product = 1.0
-        for distance, prob, word, record in nbest:
-            if prob is None:    # it's one of the dummies nbest started with
-                continue
+        # The real P = this P times 2**Pexp.  Likewise for Q.  We're
+        # simulating unbounded dynamic float range by hand.  If this pans
+        # out, *maybe* we should store logarithms in the database instead
+        # and just add them here.  But I like keeping raw counts in the
+        # database (they're easy to understand, manipulate and combine),
+        # and there's no evidence that this simulation is a significant
+        # expense.
+        P = Q = 1.0
+        Pexp = Qexp = 0
+        clues = self._getclues(wordstream)
+        for prob, word, record in clues:
             if record is not None:  # else wordinfo doesn't know about it
                 record.killcount += 1
-            if evidence:
-                clues.append((word, prob))
-            prob_product *= prob
-            inverse_prob_product *= 1.0 - prob
+            P *= 1.0 - prob
+            Q *= prob
+            if P < 1e-200:  # move back into range
+                P, e = frexp(P)
+                Pexp += e
+            if Q < 1e-200:  # move back into range
+                Q, e = frexp(Q)
+                Qexp += e
 
-        prob = prob_product / (prob_product + inverse_prob_product)
+        P, e = frexp(P)
+        Pexp += e
+        Q, e = frexp(Q)
+        Qexp += e
+
+        num_clues = len(clues)
+        if num_clues:
+            #P = 1.0 - P**(1./num_clues)
+            #Q = 1.0 - Q**(1./num_clues)
+            #
+            # (x*2**e)**n = x**n * 2**(e*n)
+            n = 1.0 / num_clues
+            P = 1.0 - P**n * 2.0**(Pexp * n)
+            Q = 1.0 - Q**n * 2.0**(Qexp * n)
+
+            prob = (P-Q)/(P+Q)  # in -1 .. 1
+            prob = 0.5 + prob/2 # shift to 0 .. 1
+        else:
+            prob = 0.5
 
         if evidence:
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            clues.sort()
+            clues = [(w, p) for p, w, r in clues]
             return prob, clues
         else:
             return prob
@@ -402,18 +227,32 @@ class Bayes(object):
 
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
-        for word,record in self.wordinfo.iteritems():
+        A = options.robinson_probability_a
+        X = options.robinson_probability_x
+        AoverX = A/X
+        for word, record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
-            hamcount = min(HAMBIAS * record.hamcount, nham)
-            spamcount = min(SPAMBIAS * record.spamcount, nspam)
+            # This is the Graham calculation, but stripped of biases, and
+            # stripped of clamping into 0.01 thru 0.99.  The Bayesian
+            # adjustment following keeps them in a sane range, and one
+            # that naturally grows the more evidence there is to back up
+            # a probability.
+            hamcount = min(record.hamcount, nham)
             hamratio = hamcount / nham
+
+            spamcount = min(record.spamcount, nspam)
             spamratio = spamcount / nspam
 
             prob = spamratio / (hamratio + spamratio)
-            if prob < MIN_SPAMPROB:
-                prob = MIN_SPAMPROB
-            elif prob > MAX_SPAMPROB:
-                prob = MAX_SPAMPROB
+
+            # Now do Robinson's Bayesian adjustment.
+            #
+            #         a + (n * p(w))
+            # f(w) = ---------------
+            #          (a / x) + n
+
+            n = hamcount + spamcount
+            prob = (A + n * prob) / (AoverX + n)
 
             if record.spamprob != prob:
                 record.spamprob = prob
@@ -480,9 +319,9 @@ class Bayes(object):
     def compute_population_stats(self, msgstream, is_spam):
         pass
 
-    # XXX More stuff should be reworked to use this as a helper function.
     def _getclues(self, wordstream):
         mindist = options.robinson_minimum_prob_strength
+        unknown = options.robinson_probability_x
 
         # A priority queue to remember the MAX_DISCRIMINATORS best
         # probabilities, where "best" means largest distance from 0.5.
@@ -495,20 +334,17 @@ class Bayes(object):
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
-                prob = UNKNOWN_SPAMPROB
+                prob = unknown
             else:
                 record.atime = now
                 prob = record.spamprob
-
             distance = abs(prob - 0.5)
             if distance >= mindist and distance > smallest_best:
                 heapreplace(nbest, (distance, prob, word, record))
                 smallest_best = nbest[0][0]
 
-        clues = [(prob, word, record)
-                    for distance, prob, word, record in nbest
-                    if prob is not None]
-        return clues
+        # Return (prob, word, record) for the non-dummies.
+        return [t[1:] for t in nbest if t[1] is not None]
 
     #************************************************************************
     # Some options change so much behavior that it's better to write a
@@ -516,149 +352,6 @@ class Bayes(object):
     # CAUTION:  These end up overwriting methods of the same name above.
     # A subclass would be cleaner, but experiments will soon enough lead
     # to only one of the alternatives surviving.
-
-    def robinson_spamprob(self, wordstream, evidence=False):
-        """Return best-guess probability that wordstream is spam.
-
-        wordstream is an iterable object producing words.
-        The return value is a float in [0.0, 1.0].
-
-        If optional arg evidence is True, the return value is a pair
-            probability, evidence
-        where evidence is a list of (word, probability) pairs.
-        """
-
-        from math import frexp
-        mindist = options.robinson_minimum_prob_strength
-
-        # A priority queue to remember the MAX_DISCRIMINATORS best
-        # probabilities, where "best" means largest distance from 0.5.
-        # The tuples are (distance, prob, word, wordinfo[word]).
-        nbest = [(-1.0, None, None, None)] * MAX_DISCRIMINATORS
-        smallest_best = -1.0
-
-        wordinfoget = self.wordinfo.get
-        now = time.time()
-        for word in Set(wordstream):
-            record = wordinfoget(word)
-            if record is None:
-                prob = UNKNOWN_SPAMPROB
-            else:
-                record.atime = now
-                prob = record.spamprob
-
-            distance = abs(prob - 0.5)
-            if distance >= mindist and distance > smallest_best:
-                heapreplace(nbest, (distance, prob, word, record))
-                smallest_best = nbest[0][0]
-
-        # Compute the probability.
-        clues = []
-
-        # This combination method is due to Gary Robinson.
-        # http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html
-        # In preliminary tests, it did just as well as Graham's scheme,
-        # but creates a definite "middle ground" around 0.5 where false
-        # negatives and false positives can actually found in non-trivial
-        # number.
-
-        # The real P = this P times 2**Pexp.  Likewise for Q.  We're
-        # simulating unbounded dynamic float range by hand.  If this pans
-        # out, *maybe* we should store logarithms in the database instead
-        # and just add them here.
-        P = Q = 1.0
-        Pexp = Qexp = 0
-        num_clues = 0
-        for distance, prob, word, record in nbest:
-            if prob is None:    # it's one of the dummies nbest started with
-                continue
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
-            if evidence:
-                clues.append((word, prob))
-            num_clues += 1
-            P *= 1.0 - prob
-            Q *= prob
-            if P < 1e-200:  # move back into range
-                P, e = frexp(P)
-                Pexp += e
-            if Q < 1e-200:  # move back into range
-                Q, e = frexp(Q)
-                Qexp += e
-
-        P, e = frexp(P)
-        Pexp += e
-        Q, e = frexp(Q)
-        Qexp += e
-
-        if num_clues:
-            #P = 1.0 - P**(1./num_clues)
-            #Q = 1.0 - Q**(1./num_clues)
-            #
-            # (x*2**e)**n = x**n * 2**(e*n)
-            n = 1.0 / num_clues
-            P = 1.0 - P**n * 2.0**(Pexp * n)
-            Q = 1.0 - Q**n * 2.0**(Qexp * n)
-
-            prob = (P-Q)/(P+Q)  # in -1 .. 1
-            prob = 0.5 + prob/2 # shift to 0 .. 1
-        else:
-            prob = 0.5
-
-        if evidence:
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
-            return prob, clues
-        else:
-            return prob
-
-    if options.use_robinson_combining:
-        spamprob = robinson_spamprob
-
-    def robinson_update_probabilities(self):
-        """Update the word probabilities in the spam database.
-
-        This computes a new probability for every word in the database,
-        so can be expensive.  learn() and unlearn() update the probabilities
-        each time by default.  Thay have an optional argument that allows
-        to skip this step when feeding in many messages, and in that case
-        you should call update_probabilities() after feeding the last
-        message and before calling spamprob().
-        """
-
-        nham = float(self.nham or 1)
-        nspam = float(self.nspam or 1)
-        A = options.robinson_probability_a
-        X = options.robinson_probability_x
-        AoverX = A/X
-        for word, record in self.wordinfo.iteritems():
-            # Compute prob(msg is spam | msg contains word).
-            # This is the Graham calculation, but stripped of biases, and
-            # of clamping into 0.01 thru 0.99.
-            hamcount = min(record.hamcount, nham)
-            hamratio = hamcount / nham
-
-            spamcount = min(record.spamcount, nspam)
-            spamratio = spamcount / nspam
-
-            prob = spamratio / (hamratio + spamratio)
-
-            # Now do Robinson's Bayesian adjustment.
-            #
-            #         a + (n * p(w))
-            # f(w) = ---------------
-            #          (a / x) + n
-
-            n = hamcount + spamcount
-            prob = (A + n * prob) / (AoverX + n)
-
-            if record.spamprob != prob:
-                record.spamprob = prob
-                # The next seemingly pointless line appears to be a hack
-                # to allow a persistent db to realize the record has changed.
-                self.wordinfo[word] = record
-
-    if options.use_robinson_probability:
-        update_probabilities = robinson_update_probabilities
 
     def central_limit_compute_population_stats(self, msgstream, is_spam):
         from math import ldexp
@@ -744,9 +437,6 @@ class Bayes(object):
 
     if options.use_central_limit:
         spamprob = central_limit_spamprob
-
-
-
 
     def central_limit_compute_population_stats2(self, msgstream, is_spam):
         from math import ldexp, log
