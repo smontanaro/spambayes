@@ -21,6 +21,22 @@ The OptionsClass class provides facility for a collection of Options.
 It is expected that manipulation of the options will be carried out
 via an instance of this class.
 
+Experimental or deprecated options are prefixed with 'X-', borrowing the
+practice from RFC-822 mail.  If the user sets an option like:
+
+    [Tokenizer]
+    X-transmogrify: True
+
+and an 'X-transmogrify' or 'transmogrify' option exists, it is set silently
+to the value given by the user.  If the user sets an option like:
+
+    [Tokenizer]
+    transmogrify: True
+
+and no 'transmogrify' option exists, but an 'X-transmogrify' option does,
+the latter is set to the value given by the users and a deprecation message
+is printed to standard error.
+
 To Do:
  o Stop allowing invalid options in configuration files
  o Find a regex expert to come up with *good* patterns for domains,
@@ -494,6 +510,12 @@ class OptionsClass(object):
         for file in file_list:
             self.merge_file(file)
 
+    def convert_and_set(self, section, option, value):
+        if self.multiple_values_allowed(section, option):
+            value = self.convert(section, option, value)
+        value = self.convert(section, option, value)
+        self.set(section, option, value)
+
     def merge_file(self, filename):
         import ConfigParser
         c = ConfigParser.ConfigParser()
@@ -504,14 +526,30 @@ class OptionsClass(object):
                 section = sect
                 option = opt
                 if not self._options.has_key((section, option)):
-                    print >> sys.stderr, ("Invalid option %s in"
-                                          " section %s in file %s" %
-                                          (opt, sect, filename))
+                    if option.startswith('x-'):
+                        # try setting option without the x- prefix
+                        option = option[2:]
+                        if self._options.has_key((section, option)):
+                            self.convert_and_set(section, option, value)
+                        # not an error if an x- option is missing
+                    else:
+                        option = 'x-'+option
+                        # going the other way, if the option has been
+                        # deprecated, set its x-prefixed version and
+                        # emit a warning
+                        if self._options.has_key((section, option)):
+                            self.convert_and_set(section, option, value)
+                            print >> sys.stderr, (
+                                "warning: option %s in"
+                                " section %s is deprecated" %
+                                (opt, sect))
+                        else:
+                            print >> sys.stderr, (
+                                "warning: Invalid option %s in"
+                                " section %s in file %s" %
+                                (opt, sect, filename))
                 else:
-                    if self.multiple_values_allowed(section, option):
-                        value = self.convert(section, option, value)
-                    value = self.convert(section, option, value)
-                    self.set(section, option, value)
+                    self.convert_and_set(section, option, value)
 
     # not strictly necessary, but convenient shortcuts to self._options
     def display_name(self, sect, opt):
@@ -636,7 +674,7 @@ class OptionsClass(object):
         return all
 
     def options(self, prepend_section_name=False):
-        '''Return a alphabetical list of all the options, optionally
+        '''Return an alphabetical list of all the options, optionally
         prefixed with [section_name]'''
         all = []
         for sect, opt in self._options.keys():
@@ -690,7 +728,7 @@ class OptionsClass(object):
 # permitted values. Although the majority of options use one of these,
 # you may use any regex or tuple you wish.
 HEADER_NAME = r"[\w\.\-\*]+"
-HEADER_VALUE = r"[\w\.\-\*]+"
+HEADER_VALUE = r".+"
 INTEGER = r"[\d]+"              # actually, a *positive* integer
 REAL = r"[\d]+[\.]?[\d]*"       # likewise, a *positive* real
 BOOLEAN = (False, True)
