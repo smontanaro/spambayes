@@ -2,8 +2,10 @@
 <html>
 <head>
   <title>About SpamBayes</title>
+<link rel='stylesheet' type="text/css" href="docs\style.css" title="Intended style" />
 </head>
 <body>
+
 <table width="100%" cellspacing="0" cellpadding="0">
   <tbody>
     <tr>
@@ -16,147 +18,145 @@
     </tr>
   </tbody>
 </table>
+
 <h1>SpamBayes Outlook Plugin</h1>
-<p style="font-weight: bold;">A spam filter based on statistical
-analysis of
-your personal mail.</p>
-If you are new to SpamBayes, see <a href="docs/welcome.html">Welcome
-To Spambayes</a>.<br>
-If you want to add the Spam field to your Outlook views, <a
- href="about.html#Field">follow
-these instructions</a>.<br>
-If you need help configuring SpamBayes, see our <a
- href="docs/configuration.html">Configuration Guide</a>.<br>
-If you are having problems with SpamBayes, please see the <a
- href="docs/troubleshooting.html">Troubleshooting Guide</a>.<br>
-<h3>Other links of interest</h3>
-<p>The <a href="http://www.spambayes.org/">main SpamBayes project page</a>.<br>
-The <a href="http://www.spambayes.org/faq.html">online SpamBayes FAQ.</a><br>
-How to <a href="http://www.spambayes.org/donations.html">make a
-donation</a>.<br>
-</p>
-<h3>Tips and Common Problems<br>
-</h3>
-<p><span style="font-weight: bold;">Filtering in the background:</span>
-When Outlook is under load, SpamBayes may occasionally miss some
+<p class="pullout">A spam filter based on statistical analysis of your
+personal mail.</p>
+
+<p>If you are new to SpamBayes, see <a href="docs/welcome.html">Welcome
+to SpamBayes</a>.</p>
+
+<p>If you want to add the Spam field to your Outlook views,
+<a href="about.html#Field">follow these instructions</a>.</p>
+
+<p>If you need help configuring SpamBayes, see our
+<a href="docs/configuration.html">Configuration Guide</a>.</p>
+
+<p>If you are having problems with SpamBayes, please see the
+<a href="docs/troubleshooting.html">Troubleshooting Guide</a>.</p>
+
+<h2>Other links of interest</h2>
+
+<ul>
+<li>The <a href="http://spambayes.org/">main SpamBayes project page</a>.
+</li>
+<li>The <a href="http://spambayes.org/faq.html">online SpamBayes FAQ.</a>
+</li>
+<li>How to <a href="http://spambayes.org/donations.html">make a donation
+</a>.</li>
+</ul>
+
+<h2><a name="Your_help_is_needed">Your help is needed!</a></h2>
+<p>This is free software. Please offer any help you are able
+to. In particular, contributions to this documentation are
+welcome! If you don't know where to start, please <a
+ href="docs/troubleshooting.html#mail">send a mail,</a> indicating any
+skills you may have we could use.</p>
+
+<h2>Tips and Common Problems</h>
+
+<h3>Filtering in the background</h3>
+<p>When Outlook is under load, SpamBayes may occasionally miss some
 messages (as Outlook doesn't tell us they appeared), and if you use
 builtin Outlook rules, you may find that occasionally they also
 fail to filter messages (as both SpamBayes and Outlook
-"fight" over processing the message).&nbsp; To overcome these problems,
-SpamBayes defaults to filtering new messages in the background.&nbsp;
+&quot;fight&quot; over processing the message). To overcome these problems,
+SpamBayes defaults to filtering new messages in the background.
 The enabling or disabling of this feature, and the delay before
-processing new mails can be configured via the SpamBayes Manager's <span
- style="font-style: italic;">Advanced</span>
-tab. </p>
-<p><span style="font-weight: bold;">Toolbars stop working:</span> Many
-people report that occasionally the toolbars will stop working.&nbsp;
+processing new mails can be configured via the SpamBayes Manager's
+<tt>Advanced</tt>tab.</p>
+
+<h3>Toolbars stop working</h3>
+<p>Many people report that occasionally the toolbars will stop working.
 See the <a href="docs/troubleshooting.html">troubleshooting guide</a>
 for more details on how to fix this.</p>
-<p><span style="font-weight: bold;">Toolbars remain after uninstall:</span>
-If you uninstall SpamBayes, the toolbar items will remain when you next
-start Outlook.&nbsp; You can delete the toolbar by right-clicking on
-it, then selecting Customize.&nbsp; Our <a
- href="docs/troubleshooting.html">troubleshooting guide</a> has alot
+
+<h3>Toolbars remain after uninstall</h3>
+<p>If you uninstall SpamBayes, the toolbar items will remain when you next
+start Outlook. You can delete the toolbar by right-clicking on it, then
+selecting Customize. Our
+<a href="docs/troubleshooting.html">troubleshooting guide</a> has a lot
 more information on toolbars.</p>
-<p><span style="font-weight: bold;">Late Breaking Problems:</span> For
-problems reported since this version of SpamBayes was released, see the
-online <a
- href="http://spambayes.sourceforge.net/apps/outlook/bugs.html">frequently
-reported bugs list</a>.<br>
-</p>
-<h3><a name="Field"></a>Viewing and Using the Spam Score Field</h3>
-A custom property named <span style="font-style: italic;">Spam</span>
-is added to all Outlook messages scored, but Outlook does not allow us
-to automatically add this to your views.&nbsp; However, you can teach
-Outlook to
-display this field as a column in any table view, like the standard
-Messages view.
-<p> This takes some work, and has to be done again for every folder in
+
+<h3><a name="Field">Viewing and Using the Spam Score Field</a></h3>
+<p>A custom property named <tt>spam</tt> is added to all Outlook messages
+scored, but Outlook does not allow us to automatically add this to your
+views. However, you can teach Outlook to display this field as a column in
+any table view, like the standard Messages view.</p>
+
+<p>This takes some work, and has to be done again for every folder in
 which you want to display a Spam column - typically this will be all
-folders you are filtering, and your Spam and Unsure folders.&nbsp;
-Perform the following steps<br>
-</p>
-<table cellpadding="2" cellspacing="2" border="0"
- style="text-align: left; width: 100%;">
-  <tbody>
-    <tr>
-      <td style="vertical-align: top;">
-      <ul>
-        <li>While looking at an Outlook table view (like Messages),
+folders you are filtering, and your Spam and Unsure folders. Perform the
+following steps:</p>
+
+<img src="docs/images/field_chooser_new_field.jpg"
+title="Creating the new field" alt="Creating the new field"
+style="float: right; margin: 2em;" />
+
+<ul>
+<li>While looking at an Outlook table view (like Messages),
 right-click on the line with column headers (From, Subject, To,
 Received, ...). In the context menu that pops up, click on Field
-Chooser. A box with title <i>Field Chooser</i> pops up.</li>
-        <li>In the drop-down list at the top of the <span
- style="font-style: italic;">Field Chooser</span> window, select <span
- style="font-style: italic;">User Defined Fields</span></li>
-        <li>Below the drop-down, you should see a rectangular
-button with a <span style="font-style: italic;">Spam</span> label .
-This<span style="font-style: italic;"></span> should be automatically
-created for
+Chooser. A box with title <tt>Field Chooser</tt> pops up.</li>
+
+<li>In the drop-down list at the top of the <tt>Field Chooser</tt> window,
+select <tt>User Defined Fields</tt>.</li>
+
+<li>Below the drop-down, you should see a rectangular button with a
+<tt>spam</tt> label. This should be automatically created for
 all folders managed by the system, but if it does not appear, you will
-need to add it yourself. &nbsp;To do this, perform the following steps</li>
-        <ul>
-          <li>In the lower left corner of the <i>Field Chooser</i>
-box,
-click <i>New...</i>. A box with title <i>New Field</i> pops up. </li>
-          <li>In the <i>Name:</i> box, type Spam. </li>
-          <li>In the <i>Type:</i> dropdown list, select <i>Percent</i>.
-This is the third choice in the dropdown list. Do not
-select any other format -- it won't work. </li>
-          <li>The <i>Format:</i> select the first entry in the list -
-"Rounded".&nbsp; The Field Chooser should now look like the first image
-on the right.<br>
-          </li>
-          <li>Click OK in the <i>New Field</i> box. Now you're back in
-the <i>Field Chooser</i> box, with a new <span
- style="font-style: italic;">Spam</span> button shown, as the second
-figure shows.<br>
-          </li>
-        </ul>
-        <li>Use your mouse to drag the <span
- style="font-style: italic;">Spam</span> button to the column header
-position where you want to see the Spam column. You don't have to be
+need to add it yourself. To do this, perform the following steps:</li>
+
+  <ul>
+    <li>In the lower left corner of the <tt>Field Chooser</tt> box,
+    click <tt>New...</tt>. A box with title <tt>New Field</tt> pops up.
+    </li>
+
+<img src="docs/images/field_chooser_after.jpg"
+title="The Field Chooser after creating the field."
+alt="The Field Chooser after creating the field."
+style="float: right; margin: 2em;" />
+
+    <li>In the <tt>Name:</tt> box, type spam.</li>
+    <li>In the <tt>Type:</tt> dropdown list, select <tt>Percent</tt>.
+    This is the third choice in the dropdown list. Do not select any other
+    format -- it won't work.</li>
+    <li>The <tt>Format:</tt> select the first entry in the list -
+    "Rounded". The Field Chooser should now look like the first image
+    on the right.</li>
+    <li>Click OK in the <tt>New Field</tt> box. Now you're back in
+    the <tt>Field Chooser</tt> box, with a new <tt>spam</tt> button shown,
+    as the second figure shows.</li>
+  </ul>
+
+<li>Use your mouse to drag the <tt>spam</tt> button to the column header
+position where you want to see the spam column. You don't have to be
 precise here -- you can rearrange or resize the column later just by
-dragging it around. </li>
-        <li>You're done! Close the <i>Field Chooser</i> box.</li>
-      </ul>
-      </td>
-      <td style="vertical-align: top;"><img
- src="docs/images/field_chooser_new_field.jpg" title="" alt=""
- style="width: 288px; height: 155px;"><br>
-      <div style="text-align: center;">Creating the new field<br>
-      <br>
-      <img src="docs/images/field_chooser_after.jpg" title="" alt=""
- style="width: 179px; height: 308px;"><br>
-The Field Chooser after creating the field.<br>
-      </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
-<ul>
+dragging it around.</li>
+
+<li>You're done! Close the <tt>Field Chooser</tt> box.</li>
 </ul>
-Outlook's standard Automatic Formatting features can also be taught how
+
+<p>Outlook's standard Automatic Formatting features can also be taught how
 to access the value of this field; for example, you could tell Outlook
 to display rows with suspected spam messages in green italic. However,
 for whatever reason, the Outlook Rules Wizard does not allow creating
 rules based on user-defined fields. That's why this addin supplies its
-own filtering rules.<br>
-<h2>Installing for all users on a machine</h2>
-By default, SpamBayes will install itself only for the user who
-actually installed it.&nbsp; If other users log onto the same machine,
-their Outlook installation will not have SpamBayes available.&nbsp;
+own filtering rules.</p>
+
+<h3>Installing for all users on a machine</h3>
+<p>By default, SpamBayes will install itself only for the user who
+actually installed it. If other users log onto the same machine,
+their Outlook installation will not have SpamBayes available.
 Even though this is the way SpamBayes is designed, our troubleshooting
 guide has <a href="docs/troubleshooting.html#register-all-users">details
-on how you can change this</a>.<br>
-<br>
-<h2><a name="Your_help_is_needed"></a>Your help is needed!</h2>
-<p>This is free software.&nbsp; Please offer any help you are able
-to.&nbsp; In particular, contributions to this documentation are
-welcome!&nbsp; If you don't know where to start, please <a
- href="docs/troubleshooting.html#mail">send a mail,</a> indicating any
-skills you may have we could use.<br>
-<br>
-</p>
+on how you can change this</a>.</p>
+
+<h3>Late Breaking Problems</h3>
+<p>For problems reported since this version of SpamBayes was released, see
+the online
+<a href="http://spambayes.org/apps/outlook/bugs.html">frequently
+reported bugs list</a>.</p>
+
 </body>
 </html>
