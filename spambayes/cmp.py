@@ -65,9 +65,9 @@ print f1n, '->', f2n
 print
 print "false positive percentages"
 dump(fp1, fp2)
-print "total unique fp went from", fptot1, "to", fptot2
+print "total unique fp went from", fptot1, "to", fptot2, tag(fptot1, fptot2)
 
 print
 print "false negative percentages"
 dump(fn1, fn2)
-print "total unique fn went from", fntot1, "to", fntot2
+print "total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2)
