@@ -10,7 +10,7 @@ Options.options is a globally shared options object.
 This object is initialised when the module is loaded: the envar
 BAYESCUSTOMIZE is checked for a list of names, if nothing is found
 then the local directory and the home directory are checked for a
-file caleld bayescustomize.ini and the initial values are loaded from
+file called bayescustomize.ini and the initial values are loaded from
 this.
 
 The Option class holds information about an option - the name of the
@@ -104,15 +104,15 @@ import types
 # These are handy references to commonly used regex/tuples defining
 # permitted values. Although the majority of options use one of these,
 # you may use any regex or tuple you wish.
-HEADER_NAME = r"[\w\.-\*]+"
-HEADER_VALUE = r"[\w\.-\*]+"
+HEADER_NAME = r"[\w\.\-\*]+"
+HEADER_VALUE = r"[\w\.\-\*]+"
 INTEGER = r"[\d]+"              # actually, a *positive* integer
 REAL = r"[\d]+[\.]?[\d]*"       # likewise, a *positive* real
 BOOLEAN = (False, True)
 SERVER = r"[\w\.\-]+(:[\d]+)?"  # in the form server:port
 PORT = r"[\d]+"
 EMAIL_ADDRESS = r"[\w\-\.]+@[\w\-\.]+"
-PATH = r"[\w\.-~:\\/\*]+"
+PATH = r"[\w\.\-~:\\/\*]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
