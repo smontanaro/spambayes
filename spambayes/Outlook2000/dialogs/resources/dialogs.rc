@@ -48,7 +48,7 @@ BEGIN
                     IDC_INBOX_TIMER_ONLY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,16,100,217,10
     PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,16,127,70,14
-    CONTROL         "Enable background filtering?",IDC_BUT_TIMER_ENABLED,
+    CONTROL         "Enable background filtering",IDC_BUT_TIMER_ENABLED,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,12,162,10
     PUSHBUTTON      "Diagnostics...",IDC_BUT_SHOW_DIAGNOSTICS,163,126,70,14
 END
