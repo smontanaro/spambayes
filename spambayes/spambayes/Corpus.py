@@ -91,6 +91,7 @@ except NameError:
 
 import sys           # for output of docstring
 import time
+import types
 from spambayes.Options import options
 
 SPAM = True
@@ -197,7 +198,7 @@ class Corpus:
                                        ("To", "notate_to")):
                 # For Python 2.2, which doesn't allow "string in string".
                 if isinstance(options["Headers", header_opt],
-                              types.StringsTypes):
+                              types.StringTypes):
                     notate_opt = (options["Headers", header_opt],)
                 else:
                     notate_opt = options["Headers", header_opt]
