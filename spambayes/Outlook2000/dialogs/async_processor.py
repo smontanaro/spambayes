@@ -123,21 +123,19 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
             win32gui.MessageBox(self.window.hwnd, msg, "SpamBayes",
                                 win32con.MB_OK | win32con.MB_ICONEXCLAMATION)
         return not self.running
-        # Here is an alternative to stop the process and wait for it to finish
-        # But auto-stopping on a tab-switch isn't really what we want.  If we
-        # were *really* clever, we could allow it to continue - but we aren't.
-        #if self.running:
-        #    self.progress.request_stop()
-        #    for i in xrange(500): # 5 seconds
-        #        win32gui.PumpWaitingMessages(0,-1)
-        #        if i % 50 == 0:
-        #            print "Still waiting for async process to finish..."
-        #        time.sleep(0.01)
-        #        if not self.running:
-        #            break
-        #    else:
-        #        print "XXX - eeek - gave up waiting for async process to stop"
-        #return True
+    def Term(self):
+        # The Window is dieing!  We *must* kill it and wait for it to finish
+        # else bad things happen once the main thread dies before us!
+        if self.running:
+            self.progress.request_stop()
+            i = 0
+            while self.running:
+                win32gui.PumpWaitingMessages(0,-1)
+                if i % 100 == 0:
+                    print "Still waiting for async process to finish..."
+                time.sleep(0.01)
+                i += 1
+        return True
 
     def GetMessages(self):
         return [MYWM_SETSTATUS, MYWM_SETWARNING, MYWM_SETERROR, MYWM_FINISHED]

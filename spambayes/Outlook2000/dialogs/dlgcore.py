@@ -246,6 +246,8 @@ class ProcessorDialog(TooltipDialog):
 
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         #print "OnDestroy"
+        for p in self.all_processors:
+            p.Term()
         TooltipDialog.OnDestroy(self, hwnd, msg, wparam, lparam)
         self.command_processors = None
         self.all_processors = None
