@@ -234,6 +234,26 @@ class Option(object):
         strval += "\"%s\"\n\n" % (str(self.doc()))
         return strval
 
+    def as_documentation_string(self, section=None):
+        '''Summarise the option in a format suitable for unmodified
+        insertion in HTML documentation.'''
+        strval = ["<tr>"]
+        if section is not None:
+            strval.append("\t<td>[%s]</td>" % (section,))
+        strval.append("\t<td>%s</td>" % (self.name,))
+        strval.append("\t<td>%s</td>" % \
+                      ", ".join([str(s) for s in self.valid_input()]))
+        default = self.default()
+        if isinstance(default, types.TupleType):
+            default = ", ".join([str(s) for s in default])
+        else:
+            default = str(default)
+        strval.append("\t<td>%s</td>" % (default,))
+        strval.append("\t<td><strong>%s</strong>: %s</td>" \
+                      % (self.display_name(), self.doc()))
+        strval.append("</tr>\n")
+        return "\n".join(strval)
+
     def write_config(self, file):
         '''Output value in configuration file format.'''
         file.write(self.name)
@@ -696,8 +716,9 @@ class OptionsClass(object):
         all.sort()
         return all
 
-    def display(self):
+    def display(self, add_comments=False):
         '''Display options in a config file form.'''
+        import textwrap
         output = StringIO.StringIO()
         keys = self._options.keys()
         keys.sort()
@@ -710,11 +731,17 @@ class OptionsClass(object):
                 output.write(sect)
                 output.write("]\n")
                 currentSection = sect
+            if add_comments:
+                doc = self._options[sect, opt].doc()
+                if not doc:
+                    doc = "No information available, sorry."
+                doc = re.sub(r"\s+", " ", doc)
+                output.write("\n# %s\n" % ("\n# ".join(textwrap.wrap(doc)),))
             self._options[sect, opt].write_config(output)
         return output.getvalue()
 
-    def display_full(self, section=None, option=None):
-        '''Display options including all information.'''
+    def _display_nice(self, section, option, formatter):
+        '''Display a nice output of the options'''
         # Given that the Options class is no longer as nice looking
         # as it once was, this returns all the information, i.e.
         # the doc, default values, and so on
@@ -723,8 +750,8 @@ class OptionsClass(object):
         # when section and option are both specified, this
         # is nothing more than a call to as_nice_string
         if section is not None and option is not None:
-            output.write(self._options[section,
-                                       option.lower()].as_nice_string(section))
+            opt = self._options[section, option.lower()]
+            output.write(getattr(opt, formatter)(section))
             return output.getvalue()
 
         all = self._options.keys()
@@ -732,8 +759,18 @@ class OptionsClass(object):
         for sect, opt in all:
             if section is not None and sect != section:
                 continue
-            output.write(self._options[sect, opt.lower()].as_nice_string(sect))
+            opt = self._options[sect, opt.lower()]
+            output.write(getattr(opt, formatter)(sect))
         return output.getvalue()
+
+    def display_full(self, section=None, option=None):
+        '''Display options including all information.'''
+        return self._display_nice(section, option, 'as_nice_string')
+        
+    def output_for_docs(self, section=None, option=None):
+        '''Return output suitable for inserting into documentation for
+        the available options.'''
+        return self._display_nice(section, option, 'as_documentation_string')
 
 # These are handy references to commonly used regex/tuples defining
 # permitted values. Although the majority of options use one of these,
