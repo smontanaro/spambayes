@@ -25,13 +25,19 @@ you get mail from a mail server.
 I'm having trouble installing Spambayes.  Help!
 -----------------------------------------------
 
-There is a known problem installing the Outlook plug-in on Windows XP.
-(What are the symptoms?  Is there a workaround?)  Note that you also need a
-recent enough version of Python installed on your system.  Consult
+There are known problems installing the Outlook plug-in on some combinations
+of Windows and Outlook.  Consult
+
+    http://spambayes.sf.net/windows.html
+
+for information about these problems.
+
+People who are not using the binary installer for the Outlook plugin should
+consult
 
     http://spambayes.sf.net/download.html
 
-for information about what versions of Python will work with Spambayes.
+to see what versions of Python will work with Spambayes.
 
 For other installation issues, please file a bug report (see below).
 
