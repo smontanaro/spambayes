@@ -76,12 +76,11 @@ class Service(win32serviceutil.ServiceFramework):
         self.thread = None
 
     def SvcStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        self.event_stop.set()
+        pop3proxy.stop(pop3proxy.state)
 
     def SvcDoRun(self):
         # Setup our state etc
-        pop3proxy.state.createWorkers()
+        pop3proxy.prepare(state=pop3proxy.state)
         assert not pop3proxy.state.launchUI, "Service can't launch a UI"
 
         # Start the thread running the server.
@@ -116,11 +115,9 @@ class Service(win32serviceutil.ServiceFramework):
             )
 
     def ServerThread(self):
-        state = pop3proxy.state
-        state.buildServerStrings()
         try:
             try:
-                pop3proxy.main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+                pop3proxy.start(pop3proxy.state)
             except SystemExit:
                 # user requested shutdown
                 print "pop3proxy service shutting down due to user request"
@@ -138,7 +135,8 @@ class Service(win32serviceutil.ServiceFramework):
                 import servicemanager
                 servicemanager.LogErrorMsg(message)
         finally:
-            self.SvcStop()
+            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+            self.event_stop.set()
 
 if __name__=='__main__':
     win32serviceutil.HandleCommandLine(Service)

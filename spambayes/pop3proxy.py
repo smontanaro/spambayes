@@ -93,6 +93,7 @@ import socket
 from thread import start_new_thread
 from email.Header import Header
 
+import smtpproxy
 import spambayes.message
 from spambayes import Dibbler
 from spambayes import storage
@@ -606,10 +607,21 @@ class State:
             self.useDB = True
             options["pop3proxy", "persistent_storage_file"] = \
                         '_pop3proxy_test.pickle'   # This is never saved.
-        filename = options["pop3proxy", "persistent_storage_file"]
+        filename = options["Storage", "persistent_storage_file"]
         filename = os.path.expanduser(filename)
         if self.useDB:
-            self.bayes = storage.DBDictClassifier(filename)
+            if '::' in filename:
+                sql_types = {"pgsql" : storage.PGClassifier,
+                             "mysql" : storage.mySQLClassifier,
+                             }
+                sql_type, rest = filename.split('::', 1)
+                if sql_types.has_key(sql_type.lower()):
+                    self.bayes = sql_types[sql_type.lower()](filename)
+                else:
+                    # yikes! raise some sort of NoSuchClassifierError
+                    pass
+            else:
+                self.bayes = storage.DBDictClassifier(filename)
         else:
             self.bayes = storage.PickledClassifier(filename)
         print "Done."
@@ -727,6 +739,27 @@ def main(servers, proxyPorts, uiPort, launchUI):
     httpServer.register(proxyUI)
     Dibbler.run(launchBrowser=launchUI)
 
+def prepare(state):
+    # Do whatever we've been asked to do...
+    state.createWorkers()
+
+    # Launch any SMTP proxies.  Note that if the user hasn't specified any
+    # SMTP proxy information in their configuration, then nothing will
+    # happen.
+    servers, proxyPorts = smtpproxy.LoadServerInfo()
+    smtpproxy.CreateProxies(servers, proxyPorts, state)
+
+    # setup info for the web interface
+    state.buildServerStrings()
+
+def start(state):
+    # kick everything off    
+    main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+
+def stop(state):
+    state.bayes.store()
+    # should we be calling socket.shutdown(2) and close() for each
+    # BayesProxy object?
 
 # ===================================================================
 # __main__ driver.
@@ -766,17 +799,7 @@ def run():
     print get_version_string("POP3 Proxy")
     print "and engine %s.\n" % (get_version_string(),)
 
-    # Do whatever we've been asked to do...
-    state.createWorkers()
-
-    # Launch any SMTP proxies.  This was once an option, but
-    # is now always carried out - if the user hasn't specified any
-    # SMTP proxy information in their configuration, then nothing
-    # will happen anyway, and this is much clearer for documentation.
-    from smtpproxy import LoadServerInfo, CreateProxies
-    servers, proxyPorts = LoadServerInfo()
-    CreateProxies(servers, proxyPorts, state)
-    LoadServerInfo()
+    prepare(state=state)
 
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.
@@ -785,8 +808,7 @@ def run():
         elif len(args) == 2:
             state.servers = [(args[0], int(args[1]))]
 
-        state.buildServerStrings()
-        main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+        start(state=state)
 
     else:
         print >>sys.stderr, __doc__
