@@ -2,7 +2,7 @@ Title: SpamBayes: Windows platform
 Author-Email: spambayes@python.org
 Author: spambayes
 
-<h1>Spambayes on Windows</h1>
+<h1>SpamBayes on Windows</h1>
 
 <p>This page has information for <a href="#outlook">users of Microsoft Outlook</a>,
 and for <a href="#non-outlook">all other mail clients</a>
@@ -10,9 +10,9 @@ and for <a href="#non-outlook">all other mail clients</a>
 <h2>Outlook 2000/XP/2003</h2>
 
 <h3>Latest Release</h3>
-<p>The latest release is <b>Version 0.9</b> - see the 
-<a href="http://sourceforge.net/project/shownotes.php?release_id=215808">release notes</a>
-or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0a9.exe?download">download the installation program</a>.
+<p>The latest release is <b>1.0b1</b> - see the 
+<a href="http://sourceforge.net/project/shownotes.php?release_id=230697">release notes</a>
+or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0b1.exe?download">download the installation program</a>.
 </p>
 
 <h3>General Information</h3>
@@ -26,7 +26,7 @@ not work with Outlook Express</b> - see <a href="#non-outlook">below for
 other options</a>.</p>
 <p>In general, you should download and install the latest version, as shown 
 above.  Older versions and the release notes can be viewed at the
-<a href="http://sourceforge.net/project/showfiles.php?group_id=61702">spambayes releases page</a>.
+<a href="http://sourceforge.net/project/showfiles.php?group_id=61702">SpamBayes releases page</a>.
 </p>
 
 <p>If you have a problem, the best way to help make progress is to look for
@@ -66,14 +66,14 @@ To do this, you will need three pieces of software:
 
 <p>Once you have all three bits downloaded, run the Python installer then
 the win32all installer.  Finally, double-click the addin.py script in the
-Outlook2000 folder of the Spambayes distribution and you should be good to
+Outlook2000 folder of the SpamBayes distribution and you should be good to
 go.  See the README.txt file in the Outlook2000 directory for more details</p>
 
 <a name="non-outlook"><h2>Non Outlook Solutions</h2>
 
 <p>Windows users using other mail clients and retrieving mail via POP3
 can now download the same
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0a9.exe?download">
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0b1.exe?download">
 installation program</a> and use it to install a binary version of
 sb_server, including a tray application.</p>
 <p>See also the information about <a href="applications.html#sb_server">sb_server</a>.</p>

@@ -4,14 +4,11 @@ Author: SpamBayes
 
 
 <h2>News</h2>
-<p>The 1.0alpha9 release of the SpamBayes source is available, as is
-the 0.9 release of the binary installer for the Outlook plug-in.</p>
-<p><strong>The binary installer also includes the first release of
-a binary version of sb_server (aka pop3proxy)</strong>.  If you use sb_server,
-please give this version a go and let us know how it goes (you no
-longer need to have Python installed with the binary version).</p>
+<p>The first beta version of SpamBayes (both source and Windows
+binary installer) is now available!</p>
 <p>See the <a href="download.html">download</a> page for more.</p>
-<p>You may also like to see what <a href="quotes.html">other people have been saying about us in the press and elsewhere</a>.</p>
+<p>You may also like to see what <a href="quotes.html">other people have
+been saying about us in the press and elsewhere</a>.</p>
 
 <h2>What is SpamBayes?</h2>
 <p>

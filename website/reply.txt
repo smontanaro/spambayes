@@ -11,26 +11,26 @@ Before you do anything else:
 Before asking a question on the list, please take a moment and check the
 frequently asked questions page:
 
-    http://spambayes.sourceforge.net/faq.html
+    http://spambayes.org/faq.html
 
 If you are using the Outlook plug-in, please also take the time to read
 the troubleshooting guide - a copy was installed with the plug-in, or
 you can read it online:
 
-    http://spambayes.sourceforge.net/docs.html
+    http://spambayes.org/docs.html
 
 Note that you need to include a copy of your log files with any message
 asking for help with a problem, or we won't have enough information to
 be able to help you.
 
 
-What is Spambayes?
+What is SpamBayes?
 ------------------
 
-The Spambayes project was formed to develop a Bayesian anti-spam filter, 
+The SpamBayes project was formed to develop a Bayesian anti-spam filter, 
 initially based on the work of Paul Graham.  The major difference between 
 this and other, similar, projects is the emphasis on testing newer 
-approaches to scoring messages.  You can read all about Spambayes on the 
+approaches to scoring messages.  You can read all about SpamBayes on the 
 project's website:
 
     http://spambayes.org/
@@ -44,12 +44,12 @@ started will vary depending on your computing platform, email client and
 how you get mail from a mail server.
 
 
-I'm having trouble installing Spambayes.  Help!
+I'm having trouble installing SpamBayes.  Help!
 -----------------------------------------------
 
-Please ensure that you have the latest version.  As of 2004-02-10, this is
-1.0a9 for the source, and 0.9 for the binary installer for the Outlook
-plug-in and sb_server. If you are still having trouble, try looking at the
+Please ensure that you have the latest version.  As of 2004-04-13, this is
+1.0b1 for both the source and for the binary installer (for the Outlook
+plug-in and sb_server). If you are still having trouble, try looking at the
 bug reports that are currently open:
 
     http://sf.net/tracker/?group_id=61702&atid=498103
@@ -71,12 +71,12 @@ collect all the data related to the bug, making it easier to put all the
 pieces together which are necessary to fix the underlying problem.
 
 
-Subscribing to the Spambayes mailing list.
+Subscribing to the SpamBayes mailing list.
 ------------------------------------------
 
 The spambayes@python.org mailing list formed in September 2002 to support 
-development of the Spambayes spam filtering system as an outgrowth of 
+development of the SpamBayes spam filtering system as an outgrowth of 
 earlier threads on the Python developers' mailing list.  You can subscribe
-to the Spambayes mailing list using the form at
+to the SpamBayes mailing list using the form at
 
     http://mail.python.org/mailman/listinfo/spambayes
