@@ -238,6 +238,7 @@ class BayesManager:
         if self.message_store is not None:
             self.message_store.Close()
             self.message_store = None
+        self.outlook = None
 
     def score(self, msg, evidence=False, scale=True):
         """Score a msg.
