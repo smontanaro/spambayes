@@ -1,56 +1,52 @@
+# Options.options is a globally shared options object.
+
+# XXX As this code is, option names must be unique across ini sections,
+# XXX and must not conflict with OptionsClass method names.
+
+import sys
+import StringIO
+import ConfigParser
 from sets import Set
 
-# Descriptions of options.
-# Empty lines, and lines starting with a blank, are ignored.
-# A line starting with a non-blank character is of the form:
-#     option_name  "default"  default_value
-# option_name must not contain whitespace
-# default_value must be eval'able.
+__all__ = ['buildoptions', 'options']
 
-option_descriptions = """
-retain_pure_html_tags   default False
-    By default, tokenizer.Tokenizer.tokenize_headers() strips HTML tags
-    stripped from pure text/html messages.  Set to True to retain HTML tags
-    in this case.
+all_options = {
+    'Tokenizer': {'retain_pure_html_tags': ('getboolean', lambda i: bool(i)),
+                  'safe_headers': ('get', lambda s: Set(s.split())),
+                 },
+}
 
-safe_headers  default Set("abuse-reports-to date errors-to from importance in-reply-to message-id mime-version organization received reply-to return-path subject to user-agent x-abuse-info x-complaints-to x-face".split())
-    tokenizer.Tokenizer.tokenize_headers() generates tokens just counting
-    the number of instances of the headers in this set, in a case-sensitive
-    way.  Depending on data collection, some headers aren't safe to count.
-    For example, if ham is collected from a mailing list but spam from your
-    regular inbox traffic, the presence of a header like List-Info will be a
-    very strong ham clue, but a bogus one.
-"""
+def _warn(msg):
+    print >> sys.stderr, msg
 
-class OptionsClass(dict):
+class OptionsClass(object):
     def __init__(self):
-        self.optnames = Set()
-        evaldict = {'Set': Set}
-        for line in option_descriptions.split('\n'):
-            if not line or line.startswith(' '):
+        self._config = ConfigParser.ConfigParser()
+
+    def mergefiles(self, fnamelist):
+        c = self._config
+        c.read(fnamelist)
+
+        for section in c.sections():
+            if section not in all_options:
+                _warn("config file has unknown section %r" % section)
                 continue
-            i = line.index(' ')
-            name = line[:i]
-            self.optnames.add(name)
-            i = line.index(' default ', i)
-            self.setopt(name, eval(line[i+9:], evaldict))
-
-    def _checkname(self, name):
-        if name not in self.optnames:
-            raise KeyError("there's no option named %r" % name)
-
-    def setopt(self, name, value):
-        self._checkname(name)
-        self[name] = value
+            goodopts = all_options[section]
+            for option in c.options(section):
+                if option not in goodopts:
+                    _warn("config file has unknown option %r in "
+                         "section %r" % (option, section))
+                    continue
+                fetcher, converter = goodopts[option]
+                rawvalue = getattr(c, fetcher)(section, option)
+                value = converter(rawvalue)
+                setattr(options, option, value)
 
     def display(self):
-        """Return a string showing current option values."""
-        result = ['Option values:\n']
-        width = max([len(name) for name in self.keys()])
-        items = self.items()
-        items.sort()
-        for name, value in items:
-            result.append('    %-*s: %r\n' % (width, name, value))
-        return ''.join(result)
+        output = StringIO.StringIO()
+        self._config.write(output)
+        return output.getvalue()
+
 
 options = OptionsClass()
+options.mergefiles(['bayes.ini'])

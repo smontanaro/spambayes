@@ -861,7 +861,7 @@ class Tokenizer:
         ##    yield "header:%s:%d" % x
 
         # Do a "safe" approximation to that for now.
-        safe_headers = options['safe_headers']
+        safe_headers = options.safe_headers
         x2n = {}
         for x in msg.keys():
             if x.lower() in safe_headers:
@@ -878,7 +878,7 @@ class Tokenizer:
 
         HTML tags are always stripped from text/plain sections.
 
-        Options.options['retain_pure_html_tags'] controls whether HTML tags are
+        options.retain_pure_html_tags controls whether HTML tags are
         also stripped from text/html sections.
         """
 
@@ -926,7 +926,7 @@ class Tokenizer:
 
             # Remove HTML/XML tags.
             if (part.get_content_type() == "text/plain" or
-                    not options['retain_pure_html_tags']):
+                    not options.retain_pure_html_tags):
                 text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.

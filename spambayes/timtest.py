@@ -13,8 +13,8 @@ Where:
         Number of Set directories (Data/Spam/Set1, ... and Data/Ham/Set1, ...).
         This is required.
 
-In addition, an attempt is made to import bayescustomize.  If that exists,
-it can be used to change the settings in Options.options.
+In addition, an attempt is made to merge bayescustomize.ini into the options.
+If that exists, it can be used to change the settings in Options.options.
 """
 
 import os
@@ -26,6 +26,7 @@ from heapq import heapreplace
 import Tester
 import classifier
 from tokenizer import tokenize
+import Options
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -238,8 +239,6 @@ class Driver:
         self.trained_spam_hist += local_spam_hist
 
 def drive(nsets):
-    import Options
-
     print Options.options.display()
 
     spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
@@ -274,9 +273,5 @@ if __name__ == "__main__":
     if args:
         usage(1, "Positional arguments not supported")
 
-    try:
-        import bayescustomize
-    except ImportError:
-        pass
-
+    Options.options.mergefiles(['bayescustomize.ini'])
     drive(nsets)
