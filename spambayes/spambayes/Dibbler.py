@@ -344,6 +344,10 @@ class _HTTPHandler(BrighterAsyncChat):
     for each incoming request, and does the job of decoding the HTTP traffic
     and driving the plugins."""
 
+    # RE to extract option="value" fields from
+    # digest auth login field
+    _login_splitter = re.compile('([a-zA-Z])+=(".*?"|.*?),?')
+
     def __init__(self, clientSocket, server, context):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
@@ -613,7 +617,7 @@ class _HTTPHandler(BrighterAsyncChat):
         def stripQuotes(s):
             return (s[0] == '"' and s[-1] == '"') and s[1:-1] or s
 
-        options  = dict([s.split('=') for s in login.split(", ")])
+        options  = dict(self._login_splitter.findall(login))
         userName = stripQuotes(options["username"])
         password = self._server.getPasswordForUser(userName)
         nonce    = stripQuotes(options["nonce"])
