@@ -456,7 +456,7 @@ class BayesProxy(POP3ProxyBase):
     def onRetr(self, command, args, response):
         """Adds the judgement header based on the raw headers and body
         of the message."""
-        # Previously, we used '\n\r?\n' to detect the end of the headers in
+        # Previous, we used '\n\r?\n' to detect the end of the headers in
         # case of broken emails that don't use the proper line separators,
         # and if we couldn't find it, then we assumed that the response was
         # and error response and passed it unfiltered.  However, if the
@@ -474,7 +474,8 @@ class BayesProxy(POP3ProxyBase):
 
         # Break off the first line, which will be '+OK'.
         statusLine, messageText = response.split('\n', 1)
-        ok, statusRemainder = statusLine.split(None, 1)
+        statusData = statusLine.split()
+        ok = statusData[0]
         if ok.strip().upper() != "+OK":
             # Must be an error response.  Return unproxied.
             return response
