@@ -644,7 +644,8 @@ def tokenize_word(word, _len=len):
             # rate, but is neutral for the f-p rate.  I don't know why!
             # XXX Figure out why, and/or see if some other way of summarizing
             # XXX this info has greater benefit.
-            yield "skip:%c %d" % (word[0], n // 10 * 10)
+            if options.generate_long_skips:
+                yield "skip:%c %d" % (word[0], n // 10 * 10)
             if has_highbit_char(word):
                 hicount = 0
                 for i in map(ord, word):
