@@ -339,7 +339,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                     h.text.href = "view?key=%s&corpus=%s" % (key, label)
                 else:
                     h = self.html.reviewRow.headerValue.clone()
-                h.text = text
+                h.text = cgi.escape(text)
                 row.optionalHeadersValues += h
 
             # Apart from any message headers, we may also wish to display
