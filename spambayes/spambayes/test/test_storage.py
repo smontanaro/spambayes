@@ -1,15 +1,13 @@
 # Test the basic storage operations of the classifier.
 
 import unittest, os, sys
-
-# Hack sys.path - 2 levels up must be on sys.path.
 try:
-    this_file = __file__
-except NameError:
-    this_file = sys.argv[0]
-sb_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(this_file))))
-if sb_dir not in sys.path:
-    sys.path.append(sb_dir)
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+
+import sb_test_support
+sb_test_support.fix_sys_path()
 
 from spambayes.storage import DBDictClassifier, PickledClassifier
 
@@ -153,11 +151,19 @@ class DBStorageTestCase(_StorageTestBase):
         DBDictClassifier.load = self.fail_open_best
         sys_exit = sys.exit
         sys.exit = self.success
+        # redirect sys.stderr and sys.exit, as storage.py prints
+        # an error to stderr, then attempts to sys.exit
+        # (we probably could just catch SystemExit for sys.exit?)
+        sys_stderr = sys.stderr
+        sys.stderr = StringIO.StringIO()
         self.succeeded = False
         db_name = tempfile.mktemp("nodbmtest")
-        s = open_storage(db_name, True)
-        DBDictClassifier.load = DBDictClassifier_load
-        sys.exit = sys_exit
+        try:
+            s = open_storage(db_name, True)
+        finally:
+            DBDictClassifier.load = DBDictClassifier_load
+            sys.exit = sys_exit
+            sys.stderr = sys_stderr
         if not self.succeeded:
             self.fail()
         if os.path.isfile(db_name):
@@ -171,4 +177,4 @@ def suite():
     return suite
 
 if __name__=='__main__':
-    unittest.main(argv=sys.argv + ['suite'])
+    sb_test_support.unittest_main(argv=sys.argv + ['suite'])
