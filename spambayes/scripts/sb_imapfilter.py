@@ -204,7 +204,7 @@ class IMAPSession(BaseIMAP):
                 # expunge when we log out (because expunge returns
                 # a list of all the deleted messages which we don't do
                 # anything with).
-                self.imap_server.close()
+                self.close()
 
             if folder == "":
                 # This is Python bug #845560 - if the empty string is
@@ -226,7 +226,7 @@ class IMAPSession(BaseIMAP):
         response = self.list()
         try:
             all_folders = self.check_response("list", response)
-        except BadIMAPResponse:
+        except BadIMAPResponseError:
             # We want to keep going, so just print out a warning, and
             # return an empty list.
             print "Could not retrieve folder list."
@@ -573,8 +573,9 @@ class IMAPMessage(message.SBHeaderMessage):
         # delete all of them apart from the last one, and use that.
         multiple_ids = new_id.split()
         for id_to_remove in multiple_ids[:-1]:
-            response = imap.uid("STORE", id_to_remove, "+FLAGS.SILENT",
-                                "(\\Deleted \\Seen)")
+            response = self.imap_server.uid("STORE", id_to_remove,
+                                            "+FLAGS.SILENT",
+                                            "(\\Deleted \\Seen)")
             command = "silently delete and make seen %s" % (id_to_remove,)
             self.imap_server.check_response(command, response)
 
@@ -597,7 +598,7 @@ class IMAPMessage(message.SBHeaderMessage):
             # with the highest UID (they are sequential, so this will be
             # ok as long as another message hasn't also arrived).
             if new_id == "":
-                response = imap.uid("SEARCH", "ALL")
+                response = self.imap_server.uid("SEARCH", "ALL")
                 data = self.imap_server.check_response("search all",
                                                        response)
                 new_id = data[0]
