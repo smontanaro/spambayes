@@ -3,9 +3,6 @@
 """An IMAP filter.  An IMAP message box is scanned and all non-scored
 messages are scored and (where necessary) filtered.
 
-The original filter design owed much to isbg by Roger Binns
-(http://www.rogerbinns.com/isbg).
-
 Usage:
     sb_imapfilter [options]
 
@@ -66,7 +63,8 @@ todo = """
 # Foundation license.
 
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
-__credits__ = "All the SpamBayes folk."
+__credits__ = "All the SpamBayes folk. The original filter design owed " \
+              "much to isbg by Roger Binns (http://www.rogerbinns.com/isbg)."
 
 from __future__ import generators
 
@@ -150,6 +148,8 @@ class IMAPSession(BaseIMAP):
             self.readline = readline
         self.debug = debug
         self.do_expunge = do_expunge
+        self.server = server
+        self.port = port
         self.logged_in = False
 
         # For efficiency, we remember which folder we are currently
@@ -1010,8 +1010,8 @@ def run(force_UI=False):
     sleepTime = 0
     promptForPass = False
     launchUI = False
-    server = ""
-    username = ""
+    servers = ""
+    usernames = ""
 
     for opt, arg in opts:
         if opt == '-h':
@@ -1054,36 +1054,32 @@ def run(force_UI=False):
         print "Done."
 
     if options["imap", "server"]:
-        # The options class is ahead of us here:
-        #   it knows that imap:server will eventually be able to have
-        #   multiple values, but for the moment, we just use the first one
-        server = options["imap", "server"]
-        if len(server) > 0:
-            server = server[0]
-        username = options["imap", "username"]
-        if len(username) > 0:
-            username = username[0]
+        servers = options["imap", "server"]
+        usernames = options["imap", "username"]
         if not promptForPass:
-            pwd = options["imap", "password"]
-            if len(pwd) > 0:
-                pwd = pwd[0]
+            pwds = options["imap", "password"]
     else:
-        pwd = None
+        pwds = None
         if not launchUI and not force_UI:
             print "You need to specify both a server and a username."
             sys.exit()
 
     if promptForPass:
-        pwd = getpass()
+        pwds = []
+        for i in xrange(len(usernames)):
+            pwds.append(getpass("Enter password for %s:" % (usernames[i],)))
 
-    if server.find(':') > -1:
-        server, port = server.split(':', 1)
-        port = int(port)
-    else:
-        if options["imap", "use_ssl"]:
-            port = 993
+    servers_data = []
+    for server, username, password in zip(servers, usernames, pwds or []):
+        if server.find(':') > -1:
+            server, port = server.split(':', 1)
+            port = int(port)
         else:
-            port = 143
+            if options["imap", "use_ssl"]:
+                port = 993
+            else:
+                port = 143
+        servers_data.append((server, port, username, password))
 
     imap_filter = IMAPFilter(classifier)
 
@@ -1100,16 +1096,18 @@ def run(force_UI=False):
     # with it (and we don't want it to die halfway through!), and we
     # don't want to slow classification/training down, either.
     if sleepTime or not (doClassify or doTrain):
-        if server == "":
-            imap = None
-        else:
-            imap = IMAPSession(server, port, imapDebug, doExpunge)
+        imaps = []
+        for server, port, username, password in servers_data:
+            if server == "":
+                imaps.append(None)
+            else:
+                imaps.append(IMAPSession(server, port, imapDebug, doExpunge))
 
         # Load stats manager.
         stats = Stats.Stats(options, message_db)
         
         httpServer = UserInterfaceServer(options["html_ui", "port"])
-        httpServer.register(IMAPUserInterface(classifier, imap, pwd,
+        httpServer.register(IMAPUserInterface(classifier, imaps, pwds,
                                               IMAPSession, stats=stats))
         launchBrowser=launchUI or options["html_ui", "launch_browser"]
         if sleepTime:
@@ -1119,28 +1117,34 @@ def run(force_UI=False):
         else:
             Dibbler.run(launchBrowser=launchBrowser)
     if doClassify or doTrain:
+        imaps = []
+        for server, port, username, password in servers_data:
+            imaps.append((IMAPSession(server, port, imapDebug, doExpunge),
+                          username, password))
         while True:
-            imap = IMAPSession(server, port, imapDebug, doExpunge)
-            if imap.connected:
-                imap.login(username, pwd)
-                imap_filter.imap_server = imap
+            for imap, username, password in imaps:
+                if options["globals", "verbose"]:
+                    print "Account: %s:%s" % (imap.server, imap.port)
+                if imap.connected:
+                    imap.login(username, password)
+                    imap_filter.imap_server = imap
 
-                if doTrain:
-                    if options["globals", "verbose"]:
-                        print "Training"
-                    imap_filter.Train()
-                if doClassify:
-                    if options["globals", "verbose"]:
-                        print "Classifying"
-                    imap_filter.Filter()
+                    if doTrain:
+                        if options["globals", "verbose"]:
+                            print "Training"
+                        imap_filter.Train()
+                    if doClassify:
+                        if options["globals", "verbose"]:
+                            print "Classifying"
+                        imap_filter.Filter()
 
-                imap.logout()
-            else:
-                # Failed to connect.  This may be a temporary problem,
-                # so just continue on and try again.  If we are only
-                # running once we will end, otherwise we'll try again
-                # in sleepTime seconds.
-                pass
+                    imap.logout()
+                else:
+                    # Failed to connect.  This may be a temporary problem,
+                    # so just continue on and try again.  If we are only
+                    # running once we will end, otherwise we'll try again
+                    # in sleepTime seconds.
+                    pass
 
             if sleepTime:
                 time.sleep(sleepTime)

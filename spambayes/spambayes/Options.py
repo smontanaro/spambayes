@@ -980,26 +980,18 @@ defaults = {
 
   "imap" : (
     ("server", _("Server"), (),
-     _("""This is the name and port of the imap server that stores your mail,
-     and which the imap filter will connect to - for example:
+     _("""These are the names and ports of the imap servers that store your
+     mail, and which the imap filter will connect to - for example:
      mail.example.com or imap.example.com:143.  The default IMAP port is
-     143, or 993 if using SSL; if you connect via one of those ports, you
-     can leave this blank. If you use more than one server, then things are
-     a bit more complicated for you at the moment, sorry.  You will need to
-     have multiple instances of the imap filter running, each with a
-     different server (and possibly username and password) value.  You can
-     do this if you have a different configuration file for each instance,
-     but you'll have to do it by hand for the moment.  Please let the
-     mailing list know if you are in this situation so that we can consider
-     coming up with a better solution."""),
+     143 (or 993 if using SSL); if you connect via one of those ports, you
+     can leave this blank. If you use more than one server, use a comma
+     delimited list of the server:port values."""),
      SERVER, DO_NOT_RESTORE),
 
     ("username", _("Username"), (),
      _("""This is the id that you use to log into your imap server.  If your
      address is funkyguy@example.com, then your username is probably
-     funkyguy. If you are using multiple imap servers, or multiple accounts
-     on the same server, please see the comments regarding the server
-     value."""),
+     funkyguy."""),
      IMAP_ASTRING, DO_NOT_RESTORE),
 
     ("password", _("Password"), (),
