@@ -1113,7 +1113,7 @@ class UserInterface(BaseUserInterface):
             return [text]
         chunks = wordsep_re.split(text)
         chunks = filter(None, chunks)
-        return self._wrap_chunks(chunks, width)
+        return '\n'.join(self._wrap_chunks(chunks, width))
 
     def _wrap_chunks(self, chunks, width):
         """Stolen from textwrap; see that module in Python > 2.3 for
@@ -1138,5 +1138,5 @@ class UserInterface(BaseUserInterface):
             if cur_line and cur_line[-1].strip() == '':
                 del cur_line[-1]
             if cur_line:
-                lines.append(indent + ''.join(cur_line))
+                lines.append(''.join(cur_line))
         return lines
