@@ -100,6 +100,9 @@ except NameError:
 
 try:
     import csv
+    # might get the old object craft csv module - has no reader attr 
+    if not hasattr(csv, "reader"): 
+        raise ImportError 
 except ImportError:
     import spambayes.compatcsv as csv
 
