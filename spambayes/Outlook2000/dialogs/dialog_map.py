@@ -41,8 +41,8 @@ class TrainingStatusProcessor(ControlProcessor):
                         "consider performing additional training." % (nham, nspam)
         else:
             db_status = "Database has no training information.  SpamBayes " \
-                        "will deliver all messages to your 'Unsure' folder, " \
-                        "ready for you to classify."
+                        "will classify all messages as 'unsure', " \
+                        "ready for you to train."
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT,
                              0, db_status)
 
