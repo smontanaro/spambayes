@@ -32,7 +32,7 @@ program = sys.argv[0]
 
 from spambayes import Options
 
-start = (Options.options["Tokenizer", "unknown_word_prob",
+start = (Options.options["Tokenizer", "unknown_word_prob"],
          Options.options["Tokenzier", "minimum_prob_strength"],
          Options.options["Tokenizer", "unknown_word_strength"])
 err = (0.01, 0.01, 0.01)
