@@ -2,6 +2,13 @@
 # Can't be defined in any module that may be used as "__main__"
 # or as a module.
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 class _ConfigurationContainer:
     def __init__(self, **kw):
         self.__dict__.update(kw)

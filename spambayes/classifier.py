@@ -36,6 +36,14 @@ from sets import Set
 
 from Options import options
 from chi2 import chi2Q
+
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 LN2 = math.log(2)       # used frequently by chi-combining
 
 PICKLE_VERSION = 1

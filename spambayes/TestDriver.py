@@ -30,6 +30,13 @@ import Tester
 import classifier
 from Histogram import Hist
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 def printhist(tag, ham, spam, nbuckets=options.nbuckets):
     print
     print "-> <stat> Ham scores for", tag,

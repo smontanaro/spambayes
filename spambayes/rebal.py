@@ -45,6 +45,13 @@ import random
 import glob
 import getopt
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 # defaults
 NPERDIR = 4000
 RESDIR = 'Data/Ham/reservoir'

@@ -35,6 +35,13 @@ import glob
 
 from mboxutils import get_message
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 program = sys.argv[0]
 
 def usage(code, msg=''):

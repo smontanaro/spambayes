@@ -44,6 +44,13 @@ from tokenizer import tokenize
 import pspam.database
 from pspam.options import options
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 HEADER = "X-Spambayes: %5.3f\r\n"
 HEADER_SIZE = len(HEADER % 0.0)
 

@@ -8,6 +8,13 @@ import win32api
 
 from DialogGlobals import *
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 # Helpers for building the folder list
 class FolderSpec:
     def __init__(self, folder_id, name):

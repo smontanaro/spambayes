@@ -52,6 +52,13 @@ import mboxutils
 import classifier
 from Options import options
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Name of the header to add in filter mode

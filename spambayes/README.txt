@@ -23,7 +23,7 @@ reliably across test sets with 4000 hams + 2750 spams, but the false
 negative rate is still over 1%.  Later:  the f-n rate has also gotten
 too small to measure reliably across that much training data.
 
-The code in this project requires Python 2.2.1 (or later).
+The code in this project requires Python 2.2 (or later).
 
 
 Primary Core Files

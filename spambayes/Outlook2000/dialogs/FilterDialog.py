@@ -10,6 +10,13 @@ from win32com.client import constants
 
 from DialogGlobals import *
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 IDC_FOLDER_WATCH = 1024
 IDC_BROWSE_WATCH = 1025
 IDC_SLIDER_CERTAIN = 1026

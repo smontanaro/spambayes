@@ -11,6 +11,13 @@ import sys
 
 import pspam.options
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 def main(fp):
     cs = ClientStorage("/var/tmp/zeospam")
     db = ZODB.DB(cs)

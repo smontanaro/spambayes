@@ -1,5 +1,12 @@
 import math as _math
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 def chi2Q(x2, v, exp=_math.exp, min=min):
     """Return prob(chisq >= x2, with v degrees of freedom).
 

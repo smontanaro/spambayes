@@ -5,6 +5,12 @@ import commctrl
 import win32ui
 import win32api
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
 
 IDC_START = 1100
 IDC_PROGRESS = 1101

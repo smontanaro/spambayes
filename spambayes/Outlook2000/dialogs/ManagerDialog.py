@@ -10,6 +10,13 @@ import pythoncom
 
 from DialogGlobals import *
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 IDC_BUT_ABOUT = 1024
 IDC_BUT_TRAIN_FROM_SPAM_FOLDER = 1025
 IDC_BUT_TRAIN_TO_SPAM_FOLDER = 1026

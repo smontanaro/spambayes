@@ -12,6 +12,12 @@ import config
 import msgstore
 
 try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+try:
     this_filename = os.path.abspath(__file__)
 except NameError:
     this_filename = os.path.abspath(sys.argv[0])
@@ -82,7 +88,7 @@ class BayesManager:
             ret += " (incl. Sub-folders)"
         return ret
 
-    def EnsureOutlookFieldsForFolder(self, folder_id, include_sub = False):
+    def EnsureOutlookFieldsForFolder(self, folder_id, include_sub=False):
         # Ensure that our fields exist on the Outlook *folder*
         # Setting properties via our msgstore (via Ext Mapi) gets the props
         # on the message OK, but Outlook doesn't see it as a "UserProperty".

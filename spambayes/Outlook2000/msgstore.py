@@ -2,6 +2,12 @@ from __future__ import generators
 
 import sys, os
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
 
 # Abstract definition - can be moved out when we have more than one sub-class <wink>
 # External interface to this module is almost exclusively via a "folder ID"

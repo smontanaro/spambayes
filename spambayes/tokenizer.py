@@ -15,6 +15,13 @@ from Options import options
 
 from mboxutils import get_message
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 # Patch encodings.aliases to recognize 'ansi_x3_4_1968'
 from encodings.aliases import aliases # The aliases dictionary
 if not aliases.has_key('ansi_x3_4_1968'):

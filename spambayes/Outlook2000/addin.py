@@ -3,6 +3,13 @@
 import sys, os
 import warnings
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 if sys.version_info >= (2, 3):
     # sick off the new hex() warnings!
     warnings.filterwarnings("ignore", category=FutureWarning, append=1)

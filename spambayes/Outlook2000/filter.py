@@ -3,7 +3,14 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-def filter_message(msg, mgr, all_actions = True):
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
+def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
     prob = mgr.score(msg)
     if prob >= config.spam_threshold:

@@ -12,6 +12,13 @@ import classifier
 import cdb
 import mboxutils
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 from tokenizer import tokenize
