@@ -47,11 +47,12 @@ Options.py
     by combining fragments of .ini files.
 
 classifier.py
-    An implementation of a Graham-like classifier.
+    The classifier, which is the soul of the method.
 
 tokenizer.py
     An implementation of tokenize() that Tim can't seem to help but keep
-    working on <wink>.
+    working on <wink>.  Generates a token stream from a message, which
+    the classifier trains on or predicts against.
 
 Tester.py
     A test-driver class that feeds streams of msgs to a classifier
@@ -104,15 +105,38 @@ mboxtest.py
     A concrete test driver like timtest.py, but working with a pair of
     mailbox files rather than the specialized timtest setup.
 
-timtest.py
-    A concrete test driver like mboxtest.py, but working with "a
-    standard" test data setup (see below) rather than the specialized
-    mboxtest setup.  This runs an NxN test grid, skipping the diagonal.
-
 timcv.py
-    A first stab at an N-fold cross-validating test driver.  Assumes
-    "a standard" data directory setup (see below).
-    Subject to arbitrary change.
+    An N-fold cross-validating test driver.  Assumes "a standard" data
+        directory setup (see below)) rather than the specialized mboxtest
+        setup.
+    N classifiers are built
+    1 run is done with each classifier.
+    Each classifier is trained on N-1 sets, and predicts against the sole
+        remaining set (the set not used to train the classifier).
+    mboxtest does the same.
+    timcv should not be used for central limit tests (timcv does
+        incremental learning and unlearning, for efficiency; the central
+        limit schemes can't unlearn incrementally, and their incremental
+        learning ability is a cheat whose badness isn't yet known).
+    This (or mboxtest) is the preferred way to test when possible:  it
+        makes best use of limited data, and interpreting results is
+        straightforward.
+
+timtest.py
+    A concrete test driver like mboxtest.py, but working with "a standard"
+        test data setup (see below).  This runs an NxN test grid, skipping
+        the diagonal.
+    N classifiers are built.
+    N-1 runs are done with each classifier.
+    Each classifier is trained on 1 set, and predicts against each of
+        the N-1 remaining sets (those not used to train the classifier).
+    This is a much harder test than timcv, because it trains on N-1 times
+        less data, and makes each classifier predict against N-1 times
+        more data than it's been taught about.
+    It's harder to interpret the results of timtest (than timcv) correctly,
+        because each msg is predicted against N-1 times overall.  So, e.g.,
+        one terribly difficult spam or ham can count against you N-1 times.
+    Central limit tests are fine with timtest.
 
 
 Test Utilities
