@@ -524,3 +524,32 @@ Anthony's Alternate Approach to Building the Zipfile
  o This makes a tarball where the .txt files are mangled, but everything
    else is left alone.
 
+Making a binary release
+=======================
+
+The binary release includes both sb_server and the Outlook plug-in and
+is an installer for Windows (98 and above) systems.  In order to have
+COM typelibs that work with Outlook 2000, 2002 and 2003, you need to
+build the installer on a system that has Outlook 2000 (not a more recent
+version).  You also need to have InnoSetup, resourcepackage and py2exe
+installed.
+
+ o Get hold of a fresh copy of the source (Windows line endings,
+   presumably).
+ o Run sb_server and open the web interface.  This gets resourcepackage
+   to generate the needed files.
+ o Replace the __init__.py file in spambayes/spambayes/resources with
+   a blank file to disable resourcepackage.
+ o Ensure that the version numbers in spambayes/spambayes/__init__.py
+   and spambayes/spambayes/Version.py are up-to-date.
+ o Ensure that you don't have any other copies of spambayes in your
+   PYTHONPATH, or py2exe will pick these up!  If in doubt, run
+   setup.py install.
+ o Run the "setup_all.py" script in the spambayes/windows/py2exe/
+   directory. This uses py2exe to create the files that Inno will install.
+ o Open (in InnoSetup) the spambayes.iss file in the spambayes/windows/
+   directory.  Change the version number in the AppVerName and
+   OutputBaseFilename lines to the new number.
+ o Compile the spambayes.iss script to get the executable.
+ o You can now follow the steps in the source release description above,
+   from the testing step.
