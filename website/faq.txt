@@ -364,7 +364,7 @@ Can I back up the Outlook database?  Should I do this?
 
 Yes you can do this, and it is a good idea if you don't keep copies of the
 mail that you have trained.  This way, if your database becomes corrupted,
-you will be able to recoved without losing all your data (if you do keep
+you will be able to recover without losing all your data (if you do keep
 copies of mail that you train, you can simply recreate the database via
 the SpamBayes manager dialog).
 
