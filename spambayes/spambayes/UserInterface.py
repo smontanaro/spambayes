@@ -95,7 +95,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         Dibbler.HTTPPlugin.__init__(self)
         htmlSource, self._images = self.readUIResources()
         self.html = PyMeldLite.Meld(htmlSource, readonly=True)
-  
+
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
         return options["html_ui", "allow_remote_connections"] or \
@@ -139,8 +139,8 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
     def _writePostamble(self):
         """Writes the end of time-consuming pages - see `_writePreamble`."""
         footer = self.html.footer.clone()
-        footer.timestamp = time.asctime(time.localtime())
-        self.write("</div>" + self.html.footer)
+        footer.timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
+        self.write("</div>" + footer)
         self.write("</body></html>")
 
     def _trimHeader(self, field, limit, quote=False):
@@ -424,7 +424,7 @@ class UserInterface(BaseUserInterface):
                     newOption = blankOption.clone()
                     if options.multiple_values_allowed(sect, opt):
                         if val in options[sect, opt]:
-                            newOption.input_box.checked = "checked" 
+                            newOption.input_box.checked = "checked"
                         newOption.input_box.type = "checkbox"
                         newOption.input_box.name = html_key + '-' + str(i)
                         i += 1
@@ -441,10 +441,10 @@ class UserInterface(BaseUserInterface):
                             val = "Yes"
                     newOption.val_label = str(val)
                     newOption.input_box.value = str(val)
-                    if firstOpt: 
+                    if firstOpt:
                         newConfigRow1.input = newOption
                         firstOpt = False
-                    else:                   
+                    else:
                         newConfigRow1.input += newOption
             # Insert the help text in a cell
             newConfigRow1.helpCell = '<strong>' + \
@@ -454,14 +454,14 @@ class UserInterface(BaseUserInterface):
 
             newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]
- 
+
             if type(currentValue) in types.StringTypes:
                 currentValue = currentValue.replace(',', ', ')
                 newConfigRow2 = configTextRow2.clone()
             else:
                 currentValue = options.unconvert(sect, opt)
                 newConfigRow2 = configRow2.clone()
-            
+
             # Tim thinks that Yes/No makes more sense than True/False
             if options.is_boolean(sect, opt):
                 if currentValue == "False":
