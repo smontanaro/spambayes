@@ -915,11 +915,11 @@ defaults = {
      BOOLEAN, RESTORE),
 
     ("dbm_type", "Database storage type", "best",
-     """What DBM storage type should we use?  Must be best, db3hash, dbhash,
-     gdbm, or dumbdbm.  Windows folk should steer clear of dbhash.  Default
+     """What DBM storage type should we use?  Must be best, db3hash,
+     dbhash or gdbm.  Windows folk should steer clear of dbhash.  Default
      is "best", which will pick the best DBM type available on your
      platform.""",
-     ("best", "db3hash", "dbhash", "gdbm", "dumbdbm"), RESTORE),
+     ("best", "db3hash", "dbhash", "gdbm"), RESTORE),
 
     ("proxy_username", "HTTP Proxy Username", "",
      """The username to give to the HTTP proxy when required.  If a
