@@ -182,7 +182,8 @@ class FolderItemsEvent(_BaseItemsEvent):
         #     PR_RECEIVED_BY_ENTRYID
         #     PR_TRANSPORT_MESSAGE_HEADERS
         msgstore_message = self.manager.message_store.GetMessage(item)
-        ProcessMessage(msgstore_message, self.manager)
+        if msgstore_message is not None:
+            ProcessMessage(msgstore_message, self.manager)
 
 # Event fired when item moved into the Spam folder.
 class SpamFolderItemsEvent(_BaseItemsEvent):
