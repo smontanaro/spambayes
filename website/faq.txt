@@ -431,6 +431,10 @@ versions of Outlook/Windows.  However, to our knowledge, the current version
 should work with any combination of Windows/Outlook versions.  Please let us
 know if this is not the case.  The `troubleshooting guide`_ for the Outlook
 plugin contains the most up-to-date help for working around known problems.
+A number of people have used the plugin with a beta version of Outlook 2003.
+If you fall into that category, note that you must have applied all the
+technical refreshes released by Microsoft to use the plugin successfully.
+Better yet, upgrade to the final version when it's available.
 
 .. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/plain
 
