@@ -94,6 +94,7 @@ import re
 import errno
 import shelve
 import pickle
+import traceback
 
 import email
 import email.Message
@@ -104,7 +105,10 @@ from spambayes import dbmstorage
 from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
 
-from cStringIO import StringIO
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
@@ -247,7 +251,7 @@ class Message(email.Message.Message):
         methods in a hackish way) in Python 2.4, so is now deprecated.
         Use *_from_string as described above."""
         prs = email.Parser.Parser()
-        fp = StringIO(payload)
+        fp = StringIO.StringIO(payload)
         # this is kindof a hack, due to the fact that the parser creates a
         # new message object, and we already have the message object
         prs._parseheaders(self, fp)
@@ -481,3 +485,31 @@ def message_from_string(s, _class=Message, strict=False):
 
 def sbheadermessage_from_string(s, _class=SBHeaderMessage, strict=False):
     return email.message_from_string(s, _class, strict)
+
+# Utility function to insert an exception header into the given RFC822 text.
+# This is used by both sb_server and sb_imapfilter, so it's handy to have
+# it available separately.
+def insert_exception_header(string_msg):
+    """Insert an exception header into the given RFC822 message (as text).
+
+    Returns a tuple of the new message text and the exception details."""
+    stream = StringIO.StringIO()
+    traceback.print_exc(None, stream)
+    details = stream.getvalue()
+
+    # Build the header.  This will strip leading whitespace from
+    # the lines, so we add a leading dot to maintain indentation.
+    detailLines = details.strip().split('\n')
+    dottedDetails = '\n.'.join(detailLines)
+    headerName = 'X-Spambayes-Exception'
+    header = email.Header.Header(dottedDetails, header_name=headerName)
+
+    # Insert the exception header, and also insert the id header,
+    # otherwise we might keep doing this message over and over again.
+    # We also ensure that the line endings are /r/n as RFC822 requires.
+    headers, body = re.split(r'\n\r?\n', string_msg, 1)
+    header = re.sub(r'\r?\n', '\r\n', str(header))
+    headers += "\n%s: %s\r\n%s: %s\r\n\r\n" % \
+               (headerName, header,
+                options["Headers", "mailid_header_name"], self.id)
+    return (headers + body, details)
