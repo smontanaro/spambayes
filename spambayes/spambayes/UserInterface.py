@@ -88,7 +88,7 @@ import Dibbler
 import tokenizer
 from spambayes import Stats
 from spambayes import Version
-from Options import options, optionsPathname, defaults, OptionsClass
+from Options import options, optionsPathname, defaults, OptionsClass, _
 
 IMAGES = ('helmet', 'status', 'config', 'help',
           'message', 'train', 'classify', 'query')
@@ -103,7 +103,7 @@ experimental_ini_map = (
 for opt in options.options(True):
     sect, opt = opt[1:].split(']', 1)
     if opt[:2].lower() == "x-" and \
-       not options.doc(sect, opt).lower().startswith("(deprecated)"):
+       not options.doc(sect, opt).lower().startswith(_("(deprecated)")):
         experimental_ini_map += ((sect, opt),)
 
 class UserInterfaceServer(Dibbler.HTTPServer):
@@ -111,13 +111,13 @@ class UserInterfaceServer(Dibbler.HTTPServer):
 
     def __init__(self, uiPort):
         Dibbler.HTTPServer.__init__(self, uiPort)
-        print 'User interface url is http://localhost:%d/' % (uiPort)
+        print _('User interface url is http://localhost:%d/') % (uiPort)
 
     def requestAuthenticationMode(self):
         return options["html_ui", "http_authentication"]
 
     def getRealm(self):
-        return "SpamBayes Web Interface"
+        return _("SpamBayes Web Interface")
 
     def isValidUser(self, name, password):
         return (name == options["html_ui", "http_user_name"] and
@@ -128,7 +128,7 @@ class UserInterfaceServer(Dibbler.HTTPServer):
         return options["html_ui", "http_password"]
 
     def getCancelMessage(self):
-        return "You must login to use SpamBayes."""
+        return _("You must login to use SpamBayes.")
 
 
 class BaseUserInterface(Dibbler.HTTPPlugin):
@@ -182,9 +182,9 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         # Add in the name of the page and remove the link to Home if this
         # *is* Home.
         html.title = name
-        if name == 'Home':
+        if name == _('Home'):
             del html.homelink
-            html.pagename = "Home"
+            html.pagename = _("Home")
         elif parent:
             html.pagename = "> <a href='%s'>%s</a> > %s" % \
                             (parent[0], parent[1], name)
@@ -282,7 +282,7 @@ class UserInterface(BaseUserInterface):
         message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
         results = self._buildCluesTable(message)
         results.classifyAnother = self._buildClassifyBox()
-        self._writePreamble("Classify")
+        self._writePreamble(_("Classify"))
         self.write(results)
         self._writePostamble()
 
@@ -324,11 +324,11 @@ class UserInterface(BaseUserInterface):
             clues = [(tok, None) for tok in tokens]
             probability = self.classifier.spamprob(tokens)
             cluesTable = self._fillCluesTable(clues)
-            head_name = "Tokens"
+            head_name = _("Tokens")
         else:
             (probability, clues) = self.classifier.spamprob(tokens, evidence=True)
             cluesTable = self._fillCluesTable(clues)
-            head_name = "Clues"
+            head_name = _("Clues")
 
         results = self.html.classifyResults.clone()
         results.probability = "%.2f%% (%s)" % (probability*100, probability)
@@ -357,10 +357,10 @@ class UserInterface(BaseUserInterface):
                 cluesTable = self._fillCluesTable(clues)
 
                 if subject is None:
-                    heading = "Original clues: (%s)" % (len(evidence),)
+                    heading = _("Original clues: (%s)") % (len(evidence),)
                 else:
-                    heading = "Original clues for: %s (%s)" % (subject,
-                                                               len(evidence),)
+                    heading = _("Original clues for: %s (%s)") % \
+                              (subject, len(evidence),)
                 orig_results = self._buildBox(heading, 'status.gif',
                                               cluesTable)
                 results.cluesBox += orig_results
@@ -368,7 +368,7 @@ class UserInterface(BaseUserInterface):
             del results.orig_prob
         return results
 
-    def onWordquery(self, word, query_type="basic", max_results='10',
+    def onWordquery(self, word, query_type=_("basic"), max_results='10',
                     ignore_case=False):
         # It would be nice if the default value for max_results here
         # always matched the value in ui.html.
@@ -383,35 +383,35 @@ class UserInterface(BaseUserInterface):
         query = self.html.wordQuery.clone()
         query.word.value = "%s" % (word,)
         for q_type in [query.advanced.basic,
-                               query.advanced.wildcard,
-                               query.advanced.regex]:
+                       query.advanced.wildcard,
+                       query.advanced.regex]:
             if query_type == q_type.id:
                 q_type.checked = 'checked'
-                if query_type != "basic":
+                if query_type != _("basic"):
                     del query.advanced.max_results.disabled
         if ignore_case:
             query.advanced.ignore_case.checked = 'checked'
         query.advanced.max_results.value = str(max_results)
-        queryBox = self._buildBox("Word query", 'query.gif', query)
+        queryBox = self._buildBox(_("Word query"), 'query.gif', query)
         if not options["html_ui", "display_adv_find"]:
             del queryBox.advanced
 
         stats = []
         if word == "":
-            stats.append("You must enter a word.")
-        elif query_type == "basic" and not ignore_case:
+            stats.append(_("You must enter a word."))
+        elif query_type == _("basic") and not ignore_case:
             wordinfo = self.classifier._wordinfoget(word)
             if wordinfo:
                 stat = (word, wordinfo.spamcount, wordinfo.hamcount,
                         self.classifier.probability(wordinfo))
             else:
-                stat = "%r does not exist in the database." % \
+                stat = _("%r does not exist in the database.") % \
                        cgi.escape(word)
             stats.append(stat)
         else:
-            if query_type != "regex":
+            if query_type != _("regex"):
                 word = re.escape(word)
-            if query_type == "wildcard":
+            if query_type == _("wildcard"):
                 word = word.replace("\\?", ".")
                 word = word.replace("\\*", ".*")
 
@@ -434,20 +434,14 @@ class UserInterface(BaseUserInterface):
                                 self.classifier.probability(wordinfo))
                         stats.append(stat)
             if len(stats) == 0 and max_results > 0:
-                stat = "There are no words that begin with '%s' " \
-                        "in the database." % (word,)
+                stat = _("There are no words that begin with '%s' " \
+                         "in the database.") % (word,)
                 stats.append(stat)
             elif reached_limit:
-                if over_limit == 1:
-                    singles = ["was", "match", "is"]
-                else:
-                    singles = ["were", "matches", "are"]
-                stat = "There %s %d additional %s that %s not " \
-                       "shown here." % (singles[0], over_limit,
-                                        singles[1], singles[2])
+                stat = _("Additional tokens not shown: %d") % (over_limit,)
                 stats.append(stat)
 
-        self._writePreamble("Word query")
+        self._writePreamble(_("Word query"))
         if len(stats) == 1:
             if isinstance(stat, types.TupleType):
                 stat = self.html.wordStats.clone()
@@ -458,9 +452,8 @@ class UserInterface(BaseUserInterface):
             else:
                 stat = stats[0]
                 word = original_word
-            row = self._buildBox("Statistics for '%s'" % \
-                                 cgi.escape(word),
-                                 'status.gif', stat)
+            row = self._buildBox(_("Statistics for '%s'") % \
+                                 cgi.escape(word), 'status.gif', stat)
             self.write(row)
         else:
             page = self.html.multiStats.clone()
@@ -476,10 +469,10 @@ class UserInterface(BaseUserInterface):
                     stripe = stripe ^ 1
                     page.multiTable += row
                 else:
-                    self.write(self._buildBox("Statistics for '%s'" % \
+                    self.write(self._buildBox(_("Statistics for '%s'") % \
                                               cgi.escape(original_word),
                                               'status.gif', stat))
-            self.write(self._buildBox("Statistics for '%s'" % \
+            self.write(self._buildBox(_("Statistics for '%s'") % \
                                       cgi.escape(original_word), 'status.gif',
                                       page))
         self.write(queryBox)
@@ -487,11 +480,11 @@ class UserInterface(BaseUserInterface):
 
     def onTrain(self, file, text, which):
         """Train on an uploaded or pasted message."""
-        self._writePreamble("Train")
+        self._writePreamble(_("Train"))
 
         # Upload or paste?  Spam or ham?
         content = file or text
-        isSpam = (which == 'Train as Spam')
+        isSpam = (which == _('Train as Spam'))
 
         # Attempt to convert the content from a DBX file to a standard mbox
         if file:
@@ -518,7 +511,7 @@ class UserInterface(BaseUserInterface):
             f = open("_pop3proxyham.mbox", "a")
 
         # Train on the uploaded message(s).
-        self.write("<b>Training...</b>\n")
+        self.write("<b>" + _("Training") + "...</b>\n")
         self.flush()
         for message in messages:
             # XXX Here, we should really use the message.Message class,
@@ -533,7 +526,8 @@ class UserInterface(BaseUserInterface):
         # Save the database and return a link Home and another training form.
         f.close()
         self._doSave()
-        self.write("<p>OK. Return <a href='home'>Home</a> or train again:</p>")
+        self.write(_("%sOK. Return %sHome%s or train again:%s") %
+                   ("<p>", "<a href='home'>", "</a", "</p>"))
         self.write(self._buildTrainBox())
         self._writePostamble()
 
@@ -566,15 +560,15 @@ class UserInterface(BaseUserInterface):
 
     def _doSave(self):
         """Saves the database."""
-        self.write("<b>Saving... ")
+        self.write("<b>" + _("Saving..."))
         self.flush()
         self.classifier.store()
-        self.write("Done</b>.\n")
+        self.write(_("Done.") + "</b>\n")
 
     def onSave(self, how):
         """Command handler for "Save" and "Save & shutdown"."""
         isShutdown = how.lower().find('shutdown') >= 0
-        self._writePreamble("Save", showImage=(not isShutdown))
+        self._writePreamble(_("Save"), showImage=(not isShutdown))
         self._doSave()
         if isShutdown:
             self.write("<p>%s</p>" % self.html.shutdownMessage)
@@ -595,7 +589,7 @@ class UserInterface(BaseUserInterface):
         del form.submit_spam
         del form.submit_ham
         form.action = "classify"
-        return self._buildBox("Classify a message", 'classify.gif', form)
+        return self._buildBox(_("Classify a message"), 'classify.gif', form)
 
     def _buildTrainBox(self):
         """Returns a "Train on a given message" box.  This is used on both
@@ -604,7 +598,7 @@ class UserInterface(BaseUserInterface):
 
         form = self.html.upload.clone()
         del form.submit_classify
-        return self._buildBox("Train on a message, mbox file or dbx file",
+        return self._buildBox(_("Train on a message, mbox file or dbx file"),
                               'message.gif', form)
 
     def reReadOptions(self):
@@ -614,32 +608,32 @@ class UserInterface(BaseUserInterface):
 
     def onExperimentalconfig(self):
         html = self._buildConfigPage(experimental_ini_map)
-        html.title = 'Home &gt; Experimental Configuration'
-        html.pagename = '&gt; Experimental Configuration'
-        html.adv_button.name.value = "Back to basic configuration"
+        html.title = _('Home &gt; Experimental Configuration')
+        html.pagename = _('&gt; Experimental Configuration')
+        html.adv_button.name.value = _("Back to basic configuration")
         html.adv_button.action = "config"
-        html.config_submit.value = "Save experimental options"
-        html.restore.value = "Restore experimental options defaults (all off)"
+        html.config_submit.value = _("Save experimental options")
+        html.restore.value = _("Restore experimental options defaults (all off)")
         del html.exp_button
         self.writeOKHeaders('text/html')
         self.write(html)
 
     def onAdvancedconfig(self):
         html = self._buildConfigPage(self.advanced_options_map)
-        html.title = 'Home &gt; Advanced Configuration'
-        html.pagename = '&gt; Advanced Configuration'
-        html.adv_button.name.value = "Back to basic configuration"
+        html.title = _('Home &gt; Advanced Configuration')
+        html.pagename = _('&gt; Advanced Configuration')
+        html.adv_button.name.value = _("Back to basic configuration")
         html.adv_button.action = "config"
-        html.config_submit.value = "Save advanced options"
-        html.restore.value = "Restore advanced options defaults"
+        html.config_submit.value = _("Save advanced options")
+        html.restore.value = _("Restore advanced options defaults")
         del html.exp_button
         self.writeOKHeaders('text/html')
         self.write(html)
 
     def onConfig(self):
         html = self._buildConfigPage(self.parm_ini_map)
-        html.title = 'Home &gt; Configure'
-        html.pagename = '&gt; Configure'
+        html.title = _('Home &gt; Configure')
+        html.pagename = _('&gt; Configure')
         self.writeOKHeaders('text/html')
         self.write(html)
 
@@ -651,7 +645,7 @@ class UserInterface(BaseUserInterface):
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.configForm.clone()
         html.mainContent.configFormContent = ""
-        html.mainContent.optionsPathname = optionsPathname
+        html.mainContent.optionsPathname = cgi.escape(optionsPathname)
         return self._buildConfigPageBody(html, parm_map)
 
     def _buildConfigPageBody(self, html, parm_map):
@@ -750,9 +744,9 @@ class UserInterface(BaseUserInterface):
             # Tim thinks that Yes/No makes more sense than True/False
             if options.is_boolean(sect, opt):
                 if currentValue == "False":
-                    currentValue = "No"
+                    currentValue = _("No")
                 elif currentValue == "True":
-                    currentValue = "Yes"
+                    currentValue = _("Yes")
             # XXX Something needs to be done here, otherwise really
             # XXX long options squeeze the help text too far to the
             # XXX right.  Browsers can't wrap the text (even if
@@ -772,9 +766,9 @@ class UserInterface(BaseUserInterface):
     def onChangeopts(self, **parms):
         pmap = self.parm_ini_map
         if parms.has_key("how"):
-            if parms["how"] == "Save advanced options":
+            if parms["how"] == _("Save advanced options"):
                 pmap = self.advanced_options_map
-            elif parms["how"] == "Save experimental options":
+            elif parms["how"] == _("Save experimental options"):
                 pmap = experimental_ini_map
             del parms["how"]
         html = self._getHTMLClone()
@@ -783,10 +777,10 @@ class UserInterface(BaseUserInterface):
         errmsg = self.verifyInput(parms, pmap)
 
         if errmsg != '':
-            html.mainContent.heading = "Errors Detected"
+            html.mainContent.heading = _("Errors Detected")
             html.mainContent.boxContent = errmsg
-            html.title = 'Home &gt; Error'
-            html.pagename = '&gt; Error'
+            html.title = _('Home &gt; Error')
+            html.pagename = _('&gt; Error')
             self.writeOKHeaders('text/html')
             self.write(html)
             return
@@ -805,18 +799,18 @@ class UserInterface(BaseUserInterface):
         options.update_file(optionsPathname)
         self.reReadOptions()
 
-        html.mainContent.heading = "Options Changed"
-        html.mainContent.boxContent = "%s.  Return <a href='home'>Home</a>." \
-                                      % "Options changed"
-        html.title = 'Home &gt; Options Changed'
-        html.pagename = '&gt; Options Changed'
+        html.mainContent.heading = _("Options Changed")
+        html.mainContent.boxContent = _("Options changed.  Return " \
+                                        "<a href='home'>Home</a>.")
+        html.title = _('Home &gt; Options Changed')
+        html.pagename = _('&gt; Options Changed')
         self.writeOKHeaders('text/html')
         self.write(html)
 
     def onRestoredefaults(self, how):
-        if how == "Restore advanced options defaults":
+        if how == _("Restore advanced options defaults"):
             self.restoreConfigDefaults(self.advanced_options_map)
-        elif how == "Restore experimental options defaults (all off)":
+        elif how == _("Restore experimental options defaults (all off)"):
             self.restoreConfigDefaults(experimental_ini_map)
         else:
             self.restoreConfigDefaults(self.parm_ini_map)
@@ -825,11 +819,11 @@ class UserInterface(BaseUserInterface):
         html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
-        html.mainContent.heading = "Option Defaults Restored"
-        html.mainContent.boxContent = "%s.  Return <a href='home'>Home</a>." \
-                                      % "Defaults restored"
-        html.title = 'Home &gt; Defaults Restored'
-        html.pagename = '&gt; Defaults Restored'
+        html.mainContent.heading = _("Option Defaults Restored")
+        html.mainContent.boxContent = _("Defaults restored.  Return " \
+                                        "<a href='home'>Home</a>.")
+        html.title = _('Home &gt; Defaults Restored')
+        html.pagename = _('&gt; Defaults Restored')
         self.writeOKHeaders('text/html')
         self.write(html)
         self.reReadOptions()
@@ -865,20 +859,20 @@ class UserInterface(BaseUserInterface):
                 entered_value = value
                 # Tim thinks that Yes/No makes more sense than True/False
                 if options.is_boolean(sect, opt):
-                    if value == "No":
+                    if value == _("No"):
                         value = False
-                    elif value == "Yes":
+                    elif value == _("Yes"):
                         value = True
                 if options.multiple_values_allowed(sect, opt) and \
                    value == "":
                     value = ()
                 value = options.convert(sect, opt, value)
             if not options.is_valid(sect, opt, value):
-                errmsg += '<li>\'%s\' is not a value valid for [%s] %s' % \
+                errmsg += _('<li>\'%s\' is not a value valid for [%s] %s') % \
                           (entered_value, nice_section_name,
                            options.display_name(sect, opt))
                 if type(options.valid_input(sect, opt)) == type((0,1)):
-                    errmsg += '. Valid values are: '
+                    errmsg += _('. Valid values are: ')
                     for valid in options.valid_input(sect, opt):
                         errmsg += str(valid) + ','
                     errmsg = errmsg[:-1] # cut last ','
@@ -905,7 +899,7 @@ class UserInterface(BaseUserInterface):
     def onHelp(self, topic=None):
         """Provide a help page, either the default if topic is not
         supplied, or specific to the topic given."""
-        self._writePreamble("Help")
+        self._writePreamble(_("Help"))
         helppage = self.html.helppage.clone()
         if topic:
             # Present help specific to a certain page.
@@ -922,14 +916,14 @@ class UserInterface(BaseUserInterface):
 
     def onStats(self):
         """Provide statistics about previous SpamBayes activity."""
-        self._writePreamble("Statistics")
+        self._writePreamble(_("Statistics"))
         if self.stats:
             stats = self.stats.GetStats(use_html=True)
-            stats = self._buildBox("Statistics", None,
+            stats = self._buildBox(_("Statistics"), None,
                                    "<br/><br/>".join(stats))
         else:
-            stats = self._buildBox("Statistics", None,
-                                   "Statistics not available")
+            stats = self._buildBox(_("Statistics"), None,
+                                   _("Statistics not available"))
         self.write(stats)
         self._writePostamble(help_topic="stats")
 
@@ -937,7 +931,7 @@ class UserInterface(BaseUserInterface):
         """Create a message to post to spambayes@python.org that hopefully
         has enough information for us to help this person with their
         problem."""
-        self._writePreamble("Send Help Message", ("help", "Help"))
+        self._writePreamble(_("Send Help Message"), ("help", _("Help")))
         report = self.html.bugreport.clone()
         # Prefill the report
         v = Version.get_current_version()
@@ -999,13 +993,13 @@ class UserInterface(BaseUserInterface):
             except IndexError:
                 smtp_server = None
             if not smtp_server:
-                self.write(self._buildBox("Warning", "status.gif",
-                           "You will be unable to send this message from " \
+                self.write(self._buildBox(_("Warning"), "status.gif",
+                           _("You will be unable to send this message from " \
                            "this page, as you do not have your SMTP " \
                            "server's details entered in your configuration. " \
                            "Please either <a href='config'>enter those " \
                            "details</a>, or copy the text below into your " \
-                           "regular mail application."))
+                           "regular mail application.")))
                 del report.submitrow
 
         self.write(report)
@@ -1024,13 +1018,13 @@ class UserInterface(BaseUserInterface):
         from email.MIMEText import MIMEText
 
         if not self._verifyEnteredDetails(from_addr, subject, message):
-            self._writePreamble("Error", ("help", "Help"))
-            self.write(self._buildBox("Error", "status.gif",
-                                      "You must fill in the details that " \
+            self._writePreamble(_("Error"), ("help", _("Help")))
+            self.write(self._buildBox(_("Error"), "status.gif",
+                                      _("You must fill in the details that " \
                                       "describe your specific problem " \
-                                      "before you can send the message."))
+                                      "before you can send the message.")))
         else:
-            self._writePreamble("Sent", ("help", "Help"))
+            self._writePreamble(_("Sent"), ("help", _("Help")))
             mailer = smtplib.SMTP(options["smtpproxy", "remote_servers"][0])
 
             # Create the enclosing (outer) message
@@ -1096,18 +1090,18 @@ class UserInterface(BaseUserInterface):
                 if r:
                     recips.append(r)
             mailer.sendmail(from_addr, recips, outer.as_string())
-            self.write("Sent message.  Please do not send again, or " \
-                       "refresh this page!")
+            self.write(_("Sent message.  Please do not send again, or " \
+                       "refresh this page!"))
         self._writePostamble()
 
     def _verifyEnteredDetails(self, from_addr, subject, message):
         """Ensure that the user didn't just send the form message, and
         at least changed the fields."""
-        if from_addr.startswith("[YOUR EMAIL ADDRESS]"):
+        if from_addr.startswith(_("[YOUR EMAIL ADDRESS]")):
             return False
-        if message.endswith("[DESCRIBE YOUR PROBLEM HERE]"):
+        if message.endswith(_("[DESCRIBE YOUR PROBLEM HERE]")):
             return False
-        if subject.endswith("[PROBLEM SUMMARY]"):
+        if subject.endswith(_("[PROBLEM SUMMARY]")):
             return False
         return True
 
