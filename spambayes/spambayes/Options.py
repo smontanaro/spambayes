@@ -985,77 +985,90 @@ defaults = {
 # current working directory.
 optionsPathname = None
 
-options = OptionsClass()
-options.load_defaults(defaults)
+# The global options object - created by load_options
+options = None
 
-alternate = None
-if hasattr(os, 'getenv'):
-    alternate = os.getenv('BAYESCUSTOMIZE')
-if alternate:
-    filenames = alternate.split(os.pathsep)
-    options.merge_files(filenames)
-    optionsPathname = os.path.abspath(filenames[-1])
-else:
-    alts = []
-    for path in ['bayescustomize.ini', '~/.spambayesrc']:
-        epath = os.path.expanduser(path)
-        if os.path.exists(epath):
-            alts.append(epath)
-    if alts:
-        options.merge_files(alts)
-        optionsPathname = os.path.abspath(alts[-1])
+def load_options():
+    global optionsPathname, options
+    options = OptionsClass()
+    options.load_defaults(defaults)
 
-if not optionsPathname:
-    optionsPathname = os.path.abspath('bayescustomize.ini')
-    if sys.platform.startswith("win") and not os.path.isfile(optionsPathname):
-        # If we are on Windows and still don't have an INI, default to the
-        # 'per-user' directory.
-        try:
-            from win32com.shell import shell, shellcon
-            windowsUserDirectory = os.path.join(
-                    shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),
-                    "SpamBayes", "Proxy")
+    alternate = None
+    if hasattr(os, 'getenv'):
+        alternate = os.getenv('BAYESCUSTOMIZE')
+    if alternate:
+        filenames = alternate.split(os.pathsep)
+        options.merge_files(filenames)
+        optionsPathname = os.path.abspath(filenames[-1])
+    else:
+        alts = []
+        for path in ['bayescustomize.ini', '~/.spambayesrc']:
+            epath = os.path.expanduser(path)
+            if os.path.exists(epath):
+                alts.append(epath)
+        if alts:
+            options.merge_files(alts)
+            optionsPathname = os.path.abspath(alts[-1])
+    
+    if not optionsPathname:
+        optionsPathname = os.path.abspath('bayescustomize.ini')
+        if sys.platform.startswith("win") and \
+           not os.path.isfile(optionsPathname):
+            # If we are on Windows and still don't have an INI, default to the
+            # 'per-user' directory.
             try:
-                if not os.path.isdir(windowsUserDirectory):
-                    os.makedirs(windowsUserDirectory)
-                optionsPathname = os.path.join(windowsUserDirectory,
-                                               'bayescustomize.ini')
-                # Not everyone is unicode aware - keep it a string.
-                optionsPathname = optionsPathname.encode("mbcs")
-                # If the file exists, then load it.
-                if os.path.exists(optionsPathname):
-                    options.merge_file(optionsPathname)
-                else:
-                    # If the file doesn't exist, then let's get the user to
-                    # store their databases and caches here as well, by
-                    # default, and save the file.
-                    db_name = os.path.join(windowsUserDirectory,
-                                           "statistics_database.db")
-                    mi_db = os.path.join(windowsUserDirectory,
-                                           "message_info_database.db")
-                    h_cache = os.path.join(windowsUserDirectory,
-                                           "ham_cache").encode("mbcs")
-                    u_cache = os.path.join(windowsUserDirectory,
-                                           "unknown_cache").encode("mbcs")
-                    s_cache = os.path.join(windowsUserDirectory,
-                                           "spam_cache").encode("mbcs")
-                    options["Storage", "spam_cache"] = s_cache
-                    options["Storage", "ham_cache"] = h_cache
-                    options["Storage", "unknown_cache"] = u_cache
-                    options["Storage", "persistent_storage_file"] = \
-                                       db_name.encode("mbcs")
-                    options["Storage", "messageinfo_storage_file"] = \
-                                       mi_db.encode("mbcs")
-                    options.update_file(optionsPathname)
-            except os.error:
-                # unable to make the directory - stick to default.
-                pass
-        except ImportError:
-            # We are on Windows, with no BAYESCUSTOMIZE set, no ini file
-            # in the current directory, and no win32 extensions installed
-            # to locate the "user" directory - seeing things are so lamely
-            # setup, it is worth printing a warning
-            print "NOTE: We can not locate an INI file for SpamBayes, and the"
-            print "Python for Windows extensions are not installed, meaning we"
-            print "can't locate your 'user' directory.  An empty configuration"
-            print "file at '%s' will be used." % optionsPathname.encode('mbcs')
+                from win32com.shell import shell, shellcon
+                windowsUserDirectory = os.path.join(
+                        shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),
+                        "SpamBayes", "Proxy")
+                try:
+                    if not os.path.isdir(windowsUserDirectory):
+                        os.makedirs(windowsUserDirectory)
+                    optionsPathname = os.path.join(windowsUserDirectory,
+                                                   'bayescustomize.ini')
+                    # Not everyone is unicode aware - keep it a string.
+                    optionsPathname = optionsPathname.encode("mbcs")
+                    # If the file exists, then load it.
+                    if os.path.exists(optionsPathname):
+                        options.merge_file(optionsPathname)
+                    else:
+                        # If the file doesn't exist, then let's get the user to
+                        # store their databases and caches here as well, by
+                        # default, and save the file.
+                        db_name = os.path.join(windowsUserDirectory,
+                                               "statistics_database.db")
+                        mi_db = os.path.join(windowsUserDirectory,
+                                               "message_info_database.db")
+                        h_cache = os.path.join(windowsUserDirectory,
+                                               "ham_cache").encode("mbcs")
+                        u_cache = os.path.join(windowsUserDirectory,
+                                               "unknown_cache").encode("mbcs")
+                        s_cache = os.path.join(windowsUserDirectory,
+                                               "spam_cache").encode("mbcs")
+                        options["Storage", "spam_cache"] = s_cache
+                        options["Storage", "ham_cache"] = h_cache
+                        options["Storage", "unknown_cache"] = u_cache
+                        options["Storage", "persistent_storage_file"] = \
+                                           db_name.encode("mbcs")
+                        options["Storage", "messageinfo_storage_file"] = \
+                                           mi_db.encode("mbcs")
+                        options.update_file(optionsPathname)
+                except os.error:
+                    # unable to make the directory - stick to default.
+                    pass
+            except ImportError:
+                # We are on Windows, with no BAYESCUSTOMIZE set, no ini file
+                # in the current directory, and no win32 extensions installed
+                # to locate the "user" directory - seeing things are so lamely
+                # setup, it is worth printing a warning
+                print "NOTE: We can not locate an INI file for SpamBayes, and the"
+                print "Python for Windows extensions are not installed, meaning we"
+                print "can't locate your 'user' directory.  An empty configuration"
+                print "file at '%s' will be used." % optionsPathname.encode('mbcs')
+
+# Ideally, we should not create the objects at import time - but we have
+# done it this way forever!
+# We avoid having the options loading code at the module level, as then
+# the only way to re-read is to reload this module, and as at 2.3, that
+# doesn't work in a .zip file.
+load_options()
