@@ -29,7 +29,7 @@ def train_message(msg, is_spam, mgr):
     mgr.message_db[msg.id] = is_spam
     mgr.bayes_dirty = True
     return True
-    
+
 def train_folder( f, isspam, mgr, progress):
     num = num_added = 0
     for message in f.GetMessageGenerator():

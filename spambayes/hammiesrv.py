@@ -71,7 +71,7 @@ class HammieHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 # wrap response in a singleton tuple
                 response = (response,)
             except:
-            	traceback.print_exc()
+                traceback.print_exc()
                 # report exception back to server
                 response = xmlrpclib.dumps(
                     xmlrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value))

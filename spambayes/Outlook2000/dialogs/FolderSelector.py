@@ -63,7 +63,7 @@ def _BuildFoldersMAPI(msgstore, folder):
         spec.children = _BuildFoldersMAPI(msgstore, child_folder)
         children.append(spec)
     return children
-    
+
 def BuildFolderTreeMAPI(session):
     root = FolderSpec(None, "root")
     tab = session.GetMsgStoresTable(0)

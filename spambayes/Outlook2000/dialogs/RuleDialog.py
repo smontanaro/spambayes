@@ -188,7 +188,7 @@ class RuleDialog(dialog.Dialog):
 
 if __name__=='__main__':
     # This doesn't work
-    
+
     class Rule:
         def __init__(self):
             self.name = "My Rule"
