@@ -58,7 +58,7 @@ def printhist(tag, ham, spam):
 class Msg(object):
     def __init__(self, dir, name):
         path = dir + "/" + name
-        self.path = path
+        self.tag = path
         f = open(path, 'rb')
         guts = f.read()
         f.close()
@@ -68,10 +68,10 @@ class Msg(object):
         return tokenize(self.guts)
 
     def __hash__(self):
-        return hash(self.path)
+        return hash(self.tag)
 
     def __eq__(self, other):
-        return self.path == other.path
+        return self.tag == other.tag
 
 class MsgStream(object):
     def __init__(self, directory):
@@ -85,6 +85,115 @@ class MsgStream(object):
     def __iter__(self):
         return self.produce()
 
+class Driver:
+
+    def __init__(self):
+        self.nbuckets = 40
+        self.falsepos = Set()
+        self.falseneg = Set()
+        self.global_ham_hist = Hist(self.nbuckets)
+        self.global_spam_hist = Hist(self.nbuckets)
+
+    def train(self, ham, spam):
+        self.classifier = classifier.GrahamBayes()
+        self.tester = Tester.Test(self.classifier)
+        print "Training on", ham, "&", spam, "..."
+        self.tester.train(ham, spam)
+
+        self.trained_ham_hist = Hist(self.nbuckets)
+        self.trained_spam_hist = Hist(self.nbuckets)
+
+    def finish(self):
+        printhist("all in this set:",
+                  self.trained_ham_hist, self.trained_spam_hist)
+        self.global_ham_hist += self.trained_ham_hist
+        self.global_spam_hist += self.trained_spam_hist
+
+    def alldone(self):
+        printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
+
+    def test(self, ham, spam):
+        c = self.classifier
+        t = self.tester
+        local_ham_hist = Hist(self.nbuckets)
+        local_spam_hist = Hist(self.nbuckets)
+
+        def new_ham(msg, prob):
+            local_ham_hist.add(prob)
+
+        def new_spam(msg, prob):
+            local_spam_hist.add(prob)
+            if prob < 0.1:
+                print
+                print "Low prob spam!", prob
+                print msg.tag
+                prob, clues = c.spamprob(msg, True)
+                for clue in clues:
+                    print "prob(%r) = %g" % clue
+                print
+                print msg.guts
+
+        t.reset_test_results()
+        print "    testing against", ham, "&", spam, "...",
+        t.predict(spam, True, new_spam)
+        t.predict(ham, False, new_ham)
+        print t.nham_tested, "hams &", t.nspam_tested, "spams"
+
+        print "    false positive:", t.false_positive_rate()
+        print "    false negative:", t.false_negative_rate()
+
+        newfpos = Set(t.false_positives()) - self.falsepos
+        self.falsepos |= newfpos
+        print "    new false positives:", [e.tag for e in newfpos]
+        for e in newfpos:
+            print '*' * 78
+            print e.tag
+            prob, clues = c.spamprob(e, True)
+            print "prob =", prob
+            for clue in clues:
+                print "prob(%r) = %g" % clue
+            print
+            print e.guts
+
+        newfneg = Set(t.false_negatives()) - self.falseneg
+        self.falseneg |= newfneg
+        print "    new false negatives:", [e.tag for e in newfneg]
+        for e in []:#newfneg:
+            print '*' * 78
+            print e.tag
+            prob, clues = c.spamprob(e, True)
+            print "prob =", prob
+            for clue in clues:
+                print "prob(%r) = %g" % clue
+            print
+            print e.guts[:1000]
+
+        print
+        print "    best discriminators:"
+        stats = [(r.killcount, w) for w, r in c.wordinfo.iteritems()]
+        stats.sort()
+        del stats[:-30]
+        for count, w in stats:
+            r = c.wordinfo[w]
+            print "        %r %d %g" % (w, r.killcount, r.spamprob)
+
+
+        printhist("this pair:", local_ham_hist, local_spam_hist)
+
+        self.trained_ham_hist += local_ham_hist
+        self.trained_spam_hist += local_spam_hist
+
+def jdrive():
+    d = Driver()
+
+    for spamdir, hamdir in SPAMHAMDIRS:
+        d.train(MsgStream(hamdir), MsgStream(spamdir))
+        for sd2, hd2 in SPAMHAMDIRS:
+            if (sd2, hd2) == (spamdir, hamdir):
+                continue
+            d.test(MsgStream(hd2), MsgStream(sd2))
+        d.finish()
+    d.alldone()
 
 def drive():
     nbuckets = 40
@@ -184,4 +293,5 @@ def drive():
 
     printhist("all runs:", global_ham_hist, global_spam_hist)
 
-drive()
+if __name__ == "__main__":
+    drive()
