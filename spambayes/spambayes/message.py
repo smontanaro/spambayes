@@ -432,11 +432,16 @@ class SBHeaderMessage(Message):
         else:
             notate_to = options["Headers", "notate_to"]
         if disposition in notate_to:
+            # Once, we treated the To: header just like the Subject: one,
+            # but that doesn't really make sense - and OE stripped the
+            # comma that we added, treating it as a separator, so it
+            # wasn't much use anyway.  So we now convert the classification
+            # to an invalid address, and add that.
+            address = "%s@spambayes.invalid" % (disposition, )
             try:
-                self.replace_header("To", "%s,%s" % (disposition,
-                                                     self["To"]))
+                self.replace_header("To", "%s;%s" % (address, self["To"]))
             except KeyError:
-                self["To"] = disposition
+                self["To"] = address
 
         if isinstance(options["Headers", "notate_subject"], types.StringTypes):
             notate_subject = (options["Headers", "notate_subject"],)
