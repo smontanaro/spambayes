@@ -59,7 +59,7 @@ loud = True
 def get_message(obj):
     """Return an email Message object.
 
-    This works like mboxutis.get_message, except it doesn't junk the
+    This works like mboxutils.get_message, except it doesn't junk the
     headers if there's an error.  Doing so would cause a headerless
     message to be written back out!
 
