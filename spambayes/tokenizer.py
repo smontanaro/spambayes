@@ -4,6 +4,8 @@ import email
 import re
 from sets import Set
 
+from Options import options
+
 ##############################################################################
 # To fold case or not to fold case?  I didn't want to fold case, because
 # it hides information in English, and I have no idea what .lower() does
@@ -889,6 +891,18 @@ class Tokenizer:
             yield "header:%s:%d" % x
 
     def tokenize_body(self, msg):
+        """Generate a stream of tokens from an email Message.
+
+        If a multipart/alternative section has both text/plain and text/html
+        sections, the text/html section is ignored.  This may not be a good
+        idea (e.g., the sections may have different content).
+
+        HTML tags are always stripped from text/plain sections.
+
+        Options.options['retain_pure_html_tags'] controls whether HTML tags are
+        also stripped from text/html sections.
+        """
+
         # Find, decode (base64, qp), and tokenize textual parts of the body.
         for part in textparts(msg):
             # Decode, or take it as-is if decoding fails.
@@ -931,8 +945,9 @@ class Tokenizer:
             ##     for x in crack_filename(fname):
             ##         yield "src:" + x
 
-            # Remove HTML/XML tags if it's a plain text message.
-            if part.get_content_type() == "text/plain":
+            # Remove HTML/XML tags.
+            if (part.get_content_type() == "text/plain" or
+                    not options['retain_pure_html_tags']):
                 text = html_re.sub(' ', text)
 
             # Tokenize everything in the body.
