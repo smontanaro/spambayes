@@ -130,7 +130,7 @@ class RCParser:
             h = open(hFileName, "rU")
             self.parseH(h)
             h.close()
-        except:
+        except OSError:
             print "No .h file. ignoring."
         f = open(rcFileName)
         self.open(f)
@@ -157,7 +157,9 @@ class RCParser:
                     i = int(lex.get_token())
                     self.ids[n] = i
                     if self.names.has_key(i):
-                        print "Duplicate id",i,"for",n,"is", self.names[i]
+                        # ignore AppStudio special ones.
+                        if not n.startswith("_APS_"):
+                            print "Duplicate id",i,"for",n,"is", self.names[i]
                     else:
                         self.names[i] = n
                     if self.next_id<=i:
@@ -354,11 +356,13 @@ def ParseDialogs(rc_file):
     try:
         rcp.loadDialogs(rc_file)
     except:
-        print "ERROR parsing dialogs at line", rcp.lex.lineno
-        print "Next 10 tokens are:"
-        for i in range(10):
-            print rcp.lex.get_token(),
-        print
+        lex = getattr(rcp, "lex", None)
+        if lex:
+            print "ERROR parsing dialogs at line", lex.lineno
+            print "Next 10 tokens are:"
+            for i in range(10):
+                print lex.get_token(),
+            print
         raise
 
     return rcp
