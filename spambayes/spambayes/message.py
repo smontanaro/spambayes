@@ -265,7 +265,7 @@ class SBHeaderMessage(Message):
 
     def setIdFromPayload(self):
         try:
-            self.setId(self[options['pop3proxy','mailid_header_name']])
+            self.setId(self[options['Headers','mailid_header_name']])
         except ValueError:
             return None
 
@@ -335,7 +335,7 @@ class SBHeaderMessage(Message):
                 self["Subject"] = disposition
 
         if options['Headers','add_unique_id']:
-            self[options['pop3proxy','mailid_header_name']] = self.id
+            self[options['Headers','mailid_header_name']] = self.id
 
     def delSBHeaders(self):
         del self[options['Headers','classification_header_name']]

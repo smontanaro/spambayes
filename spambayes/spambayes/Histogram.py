@@ -17,7 +17,8 @@ class Hist:
     # and max values seen.
     # Note:  nbuckets can be passed for backward compatibility.  The
     # display() method can be passed a different nbuckets value.
-    def __init__(self, nbuckets=options.nbuckets,  lo=0.0, hi=100.0):
+    def __init__(self, nbuckets=options["TestDriver", "nbuckets"],
+                 lo=0.0, hi=100.0):
         self.lo, self.hi = lo, hi
         self.nbuckets = nbuckets
         self.buckets = [0] * nbuckets
@@ -75,7 +76,7 @@ class Hist:
         self.sdev = math.sqrt(self.var)
         # Compute percentiles.
         self.pct = pct = []
-        for p in options.percentiles:
+        for p in options["TestDriver", "percentiles"]:
             assert 0.0 <= p <= 100.0
             # In going from data index 0 to index n-1, we move n-1 times.
             # p% of that is (n-1)*p/100.

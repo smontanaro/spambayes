@@ -92,8 +92,8 @@ class Test:
             prob = guess(example)
             if callback:
                 callback(example, prob)
-            is_ham_guessed  = prob <  options.ham_cutoff
-            is_spam_guessed = prob >= options.spam_cutoff
+            is_ham_guessed  = prob <  options["Categorization", "ham_cutoff"]
+            is_spam_guessed = prob >= options["Categorization", "spam_cutoff"]
             if is_spam:
                 self.nspam_tested += 1
                 if is_spam_guessed:
@@ -151,7 +151,7 @@ class _Example:
 _easy_test = """
     >>> from spambayes.classifier import Bayes
     >>> from spambayes.Options import options
-    >>> options.ham_cutoff = options.spam_cutoff = 0.5
+    >>> options["Categorization", "ham_cutoff"] = options["Categorization", "spam_cutoff"] = 0.5
 
     >>> good1 = _Example('', ['a', 'b', 'c'])
     >>> good2 = _Example('', ['a', 'b'])

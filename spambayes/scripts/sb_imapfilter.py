@@ -580,10 +580,10 @@ class IMAPFolder(object):
                 msg.addSBHeaders(prob, clues)
 
                 cls = msg.GetClassification()
-                if cls == options["Hammie", "header_ham_string"]:
+                if cls == options["Headers", "header_ham_string"]:
                     # we leave ham alone
                     count["ham"] += 1
-                elif cls == options["Hammie", "header_spam_string"]:
+                elif cls == options["Headers", "header_spam_string"]:
                     msg.MoveTo(spamfolder)
                     count["spam"] += 1
                 else:
