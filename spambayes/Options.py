@@ -230,6 +230,8 @@ robinson_minimum_prob_strength: 0.1
 # than under Gary-combining.
 use_tim_combining: False
 
+use_chi_squared_combining: False
+
 # Use a central-limit approach for scoring.
 # The number of extremes to use is given by max_discriminators (above).
 # spam_cutoff should almost certainly be exactly 0.5 when using this approach.
@@ -306,6 +308,7 @@ all_options = {
                    'zscore_ratio_cutoff': float_cracker,
 
                    'use_tim_combining': boolean_cracker,
+                   'use_chi_squared_combining': boolean_cracker,
                    },
 }
 
