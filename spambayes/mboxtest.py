@@ -1,6 +1,27 @@
 #! /usr/bin/env python
+"""mboxtest.py: A test driver for classifier.
 
-from timtoken import tokenize
+Usage: mboxtest.py [options] <ham> <spam>
+
+Options:
+    -f FMT
+        One of unix, mmdf, mh, or qmail.  Specifies mailbox format for
+        ham and spam files.  Default is unix.
+        
+    -n NSETS
+        Number of test sets to create for a single mailbox.  Default is 5.
+
+    -s SEED
+        Seed for random number generator.  Default is 101.
+
+    -m MSGS
+        Read no more than MSGS messages from mailbox.
+
+    -l LIMIT
+        Print no more than LIMIT characters of a message in test output.
+"""
+
+from tokenizer import Tokenizer, subject_word_re, tokenize_word, tokenize
 from classifier import GrahamBayes
 from Tester import Test
 from timtest import Driver, Msg
@@ -17,11 +38,49 @@ mbox_fmts = {"unix": mailbox.PortableUnixMailbox,
              "qmail": mailbox.Maildir,
              }
 
+class MyTokenizer(Tokenizer):
+
+    skip = {'received': 1,
+            'date': 1,
+            'x-from_': 1,
+            }
+
+    def tokenize_headers(self, msg):
+        for k, v in msg.items():
+            k = k.lower()
+            if k in self.skip or k.startswith('x-vm'):
+                continue
+            for w in subject_word_re.findall(v):
+                for t in tokenize_word(w):
+                    yield "%s:%s" % (k, t)
+
 class MboxMsg(Msg):
 
     def __init__(self, fp, path, index):
         self.guts = fp.read()
         self.tag = "%s:%s %s" % (path, index, subject(self.guts))
+
+    def __str__(self):
+        lines = []
+        i = 0
+        for line in self.guts.split("\n"):
+            skip = False
+            for skip_prefix in 'X-', 'Received:', '\t',:
+                if line.startswith(skip_prefix):
+                    skip = True
+            if skip:
+                continue
+            i += 1
+            if i > 100:
+                lines.append("... truncated")
+                break
+            lines.append(line)
+        return "\n".join(lines)
+
+##    tokenize = MyTokenizer().tokenize
+
+    def __iter__(self):
+        return tokenize(self.guts)
 
 class mbox(object):
 
@@ -76,8 +135,9 @@ def main(args):
     FMT = "unix"
     NSETS = 5
     SEED = 101
-    LIMIT = None
-    opts, args = getopt.getopt(args, "f:n:s:l:")
+    MAXMSGS = None
+    CHARLIMIT = 1000
+    opts, args = getopt.getopt(args, "f:n:s:l:m:")
     for k, v in opts:
         if k == '-f':
             FMT = v
@@ -86,7 +146,9 @@ def main(args):
         if k == '-s':
             SEED = int(v)
         if k == '-l':
-            LIMIT = int(v)
+            CHARLIMIT = int(v)
+        if k == '-m':
+            MAXMSGS = int(v)
 
     ham, spam = args
 
@@ -95,9 +157,9 @@ def main(args):
     nham = len(list(mbox(ham)))
     nspam = len(list(mbox(spam)))
 
-    if LIMIT:
-        nham = min(nham, LIMIT)
-        nspam = min(nspam, LIMIT)
+    if MAXMSGS:
+        nham = min(nham, MAXMSGS)
+        nspam = min(nspam, MAXMSGS)
 
     print "ham", ham, nham
     print "spam", spam, nspam
@@ -114,8 +176,8 @@ def main(args):
         for ihtest, istest in testsets:
             if (iham, ispam) == (ihtest, istest):
                 continue
-            driver.test(mbox(ham, ihtest), mbox(spam, istest))
-        driver.finish()
+            driver.test(mbox(ham, ihtest), mbox(spam, istest), CHARLIMIT)
+        driver.finishtest()
     driver.alldone()
 
 if __name__ == "__main__":
