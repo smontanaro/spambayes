@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 """
-table.py base1 base2 ... baseN
+table.py [-m] base1 base2 ... baseN
 
 Combines output from base1.txt, base2.txt, etc., which are created by
 the TestDriver (such as timcv.py) output, and displays tabulated
 comparison statistics to stdout.  Each input file is represented by
 one column in the table.
-"""
 
-import sys
-import re
+Optional argument -m shows a final column with the mean value of each
+statistic.
+"""
 
 # Return
 #  (
@@ -45,13 +45,13 @@ def suck(f):
     while 1:
         line = get()
         if line.startswith('-> <stat> tested'):
-            # -> <stat> tested 1910 hams & 948 spams against 2741 hams & 948 spams
-            #  0      1      2    3    4 5   6
+            # <stat> tested 1910 hams & 948 spams against 2741 hams & 948 spams
+            #      1      2    3    4 5   6
             print line,
 
         elif line.find(' items; mean ') > 0 and line.find('for all runs') > 0:
-            # -> <stat> Ham scores for all runs: 2741 items; mean 0.86; sdev 6.28
-            #                                             0          1          2
+            # <stat> Ham scores for all runs: 2741 items; mean 0.86; sdev 6.28
+            #                                          0          1          2
             vals = line.split(';')
             mean = float(vals[1].split()[-1])
             sdev = float(vals[2].split()[-1])
@@ -102,83 +102,130 @@ def windowsfy(fn):
     else:
         return fn
 
-fname = "filename: "
-fnam2 = "          "
-ratio = "ham:spam: "
-rat2  = "          "
-fptot = "fp total: "
-fpper = "fp %:     "
-fntot = "fn total: "
-fnper = "fn %:     "
-untot = "unsure t: "
-unper = "unsure %: "
-rcost = "real cost:"
-bcost = "best cost:"
+def table():
+    import getopt, sys
 
-hmean = "h mean:   "
-hsdev = "h sdev:   "
-smean = "s mean:   "
-ssdev = "s sdev:   "
-meand = "mean diff:"
-kval  = "k:        "
+    showMean = 0
 
-for filename in sys.argv[1:]:
-    filename = windowsfy(filename)
-    (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
-     hamdevall, spamdevall) = suck(file(filename))
-    if filename.endswith('.txt'):
-        filename = filename[:-4]
-    filename = filename[filename.rfind('/')+1:]
-    filename = filename[filename.rfind("\\")+1:]
-    if len(fname) > len(fnam2):
-        fname += "        "
-        fname = fname[0:(len(fnam2) + 8)]
-        fnam2 += " %7s" % filename
-    else:
-        fnam2 += "        "
-        fnam2 = fnam2[0:(len(fname) + 8)]
-        fname += " %7s" % filename
-    if len(ratio) > len(rat2):
-        ratio += "        "
-        ratio = ratio[0:(len(rat2) + 8)]
-        rat2  += " %7s" % ("%d:%d" % (htest, stest))
-    else:
-        rat2  += "        "
-        rat2  = rat2[0:(len(ratio) + 8)]
-        ratio += " %7s" % ("%d:%d" % (htest, stest))
-    fptot += "%8d"   % fp
-    fpper += "%8.2f" % fpp
-    fntot += "%8d"   % fn
-    fnper += "%8.2f" % fnp
-    untot += "%8d"   % un
-    unper += "%8.2f" % unp
-    rcost += "%8s"   % ("$%.2f" % cost)
-    bcost += "%8s"   % ("$%.2f" % bestcost)
-    hmean += "%8.2f" % hamdevall[0]
-    hsdev += "%8.2f" % hamdevall[1]
-    smean += "%8.2f" % spamdevall[0]
-    ssdev += "%8.2f" % spamdevall[1]
-    meand += "%8.2f" % (spamdevall[0] - hamdevall[0])
-    k = (spamdevall[0] - hamdevall[0]) / (spamdevall[1] + hamdevall[1])
-    kval  += "%8.2f" % k
+    fname = "filename: "
+    fnam2 = "          "
+    ratio = "ham:spam: "
+    rat2  = "          "
+    fptot = "fp total: "
+    fpper = "fp %:     "
+    fntot = "fn total: "
+    fnper = "fn %:     "
+    untot = "unsure t: "
+    unper = "unsure %: "
+    rcost = "real cost:"
+    bcost = "best cost:"
 
-print fname
-if len(fnam2.strip()) > 0:
-    print fnam2
-print ratio
-if len(rat2.strip()) > 0:
-    print rat2
-print fptot
-print fpper
-print fntot
-print fnper
-print untot
-print unper
-print rcost
-print bcost
-print hmean
-print hsdev
-print smean
-print ssdev
-print meand
-print kval
+    hmean = "h mean:   "
+    hsdev = "h sdev:   "
+    smean = "s mean:   "
+    ssdev = "s sdev:   "
+    meand = "mean diff:"
+    kval  = "k:        "
+
+    tfptot = tfpper = tfntot = tfnper = tuntot = tunper = trcost = tbcost = \
+    thmean = thsdev = tsmean = tssdev = tmeand = tkval =  0
+
+    args, fileargs = getopt.getopt(sys.argv[1:], 'm')
+    for arg, val in args:
+        if arg == "-m":
+            showMean = 1
+
+    for filename in fileargs:
+        filename = windowsfy(filename)
+        (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
+         hamdevall, spamdevall) = suck(file(filename))
+        if filename.endswith('.txt'):
+            filename = filename[:-4]
+        filename = filename[filename.rfind('/')+1:]
+        filename = filename[filename.rfind("\\")+1:]
+        if len(fname) > len(fnam2):
+            fname += "        "
+            fname = fname[0:(len(fnam2) + 8)]
+            fnam2 += " %7s" % filename
+        else:
+            fnam2 += "        "
+            fnam2 = fnam2[0:(len(fname) + 8)]
+            fname += " %7s" % filename
+        if len(ratio) > len(rat2):
+            ratio += "        "
+            ratio = ratio[0:(len(rat2) + 8)]
+            rat2  += " %7s" % ("%d:%d" % (htest, stest))
+        else:
+            rat2  += "        "
+            rat2  = rat2[0:(len(ratio) + 8)]
+            ratio += " %7s" % ("%d:%d" % (htest, stest))
+        fptot += "%8d"   % fp
+        tfptot += fp
+        fpper += "%8.2f" % fpp
+        tfpper += fpp
+        fntot += "%8d"   % fn
+        tfntot += fn
+        fnper += "%8.2f" % fnp
+        tfnper += fnp
+        untot += "%8d"   % un
+        tuntot += un
+        unper += "%8.2f" % unp
+        tunper += unp
+        rcost += "%8s"   % ("$%.2f" % cost)
+        trcost += cost
+        bcost += "%8s"   % ("$%.2f" % bestcost)
+        tbcost += bestcost
+        hmean += "%8.2f" % hamdevall[0]
+        thmean += hamdevall[0]
+        hsdev += "%8.2f" % hamdevall[1]
+        thsdev += hamdevall[1]
+        smean += "%8.2f" % spamdevall[0]
+        tsmean += spamdevall[0]
+        ssdev += "%8.2f" % spamdevall[1]
+        tssdev += spamdevall[1]
+        meand += "%8.2f" % (spamdevall[0] - hamdevall[0])
+        tmeand += (spamdevall[0] - hamdevall[0])
+        k = (spamdevall[0] - hamdevall[0]) / (spamdevall[1] + hamdevall[1])
+        kval  += "%8.2f" % k
+        tkval  += k
+
+    nfiles = len(fileargs)
+    if nfiles and showMean:
+        fptot += "%12d"   % (tfptot/nfiles)
+        fpper += "%12.2f" % (tfpper/nfiles)
+        fntot += "%12d"   % (tfntot/nfiles)
+        fnper += "%12.2f" % (tfnper/nfiles)
+        untot += "%12d"   % (tuntot/nfiles)
+        unper += "%12.2f" % (tunper/nfiles)
+        rcost += "%12s"   % ("$%.2f" % (trcost/nfiles))
+        bcost += "%12s"   % ("$%.2f" % (tbcost/nfiles))
+        hmean += "%12.2f" % (thmean/nfiles)
+        hsdev += "%12.2f" % (thsdev/nfiles)
+        smean += "%12.2f" % (tsmean/nfiles)
+        ssdev += "%12.2f" % (tssdev/nfiles)
+        meand += "%12.2f" % (tmeand/nfiles)
+        kval  += "%12.2f" % (tkval/nfiles)
+
+    print fname
+    if len(fnam2.strip()) > 0:
+        print fnam2
+    print ratio
+    if len(rat2.strip()) > 0:
+        print rat2
+    print fptot
+    print fpper
+    print fntot
+    print fnper
+    print untot
+    print unper
+    print rcost
+    print bcost
+    print hmean
+    print hsdev
+    print smean
+    print ssdev
+    print meand
+    print kval
+
+if __name__ == "__main__":
+    table()
