@@ -107,7 +107,7 @@ class Service(win32serviceutil.ServiceFramework):
         import servicemanager
         # Setup our state etc
         try:
-            sb_server.prepare()
+            sb_server.prepare(can_stop=False)
         except sb_server.AlreadyRunningException:
             msg = "The SpamBayes proxy service could not be started, as "\
                   "another SpamBayes server is already running on this machine"

@@ -698,10 +698,16 @@ class State:
         close_platform_mutex(self.platform_mutex)
         self.platform_mutex = None
 
-    def prepare(self):
+    def prepare(self, can_stop=True):
+        """Do whatever needs to be done to prepare for running.  If
+        can_stop is False, then we may not let the user shut down the
+        proxy - for example, running as a Windows service this should
+        be the case."""
         # If we can, prevent multiple servers from running at the same time.
         assert self.platform_mutex is None, "Should not already have the mutex"
         self.platform_mutex = open_platform_mutex()
+
+        self.can_stop = can_stop
 
         # Do whatever we've been asked to do...
         self.createWorkers()
@@ -870,9 +876,9 @@ def main(servers, proxyPorts, uiPort, launchUI):
     httpServer.register(proxyUI)
     Dibbler.run(launchBrowser=launchUI)
 
-def prepare():
+def prepare(can_stop=True):
     state.init()
-    state.prepare()
+    state.prepare(can_stop)
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.

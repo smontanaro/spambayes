@@ -158,6 +158,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
         self.state_recreator = state_recreator # ugly
         self.app_for_version = "POP3 Proxy"
         self.previous_sort = None
+        if not proxy_state.can_stop:
+            self.html._readonly = False
+            self.html.shutdownTableCell = "&nbsp;"
+            self.html._readonly = True
 
     def onHome(self):
         """Serve up the homepage."""
