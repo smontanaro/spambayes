@@ -10,7 +10,11 @@ The makefile process for the website will execute this as a script, which
 will generate the "ConfigParser" version for the web.
 """
 
-LATEST_VERSION_HOME="http://www.spambayes.org/download/Version.cfg"
+# See bug 806238: urllib2 fails in Outlook new-version chk.
+# A reason for why the spambayes.org URL fails is given in a comment there.
+#LATEST_VERSION_HOME="http://www.spambayes.org/download/Version.cfg"
+# The SF URL instead works for Tim and xenogeist.
+LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
 
 # This module is part of the spambayes project, which is Copyright 2002-3
 # The Python Software Foundation and is covered by the Python Software
@@ -186,7 +190,7 @@ def make_cfg(stream):
     _make_cfg_section(stream, "SpamBayes", versions)
     for appname in versions["Apps"]:
         _make_cfg_section(stream, appname, versions["Apps"][appname])
-    
+
 def main(args):
     if '-g' in args:
         make_cfg(sys.stdout)
