@@ -42,8 +42,9 @@ class _Progress:
             stage = name, start_pos, prop
             start_pos += prop
             self.stages.append(stage)
-        assert (abs(start_pos-1.0)) < 0.001, \
-               "Proportions must add to 1.0 (%r,%r)" % (start_pos, stages)
+        assert abs(start_pos-1.0) < 0.001, (
+               "Proportions must add to 1.0 (%r,%r,%r)" %
+                   (start_pos, stages, start_pos-1.0))
 
     def _next_stage(self):
         if self.current_stage == 0:
@@ -190,7 +191,7 @@ if __name__=='__main__':
             self.total_control_ticks = 100
             self.current_stage = 0
             self.set_stages( (("", 1.0),) )
-            
+
     p = HackProgress()
     p.set_max_ticks(10)
     for i in range(10):
@@ -207,4 +208,4 @@ if __name__=='__main__':
     p.set_max_ticks(1000)
     for i in range(1000):
         p.tick()
-    
+
