@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.db
+*.pik
+*.zip
+build
+Data
