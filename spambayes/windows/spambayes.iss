@@ -108,8 +108,8 @@ begin
     // with Outlook.
     if Result then begin
       closeit := 'The Outlook mail delivery agent is still running.' + #13 + #13 +
-                 'If you only recently closed Outlook, wait a few seconds and click Retry' + #13 + #13 +
-                 'If this message persists, you may need to log off from Windows, and try again'
+                 'If you only recently closed Outlook, wait a few seconds and click Retry.' + #13 + #13 +
+                 'If this message persists, you may need to log off from Windows, and try again.'
       Result := CheckNoAppMutex('InternetMailTransport', closeit);
     end;
     // And finally, the SpamBayes server
@@ -117,10 +117,10 @@ begin
       // Tell them to 'Stop' then 'Exit', so any services are also stopped
       closeit:= 'An existing SpamBayes server is already running.' + #13 + #13 +
                 'Please shutdown this server before installing.  If the SpamBayes tray icon' + #13 +
-                'is running, Right-click it and select "Exit SpamBayes"' + #13 +
+                'is running, Right-click it and select "Exit SpamBayes".' + #13 +
                 'If the Windows Service version of SpamBayes is running, please stop' + #13 +
-                'it via "Control Panel->Administrative Tools->Services"' + #13 + #13
-                'If this message persists, you may need to restart Windows'
+                'it via "Control Panel->Administrative Tools->Services".' + #13 + #13
+                'If this message persists, you may need to restart Windows.'
       Result := CheckNoAppMutex('SpamBayesServer', closeit);
     end;
 
@@ -169,10 +169,10 @@ begin
 
       if InstallOutlook and not IsOutlookInstalled and not WarnedNoOutlook then begin
         if MsgBox(
-              'Outlook appears to not be installed.' + #13 + #13 +
+              'Outlook does not appear to be installed.' + #13 + #13 +
               'This addin only works with Microsoft Outlook 2000 and later - it' + #13 +
-              'does not work with Outlook express.' + #13 + #13 +
-              'If you know that Outlook is installed, you may with to continue.' + #13 + #13 +
+              'does not work with Outlook Express.' + #13 + #13 +
+              'If you know that Outlook is installed, you may wish to continue.' + #13 + #13 +
               'Would you like to change your selection?',
               mbConfirmation, MB_YESNO) = idNo then begin
             WarnedNoOutlook := True;
@@ -184,7 +184,7 @@ begin
       if InstallOutlook and InstallProxy and not WarnedBoth then begin
         if MsgBox(
               'You have selected to install both the Outlook Addin and the Server/Proxy Applications.' + #13 + #13 +
-              'Unless you regularly use both Outlook and another mailer on the same system' + #13 +
+              'Unless you regularly use both Outlook and another mailer on the same system,' + #13 +
               'you do not need both applications.' + #13 + #13 +
               'Would you like to change your selection?',
               mbConfirmation, MB_YESNO) = idNo then begin
@@ -195,7 +195,7 @@ begin
       end;
 
       if not InstallOutlook and not InstallProxy then begin
-        MsgBox('You must select one of the applications', mbError, MB_OK);
+        MsgBox('You must select one of the applications.', mbError, MB_OK);
         Continue;
       end
       // we got to here, we are OK.
