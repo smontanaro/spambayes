@@ -6,14 +6,18 @@ rates.py basename ...
 Assuming that file
 
     basename + '.txt'
+or
+    basename
 
-contains output from timtest.py, scans that file for summary statistics,
-displays them to stdout, and also writes them to file
+contains output from one of the test drivers (timcv, mboxtest, timtest),
+scans that file for summary statistics, displays them to stdout, and also
+writes them to file
 
     basename + 's.txt'
 
-(where the 's' means 'summary').  This doesn't need a full output file, and
-will display stuff for as far as the output file has gotten so far.
+(where the 's' means 'summary').  This doesn't need a full output file
+from a test run, and will display stuff for as far as the output file
+has gotten so far.
 
 Two of these summary files can later be fed to cmp.py.
 """
@@ -48,7 +52,6 @@ def doit(basename):
 
     ntests = nfn = nfp = 0
     sumfnrate = sumfprate = 0.0
-    ntrainedham = ntrainedspam = 0
 
     for line in interesting:
         dump(line[:-1])
@@ -57,8 +60,6 @@ def doit(basename):
         # 0      1      2    3    4 5    6                 -5  -4 -3   -2    -1
         #-> <stat> tested 4000 hams & 2750 spams against 8000 hams & 5500 spams
         if line.startswith('-> <stat> tested '):
-            ntrainedham += int(fields[-5])
-            ntrainedspam += int(fields[-2])
             ntests += 1
             continue
 
