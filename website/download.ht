@@ -47,10 +47,10 @@ to the
 public key</a>, which has a key id of F23F732A.</p>
 
 <ul>
-<li><tt>cf94b50dfcda2ce4c1cba541217714bf</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.exe?download">spambayes-1.0.1.exe</a>
-(3,272,826 bytes,
-<a href="sigs/spambayes-1.0.1.exe.asc">sig</a>)
+<li><tt>2d28488235916cd7d6c2acd50e6fed9d</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.exe?download">spambayes-1.0.2.exe</a>
+(3,604,826 bytes,
+<a href="sigs/spambayes-1.0.2.exe.asc">sig</a>)
 </li>
 <li><tt>f463c6d06549f92f1fc5c0ddc7210696</tt>
 <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.2.tar.gz?download">spambayes-1.0.2.tar.gz</a>
