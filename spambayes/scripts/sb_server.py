@@ -467,8 +467,7 @@ class BayesProxy(POP3ProxyBase):
             ok, messageText = response.split('\n', 1)
 
             try:
-                msg = spambayes.message.SBHeaderMessage()
-                msg.setPayload(messageText)
+                msg = spambayes.message.sbheadermessage_from_string(messageText)
                 msg.setId(state.getNewMessageName())
                 # Now find the spam disposition and add the header.
                 (prob, clues) = state.bayes.spamprob(msg.asTokens(),\
@@ -508,8 +507,8 @@ class BayesProxy(POP3ProxyBase):
                         options["Storage", "cache_messages"] and
                         not isSuppressedBulkHam and not isTooBig):
                         # Write the message into the Unknown cache.
-                        message = state.unknownCorpus.makeMessage(msg.getId())
-                        message.setPayload(msg.as_string())
+                        makeMessage = state.unknownCorpus.makeMessage
+                        message = makeMessage(msg.getId(), msg.as_string())
                         state.unknownCorpus.addMessage(message)
 
                 # We'll return the message with the headers added.  We take
