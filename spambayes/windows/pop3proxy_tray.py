@@ -28,11 +28,58 @@ import thread
 import win32con
 from win32api import *
 from win32gui import *
+from win32api import error as win32api_error
 
-# Allow for those without SpamBayes on the PYTHONPATH
-sys.path.insert(-1, os.getcwd())
-sys.path.insert(-1, os.path.dirname(os.getcwd()))
-sys.path.insert(-1, os.path.join(os.path.dirname(os.getcwd()),"scripts"))
+# If we are not running in a console, redirect all print statements to the
+# win32traceutil collector.
+# You can view output either from Pythonwin's "Tools->Trace Collector Debugging Tool",
+# or simply run "win32traceutil.py" from a command prompt.
+try:
+    GetConsoleTitle()
+except win32api_error:
+    # No console - if we are running from Python sources,
+    # redirect to win32traceutil, but if running from a binary
+    # install, redirect to a log file.
+    # Want to move to logging module later, so for now, we
+    # hack together a simple logging strategy.
+    if hasattr(sys, "frozen"):
+        temp_dir = GetTempPath()
+        for i in range(3,0,-1):
+            try: os.unlink(os.path.join(temp_dir, "SpamBayesServer%d.log" % (i+1)))
+            except os.error: pass
+            try:
+                os.rename(
+                    os.path.join(temp_dir, "SpamBayesServer%d.log" % i),
+                    os.path.join(temp_dir, "SpamBayesServer%d.log" % (i+1))
+                    )
+            except os.error: pass
+        # Open this log, as unbuffered so crashes still get written.
+        sys.stdout = open(os.path.join(temp_dir,"SpamBayesServer1.log"), "wt", 0)
+        sys.stderr = sys.stdout
+    else:
+        import win32traceutil
+
+# Work out our "application directory", which is
+# the directory of our main .py/.exe file we
+# are running from.
+try:
+    if hasattr(sys, "frozen"):
+        if sys.frozen == "dll":
+            # Don't think we will ever run as a .DLL, but...
+            this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
+        else:
+            this_filename = os.path.abspath(sys.argv[0])
+    else:
+        this_filename = os.path.abspath(__file__)
+except NameError: # no __file__
+    this_filename = os.path.abspath(sys.argv[0])
+
+this_dir = os.path.dirname(this_filename)
+if not hasattr(sys, "frozen"):
+    # Allow for those without SpamBayes on the PYTHONPATH
+    sys.path.insert(-1, this_dir)
+    sys.path.insert(-1, os.path.dirname(this_dir))
+    sys.path.insert(-1, os.path.join(os.path.dirname(this_dir),"scripts"))
 
 import sb_server
 from spambayes import Dibbler
@@ -46,7 +93,7 @@ class MainWindow(object):
     def __init__(self):
         # The ordering here is important - it is the order that they will
         # appear in the menu.  As dicts don't have an order, this means
-        # that the order is controlled by the id.  Any items were the
+        # that the order is controlled by the id.  Any items where the
         # function is None will appear as separators.
         self.control_functions = {START_STOP_ID : ("Stop SpamBayes", self.StartStop),
                                   1025 : ("-", None),
@@ -80,7 +127,17 @@ class MainWindow(object):
         # When 1.0a6 is released, the above line will need to change to:
 ##        iconPathName = "%s\\..\\windows\\resources\\sbicon.ico" % \
 ##                       (os.path.dirname(sb_server.__file__),)
-        if os.path.isfile(startedIconPathName) and os.path.isfile(stoppedIconPathName):
+        if hasattr(sys, "frozen"):
+            self.hstartedicon = self.hstoppedicon = None
+            hexe = GetModuleHandle(None)
+            icon_flags = win32con.LR_DEFAULTSIZE
+            self.hstartedicon = LoadImage(hexe, 1000, win32con.IMAGE_ICON, 0,
+                                          0, icon_flags)
+            self.hstopped = LoadImage(hexe, 1010, win32con.IMAGE_ICON, 0,
+                                          0, icon_flags)
+        else:
+            # If we have no icon we fail in all sorts of places - so may as
+            # well make it here :)
             icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
             self.hstartedicon = LoadImage(hinst, startedIconPathName, win32con.IMAGE_ICON, 0,
                                           0, icon_flags)
@@ -163,6 +220,7 @@ class MainWindow(object):
             unused, function = self.control_functions[id]
         except KeyError:
             print "Unknown command -", id
+            return
         function()
 
     def OnExit(self):
