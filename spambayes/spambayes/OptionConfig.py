@@ -50,6 +50,7 @@ parm_ini_map = \
     'p3cachemsg':   ('pop3proxy',       'pop3proxy_cache_messages'),
     'p3addid':      ('pop3proxy',       'pop3proxy_add_mailid_to'),
     'p3stripid':    ('pop3proxy',       'pop3proxy_strip_incoming_mailids'),
+    'p3prob':       ('pop3proxy',       'pop3proxy_include_prob'),
     'smtpservers':  ('smtpproxy',       'smtpproxy_servers'),
     'smtpports':    ('smtpproxy',       'smtpproxy_ports'),
     'smtpham':      ('smtpproxy',       'smtpproxy_ham_address'),
@@ -135,6 +136,13 @@ page_layout = \
          the message to train, and make it difficult for you to identify
          the correct id to find a message.  This option strips all spambayes
          ids from incoming mail."""),
+
+        ("p3prob", "Add spam probability header",
+         """You can have spambayes insert a header with the calculated spam
+         probability into each mail.  If you can view headers with your
+         mailer, then you can see this information, which can be interesting
+         and even instructive if you're a serious spambayes junkie."""),
+
     )),
 
     ("SMTP Options",
@@ -429,9 +437,42 @@ def editInput(parms):
         else:
             cachemsg = "False"
     
-    if not nsub == "True" and not nsub == "False":
+    if not cachemsg == "True" and not cachemsg == "False":
         errmsg += """<li>Cache Messages: must be "True" or "False".</li>\n"""
     
+    try:
+        prob = parms['p3prob']
+    except KeyError:
+        if options.pop3proxy_include_prob:
+            prob = "True"
+        else:
+            prob = "False"
+            
+    if not prob == "True" and not prob == "False":
+        errmsg += """<li>Add Spam Probability Header: must be "True" or "False".</li>\n"""
+    
+    try:
+        aid = parms['p3addid']
+    except KeyError:
+        if options.pop3proxy_add_mailid_to:
+            aid = "True"
+        else:
+            aid = "False"
+            
+    if not aid == "True" and not aid == "False":
+        errmsg += """<li>Add Id Tag: must be "True" or "False".</li>\n"""
+
+    try:
+        sid = parms['p3stripid']
+    except KeyError:
+        if options.pop3proxy_strip_incoming_mailids:
+            sid = "True"
+        else:
+            sid = "False"
+            
+    if not sid == "True" and not sid == "False":
+        errmsg += """<li>Strip Incoming Ids: must be "True" or "False".</li>\n"""
+
     # edit for equal number of pop3servers and ports
     try:
         slist = parms['p3servers'].split(',')
