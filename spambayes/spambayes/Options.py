@@ -408,7 +408,10 @@ defaults = {
     # the Bayesian probability adjustment won't 'believe' raw counts more
     # than min(# ham trained on, # spam trained on) justifies.  I *expect*
     # this option will go away (and become the default), but people *with*
-    # strong imbalance need to test it first.
+    # strong imbalance need to test it first.\
+    # LATER:  this option sucked, creating more problems than it solved.
+    # XXX The code in classifier.py is gone now.  How can we get rid of
+    # XXX the option gracefully?
 
     ("experimental_ham_spam_imbalance_adjustment", "Compensate for unequal numbers of spam and ham", False,
      """If your training database has significantly more ham than

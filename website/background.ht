@@ -189,13 +189,12 @@ we found:
 <ul>
 <li>the system generates remarkably good results on very few trained messages,
 although obviously, the more the better.
-<li>training on an extremely large number of messages actually starts to produce
-a slightly poorer result (once you're training on thousands and thousands of
+<li>training on an extremely large number of messages may start to produce
+slightly poorer results (once you're training on thousands and thousands of
 messages).
-<li>severe imbalance between the number of ham and spam being trained causes
-some problems - there's a flag 'experimental_ham_spam_imbalance_adjustment'
-that you can set in your bayescustomize.ini file to attempt to compensate for
-this.
+<li>imbalance between the number of ham and spam trained can cause
+problems, and worse problems the greater the imbalance; the system works
+best when trained on an approximately equal number of ham and spam.
 <li>It's <b>really</b> important that you're careful about selecting your
 training sets to be from the same sources, where-ever possible. Several 
 people got caught out by training on current spam, and old ham. The system

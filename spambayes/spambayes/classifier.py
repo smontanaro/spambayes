@@ -247,12 +247,6 @@ class Classifier:
 
         prob = spamratio / (hamratio + spamratio)
 
-        if options["Classifier", "experimental_ham_spam_imbalance_adjustment"]:
-            spam2ham = min(nspam / nham, 1.0)
-            ham2spam = min(nham / nspam, 1.0)
-        else:
-            spam2ham = ham2spam = 1.0
-
         S = options["Classifier", "unknown_word_strength"]
         StimesX = S * options["Classifier", "unknown_word_prob"]
 
@@ -273,25 +267,7 @@ class Classifier:
         # IOW, it moves p a fraction of the distance from p to x, and
         # less so the larger n is, or the smaller s is.
 
-        # Experimental:
-        # Picking a good value for n is interesting:  how much empirical
-        # evidence do we really have?  If nham == nspam,
-        # hamcount + spamcount makes a lot of sense, and the code here
-        # does that by default.
-        # But if, e.g., nham is much larger than nspam, p(w) can get a
-        # lot closer to 0.0 than it can get to 1.0.  That in turn makes
-        # strong ham words (high hamcount) much stronger than strong
-        # spam words (high spamcount), and that makes the accidental
-        # appearance of a strong ham word in spam much more damaging than
-        # the accidental appearance of a strong spam word in ham.
-        # So we don't give hamcount full credit when nham > nspam (or
-        # spamcount when nspam > nham):  instead we knock hamcount down
-        # to what it would have been had nham been equal to nspam.  IOW,
-        # we multiply hamcount by nspam/nham when nspam < nham; or, IOOW,
-        # we don't "believe" any count to an extent more than
-        # min(nspam, nham) justifies.
-
-        n = hamcount * spam2ham  +  spamcount * ham2spam
+        n = hamcount + spamcount
         prob = (StimesX + n * prob) / (S + n)
 
         # Update the cache
@@ -379,7 +355,7 @@ class Classifier:
         want to ensure that their databases are in a consistent state at
         this point.  Introduced to fix bug #797890."""
         pass
-    
+
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
         unknown = options["Classifier", "unknown_word_prob"]
