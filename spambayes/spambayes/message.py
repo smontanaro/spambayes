@@ -112,6 +112,7 @@ class MessageInfoDB:
         self.db_name = db_name
         try:
             self.dbm = dbmstorage.open(self.db_name, self.mode)
+            self.db = shelve.Shelf(self.dbm)
         except dbmstorage.error:
             # This probably means that we don't have a dbm module
             # available.  Print out a warning, and continue on
@@ -119,8 +120,6 @@ class MessageInfoDB:
             if options["globals", "verbose"]:
                 print "Warning: no dbm modules available for MessageInfoDB"
             self.dbm = self.db = None
-        if self.dbm:
-            self.db = shelve.Shelf(self.dbm)
 
     def store(self):
         if self.db:
