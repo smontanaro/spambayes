@@ -9,6 +9,7 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+import pythoncom # for the exceptions.
 
 def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
@@ -40,15 +41,21 @@ def filter_message(msg, mgr, all_actions=True):
             if all_actions:
                 msg.RememberMessageCurrentFolder()
             msg.Save()
-        except:
-            # XXX - unfortunately, for the case I added this code, a failing
-            # Save *did* imply a failing Move :(
-            # I also heard a rumour hotmail works if we do 2 saves.
-            # This should be revisited.
-            print "Failed to save the Spam score for message ", msg
-            import traceback
-            traceback.print_exc()
-            print "Still (possibly) atempting to move this message though..."
+        except pythoncom.com_error, (hr, msg, exc, arg_err):
+            # This seems to happen for IMAP mails (0x800cccd3)
+            # and also for hotmail messages (0x8004dff7)
+            known_failure_codes = -2146644781, -2147164169
+            # I also heard a rumour hotmail works if we do 2 saves
+            if hr not in known_failure_codes:
+                print "Unexpected MAPI error saving the spam score for", msg
+                print hr, msg, exc
+            else:
+                # So we can see if it still happens :)
+                mgr.LogDebug(1, "Note: known (but still not understood) " \
+                                "error 0x%x saving the spam score." % hr)
+            # No need for a traceback in this case.
+            # Clear dirty flag anyway
+            msg.dirty = False
 
         if all_actions and attr_prefix is not None:
             folder_id = getattr(config, attr_prefix + "_folder_id")

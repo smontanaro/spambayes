@@ -426,7 +426,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         folder = self.msgstore._OpenEntry(self.id)
         table = folder.GetContentsTable(0)
         # Resolve the field name
-        resolve_props = ( (mapi.PS_PUBLIC_STRINGS, "Spam"), )
+        resolve_props = ( (mapi.PS_PUBLIC_STRINGS, scoreFieldName), )
         resolve_ids = folder.GetIDsFromNames(resolve_props, 0)
         field_id = PROP_TAG( PT_DOUBLE, PROP_ID(resolve_ids[0]))
         # Setup the properties we want to read.
@@ -792,13 +792,12 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
 
     def Save(self):
         assert self.dirty, "asking me to save a clean message!"
-        try:
-            self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
-        except pythoncom.com_error, details:
-            # hotmail gives this error - not sure what code, but
-            # we don't want to mask other errors.
-            if details[0] != -2147164169: # 0x8004dff7
-                raise
+        # There are some known exceptions that can be raised by IMAP and hotmail
+        # For now, we just let the caller handle all errors, and manually
+        # reset the dirty flag.  Only current caller is filter.py
+        # There are also some issues with the "unread flag" that fiddling this
+        # save code may fix.
+        self.mapi_object.SaveChanges(mapi.KEEP_OPEN_READWRITE | USE_DEFERRED_ERRORS)
         self.dirty = False
 
     def _DoCopyMove(self, folder, isMove):
