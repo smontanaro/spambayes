@@ -203,10 +203,10 @@ BEGIN
                     IDC_STATIC,20,22,247,25
     LTEXT           "If you would prefer to select an existing folder, click the Browse button",
                     IDC_STATIC,20,54,243,12
-    EDITTEXT        IDC_EDIT2,20,86,103,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,20,86,179,14,ES_AUTOHSCROLL
     LTEXT           "Unsure messages will be delivered to a folder named",
                     IDC_STATIC,20,107,186,12
-    EDITTEXT        IDC_EDIT3,20,119,103,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT3,20,119,177,14,ES_AUTOHSCROLL
     LTEXT           "Spam will be delivered to a folder named",IDC_STATIC,20,
                     72,137,12
     PUSHBUTTON      "Browse...",IDC_STATIC,208,119,60,15
@@ -217,7 +217,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
 FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,202,104,50,14
+    PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,225,134,50,14
     LTEXT           "Folders that receive new messages",IDC_STATIC,20,4,247,
                     14
     LTEXT           "SpamBayes needs to know what folders are used to receive new messages.  In most cases, this will be your Inbox, but you may also specify additional folders to be watched for spam",
@@ -226,9 +226,8 @@ BEGIN
                     IDC_STATIC,20,90,247,13
     LTEXT           "If you use the Outlook rule wizard to move messages into folders, you may like to select these folders in addition to your inbox",
                     IDC_STATIC,20,51,241,20
-    CONTROL         "Folder names...\nLine 2",IDC_FOLDER_WATCH,"Static",
-                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
-                    WS_GROUP,20,105,177,12
+    EDITTEXT        IDC_FOLDER_WATCH,20,108,195,42,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY
 END
 
 IDD_WIZARD_FINISHED_UNCONFIGURED DIALOGEX 0, 0, 284, 162
@@ -486,10 +485,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,179,101,10
 END
 
-IDD_FOLDER_SELECTOR DIALOG  0, 0, 247, 215
+IDD_FOLDER_SELECTOR DIALOGEX 0, 0, 247, 215
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "&Folders:",IDC_STATIC,7,7,47,9
     CONTROL         "",IDC_LIST_FOLDERS,"SysTreeView32",TVS_HASBUTTONS | 
@@ -503,6 +502,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,190,21,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,190,39,50,14
     PUSHBUTTON      "C&lear All",IDC_BUT_CLEARALL,190,58,50,14
+    PUSHBUTTON      "&New folder",IDC_BUT_NEW,190,77,50,14
 END
 
 

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by dialogs.rc
 //
 #define IDD_MANAGER                     101
@@ -64,6 +64,8 @@
 #define IDC_BUT_CLEARALL                1042
 #define IDC_STATUS1                     1043
 #define IDC_STATUS2                     1044
+#define IDC_BUT_CLEARALL2               1045
+#define IDC_BUT_NEW                     1045
 #define IDC_MARK_SPAM_AS_READ           1048
 #define IDC_SAVE_SPAM_SCORE             1050
 #define IDC_MARK_UNSURE_AS_READ         1051
@@ -97,7 +99,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1082
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
