@@ -18,6 +18,7 @@ for fname in glob.glob(PROJECT_ROOT + "/images/*"):
         extras.append( ("images/"+basename(fname), abspath(fname), 'DATA') )
 # docs
 extras.append( ("about.html", join(PROJECT_ROOT, "about.html"), 'DATA') )
+extras.append( ("LICENSE.TXT", join(PROJECT_ROOT, "..", "LICENSE.TXT"), 'DATA') )
 for fname in glob.glob(PROJECT_ROOT + "/docs/*"):
     if os.path.isfile(fname):
         extras.append( ("docs/"+basename(fname), abspath(fname), 'DATA') )
