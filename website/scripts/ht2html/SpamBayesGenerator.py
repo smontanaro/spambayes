@@ -16,7 +16,7 @@ from LinkFixer import LinkFixer
 
 sitelinks = [
     ('http://sourceforge.net/projects/spambayes/',      'SF Project Page'),
-    ('http://spambayes.sf.net/faq.html',      'Frequently Asked Questions'),
+    ('faq.html',      'Frequently Asked Questions'),
     ]
 
 class SpamBayesSidebar(Sidebar): pass

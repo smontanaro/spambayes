@@ -256,7 +256,8 @@ X-Spambayes-Classification), pop3proxy must add the classification to the
 
 Pop3proxy/imapfilter aren't quite as 'transparent' as the Outlook plugin,
 but they're still quite easy to use/setup, and they use the same core, so
-the results will be the same.
+the results will be the same.  We are working on an alternative that should
+move us towards the Outlook simplicity.
 
 
 What clients will Spambayes work with in general?
@@ -337,8 +338,25 @@ combination.
 Can mail marked as spam automatically be marked as read?
 --------------------------------------------------------
 
-This is currently not possible.  It's a known problem with an as-yet unknown
-solution.
+This is a 'hidden' feature in the 003 release of the binary (also alpha3
+source release and current CVS).  Details about how to enable this feature
+can be found in the "configuration.html" file in the "docs" directory in
+the folder Spambayes was installed to.  You can also set up mail that is
+trained using the "Delete as spam" button to be marked as read, rather than
+all mail classified as spam.
+
+Outlook forgets all training/configuration when I quit and start again
+----------------------------------------------------------------------
+
+This is a known problem with the 002 release of the plug-in (or earlier).
+What is probably happening is that Outlook is not shutting down properly
+or completely, or is being forced to shut down too quickly.  This version
+of the plug-in only saves training/configuration data on shut-down, so
+this can result in training/configuraton being lost.  To get around this
+problem, exit Outlook (not by restarting/shutting down the machine), and
+make sure that it is completely shut down (use the Task Manager to check).
+This should save your training and configuration.  The 003 release (and
+later) saves as required, so avoids this issue.
 
 
 Using Spambayes
