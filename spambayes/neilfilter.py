@@ -28,7 +28,7 @@ class CdbWrapper(cdb.Cdb):
             return None
         else:
             return WordInfo(0, float(prob))
-    
+
 class CdbBayes(classifier.Bayes):
     def __init__(self, cdbfile):
         classifier.Bayes.__init__(self)
