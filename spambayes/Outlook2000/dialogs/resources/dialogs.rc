@@ -48,6 +48,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,89,104,10
     LTEXT           "I'm not here. Don't Right Click me.",IDC_HIDDEN,165,118,
                     69,46
+    PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,7,108,60,14
 END
 
 IDD_MANAGER DIALOGEX 0, 0, 275, 260

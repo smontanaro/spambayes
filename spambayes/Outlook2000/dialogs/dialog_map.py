@@ -241,6 +241,9 @@ class TabProcessor(ControlProcessor):
 
 def ShowAbout(window):
     window.manager.ShowHtml("about.html")
+def ShowDataFolder(window):
+    import os
+    os.startfile(window.manager.windows_data_directory)
 
 def ResetConfig(window):
     question = "This will reset all configuration options to their default values\r\n\r\n" \
@@ -455,6 +458,7 @@ dialog_map = {
         (MsSliderProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Experimental.timer_interval"),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Experimental.timer_only_receive_folders"),
         (HiddenDialogCommand,           "IDC_HIDDEN", "IDD_DIAGNOSTIC"),
+        (CommandButtonProcessor,  "IDC_SHOW_DATA_FOLDER", ShowDataFolder, ()),
         ),
     "IDD_DIAGNOSTIC" : (
         (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),

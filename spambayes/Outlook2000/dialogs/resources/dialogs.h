@@ -89,6 +89,7 @@
 #define IDC_BUTTON1                     1069
 #define IDC_BACK_BTN                    1069
 #define IDC_BUT_WIZARD                  1069
+#define IDC_SHOW_DATA_FOLDER            1069
 #define IDC_ABOUT_BTN                   1070
 #define IDC_BUT_RESET                   1070
 #define IDC_DEL_SPAM_RS                 1071
