@@ -43,6 +43,9 @@ Options can one or more of:
         [EXPERIMENTAL] untrain spam (only use if you've already trained
         this message)
 
+    -o section:option:value
+        set [section, option] in the options database to value
+
 All options marked with '*' operate on stdin.  Only those processing options
 marked with '+' send a modified message to stdout.
 
@@ -182,14 +185,16 @@ class HammieFilter(object):
 def main():
     h = HammieFilter()
     actions = []
-    opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGS',
-                               ['help', 'examples'])
+    opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGSo:',
+                               ['help', 'examples', 'option='])
     create_newdb = False
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
         elif opt in ('-x', '--examples'):
             examples()
+        elif opt in ('-o', '--option'):
+            Options.options.set_from_cmdline(arg, sys.stderr)
         elif opt == '-d':
             h.usedb = True
             h.dbname = arg
