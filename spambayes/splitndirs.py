@@ -46,6 +46,8 @@ import mailbox
 import email
 import getopt
 
+import mboxutils
+
 program = sys.argv[0]
 
 def usage(code, msg=''):
@@ -85,13 +87,12 @@ def main():
         usage(1, "input mbox name and output base path are required")
     inputpath, outputbasepath = args
 
-    infile = file(inputpath, 'rb')
     outdirs = [outputbasepath + ("%d" % i) for i in range(1, n+1)]
     for dir in outdirs:
         if not os.path.isdir(dir):
             os.makedirs(dir)
 
-    mbox = mailbox.PortableUnixMailbox(infile, _factory)
+    mbox = mboxutils.getmbox(inputpath)
     counter = 0
     for msg in mbox:
         i = random.randrange(n)
@@ -103,12 +104,12 @@ def main():
         msgfile.close()
         if verbose:
             if counter % 100 == 0:
-                print '.',
+                sys.stdout.write('.')
+                sys.stdout.flush()
 
     if verbose:
         print
         print counter, "messages split into", n, "directories"
-    infile.close()
 
 if __name__ == '__main__':
     main()

@@ -33,10 +33,12 @@ import getopt
 import mailbox
 import glob
 import email
-import classifier
 import errno
 import anydbm
 import cPickle as pickle
+
+import mboxutils
+import classifier
 
 program = sys.argv[0] # For usage(); referenced by docstring above
 
@@ -170,52 +172,9 @@ class PersistentGrahamBayes(classifier.GrahamBayes):
             self.nham, self.nspam = self.wordinfo[self.statekey]
 
 
-class DirOfTxtFileMailbox:
-
-    """Mailbox directory consisting of .txt files."""
-
-    def __init__(self, dirname, factory):
-        self.names = glob.glob(os.path.join(dirname, "*.txt"))
-        self.factory = factory
-
-    def __iter__(self):
-        for name in self.names:
-            try:
-                f = open(name)
-            except IOError:
-                continue
-            yield self.factory(f)
-            f.close()
-
-
-def getmbox(msgs):
-    """Return an iterable mbox object given a file/directory/folder name."""
-    def _factory(fp):
-        try:
-            return email.message_from_file(fp)
-        except email.Errors.MessageParseError:
-            return ''
-
-    if msgs.startswith("+"):
-        import mhlib
-        mh = mhlib.MH()
-        mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]),
-                                 _factory)
-    elif os.path.isdir(msgs):
-        # XXX Bogus: use an MHMailbox if the pathname contains /Mail/,
-        # else a DirOfTxtFileMailbox.
-        if msgs.find("/Mail/") >= 0:
-            mbox = mailbox.MHMailbox(msgs, _factory)
-        else:
-            mbox = DirOfTxtFileMailbox(msgs, _factory)
-    else:
-        fp = open(msgs)
-        mbox = mailbox.PortableUnixMailbox(fp, _factory)
-    return mbox
-
 def train(bayes, msgs, is_spam):
     """Train bayes with all messages from a mailbox."""
-    mbox = getmbox(msgs)
+    mbox = mboxutils.getmbox(msgs)
     i = 0
     for msg in mbox:
         i += 1
@@ -246,7 +205,7 @@ def filter(bayes, input, output):
 def score(bayes, msgs):
     """Score (judge) all messages from a mailbox."""
     # XXX The reporting needs work!
-    mbox = getmbox(msgs)
+    mbox = mboxutils.getmbox(msgs)
     i = 0
     spams = hams = 0
     for msg in mbox:
