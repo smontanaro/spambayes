@@ -58,18 +58,24 @@ def drive(nsets):
     nham = len(hamfns)
     nspam = len(spamfns)
     
-    allfns={}
+    allfns = {}
     for fn in spamfns+hamfns:
         allfns[fn] = None
 
     d = hammie.Hammie(hammie.createbayes('weaktest.db', False))
 
-    n=0
-    unsure=0
-    hamtrain=0
-    spamtrain=0
-    fp=0
-    fn=0
+    n = 0
+    unsure = 0
+    hamtrain = 0
+    spamtrain = 0
+    fp = 0
+    fn = 0
+    flexcost = 0
+    FPW = options.best_cutoff_fp_weight
+    FNW = options.best_cutoff_fn_weight
+    UNW = options.best_cutoff_unsure_weight
+    SPC = options.spam_cutoff
+    HC = options.ham_cutoff
     for dir,name, is_spam in allfns.iterkeys():
         n += 1
         m=msgs.Msg(dir, name).guts
@@ -81,8 +87,11 @@ def drive(nsets):
             scr=0.50
         if debug:
             print "score:%.3f"%scr,
-        if scr < hammie.SPAM_THRESHOLD and is_spam:
-            if scr < hammie.HAM_THRESHOLD:
+        if scr < SPC and is_spam:
+            t = FNW * (SPC - scr) / (SPC - HC)
+            #print "Spam at %.3f costs %.2f"%(scr,t)
+            flexcost += t
+            if scr < HC:
                 fn += 1
                 if debug:
                     print "fn"
@@ -93,13 +102,16 @@ def drive(nsets):
             spamtrain += 1
             d.train_spam(m)
             d.update_probabilities()
-        elif scr > hammie.HAM_THRESHOLD and not is_spam:
-            if scr > hammie.SPAM_THRESHOLD:
+        elif scr > HC and not is_spam:
+            t = FPW * (scr - HC) / (SPC - HC)
+            #print "Ham at %.3f costs %.2f"%(scr,t)
+            flexcost += t
+            if scr > SPC:
                 fp += 1
                 if debug:
                     print "fp"
                 else:
-                    print "fp: %s score:%.4f"%(os.path.join(dir,name),scr)
+                    print "fp: %s score:%.4f"%(os.path.join(dir, name), scr)
             else:
                 unsure += 1
                 if debug:
@@ -112,27 +124,24 @@ def drive(nsets):
                 print "OK"
         if n % 100 == 0:
             print "%5d trained:%dH+%dS wrds:%d fp:%d fn:%d unsure:%d"%(
-                n,hamtrain,spamtrain,len(d.bayes.wordinfo),fp,fn,unsure)
-    print "Total messages %d (%d ham and %d spam)"%(len(allfns),nham,nspam)
+                n, hamtrain, spamtrain, len(d.bayes.wordinfo), fp, fn, unsure)
+    print "Total messages %d (%d ham and %d spam)"%(len(allfns), nham, nspam)
     print "Total unsure (including 30 startup messages): %d (%.1f%%)"%(
-        unsure,unsure*100.0/len(allfns))
-    print "Trained on %d ham and %d spam"%(hamtrain,spamtrain)
-    print "fp: %d fn: %d"%(fp,fn)
-    FPW = options.best_cutoff_fp_weight
-    FNW = options.best_cutoff_fn_weight
-    UNW = options.best_cutoff_unsure_weight
-    print "Total cost: $%.2f"%(FPW*fp+FNW*fn+UNW*unsure)
+        unsure, unsure * 100.0 / len(allfns))
+    print "Trained on %d ham and %d spam"%(hamtrain, spamtrain)
+    print "fp: %d fn: %d"%(fp, fn)
+    print "Total cost: $%.2f"%(FPW * fp + FNW * fn + UNW * unsure)
+    print "Flex cost: $%.4f"%flexcost
     
 def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hn:s:',
-                                   ['ham-keep=', 'spam-keep='])
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:')
     except getopt.error, msg:
         usage(1, msg)
 
-    nsets = seed = hamkeep = spamkeep = None
+    nsets = None
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
