@@ -28,15 +28,23 @@ def filter_message(msg, mgr, all_actions=True):
         attr_prefix = None
 
     try:
-        # Save the score
-        msg.SetField(mgr.config.field_score_name, prob)
-        # and the ID of the folder we were in when scored.
-        # (but only if we want to perform all actions)
-        # Note we must do this, and the Save, before the
-        # filter, else the save will fail.
-        if all_actions:
-            msg.RememberMessageCurrentFolder()
-        msg.Save()
+        try:
+            # Save the score
+            # Catch this exception, as failing to save the score need not
+            # be fatal - it may still be possible to perform the move.
+            msg.SetField(mgr.config.field_score_name, prob)
+            # and the ID of the folder we were in when scored.
+            # (but only if we want to perform all actions)
+            # Note we must do this, and the Save, before the
+            # filter, else the save will fail.
+            if all_actions:
+                msg.RememberMessageCurrentFolder()
+            msg.Save()
+        except:
+            print "Failed to save the Spam score for message ", msg
+            import traceback
+            traceback.print_exc()
+            print "Still (possibly) atempting to move this message though..."
 
         if all_actions and attr_prefix is not None:
             folder_id = getattr(config, attr_prefix + "_folder_id")
