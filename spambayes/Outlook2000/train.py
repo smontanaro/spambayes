@@ -92,7 +92,7 @@ def train_folder(f, isspam, cdata, progress):
 
 
 def real_trainer(classifier_data, config, message_store, progress):
-    progress.set_status("Counting messages")
+    progress.set_status(_("Counting messages"))
 
     num_msgs = 0
     for f in message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
@@ -103,13 +103,13 @@ def real_trainer(classifier_data, config, message_store, progress):
     progress.set_max_ticks(num_msgs+3)
 
     for f in message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
-        progress.set_status("Processing good folder '%s'" % (f.name,))
+        progress.set_status(_("Processing good folder '%s'") % (f.name,))
         train_folder(f, 0, classifier_data, progress)
         if progress.stop_requested():
             return
 
     for f in message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
-        progress.set_status("Processing spam folder '%s'" % (f.name,))
+        progress.set_status(_("Processing spam folder '%s'") % (f.name,))
         train_folder(f, 1, classifier_data, progress)
         if progress.stop_requested():
             return
@@ -120,7 +120,7 @@ def real_trainer(classifier_data, config, message_store, progress):
     # Completed training - save the database
     # Setup the next "stage" in the progress dialog.
     progress.set_max_ticks(1)
-    progress.set_status("Writing the database...")
+    progress.set_status(_("Writing the database..."))
     classifier_data.Save()
 
 # Called back from the dialog to do the actual training.
@@ -129,7 +129,7 @@ def trainer(mgr, config, progress):
     rescore = config.training.rescore
 
     if not config.training.ham_folder_ids and not config.training.spam_folder_ids:
-        progress.error("You must specify at least one spam or one good folder")
+        progress.error(_("You must specify at least one spam or one good folder"))
         return
 
     if rebuild:
@@ -154,9 +154,9 @@ def trainer(mgr, config, progress):
     # the message back.)
     # Saving is really slow sometimes, but we only have 1 tick for that anyway
     if rescore:
-        stages = ("Training", .3), ("Saving", .1), ("Scoring", .6)
+        stages = (_("Training"), .3), (_("Saving"), .1), (_("Scoring"), .6)
     else:
-        stages = ("Training", .9), ("Saving", .1)
+        stages = (_("Training"), .9), (_("Saving"), .1)
     progress.set_stages(stages)
 
     real_trainer(classifier_data, config, mgr.message_store, progress)
@@ -189,7 +189,8 @@ def trainer(mgr, config, progress):
         filter.filterer(mgr, mgr.config, progress)
 
     bayes = classifier_data.bayes
-    progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
+    progress.set_status(_("Completed training with %d spam and %d good messages") % (bayes.nspam, bayes.nham))
+
 
 def main():
     print "Sorry - we don't do anything here any more"
