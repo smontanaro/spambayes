@@ -255,4 +255,4 @@ Other points:
   the error rates get closer to 0%, the chance that a winning change helped
   only a few specific msgs zooms (of course sometimes that's intentional!
   I haven't been shy about adding changes specifically geared toward
-  squahsing very narrow classes of false positives).
+  squashing very narrow classes of false positives).

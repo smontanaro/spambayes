@@ -10,7 +10,7 @@ There are a few steps to doing incremental training tests:
 1. Get your corpora.  It's best if they're contemporaneous
    and single source, because that makes it much easier to
    sequence and group them.  The corpora need to be in the
-   good old familiar Data/{Ham,Spam}/{reservior,Set*} tree.
+   good old familiar Data/{Ham,Spam}/{reservoir,Set*} tree.
    For my purposes, I wrote the es2hs.py tool to grab stuff
    out of my real MH mail archive folders; other people may
    want some other method of getting the corpora into the

@@ -3,7 +3,7 @@ Additional Information about using the POP3 Proxy.
 
 Setting Eudora to use different ports under Windows
 ---------------------------------------------------
-Eudora can be configured to support multiple pop and smtp servers 
+Eudora can be configured to support multiple pop and SMTP servers 
 on different localhost ports - at least on Windows. You just can't do it 
 from the Tools->Options menu. Eudora reads an ini file, 
 eudora.ini, at startup. The format of this file is documented in the help 
@@ -30,9 +30,9 @@ To configure Eudora:
          Close Eudora.
          In eudora.new (or whatever you called it) find the section 
 starting with [Settings]. This contains settings for the dominant personality.
-         Find the line beggining POPAccount. The last part of the account 
+         Find the line beginning POPAccount. The last part of the account 
 name starting with '@' is the server. Change it to @localhost.
-         Find the lines beggining SMTPServer and POPServer. They will have 
+         Find the lines beginning SMTPServer and POPServer. They will have 
 the server names defined for your dominant personality.
          Change both server names to localhost
          Add the following two lines. Use whatever ports you assigned to 
@@ -65,7 +65,7 @@ The localhost and 127.0.0.1 values must be exactly like this.  If you don't
 know the right value to use for "yourmac.example.com", put anything that
 looks like this.  The end of the first line must be the same as the start of
 the second line.
-When this file is created, go to the "TCP/IP" control panl.  Set the user
+When this file is created, go to the "TCP/IP" control panel.  Set the user
 level to 'Administrator'.  Click on "Use a host file" and select this file.
 Save your changes.
 
