@@ -30,18 +30,16 @@ Options can one or more of:
 *   -f
         filter (default if no processing options are given)
 *   -g
-        [EXPERIMENTAL] (re)train as a good (ham) message
+        (re)train as a good (ham) message
 *   -s
-        [EXPERIMENTAL] (re)train as a bad (spam) message
+        (re)train as a bad (spam) message
 *   -t
-        [EXPERIMENTAL] filter and train based on the result -- you must
+        filter and train based on the result -- you must
         make sure to untrain all mistakes later.  Not recommended.
 *   -G
-        [EXPERIMENTAL] untrain ham (only use if you've already trained
-        this message)
+        untrain ham (only use if you've already trained this message)
 *   -S
-        [EXPERIMENTAL] untrain spam (only use if you've already trained
-        this message)
+        untrain spam (only use if you've already trained this message)
 
     -o section:option:value
         set [section, option] in the options database to value
