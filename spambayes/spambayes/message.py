@@ -10,21 +10,15 @@ Classes:
 Abstract:
 
     MessageInfoDB is a simple shelve persistency class for the persistent
-    state of a Message obect.  For the moment, the db name is hard-coded,
-    but we'll have to do this a different way.  Mark Hammond's idea is to
-    have a master database, that simply keeps track of the names and instances
-    of other databases, such as the wordinfo and msginfo databases.  The
-    MessageInfoDB currently does not provide iterators, but should at some
-    point.  This would allow us to, for example, see how many messages
-    have been trained differently than their classification, for fp/fn
-    assessment purposes.
+    state of a Message obect.  The MessageInfoDB currently does not provide
+    iterators, but should at some point.  This would allow us to, for
+    example, see how many messages have been trained differently than their
+    classification, for fp/fn assessment purposes.
 
     Message is an extension of the email package Message class, to
     include persistent message information. The persistent state
-    -currently- consists of the message id, its current
-    classification, and its current training.  The payload is not
-    persisted. Payload persistence is left to whatever mail client
-    software is being used.
+    currently consists of the message id, its current classification, and
+    its current training.  The payload is not persisted.
 
     SBHeaderMessage extends Message to include spambayes header specific
     manipulations.
@@ -32,8 +26,9 @@ Abstract:
 Usage:
     A typical classification usage pattern would be something like:
 
-    >>> msg = spambayes.message.SBHeaderMessage()
-    >>> msg.setPayload(substance) # substance comes from somewhere else
+    >>> import email
+    >>> # substance comes from somewhere else
+    >>> msg = email.message_from_string(substance, _class=SBHeaderMessage)
     >>> id = msg.setIdFromPayload()
 
     >>> if id is None:
@@ -49,8 +44,9 @@ Usage:
 
     A typical usage pattern to train as spam would be something like:
 
-    >>> msg = spambayes.message.SBHeaderMessage()
-    >>> msg.setPayload(substance) # substance comes from somewhere else
+    >>> import email
+    >>> # substance comes from somewhere else
+    >>> msg = email.message_from_string(substance, _class=SBHeaderMessage)
     >>> id = msg.setId(msgid)     # id is a fname, outlook msg id, something...
 
     >>> msg.delSBHeaders()        # never include sb headers in a train
@@ -63,14 +59,10 @@ Usage:
 
 
 To Do:
-    o Master DB module, or at least make the msginfodb name an options parm
-    o Figure out how to safely add message id to body (or if it can be done
-      at all...)
     o Suggestions?
+"""
 
-    """
-
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-5
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
@@ -101,6 +93,7 @@ import email.Message
 import email.Parser
 import email.Header
 
+from spambayes import storage
 from spambayes import dbmstorage
 from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
@@ -116,7 +109,7 @@ class MessageInfoBase(object):
     def __init__(self, db_name):
         self.db_name = db_name
 
-    def _getState(self, msg):
+    def load_msg(self, msg):
         if self.db is not None:
             try:
                 attributes = self.db[msg.getId()]
@@ -131,7 +124,7 @@ class MessageInfoBase(object):
                 for att, val in attributes:
                     setattr(msg, att, val)
 
-    def _setState(self, msg):
+    def store_msg(self, msg):
         if self.db is not None:
             attributes = []
             for att in msg.stored_attributes:
@@ -139,7 +132,7 @@ class MessageInfoBase(object):
             self.db[msg.getId()] = attributes
             self.store()
 
-    def _delState(self, msg):
+    def remove_msg(self, msg):
         if self.db is not None:
             del self.db[msg.getId()]
             self.store()
@@ -204,31 +197,48 @@ class MessageInfoDB(MessageInfoBase):
         if self.db is not None:
             self.db.sync()
 
-# This should come from a Mark Hammond idea of a master db
-# For the moment, we get the name of another file from the options,
-# so that these files don't litter lots of working directories.
-# Once there is a master db, this option can be removed.
-message_info_db_name = get_pathname_option("Storage", "messageinfo_storage_file")
-if options["Storage", "persistent_use_database"] is True or \
-   options["Storage", "persistent_use_database"] == "dbm":
-    msginfoDB = MessageInfoDB(message_info_db_name)
-elif options["Storage", "persistent_use_database"] is False or \
-     options["Storage", "persistent_use_database"] == "pickle":
-    msginfoDB = MessageInfoPickle(message_info_db_name)
-else:
-    # Ah - now, what?  Maybe the user has mysql or pgsql or zeo,
-    # or some other newfangled thing!  We don't know what to do
-    # in that case, so just use a pickle, since it's the safest
-    # option.
-    msginfoDB = MessageInfoPickle(message_info_db_name)
+# values are classifier class, True if it accepts a mode
+# arg, and True if the argument is a pathname
+_storage_types = {"dbm" : (MessageInfoDB, True, True),
+                  "pickle" : (MessageInfoPickle, False, True),
+##                  "pgsql" : (MessageInfoPG, False, False),
+##                  "mysql" : (MessageInfoMySQL, False, False),
+##                  "cdb" : (MessageInfoCDB, False, True),
+##                  "zodb" : (MessageInfoZODB, False, True),
+##                  "zeo" : (MessageInfoZEO, False, False),
+                  }
+
+def open_storage(data_source_name, db_type="dbm", mode=None):
+    """Return a storage object appropriate to the given parameters."""
+    try:
+        klass, supports_mode, unused = _storage_types[db_type]
+    except KeyError:
+        raise storage.NoSuchClassifierError(db_type)
+    if supports_mode and mode is not None:
+        return klass(data_source_name, mode)
+    else:
+        return klass(data_source_name)
+
+def database_type():
+    dn = ("Storage", "messageinfo_storage_file")
+    # The storage options here may lag behind those in storage.py,
+    # so we try and be more robust.  If we can't use the same storage
+    # method, then we fall back to pickle.
+    nm, typ = storage.database_type((), default_name=dn)
+    if typ not in _storage_types.keys():
+        typ = "pickle"
+    return nm, typ
+
 
 class Message(email.Message.Message):
-    '''An email.Message.Message extended for Spambayes'''
+    '''An email.Message.Message extended for SpamBayes'''
 
     def __init__(self):
         email.Message.Message.__init__(self)
 
         # persistent state
+        nm, typ = database_type()
+        self.message_info_db = open_storage(nm, typ)
         self.stored_attributes = ['c', 't',]
         self.id = None
         self.c = None
@@ -270,16 +280,13 @@ class Message(email.Message.Message):
             raise TypeError, "Id must be a string"
 
         self.id = id
-        msginfoDB._getState(self)
+        self.message_info_db.load_msg(self)
 
     def getId(self):
         return self.id
 
-    def asTokens(self):
-        return tokenize(self)
-
     def tokenize(self):
-        return self.asTokens()
+        return tokenize(self)
 
     def _force_CRLF(self, data):
         """Make sure data uses CRLF for line termination."""
@@ -302,7 +309,7 @@ class Message(email.Message.Message):
 
     def modified(self):
         if self.id:    # only persist if key is present
-            msginfoDB._setState(self)
+            self.message_info_db.store_msg(self)
 
     def GetClassification(self):
         if self.c == 's':
@@ -347,11 +354,8 @@ class Message(email.Message.Message):
 
 
 class SBHeaderMessage(Message):
-    '''Message class that is cognizant of Spambayes headers.
-    Adds routines to add/remove headers for Spambayes'''
-
-    def __init__(self):
-        Message.__init__(self)
+    '''Message class that is cognizant of SpamBayes headers.
+    Adds routines to add/remove headers for SpamBayes'''
 
     def setIdFromPayload(self):
         try:
@@ -395,7 +399,8 @@ class SBHeaderMessage(Message):
             sco = 1 - hco
             evd = []
             for word, score in clues:
-                if (word[0] == '*' or score <= hco or score >= sco):
+                if (word == '*H*' or word == '*S*' \
+                    or score <= hco or score >= sco):
                     if isinstance(word, types.UnicodeType):
                         word = email.Header.Header(word,
                                                    charset='utf-8').encode()

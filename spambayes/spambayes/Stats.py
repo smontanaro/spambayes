@@ -39,7 +39,7 @@ except NameError:
 
 import types
 
-from spambayes.message import msginfoDB
+from spambayes.message import database_type, open_storage
 
 class Stats(object):
     class __empty_msg:
@@ -63,6 +63,8 @@ class Stats(object):
 
     def CalculateStats(self):
         self.Reset()
+        nm, typ = database_type()
+        msginfoDB = open_storage(nm, typ)
         for msg in msginfoDB.db.keys():
             self.total += 1
             m = self.__empty_msg()
