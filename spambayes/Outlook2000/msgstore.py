@@ -915,11 +915,20 @@ class MAPIMsgStoreMsg:
         # Mail delivered internally via Exchange Server etc may not have
         # headers - fake some up.
         if not headers:
-            headers = self._GetFakeHeaders ()
+            headers = self._GetFakeHeaders()
         # Mail delivered via the Exchange Internet Mail MTA may have
         # gibberish at the start of the headers - fix this.
         elif headers.startswith("Microsoft Mail"):
             headers = "X-MS-Mail-Gibberish: " + headers
+            # This mail typically doesn't have a Received header, which
+            # is a real PITA for running the incremental testing setup.
+            # To make life easier, we add in the fake one that the message
+            # would have got if it had had no headers at all.
+            if headers.find("Received:") == -1:
+                prop_ids = PR_MESSAGE_DELIVERY_TIME
+                hr, data = self.mapi_object.GetProps(prop_ids, 0)
+                value = self._format_received(data[0][1])
+                headers = "Received: %s\n%s" % (value, headers)
 
         if not html and not body:
             # Only ever seen this for "multipart/signed" messages, so
