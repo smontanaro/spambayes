@@ -319,10 +319,12 @@ BEGIN
                     IDC_STATIC,20,17,247,27
     LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,145,
                     148,9
-    LTEXT           "For examples of good messages, you may like to use your Inbox - however, it is important you remove all spam from this folder before you commence training.  If you have too much spam in your Inbox, you may like to create a temporary folder and copy some examples to it.",
-                    IDC_STATIC,20,46,247,35
+    LTEXT           "For examples of good messages, you may like to use your Inbox - however, it is important you remove all spam from this folder before you commence",
+                    IDC_STATIC,20,42,247,26
+    LTEXT           "training.  If you have too much spam in your Inbox, you may like to create a temporary folder and copy some examples to it.",
+                    IDC_STATIC,20,58,247,17
     LTEXT           "For examples of spam messages, you may like to look through your Deleted Items folder, and your Inbox.  However, you will not be able to specify the Deleted Items folder as examples of spam, so you will need to move them to a folder you create.",
-                    IDC_STATIC,20,82,247,35
+                    IDC_STATIC,20,80,247,35
     LTEXT           "When you are finished, open the SpamBayes Manager via the SpamBayes toolbar, and re-start the Configuration Wizard.",
                     IDC_STATIC,20,121,245,17
 END
