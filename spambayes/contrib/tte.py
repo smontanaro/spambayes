@@ -22,11 +22,11 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 -r N    - Run at most N rounds (default %(MAXROUNDS)s), even if not
           all messages score correctly.
 
--c ext  - Cull all messages which aren't used as training input during any run
-          and write to new ham and spam files with ext as an extra file extension.
-          All messages which are never considered (because one training set is
-          longer than the other or the -m flag was used to reduce the amount of
-          input) are retained.
+-c ext  - Cull all messages which aren't used as training input during any
+          run and write to new ham and spam files with ext as an extra file
+          extension.  All messages which are never considered (because one
+          training set is longer than the other or the -m flag was used to
+          reduce the amount of input) are retained.
 
 -o sect:opt:val -
           Set [sect, opt] in the options database to val.
@@ -35,6 +35,10 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 
 -R        Walk backwards through the mailbox.
 
+--ratio=n Define the number of spam messages to be trained for each ham.
+          The default is 1, but given the sorry state of the Net's email
+          infrastructure these days you'll probably want to raise it.  Keep
+          it as close to 1 as you can...
 
 Note: The -c command line argument isn't quite as benign as it might first
 appear.  Since the tte protocol trains on the same number of ham and spam
@@ -90,14 +94,15 @@ except NameError:
         seq.reverse()
         return iter(seq)
 
-def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
+def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
+          ratio):
     smisses = hmisses = round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
 
     while round < maxrounds and (hmisses or smisses or round == 0):
-        hambone = mboxutils.getmbox(ham)
-        spamcan = mboxutils.getmbox(spam)
+        hambone = mboxutils.getmbox(hambox)
+        spamcan = mboxutils.getmbox(spambox)
         if reverse:
             hambone = reversed(list(hambone))
             spamcan = reversed(list(spamcan))
@@ -110,34 +115,43 @@ def train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose):
         start = datetime.datetime.now()
         try:
             while not maxmsgs or nmsgs < maxmsgs:
-                hammsg = hambone.next()
-                spammsg = spamcan.next()
+                ham = hambone.next()
+                spams = []
+                for i in range(ratio):
+                    try:
+                        spams.append(spamcan.next())
+                    except StopIteration:
+                        # no spams left so exit
+                        if not spams:
+                            raise
+                        # use what we've collected
+                        break
 
-                nmsgs += 2
+                nmsgs += 1 + len(spams)
                 sys.stdout.write("\r%5d" % nmsgs)
                 sys.stdout.flush()
 
-                score = store.spamprob(tokenize(hammsg))
-                selector = (hammsg["message-id"] or
-                            hammsg["subject"])
+                score = store.spamprob(tokenize(ham))
+                selector = ham["message-id"] or ham["subject"]
                 if score > ham_cutoff and selector is not None:
                     if verbose:
                         print >> sys.stderr, "miss ham:  %.6f %s" % (
                             score, selector)
                     hmisses += 1
-                    tdict[hammsg["message-id"]] = True
-                    store.learn(tokenize(hammsg), False)
+                    tdict[ham["message-id"]] = True
+                    store.learn(tokenize(ham), False)
 
-                score = store.spamprob(tokenize(spammsg))
-                selector = (spammsg["message-id"] or
-                            spammsg["subject"])
-                if score < spam_cutoff and selector is not None:
-                    if verbose:
-                        print >> sys.stderr, "miss spam: %.6f %s" % (
-                            score, selector)
-                    smisses += 1
-                    tdict[spammsg["message-id"]] = True
-                    store.learn(tokenize(spammsg), True)
+                for spam in spams:
+                    score = store.spamprob(tokenize(spam))
+                    selector = (spam["message-id"] or
+                                spam["subject"])
+                    if score < spam_cutoff and selector is not None:
+                        if verbose:
+                            print >> sys.stderr, "miss spam: %.6f %s" % (
+                                score, selector)
+                        smisses += 1
+                        tdict[spam["message-id"]] = True
+                        store.learn(tokenize(spam), True)
 
         except StopIteration:
             pass
@@ -175,7 +189,7 @@ def main(args):
                                    ["help", "good=", "spam=",
                                     "database=", "pickle=", "verbose",
                                     "option=", "max=", "maxrounds=",
-                                    "cullext=", "reverse"])
+                                    "cullext=", "reverse", "ratio="])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
@@ -185,6 +199,7 @@ def main(args):
     maxrounds = MAXROUNDS
     verbose = False
     reverse = False
+    sh_ratio = 1
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -205,6 +220,8 @@ def main(args):
             reverse = True
         elif opt in ('-o', '--option'):
             Options.options.set_from_cmdline(arg, sys.stderr)
+        elif opt == '--ratio':
+            sh_ratio = int(arg)
             
     if ham is None or spam is None:
         usage("require both ham and spam piles")
@@ -220,7 +237,8 @@ def main(args):
     store = storage.open_storage(dbname, usedb)
 
     tdict = {}
-    train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose)
+    train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose,
+          sh_ratio)
 
     store.store()
 
