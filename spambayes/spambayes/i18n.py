@@ -46,6 +46,7 @@ from gettext import translation, NullTranslations
 ##       utilities
 ##       ..etc..
 
+
 class LanguageManager:
     def __init__(self, directory=os.path.dirname(__file__)):
         """Initialisation.
@@ -88,6 +89,24 @@ class LanguageManager:
         self._clear_syspath()
         lang = NullTranslations()
         lang.install()
+
+    def import_ui_html(self):
+        """Load and return the appropriate ui_html.py module for the
+        current language."""
+        for language in self.current_langs_codes:
+            moduleName = 'languages.%s.i18n_ui_html' % (language, )
+            try:
+                module = __import__(moduleName, {}, {}, ('languages',
+                                                         language))
+            except ImportError:
+                # That language isn't available - fall back to the
+                # next one.
+                pass
+            else:
+                return module
+        # Nothing available - use the default.
+        from spambayes.resources import ui_html
+        return ui_html
 
     def _install_gettext(self):
         """Set the gettext specific environment."""
