@@ -98,7 +98,8 @@ def maildir_train(h, path, is_spam, force):
     for fn in os.listdir(path):
         counter += 1
         cfn = os.path.join(path, fn)
-        tfn = os.path.join(path, "tmp",
+        tfn = os.path.join(path, os.path.normpath(os.path.join("..",
+                                                               "tmp")),
                            "%d.%d_%d.%s" % (time.time(), pid,
                                             counter, host))
         if loud:
