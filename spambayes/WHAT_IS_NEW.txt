@@ -143,13 +143,6 @@ try out and report back your results) include:
     These generate tokens based on the Habeas headers (see
     <http://habeas.com> for more details).
   
-  o [Classifier] x-use_bigrams
-    By default, SpamBayes uses unigrams tokens that are basically
-    single words (split on whitespace).  This option enables both unigrams
-    and bigrams (pairs of words), but uses a 'tiling' scheme, where only
-    the set of unigrams and bigrams that have the strongest effect on
-    the message are used.
-
   o [URLRetriever] x-slurp_urls
   o [URLRetriever] x-cache_expiry_days
   o [URLRetriever] x-cache_directory
