@@ -12,7 +12,8 @@ import win32com.client.gencache
 import pythoncom
 
 # Suck in CDO type lib
-win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}', 0, 1, 21, bForDemand = True)
+win32com.client.gencache.EnsureModule('{3FA7DEA7-6438-101B-ACC1-00AA00423326}',
+                                      0, 1, 21, bForDemand=True)
 
 try:
     this_filename = __file__
@@ -26,7 +27,8 @@ class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=True):
         self.verbose = verbose
         if not os.path.isabs(config_base):
-            config_base = os.path.join( os.path.dirname(this_filename), config_base)
+            config_base = os.path.join(os.path.dirname(this_filename),
+                                       config_base)
         config_base = os.path.abspath(config_base)
         self.ini_filename = config_base + "_bayes_customize.ini"
         self.bayes_filename = config_base + "_bayes_database.pck"
@@ -51,12 +53,14 @@ class BayesManager:
         self._tls[thread.get_ident()] = {}
 
     def WorkerThreadEnding(self):
-        assert self._tls.has_key(thread.get_ident()), "WorkerThreadStarting hasn't been called for this thread"
+        assert self._tls.has_key(thread.get_ident()), \
+               "WorkerThreadStarting hasn't been called for this thread"
         del self._tls[thread.get_ident()]
         pythoncom.CoUninitialize()
 
     def GetOutlookForCurrentThread(self):
-        assert self._tls.has_key(thread.get_ident()), "WorkerThreadStarting hasn't been called for this thread"
+        assert self._tls.has_key(thread.get_ident()), \
+               "WorkerThreadStarting hasn't been called for this thread"
         existing = self._tls[thread.get_ident()].get("outlook")
         if not existing:
             existing = win32com.client.Dispatch("Outlook.Application")
@@ -65,7 +69,9 @@ class BayesManager:
 
     def LoadBayes(self):
         if not os.path.exists(self.ini_filename):
-            raise ManagerError("The file '%s' must exist before the database '%s' can be opened or created" % (self.ini_filename, self.bayes_filename))
+            raise ManagerError("The file '%s' must exist before the "
+                               "database '%s' can be opened or created" % (
+                               self.ini_filename, self.bayes_filename))
         bayes = None
         try:
             bayes = cPickle.load(open(self.bayes_filename,'rb'))
@@ -80,7 +86,8 @@ class BayesManager:
             self.InitNewBayes()
             bayes = self.bayes
         if self.verbose:
-            print "Bayes database initialized with %d spam and %d good messages" % (bayes.nspam, bayes.nham)
+            print ("Bayes database initialized with "
+                   "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
         self.bayes = bayes
         self.bayes_dirty = False
 
@@ -88,12 +95,13 @@ class BayesManager:
         try:
             ret = cPickle.load(open(self.config_filename,'rb'))
             if self.verbose > 1:
-                print "Loaded configuration from '%s':" % (self.config_filename,)
+                print "Loaded configuration from '%s':" % self.config_filename
                 ret._dump()
         except (AttributeError, ImportError):
             ret = _ConfigurationRoot()
             if self.verbose > 1:
-                print "FAILED to load configuration from '%s - using default:" % (self.config_filename,)
+                print ("FAILED to load configuration from '%s "
+                       "- using default:" % self.config_filename)
                 import traceback
                 traceback.print_exc()
         return ret
@@ -106,7 +114,8 @@ class BayesManager:
     def SaveBayes(self):
         bayes = self.bayes
         if self.verbose:
-            print "Saving bayes database with %d spam and %d good messages" % (bayes.nspam, bayes.nham)
+            print ("Saving bayes database with %d spam and %d good messages" %
+                   (bayes.nspam, bayes.nham))
             print " ->", self.bayes_filename
         cPickle.dump(bayes, open(self.bayes_filename,"wb"), 1)
 
