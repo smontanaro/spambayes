@@ -96,9 +96,9 @@ View -&gt; Toolbars, and ensure that "Standard" is selected.<br>
   </li>
   <li>Try resetting the toolbars:
     <ol>
-      <li>Select <span style="font-style: italic;">View</span>-&gt;
-        <span style="font-style: italic;">Toolbars</span>-&gt;
-        <span style="font-style: italic;">Customize</span> to display
+      <li>Select <span style="font-style: italic;">View</span>-&gt; <span
+ style="font-style: italic;">Toolbars</span>-&gt; <span
+ style="font-style: italic;">Customize</span> to display
 the toolbar options dialog</li>
       <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
 select the 'Standard' toolbar,
@@ -193,16 +193,41 @@ a log in your Windows temp directory.&nbsp; This directory is generally
 <span style="font-style: italic;">\WINDOWS\TEMP</span> for Windows 9x,
 or <span style="font-style: italic;">\Documents and
 Settings\{username}\Local
-Settings\Temp</span> for Windows 2000/XP.&nbsp; The log file for the
+Settings\Temp</span> for Windows 2000/XP.<br>
+<br>
+Note that by default, in Windows 2000 and XP, Windows Explorer will not
+show the <span style="font-style: italic;">Local Settings</span>
+directory, as it is hidden.&nbsp; You can convince Windows Explorer to
+show this directory (and therefore allow you to see the <span
+ style="font-style: italic;">Temp</span> directory under it by doing
+either:<br>
+<ul>
+  <li>Select the folder <span style="font-style: italic;">\Documents
+and Settings\{username}</span>.&nbsp; This directory should be
+reflected in the Address Bar.&nbsp; In the Address Bar, simply type at
+the end "\Local Settings" (thereby giving that full path name), and
+press <span style="font-style: italic;">Enter</span>.&nbsp; Explorer
+will then show this folder.</li>
+</ul>
+or
+<ul>
+  <li>Select <span style="font-style: italic;">Tools-&gt;Folder Options</span>,
+select the <span style="font-style: italic;">View</span> tab, and in
+the list, select <span style="font-style: italic;">Show hidden files
+and folders</span>.&nbsp; Select OK.&nbsp; This folder will now be
+visible.&nbsp; You may like to then reset this option back to the
+default value.<br>
+  </li>
+</ul>
+The log file for the
 most recent execution of Outlook is named <span
  style="font-style: italic;">spambayes1.log</span>, the second most
 recent is named <span style="font-style: italic;">spambayes2.log</span>,
-and so on for the four previous runs.<br>
-You can view this file with notepad.&nbsp; Usually, you will simply see
-messages which indicate that SpamBayes is doing its job.&nbsp; However,
-in some cases there will be errors in this file.<br>
-If SpamBayes fails to perform correctly, please locate the log file and
-<a href="#ReportABug">report a bug</a>.<br>
+and so on for the four previous runs.&nbsp; You can view this file with
+notepad.&nbsp; Usually, you will simply see
+messages which indicate that SpamBayes is doing its job; however
+in some cases there will be errors in this file.&nbsp; If there are
+errors, please <a href="#ReportABug">report a bug</a>.<br>
 <h3><a name="ReportABug"></a>Report a bug</h3>
 All SpamBayes bugs are maintained in <a
  href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">this
