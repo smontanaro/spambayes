@@ -40,11 +40,17 @@ Options.py
 
     near the start, and consult attributes of options.
 
-    As an alternative to bayescustomize.ini, you can set the
-    environment variable BAYESCUSTOMIZE to a whitespace-separated list
-    of one or more .ini files, these will be read in, in order, and
-    applied to the options. This allows you to tweak individual runs
-    by combining fragments of .ini files.
+    As an alternative to bayescustomize.ini, you can set the environment
+    variable BAYESCUSTOMIZE to a list of one or more .ini files, these will
+    be read in, in order, and applied to the options. This allows you to
+    tweak individual runs by combining fragments of .ini files.  The
+    character used to separate different .ini files is platform-dependent.
+    On Unix, Linux and Mac OS X systems it is ':'.  On Windows it is ';'.
+    On Mac OS 9 and earlier systems it is a NL character.
+
+    *NOTE* The separator character changed after the second alpha version of
+    the first release.  Previously, if multiple files were specified in
+    BAYESCUSTOMIZE they were space-separated.
 
 classifier.py
     The classifier, which is the soul of the method.
