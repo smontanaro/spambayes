@@ -56,8 +56,8 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "SpamBayes"
 FONT 8, "Tahoma", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,158,239,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,216,239,50,14
+    DEFPUSHBUTTON   "Close",IDOK,216,239,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,155,239,50,14,NOT WS_VISIBLE
     CONTROL         "",IDC_TAB,"SysTabControl32",0x0,8,7,258,228
     PUSHBUTTON      "About",IDC_ABOUT_BTN,9,239,50,14
 END
@@ -279,7 +279,7 @@ FONT 8, "Tahoma", 0, 0, 0x0
 BEGIN
     LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes has been successfully trained and configured.  You should find the system is immediately effective at filtering spam.",
-                    IDC_STATIC,20,42,247,25
+                    IDC_TRAINING_STATUS,20,35,247,26
     LTEXT           "Even though SpamBayes has been trained, it does continue to learn - please ensure you regularly check your Unsure folder, and use the 'Delete as Spam' or 'Recover from Spam' buttons as appropriate.",
                     IDC_STATIC,20,68,249,30
     LTEXT           "Click Finish to close the wizard.",IDC_STATIC,20,104,
@@ -475,18 +475,17 @@ FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "SpamBayes Version Here",IDC_VERSION,6,58,242,8
     LTEXT           "SpamBayes requires training before it is effective.  Click on the 'Training' tab, or use the Configuration Wizard to train",
-                    IDC_STATIC,6,86,222,17
-    LTEXT           "Training database status:",IDC_STATIC,6,108,222,8
-    CONTROL         "123 spam messages; 456 good messages",
-                    IDC_TRAINING_STATUS,"Static",SS_LEFTNOWORDWRAP | 
-                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,6,119,242,14
+                    IDC_STATIC,6,85,222,17
+    LTEXT           "Training database status:",IDC_STATIC,6,106,222,8
+    LTEXT           "123 spam messages; 456 good messages",
+                    IDC_TRAINING_STATUS,6,116,242,19,SS_SUNKEN
     CONTROL         "Enable SpamBayes",IDC_BUT_FILTER_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,174,97,11
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,175,97,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
-                    IDC_FILTER_STATUS,6,148,242,19,SS_SUNKEN
+                    IDC_FILTER_STATUS,6,150,242,19,SS_SUNKEN
     PUSHBUTTON      "Reset Configuration...",IDC_BUT_RESET,6,190,84,15
     PUSHBUTTON      "Configuration Wizard...",IDC_BUT_WIZARD,164,190,84,15
-    LTEXT           "Filtering Status",IDC_STATIC,6,138,222,8
+    LTEXT           "Filter status:",IDC_STATIC,6,140,222,8
     CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
                     SS_REALSIZEIMAGE,0,2,275,52
     LTEXT           "Welcome to SpamBayes, a spam filter for Outlook",
