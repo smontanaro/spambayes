@@ -23,7 +23,7 @@ Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 ; Needed when built with Python 2.4.  This must be manually copied to this directory
 ; from wherever it is being sourced from.
-; Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
@@ -71,7 +71,7 @@ Name: "{group}\About SpamBayes"; Filename: "{app}\docs\sb_server\readme_proxy.ht
 Name: "{group}\Troubleshooting Guide"; Filename: "{app}\docs\sb_server\troubleshooting.html"; Check: InstallingProxy;
 
 Name: "{group}\SpamBayes IMAP Filter Web Interface"; Filename: "{app}\sb_imapfilter.exe"; Parameters: "-b"; Check: InstallingIMAP;
-Name: "{userstartup}\SpamBayes IMAP Filter"; Filename: "{app}\bin\sb_imapfilter.exe"; Parameters: "-c -t"; Check: StartupIMAP;
+Name: "{userstartup}\SpamBayes IMAP Filter"; Filename: "{app}\bin\sb_imapfilter.exe"; Parameters: "-c -t -l 10"; Check: StartupIMAP;
 
 Name: "{group}\SpamBayes Outlook Addin\About SpamBayes"; Filename: "{app}\docs\outlook\about.html"; Check: InstallingOutlook;
 Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\docs\outlook\docs\troubleshooting.html"; Check: InstallingOutlook;
