@@ -479,7 +479,7 @@ def ShowClues(mgr, explorer):
     push("<br>\n")
     trained_as = mgr.classifier_data.message_db.get(msgstore_message.searchkey)
     push("This message has %sbeen trained%s." % \
-         {0 : ("", "as ham"), 1 : ("", "as spam"), None : ("not ", "")}
+         {0 : ("", " as ham"), 1 : ("", " as spam"), None : ("not ", "")}
          [trained_as])
     # Format the clues.
     push("<h2>%s Significant Tokens</h2>\n<PRE>" % len(clues))
