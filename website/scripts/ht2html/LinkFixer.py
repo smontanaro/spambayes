@@ -40,14 +40,10 @@ class LinkFixer:
         absurl = SLASH.join([self.__rootdir, self.__relthis, url])
         # normalize the path, kind of the way os.path.normpath() does.
         # urlparse ought to have something like this...
-        parts = []
-        for p in absurl.split('/'):
-            if p == '.':
-                continue
-            if p == '..' and len(parts) > 0:
-                del parts[-1]
-            parts.append(p)
-        absurl = SLASH.join(parts)
+        # hrm - MarkH thinks this is broken, so it has been replaced
+        # with normpath - what is the problem with normpath?
+        import posixpath # use posix semantics for urls
+        absurl = posixpath.normpath(absurl)
         self.msg('absurl= %s', absurl)
         return absurl
 
@@ -84,7 +80,7 @@ class LinkFixer:
             elif aboves and self.above(absurl, self.__myurl):
                 links[i] = (url, '<b>' + text + '</b>', extra)
             else:
-                links[i] = (url, text, extra)
+                links[i] = (absurl, text, extra)
 
     def above(self, absurl, myurl):
         """Return true if absurl is above myurl."""
