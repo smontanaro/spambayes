@@ -430,6 +430,24 @@ setting directory, e.g.::
     until the problem can be resolved.
 
 
+Will SpamBayes work with Yahoo! Mail?
+-------------------------------------
+
+If you subscribe to Yahoo! Mail Plus, you have the option of accessing your
+Yahoo! mail via the POP3 protocol.  SpamBayes has a POP3 proxy application
+called `sb_server`_ that will allow you to filter any POP3 mail account using
+a POP3 client of your choice (Outlook, Outlook Express, Netscape, Mozilla,
+Eudora, etc.).
+
+If you use the free Yahoo! Mail service, then Yahoo no longer provides POP3
+access.  However, there is an open-source program called YahooPOPs! that
+can be used to provide a POP3 interface to the free Yahoo! Mail service.
+See the `YahooPOPs! home page`_ for more information.
+
+.. _`sb_server`: http://spambayes.sourceforge.net/applications.html#sb_server
+.. _`YahooPOPs! home page`: http://yahoopops.sourceforge.net
+
+
 
 Outlook Plugin
 ==============
