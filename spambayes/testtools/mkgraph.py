@@ -1,4 +1,8 @@
 import sys
+import getopt
+
+report = "error"
+span = None
 
 set = ""
 nham_tested = []
@@ -12,7 +16,19 @@ nspam_right = []
 nspam_wrong = []
 nspam_unsure = []
 
+def line(vals):
+    global span
+    for k in range(0, len(vals)):
+        n = vals[k]
+        if span and k - span >= 0:
+            n -= vals[k - span]
+        print '%d %d' % (k, n)
+    print
+
+
 def outputset():
+    global report
+    global span
     global set
     global nham_tested
     global nham_trained
@@ -28,62 +44,67 @@ def outputset():
     if set == "":
         return
 
-    print '$ Data=Curve2d name="Set %s Cumulative"' % set
-    print '% linetype=1 linelabel="ham_tested" markertype=0 linecolor=0'
-    for k in range(0, len(nham_tested)):
-        print '%d %d' % (k, nham_tested[k])
-    print
-    print '% linetype=1 linelabel="ham_trained" markertype=0 linecolor=1'
-    for k in range(0, len(nham_trained)):
-        print '%d %d' % (k, nham_trained[k])
-    print
-    print '% linetype=1 linelabel="ham_right" markertype=0 linecolor=2'
-    for k in range(0, len(nham_right)):
-        print '%d %d' % (k, nham_right[k])
-    print
-    print '% linetype=1 linelabel="ham_wrong" markertype=0 linecolor=3'
-    for k in range(0, len(nham_wrong)):
-        print '%d %d' % (k, nham_wrong[k])
-    print
-    print '% linetype=1 linelabel="ham_unsure" markertype=0 linecolor=4'
-    for k in range(0, len(nham_unsure)):
-        print '%d %d' % (k, nham_unsure[k])
-    print
-    print '% linetype=1 linelabel="spam_tested" markertype=0 linecolor=5'
-    for k in range(0, len(nspam_tested)):
-        print '%d %d' % (k, nspam_tested[k])
-    print
-    print '% linetype=1 linelabel="spam_trained" markertype=0 linecolor=6'
-    for k in range(0, len(nspam_trained)):
-        print '%d %d' % (k, nspam_trained[k])
-    print
-    print '% linetype=1 linelabel="spam_right" markertype=0 linecolor=7'
-    for k in range(0, len(nspam_right)):
-        print '%d %d' % (k, nspam_right[k])
-    print
-    print '% linetype=1 linelabel="spam_wrong" markertype=0 linecolor=8'
-    for k in range(0, len(nspam_wrong)):
-        print '%d %d' % (k, nspam_wrong[k])
-    print
-    print '% linetype=1 linelabel="spam_unsure" markertype=0 linecolor=9'
-    for k in range(0, len(nspam_unsure)):
-        print '%d %d' % (k, nspam_unsure[k])
-    print
-    
-    print '$ Data=Curve2d name="Set %s Cumulative Error Rates"' % set
-    print '% linetype=1 linelabel="fp" markertype=0 linecolor=0'
-    for k in range(0, len(nham_wrong)):
-        print '%d %f' % (k, (nham_wrong[k] * 1.0 / (nham_tested[k] or 1)))
-    print
-    print '% linetype=1 linelabel="fn" markertype=0 linecolor=1'
-    for k in range(0, len(nspam_wrong)):
-        print '%d %f' % (k, (nspam_wrong[k] * 1.0 / (nspam_tested[k] or 1)))
-    print
-    print '% linetype=1 linelabel="fn" markertype=0 linecolor=2'
-    for k in range(0, len(nspam_unsure)):
-        print '%d %f' % (k, ((nspam_unsure[k] + nham_unsure[k]) * 1.0 /
-                             ((nspam_tested[k] + nham_tested[k]) or 1)))
-    print
+    if span:
+        title = "%d-Day Average" % span
+    else:
+        title = "Cumulative"
+
+    if report == "counts":
+        print '$ Data=Curve2d name="%s Counts"' % (title)
+        print '% linetype=1 linelabel="ham_tested" markertype=0 linecolor=0'
+        line(nham_tested)
+        print '% linetype=1 linelabel="ham_trained" markertype=0 linecolor=1'
+        line(nham_trained)
+        print '% linetype=1 linelabel="ham_right" markertype=0 linecolor=2'
+        line(nham_right)
+        print '% linetype=1 linelabel="ham_wrong" markertype=0 linecolor=3'
+        line(nham_wrong)
+        print '% linetype=1 linelabel="ham_unsure" markertype=0 linecolor=4'
+        line(nham_unsure)
+        print '% linetype=1 linelabel="spam_tested" markertype=0 linecolor=5'
+        line(nspam_tested)
+        print '% linetype=1 linelabel="spam_trained" markertype=0 linecolor=6'
+        line(nspam_trained)
+        print '% linetype=1 linelabel="spam_right" markertype=0 linecolor=7'
+        line(nspam_right)
+        print '% linetype=1 linelabel="spam_wrong" markertype=0 linecolor=8'
+        line(nspam_wrong)
+        print '% linetype=1 linelabel="spam_unsure" markertype=0 linecolor=9'
+        line(nspam_unsure)
+   
+    if report == "error": 
+        print '$ Data=Curve2d'
+        print '% toplabel="%s Error Rates"' % (title)
+        print '% ymax=5'
+        print '% xlabel="Days"'
+        print '% ylabel="Percent"'
+        print '% linetype=1 linelabel="fp" markertype=0 linecolor=0'
+        for k in range(0, len(nham_wrong)):
+            n = nham_wrong[k]
+            d = nham_tested[k]
+            if span and k - span >= 0:
+                n -= nham_wrong[k - span]
+                d -= nham_tested[k - span]
+            print '%d %f' % (k, (n * 100.0 / (d or 1)))
+        print
+        print '% linetype=1 linelabel="fn" markertype=0 linecolor=1'
+        for k in range(0, len(nspam_wrong)):
+            n = nspam_wrong[k]
+            d = nspam_tested[k]
+            if span and k - span >= 0:
+                n -= nspam_wrong[k - span]
+                d -= nspam_tested[k - span]
+            print '%d %f' % (k, (n * 100.0 / (d or 1)))
+        print
+        print '% linetype=1 linelabel="unsure" markertype=0 linecolor=2'
+        for k in range(0, len(nspam_unsure)):
+            n = nham_unsure[k] + nspam_unsure[k]
+            d = nham_tested[k] + nspam_tested[k]
+            if span and k - span >= 0:
+                n -= nham_unsure[k - span] + nspam_unsure[k - span]
+                d -= nham_tested[k - span] + nspam_tested[k - span]
+            print '%d %f' % (k, (n * 100.0 / (d or 1)))
+        print
 
     set = ""
     nham_tested = []
@@ -98,6 +119,8 @@ def outputset():
     nspam_unsure = []
 
 def main():
+    global report
+    global span
     global set
     global nham_tested
     global nham_trained
@@ -110,13 +133,23 @@ def main():
     global nspam_wrong
     global nspam_unsure
 
+    opts, args = getopt.getopt(sys.argv[1:], 's:r:')
+    for opt, arg in opts:
+        if opt == '-s':
+            span = int(arg)
+        if opt == '-r':
+            report = arg
+
+    if report not in ("error", "counts"):
+        print >> sys.stderr, "Unrecognized report type"
+        sys.exit(1)
+
     while 1:
         line = sys.stdin.readline()
         if line == "":
             break
         if line.endswith("\n"):
             line = line[:-1]
-        print "# " + line
         if line.startswith("Set "):
             outputset()
             set = line[4:]

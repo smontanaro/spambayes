@@ -19,5 +19,5 @@ unsure rate < n
 
 
 graphing:
-separate files for each graph
-cumulative vs span totals
+separate files for each graph -- DONE
+cumulative vs span totals -- DONE
