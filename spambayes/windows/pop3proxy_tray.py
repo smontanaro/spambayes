@@ -42,6 +42,7 @@ import win32con
 from win32api import *
 from win32gui import *
 from win32api import error as win32api_error
+from win32service import *
 
 # If we are not running in a console, redirect all print statements to the
 # win32traceutil collector.
@@ -101,6 +102,9 @@ from spambayes.Options import options
 WM_TASKBAR_NOTIFY = win32con.WM_USER + 20
 
 START_STOP_ID = 1024
+runningStatus = (SERVICE_START_PENDING, SERVICE_RUNNING, SERVICE_CONTINUE_PENDING)
+stoppedStatus = (SERVICE_PAUSED, SERVICE_STOP_PENDING, SERVICE_STOPPED)
+serviceName = "pop3proxy"
 
 class MainWindow(object):
     def __init__(self):
@@ -112,8 +116,8 @@ class MainWindow(object):
                                   1025 : ("-", None),
                                   1026 : ("View information ...", self.OpenInterface),
                                   1027 : ("Configure ...", self.OpenConfig),
-                                  1027 : ("Check for latest version", self.CheckVersion),
-                                  1028 : ("-", None),
+                                  1028 : ("Check for latest version", self.CheckVersion),
+                                  1029 : ("-", None),
                                   1099 : ("Exit SpamBayes", self.OnExit),
                                   }
         message_map = {
@@ -121,6 +125,8 @@ class MainWindow(object):
             win32con.WM_COMMAND: self.OnCommand,
             WM_TASKBAR_NOTIFY : self.OnTaskbarNotify,
         }
+        self.use_service = True
+        #self.use_service = False
 
         # Create the Window.
         hinst = GetModuleHandle(None)
@@ -159,40 +165,152 @@ class MainWindow(object):
                                           0, icon_flags)
 
         flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
-        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, "SpamBayes")
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, 
+            "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
         self.started = False
         self.tip = None
+      
+        try:
+            if self.use_service and self.IsServiceAvailable():
+                if self.GetServiceStatus() in runningStatus:
+                    self.started = True
+            else:
+                print "Service not availible. Using thread."
+                self.use_service = False
+                self.started = False
+        except:
+            print "Usage of service failed. Reverting to thread."
+            self.use_service = False
+            self.started = False
 
         # Start up sb_server
         # XXX This needs to be finished off.
         # XXX This should determine if we are using the service, and if so
         # XXX start that, and if not kick sb_server off in a separate thread.
-        sb_server.prepare(state=sb_server.state)
-        self.StartStop()
+        if not self.use_service:
+            sb_server.prepare(state=sb_server.state)
+        if not self.started:
+            self.StartStop()
 
     def BuildToolTip(self):
         tip = None
-        if self.started == True:
-            #%i spam %i unsure %i session %i active
-            tip = "SpamBayes %i spam %i ham %i unsure %i sessions %i active" %\
-            (sb_server.state.numSpams, sb_server.state.numHams, sb_server.state.numUnsure,
-             sb_server.state.totalSessions, sb_server.state.activeSessions)
+        if self.started:
+            if self.use_service:
+                tip = "SpamBayes running."
+            else:
+                tip = "SpamBayes %i spam %i ham %i unsure %i sessions %i active" %\
+                      (sb_server.state.numSpams, sb_server.state.numHams,
+                       sb_server.state.numUnsure, sb_server.state.totalSessions,
+                       sb_server.state.activeSessions)
         else:
             tip = "SpamBayes is not running"
         return tip
             
 
-    def UpdateIcon(self, hicon=None):
-        flags = NIF_TIP
-        if hicon is not None:
-            flags |= NIF_ICON
+    def UpdateIcon(self):
+        flags = NIF_TIP | NIF_ICON
+        if self.started:
+            hicon = self.hstartedicon 
         else:
-            hicon = 0
+            hicon = self.hstoppedicon
         self.tip = self.BuildToolTip()
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, self.tip)
         Shell_NotifyIcon(NIM_MODIFY, nid)
 
+    def IsServiceAvailable(self):
+        schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
+        schService   = OpenService(schSCManager, serviceName,
+                                   SERVICE_QUERY_STATUS)
+        if schService:
+            CloseServiceHandle(schService)
+        return schService != None
+
+    def GetServiceStatus(self):
+        schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
+        schService   = OpenService(schSCManager, serviceName,
+                                   SERVICE_QUERY_STATUS)
+        ssStatus     = QueryServiceStatus(schService)
+        CloseServiceHandle(schService)
+        return ssStatus[1]
+
+    def StartService(self):
+        schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
+        schService   = OpenService(schSCManager, serviceName, SERVICE_START |
+                                   SERVICE_QUERY_STATUS)
+        # we assume IsServiceAvailable() was called before
+        ssStatus     = QueryServiceStatus(schService)
+        if ssStatus[1] in runningStatus:
+            self.started = True
+            CloseServiceHandle(schService)
+            return
+
+        StartService(schService, None)
+
+        ssStatus         = QueryServiceStatus(schService)
+        dwStartTickCount = GetTickCount()
+        dwOldCheckPoint  = ssStatus[5]
+
+        while ssStatus[1] == SERVICE_START_PENDING:
+            dwWaitTime = ssStatus[6] / 10;
+
+            if dwWaitTime < 1000:
+                dwWaitTime = 1000
+            elif dwWaitTime > 10000:
+                dwWaitTime = 10000
+    
+            Sleep(dwWaitTime);
+            ssStatus = QueryServiceStatus(schService)
+     
+            if ssStatus[5] > dwOldCheckPoint:
+                dwStartTickCount = GetTickCount()
+                dwOldCheckPoint = ssStatus[5]
+            else:
+                if GetTickCount() - dwStartTickCount > ssStatus[6]:
+                    break
+
+        self.started = ssStatus[1] == SERVICE_RUNNING
+        CloseServiceHandle(schService)
+        self.started = True
+
+    def StopService(self):
+        schSCManager = OpenSCManager(None, None, SC_MANAGER_CONNECT)
+        schService   = OpenService(schSCManager, serviceName, SERVICE_STOP |
+                                   SERVICE_QUERY_STATUS)
+        # we assume IsServiceAvailable() was called before
+        ssStatus     = QueryServiceStatus(schService)
+        if ssStatus[1] in stoppedStatus:
+            self.started = False
+            CloseServiceHandle(schService)
+            return
+        
+        ControlService(schService, SERVICE_CONTROL_STOP)
+
+        ssStatus         = QueryServiceStatus(schService)
+        dwStartTickCount = GetTickCount()
+        dwOldCheckPoint  = ssStatus[5]
+
+        while ssStatus[1] == SERVICE_STOP_PENDING:
+            dwWaitTime = ssStatus[6] / 10;
+
+            if dwWaitTime < 1000:
+                dwWaitTime = 1000
+            elif dwWaitTime > 10000:
+                dwWaitTime = 10000
+    
+            Sleep(dwWaitTime);
+            ssStatus = QueryServiceStatus(schService)
+     
+            if ssStatus[5] > dwOldCheckPoint:
+                dwStartTickCount = GetTickCount()
+                dwOldCheckPoint = ssStatus[5]
+            else:
+                if GetTickCount() - dwStartTickCount > ssStatus[6]:
+                    break
+
+        CloseServiceHandle(schService)
+        self.started = False
+        
     def OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
         Shell_NotifyIcon(NIM_DELETE, nid)
@@ -238,7 +356,7 @@ class MainWindow(object):
         function()
 
     def OnExit(self):
-        if self.started:
+        if self.started and not self.use_service:
             sb_server.stop(sb_server.state)
             self.started = False
         DestroyWindow(self.hwnd)
@@ -254,26 +372,41 @@ class MainWindow(object):
         # XXX This should determine if we are using the service, and if so
         # XXX start/stop that, and if not kick sb_server off in a separate
         # XXX thread, or stop the thread that was started.
-        if self.started:
-            sb_server.stop(sb_server.state)
-            self.started = False
-            self.control_functions[START_STOP_ID] = ("Start SpamBayes",
-                                                     self.StartStop)
-            self.UpdateIcon(self.hstoppedicon)
+        if self.use_service:
+            if self.GetServiceStatus() in stoppedStatus:
+                self.StartService()
+            else:
+                self.StopService()
         else:
-            self.StartProxyThread()
+            if self.started:
+                sb_server.stop(sb_server.state)
+                self.started = False
+            else:
+                self.StartProxyThread()
+        self.UpdateIcon()
+        if self.started:
             self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
                                                      self.StartStop)
-            self.UpdateIcon(self.hstartedicon)
+        else:
+            self.control_functions[START_STOP_ID] = ("Start SpamBayes",
+                                         self.StartStop)
+
+
 
     def OpenInterface(self):
-        webbrowser.open_new("http://localhost:%d/" % \
-                            (options["html_ui", "port"],))
+        if self.started:
+            webbrowser.open_new("http://localhost:%d/" % \
+                                (options["html_ui", "port"],))
+        else:
+            self.ShowMessage("SpamBayes is not running.")
 
     def OpenConfig(self):		
-        webbrowser.open_new("http://localhost:%d/config" % \
-                            (options["html_ui", "port"],))
-
+        if self.started:
+            webbrowser.open_new("http://localhost:%d/config" % \
+                                (options["html_ui", "port"],))
+        else:
+            self.ShowMessage("SpamBayes is not running.")
+            
     def CheckVersion(self):
         # Stolen, with few modifications, from addin.py
         from spambayes.Version import get_version_string, \
@@ -298,16 +431,19 @@ class MainWindow(object):
             latest_ver_num = get_version_number(app_name, version_number_key,
                                                 version_dict=latest)
         except:
-            print "Error checking the latest version"
+            self.ShowMessage("Error checking the latest version")
             traceback.print_exc()
             return
 
-        print "Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num)
+        self.ShowMessage("Current version is %s, latest is %s." % (cur_ver_num, latest_ver_num))
         if latest_ver_num > cur_ver_num:
             url = get_version_string(app_name, "Download Page", version_dict=latest)
             # Offer to open up the url
 ##                os.startfile(url)
       
+    def ShowMessage(self, msg):
+        MessageBox(self.hwnd, msg, "SpamBayes", win32con.MB_OK)
+
 
 def main():
 	w = MainWindow()
