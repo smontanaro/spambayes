@@ -1010,6 +1010,14 @@ class CommentStripper(Stripper):
 
 crack_html_comment = CommentStripper().analyze
 
+# Nuke stuff between <noframes> </noframes> tags.
+class NoframesStripper(Stripper):
+    def __init__(self):
+        Stripper.__init__(self,
+                          re.compile(r"<\s*noframes\s*>").search,
+                          re.compile(r"</noframes\s*>").search)
+
+crack_noframes = NoframesStripper().analyze
 
 # Scan HTML for constructs often seen in viruses and worms.
 # <script  </script
@@ -1391,7 +1399,8 @@ class Tokenizer:
             for cracker in (crack_uuencode,
                             crack_urls,
                             crack_html_style,
-                            crack_html_comment):
+                            crack_html_comment,
+                            crack_noframes):
                 text, tokens = cracker(text)
                 for t in tokens:
                     yield t
