@@ -151,7 +151,7 @@ class BNRequest(SocketServer.StreamRequestHandler):
         msg = mboxutils.get_message(body)
         for action in actions:
             action(msg)
-        return msg.as_string(1)
+        return mboxutils.as_string(msg, 1)
 
 
 def make_HammieFilter():
