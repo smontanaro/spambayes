@@ -217,7 +217,7 @@ defaults = {
         """""",
         BOOLEAN, RESTORE),
     # Options that allow the filtering to be done by a timer.
-    ("timer_enabled", "Should items be filtered by a timer?", False,
+    ("timer_enabled", "Should items be filtered by a timer?", True,
         """Depending on a number of factors, SpamBayes may occasionally miss
         messages or conflict with builtin Outlook rules.  If this option
         is set, SpamBayes will filter all messages in the background.  This
