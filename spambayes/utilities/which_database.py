@@ -30,7 +30,13 @@ from spambayes.Options import options
 import dumbdbm
 import dbhash
 import whichdb
-import bsddb3
+try:
+    import bsddb
+except ImportError:
+    try:
+        import bsddb3 as bsddb
+    except ImportError:
+        bsddb = None
 
 def main():
     print "Pickle is available."
@@ -52,14 +58,17 @@ def main():
     else:
         print "Dbhash is not available."
 
-    db = bsddb3.hashopen("bsddb3", "c")
-    db["1"] = "1"
-    db.close()
-    str = whichdb.whichdb("bsddb3")
-    if str == "dbhash":
-        print "Bsddb3 is available."
+    if bsddb is None:
+        str = ""
     else:
-        print "Bsddb3 is not available."
+        db = bsddb.hashopen("bsddb3", "c")
+        db["1"] = "1"
+        db.close()
+        str = whichdb.whichdb("bsddb3")
+    if str == "dbhash":
+        print "Bsddb[3] is available."
+    else:
+        print "Bsddb[3] is not available."
 
     print
 
