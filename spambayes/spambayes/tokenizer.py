@@ -911,6 +911,9 @@ class Stripper(object):
             tokens.extend(self.tokenize(m))
             m = self.find_end(text, end)
             if not m:
+                # No matching end - act as if the open
+                # tag did not exist.
+                pushretained(text[start:])                
                 break
             dummy, i = m.span()
         return self.separator.join(retained), tokens
