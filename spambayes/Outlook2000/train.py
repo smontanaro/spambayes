@@ -142,6 +142,8 @@ def trainer(mgr, progress, rebuild, rescore = True):
         config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
         import filter
         filter.filterer(mgr, progress)
+    progress.set_status("Saving training database...")
+    mgr.Save()
 
 def main():
     import manager
