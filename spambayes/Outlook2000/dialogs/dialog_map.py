@@ -429,6 +429,7 @@ dialog_map = {
         ),
     # All the wizards
     "IDD_WIZARD": (
+        (ImageProcessor,          "IDC_WIZ_GRAPHIC"),
         (CloseButtonProcessor,  "IDCANCEL"),
         (wiz.ConfigureWizardProcessor, "IDC_FORWARD_BTN IDC_BACK_BTN IDC_PAGE_PLACEHOLDER",
          """IDD_WIZARD_WELCOME IDD_WIZARD_FOLDERS_WATCH IDD_WIZARD_FOLDERS_REST
