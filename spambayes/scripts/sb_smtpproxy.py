@@ -142,8 +142,8 @@ from spambayes.message import sbheadermessage_from_string
 from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
-from pop3proxy import _addressPortStr, ServerLineReader
-from pop3proxy import _addressAndPort
+from sb_server import _addressPortStr, ServerLineReader
+from sb_server import _addressAndPort
 
 class SMTPProxyBase(Dibbler.BrighterAsyncChat):
     """An async dispatcher that understands SMTP and proxies to a SMTP

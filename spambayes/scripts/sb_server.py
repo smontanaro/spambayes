@@ -559,8 +559,8 @@ class State:
 
         self.servers = []
         self.proxyPorts = []
-        if options["pop3proxy", "servers"]:
-            for server in options["pop3proxy", "servers"]:
+        if options["pop3proxy", "remote_servers"]:
+            for server in options["pop3proxy", "remote_servers"]:
                 server = server.strip()
                 if server.find(':') > -1:
                     server, port = server.split(':', 1)
@@ -568,8 +568,8 @@ class State:
                     port = '110'
                 self.servers.append((server, int(port)))
 
-        if options["pop3proxy", "ports"]:
-            splitPorts = options["pop3proxy", "ports"]
+        if options["pop3proxy", "listen_ports"]:
+            splitPorts = options["pop3proxy", "listen_ports"]
             self.proxyPorts = map(_addressAndPort, splitPorts)
 
         if len(self.servers) != len(self.proxyPorts):
@@ -577,7 +577,7 @@ class State:
             sys.exit()
 
         # Load up the other settings from Option.py / bayescustomize.ini
-        self.useDB = options["pop3proxy", "persistent_use_database"]
+        self.useDB = options["Storage", "persistent_use_database"]
         self.uiPort = options["html_ui", "port"]
         self.launchUI = options["html_ui", "launch_browser"]
         self.gzipCache = options["pop3proxy", "cache_use_gzip"]
@@ -610,7 +610,7 @@ class State:
         print "Loading database...",
         if self.isTest:
             self.useDB = True
-            options["pop3proxy", "persistent_storage_file"] = \
+            options["Storage", "persistent_storage_file"] = \
                         '_pop3proxy_test.pickle'   # This is never saved.
         filename = options["Storage", "persistent_storage_file"]
         filename = os.path.expanduser(filename)
@@ -738,10 +738,10 @@ def prepare(state):
     # Launch any SMTP proxies.  Note that if the user hasn't specified any
     # SMTP proxy information in their configuration, then nothing will
     # happen.
-    import smtpproxy
-    servers, proxyPorts = smtpproxy.LoadServerInfo()
-    proxyListeners.extend(smtpproxy.CreateProxies(servers, proxyPorts,
-                                                  state))
+    import sb_smtpproxy
+    servers, proxyPorts = sb_smtpproxy.LoadServerInfo()
+    proxyListeners.extend(sb_smtpproxy.CreateProxies(servers, proxyPorts,
+                                                     state))
 
     # setup info for the web interface
     state.buildServerStrings()
@@ -780,10 +780,10 @@ def run():
             state.launchUI = True
         elif opt == '-d':   # dbm file
             state.useDB = True
-            options["pop3proxy", "persistent_storage_file"] = arg
+            options["Storage", "persistent_storage_file"] = arg
         elif opt == '-D':   # pickle file
             state.useDB = False
-            options["pop3proxy", "persistent_storage_file"] = arg
+            options["Storage", "persistent_storage_file"] = arg
         elif opt == '-p':   # dead option
             print >>sys.stderr, "-p option is no longer supported, use -D\n"
             print >>sys.stderr, __doc__
