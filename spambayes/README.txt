@@ -228,6 +228,7 @@ Data/
         Set9/            ""
         Set9/            ""
         Set10/           ""
+	reservoir/ (contains "backup spam")
     Ham/
         Set1/ (contains 2000 ham .txt files)
         Set2/            ""
@@ -242,16 +243,18 @@ Data/
         reservoir/ (contains "backup ham")
 
 Every file at the deepest level is used (not just files with .txt
-extenstions).  The files may bot don't need to have a "Unix From"
+extensions).  The files don't need to have a "Unix From"
 header before the RFC-822 message (i.e. a line of the form "From
 <address> <date>").
 
 If you use the same names and structure, huge mounds of the tedious testing
 code will work as-is.  The more Set directories the merrier, although you
-want at least a few hundred messages in each one.  The "reservoir" directory
-contains a few thousand other random hams.  When a ham is found that's
-really spam, move into a spam directory, and then the rebal.py utility
-moves in a random message from the reservoir to replace it.
+want at least a few hundred messages in each one.  The "reservoir"
+directories contain a few thousand other random hams and spams.  When a ham
+is found that's really spam, move it into a spam directory, then use the
+rebal.py utility to rebalance the Set directories moving random message(s)
+into and/or out of the reservoir directories.  The reverse works as well
+(finding ham in your spam directories).
 
 The hams are 20,000 msgs selected at random from a python-list archive.
 The spams are essentially all of Bruce Guenter's 2002 spam archive:
