@@ -7,6 +7,12 @@ from opt_processors import *
 
 from dialogs import ShowDialog, MakePropertyPage
 
+try:
+    enumerate
+except NameError:   # enumerate new in 2.3
+    def enumerate(seq):
+        return [(i, seq[i]) for i in xrange(len(seq))]
+
 # "dialog specific" processors:
 class VersionStringProcessor(ControlProcessor):
     def Init(self):
