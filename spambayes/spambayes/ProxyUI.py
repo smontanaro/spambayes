@@ -461,7 +461,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         from Options import options
 
         # Recreate the state.
-        self.state_recreator()
+        state = self.state_recreator()
 
     def verifyInput(self, parms):
         '''Check that the given input is valid.'''

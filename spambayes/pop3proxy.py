@@ -660,6 +660,7 @@ def _recreateState():
         proxy.close()
     del proxyListeners[:]
     _createProxies(state.servers, state.proxyPorts)
+    return state
 
 def main(servers, proxyPorts, uiPort, launchUI):
     """Runs the proxy forever or until a 'KILL' command is received or
