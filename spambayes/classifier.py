@@ -482,6 +482,8 @@ class GrahamBayes(object):
 
     # XXX More stuff should be reworked to use this as a helper function.
     def _getclues(self, wordstream):
+        mindist = options.robinson_minimum_prob_strength
+
         # A priority queue to remember the MAX_DISCRIMINATORS best
         # probabilities, where "best" means largest distance from 0.5.
         # The tuples are (distance, prob, word, record).
@@ -499,7 +501,7 @@ class GrahamBayes(object):
                 prob = record.spamprob
 
             distance = abs(prob - 0.5)
-            if distance > smallest_best:
+            if distance >= mindist and distance > smallest_best:
                 heapreplace(nbest, (distance, prob, word, record))
                 smallest_best = nbest[0][0]
 
@@ -763,21 +765,19 @@ class GrahamBayes(object):
                 prob = long(ldexp(prob, 64))
                 sum += prob
                 sumsq += prob * prob
+
         n = len(seen)
+        mean = ldexp(sum, -64) / n
+        var = sumsq * n - sum**2
+        var = ldexp(var, -128) / n**2
 
         if is_spam:
             self.spamn, self.spamsum, self.spamsumsq = n, sum, sumsq
-            spamsum = self.spamsum
-            self.spammean = ldexp(spamsum, -64) / self.spamn
-            spamvar = self.spamsumsq * self.spamn - spamsum**2
-            self.spamvar = ldexp(spamvar, -128) / (self.spamn ** 2)
+            self.spammean, self.spamvar = mean, var
             print 'spammean', self.spammean, 'spamvar', self.spamvar
         else:
             self.hamn, self.hamsum, self.hamsumsq = n, sum, sumsq
-            hamsum = self.hamsum
-            self.hammean = ldexp(hamsum, -64) / self.hamn
-            hamvar = self.hamsumsq * self.hamn - hamsum**2
-            self.hamvar = ldexp(hamvar, -128) / (self.hamn ** 2)
+            self.hammean, self.hamvar = mean, var
             print 'hammean', self.hammean, 'hamvar', self.hamvar
 
     if options.use_central_limit2:
