@@ -964,14 +964,15 @@ class Tokenizer:
     def tokenize_body(self, msg):
         """Generate a stream of tokens from an email Message.
 
-        If a multipart/alternative section has both text/plain and text/html
-        sections, the text/html section is ignored.  This may not be a good
-        idea (e.g., the sections may have different content).
-
         HTML tags are always stripped from text/plain sections.
-
         options.retain_pure_html_tags controls whether HTML tags are
-        also stripped from text/html sections.
+        also stripped from text/html sections.  Except in special cases,
+        it's recommended to leave that at its default of false.
+
+        If a multipart/alternative section has both text/plain and text/html
+        sections, options.ignore_redundant_html controls whether the HTML
+        part is ignored.  Except in special cases, it's recommended to
+        leave that at its default of false.
         """
 
         # Find, decode (base64, qp), and tokenize textual parts of the body.
