@@ -3,11 +3,11 @@
 ;
 
 [Setup]
-AppName=Spambayes
-AppVerName=Spambayes 1.0a6
-AppVersion=1.0a6
-DefaultDirName={pf}\Spambayes
-DefaultGroupName=Spambayes
+AppName=SpamBayes
+AppVerName=SpamBayes 1.1a1
+AppVersion=1.1a1
+DefaultDirName={pf}\SpamBayes
+DefaultGroupName=SpamBayes
 OutputDir=.
 OutputBaseFilename=SpamBayes-Setup
 ShowComponentSizes=no
@@ -17,29 +17,34 @@ ShowComponentSizes=no
 ;InfoBeforeFile=installation_notes.rtf
 [Files]
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
+Source: "py2exe\dist\bin\python23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\pythoncom23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\PyWinTypes23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
-Source: "py2exe\dist\outlook\spambayes_addin.dll"; DestDir: "{app}\outlook"; Check: InstallingOutlook; Flags: ignoreversion regserver
-Source: "py2exe\dist\outlook\docs\welcome.html"; DestDir: "{app}\outlook\docs"; Check: InstallingOutlook; Flags: isreadme
-Source: "py2exe\dist\outlook\*.*"; DestDir: "{app}\outlook"; Check: InstallingOutlook; Flags: ignoreversion recursesubdirs
+Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion regserver
+Source: "py2exe\dist\bin\outlook_dump_props.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
+Source: "py2exe\dist\docs\outlook\*.*"; DestDir: "{app}\docs\outlook"; Check: InstallingOutlook; Flags: ignoreversion recursesubdirs
 
-Source: "py2exe\dist\proxy\*.*"; DestDir: "{app}\proxy"; Check: InstallingProxy; Flags: ignoreversion recursesubdirs
-Source: "py2exe\dist\proxy\readme_proxy.html"; DestDir: "{app}\proxy"; Check: InstallingProxy; Flags: isreadme
+Source: "py2exe\dist\bin\sb_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
+Source: "py2exe\dist\bin\sb_tray.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
+Source: "py2exe\dist\bin\sb_upload.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
+Source: "py2exe\dist\docs\sb_server\readme_proxy.html"; DestDir: "{app}\docs\sb_server"; Check: InstallingProxy; Flags: isreadme
 
 [Tasks]
 Name: startup; Description: "Execute SpamBayes each time Windows starts";
 Name: desktop; Description: "Add an icon to the desktop"; Flags: unchecked;
 
 [Run]
-FileName:"{app}\proxy\pop3proxy_tray.exe"; Description: "Start the server now"; Flags: postinstall skipifdoesntexist nowait
+FileName:"{app}\bin\sb_tray.exe"; Description: "Start the server now"; Flags: postinstall skipifdoesntexist nowait
 
 [Icons]
-Name: "{group}\SpamBayes Tray Icon"; Filename: "{app}\proxy\pop3proxy_tray.exe"; Check: InstallingProxy
-Name: "{userdesktop}\SpamBayes Tray Icon"; Filename: "{app}\proxy\pop3proxy_tray.exe"; Check: InstallingProxy; Tasks: desktop
-Name: "{userstartup}\SpamBayes Tray Icon"; Filename: "{app}\proxy\pop3proxy_tray.exe"; Check: InstallingProxy; Tasks: startup
-Name: "{group}\About SpamBayes"; Filename: "{app}\proxy\readme_proxy.html"; Check: InstallingProxy;
+Name: "{group}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy
+Name: "{userdesktop}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy; Tasks: desktop
+Name: "{userstartup}\SpamBayes Tray Icon"; Filename: "{app}\bin\sb_tray.exe"; Check: InstallingProxy; Tasks: startup
+Name: "{group}\About SpamBayes"; Filename: "{app}\docs\sb_server\readme_proxy.html"; Check: InstallingProxy;
 
-Name: "{group}\SpamBayes Outlook Addin\About SpamBayes"; Filename: "{app}\outlook\about.html"; Check: InstallingOutlook
-Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\outlook\docs\troubleshooting.html"; Check: InstallingOutlook
+Name: "{group}\SpamBayes Outlook Addin\About SpamBayes"; Filename: "{app}\docs\outlook\about.html"; Check: InstallingOutlook
+Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\docs\outlook\docs\troubleshooting.html"; Check: InstallingOutlook
 
 [UninstallDelete]
 
