@@ -65,17 +65,20 @@ def _FindFolderEID(name):
     return folder_eid
 
 # Also in new versions of mapituil
-def GetAllProperties(obj, make_tag_names = True):
+def GetAllProperties(obj, make_pretty = True):
     tags = obj.GetPropList(0)
     hr, data = obj.GetProps(tags)
     ret = []
     for tag, val in data:
-        if make_tag_names:
+        if make_pretty:
             hr, tags, array = obj.GetNamesFromIDs( (tag,) )
             if type(array[0][1])==type(u''):
                 name = array[0][1]
             else:
                 name = mapiutil.GetPropTagName(tag)
+            # pretty value transformations
+            if PROP_TYPE(tag)==PT_ERROR:
+                val = mapiutil.GetScodeString(val)
         else:
             name = tag
         ret.append((name, val))
