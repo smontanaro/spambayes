@@ -176,14 +176,15 @@ def make_socket(server_options, file):
             elif e[0] == errno.ECONNREFUSED:
                 # socket file exists but noone listening.
                 refused_count += 1
-                if refused_count == 2:
-                    # This is the second time we havent been able to connect. Maybe that socket
-                    # file has got orphaned. remove it, wait, and try again
+                if refused_count == 6:
+                    # We have been waiting ages and still havent been able to connect. Maybe that socket
+                    # file has got orphaned. remove it, wait, and try again. We need to allow 
+                    # enough time for sb_bnserver to initialise the rest of spambayes
                     try:
                         os.unlink(file)
                     except EnvironmentError:
                         pass
-                elif refused_count>2:
+                elif refused_count>6:
                     raise
             else:
                 raise # some other problem
