@@ -184,6 +184,10 @@ class WordInfo(object):
                  'killcount', # # of times this made it to spamprob()'s nbest
                  'spamprob',  # prob(spam | msg contains this word)
                 )
+
+    # Invariant:  For use in a classifier database, at least one of
+    # spamcount and hamcount must be non-zero.
+    #
     # (*)atime is the last access time, a UTC time.time() value.  It's the
     # most recent time this word was used by scoring (i.e., by spamprob(),
     # not by training via learn()); or, if the word has never been used by
