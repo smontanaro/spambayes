@@ -113,6 +113,7 @@ generate_long_skips: True
 
 # Try to capitalize on mail sent to multiple similar addresses.
 summarize_email_prefixes: False
+summarize_email_suffixes: False
 
 #
 # Length of words that triggers 'long skips'. Longer than this
@@ -405,6 +406,7 @@ all_options = {
                   'record_header_absence': boolean_cracker,
                   'generate_long_skips': boolean_cracker,
                   'summarize_email_prefixes': boolean_cracker,
+                  'summarize_email_suffixes': boolean_cracker,
                   'skip_max_word_size': int_cracker,
                   'extract_dow': boolean_cracker,
                   'generate_time_buckets': boolean_cracker,
