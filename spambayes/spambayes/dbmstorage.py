@@ -46,7 +46,7 @@ open_funcs = {
     }
 
 def open(*args):
-    dbm_type = options.dbm_type.lower()
+    dbm_type = options["globals", "dbm_type"].lower()
     f = open_funcs.get(dbm_type)
     if not f:
         raise error("Unknown dbm type in options file")

@@ -45,7 +45,7 @@ except NameError:
     True, False = 1, 0
 
 
-def printhist(tag, ham, spam, nbuckets=options.nbuckets):
+def printhist(tag, ham, spam, nbuckets=options["TestDriver", "nbuckets"]):
     print
     print "-> <stat> Ham scores for", tag,
     ham.display(nbuckets)
@@ -54,7 +54,7 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
     print "-> <stat> Spam scores for", tag,
     spam.display(nbuckets)
 
-    if not options.compute_best_cutoffs_from_histograms:
+    if not options["TestDriver", "compute_best_cutoffs_from_histograms"]:
         return
     if ham.n == 0 or spam.n == 0:
         return
@@ -69,9 +69,9 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
     # and every ham is a false positive.
     assert ham.nbuckets == spam.nbuckets
     n = ham.nbuckets
-    FPW = options.best_cutoff_fp_weight
-    FNW = options.best_cutoff_fn_weight
-    UNW = options.best_cutoff_unsure_weight
+    FPW = options["TestDriver", "best_cutoff_fp_weight"]
+    FNW = options["TestDriver", "best_cutoff_fn_weight"]
+    UNW = options["TestDriver", "best_cutoff_unsure_weight"]
 
     # Get running totals:  {h,s}total[i] is # of ham/spam below bucket i
     htotal = [0] * (n+1)
@@ -136,8 +136,8 @@ def printmsg(msg, prob, clues):
         print "prob(%r) = %g" % clue
     print
     guts = str(msg)
-    if options.show_charlimit > 0:
-        guts = guts[:options.show_charlimit]
+    if options["TestDriver", "show_charlimit"] > 0:
+        guts = guts[:options["TestDriver", "show_charlimit"]]
     print guts
 
 
@@ -180,7 +180,7 @@ class Driver:
         print nham - c.nham, "hams &", nspam - c.nspam, "spams"
 
     def finishtest(self):
-        if options.show_histograms:
+        if options["TestDriver", "show_histograms"]:
             printhist("all in this training set:",
                       self.trained_ham_hist, self.trained_spam_hist)
         self.global_ham_hist += self.trained_ham_hist
@@ -189,8 +189,8 @@ class Driver:
         self.trained_spam_hist = Hist()
 
         self.ntimes_finishtest_called += 1
-        if options.save_trained_pickles:
-            fname = "%s%d.pik" % (options.pickle_basename,
+        if options["TestDriver", "save_trained_pickles"]:
+            fname = "%s%d.pik" % (options["TestDriver", "pickle_basename"],
                                   self.ntimes_finishtest_called)
             print "    saving pickle to", fname
             fp = file(fname, 'wb')
@@ -198,13 +198,13 @@ class Driver:
             fp.close()
 
     def alldone(self):
-        if options.show_histograms:
+        if options["TestDriver", "show_histograms"]:
             besthamcut,bestspamcut = printhist("all runs:",
                                                self.global_ham_hist,
                                                self.global_spam_hist)
         else:
-            besthamcut = options.ham_cutoff
-            bestspamcut = options.spam_cutoff
+            besthamcut = options["Categorization", "ham_cutoff"]
+            bestspamcut = options["Categorization", "spam_cutoff"]
         nham = self.global_ham_hist.n
         nspam = self.global_spam_hist.n
         nfp = len(self.falsepos)
@@ -217,18 +217,19 @@ class Driver:
         print "-> <stat> all runs false negative %:", (nfn * 1e2 / nspam)
         print "-> <stat> all runs unsure %:", (nun * 1e2 / (nham + nspam))
         print "-> <stat> all runs cost: $%.2f" % (
-              nfp * options.best_cutoff_fp_weight +
-              nfn * options.best_cutoff_fn_weight +
-              nun * options.best_cutoff_unsure_weight)
+              nfp * options["TestDriver", "best_cutoff_fp_weight"] +
+              nfn * options["TestDriver", "best_cutoff_fn_weight"] +
+              nun * options["TestDriver", "best_cutoff_unsure_weight"])
         # Set back the options for the delayed calculations in self.cc
-        options.ham_cutoff = besthamcut
-        options.spam_cutoff = bestspamcut
+        options["Categorization", "ham_cutoff"] = besthamcut
+        options["Categorization", "spam_cutoff"] = bestspamcut
         print self.cc
 
-        if options.save_histogram_pickles:
+        if options["TestDriver", "save_histogram_pickles"]:
             for f, h in (('ham', self.global_ham_hist),
                          ('spam', self.global_spam_hist)):
-                fname = "%s_%shist.pik" % (options.pickle_basename, f)
+                fname = "%s_%shist.pik" % (options["TestDriver",
+                                                   "pickle_basename"], f)
                 print "    saving %s histogram pickle to %s" %(f, fname)
                 fp = file(fname, 'wb')
                 pickle.dump(h, fp, 1)
@@ -240,8 +241,8 @@ class Driver:
         local_ham_hist = Hist()
         local_spam_hist = Hist()
 
-        def new_ham(msg, prob, lo=options.show_ham_lo,
-                               hi=options.show_ham_hi):
+        def new_ham(msg, prob, lo=options["TestDriver", "show_ham_lo"],
+                               hi=options["TestDriver", "show_ham_hi"]):
             local_ham_hist.add(prob * 100.0)
             self.cc.ham(prob)
             if lo <= prob <= hi:
@@ -250,8 +251,8 @@ class Driver:
                 prob, clues = c.spamprob(msg, True)
                 printmsg(msg, prob, clues)
 
-        def new_spam(msg, prob, lo=options.show_spam_lo,
-                                hi=options.show_spam_hi):
+        def new_spam(msg, prob, lo=options["TestDriver", "show_spam_lo"],
+                                hi=options["TestDriver", "show_spam_hi"]):
             local_spam_hist.add(prob * 100.0)
             self.cc.spam(prob)
             if lo <= prob <= hi:
@@ -271,17 +272,17 @@ class Driver:
         print "-> <stat> false negative %:", t.false_negative_rate()
         print "-> <stat> unsure %:", t.unsure_rate()
         print "-> <stat> cost: $%.2f" % (
-               t.nham_wrong * options.best_cutoff_fp_weight +
-               t.nspam_wrong * options.best_cutoff_fn_weight +
+               t.nham_wrong * options["TestDriver", "best_cutoff_fp_weight"] +
+               t.nspam_wrong * options["TestDriver", "best_cutoff_fn_weight"] +
                (t.nham_unsure + t.nspam_unsure) *
-               options.best_cutoff_unsure_weight)
+               options["TestDriver", "best_cutoff_unsure_weight"])
 
         newfpos = Set(t.false_positives()) - self.falsepos
         self.falsepos |= newfpos
         print "-> <stat> %d new false positives" % len(newfpos)
         if newfpos:
             print "    new fp:", [e.tag for e in newfpos]
-        if not options.show_false_positives:
+        if not options["TestDriver", "show_false_positives"]:
             newfpos = ()
         for e in newfpos:
             print '*' * 78
@@ -293,7 +294,7 @@ class Driver:
         print "-> <stat> %d new false negatives" % len(newfneg)
         if newfneg:
             print "    new fn:", [e.tag for e in newfneg]
-        if not options.show_false_negatives:
+        if not options["TestDriver", "show_false_negatives"]:
             newfneg = ()
         for e in newfneg:
             print '*' * 78
@@ -305,14 +306,14 @@ class Driver:
         print "-> <stat> %d new unsure" % len(newunsure)
         if newunsure:
             print "    new unsure:", [e.tag for e in newunsure]
-        if not options.show_unsure:
+        if not options["TestDriver", "show_unsure"]:
             newunsure = ()
         for e in newunsure:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)
 
-        if options.show_histograms:
+        if options["TestDriver", "show_histograms"]:
             printhist("this pair:", local_ham_hist, local_spam_hist)
         self.trained_ham_hist += local_ham_hist
         self.trained_spam_hist += local_spam_hist

@@ -54,11 +54,18 @@ except NameError:
 
 import re
 import os
+import sys
 import types
 import socket
+import shutil
 import StringIO
 import ConfigParser
 
+# Allow for those without SpamBayes on the PYTHONPATH
+sys.path.insert(-1, os.getcwd())
+sys.path.insert(-1, os.path.dirname(os.getcwd()))
+
+from spambayes import OptionsClass
 from spambayes.Options import options, optionsPathname
 
 def move_to_next_free_port(port):
@@ -74,7 +81,12 @@ def move_to_next_free_port(port):
             s.connect(("127.0.0.1", port))
             s.close()
         except socket.error:
-            return port
+             portStr = str(port)
+             if options["pop3proxy", "listen_ports"].find(portStr) != -1 or \
+                options["smtpproxy", "listen_ports"].find(portStr) != -1:
+                 continue
+             else:
+                 return port
 
 # Let's be safe and use high ports, starting at 1110 and 1025, and going up
 # as required.
@@ -469,13 +481,188 @@ def configure_outlook_express(key):
     # be set up to work with notate_to or notate_subject?  (and set that
     # option, obviously)
 
+def configure_pegasus_mail(config_location):
+    """Configure Pegasus Mail to use the SpamBayes POP3 and SMTP proxies,
+    and configure SpamBayes to proxy the servers that Pegasus Mail was
+    connecting to."""
+
+    # We can't use ConfigParser here, as we want 'surgical' editing,
+    # so we want to use out OptionsClass.  There is the additional trouble
+    # that the Pegasus Mail config file doesn't have a section header.
+
+    pop_proxy = pop_proxy_port
+    smtp_proxy = smtp_proxy_port
+
+    for filename in os.listdir(config_location):
+        if filename.lower().startswith("pop") or filename.lower().startswith("smt"):
+            full_filename = os.path.join(config_location, filename)
+            working_filename = "%s.tmp" % (filename, )
+            shutil.copyfile(filename, working_filename)
+            c = OptionsClass.OptionsClass()
+            c.merge_file(working_filename)
+            server = "%s:%s" % (c.get("all", "host"), c.get("all", "port"))
+            if filename[:3] == "pop":
+                pop_proxy = move_to_next_free_port(pop_proxy)
+                proxy = pop_proxy
+                sect = "pop3proxy"
+            else:
+                smtp_proxy = move_to_next_free_port(smtp_proxy)
+                proxy = smtp_proxy
+                sect = "smtpproxy"
+            options[sect, "remote_servers"] += (server,)
+            options[sect, "listen_ports"] += (proxy,)
+            # Write in the new options!!
+            c.set("all", "host", "127.0.0.1")
+            c.set("all", "port", proxy)
+            c.update_file(working_filename)
+            if options["globals", "verbose"]:
+                print "[%s] Proxy %s on localhost:%s" % \
+                      (c.get("all", "title"), server, proxy)
+        elif filename.lower() == "IMAP.PM":
+            # Setup imapfilter instead.
+            pass
+
+    # Pegasus Mail has a 'weight' system for determining junk mail.
+    # The best plan would probably be to just add to this.  Something like:
+    rules_filename = os.path.join(config_location, "spambust.dat")
+    header_name = options["Headers", "classification_header_name"]
+    spam_tag = options["Headers", "header_spam_string"]
+    unsure_tag = options["Headers", "header_unsure_string"]
+    ham_tag = options["Headers", "header_ham_string"]
+    spam_weight = 500
+    ham_weight = -500
+    unsure_weight = -50 # leave judgement up to the rest of the rules
+    rule = '# SpamBayes adjustments\n' \
+           'if header "%s" contains "%s" weight %s\n' \
+           'if header "%s" contains "%s" weight %s\n' \
+           'if header "%s" contains "%s" wieght %s\n\n' % \
+           (header_name, spam_tag, spam_weight,
+            header_name, unsure_tag, unsure_weight,
+            header_name, ham_tag, ham_weight)
+    rules_file = file(rules_filename, "a")
+    rules_file.write(rule)
+    rules_file.close()
+
+def configure_pocomail():
+     import win32api
+     import win32con
+ 
+     key = "Software\\Poco Systems Inc"
+ 
+     pop_proxy  = pop_proxy_port
+     smtp_proxy = smtp_proxy_port
+ 
+     reg           = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
+     subkey_name   = "%s\\%s" % (key, win32api.RegEnumKey(reg, 0))
+     reg           = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER,
+                                           subkey_name)
+     pocomail_path = win32api.RegQueryValueEx(reg, "Path")[0]
+ 
+     pocomail_accounts_file = os.path.join(pocomail_path, "accounts.ini")
+ 
+     if os.path.exists(pocomail_accounts_file):
+         f = open(pocomail_accounts_file, "r")
+ 
+         accountName       = ""
+         pocomail_accounts = { }
+ 
+         # Builds the dictionary with all the existing accounts.
+         for line in f.readlines():
+             line = line.rstrip('\n\r')
+             if line == '':
+                 continue
+ 
+             if line[0] == '[' and line[-1] == ']':
+                 accountName = line[1:-1]
+                 pocomail_accounts[accountName] = { }
+             else:
+                 separator   = line.find('=')
+                 optionName  = line[:separator]
+                 optionValue = line[separator + 1:]
+ 
+                 if optionName == "POPServer":
+                     pop3 = optionValue.split(':')
+                     if len(pop3) == 1:
+                         pop3.append(110)
+                     server = "%s:%s" % tuple(pop3)
+ 
+                     proxy     = pop_proxy
+                     pop_proxy = move_to_next_free_port(pop_proxy)
+ 
+                     if not server in options["pop3proxy", "remote_servers"]:
+                         options["pop3proxy", "remote_servers"] += (server,)
+                         options["pop3proxy", "listen_ports"]   += (proxy,)
+                     else:
+                         serverIndex = 0
+                         for remoteServer in options["pop3proxy",
+                                                     "remote_servers"]:
+                             if remoteServer == server:
+                                 break
+                             serverIndex += 1
+                         proxy = options["pop3proxy", "listen_ports"][serverIndex]
+ 
+                     optionValue = "%s:%s" % ('localhost', proxy)
+ 
+                 pocomail_accounts[accountName][optionName] = optionValue
+ 
+         f.close()
+         f = open(pocomail_accounts_file, "w")
+         for accountName in pocomail_accounts.keys():
+             f.write('[' + accountName + ']\n')
+             for optionName, optionValue in pocomail_accounts[accountName].items():
+                 f.write("%s=%s\n" % (optionName, optionValue))
+             f.write('\n')
+         f.close()
+ 
+         options.update_file(optionsPathname)
+ 
+         # Add a filter to pocomail
+         pocomail_filters_file = os.path.join(pocomail_path, "filters.ini")
+ 
+         if os.path.exists(pocomail_filters_file):
+             f = open(pocomail_filters_file, "r")
+     
+             pocomail_filters = { }
+             filterName       = ""
+ 
+             for line in f.readlines():
+                 line = line.rstrip('\n\r')
+                 if line == '': continue
+     
+                 if line[0] == '[' and line[-1] == ']':
+                     filterName = line[1:-1]
+                     pocomail_filters[filterName] = []
+                 elif line[0] != '{':
+                     pocomail_filters[filterName].append(line)
+             f.close()
+ 
+             spamBayesFilter = 'spam,X-Spambayes-Classification,move,' \
+                               '"Junk Mail",0,0,,,0,,,move,In,0,0,,0,,,' \
+                               'move,In,0,0,,0,,,move,In,0,0,,0,,,move,' \
+                               'In,0,0,,0,,,move,In,0,0,1,0'
+             if pocomail_filters.has_key("Incoming") and \
+                spamBayesFilter not in pocomail_filters["Incoming"]:
+                    pocomail_filters["Incoming"].append(spamBayesFilter)
+ 
+             f = open(pocomail_filters_file, "w")
+             f.write('{ Filter list generated by PocoMail 3.01 (1661)' \
+                     '- Licensed Version}\n')
+             for filterName in pocomail_filters.keys():
+                 f.write('\n[' + filterName + ']\n')
+                 for filter in pocomail_filters[filterName]:
+                     f.write(filter + '\n')
+             f.close()
+
 
 if __name__ == "__main__":
+    pmail_ini_dir = "C:\\Program Files\\PMAIL\\MAIL\\ADMIN"
     # XXX This is my OE key = "S-1-5-21-95318837-410984162-318601546-13224"
     # XXX but I presume it's different for everyone?  I'll have to check on
     # XXX another machine.
     #configure_eudora(eudora_ini_dir)
     #configure_mozilla(mozilla_ini_dir)
     #configure_m2(m2_ini_dir)
-    configure_outlook_express()
+    #configure_outlook_express()
+    #configure_pocomail()
+    configure_pegasus_mail(pmail_ini_dir)
     pass

@@ -175,7 +175,7 @@ class Classifier:
         else:
             return prob
 
-    if options.use_gary_combining:
+    if options["Classifier", "use_gary_combining"]:
         spamprob = gary_spamprob
 
     # Across vectors of length n, containing random uniformly-distributed
@@ -261,7 +261,7 @@ class Classifier:
         else:
             return prob
 
-    if options.use_chi_squared_combining:
+    if options["Classifier", "use_chi_squared_combining"]:
         spamprob = chi2_spamprob
 
     def learn(self, wordstream, is_spam):
@@ -312,14 +312,14 @@ class Classifier:
 
         prob = spamratio / (hamratio + spamratio)
 
-        if options.experimental_ham_spam_imbalance_adjustment:
+        if options["Classifier", "experimental_ham_spam_imbalance_adjustment"]:
             spam2ham = min(nspam / nham, 1.0)
             ham2spam = min(nham / nspam, 1.0)
         else:
             spam2ham = ham2spam = 1.0
 
-        S = options.unknown_word_strength
-        StimesX = S * options.unknown_word_prob
+        S = options["Classifier", "unknown_word_strength"]
+        StimesX = S * options["Classifier", "unknown_word_prob"]
 
 
         # Now do Robinson's Bayesian adjustment.
@@ -446,8 +446,8 @@ class Classifier:
         pass
     
     def _getclues(self, wordstream):
-        mindist = options.minimum_prob_strength
-        unknown = options.unknown_word_prob
+        mindist = options["Classifier", "minimum_prob_strength"]
+        unknown = options["Classifier", "unknown_word_prob"]
 
         clues = []  # (distance, prob, word, record) tuples
         pushclue = clues.append
@@ -463,8 +463,8 @@ class Classifier:
                 pushclue((distance, prob, word, record))
 
         clues.sort()
-        if len(clues) > options.max_discriminators:
-            del clues[0 : -options.max_discriminators]
+        if len(clues) > options["Classifier", "max_discriminators"]:
+            del clues[0 : -options["Classifier", "max_discriminators"]]
         # Return (prob, word, record).
         return [t[1:] for t in clues]
 

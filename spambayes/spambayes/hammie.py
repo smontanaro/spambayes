@@ -43,8 +43,10 @@ class Hammie:
         return sep.join(["%r: %.2f" % (word, prob)
                          for word, prob in clues
                          if (word[0] == '*' or
-                             prob <= options.clue_mailheader_cutoff or
-                             prob >= 1.0 - options.clue_mailheader_cutoff)])
+                             prob <= options["Headers",
+                                             "clue_mailheader_cutoff"] or
+                             prob >= 1.0 - options["Headers",
+                                                   "clue_mailheader_cutoff"])])
 
     def score(self, msg, evidence=False):
         """Score (judge) a message.
@@ -86,17 +88,17 @@ class Hammie:
         """
 
         if header == None:
-            header = options.hammie_header_name
+            header = options["Headers", "classification_header_name"]
         if spam_cutoff == None:
-            spam_cutoff = options.spam_cutoff
+            spam_cutoff = options["Categorization", "spam_cutoff"]
         if ham_cutoff == None:
-            ham_cutoff = options.ham_cutoff
+            ham_cutoff = options["Categorization", "ham_cutoff"]
         if debugheader == None:
-            debugheader = options.hammie_debug_header_name
+            debugheader = options["Hammie", "debug_header_name"]
         if debug == None:
-            debug = options.hammie_debug_header
+            debug = options["Hammie", "debug_header"]
         if train == None:
-            train = options.hammie_train_on_filter
+            train = options["Hammie", "hammie_train_on_filter"]
 
         msg = mboxutils.get_message(msg)
         try:
@@ -108,17 +110,17 @@ class Hammie:
         prob, clues = self._scoremsg(msg, True)
         if prob < ham_cutoff:
             is_spam = False
-            disp = options.header_ham_string
+            disp = options["Headers", "header_ham_string"]
         elif prob > spam_cutoff:
             is_spam = True
-            disp = options.header_spam_string
+            disp = options["Headers", "header_spam_string"]
         else:
             is_spam = False
-            disp = options.header_unsure_string
+            disp = options["Headers", "header_unsure_string"]
         if train:
             self.train(msg, is_spam, True)
-        disp += ("; %."+str(options.header_score_digits)+"f") % prob
-        if options.header_score_logarithm:
+        disp += ("; %."+str(options["Headers", "header_score_digits"])+"f") % prob
+        if options["Headers", "header_score_logarithm"]:
             if prob<=0.005 and prob>0.0:
                 import math
                 x=-math.log10(prob)
@@ -150,11 +152,11 @@ class Hammie:
         self.bayes.learn(tokenize(msg), is_spam)
         if add_header:
             if is_spam:
-                trained = options.header_spam_string
+                trained = options["Headers", "header_spam_string"]
             else:
-                trained = options.header_ham_string
-            del msg[options.hammie_trained_header]
-            msg.add_header(options.hammie_trained_header, trained)
+                trained = options["Headers", "header_ham_string"]
+            del msg[options["Headers", "trained_header_name"]]
+            msg.add_header(options["Headers", "trained_header_name"], trained)
 
     def untrain(self, msg, is_spam):
         """Untrain bayes with a message.
@@ -180,17 +182,17 @@ class Hammie:
         """
 
         msg = mboxutils.get_message(msg)
-        trained = msg.get(options.hammie_trained_header)
+        trained = msg.get(options["Headers", "trained_header_name"])
         if not trained:
             return
-        del msg[options.hammie_trained_header]
-        if trained == options.header_ham_string:
+        del msg[options["Headers", "trained_header_name"]]
+        if trained == options["Headers", "header_ham_string"]:
             self.untrain_ham(msg)
-        elif trained == options.header_spam_string:
+        elif trained == options["Headers", "header_spam_string"]:
             self.untrain_spam(msg)
         else:
             raise ValueError('%s header value unrecognized'
-                             % options.hammie_trained_header)
+                             % options["Headers", "trained_header_name"])
 
     def train_ham(self, msg, add_header=False):
         """Train bayes with ham.

@@ -61,20 +61,22 @@ class TrainDecision:
 
 class UnsureAndFalses(TrainDecision):
     def spamtrain(self,scr):
-        if scr < options.spam_cutoff:
+        if scr < options["Categorization", "spam_cutoff"]:
             return TRAIN_AS_SPAM
 
     def hamtrain(self,scr):
-        if scr > options.ham_cutoff:
+        if scr > options["Categorization", "ham_cutoff"]:
             return TRAIN_AS_HAM
 
 class UnsureOnly(TrainDecision):
     def spamtrain(self,scr):
-        if options.ham_cutoff < scr < options.spam_cutoff:
+        if options["Categorization", "ham_cutoff"] < scr < \
+           options["Categorization", "spam_cutoff"]:
             return TRAIN_AS_SPAM
 
     def hamtrain(self,scr):
-        if options.ham_cutoff < scr < options.spam_cutoff:
+        if options["Categorization", "ham_cutoff"] < scr < \
+           options["Categorization", "spam_cutoff"]:
             return TRAIN_AS_HAM
 
 class All(TrainDecision):
@@ -95,9 +97,9 @@ class AllBut0and100(TrainDecision):
 
 class OwnDecision(TrainDecision):
     def hamtrain(self,scr):
-        if scr < options.ham_cutoff:
+        if scr < options["Categorization", "ham_cutoff"]:
             return TRAIN_AS_HAM
-        elif scr > options.spam_cutoff:
+        elif scr > options["Categorization", "spam_cutoff"]:
             return TRAIN_AS_SPAM
 
     spamtrain = hamtrain
@@ -145,8 +147,10 @@ class Updater:
 def drive(nsets,decision):
     print options.display()
 
-    spamdirs = [options.spam_directories % i for i in range(1, nsets+1)]
-    hamdirs  = [options.ham_directories % i for i in range(1, nsets+1)]
+    spamdirs = [options["TestDriver", "spam_directories"] % \
+                i for i in range(1, nsets+1)]
+    hamdirs  = [options["TestDriver", "ham_directories"] % \
+                i for i in range(1, nsets+1)]
 
     spamfns = [(x,y,1) for x in spamdirs for y in os.listdir(x)]
     hamfns = [(x,y,0) for x in hamdirs for y in os.listdir(x)]

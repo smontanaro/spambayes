@@ -656,7 +656,8 @@ def crack_filename(fname):
             for piece in pieces:
                 yield "fname piece:" + piece
 
-def tokenize_word(word, _len=len, maxword=options.skip_max_word_size):
+def tokenize_word(word, _len=len, maxword=options["Tokenizer",
+                                                  "skip_max_word_size"]):
     n = _len(word)
     # Make sure this range matches in tokenize().
     if 3 <= n <= maxword:
@@ -679,7 +680,7 @@ def tokenize_word(word, _len=len, maxword=options.skip_max_word_size):
             # rate, but is neutral for the f-p rate.  I don't know why!
             # XXX Figure out why, and/or see if some other way of summarizing
             # XXX this info has greater benefit.
-            if options.generate_long_skips:
+            if options["Tokenizer", "generate_long_skips"]:
                 yield "skip:%c %d" % (word[0], n // 10 * 10)
             if has_highbit_char(word):
                 hicount = 0
@@ -1069,9 +1070,10 @@ class Tokenizer:
                     "%d %b %Y %H:%M %Z")
 
     def __init__(self):
-        if options.basic_header_tokenize:
+        if options["Tokenizer", "basic_header_tokenize"]:
             self.basic_skip = [re.compile(s)
-                               for s in options.basic_header_skip]
+                               for s in options["Tokenizer",
+                                                "basic_header_skip"]]
 
     def get_message(self, obj):
         return get_message(obj)
@@ -1114,7 +1116,7 @@ class Tokenizer:
         # times, several headers with date/time information will become
         # the best discriminators.
         # (Not just Date, but Received and X-From_.)
-        if options.basic_header_tokenize:
+        if options["Tokenizer", "basic_header_tokenize"]:
             for k, v in msg.items():
                 k = k.lower()
                 for rx in self.basic_skip:
@@ -1125,7 +1127,7 @@ class Tokenizer:
                     for w in subject_word_re.findall(v):
                         for t in tokenize_word(w):
                             yield "%s:%s" % (k, t)
-            if options.basic_header_tokenize_only:
+            if options["Tokenizer", "basic_header_tokenize_only"]:
                 return
 
         # Subject:
@@ -1156,7 +1158,7 @@ class Tokenizer:
         #               # not significant), so leaving it out
         # To:, Cc:      # These can help, if your ham and spam are sourced
         #               # from the same location. If not, they'll be horrible.
-        for field in options.address_headers:
+        for field in options["Tokenizer", "address_headers"]:
             addrlist = msg.get_all(field, [])
             if not addrlist:
                 yield field + ":none"
@@ -1198,7 +1200,7 @@ class Tokenizer:
         # to yield a final token value of "pfxlen:04".  The length test
         # eliminates the bad case where the message was sent to a single
         # individual.
-        if options.summarize_email_prefixes:
+        if options["Tokenizer", "summarize_email_prefixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
             for name, addr in email.Utils.getaddresses(addresses):
@@ -1225,7 +1227,7 @@ class Tokenizer:
         #   To: "skip" <bugs@mojam.com>, <chris@mojam.com>,
         #       <concertmaster@mojam.com>, <concerts@mojam.com>,
         #       <design@mojam.com>, <rob@mojam.com>, <skip@mojam.com>
-        if options.summarize_email_suffixes:
+        if options["Tokenizer", "summarize_email_suffixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
             for name, addr in email.Utils.getaddresses(addresses):
@@ -1272,7 +1274,7 @@ class Tokenizer:
 
         # Received:
         # Neil Schemenauer reports good results from this.
-        if options.mine_received_headers:
+        if options["Tokenizer", "mine_received_headers"]:
             for header in msg.get_all("received", ()):
                 for pat, breakdown in [(received_host_re, breakdown_host),
                                        (received_ip_re, breakdown_ipaddr)]:
@@ -1282,7 +1284,7 @@ class Tokenizer:
                             yield 'received:' + tok
 
         # Date:
-        if options.generate_time_buckets:
+        if options["Tokenizer", "generate_time_buckets"]:
             for header in msg.get_all("date", ()):
                 mat = self.date_hms_re.search(header)
                 # return the time in Date: headers arranged in
@@ -1292,7 +1294,7 @@ class Tokenizer:
                     bucket = int(mat.group('minute')) // 10
                     yield 'time:%02d:%d' % (h, bucket)
 
-        if options.extract_dow:
+        if options["Tokenizer", "extract_dow"]:
             for header in msg.get_all("date", ()):
                 # extract the day of the week
                 for fmt in self.date_formats:
@@ -1323,7 +1325,7 @@ class Tokenizer:
         # For example, all-caps SUBJECT is a strong spam clue, while
         # X-Complaints-To a strong ham clue.
         x2n = {}
-        if options.count_all_header_lines:
+        if options["Tokenizer", "count_all_header_lines"]:
             for x in msg.keys():
                 x2n[x] = x2n.get(x, 0) + 1
         else:
@@ -1342,14 +1344,15 @@ class Tokenizer:
                 if not k.lower() in options["Tokenizer", "safe_headers"]:
                     yield "noheader:" + k
 
-    def tokenize_body(self, msg, maxword=options.skip_max_word_size):
+    def tokenize_body(self, msg, maxword=options["Tokenizer",
+                                                 "skip_max_word_size"]):
         """Generate a stream of tokens from an email Message.
 
         If options.check_octets is True, the first few undecoded characters
         of application/octet-stream parts of the message body become tokens.
         """
 
-        if options.check_octets:
+        if options["Tokenizer", "check_octets"]:
             # Find, decode application/octet-stream parts of the body,
             # tokenizing the first few characters of each chunk.
             for part in octetparts(msg):
@@ -1363,7 +1366,8 @@ class Tokenizer:
                     yield "control: octet payload is None"
                     continue
 
-                yield "octet:%s" % text[:options.octet_prefix_size]
+                yield "octet:%s" % text[:options["Tokenizer",
+                                                 "octet_prefix_size"]]
 
         # Find, decode (base64, qp), and tokenize textual parts of the body.
         for part in textparts(msg):
@@ -1387,7 +1391,7 @@ class Tokenizer:
             # Normalize case.
             text = text.lower()
 
-            if options.replace_nonascii_chars:
+            if options["Tokenizer", "replace_nonascii_chars"]:
                 # Replace high-bit chars and control chars with '?'.
                 text = text.translate(non_ascii_translate_tab)
 

@@ -100,7 +100,7 @@ class PickledClassifier(classifier.Classifier):
         # objects are shared between tempbayes and self, and the tiny
         # tempbayes object is reclaimed when load() returns.
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'pickle'
 
         tempbayes = None
@@ -118,13 +118,13 @@ class PickledClassifier(classifier.Classifier):
             # PickledClassifier that overrides __setstate__.
             classifier.Classifier.__setstate__(self,
                                                tempbayes.__getstate__())
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, ('%s is an existing pickle,'
                                       ' with %d ham and %d spam') \
                       % (self.db_name, self.nham, self.nspam)
         else:
             # new pickle
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name,'is a new pickle'
             self.wordinfo = {}
             self.nham = 0
@@ -133,7 +133,7 @@ class PickledClassifier(classifier.Classifier):
     def store(self):
         '''Store self as a pickle'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Persisting',self.db_name,'as a pickle'
 
         fp = open(self.db_name, 'wb')
@@ -159,7 +159,7 @@ class DBDictClassifier(classifier.Classifier):
     def load(self):
         '''Load state from database'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.dbm = dbmstorage.open(self.db_name, self.mode)
@@ -171,13 +171,13 @@ class DBDictClassifier(classifier.Classifier):
                 raise ValueError("Can't unpickle -- version %s unknown" % t[0])
             (self.nspam, self.nham) = t[1:]
 
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, ('%s is an existing database,'
                                       ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
@@ -187,7 +187,7 @@ class DBDictClassifier(classifier.Classifier):
     def store(self):
         '''Place state into persistent store'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Persisting',self.db_name,'state in database'
 
         # Iterate over our changed word list.
@@ -423,7 +423,7 @@ class PGClassifier(SQLClassifier):
 
         import psycopg
         
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.db = psycopg.connect(self.db_name)
@@ -439,13 +439,13 @@ class PGClassifier(SQLClassifier):
             row = self._get_row(self.statekey)
             self.nspam = row["nspam"]
             self.nham = row["nham"]
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, ('%s is an existing database,'
                                       ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
@@ -494,7 +494,7 @@ class mySQLClassifier(SQLClassifier):
 
         import MySQLdb
         
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.db = MySQLdb.connect(host=self.host, db=self.db_name,
@@ -511,13 +511,13 @@ class mySQLClassifier(SQLClassifier):
             row = self._get_row(self.statekey)
             self.nspam = int(row[1])
             self.nham = int(row[2])
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, ('%s is an existing database,'
                                       ' with %d spam and %d ham') \
                       % (self.db_name, self.nspam, self.nham)
         else:
             # new database
-            if options.verbose:
+            if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name,'is a new database'
             self.nspam = 0
             self.nham = 0
@@ -554,7 +554,7 @@ class Trainer:
     def train(self, message):
         '''Train the database with the message'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'training with',message.key()
 
         self.bayes.learn(message.tokenize(), self.is_spam)
@@ -568,7 +568,7 @@ class Trainer:
     def untrain(self, message):
         '''Untrain the database with the message'''
 
-        if options.verbose:
+        if options["globals", "verbose"]:
             print >> sys.stderr, 'untraining with',message.key()
 
         self.bayes.unlearn(message.tokenize(), self.is_spam)

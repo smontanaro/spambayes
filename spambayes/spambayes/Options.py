@@ -14,65 +14,12 @@ is responsible only for instantiating and loading the globally
 shared instance.
 
 To Do:
- o Get rid of the really ugly backwards compatability code (that adds
-   many, many attributes to the options object) as soon as all the
-   modules are changed over.
+ o Suggestions?
 """
 
 import os
 
 __all__ = ['options']
-
-# Backwards compatibility stuff - this will be removed at some point
-# This table allows easy conversion from the (old_section, old_option)
-# names to the (new_section, new_option) names.
-conversion_table = {("Hammie", "clue_mailheader_cutoff"):
-                        ("Headers", "clue_mailheader_cutoff"),
-                    ("Hammie", "header_score_digits"):
-                        ("Headers", "header_score_digits"),
-                    ("Hammie", "header_score_logarithm"):
-                        ("Headers", "header_score_logarithm"),
-                    ("Hammie", "header_name"):
-                        ("Headers", "classification_header_name"),
-                    ("Hammie", "header_ham_string"):
-                        ("Headers", "header_ham_string"),
-                    ("Hammie", "header_spam_string"):
-                        ("Headers", "header_spam_string"),
-                    ("Hammie", "header_unsure_string"):
-                        ("Headers", "header_unsure_string"),
-                    ("Hammie", "trained_header"):
-                        ("Headers", "trained_header_name"),
-                    ("pop3proxy", "evidence_header_name"):
-                        ("Headers", "evidence_header_name"),
-                    ("pop3proxy", "mailid_header_name"):
-                        ("Headers", "mailid_header_name"),
-                    ("pop3proxy", "prob_header_name"):
-                        ("Headers", "score_header_name"),
-                    ("pop3proxy", "thermostat_header_name"):
-                        ("Headers", "thermostat_header_name"),
-                    ("pop3proxy", "include_evidence"):
-                        ("Headers", "include_evidence"),
-                    ("pop3proxy", "include_prob"):
-                        ("Headers", "include_score"),
-                    ("pop3proxy", "include_thermostat"):
-                        ("Headers", "include_thermostat"),
-                    ("pop3proxy", "ports"):
-                        ("pop3proxy", "listen_ports"),
-                    ("pop3proxy", "servers"):
-                        ("pop3proxy", "remote_servers"),
-                    ("smtpproxy", "ports"):
-                        ("smtpproxy", "listen_ports"),
-                    ("smtpproxy", "servers"):
-                        ("smtpproxy", "remote_servers"),
-                    ("hammiefilter", "persistent_storage_file"):
-                        ("Storage", "persistent_storage_file"),
-                    ("hammiefilter", "persistent_use_database"):
-                        ("Storage", "persistent_use_database"),
-                    ("pop3proxy", "persistent_storage_file"):
-                        ("Storage", "persistent_storage_file"),
-                    ("pop3proxy", "persistent_use_database"):
-                        ("Storage", "persistent_use_database"),
-}
 
 # Grab the stuff from the core options class.
 from OptionsClass import *
@@ -982,7 +929,6 @@ defaults = {
 optionsPathname = None
 
 options = OptionsClass()
-options.conversion_table = conversion_table # Our b/w compat hacks
 options.load_defaults(defaults)
 
 alternate = None

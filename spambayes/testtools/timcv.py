@@ -72,8 +72,10 @@ def usage(code, msg=''):
 def drive(nsets):
     print options.display()
 
-    hamdirs  = [options.ham_directories % i for i in range(1, nsets+1)]
-    spamdirs = [options.spam_directories % i for i in range(1, nsets+1)]
+    hamdirs  = [options["TestDriver", "ham_directories"] % \
+                i for i in range(1, nsets+1)]
+    spamdirs = [options["TestDriver", "spam_directories"] % \
+                i for i in range(1, nsets+1)]
 
     d = TestDriver.Driver()
     # Train it on all sets except the first.
@@ -90,7 +92,7 @@ def drive(nsets):
         spamstream = msgs.SpamStream(s, [s], train=0)
 
         if i > 0:
-            if options.build_each_classifier_from_scratch:
+            if options["CV Driver", "build_each_classifier_from_scratch"]:
                 # Build a new classifier from the other sets.
                 d.new_classifier()
 
@@ -113,7 +115,8 @@ def drive(nsets):
         d.test(hamstream, spamstream)
         d.finishtest()
 
-        if i < nsets - 1 and not options.build_each_classifier_from_scratch:
+        if i < nsets - 1 and not options["CV Driver",
+                                         "build_each_classifier_from_scratch"]:
             # Add this set back in.
             d.train(hamstream, spamstream)
 

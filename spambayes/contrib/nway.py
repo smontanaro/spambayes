@@ -61,7 +61,7 @@ def main(args):
         tag, db = pair.split('=', 1)
         h = hammie.open(db, True, 'r')
         score = h.score(msg)
-        if score >= Options.options.spam_cutoff:
+        if score >= Options.options["Categorization", "spam_cutoff"]:
             msg["X-Spambayes-Classification"] = "%s; %.2f" % (tag, score)
             break
     else:

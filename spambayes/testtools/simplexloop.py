@@ -32,9 +32,9 @@ program = sys.argv[0]
 
 from spambayes import Options
 
-start = (Options.options.unknown_word_prob,
-         Options.options.minimum_prob_strength,
-         Options.options.unknown_word_strength)
+start = (Options.options["Tokenizer", "unknown_word_prob",
+         Options.options["Tokenzier", "minimum_prob_strength"],
+         Options.options["Tokenizer", "unknown_word_strength"])
 err = (0.01, 0.01, 0.01)
 
 def mkini(vars):

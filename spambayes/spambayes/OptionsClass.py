@@ -22,11 +22,7 @@ It is expected that manipulation of the options will be carried out
 via an instance of this class.
 
 To Do:
- o Get rid of the really ugly backwards compatability code (that adds
-   many, many attributes to the options object) as soon as all the
-   modules are changed over.
- o Once the above is done, and we have waited a suitable time, stop
-   allowing invalid options in configuration files
+ o Stop allowing invalid options in configuration files
  o Find a regex expert to come up with *good* patterns for domains,
    email addresses, and so forth.
  o str(Option) should really call Option.unconvert since this is what
@@ -490,23 +486,7 @@ class OptionsClass(object):
                         
                 o = klass(*args)
                 self._options[section, o.name] = o
-                # A (really ugly) bit of backwards compatability
-                # *** This will vanish soon, so do not make use of it in
-                #     new code ***
-                self._oldset(section, o.name, o.value)
 
-    def _oldset(self, section, option, value):
-        # A (really ugly) bit of backwards compatability
-        # *** This will vanish soon, so do not make use of it in
-        #     new code ***
-        for (oldsect, oldopt), (newsect, newopt) in self.conversion_table.items():
-            if (newsect, newopt) == (section, option):
-                section = oldsect
-                option = oldopt
-        setattr(self, option, value)
-        old_name = section[0:1].lower() + section[1:] + "_" + option
-        setattr(self, old_name, value)
-                
     def merge_files(self, file_list):
         for file in file_list:
             self.merge_file(file)
@@ -520,19 +500,6 @@ class OptionsClass(object):
                 value = c.get(sect, opt)
                 section = sect
                 option = opt
-                # backward compatibility guff, but only if needed.
-                if self.conversion_table:
-                    if opt[:len(sect) + 1].lower() == sect.lower() + '_':
-                        opt = opt[len(sect)+1:]
-                    if self.conversion_table.has_key((sect, opt)):
-                        section, option = self.conversion_table[sect, opt]
-                    else:
-                        section = sect
-                        option = opt
-                else: # no b/w compat needed.
-                    section = sect
-                    option = opt
-                # end of backward compatibility guff
                 if not self._options.has_key((section, option)):
                     print "Invalid option %s in section %s in file %s" % \
                           (opt, sect, filename)
@@ -541,10 +508,6 @@ class OptionsClass(object):
                         value = self.convert(section, option, value)
                     value = self.convert(section, option, value)
                     self.set(section, option, value)
-                    # backward compatibility guff
-                    if self.conversion_table:
-                        self._oldset(sect, opt, value)
-                    # end of backward compatibility guff
 
     # not strictly necessary, but convenient shortcuts to self._options
     def display_name(self, sect, opt):
@@ -602,8 +565,6 @@ class OptionsClass(object):
             sect, opt = self.conversion_table[sect, opt]
         if self.is_valid(sect, opt, val):
             self._options[sect, opt].set(val)
-            # backwards compatibility stuff
-            self._oldset(sect, opt, val)
         else:
             print "Attempted to set [%s] %s with invalid value %s (%s)" % \
                   (sect, opt, val, type(val))
