@@ -207,7 +207,10 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         self.dirty = False
 
     def __repr__(self):
-        urs = ["read", "unread"][self.unread]
+        if self.unread:
+            urs = "read"
+        else:
+            urs = "unread"
         return "<%s, (%s) id=%s>" % (self.__class__.__name__, urs, mapi.HexFromBin(self.id))
 
     def GetOutlookEntryID(self):
