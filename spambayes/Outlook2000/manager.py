@@ -37,21 +37,24 @@ except NameError: # no __file__
 # See if we can use the new bsddb module. (The old one is unreliable
 # on Windows, so we don't use that)
 try:
-    import bsddb
-    use_db = hasattr(bsddb, "db") # This name doesn't exist in the old one.
+    import bsddb3 as bsddb
+    # bsddb3 is definitely not broken
+    use_db = True
 except ImportError:
-    # See if the explicit bsddb3 module exists.
+    # Not using the 3rd party bsddb3, so try the one in the std library
     try:
-        import bsddb3 as bsddb
-        use_db = True
+        import bsddb
+        use_db = hasattr(bsddb, "db") # This name is not in the old one.
     except ImportError:
+        # No DB library at all!
         use_db = False
 
-# This is a little bit of a hack <wink>.  We are generally in a child directory
-# of the bayes code.  To help installation, we handle the fact that this may
-# not be on sys.path.  Note that doing these imports is delayed, so that we
-# can set the BAYESCUSTOMIZE envar first (if we import anything from the core
-# spambayes code before setting that envar, our .ini file may have no effect).
+# This is a little bit of a hack <wink>.  We are generally in a child
+# directory of the bayes code.  To help installation, we handle the
+# fact that this may not be on sys.path.  Note that doing these
+# imports is delayed, so that we can set the BAYESCUSTOMIZE envar
+# first (if we import anything from the core spambayes code before
+# setting that envar, our .ini file may have no effect).
 def import_core_spambayes_stuff(ini_filename):
     global bayes_classifier, bayes_tokenize, bayes_storage
 
@@ -85,7 +88,7 @@ class BasicStorageManager:
         # Just delete the file and do an "open"
         try:
             os.unlink(self.bayes_filename)
-        except IOError, e:
+        except EnvironmentError, e:
             if e.errno != errno.ENOENT: raise
         return self.open_bayes()
     def store_bayes(self, bayes):
