@@ -95,6 +95,8 @@ import pythoncom
 
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
 MSGFLAG_READ = 0x1 # from MAPIdefs.h
+MSGFLAG_UNSENT = 0x00000008
+
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
 
@@ -466,7 +468,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     # to determine if this is a "filterable" message, etc
     message_init_props = (PR_ENTRYID, PR_STORE_ENTRYID, PR_SEARCH_KEY,
                           PR_PARENT_ENTRYID, # folder ID
-                          PR_MESSAGE_CLASS_A) # 'IPM.Note' etc
+                          PR_MESSAGE_CLASS_A, # 'IPM.Note' etc
+                          PR_MESSAGE_FLAGS, #unsent, from_me
+                          ) 
 
     def __init__(self, msgstore, prop_row):
         self.msgstore = msgstore
@@ -478,6 +482,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         tag, searchkey = prop_row[2]
         tag, parent_eid = prop_row[3]
         tag, msgclass = prop_row[4]
+        tag, flags = prop_row[5]
 
         self.id = store_eid, eid
         self.folder_id = store_eid, parent_eid
@@ -489,6 +494,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # (ie, someone would need to really want to change it <wink>)
         # Thus, searchkey is the only reliable long-lived message key.
         self.searchkey = searchkey
+        self.is_unsent = flags & MSGFLAG_UNSENT
         self.dirty = False
 
     def __repr__(self):
@@ -525,9 +531,9 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     def IsFilterCandidate(self):
         # We don't attempt to filter:
         # * Non-mail items
-        # Later we would like to add:
         # * Messages that have never been sent (ie, user-composed)
-        return self.msgclass.lower().startswith("ipm.note")
+        return self.msgclass.lower().startswith("ipm.note") and \
+               not self.is_unsent
 
     def _GetPropFromStream(self, prop_id):
         try:
