@@ -798,6 +798,10 @@ def run():
             state.servers = [(args[0], 110)]
         elif len(args) == 2:
             state.servers = [(args[0], int(args[1]))]
+        
+        # Default to listening on port 110 for command-line-specified servers.
+        if len(args) > 0 and state.proxyPorts == []:
+            state.proxyPorts = [('', 110)]
 
         start(state=state)
 
