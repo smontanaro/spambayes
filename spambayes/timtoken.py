@@ -466,7 +466,7 @@ def tokenize_word(word, _len=len):
 # XXX instead of dozens, so relevant msg content can cancel it out.
 #
 # A bug in this code prevented Content-Transfer-Encoding from getting
-# picked up.  Fixing that bug showed that it didn't helpe, so the corrected
+# picked up.  Fixing that bug showed that it didn't help, so the corrected
 # code is disabled now (left column without Content-Transfer-Encoding,
 # right column with it);
 #
