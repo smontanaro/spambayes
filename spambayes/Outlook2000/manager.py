@@ -294,6 +294,7 @@ def GetStorageManagerClass():
 # Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=0):
+        self.never_configured = True
         self.reported_error_map = {}
         self.reported_startup_error = False
         self.config = self.options = None
@@ -603,6 +604,7 @@ class BayesManager:
                 pass
 
         self.config_filename = os.path.join(self.data_directory, profile_name + ".ini")
+        self.never_configured = not os.path.exists(self.config_filename)
         # Now load it up
         self._MergeConfigFile(self.config_filename)
         # Set global verbosity from the options file.
@@ -730,23 +732,10 @@ class BayesManager:
         # Gets the reason why the plugin can not be enabled.
         # If return is None, then it can be enabled (and indeed may be!)
         # Otherwise return is the string reason
-        nspam = self.classifier_data.bayes.nspam
-        nham = self.classifier_data.bayes.nham
         config = self.config.filter
-        # For the sake of getting reasonable results, let's insist
-        # on 5 spam and 5 ham messages before we can allow filtering
-        # to be enabled.
-        min_ham = 5
-        min_spam = 5
         ok_to_enable = operator.truth(config.watch_folder_ids)
         if not ok_to_enable:
             return "You must define folders to watch for new messages"
-        
-        ok_to_enable = nspam >= min_spam and nham >= min_ham
-        if not ok_to_enable:
-            return "There must be %d good and %d spam messages\n" \
-                   "trained before filtering can be enabled" \
-                   % (min_ham, min_spam)
 
         ok_to_enable = operator.truth(config.spam_folder_id)
         if not ok_to_enable:
