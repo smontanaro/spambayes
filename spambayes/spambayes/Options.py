@@ -888,6 +888,15 @@ defaults = {
     ("allow_remote_connections", "Allow remote connections", False,
      """""",
      BOOLEAN, RESTORE),
+
+    ("display_to", "Display To: in message review", False,
+     """When reviewing messages via the web user interface, you are
+     presented with the message subject, the address the message is
+     from, and its classification.  If you set this option, you will
+     also be shown the address the message was to.  This might be
+     useful if you receive mail from multiple accounts, or if you
+     want to quickly identify mail received via a mailing list.""",
+     BOOLEAN, RESTORE),
   ),
 
   "Outlook" : (

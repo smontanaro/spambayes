@@ -507,6 +507,12 @@ class UserInterface(BaseUserInterface):
             sect, opt = name.split('_', 1)
             if (sect, opt) in self.parm_ini_map:
                 options.set(sect, opt, value)
+            # If a section name has an underscore in it (like html_ui)
+            # the split won't work the first time
+            else:
+                sect2, opt = opt.split('_', 1)
+                sect += '_' + sect2
+                options.set(sect, opt, value)
 
         options.update_file(optionsPathname)
         self.reReadOptions()

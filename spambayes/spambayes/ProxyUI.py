@@ -83,6 +83,7 @@ parm_ini_map = (
     ('pop3proxy',           'remote_servers'),
     ('pop3proxy',           'listen_ports'),
     ('pop3proxy',           'cache_messages'),
+    ('html_ui',             'display_to'),
     ('Header Options',      None),
     ('pop3proxy',           'notate_to'),
     ('pop3proxy',           'notate_subject'),
@@ -210,6 +211,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
     def _appendMessages(self, table, keyedMessageInfo, label):
         """Appends the rows of a table of messages to 'table'."""
         stripe = 0
+        if not options["html_ui", "display_to"]:
+            del table.to_header
         for key, messageInfo in keyedMessageInfo:
             row = self.html.reviewRow.clone()
             if label == 'Spam':
@@ -222,6 +225,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
             row.subject.title = messageInfo.bodySummary
             row.subject.href="view?key=%s&corpus=%s" % (key, label)
             row.from_ = messageInfo.fromHeader
+            if options["html_ui", "display_to"]:
+                row.to_ = messageInfo.toHeader
+            else:
+                del row.to_
             subj = cgi.escape(messageInfo.subjectHeader)
             row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
@@ -236,39 +243,41 @@ class ProxyUserInterface(UserInterface.UserInterface):
         id = ''
         numTrained = 0
         numDeferred = 0
-        for key, value in params.items():
-            if key.startswith('classify:'):
-                id = key.split(':')[2]
-                if value == 'spam':
-                    targetCorpus = state.spamCorpus
-                elif value == 'ham':
-                    targetCorpus = state.hamCorpus
-                elif value == 'discard':
-                    targetCorpus = None
-                    try:
-                        state.unknownCorpus.removeMessage(state.unknownCorpus[id])
-                    except KeyError:
-                        pass  # Must be a reload.
-                else: # defer
-                    targetCorpus = None
-                    numDeferred += 1
-                if targetCorpus:
-                    sourceCorpus = None
-                    if state.unknownCorpus.get(id) is not None:
-                        sourceCorpus = state.unknownCorpus
-                    elif state.hamCorpus.get(id) is not None:
-                        sourceCorpus = state.hamCorpus
-                    elif state.spamCorpus.get(id) is not None:
-                        sourceCorpus = state.spamCorpus
-                    if sourceCorpus is not None:
+        if params.get('go') != 'refresh':
+            for key, value in params.items():
+                if key.startswith('classify:'):
+                    id = key.split(':')[2]
+                    if value == 'spam':
+                        targetCorpus = state.spamCorpus
+                    elif value == 'ham':
+                        targetCorpus = state.hamCorpus
+                    elif value == 'discard':
+                        targetCorpus = None
                         try:
-                            targetCorpus.takeMessage(id, sourceCorpus)
-                            if numTrained == 0:
-                                self.write("<p><b>Training... ")
-                                self.flush()
-                            numTrained += 1
+                            state.unknownCorpus.removeMessage(\
+                                state.unknownCorpus[id])
                         except KeyError:
                             pass  # Must be a reload.
+                    else: # defer
+                        targetCorpus = None
+                        numDeferred += 1
+                    if targetCorpus:
+                        sourceCorpus = None
+                        if state.unknownCorpus.get(id) is not None:
+                            sourceCorpus = state.unknownCorpus
+                        elif state.hamCorpus.get(id) is not None:
+                            sourceCorpus = state.hamCorpus
+                        elif state.spamCorpus.get(id) is not None:
+                            sourceCorpus = state.spamCorpus
+                        if sourceCorpus is not None:
+                            try:
+                                targetCorpus.takeMessage(id, sourceCorpus)
+                                if numTrained == 0:
+                                    self.write("<p><b>Training... ")
+                                    self.flush()
+                                numTrained += 1
+                            except KeyError:
+                                pass  # Must be a reload.
 
         # Report on any training, and save the database if there was any.
         if numTrained > 0:
@@ -390,7 +399,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
             box = self._buildBox(title, None, page)  # No icon, to save space.
         else:
             page = "<p>There are no untrained messages to display. "
-            page += "Return <a href='home'>Home</a>.</p>"
+            page += "Return <a href='home'>Home</a>, or "
+            page += "<a href='review'>check again</a>.</p>"
             title = "No untrained messages"
             box = self._buildBox(title, 'status.gif', page)
 
@@ -427,6 +437,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         uses too much memory."""
         subjectHeader = message["Subject"] or "(none)"
         fromHeader = message["From"] or "(none)"
+        toHeader = message["To"] or "(none)"
         try:
             part = typed_subpart_iterator(message, 'text', 'plain').next()
             text = part.get_payload()
@@ -452,6 +463,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         messageInfo = _MessageInfo()
         messageInfo.subjectHeader = self._trimHeader(subjectHeader, 50, True)
         messageInfo.fromHeader = self._trimHeader(fromHeader, 40, True)
+        messageInfo.toHeader = self._trimHeader(toHeader, 40, True)
         messageInfo.bodySummary = self._trimHeader(text, 200)
         return messageInfo
 

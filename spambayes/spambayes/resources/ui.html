@@ -172,6 +172,8 @@ a:hover { color: #6040ff }
        <table border='0' cellpadding='0' cellspacing='0'>
        <tr><td><input type='submit' name='go' id='priorButton'
                       value='Previous day' disabled='1'/>&nbsp;</td>
+           <td><input type='submit' name='go' id='refresh'
+                      value='Refresh'/>&nbsp;</td>
            <td><input type='submit' name='go' id='nextButton'
                       value='Next day' disabled='1'/>&nbsp;</td>
            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
@@ -204,6 +206,7 @@ a:hover { color: #6040ff }
     <tr id="reviewSubHeader">
         <td><b>Messages classified as TYPE:</b></td>
         <td><b>From:</b></td>
+        <span id="to_header"><td><b>To:</b></td></span>
         <td class='reviewheaders' nowrap='1'><b>
             <a href="javascript: onHeader('TYPE', 'Discard');">Discard</a> /
             <a href="javascript: onHeader('TYPE', 'Defer');">Defer</a> /
@@ -218,6 +221,7 @@ a:hover { color: #6040ff }
                 Re: Spambayes and PyMeld rock!  8-)</a>
         </td>
         <td id="from_">Richie Hindle &lt;richie@entrian.com&gt;</td>
+        <td id="to_">Spambayes List &lt;spambayes@python.org&gt;</td>
         <td align='center'>&nbsp;
             <input type='radio' name='classify:TYPE:KEY'
                    id="discard" value='discard'/>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -233,7 +237,7 @@ a:hover { color: #6040ff }
     <tr id="blankRow"><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
     <tr id="trainRow"><td>&nbsp;</td><td>&nbsp;</td>
         <td align='center'>&nbsp;<br/>
-            <input type='submit' value='Train'/>
+            <input type='submit' name='Train' value='Train'/>
         </td>
     </tr>
     </table>
