@@ -1,6 +1,7 @@
 from __future__ import generators
 
 import sys, os, re
+import locale
 
 try:
     True, False
@@ -112,6 +113,10 @@ class MAPIMsgStore(MsgStore):
                       mapi.MAPI_EXTENDED |
                       mapi.MAPI_USE_DEFAULT)
         self.session = mapi.MAPILogonEx(0, None, None, logonFlags)
+        # Set our locale to be English, so our plugin works OK
+        # ([ spambayes-Bugs-725466 ] Include a proper locale fix in Options.py
+        # has discussion about this problem.)
+        locale.setlocale(locale.LC_NUMERIC, "en")
         self.mapi_msg_stores = {}
         self.default_store_bin_eid = None
         self._GetMessageStore(None)
