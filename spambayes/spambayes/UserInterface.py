@@ -1125,6 +1125,7 @@ days), you can no longer find them.</p>
             # even if they're not subscribed to the list.
             outer['CC'] = from_addr
             outer['From'] = from_addr
+            outer['X-Mailer'] = Version.get_version_string(self.app_for_version)
             outer.preamble = self._wrap(message)
             # To guarantee the message ends with a newline
             outer.epilogue = ''
@@ -1133,8 +1134,8 @@ days), you can no longer find them.</p>
             try:
                 ctype, encoding = mimetypes.guess_type(attach)
                 if ctype is None or encoding is not None:
-                    # No guess could be made, or the file is encoded (compressed),
-                    # so use a generic bag-of-bits type.
+                    # No guess could be made, or the file is encoded
+                    # (compressed), so use a generic bag-of-bits type.
                     ctype = 'application/octet-stream'
                 maintype, subtype = ctype.split('/', 1)
                 if maintype == 'text':
