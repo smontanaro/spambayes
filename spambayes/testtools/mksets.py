@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 
-### Redistribute messages among the classic Data/*/Set* directories
-### based on desired set count, desired with messages
-### directories based from MH mailboxes ~/Mail/everything and
-### ~/Mail/spam.
+# Redistribute messages among the classic Data/{Ham,Spam}/Set* directories,
+# based on desired set count.
 
 """Usage: %(program)s [OPTIONS] ...
 
@@ -13,11 +11,11 @@ Where OPTIONS is one or more of:
     -s num
         random number seed
     -n num
-        number of sets
+        number of sets; default 5
     -g num
-        number of groups
+        max number of groups; default unlimited
     -m num
-        number of messages per {ham,spam}*group*set
+        max number of messages per {ham,spam}*group*set; default unlimited
 """
 
 import getopt
@@ -32,9 +30,9 @@ program = sys.argv[0]
 loud = True
 hamdir = "Data/Ham"
 spamdir = "Data/Spam"
-nsets = 5
-ngroups = None
-nmess = None
+nsets = 5               # -n
+ngroups = None          # -g
+nmess = None            # -m
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
