@@ -695,7 +695,7 @@ class BayesManager:
 
     def GetClassifier(self):
         """Return the classifier we're using."""
-        return self.bayes
+        return self.classifier_data.bayes
 
     def SaveConfig(self):
         # Insist on english numeric conventions in config file.
