@@ -126,6 +126,14 @@ def main(args):
         print >> sys.stderr, "not enough files to go around - use lower -n."
         return 1
 
+    # weak check against mixing ham and spam
+    if ("Ham" in setpfx and "Spam" in resdir or
+        "Spam" in setpfx and "Ham" in resdir):
+        yn = raw_input("Reservoir and Set dirs appear not to match. "
+                       "Continue? (y/n) ")
+        if yn.lower()[0:1] != 'y':
+            return 1
+
     # if necessary, migrate random files to the reservoir
     for (dir, fs) in stuff:
         if nperdir >= len(fs):
