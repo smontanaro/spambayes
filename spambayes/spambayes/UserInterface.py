@@ -101,6 +101,14 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         return options["html_ui", "allow_remote_connections"] or \
                clientSocket.getpeername()[0] == clientSocket.getsockname()[0]
 
+    def _getHTMLClone(self):
+        """Gets a clone of the HTML, with the footer timestamped, ready to be
+        modified and sent to the browser."""
+        clone = self.html.clone()
+        timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
+        clone.footer.timestamp = timestamp
+        return clone
+
     def _writePreamble(self, name, parent=None, showImage=True):
         """Writes the HTML for the beginning of a page - time-consuming
         methlets use this and `_writePostamble` to write the page in
@@ -109,7 +117,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
         # Take the whole palette and remove the content and the footer,
         # leaving the header and an empty body.
-        html = self.html.clone()
+        html = self._getHTMLClone()
         html.mainContent = " "
         del html.footer
 
@@ -138,9 +146,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def _writePostamble(self):
         """Writes the end of time-consuming pages - see `_writePreamble`."""
-        footer = self.html.footer.clone()
-        footer.timestamp = time.strftime('%H:%M on %A %B %d %Y', time.localtime())
-        self.write("</div>" + footer)
+        self.write("</div>" + self._getHTMLClone().footer)
         self.write("</body></html>")
 
     def _trimHeader(self, field, limit, quote=False):
@@ -363,7 +369,7 @@ class UserInterface(BaseUserInterface):
 
     def onConfig(self):
         # Start with an empty config form then add the sections.
-        html = self.html.clone()
+        html = self._getHTMLClone()
         # "Save and Shutdown" is confusing here - it means "Save database"
         # but that's not clear.
         html.shutdownTableCell = "&nbsp;"
@@ -490,7 +496,7 @@ class UserInterface(BaseUserInterface):
     def onChangeopts(self, **parms):
         if parms.has_key("how"):
             del parms["how"]
-        html = self.html.clone()
+        html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
         errmsg = self.verifyInput(parms)
@@ -530,7 +536,7 @@ class UserInterface(BaseUserInterface):
         self.restoreConfigDefaults()
         self.reReadOptions()
 
-        html = self.html.clone()
+        html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.headedBox.clone()
         html.mainContent.heading = "Option Defaults Restored"
