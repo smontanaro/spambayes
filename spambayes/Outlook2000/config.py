@@ -382,8 +382,6 @@ class ConfigurationRoot(_ConfigurationContainer):
         pass
 # End of old pickle code.
 
-del _
-
 if __name__=='__main__':
     options = CreateConfig()
     options.merge_files(['delme.cfg'])
