@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # An implementation of a Bayes-like spam classifier.
 #
 # Paul Graham's original description:
@@ -31,7 +32,6 @@
 # This implementation is due to Tim Peters et alia.
 
 import math
-import time
 from sets import Set
 
 from Options import options
@@ -46,48 +46,72 @@ except NameError:
 
 LN2 = math.log(2)       # used frequently by chi-combining
 
-PICKLE_VERSION = 1
+PICKLE_VERSION = 4
 
-class WordInfo(object):
-    __slots__ = ('atime',     # when this record was last used by scoring(*)
-                 'spamcount', # # of spams in which this word appears
-                 'hamcount',  # # of hams in which this word appears
-                 'killcount', # # of times this made it to spamprob()'s nbest
-                 'spamprob',  # prob(spam | msg contains this word)
-                )
+class MetaInfo(object):
+    """Information about the corpora.
 
-    # Invariant:  For use in a classifier database, at least one of
-    # spamcount and hamcount must be non-zero.
-    #
-    # (*)atime is the last access time, a UTC time.time() value.  It's the
-    # most recent time this word was used by scoring (i.e., by spamprob(),
-    # not by training via learn()); or, if the word has never been used by
-    # scoring, the time the word record was created (i.e., by learn()).
-    # One good criterion for identifying junk (word records that have no
-    # value) is to delete words that haven't been used for a long time.
-    # Perhaps they were typos, or unique identifiers, or relevant to a
-    # once-hot topic or scam that's fallen out of favor.  Whatever, if
-    # a word is no longer being used, it's just wasting space.
+    Contains nham and nspam, used for calculating probabilities.  Also
+    has a revision, incremented every time nham or nspam is adjusted.
+    Nothing uses this, currently, but it's there if you want it.
 
-    def __init__(self, atime, spamprob=options.unknown_word_prob):
-        self.atime = atime
-        self.spamcount = self.hamcount = self.killcount = 0
-        self.spamprob = spamprob
+    """
+    def __init__(self):
+        self.__setstate__((PICKLE_VERSION, 0, 0))
 
     def __repr__(self):
-        return "WordInfo%r" % repr((self.atime, self.spamcount,
-                                    self.hamcount, self.killcount,
-                                    self.spamprob))
+        return "MetaInfo%r" % repr((self._nspam,
+                                    self._nham,
+                                    self.revision))
 
     def __getstate__(self):
-        return (self.atime, self.spamcount, self.hamcount, self.killcount,
-                self.spamprob)
+        return (PICKLE_VERSION, self._nspam, self._nham)
 
     def __setstate__(self, t):
-        (self.atime, self.spamcount, self.hamcount, self.killcount,
-         self.spamprob) = t
+        if t[0] != PICKLE_VERSION:
+            raise ValueError("Can't unpickle -- version %s unknown" % t[0])
+        (self._nspam, self._nham) = t[1:]
+        self.revision = 0
 
-class Bayes:
+    def incr_rev(self):
+        self.revision += 1
+
+    def get_nham(self):
+        return self._nham
+    def set_nham(self, val):
+        self._nham = val
+        self.incr_rev()
+    nham = property(get_nham, set_nham)
+
+    def set_nspam(self, val):
+        self._nspam = val
+    def get_nspam(self):
+        return self._nspam
+    nspam = property(get_nspam, set_nspam)
+
+
+
+
+class WordInfo(object):
+    # Invariant:  For use in a classifier database, at least one of
+    # spamcount and hamcount must be non-zero.
+
+    def __init__(self):
+        self.__setstate__((0, 0))
+
+    def __repr__(self):
+        return "WordInfo%r" % repr((self.spamcount,
+                                    self.hamcount))
+
+    def __getstate__(self):
+        return (self.spamcount,
+                self.hamcount)
+
+    def __setstate__(self, t):
+        (self.spamcount, self.hamcount) = t
+
+
+class Classifier:
     # Defining __slots__ here made Jeremy's life needlessly difficult when
     # trying to hook this all up to ZODB as a persistent object.  There's
     # no space benefit worth getting from slots in this class; slots were
@@ -104,15 +128,31 @@ class Bayes:
 
     def __init__(self):
         self.wordinfo = {}
-        self.nspam = self.nham = 0
+        self.meta = MetaInfo()
+        self.probcache = {}
 
     def __getstate__(self):
-        return PICKLE_VERSION, self.wordinfo, self.nspam, self.nham
+        return PICKLE_VERSION, self.wordinfo, self.meta
 
     def __setstate__(self, t):
         if t[0] != PICKLE_VERSION:
             raise ValueError("Can't unpickle -- version %s unknown" % t[0])
-        self.wordinfo, self.nspam, self.nham = t[1:]
+        self.wordinfo, self.meta = t[1:]
+        self.probcache = {}
+
+    # Slacker's way out--pass calls to nham/nspam up to the meta class
+
+    def get_nham(self):
+        return self.meta.nham
+    def set_nham(self, val):
+        self.meta.nham = val
+    nham = property(get_nham, set_nham)
+
+    def get_nspam(self):
+        return self.meta.nspam
+    def set_nspam(self, val):
+        self.meta.nspam = val
+    nspam = property(get_nspam, set_nspam)
 
     # spamprob() implementations.  One of the following is aliased to
     # spamprob, depending on option settings.
@@ -144,8 +184,6 @@ class Bayes:
         Pexp = Qexp = 0
         clues = self._getclues(wordstream)
         for prob, word, record in clues:
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
             P *= 1.0 - prob
             Q *= prob
             if P < 1e-200:  # move back into range
@@ -233,8 +271,6 @@ class Bayes:
 
         clues = self._getclues(wordstream)
         for prob, word, record in clues:
-            if record is not None:  # else wordinfo doesn't know about it
-                record.killcount += 1
             S *= 1.0 - prob
             H *= prob
             if S < 1e-200:  # prevent underflow
@@ -277,49 +313,53 @@ class Bayes:
     if options.use_chi_squared_combining:
         spamprob = chi2_spamprob
 
-    def learn(self, wordstream, is_spam, update_probabilities=True):
+    def learn(self, wordstream, is_spam):
         """Teach the classifier by example.
 
         wordstream is a word stream representing a message.  If is_spam is
         True, you're telling the classifier this message is definitely spam,
         else that it's definitely not spam.
 
-        If optional arg update_probabilities is False (the default is True),
-        don't update word probabilities.  Updating them is expensive, and if
-        you're going to pass many messages to learn(), it's more efficient
-        to pass False here and call update_probabilities() once when you're
-        done -- or to call learn() with update_probabilities=True when
-        passing the last new example.  The important thing is that the
-        probabilities get updated before calling spamprob() again.
         """
 
         self._add_msg(wordstream, is_spam)
-        if update_probabilities:
-            self.update_probabilities()
 
-    def unlearn(self, wordstream, is_spam, update_probabilities=True):
+    def unlearn(self, wordstream, is_spam):
         """In case of pilot error, call unlearn ASAP after screwing up.
 
         Pass the same arguments you passed to learn().
         """
-
         self._remove_msg(wordstream, is_spam)
-        if update_probabilities:
-            self.update_probabilities()
 
-    def update_probabilities(self):
-        """Update the word probabilities in the spam database.
+    def probability(self, record):
+        """Compute, store, and return prob(msg is spam | msg contains word).
 
-        This computes a new probability for every word in the database,
-        so can be expensive.  learn() and unlearn() update the probabilities
-        each time by default.  Thay have an optional argument that allows
-        to skip this step when feeding in many messages, and in that case
-        you should call update_probabilities() after feeding the last
-        message and before calling spamprob().
+        This is the Graham calculation, but stripped of biases, and
+        stripped of clamping into 0.01 thru 0.99.  The Bayesian
+        adjustment following keeps them in a sane range, and one
+        that naturally grows the more evidence there is to back up
+        a probability.
         """
 
-        nham = float(self.nham or 1)
-        nspam = float(self.nspam or 1)
+        spamcount = record.spamcount
+        hamcount = record.hamcount
+        
+        # Try the cache first
+        try:
+            return self.probcache[spamcount][hamcount]
+        except KeyError:
+            pass
+
+        nham = float(self.meta.nham or 1)
+        nspam = float(self.meta.nspam or 1)
+
+        assert hamcount <= nham
+        hamratio = hamcount / nham
+
+        assert spamcount <= nspam
+        spamratio = spamcount / nspam
+
+        prob = spamratio / (hamratio + spamratio)
 
         if options.experimental_ham_spam_imbalance_adjustment:
             spam2ham = min(nspam / nham, 1.0)
@@ -330,77 +370,51 @@ class Bayes:
         S = options.unknown_word_strength
         StimesX = S * options.unknown_word_prob
 
-        for word, record in self.wordinfo.iteritems():
-            # Compute p(word) = prob(msg is spam | msg contains word).
-            # This is the Graham calculation, but stripped of biases, and
-            # stripped of clamping into 0.01 thru 0.99.  The Bayesian
-            # adjustment following keeps them in a sane range, and one
-            # that naturally grows the more evidence there is to back up
-            # a probability.
-            hamcount = record.hamcount
-            assert hamcount <= nham
-            hamratio = hamcount / nham
 
-            spamcount = record.spamcount
-            assert spamcount <= nspam
-            spamratio = spamcount / nspam
+        # Now do Robinson's Bayesian adjustment.
+        #
+        #         s*x + n*p(w)
+        # f(w) = --------------
+        #           s + n
+        #
+        # I find this easier to reason about like so (equivalent when
+        # s != 0):
+        #
+        #        x - p
+        #  p +  -------
+        #       1 + n/s
+        #
+        # IOW, it moves p a fraction of the distance from p to x, and
+        # less so the larger n is, or the smaller s is.
 
-            prob = spamratio / (hamratio + spamratio)
+        # Experimental:
+        # Picking a good value for n is interesting:  how much empirical
+        # evidence do we really have?  If nham == nspam,
+        # hamcount + spamcount makes a lot of sense, and the code here
+        # does that by default.
+        # But if, e.g., nham is much larger than nspam, p(w) can get a
+        # lot closer to 0.0 than it can get to 1.0.  That in turn makes
+        # strong ham words (high hamcount) much stronger than strong
+        # spam words (high spamcount), and that makes the accidental
+        # appearance of a strong ham word in spam much more damaging than
+        # the accidental appearance of a strong spam word in ham.
+        # So we don't give hamcount full credit when nham > nspam (or
+        # spamcount when nspam > nham):  instead we knock hamcount down
+        # to what it would have been had nham been equal to nspam.  IOW,
+        # we multiply hamcount by nspam/nham when nspam < nham; or, IOOW,
+        # we don't "believe" any count to an extent more than
+        # min(nspam, nham) justifies.
 
-            # Now do Robinson's Bayesian adjustment.
-            #
-            #         s*x + n*p(w)
-            # f(w) = --------------
-            #           s + n
-            #
-            # I find this easier to reason about like so (equivalent when
-            # s != 0):
-            #
-            #        x - p
-            #  p +  -------
-            #       1 + n/s
-            #
-            # IOW, it moves p a fraction of the distance from p to x, and
-            # less so the larger n is, or the smaller s is.
+        n = hamcount * spam2ham  +  spamcount * ham2spam
+        prob = (StimesX + n * prob) / (S + n)
 
-            # Experimental:
-            # Picking a good value for n is interesting:  how much empirical
-            # evidence do we really have?  If nham == nspam,
-            # hamcount + spamcount makes a lot of sense, and the code here
-            # does that by default.
-            # But if, e.g., nham is much larger than nspam, p(w) can get a
-            # lot closer to 0.0 than it can get to 1.0.  That in turn makes
-            # strong ham words (high hamcount) much stronger than strong
-            # spam words (high spamcount), and that makes the accidental
-            # appearance of a strong ham word in spam much more damaging than
-            # the accidental appearance of a strong spam word in ham.
-            # So we don't give hamcount full credit when nham > nspam (or
-            # spamcount when nspam > nham):  instead we knock hamcount down
-            # to what it would have been had nham been equal to nspam.  IOW,
-            # we multiply hamcount by nspam/nham when nspam < nham; or, IOOW,
-            # we don't "believe" any count to an extent more than
-            # min(nspam, nham) justifies.
+        # Update the cache
+        try:
+            self.probcache[spamcount][hamcount] = prob
+        except KeyError:
+            self.probcache[spamcount] = {hamcount: prob}
 
-            n = hamcount * spam2ham  +  spamcount * ham2spam
-            prob = (StimesX + n * prob) / (S + n)
-
-            if record.spamprob != prob:
-                record.spamprob = prob
-                # The next seemingly pointless line appears to be a hack
-                # to allow a persistent db to realize the record has changed.
-                self.wordinfo[word] = record
-
-    def clearjunk(self, oldesttime):
-        """Forget useless wordinfo records.  This can shrink the database size.
-
-        A record for a word will be retained only if the word was accessed
-        at or after oldesttime.
-        """
-
-        wordinfo = self.wordinfo
-        tonuke = [w for w, r in wordinfo.iteritems() if r.atime < oldesttime]
-        for w in tonuke:
-            del wordinfo[w]
+        return prob
 
     # NOTE:  Graham's scheme had a strange asymmetry:  when a word appeared
     # n>1 times in a single message, training added n to the word's hamcount
@@ -423,35 +437,38 @@ class Bayes:
     # appears in a msg, but distorting spamprob doesn't appear a correct way
     # to exploit it.
     def _add_msg(self, wordstream, is_spam):
+        self.probcache = {}    # nuke the prob cache
         if is_spam:
-            self.nspam += 1
+            self.meta.nspam += 1
         else:
-            self.nham += 1
+            self.meta.nham += 1
 
         wordinfo = self.wordinfo
         wordinfoget = wordinfo.get
-        now = time.time()
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
-                record = self.WordInfoClass(now)
+                record = self.WordInfoClass()
 
             if is_spam:
                 record.spamcount += 1
             else:
                 record.hamcount += 1
+
             # Needed to tell a persistent DB that the content changed.
             wordinfo[word] = record
 
+
     def _remove_msg(self, wordstream, is_spam):
+        self.probcache = {}    # nuke the prob cache
         if is_spam:
-            if self.nspam <= 0:
+            if self.meta.nspam <= 0:
                 raise ValueError("spam count would go negative!")
-            self.nspam -= 1
+            self.meta.nspam -= 1
         else:
-            if self.nham <= 0:
+            if self.meta.nham <= 0:
                 raise ValueError("non-spam count would go negative!")
-            self.nham -= 1
+            self.meta.nham -= -1
 
         wordinfo = self.wordinfo
         wordinfoget = wordinfo.get
@@ -467,7 +484,8 @@ class Bayes:
                 if record.hamcount == 0 == record.spamcount:
                     del wordinfo[word]
                 else:
-                    # Needed to tell a persistent DB that the content changed.
+                    # Needed to tell a persistent DB that the content
+                    # changed.
                     wordinfo[word] = record
 
     def _getclues(self, wordstream):
@@ -478,14 +496,12 @@ class Bayes:
         pushclue = clues.append
 
         wordinfoget = self.wordinfo.get
-        now = time.time()
         for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
                 prob = unknown
             else:
-                record.atime = now
-                prob = record.spamprob
+                prob = self.probability(record)
             distance = abs(prob - 0.5)
             if distance >= mindist:
                 pushclue((distance, prob, word, record))
@@ -495,3 +511,6 @@ class Bayes:
             del clues[0 : -options.max_discriminators]
         # Return (prob, word, record).
         return [t[1:] for t in clues]
+
+
+Bayes = Classifier

@@ -51,65 +51,52 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
-def jar_pickle(h):
-    if not options.persistent_use_database:
-        import pickle
-        fp = open(options.persistent_storage_file, 'wb')
-        pickle.dump(h.bayes, fp, 1)
-        fp.close()
-    
+class HammieFilter(object):
+    def __init__(self):
+        options = Options.options
+        options.mergefiles(['/etc/hammierc',
+                            os.path.expanduser('~/.hammierc')])
+        
+        self.dbname = options.hammiefilter_persistent_storage_file
+        self.dbname = os.path.expanduser(self.dbname)
+        self.usedb = options.hammiefilter_persistent_use_database
+        
 
-def hammie_open(mode):
-    b = hammie.createbayes(options.persistent_storage_file,
-                           options.persistent_use_database,
-                           mode)
-    return hammie.Hammie(b)
+    def newdb(self):
+        h = hammie.open(self.dbname, self.usedb, 'n')
+        h.store()
+        print "Created new database in", self.dbname
 
-def newdb():
-    h = hammie_open('n')
-    jar_pickle(h)
-    print "Created new database in", options.persistent_storage_file
+    def filter(self):
+        h = hammie.open(self.dbname, self.usedb, 'r')
+        msg = sys.stdin.read()
+        print h.filter(msg)
 
-def filter():
-    h = hammie_open('r')
-    msg = sys.stdin.read()
-    print h.filter(msg)
+    def train_ham(self):
+        h = hammie.open(self.dbname, self.usedb, 'c')
+        msg = sys.stdin.read()
+        h.train_ham(msg)
+        h.store()
 
-def train_ham():
-    h = hammie_open('w')
-    msg = sys.stdin.read()
-    h.train_ham(msg)
-    h.update_probabilities()
-    jar_pickle(h)    
-
-def train_spam():
-    h = hammie_open('w')
-    msg = sys.stdin.read()
-    h.train_spam(msg)
-    h.update_probabilities()
-    jar_pickle(h)    
+    def train_spam(self):
+        h = hammie.open(self.dbname, self.usedb, 'c')
+        msg = sys.stdin.read()
+        h.train_spam(msg)
+        h.store()
 
 def main():
-    action = filter
+    h = HammieFilter()
+    action = h.filter
     opts, args = getopt.getopt(sys.argv[1:], 'hngs')
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
         elif opt == '-g':
-            action = train_ham
+            action = h.train_ham
         elif opt == '-s':
-            action = train_spam
+            action = h.train_spam
         elif opt == "-n":
-            action = newdb
-
-    # hammiefilter overrides
-    config_overrides = """[Hammie]
-persistent_storage_file = %s
-persistent_use_database = True
-""" % os.path.expanduser('~/.hammiedb')
-    options.mergefilelike(StringIO.StringIO(config_overrides))
-    options.mergefiles(['/etc/hammierc',
-                        os.path.expanduser('~/.hammierc')])
+            action = h.newdb
 
     action()
 

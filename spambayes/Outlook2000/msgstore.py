@@ -85,6 +85,7 @@ from win32com.mapi.mapitags import *
 import pythoncom
 
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
+MSGFLAG_READ = 0x1 # from MAPIdefs.h
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
 
@@ -227,16 +228,16 @@ class MAPIMsgStore(MsgStore):
                          mapi.BinFromHex(message_id.EntryID)
         else:
             message_id = self.NormalizeID(message_id)
-        prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
+        prop_ids = PR_PARENT_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
         mapi_object = self._OpenEntry(message_id)
         hr, data = mapi_object.GetProps(prop_ids,0)
         folder_eid = data[0][1]
         searchkey = data[1][1]
-        unread = data[2][1]
+        flags = data[2][1]
         folder_id = message_id[0], folder_eid
         folder = MAPIMsgStoreFolder(self, folder_id,
                                     "Unknown - temp message", -1)
-        return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, unread)
+        return  MAPIMsgStoreMsg(self, folder, message_id, searchkey, flags)
 
 _MapiTypeMap = {
     type(0.0): PT_DOUBLE,
@@ -281,7 +282,13 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
     def GetMessageGenerator(self):
         folder = self.msgstore._OpenEntry(self.id)
         table = folder.GetContentsTable(0)
-        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
+        # Limit ourselves to IPM.Note objects - ie, messages.
+        restriction = (mapi.RES_PROPERTY,   # a property restriction
+                       (mapi.RELOP_GE,      # >=
+                        PR_MESSAGE_CLASS_A,   # of the this prop
+                        (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
+        table.Restrict(restriction, 0)
+        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
         table.SetColumns(prop_ids, 0)
         while 1:
             # Getting 70 at a time was the random number that gave best
@@ -300,19 +307,29 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
         # Resolve the field name
         resolve_props = ( (mapi.PS_PUBLIC_STRINGS, "Spam"), )
         resolve_ids = folder.GetIDsFromNames(resolve_props, 0)
-        field_id = PROP_TAG( PT_I4, PROP_ID(resolve_ids[0]))
+        field_id = PROP_TAG( PT_DOUBLE, PROP_ID(resolve_ids[0]))
         # Setup the properties we want to read.
-        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_CONTENT_UNREAD
+        prop_ids = PR_ENTRYID, PR_SEARCH_KEY, PR_MESSAGE_FLAGS
         table.SetColumns(prop_ids, 0)
         # Set up the restriction
-        prop_restriction = (mapi.RES_PROPERTY,   # a property restriction
-                               (mapi.RELOP_EQ,      # check for equality
-                                PR_CONTENT_UNREAD,   # of the unread flag
-                                (PR_CONTENT_UNREAD, True))
-                            )
+        # Need to check message-flags
+        # (PR_CONTENT_UNREAD is optional, and somewhat unreliable
+        # PR_MESSAGE_FLAGS & MSGFLAG_READ is the official way)
+        prop_restriction = (mapi.RES_BITMASK,   # a bitmask restriction
+                               (mapi.BMR_EQZ,      # when bit is clear
+                                PR_MESSAGE_FLAGS,
+                                MSGFLAG_READ))
         exist_restriction = mapi.RES_EXIST, (field_id,)
         not_exist_restriction = mapi.RES_NOT, (exist_restriction,)
-        restriction = (mapi.RES_AND, (prop_restriction, not_exist_restriction))
+        # A restriction for the message class
+        class_restriction = (mapi.RES_PROPERTY,   # a property restriction
+                             (mapi.RELOP_GE,      # >=
+                              PR_MESSAGE_CLASS_A,   # of the this prop
+                              (PR_MESSAGE_CLASS_A, "IPM.Note"))) # with this value
+        # Put the final restriction together
+        restriction = (mapi.RES_AND, (prop_restriction,
+                                      not_exist_restriction,
+                                      class_restriction))
         table.Restrict(restriction, 0)
         while 1:
             rows = table.QueryRows(70, 0)
@@ -324,7 +341,7 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                                       item_id, row[1][1], row[2][1])
 
 class MAPIMsgStoreMsg(MsgStoreMsg):
-    def __init__(self, msgstore, folder, entryid, searchkey, unread):
+    def __init__(self, msgstore, folder, entryid, searchkey, flags):
         self.folder = folder
         self.msgstore = msgstore
         self.mapi_object = None
@@ -336,7 +353,8 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # (ie, someone would need to really want to change it <wink>)
         # Thus, searchkey is the only reliable long-lived message key.
         self.searchkey = searchkey
-        self.unread = unread
+        self.flags = flags
+        self.unread = flags & MSGFLAG_READ == 0
         self.dirty = False
 
     def __repr__(self):
@@ -450,11 +468,15 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                            (mapi.RELOP_EQ,      # check for equality
                             PR_ATTACH_MIME_TAG_A,   # of the given prop
                             (PR_ATTACH_MIME_TAG_A, "multipart/signed")))
-            rows = mapi.HrQueryAllRows(table,
-                                       (PR_ATTACH_NUM,), # columns to get
-                                       restriction,    # only these rows
-                                       None,    # any sort order is fine
-                                       0)       # any # of results is fine
+            try:
+                rows = mapi.HrQueryAllRows(table,
+                                           (PR_ATTACH_NUM,), # columns to get
+                                           restriction,    # only these rows
+                                           None,    # any sort order is fine
+                                           0)       # any # of results is fine
+            except pythoncom.com_error:
+                # For some reason there are no rows we can get
+                rows = []
             if len(rows) == 0:
                 pass # Nothing we can fetch :(
             else:
@@ -485,12 +507,6 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 sub = msg.get_payload(0)
                 body = sub.get_payload()
 
-        if not html and not body:
-            # MarkH has only ever seen this when it is indeed true!
-            # (generally as the message has an attachment and nothing else)
-            print "Couldn't find any useful body for message '%s'" \
-                  % (self.GetField(PR_SUBJECT_A),)
-
         return "%s\n%s\n%s" % (headers, html, body)
 
     def _GetFakeHeaders(self):
@@ -513,12 +529,14 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         if self.mapi_object is None:
             self.mapi_object = self.msgstore._OpenEntry(self.id)
 
-    def GetEmailPackageObject(self, strip_content_type=True):
+    def GetEmailPackageObject(self, strip_mime_headers=True):
         # Return an email.Message object.
-        # strip_content_type is a hack, and should be left True unless you're
+        #
+        # strip_mime_headers is a hack, and should be left True unless you're
         # trying to display all the headers for diagnostic purposes.  If we
         # figure out something better to do, it should go away entirely.
-        # The problem:  suppose a msg is multipart/alternative, with
+        #
+        # Problem #1:  suppose a msg is multipart/alternative, with
         # text/plain and text/html sections.  The latter MIME decorations
         # are plain missing in what _GetMessageText() returns.  If we leave
         # the multipart/alternative in the headers anyway, the email
@@ -529,8 +547,18 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # Content-Type from the headers (if present), the email pkg
         # considers the body to be text/plain (the default), and so it
         # does get tokenized.
+        #
+        # Problem #2:  Outlook decodes quoted-printable and base64 on its
+        # own, but leaves any Content-Transfer-Encoding line in the headers.
+        # This can cause the email pkg to try to decode the text again,
+        # with unpleasant (but rarely fatal) results.  If we strip that
+        # header too, no problem -- although the fact that a msg was
+        # encoded in base64 is usually a good spam clue, and we miss that.
+        #
         # Short course:  we either have to synthesize non-insane MIME
         # structure, or eliminate all evidence of original MIME structure.
+        # Since we don't have a way to the former, by default this function
+        # does the latter.
         import email
         text = self._GetMessageText()
         try:
@@ -539,9 +567,11 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
             print "FAILED to create email.message from: ", `text`
             raise
 
-        if strip_content_type:
+        if strip_mime_headers:
             if msg.has_key('content-type'):
                 del msg['content-type']
+            if msg.has_key('content-transfer-encoding'):
+                del msg['content-transfer-encoding']
 
         return msg
 

@@ -85,8 +85,9 @@ __credits__ = "Richie Hindle, Tim Peters, all the spambayes contributors."
 from __future__ import generators
 
 import Corpus
-import Bayes
+import storage
 import sys, os, gzip, fnmatch, getopt, errno, time, stat
+from Options import options
 
 class FileCorpus(Corpus.Corpus):
 
@@ -132,7 +133,7 @@ filter'''
         if not fnmatch.fnmatch(message.key(), self.filter):
             raise ValueError
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'adding',message.key(),'to corpus'
 
         message.directory = self.directory
@@ -144,7 +145,7 @@ filter'''
     def removeMessage(self, message):
         '''Remove a Message from this corpus'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'removing',message.key(),'from corpus'
 
         message.remove()
@@ -162,7 +163,7 @@ filter'''
         else:
             s = ''
 
-        if Corpus.Verbose and nummsgs > 0:
+        if options.verbose and nummsgs > 0:
             lst = ', ' + '%s' % (self.keys())
         else:
             lst = ''
@@ -191,6 +192,7 @@ class FileMessage(Corpus.Message):
     def __init__(self,file_name, directory):
         '''Constructor(message file name, corpus directory name)'''
 
+        Corpus.Message.__init__(self)
         self.file_name = file_name
         self.directory = directory
         self.load()
@@ -203,7 +205,7 @@ class FileMessage(Corpus.Message):
     def load(self):
         '''Read the Message substance from the file'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'loading', self.file_name
 
         pn = self.pathname()
@@ -213,24 +215,24 @@ class FileMessage(Corpus.Message):
             if e.errno != errno.ENOENT:
                raise
         else:
-           self.substance = fp.read()
+           self.setSubstance(fp.read())
            fp.close()
 
     def store(self):
         '''Write the Message substance to the file'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'storing', self.file_name
 
         pn = self.pathname()
         fp = open(pn, 'wb')
-        fp.write(self.substance)
+        fp.write(self.getSubstance())
         fp.close()
 
     def remove(self):
         '''Message hara-kiri'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'physically deleting file',self.pathname()
 
         os.unlink(self.pathname())
@@ -247,15 +249,15 @@ class FileMessage(Corpus.Message):
         '''Instance as a representative string'''
 
         elip = ''
-        sub = self.substance
-
-        if Corpus.Verbose:
-            sub = self.substance
+        sub = self.getSubstance()
+        
+        if options.verbose:
+            sub = self.getSubstance()
         else:
-            if len(self.substance) > 20:
-                sub = self.substance[:20]
-                if len(self.substance) > 40:
-                    sub += '...' + self.substance[-20:]
+            if len(sub) > 20:
+                sub = sub[:20]
+                if len(sub) > 40:
+                    sub += '...' + sub[-20:]
 
         pn = os.path.join(self.directory, self.file_name)
 
@@ -292,7 +294,7 @@ class GzipFileMessage(FileMessage):
     def load(self):
         '''Read the Message substance from the file'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'loading', self.file_name
 
         pn = self.pathname()
@@ -303,19 +305,19 @@ class GzipFileMessage(FileMessage):
             if e.errno != errno.ENOENT:
                 raise
         else:
-            self.substance = fp.read()
+            self.setSubstance(fp.read())
             fp.close()
 
 
     def store(self):
         '''Write the Message substance to the file'''
 
-        if Corpus.Verbose:
+        if options.verbose:
             print 'storing', self.file_name
 
         pn = self.pathname()
         gz = gzip.open(pn, 'wb')
-        gz.write(self.substance)
+        gz.write(self.getSubstance())
         gz.flush()
         gz.close()
 
@@ -341,15 +343,15 @@ def runTest(useGzip):
         fmFact =  FileMessageFactory()
         print 'Executing with uncompressed files'
 
-    print '\n\nCreating two Bayes databases'
-    miscbayes = Bayes.PickledBayes('fctestmisc.bayes')
-    classbayes = Bayes.DBDictBayes('fctestclass.bayes')
+    print '\n\nCreating two Classifier databases'
+    miscbayes = storage.PickledClassifier('fctestmisc.bayes')
+    classbayes = storage.DBDictClassifier('fctestclass.bayes')
 
     print '\n\nSetting up spam corpus'
     spamcorpus = FileCorpus(fmFact, 'fctestspamcorpus')
-    spamtrainer = Bayes.SpamTrainer(miscbayes)
+    spamtrainer = storage.SpamTrainer(miscbayes)
     spamcorpus.addObserver(spamtrainer)
-    anotherspamtrainer = Bayes.SpamTrainer(classbayes, Bayes.UPDATEPROBS)
+    anotherspamtrainer = storage.SpamTrainer(classbayes, storage.UPDATEPROBS)
     spamcorpus.addObserver(anotherspamtrainer)
 
     keys = spamcorpus.keys()
@@ -364,18 +366,20 @@ def runTest(useGzip):
     hamcorpus = FileCorpus(fmFact, \
                           'fctesthamcorpus', \
                           'MSG*')
-    hamtrainer = Bayes.HamTrainer(miscbayes)
+    hamtrainer = storage.HamTrainer(miscbayes)
     hamcorpus.addObserver(hamtrainer)
     hamtrainer.trainAll(hamcorpus)
 
-
-    print '\n\nAdd a message to hamcorpus that does not match the filter'
+    print '\n\nA couple of message related tests'
     if useGzip:
         fmClass = GzipFileMessage
     else:
         fmClass = FileMessage
 
     m1 = fmClass('XMG00001', 'fctestspamcorpus')
+    m1.setSubstance(testmsg2())
+    
+    print '\n\nAdd a message to hamcorpus that does not match the filter'
 
     try:
         hamcorpus.addMessage(m1)
@@ -416,7 +420,7 @@ We should not see MSG00003 in this iteration.'
 
 
     print '\n\nTrain with an individual message'
-    anotherhamtrainer = Bayes.HamTrainer(classbayes)
+    anotherhamtrainer = storage.HamTrainer(classbayes)
     anotherhamtrainer.train(unsurecorpus['MSG00005'])
 
 
@@ -427,22 +431,31 @@ We should not see MSG00003 in this iteration.'
     print "\n\nLet's test printing a message"
     msg = spamcorpus['MSG00001']
     print msg
+    print '\n\nThis is some vital information in the message'
+    print 'Date header is',msg.getDate()
+    print 'Subject header is',msg.getSubject()
+    print 'From header is',msg.getFrom()
+    
+    print 'Header text is:',msg.getHeaders()
+    print 'Headers are:',msg.getHeadersList()
+    print 'Body is:',msg.getPayload()
+
 
 
     print '\n\nClassifying messages in unsure corpus'
 
     for msg in unsurecorpus:
-        type = classbayes.classify(msg)
+        prob = classbayes.spamprob(msg.tokenize())
 
-        print 'Message %s spam probability is %f' % (msg.key(), msg.spamprob)
+        print 'Message %s spam probability is %f' % (msg.key(), prob)
 
-        if type == 'ham':
+        if prob < options.ham_cutoff:
             print 'Moving %s from unsurecorpus to hamcorpus, \
-based on prob of %f' % (msg.key(), msg.spamprob)
+based on prob of %f' % (msg.key(), prob)
             hamcorpus.takeMessage(msg.key(), unsurecorpus)
-        elif type == 'spam':
+        elif prob > options.spam_cutoff:
             print 'Moving %s from unsurecorpus to spamcorpus, \
-based on prob of %f' % (msg.key(), msg.spamprob)
+based on prob of %f' % (msg.key(), prob)
             spamcorpus.takeMessage(msg.key(), unsurecorpus)
 
 
@@ -460,8 +473,7 @@ based on prob of %f' % (msg.key(), msg.spamprob)
     print 'unsurecorpus msgs dict contains', unsurecorpus.msgs
 
 
-    print '\n\nUpdating and storing bayes databases'
-    miscbayes.update_probabilities()  # if we don't, training is forgotten
+    print '\n\nStoring bayes databases'
     miscbayes.store()
     classbayes.store()
 
@@ -525,15 +537,15 @@ def setupTest(useGzip):
         fmClass = FileMessage
 
     m1 = fmClass('MSG00001', 'fctestspamcorpus')
-    m1.substance = tm1
+    m1.setSubstance(tm1)
     m1.store()
 
     m2 = fmClass('MSG00002', 'fctestspamcorpus')
-    m2.substance = tm2
+    m2.setSubstance(tm2)
     m2.store()
 
     m3 = fmClass('MSG00003', 'fctestunsurecorpus')
-    m3.substance = tm1
+    m3.setSubstance(tm1)
     m3.store()
 
     for x in range(11):
@@ -545,15 +557,15 @@ def setupTest(useGzip):
        print 'wait',10-x,'more second%s' % (s)
 
     m4 = fmClass('MSG00004', 'fctestunsurecorpus')
-    m4.substance = tm1
+    m4.setSubstance(tm1)
     m4.store()
 
     m5 = fmClass('MSG00005', 'fctestunsurecorpus')
-    m5.substance = tm2
+    m5.setSubstance(tm2)
     m5.store()
 
     m6 = fmClass('MSG00006', 'fctestunsurecorpus')
-    m6.substance = tm2
+    m6.setSubstance(tm2)
     m6.store()
 
 
@@ -582,7 +594,6 @@ From:Skip Montanaro <skip@pobox.com>
 MIME-Version:1.0
 Content-Type:text/plain; charset=us-ascii
 Content- Transfer- Encoding:7bit
-
 Message-ID:<15814.42238.882013.702030@montanaro.dyndns.org>
 Date:Mon, 4 Nov 2002 10:49:02 -0600
 To:Four Stones Expressions <tim@fourstonesExpressions.com>
@@ -643,7 +654,6 @@ X-Mailer:Forte Agent 1.7/32.534
 MIME-Version:1.0
 Content-Type:text/plain; charset=us-ascii
 Content- Transfer- Encoding:7bit
-
 X-Hammie- Disposition:Unsure
 
 
@@ -676,7 +686,7 @@ if __name__ == '__main__':
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    Corpus.Verbose = False
+    options.verbose = False
     runTestServer = False
     setupTestServer = False
     cleanupTestServer = False
@@ -697,11 +707,13 @@ if __name__ == '__main__':
         elif opt == '-c':
             cleanupTestServer = True
         elif opt == '-v':
-            Corpus.Verbose = True
+            options.verbose = True
         elif opt == '-g':
             useGzip = True
         elif opt == '-u':
             useExistingDB = True
+        elif opt == '-v':
+            options.verbose = True
 
     if setupTestServer:
         setupTest(useGzip)

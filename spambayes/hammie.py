@@ -1,57 +1,11 @@
 #! /usr/bin/env python
 
-# A driver for the classifier module and Tim's tokenizer that you can
-# call from procmail.
 
-"""Usage: %(program)s [options]
-
-Where:
-    -h
-        show usage and exit
-    -g PATH
-        mbox or directory of known good messages (non-spam) to train on.
-        Can be specified more than once, or use - for stdin.
-    -s PATH
-        mbox or directory of known spam messages to train on.
-        Can be specified more than once, or use - for stdin.
-    -u PATH
-        mbox of unknown messages.  A ham/spam decision is reported for each.
-        Can be specified more than once.
-    -r
-        reverse the meaning of the check (report ham instead of spam).
-        Only meaningful with the -u option.
-    -p FILE
-        use file as the persistent store.  loads data from this file if it
-        exists, and saves data to this file at the end.
-        Default: %(DEFAULTDB)s
-    -d
-        use the DBM store instead of cPickle.  The file is larger and
-        creating it is slower, but checking against it is much faster,
-        especially for large word databases. Default: %(USEDB)s
-    -D
-        the reverse of -d: use the cPickle instead of DBM
-    -f
-        run as a filter: read a single message from stdin, add an
-        %(DISPHEADER)s header, and write it to stdout.  If you want to
-        run from procmail, this is your option.
-"""
-
-from __future__ import generators
-
-import sys
-import os
-import types
-import getopt
-import mailbox
-import glob
-import email
-import errno
-import anydbm
-import cPickle as pickle
-
+import dbdict
 import mboxutils
-import classifier
+import storage
 from Options import options
+from tokenizer import tokenize
 
 try:
     True, False
@@ -60,165 +14,13 @@ except NameError:
     True, False = 1, 0
 
 
-program = sys.argv[0] # For usage(); referenced by docstring above
-
-# Name of the header to add in filter mode
-DISPHEADER = options.hammie_header_name
-DEBUGHEADER = options.hammie_debug_header_name
-DODEBUG = options.hammie_debug_header
-
-# Default database name
-DEFAULTDB = options.persistent_storage_file
-
-# Probability at which a message is considered spam
-SPAM_THRESHOLD = options.spam_cutoff
-HAM_THRESHOLD = options.ham_cutoff
-
-# Probability limit for a clue to be added to the DISPHEADER
-SHOWCLUE = options.clue_mailheader_cutoff
-
-# Use a database? If False, use a pickle
-USEDB = options.persistent_use_database
-
-# Tim's tokenizer kicks far more booty than anything I would have
-# written.  Score one for analysis ;)
-from tokenizer import tokenize
-
-class DBDict:
-
-    """Database Dictionary.
-
-    This wraps an anydbm to make it look even more like a dictionary.
-
-    Call it with the name of your database file.  Optionally, you can
-    specify a list of keys to skip when iterating.  This only affects
-    iterators; things like .keys() still list everything.  For instance:
-
-    >>> d = DBDict('/tmp/goober.db', ('skipme', 'skipmetoo'))
-    >>> d['skipme'] = 'booga'
-    >>> d['countme'] = 'wakka'
-    >>> print d.keys()
-    ['skipme', 'countme']
-    >>> for k in d.iterkeys():
-    ...     print k
-    countme
-
-    """
-
-    def __init__(self, dbname, mode, iterskip=()):
-        self.hash = anydbm.open(dbname, mode)
-        self.iterskip = iterskip
-
-    def __getitem__(self, key):
-        v = self.hash[key]
-        if v[0] == 'W':
-            val = pickle.loads(v[1:])
-            # We could be sneaky, like pickle.Unpickler.load_inst,
-            # but I think that's overly confusing.
-            obj = classifier.WordInfo(0)
-            obj.__setstate__(val)
-            return obj
-        else:
-            return pickle.loads(v)
-
-    def __setitem__(self, key, val):
-        if isinstance(val, classifier.WordInfo):
-            val = val.__getstate__()
-            v = 'W' + pickle.dumps(val, 1)
-        else:
-            v = pickle.dumps(val, 1)
-        self.hash[key] = v
-
-    def __delitem__(self, key, val):
-        del(self.hash[key])
-
-    def __iter__(self, fn=None):
-        k = self.hash.first()
-        while k != None:
-            key = k[0]
-            val = self.__getitem__(key)
-            if key not in self.iterskip:
-                if fn:
-                    yield fn((key, val))
-                else:
-                    yield (key, val)
-            try:
-                k = self.hash.next()
-            except KeyError:
-                break
-
-    def __contains__(self, name):
-        return self.has_key(name)
-
-    def __getattr__(self, name):
-        # Pass the buck
-        return getattr(self.hash, name)
-
-    def get(self, key, dfl=None):
-        if self.has_key(key):
-            return self[key]
-        else:
-            return dfl
-
-    def iteritems(self):
-        return self.__iter__()
-
-    def iterkeys(self):
-        return self.__iter__(lambda k: k[0])
-
-    def itervalues(self):
-        return self.__iter__(lambda k: k[1])
-
-
-class PersistentBayes(classifier.Bayes):
-
-    """A persistent Bayes classifier.
-
-    This is just like classifier.Bayes, except that the dictionary is a
-    database.  You take less disk this way and you can pretend it's
-    persistent.  The tradeoffs vs. a pickle are: 1. it's slower
-    training, but faster checking, and 2. it needs less memory to run,
-    but takes more space on the hard drive.
-
-    On destruction, an instantiation of this class will write its state
-    to a special key.  When you instantiate a new one, it will attempt
-    to read these values out of that key again, so you can pick up where
-    you left off.
-
-    """
-
-    # XXX: Would it be even faster to remember (in a list) which keys
-    # had been modified, and only recalculate those keys?  No sense in
-    # going over the entire word database if only 100 words are
-    # affected.
-
-    # XXX: Another idea: cache stuff in memory.  But by then maybe we
-    # should just use ZODB.
-
-    def __init__(self, dbname, mode):
-        classifier.Bayes.__init__(self)
-        self.statekey = "saved state"
-        self.wordinfo = DBDict(dbname, mode, (self.statekey,))
-        self.dbmode = mode
-
-        self.restore_state()
-
-    def __del__(self):
-        #super.__del__(self)
-        self.save_state()
-
-    def save_state(self):
-        if self.dbmode != 'r':
-            self.wordinfo[self.statekey] = (self.nham, self.nspam)
-
-    def restore_state(self):
-        if self.wordinfo.has_key(self.statekey):
-            self.nham, self.nspam = self.wordinfo[self.statekey]
-
-
 class Hammie:
+    """A spambayes mail filter.
 
-    """A spambayes mail filter"""
+    This implements the basic functionality needed to score, filter, or
+    train.  
+
+    """
 
     def __init__(self, bayes):
         self.bayes = bayes
@@ -255,16 +57,11 @@ class Hammie:
 
         """
 
-        try:
-            return self._scoremsg(msg, evidence)
-        except:
-            print msg
-            import traceback
-            traceback.print_exc()
+        return self._scoremsg(msg, evidence)
 
-    def filter(self, msg, header=DISPHEADER, spam_cutoff=SPAM_THRESHOLD,
-               ham_cutoff=HAM_THRESHOLD, debugheader=DEBUGHEADER,
-               debug=DODEBUG):
+    def filter(self, msg, header=None, spam_cutoff=None,
+               ham_cutoff=None, debugheader=None,
+               debug=None):
         """Score (judge) a message and add a disposition header.
 
         msg can be a string, a file object, or a Message object.
@@ -281,6 +78,17 @@ class Hammie:
         Returns the same message with a new disposition header.
 
         """
+
+        if header == None:
+            header = options.hammie_header_name
+        if spam_cutoff == None:
+            spam_cutoff = options.spam_cutoff
+        if ham_cutoff == None:
+            ham_cutoff = options.ham_cutoff
+        if debugheader == None:
+            debugheader = options.hammie_debug_header_name
+        if debug == None:
+            debug = options.hammie_debug_header
 
         msg = mboxutils.get_message(msg)
         try:
@@ -317,20 +125,14 @@ class Hammie:
 
         is_spam should be 1 if the message is spam, 0 if not.
 
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
-
         """
 
-        self.bayes.learn(tokenize(msg), is_spam, False)
+        self.bayes.learn(tokenize(msg), is_spam)
 
     def train_ham(self, msg):
         """Train bayes with ham.
 
         msg can be a string, a file object, or a Message object.
-
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
 
         """
 
@@ -341,170 +143,41 @@ class Hammie:
 
         msg can be a string, a file object, or a Message object.
 
-        Probabilities are not updated after this call is made; to do
-        that, call update_probabilities().
-
         """
 
         self.train(msg, True)
 
-    def update_probabilities(self):
-        """Update probability values.
+    def store(self):
+        """Write out the persistent store.
 
-        You would want to call this after a training session.  It's
-        pretty slow, so if you have a lot of messages to train, wait
-        until you're all done before calling this.
+        This makes sure the persistent store reflects what is currently
+        in memory.  You would want to do this after a write and before
+        exiting.
 
         """
 
-        self.bayes.update_probabilities()
+        self.bayes.store()
 
 
-def train(hammie, msgs, is_spam):
-    """Train bayes with all messages from a mailbox."""
-    mbox = mboxutils.getmbox(msgs)
-    i = 0
-    for msg in mbox:
-        i += 1
-        # XXX: Is the \r a Unixism?  I seem to recall it working in DOS
-        # back in the day.  Maybe it's a line-printer-ism ;)
-        sys.stdout.write("\r%6d" % i)
-        sys.stdout.flush()
-        hammie.train(msg, is_spam)
-    print
+def open(filename, usedb=True, mode='r'):
+    """Open a file, returning a Hammie instance.
 
-def score(hammie, msgs, reverse=0):
-    """Score (judge) all messages from a mailbox."""
-    # XXX The reporting needs work!
-    mbox = mboxutils.getmbox(msgs)
-    i = 0
-    spams = hams = 0
-    for msg in mbox:
-        i += 1
-        prob, clues = hammie.score(msg, True)
-        if hasattr(msg, '_mh_msgno'):
-            msgno = msg._mh_msgno
-        else:
-            msgno = i
-        isspam = (prob >= SPAM_THRESHOLD)
-        if isspam:
-            spams += 1
-            if not reverse:
-                print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
-                print hammie.formatclues(clues)
-        else:
-            hams += 1
-            if reverse:
-                print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
-                print hammie.formatclues(clues)
-    return (spams, hams)
+    If usedb is False, open as a pickle instead of a DBDict.  mode is
 
-def createbayes(pck=DEFAULTDB, usedb=False, mode='r'):
-    """Create a Bayes instance for the given pickle (which
-    doesn't have to exist).  Create a PersistentBayes if
-    usedb is True."""
+    used as the flag to open DBDict objects.  'c' for read-write (create
+    if needed), 'r' for read-only, 'w' for read-write.
+
+    """
+
     if usedb:
-        bayes = PersistentBayes(pck, mode)
+        b = storage.DBDictClassifier(filename, mode)
     else:
-        bayes = None
-        try:
-            fp = open(pck, 'rb')
-        except IOError, e:
-            if e.errno <> errno.ENOENT: raise
-        else:
-            bayes = pickle.load(fp)
-            fp.close()
-        if bayes is None:
-            bayes = classifier.Bayes()
-    return bayes
-
-def usage(code, msg=''):
-    """Print usage message and sys.exit(code)."""
-    if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
-    sys.exit(code)
-
-def main():
-    """Main program; parse options and go."""
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdDfg:s:p:u:r')
-    except getopt.error, msg:
-        usage(2, msg)
-
-    if not opts:
-        usage(2, "No options given")
-
-    pck = DEFAULTDB
-    good = []
-    spam = []
-    unknown = []
-    reverse = 0
-    do_filter = False
-    usedb = USEDB
-    mode = 'r'
-    for opt, arg in opts:
-        if opt == '-h':
-            usage(0)
-        elif opt == '-g':
-            good.append(arg)
-            mode = 'c'
-        elif opt == '-s':
-            spam.append(arg)
-            mode = 'c'
-        elif opt == '-p':
-            pck = arg
-        elif opt == "-d":
-            usedb = True
-        elif opt == "-D":
-            usedb = False
-        elif opt == "-f":
-            do_filter = True
-        elif opt == '-u':
-            unknown.append(arg)
-        elif opt == '-r':
-            reverse = 1
-    if args:
-        usage(2, "Positional arguments not allowed")
-
-    save = False
-
-    bayes = createbayes(pck, usedb, mode)
-    h = Hammie(bayes)
-
-    for g in good:
-        print "Training ham (%s):" % g
-        train(h, g, False)
-        save = True
-
-    for s in spam:
-        print "Training spam (%s):" % s
-        train(h, s, True)
-        save = True
-
-    if save:
-        h.update_probabilities()
-        if not usedb and pck:
-            fp = open(pck, 'wb')
-            pickle.dump(bayes, fp, 1)
-            fp.close()
-
-    if do_filter:
-        msg = sys.stdin.read()
-        filtered = h.filter(msg)
-        sys.stdout.write(filtered)
-
-    if unknown:
-        (spams, hams) = (0, 0)
-        for u in unknown:
-            if len(unknown) > 1:
-                print "Scoring", u
-            s, g = score(h, u, reverse)
-            spams += s
-            hams += g
-        print "Total %d spam, %d ham" % (spams, hams)
+        b = storage.PickledClassifier(filename)
+    return Hammie(b)
 
 
 if __name__ == "__main__":
-    main()
+    # Everybody's used to running hammie.py.  Why mess with success?  ;)
+    import hammiebulk
+
+    hammiebulk.main()

@@ -34,10 +34,8 @@ import Options
 
 start = (Options.options.unknown_word_prob,
          Options.options.minimum_prob_strength,
-         Options.options.unknown_word_strength,
-         Options.options.spam_cutoff,
-         Options.options.ham_cutoff)
-err = (0.01, 0.01, 0.01, 0.005, 0.01)
+         Options.options.unknown_word_strength)
+err = (0.01, 0.01, 0.01)
 
 def mkini(vars):
     f=open('bayescustomize.ini', 'w')
@@ -46,10 +44,6 @@ def mkini(vars):
 unknown_word_prob = %.6f
 minimum_prob_strength = %.6f
 unknown_word_strength = %.6f
-
-[TestDriver]
-spam_cutoff = %.4f
-ham_cutoff = %.4f
 """%tuple(vars))
     f.close()
 
@@ -65,8 +59,10 @@ def score(vars):
     # Extract the flex cost field.
     cost = float(txt[-1].split()[2][1:])
     f.close()
-    # print ''.join(txt[-4:])[:-1]
-    print "x=%.4f p=%.4f s=%.4f sc=%.3f hc=%.3f %.2f"%(tuple(vars)+(cost,))
+    os.rename('loop.out','loop.out.old')
+    print ''.join(txt[-20:])[:-1]
+    print "x=%.4f p=%.4f s=%.4f %.2f"%(tuple(vars)+(cost,))
+    sys.stdout.flush()
     return -cost
 
 def main():

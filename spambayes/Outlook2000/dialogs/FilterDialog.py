@@ -303,7 +303,9 @@ class FilterNowDialog(AsyncDialogBase):
         [BUTTON,         process_start_text,    IDC_START,           (7,161,50,14),   csts | win32con.BS_DEFPUSHBUTTON],
         [BUTTON,         'Close',               win32con.IDCANCEL,   (187,161,50,14), csts | win32con.BS_PUSHBUTTON],
     ]
-    disable_while_running_ids = [IDC_BUT_UNSEEN, IDC_BUT_UNREAD, IDC_BROWSE, win32con.IDCANCEL]
+    disable_while_running_ids = [IDC_BUT_UNSEEN, IDC_BUT_UNREAD,
+                                 IDC_BROWSE, win32con.IDCANCEL,
+                                 IDC_BUT_ACT_SCORE, IDC_BUT_ACT_SCORE]
 
     def __init__(self, mgr, filterer):
         self.mgr = mgr

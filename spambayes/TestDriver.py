@@ -119,6 +119,8 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
               num_fp*1e2 / ham.n, num_fn*1e2 / spam.n,
               (num_unh + num_uns)*1e2 / (ham.n + spam.n))
 
+    return float(bests[0][0])/n,float(bests[0][1])/n
+
 def printmsg(msg, prob, clues):
     print msg.tag
     print "prob =", prob
@@ -189,8 +191,12 @@ class Driver:
 
     def alldone(self):
         if options.show_histograms:
-            printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
-
+            besthamcut,bestspamcut = printhist("all runs:", 
+                                               self.global_ham_hist, 
+                                               self.global_spam_hist)
+        else:
+            besthamcut = options.ham_cutoff
+            bestspamcut = options.spam_cutoff
         nham = self.global_ham_hist.n
         nspam = self.global_spam_hist.n
         nfp = len(self.falsepos)
@@ -206,6 +212,9 @@ class Driver:
               nfp * options.best_cutoff_fp_weight +
               nfn * options.best_cutoff_fn_weight +
               nun * options.best_cutoff_unsure_weight)
+        # Set back the options for the delayed calculations in self.cc
+        options.ham_cutoff = besthamcut
+        options.spam_cutoff = bestspamcut
         print self.cc
 
         if options.save_histogram_pickles:
@@ -294,22 +303,6 @@ class Driver:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)
-
-        if options.show_best_discriminators > 0:
-            print
-            print "    best discriminators:"
-            stats = [(-1, None)] * options.show_best_discriminators
-            smallest_killcount = -1
-            for w, r in c.wordinfo.iteritems():
-                if r.killcount > smallest_killcount:
-                    heapreplace(stats, (r.killcount, w))
-                    smallest_killcount = stats[0][0]
-            stats.sort()
-            for count, w in stats:
-                if count < 0:
-                    continue
-                r = c.wordinfo[w]
-                print "        %r %d %g" % (w, r.killcount, r.spamprob)
 
         if options.show_histograms:
             printhist("this pair:", local_ham_hist, local_spam_hist)

@@ -13,10 +13,11 @@ except NameError:
 def filter_message(msg, mgr, all_actions=True):
     config = mgr.config.filter
     prob = mgr.score(msg)
-    if prob >= config.spam_threshold:
+    prob_perc = prob * 100
+    if prob_perc >= config.spam_threshold:
         disposition = "Yes"
         attr_prefix = "spam"
-    elif prob >= config.unsure_threshold:
+    elif prob_perc >= config.unsure_threshold:
         disposition = "Unsure"
         attr_prefix = "unsure"
     else:

@@ -1,68 +1,13 @@
+from __future__ import generators
 # Dump every property we can find for a MAPI item
 
-from win32com.client import Dispatch, constants
 import pythoncom
 import os, sys
 
 from win32com.mapi import mapi, mapiutil
 from win32com.mapi.mapitags import *
 
-mapi.MAPIInitialize(None)
-logonFlags = (mapi.MAPI_NO_MAIL |
-              mapi.MAPI_EXTENDED |
-              mapi.MAPI_USE_DEFAULT)
-session = mapi.MAPILogonEx(0, None, None, logonFlags)
-
-def _FindDefaultMessageStore():
-    tab = session.GetMsgStoresTable(0)
-    # Restriction for the table:  get rows where PR_DEFAULT_STORE is true.
-    # There should be only one.
-    restriction = (mapi.RES_PROPERTY,   # a property restriction
-                   (mapi.RELOP_EQ,      # check for equality
-                    PR_DEFAULT_STORE,   # of the PR_DEFAULT_STORE prop
-                    (PR_DEFAULT_STORE, True))) # with True
-    rows = mapi.HrQueryAllRows(tab,
-                               (PR_ENTRYID,),   # columns to retrieve
-                               restriction,     # only these rows
-                               None,            # any sort order is fine
-                               0)               # any # of results is fine
-    # get first entry, a (property_tag, value) pair, for PR_ENTRYID
-    row = rows[0]
-    eid_tag, eid = row[0]
-    # Open the store.
-    return session.OpenMsgStore(
-                            0,      # no parent window
-                            eid,    # msg store to open
-                            None,   # IID; accept default IMsgStore
-                            # need write access to add score fields
-                            mapi.MDB_WRITE |
-                                # we won't send or receive email
-                                mapi.MDB_NO_MAIL |
-                                mapi.MAPI_DEFERRED_ERRORS)
-
-def _FindItemsWithValue(folder, prop_tag, prop_val):
-    tab = folder.GetContentsTable(0)
-    # Restriction for the table:  get rows where our prop values match
-    restriction = (mapi.RES_CONTENT,   # a property restriction
-                   (mapi.FL_SUBSTRING | mapi.FL_IGNORECASE | mapi.FL_LOOSE, # fuzz level
-                    prop_tag,   # of the given prop
-                    (prop_tag, prop_val))) # with given val
-    rows = mapi.HrQueryAllRows(tab,
-                               (PR_ENTRYID,),   # columns to retrieve
-                               restriction,     # only these rows
-                               None,            # any sort order is fine
-                               0)               # any # of results is fine
-    # get entry IDs
-    return [row[0][1] for row in rows]
-
-def _FindFolderEID(name):
-    assert name
-    from win32com.mapi import exchange
-    if not name.startswith("\\"):
-        name = "\\Top Of Personal Folders\\" + name
-    store = _FindDefaultMessageStore()
-    folder_eid = exchange.HrMAPIFindFolderEx(store, "\\", name)
-    return folder_eid
+import mapi_driver
 
 # Also in new versions of mapituil
 def GetAllProperties(obj, make_pretty = True):
@@ -91,20 +36,10 @@ def DumpItemProps(item, shorten):
             prop_repr = prop_repr[:50]
         print "%-20s: %s" % (prop_name, prop_repr)
 
-def DumpProps(folder_eid, subject, include_attach, shorten):
-    mapi_msgstore = _FindDefaultMessageStore()
-    mapi_folder = mapi_msgstore.OpenEntry(folder_eid,
-                                          None,
-                                          mapi.MAPI_DEFERRED_ERRORS)
+def DumpProps(driver, mapi_folder, subject, include_attach, shorten):
     hr, data = mapi_folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
     name = data[0][1]
-    eids = _FindItemsWithValue(mapi_folder, PR_SUBJECT_A, subject)
-    print "Folder '%s' has %d items matching '%s'" % (name, len(eids), subject)
-    for eid in eids:
-        print "Dumping item with ID", mapi.HexFromBin(eid)
-        item = mapi_msgstore.OpenEntry(eid,
-                                       None,
-                                       mapi.MAPI_DEFERRED_ERRORS)
+    for item in driver.GetItemsWithValue(mapi_folder, PR_SUBJECT_A, subject):
         DumpItemProps(item, shorten)
         if include_attach:
             print
@@ -116,43 +51,35 @@ def DumpProps(folder_eid, subject, include_attach, shorten):
                 attach = item.OpenAttach(attach_num, None, mapi.MAPI_DEFERRED_ERRORS)
                 DumpItemProps(attach, shorten)
 
-def usage():
+def usage(driver):
+    folder_doc = driver.GetFolderNameDoc()
     msg = """\
 Usage: %s [-f foldername] subject of the message
 -f - Search for the message in the specified folder (default = Inbox)
 -s - Shorten long property values.
 -a - Include attachments
+-n - Show top-level folder names and exit
 
 Dumps all properties for all messages that match the subject.  Subject
 matching is substring and ignore-case.
 
-Folder name must be a hierarchical 'path' name, using '\\'
-as the path seperator.  If the folder name begins with a
-\\, it must be a fully-qualified name, including the message
-store name (eg, "Top of Public Folders").  If the path does not
-begin with a \\, it is assumed to be fully-qualifed from the root
-of the default message store
-
-Eg, python\\python-dev' will locate a python-dev subfolder in a python
-subfolder in your default store.
-""" % os.path.basename(sys.argv[0])
+%s
+Use the -n option to see all top-level folder names from all stores.""" \
+    % (os.path.basename(sys.argv[0]),folder_doc)
     print msg
 
-
 def main():
+    driver = mapi_driver.MAPIDriver()
+
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "af:s")
+        opts, args = getopt.getopt(sys.argv[1:], "af:sn")
     except getopt.error, e:
         print e
         print
-        usage()
+        usage(driver)
         sys.exit(1)
     folder_name = ""
-    subject = " ".join(args)
-    if not subject:
-        usage()
-        sys.exit(1)
 
     shorten = False
     include_attach = False
@@ -163,6 +90,9 @@ def main():
             shorten = True
         elif opt == "-a":
             include_attach = True
+        elif opt == "-n":
+            driver.DumpTopLevelFolders()
+            sys.exit(1)
         else:
             print "Invalid arg"
             return
@@ -170,11 +100,20 @@ def main():
     if not folder_name:
         folder_name = "Inbox" # Assume this exists!
 
-    eid = _FindFolderEID(folder_name)
-    if eid is None:
-        print "*** Cant find folder", folder_name
-        return
-    DumpProps(eid, subject, include_attach, shorten)
+    subject = " ".join(args)
+    if not subject:
+        print "You must specify a subject"
+        print
+        usage(driver)
+        sys.exit(1)
+
+    try:
+        folder = driver.FindFolder(folder_name)
+    except ValueError, details:
+        print details
+        sys.exit(1)
+
+    DumpProps(driver, folder, subject, include_attach, shorten)
 
 if __name__=='__main__':
     main()

@@ -59,11 +59,10 @@ class Test:
         learn = self.classifier.learn
         if hamstream is not None:
             for example in hamstream:
-                learn(example, False, False)
+                learn(example, False)
         if spamstream is not None:
             for example in spamstream:
-                learn(example, True, False)
-        self.classifier.update_probabilities()
+                learn(example, True)
 
     # Untrain the classifier on streams of ham and spam.  Updates
     # probabilities before returning, and resets test results.
@@ -72,11 +71,10 @@ class Test:
         unlearn = self.classifier.unlearn
         if hamstream is not None:
             for example in hamstream:
-                unlearn(example, False, False)
+                unlearn(example, False)
         if spamstream is not None:
             for example in spamstream:
-                unlearn(example, True, False)
-        self.classifier.update_probabilities()
+                unlearn(example, True)
 
     # Run prediction on each sample in stream.  You're swearing that stream
     # is entirely composed of spam (is_spam True), or of ham (is_spam False).

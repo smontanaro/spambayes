@@ -27,7 +27,7 @@ def train(bayes, msgs, is_spam):
     """Train bayes with all messages from a mailbox."""
     mbox = mboxutils.getmbox(msgs)
     for msg in mbox:
-        bayes.learn(tokenize(msg), is_spam, False)
+        bayes.learn(tokenize(msg), is_spam)
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -45,17 +45,17 @@ def main():
     spam_name = sys.argv[1]
     ham_name = sys.argv[2]
     db_name = sys.argv[3]
-    bayes = classifier.Bayes()
+    bayes = classifier.Classifier()
     print 'Training with spam...'
     train(bayes, spam_name, True)
     print 'Training with ham...'
     train(bayes, ham_name, False)
     print 'Updating probabilities...'
-    bayes.update_probabilities()
     items = []
-    for word, winfo in bayes.wordinfo.iteritems():
-        #print `word`, str(winfo.spamprob)
-        items.append((word, str(winfo.spamprob)))
+    for word, record in bayes.wordinfo.iteritems():
+        prob = bayes.probability(record)
+        #print `word`, prob
+        items.append((word, str(prob)))
     print 'Writing DB...'
     db = open(db_name, "wb")
     cdb.cdb_make(db, items)

@@ -95,6 +95,12 @@ class BayesManager:
         # Using MAPI to set them directly on the folder also has no effect.
         # So until we know better, use Outlook to hack this in.
         # Should be called once per folder you are watching/filtering etc
+        #
+        # Oh the tribulations of our property grail
+        # We originally wanted to use the "Integer" Outlook field,
+        # but it seems this property type alone is not expose via the Object
+        # model.  So we resort to olPercent, and live with the % sign
+        # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
         ol = self.outlook
         msgstore_folder = self.message_store.GetFolder(folder_id)
@@ -106,9 +112,6 @@ class BayesManager:
         item = items.GetFirst()
         if item is not None:
             ups = item.UserProperties
-            # Display format is documented as being the 1-based index in
-            # the combo box in the outlook UI for the given data type.
-            # 1 is the first - "all digits", which seems fine.
             # *sigh* - need to search by int index
             for i in range(ups.Count):
                 up = ups[i+1]
@@ -116,19 +119,25 @@ class BayesManager:
                     break
             else: # for not broken
                 try:
+                    # Display format is documented as being the 1-based index in
+                    # the combo box in the outlook UI for the given data type.
+                    # 1 is the first - "Rounded", which seems fine.
+                    format = 1
                     ups.Add(self.config.field_score_name,
-                           # "Integer" from the UI doesn't exist!
-                           # 'olNumber' doesn't seem to work with PT_INT*
-                           win32com.client.constants.olCombination,
-                           True) # Add to folder
+                           win32com.client.constants.olPercent,
+                           True, # Add to folder
+                           format)
                     item.Save()
                     if self.verbose > 1:
                         print "Created the UserProperty!"
-                except pythoncom.com_error:
-                    pass # We know, we know...
-##                    import traceback
-##                    print "Failed to create the field"
-##                    traceback.print_exc()
+                except pythoncom.com_error, details:
+                    print "Warning: failed to create the Outlook " \
+                          "user-property in folder '%s'" \
+                          % (folder.Name.encode("mbcs", "replace"),)
+                    print "", details
+                    print " This is probably because the code has recently"\
+                          " been changed, but it will"
+                    print " have no effect on the filtering or scoring."
         # else no items in this folder - not much worth doing!
         if include_sub:
             # Recurse down the folder list.
@@ -250,7 +259,7 @@ class BayesManager:
             self.message_store = None
         self.outlook = None
 
-    def score(self, msg, evidence=False, scale=True):
+    def score(self, msg, evidence=False):
         """Score a msg.
 
         If optional arg evidence is specified and true, the result is a
@@ -260,26 +269,43 @@ class BayesManager:
 
         where clues is a list of the (word, spamprob(word)) pairs that
         went into determining the score.  Else just the score is returned.
-
-        If optional arg scale is specified and false, the score is a float
-        in 0.0 (ham) thru 1.0 (spam).  Else (the default), the score is
-        scaled into an integer from 0 (ham) thru 100 (spam).
         """
-
         email = msg.GetEmailPackageObject()
         result = self.bayes.spamprob(bayes_tokenize(email), evidence)
-        if not scale:
-            return result
-        # For sister-friendliness, multiply score by 100 and round to an int.
         if evidence:
             score, the_evidence = result
         else:
             score = result
-        score = int(round(score * 100.0))
         if evidence:
             return score, the_evidence
         else:
             return score
+
+    def ShowManager(self):
+        def do_train(dlg):
+            import train
+            import dialogs.TrainingDialog
+            d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
+            d.DoModal()
+
+        def do_filter(dlg):
+            import filter
+            import dialogs.FilterDialog
+            d = dialogs.FilterDialog.FilterNowDialog(dlg.mgr, filter.filterer)
+            d.DoModal()
+
+        def define_filter(dlg):
+            import filter
+            import dialogs.FilterDialog
+            d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, filter.filterer)
+            d.DoModal()
+            if dlg.mgr.addin is not None:
+                dlg.mgr.addin.FiltersChanged()
+
+
+        import dialogs.ManagerDialog
+        d = dialogs.ManagerDialog.ManagerDialog(self, do_train, do_filter, define_filter)
+        d.DoModal()
 
 _mgr = None
 
@@ -295,30 +321,7 @@ def GetManager(outlook = None, verbose=1):
     return _mgr
 
 def ShowManager(mgr):
-    def do_train(dlg):
-        import train
-        import dialogs.TrainingDialog
-        d = dialogs.TrainingDialog.TrainingDialog(dlg.mgr, train.trainer)
-        d.DoModal()
-
-    def do_filter(dlg):
-        import filter
-        import dialogs.FilterDialog
-        d = dialogs.FilterDialog.FilterNowDialog(dlg.mgr, filter.filterer)
-        d.DoModal()
-
-    def define_filter(dlg):
-        import filter
-        import dialogs.FilterDialog
-        d = dialogs.FilterDialog.FilterArrivalsDialog(dlg.mgr, filter.filterer)
-        d.DoModal()
-        if dlg.mgr.addin is not None:
-            dlg.mgr.addin.FiltersChanged()
-
-
-    import dialogs.ManagerDialog
-    d = dialogs.ManagerDialog.ManagerDialog(mgr, do_train, do_filter, define_filter)
-    d.DoModal()
+    mgr.ShowManager()
 
 def main(verbose_level = 1):
     try:

@@ -4,96 +4,114 @@
   <title>About SpamBayes</title>
 </head>
 <body>
-<span style="font-style: italic;">NOTE: This is very very early code. &nbsp;If
-you are looking this, you have probably been told about it against our better
-judgement &lt;wink&gt;. &nbsp;Stuff doesnt work correctly. &nbsp;Fields are
-funny. &nbsp;If you want something known to work well today for alot of people,
-this is not for you.<br>
+<h1>SpamBayes Outlook Plugin<br>
+</h1>
+<span style="font-style: italic;">NOTE: This is very very early code.
+&nbsp;If you are looking at this, you have probably been told about it
+against our better judgement &lt;wink&gt;. &nbsp;Stuff doesnt work
+correctly. &nbsp;If you want something known to work well today for alot
+of people, this is not for you.</span> &nbsp;That said, this plug-in
+works amazingly well! So welcome aboard.<span
+ style="font-style: italic;"><br>
 </span><br style="font-style: italic;">
-The source code is maintained at <a
+This spam filter uses Bayesian analysis to filter spam. &nbsp;Unlike
+other spam detection systems, Bayesian systems actually "learn" about
+what you consider spam, and continually adapt as both your regular email
+and spam patterns change. The source code is maintained at <a
  href="http://spambayes.sourceforge.net">SourceForge</a>.<br>
 <br>
-This spam filter uses Bayesian analysis to filter spam. &nbsp;Unlike other
-spam detection systems, Bayesian systems actually "learn" about what you
-consider spam, and continually adapt as both your regular email and spam
-patterns change.<br>
-
-<h2>Training</h2>
-Due to the nature of the system, it must be trained before it can be effective.
-&nbsp;Although the system does learn over time, when first installed it has
-no knowledge of either spam or good email.<br>
-
+Here you can find information on:<br>
+<div style="margin-left: 40px;"><a href="#Training">Training</a><br>
+<a href="#Field">Viewing the Spam Score field</a><br>
+</div>
+<h2><a name="Training"></a>Training</h2>
+Due to the nature of the system, it must be trained before it can be
+effective. &nbsp;Although the system does learn over time, when first
+installed it has no knowledge of either spam or good email.<br>
 <h3>Initial Training</h3>
 When first installed, it is recommended you perform the following steps:<br>
 <ul>
   <li>Create two folders - one for "Spam", and one for "Possible Spam"</li>
-  <li>Go through your Inbox and Deleted Items, and move as much spam as you
-can find to the "Spam" folder. &nbsp;Try and get as much Spam out of your
-inbox as possible.</li>
-  <li>Select the <span style="font-style: italic;">Training</span> dialog.
-&nbsp;Nominate your Spam folder for spam, and your Inbox for good messages,
-and start training.</li>
+  <li>Go through your Inbox and Deleted Items, and move as much spam as
+you can find to the "Spam" folder. &nbsp;Try and get as much Spam out of
+your inbox as possible.</li>
+  <li>Select the <span style="font-style: italic;">Training</span>
+dialog. &nbsp;Nominate your Spam folder for spam, and your Inbox for
+good messages, and start training.</li>
 </ul>
 To see how effective your Inbox cleanup was, you may like to try:<br>
 <ul>
-  <li>Go to the <span style="font-style: italic;">Filter Now</span> dialog.</li>
+  <li>Go to the <span style="font-style: italic;">Filter Now</span>
+dialog.</li>
   <li>Select your Inbox as the folder to filter.</li>
-  <li>Select <span style="font-style: italic;">Score messages, but dont perform
-filter action</span>.</li>
+  <li>Select <span style="font-style: italic;">Score messages, but
+dont perform filter action</span>.</li>
   <li>Clear both checkboxes so all messages will be scored.</li>
   <li>Start the score operation.</li>
 </ul>
-You can then look at and sort by the Spam field in your Inbox - this is likely
-to find hidden spam that you missed from your inbox cleanup.
-
+You can then look at and sort by the Spam field in your Inbox - this is
+likely to find hidden spam that you missed from your inbox cleanup.
 <h3>Incremental Training</h3>
-When you drag a message to your Spam folder, it will be automatically trained
-as spam. &nbsp;Thus, as the classifier misses spam (or is unsure about them),
-it learns as you correct it.<br>
-If messages are dropped back into the Inbox, they are trained as good - thus,
-the system learns what good messages look like should it incorrectly classify
-it as spam or possible spam.<br>
-
-<h2>Creating a Spam Score Field</h2>
-A custom property named "Spam" is added to all Outlook messages scored.
-This is an integer in 0 (ham) through 100 (spam) inclusive.
-You can teach Outlook to display this field as a column in any table view,
-like the standard Messages view.
-<p>
-This takes some work, and has to be done again for every folder in which
-you want to display a Spam column:
+When you drag a message to your Spam folder, it will be automatically
+trained as spam. &nbsp;Thus, as the classifier misses spam (or is unsure
+about them), it learns as you correct it.<br>
+If messages are dropped back into the Inbox, they are trained as good -
+thus, the system learns what good messages look like should it
+incorrectly classify it as spam or possible spam.<br>
+You will also notice a "Delete as Spam" button (in all folders except
+the Spam folder) and a "Recover from Spam" button in the Spam and Unsure
+folders. &nbsp;These buttons have the same effect as the drags above.
+&nbsp;(Note that currently the "Recover from Spam" option will move the
+item to the Inbox - this is a bug - it should restore the message to
+the folder it was originally filtered from in the first place)<br>
+<h2><a name="Field"></a>Viewing the Spam Score Field</h2>
+A custom property named <span style="font-style: italic;">Spam</span>
+is added to all Outlook messages scored. This is a percentage indicating
+the likelihood of the message being spam (ie, 0% is "certain" ham; 100%
+if "certain" spam). You can teach Outlook to display this field as a
+column in any table view, like the standard Messages view.
+<p> This takes some work, and has to be done again for every folder in
+which you want to display a Spam column: </p>
 <ul>
-    <li>While looking at an Outlook table view (like Messages), right-click
-        on the line with column headers (From, Subject, To, Received, ...).
-        In the context menu that pops up, click on Field Chooser.  A box
-        with title <i>Field Chooser</i> pops up.
+  <li>While looking at an Outlook table view (like Messages),
+right-click on the line with column headers (From, Subject, To,
+Received, ...).         In the context menu that pops up, click on Field
+Chooser.  A box         with title <i>Field Chooser</i> pops up.</li>
+  <li>In the drop-down list at the top of the <span
+ style="font-style: italic;">Field Chooser</span> window, select <span
+ style="font-style: italic;">User Defined Fields</span></li>
+  <li>Below the drop-down, you         should see a rectangular button
+with a <span style="font-style: italic;">Spam</span> label . This<span
+ style="font-style: italic;"></span> should be automatically created for
+all folders managed by the system, but if it does not appear, you will
+need to add it yourself. &nbsp;To do this, perform the following steps</li>
+  <ul>
     <li>In the lower left corner of the <i>Field Chooser</i> box, click
-        <i>New...</i>.  A box with title <i>New Field</i> pops up.
-    <li>In the <i>Name:</i> box, type Spam.
-    <li>In the <i>Type:</i> dropdown list, select <i>Integer</i>.  This is the
-        last choice in the dropdown list.
-        Do not select <i>Number</i> -- it won't work.
-    <li>The <i>Format:</i> dropdown list should display "1,234" now.  Leave it alone.
-    <li>Click OK in the <i>New Field</i> box.  Now you're back in the
-        <i>Field Chooser</i> box.
-    <li>The dropdown list at the top of the <i>Field Chooser</i> box should say
-        <i>User-defined fields in FOLDER</i> now, where FOLDER is the name of the
-        folder you're currently looking at (like Inbox).  Below that, you
-        should see a new rectangular button with a Spam label.
-    <li>Use your mouse to drag the Spam button to the column header position
-        where you want to see the Spam column.  You don't have to be precise
-        here -- you can rearrange or resize the column later just by dragging
-        it around.
-    <li>You're done!  Close the <i>Field Chooser</i> box.
+ <i>New...</i>.  A box with title <i>New Field</i> pops up. </li>
+    <li>In the <i>Name:</i> box, type Spam. </li>
+    <li>In the <i>Type:</i> dropdown list, select <i>Percent</i>.
+This is the         third choice in the dropdown list.         Do not
+select any other format -- it won't work. </li>
+    <li>The <i>Format:</i> select the first entry in the list -
+"Rounded"</li>
+    <li>Click OK in the <i>New Field</i> box.  Now you're back in the <i>Field
+Chooser</i> box, with a new <span style="font-style: italic;">Spam</span>
+button shown. </li>
+  </ul>
+  <li>Use your mouse to drag the <span style="font-style: italic;">Spam</span>
+button to the column header position         where you want to see the
+Spam column.  You don't have to be precise         here -- you can
+rearrange or resize the column later just by dragging         it around. </li>
+  <li>You're done!  Close the <i>Field Chooser</i> box. </li>
 </ul>
-Outlook's standard Automatic Formatting features can also be taught how to
-access the value of this field; for example, you could tell Outlook to display
-rows with suspected spam messages in green italic.  However, for whatever reason,
-the Outlook Rules Wizard does not allow creating rules based on user-defined
-fields.  That's why this addin supplies its own filtering rules.
-
-<p>
-Contributions to this documentation are welcome!<br>
+Outlook's standard Automatic Formatting features can also be taught how
+to access the value of this field; for example, you could tell Outlook
+to display rows with suspected spam messages in green italic.  However,
+for whatever reason, the Outlook Rules Wizard does not allow creating
+rules based on user-defined fields.  That's why this addin supplies its
+own filtering rules.
+<p> Contributions to this documentation are welcome!<br>
 <br>
+</p>
 </body>
 </html>

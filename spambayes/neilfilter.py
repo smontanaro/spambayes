@@ -19,20 +19,13 @@ BLOCK_SIZE = 10000
 SIZE_LIMIT = 5000000 # messages larger are not analyzed
 SPAM_CUTOFF = 0.57
 
-class CdbWrapper(cdb.Cdb):
-    def get(self, key, default=None,
-            cdb_get=cdb.Cdb.get,
-            WordInfo=classifier.WordInfo):
-        prob = cdb_get(self, key, default)
-        if prob is None:
-            return None
-        else:
-            return WordInfo(0, float(prob))
-
-class CdbBayes(classifier.Bayes):
+class CdbClassifer(classifier.Classifier):
     def __init__(self, cdbfile):
         classifier.Bayes.__init__(self)
-        self.wordinfo = CdbWrapper(cdbfile)
+        self.wordinfo = cdb.Cdb(cdbfile)
+
+    def probability(self, record):
+        return float(record)
 
 def maketmp(dir):
     hostname = socket.gethostname()
@@ -93,7 +86,7 @@ def main():
             del blocks
             msg = email.message_from_string(msgdata)
             del msgdata
-            bayes = CdbBayes(open(wordprobfilename, 'rb'))
+            bayes = CdbClassifer(open(wordprobfilename, 'rb'))
             prob = bayes.spamprob(tokenize(msg))
         else:
             prob = 0.0

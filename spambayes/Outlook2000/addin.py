@@ -99,7 +99,7 @@ def WithEventsClone(clsid, user_event_class):
             disp_clsid = ti.GetTypeAttr()[0]
             tlb, index = ti.GetContainingTypeLib()
             tla = tlb.GetLibAttr()
-            mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
+            gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
             disp_class = gencache.GetClassForProgID(str(disp_clsid))
         except pythoncom.com_error:
             raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
@@ -198,7 +198,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         if prop is not None:
             import train
             trained_as_good = train.been_trained_as_ham(msgstore_message, self.manager)
-            if self.manager.config.filter.spam_threshold > prop or \
+            if self.manager.config.filter.spam_threshold > prop * 100 or \
                trained_as_good:
                 subject = item.Subject.encode("mbcs", "replace")
                 print "Training on message '%s' - " % subject,
@@ -212,14 +212,16 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                 assert train.been_trained_as_spam(msgstore_message, self.manager)
 
 # Event function fired from the "Show Clues" UI items.
-def ShowClues(mgr, app):
+def ShowClues(mgr, explorer):
     from cgi import escape
 
-    msgstore_message = mgr.addin.GetSelectedMessages(False)
+    app = explorer.Application
+    msgstore_message = explorer.GetSelectedMessages(False)
     if msgstore_message is None:
         return
+
     item = msgstore_message.GetOutlookItem()
-    score, clues = mgr.score(msgstore_message, evidence=True, scale=False)
+    score, clues = mgr.score(msgstore_message, evidence=True)
     new_msg = app.CreateItem(0)
     # NOTE: Silly Outlook always switches the message editor back to RTF
     # once the Body property has been set.  Thus, there is no reasonable
@@ -248,7 +250,7 @@ def ShowClues(mgr, app):
     # Now the raw text of the message, as best we can
     push("<h2>Message Stream:</h2><br>")
     push("<PRE>\n")
-    msg = msgstore_message.GetEmailPackageObject(strip_content_type=False)
+    msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
     push(escape(msg.as_string(), True))
     push("</PRE>\n")
     body = ''.join(body)
@@ -261,69 +263,19 @@ def ShowClues(mgr, app):
                             DisplayName="Original Message")
     new_msg.Display()
 
-# Events from our Explorer instance - currently used to enable/disable
-# controls
-class ExplorerEvent:
-    def Init(self, manager, application, but_delete_as, but_recover_as):
-        self.manager = manager
-        self.application = application
-        self.but_delete_as = but_delete_as
-        self.but_recover_as = but_recover_as
-    def Close(self):
-        self.but_delete_as = self.but_recover_as = None
-    def OnFolderSwitch(self):
-        # Work out what folder we are in.
-        explorer = self.application.ActiveExplorer()
-        if explorer is None:
-            print "** Folder Change, but don't have an explorer"
-            return
-
-        outlook_folder = explorer.CurrentFolder
-        show_delete_as = True
-        show_recover_as = False
-        try:
-            if outlook_folder is not None:
-                mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
-                look_id = self.manager.config.filter.spam_folder_id
-                if look_id:
-                    look_folder = self.manager.message_store.GetFolder(look_id)
-                    if mapi_folder == look_folder:
-                        # This is the Spam folder - only show "recover"
-                        show_recover_as = True
-                        show_delete_as = False
-                # Check if uncertain
-                look_id = self.manager.config.filter.unsure_folder_id
-                if look_id:
-                    look_folder = self.manager.message_store.GetFolder(look_id)
-                    if mapi_folder == look_folder:
-                        show_recover_as = True
-                        show_delete_as = True
-        except:
-            print "Error finding the MAPI folders for a folder switch event"
-            import traceback
-            traceback.print_exc()
-        self.but_recover_as.Visible = show_recover_as
-        self.but_delete_as.Visible = show_delete_as
-
 # The "Delete As Spam" and "Recover Spam" button
 # The event from Outlook's explorer that our folder has changed.
 class ButtonDeleteAsEventBase:
-    def Init(self, manager, application):
-        # NOTE - keeping a reference to 'explorer' in this event
-        # appears to cause an Outlook circular reference, and outlook
-        # never terminates (it does close, but the process remains alive)
-        # This is why we needed to use WithEvents, so the event class
-        # itself doesnt keep such a reference (and we need to keep a ref
-        # to the event class so it doesn't auto-disconnect!)
+    def Init(self, manager, explorer):
         self.manager = manager
-        self.application = application
+        self.explorer = explorer
 
     def Close(self):
-        self.manager = self.application = None
+        self.manager = self.explorer = None
 
 class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
-    def Init(self, manager, application):
-        ButtonDeleteAsEventBase.Init(self, manager, application)
+    def Init(self, manager, explorer):
+        ButtonDeleteAsEventBase.Init(self, manager, explorer)
         image = "delete_as_spam.bmp"
         self.Caption = "Delete As Spam"
         self.TooltipText = \
@@ -333,7 +285,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
 
     def OnClick(self, button, cancel):
         msgstore = self.manager.message_store
-        msgstore_messages = self.manager.addin.GetSelectedMessages(True)
+        msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
             return
         # Delete this item as spam.
@@ -355,8 +307,8 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             msgstore_message.MoveTo(spam_folder)
 
 class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
-    def Init(self, manager, application):
-        ButtonDeleteAsEventBase.Init(self, manager, application)
+    def Init(self, manager, explorer):
+        ButtonDeleteAsEventBase.Init(self, manager, explorer)
         image = "recover_ham.bmp"
         self.Caption = "Recover from Spam"
         self.TooltipText = \
@@ -368,15 +320,15 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
 
     def OnClick(self, button, cancel):
         msgstore = self.manager.message_store
-        msgstore_messages = self.manager.addin.GetSelectedMessages(True)
+        msgstore_messages = self.explorer.GetSelectedMessages(True)
         if not msgstore_messages:
             return
         # Recover to where they were moved from
         # Get the inbox as the default place to restore to
         # (incase we dont know (early code) or folder removed etc
+        app = self.explorer.Application
         inbox_folder = msgstore.GetFolder(
-                    self.application.Session.GetDefaultFolder(
-                        constants.olFolderInbox))
+                    app.Session.GetDefaultFolder(constants.olFolderInbox))
         import train
         for msgstore_message in msgstore_messages:
             # Must train before moving, else we lose the message!
@@ -407,6 +359,163 @@ def SetButtonImage(button, fname):
     button.Style = constants.msoButtonIconAndCaption
     button.PasteFace()
 
+# A class that manages an "Outlook Explorer" - that is, a top-level window
+# All UI elements are managed here, and there is one instance per explorer.
+class ExplorerWithEvents:
+    def Init(self, manager, explorer_list):
+        self.manager = manager
+        self.have_setup_ui = False
+        self.explorer_list = explorer_list
+
+    def SetupUI(self):
+        application = self.Application
+        manager = self.manager
+        self.buttons = []
+        activeExplorer = self
+        bars = activeExplorer.CommandBars
+        toolbar = bars.Item("Standard")
+        # Add our "Delete as ..." and "Recover as" buttons
+        self.but_delete_as = button = toolbar.Controls.Add(
+                                Type=constants.msoControlButton,
+                                Temporary=True)
+        # Hook events for the item
+        button.BeginGroup = True
+        button = DispatchWithEvents(button, ButtonDeleteAsSpamEvent)
+        button.Init(self.manager, self)
+        self.buttons.append(button)
+        # And again for "Recover as"
+        self.but_recover_as = button = toolbar.Controls.Add(
+                                Type=constants.msoControlButton,
+                                Temporary=True)
+        button = DispatchWithEvents(button, ButtonRecoverFromSpamEvent)
+        self.buttons.append(button)
+        # Hook our explorer events, and pass the buttons.
+        button.Init(self.manager, self)
+
+        # And prime our event handler.
+        self.OnFolderSwitch()
+
+        # The main tool-bar dropdown with all our entries.
+        # Add a pop-up menu to the toolbar
+        popup = toolbar.Controls.Add(
+                            Type=constants.msoControlPopup,
+                            Temporary=True)
+        popup.Caption="Anti-Spam"
+        popup.TooltipText = "Anti-Spam filters and functions"
+        popup.Enabled = True
+        # Convert from "CommandBarItem" to derived
+        # "CommandBarPopup" Not sure if we should be able to work
+        # this out ourselves, but no introspection I tried seemed
+        # to indicate we can.  VB does it via strongly-typed
+        # declarations.
+        popup = CastTo(popup, "CommandBarPopup")
+        # And add our children.
+        self._AddPopup(popup, manager.ShowManager, (),
+                       Caption="Anti-Spam Manager...",
+                       TooltipText = "Show the Anti-Spam manager dialog.",
+                       Enabled = True)
+        self._AddPopup(popup, ShowClues, (self.manager, self),
+                       Caption="Show spam clues for current message",
+                       Enabled=True)
+        self.have_setup_ui = True
+
+    def _AddPopup(self, parent, target, target_args, **item_attrs):
+        item = parent.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+        # Hook events for the item
+        item = DispatchWithEvents(item, ButtonEvent)
+        item.Init(target, target_args)
+        for attr, val in item_attrs.items():
+            setattr(item, attr, val)
+        self.buttons.append(item)
+
+    def GetSelectedMessages(self, allow_multi = True, explorer = None):
+        if explorer is None:
+            explorer = self.Application.ActiveExplorer()
+        sel = explorer.Selection
+        if sel.Count > 1 and not allow_multi:
+            win32ui.MessageBox("Please select a single item", "Large selection")
+            return None
+
+        ret = []
+        for i in range(sel.Count):
+            item = sel.Item(i+1)
+            if item.Class == constants.olMail:
+                msgstore_message = self.manager.message_store.GetMessage(item)
+                ret.append(msgstore_message)
+
+        if len(ret) == 0:
+            win32ui.MessageBox("No mail items are selected", "No selection")
+            return None
+        if allow_multi:
+            return ret
+        return ret[0]
+
+    # The Outlook event handlers
+    def OnActivate(self):
+        # See comments for OnNewExplorer below.
+        if not self.have_setup_ui:
+            self.SetupUI()
+
+    def OnClose(self):
+        self.explorer_list.remove(self)
+        self.explorer_list = None
+        for button in self.buttons:
+            button.Close()
+        self.buttons = []
+        self.close() # disconnect events.
+
+    def OnFolderSwitch(self):
+        # Work out what folder we are in.
+        outlook_folder = self.CurrentFolder
+        show_delete_as = True
+        show_recover_as = False
+        try:
+            if outlook_folder is not None:
+                mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
+                look_id = self.manager.config.filter.spam_folder_id
+                if look_id:
+                    look_folder = self.manager.message_store.GetFolder(look_id)
+                    if mapi_folder == look_folder:
+                        # This is the Spam folder - only show "recover"
+                        show_recover_as = True
+                        show_delete_as = False
+                # Check if uncertain
+                look_id = self.manager.config.filter.unsure_folder_id
+                if look_id:
+                    look_folder = self.manager.message_store.GetFolder(look_id)
+                    if mapi_folder == look_folder:
+                        show_recover_as = True
+                        show_delete_as = True
+        except:
+            print "Error finding the MAPI folders for a folder switch event"
+            import traceback
+            traceback.print_exc()
+        self.but_recover_as.Visible = show_recover_as
+        self.but_delete_as.Visible = show_delete_as
+
+# Events from our "Explorers" collection (not an Explorer instance)
+class ExplorersEvent:
+    def Init(self, manager):
+        self.manager = manager
+        self.explorers = []
+
+    def Close(self):
+        self.explorers = None
+
+    def _DoNewExplorer(self, explorer, do_activate):
+        explorer = DispatchWithEvents(explorer, ExplorerWithEvents)
+        explorer.Init(self.manager, self.explorers)
+        if do_activate:
+            explorer.OnActivate()
+        self.explorers.append(explorer)
+
+    def OnNewExplorer(self, explorer):
+        # NOTE - Outlook has a bug, as confirmed by many on Usenet, in
+        # that OnNewExplorer is too early to access the CommandBars
+        # etc elements. We hack around this by putting the logic in
+        # the first OnActivate call of the explorer itself.
+        self._DoNewExplorer(explorer, False)
+
 # The outlook Plugin COM object itself.
 class OutlookAddin:
     _com_interfaces_ = ['_IDTExtensibility2']
@@ -419,7 +528,6 @@ class OutlookAddin:
     def __init__(self):
         self.folder_hooks = {}
         self.application = None
-        self.buttons = []
 
     def OnConnection(self, application, connectMode, addin, custom):
         print "SpamAddin - Connecting to Outlook"
@@ -430,60 +538,15 @@ class OutlookAddin:
         self.manager = manager.GetManager(application)
         assert self.manager.addin is None, "Should not already have an addin"
         self.manager.addin = self
-        self.explorer_events = None
 
-        # ActiveExplorer may be none when started without a UI (eg, WinCE synchronisation)
-        activeExplorer = application.ActiveExplorer()
-        if activeExplorer is not None:
-            bars = activeExplorer.CommandBars
-            toolbar = bars.Item("Standard")
-            # Add our "Delete as ..." and "Recover as" buttons
-            but_delete_as = button = toolbar.Controls.Add(
-                                    Type=constants.msoControlButton,
-                                    Temporary=True)
-            # Hook events for the item
-            button.BeginGroup = True
-            button = DispatchWithEvents(button, ButtonDeleteAsSpamEvent)
-            button.Init(self.manager, application)
-            self.buttons.append(button)
-            # And again for "Recover as"
-            but_recover_as = button = toolbar.Controls.Add(
-                                    Type=constants.msoControlButton,
-                                    Temporary=True)
-            button = DispatchWithEvents(button, ButtonRecoverFromSpamEvent)
-            self.buttons.append(button)
-            # Hook our explorer events, and pass the buttons.
-            button.Init(self.manager, application)
-
-            self.explorer_events = WithEvents(activeExplorer,
-                                               ExplorerEvent)
-
-            self.explorer_events.Init(self.manager, application, but_delete_as, but_recover_as)
-            # And prime the event handler.
-            self.explorer_events.OnFolderSwitch()
-
-            # The main tool-bar dropdown with all our entries.
-            # Add a pop-up menu to the toolbar
-            popup = toolbar.Controls.Add(
-                                Type=constants.msoControlPopup,
-                                Temporary=True)
-            popup.Caption="Anti-Spam"
-            popup.TooltipText = "Anti-Spam filters and functions"
-            popup.Enabled = True
-            # Convert from "CommandBarItem" to derived
-            # "CommandBarPopup" Not sure if we should be able to work
-            # this out ourselves, but no introspection I tried seemed
-            # to indicate we can.  VB does it via strongly-typed
-            # declarations.
-            popup = CastTo(popup, "CommandBarPopup")
-            # And add our children.
-            self._AddPopup(popup, manager.ShowManager, (self.manager,),
-                           Caption="Anti-Spam Manager...",
-                           TooltipText = "Show the Anti-Spam manager dialog.",
-                           Enabled = True)
-            self._AddPopup(popup, ShowClues, (self.manager, application),
-                           Caption="Show spam clues for current message",
-                           Enabled=True)
+        explorers = application.Explorers
+        # and Explorers events so we know when new explorers spring into life.
+        self.explorers_events = WithEvents(explorers, ExplorersEvent)
+        self.explorers_events.Init(self.manager)
+        # And hook our UI elements to all existing explorers
+        for i in range(explorers.Count):
+            explorer = explorers.Item(i+1)
+            self.explorers_events._DoNewExplorer(explorer, True)
 
         self.FiltersChanged()
         if self.manager.config.filter.enabled:
@@ -493,15 +556,6 @@ class OutlookAddin:
                 print "Error processing missed messages!"
                 import traceback
                 traceback.print_exc()
-
-    def _AddPopup(self, parent, target, target_args, **item_attrs):
-        item = parent.Controls.Add(Type=constants.msoControlButton, Temporary=True)
-        # Hook events for the item
-        item = DispatchWithEvents(item, ButtonEvent)
-        item.Init(target, target_args)
-        for attr, val in item_attrs.items():
-            setattr(item, attr, val)
-        self.buttons.append(item)
 
     def ProcessMissedMessages(self):
         # This could possibly spawn threads if it was too slow!
@@ -567,43 +621,15 @@ class OutlookAddin:
                 new_hooks[msgstore_folder.id] = existing
         return new_hooks
 
-    def GetSelectedMessages(self, allow_multi = True, explorer = None):
-        if explorer is None:
-            explorer = self.application.ActiveExplorer()
-        sel = explorer.Selection
-        if sel.Count > 1 and not allow_multi:
-            win32ui.MessageBox("Please select a single item", "Large selection")
-            return None
-
-        ret = []
-        for i in range(sel.Count):
-            item = sel.Item(i+1)
-            if item.Class == constants.olMail:
-                msgstore_message = self.manager.message_store.GetMessage(item)
-                ret.append(msgstore_message)
-
-        if len(ret) == 0:
-            win32ui.MessageBox("No mail items are selected", "No selection")
-            return None
-        if allow_multi:
-            return ret
-        return ret[0]
-
     def OnDisconnection(self, mode, custom):
         print "SpamAddin - Disconnecting from Outlook"
         self.folder_hooks = None
         self.application = None
+        self.explorers_events = None
         if self.manager is not None:
             self.manager.Save()
             self.manager.Close()
             self.manager = None
-
-        if self.explorer_events is not None:
-            self.explorer_events = None
-        if self.buttons:
-            for button in self.buttons:
-                button.Close()
-            self.buttons = None
 
         print "Addin terminating: %d COM client and %d COM servers exist." \
               % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
