@@ -51,8 +51,8 @@ def usage(code, msg=''):
 def drive(nsets):
     print options.display()
 
-    hamdirs  = ["Data/Ham/Set%d" % i for i in range(1, nsets+1)]
-    spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
+    hamdirs  = [options.ham_directories % i for i in range(1, nsets+1)]
+    spamdirs = [options.spam_directories % i for i in range(1, nsets+1)]
 
     d = TestDriver.Driver()
     # Train it on all sets except the first.

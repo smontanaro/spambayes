@@ -150,6 +150,12 @@ save_trained_pickles: False
 pickle_basename: class
 save_histogram_pickles: False
 
+# default locations for timcv and timtest - these get the set number 
+# appended.
+spam_directories: Data/Spam/Set%d
+ham_directories: Data/Ham/Set%d
+
+
 [Classifier]
 # Fiddling these can have extreme effects.  See classifier.py for comments.
 hambias: 2.0
@@ -239,6 +245,8 @@ all_options = {
                    'pickle_basename': string_cracker,
                    'show_charlimit': int_cracker,
                    'spam_cutoff': float_cracker,
+                   'spam_directories': string_cracker,
+                   'ham_directories': string_cracker,
                   },
     'Classifier': {'hambias': float_cracker,
                    'spambias': float_cracker,

@@ -53,8 +53,8 @@ def usage(code, msg=''):
 def drive(nsets):
     print options.display()
 
-    spamdirs = ["Data/Spam/Set%d" % i for i in range(1, nsets+1)]
-    hamdirs  = ["Data/Ham/Set%d" % i for i in range(1, nsets+1)]
+    spamdirs = [options.spam_directories % i for i in range(1, nsets+1)]
+    hamdirs  = [options.ham_directories % i for i in range(1, nsets+1)]
     spamhamdirs = zip(spamdirs, hamdirs)
 
     d = TestDriver.Driver()
