@@ -37,8 +37,8 @@ PICKLE_VERSION = 1
 
 class WordInfo(object):
     __slots__ = ('atime',     # when this record was last used by scoring(*)
-                 'spamcount', # # of times word appears in spam
-                 'hamcount',  # # of times word appears in non-spam
+                 'spamcount', # # of spams in which this word appears
+                 'hamcount',  # # of hams in which this word appears
                  'killcount', # # of times this made it to spamprob()'s nbest
                  'spamprob',  # prob(spam | msg contains this word)
                 )
@@ -227,8 +227,10 @@ class Bayes(object):
 
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
+
         S = options.robinson_probability_s
         StimesX = S * options.robinson_probability_x
+
         for word, record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
             # This is the Graham calculation, but stripped of biases, and
@@ -236,10 +238,12 @@ class Bayes(object):
             # adjustment following keeps them in a sane range, and one
             # that naturally grows the more evidence there is to back up
             # a probability.
-            hamcount = min(record.hamcount, nham)
+            hamcount = record.hamcount
+            assert hamcount <= nham
             hamratio = hamcount / nham
 
-            spamcount = min(record.spamcount, nspam)
+            spamcount = record.spamcount
+            assert spamcount <= nspam
             spamratio = spamcount / nspam
 
             prob = spamratio / (hamratio + spamratio)
@@ -272,6 +276,26 @@ class Bayes(object):
         for w in tonuke:
             del wordinfo[w]
 
+    # NOTE:  Graham's scheme had a strange asymmetry:  when a word appeared
+    # n>1 times in a single message, training added n to the word's hamcount
+    # or spamcount, but predicting scored words only once.  Tests showed
+    # that adding only 1 in training, or scoring more than once when
+    # predicting, hurt under the Graham scheme.
+    # This isn't so under Robinson's scheme, though:  results improve
+    # if training also counts a word only once.  The mean ham score decreases
+    # significantly and consistently, ham score variance decreases likewise,
+    # mean spam score decreases (but less than mean ham score, so the spread
+    # increases), and spam score variance increases.
+    # I (Tim) speculate that adding n times under the Graham scheme helped
+    # because it acted against the various ham biases, giving frequently
+    # repeated spam words (like "Viagra") a quick ramp-up in spamprob; else,
+    # adding only once in training, a word like that was simply ignored until
+    # it appeared in 5 distinct training hams.  Without the ham-favoring
+    # biases, though, and never ignoring words, counting n times introduces
+    # a subtle and unhelpful bias.
+    # There does appear to be some useful info in how many times a word
+    # appears in a msg, but distorting spamprob doesn't appear a correct way
+    # to exploit it.
     def _add_msg(self, wordstream, is_spam):
         if is_spam:
             self.nspam += 1
@@ -281,9 +305,7 @@ class Bayes(object):
         wordinfo = self.wordinfo
         wordinfoget = wordinfo.get
         now = time.time()
-        if options.count_duplicates_only_once_in_training:
-            wordstream = Set(wordstream)
-        for word in wordstream:
+        for word in Set(wordstream):
             record = wordinfoget(word)
             if record is None:
                 record = wordinfo[word] = WordInfo(now)
@@ -305,9 +327,7 @@ class Bayes(object):
             self.nham -= 1
 
         wordinfoget = self.wordinfo.get
-        if options.count_duplicates_only_once_in_training:
-            wordstream = Set(wordstream)
-        for word in wordstream:
+        for word in Set(wordstream):
             record = wordinfoget(word)
             if record is not None:
                 if is_spam:
