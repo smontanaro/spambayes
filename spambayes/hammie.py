@@ -46,7 +46,7 @@ DISPHEADER = "X-Hammie-Disposition"
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
-from timtoken import tokenize
+from tokenizer import tokenize
 
 class DBDict:
     """Database Dictionary

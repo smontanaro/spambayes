@@ -12,7 +12,7 @@ from heapq import heapreplace
 
 import Tester
 import classifier
-from timtoken import tokenize
+from tokenizer import tokenize
 
 class Hist:
     def __init__(self, nbuckets=20):
@@ -62,7 +62,7 @@ def printmsg(msg, prob, clues, charlimit=None):
     for clue in clues:
         print "prob(%r) = %g" % clue
     print
-    guts = msg.guts
+    guts = str(msg)
     if charlimit is not None:
         guts = guts[:charlimit]
     print guts
@@ -84,6 +84,9 @@ class Msg(object):
 
     def __eq__(self, other):
         return self.tag == other.tag
+
+    def __str__(self):
+        return self.guts
 
 class MsgStream(object):
     def __init__(self, directory):
@@ -152,7 +155,7 @@ class Driver:
     def alldone(self):
         printhist("all runs:", self.global_ham_hist, self.global_spam_hist)
 
-    def test(self, ham, spam):
+    def test(self, ham, spam, charlimit=None):
         c = self.classifier
         t = self.tester
         local_ham_hist = Hist(self.nbuckets)
@@ -167,7 +170,7 @@ class Driver:
                 print
                 print "Low prob spam!", prob
                 prob, clues = c.spamprob(msg, True)
-                printmsg(msg, prob, clues)
+                printmsg(msg, prob, clues, charlimit)
 
         t.reset_test_results()
         print "    testing against", ham, "&", spam, "...",
@@ -184,7 +187,7 @@ class Driver:
         for e in newfpos:
             print '*' * 78
             prob, clues = c.spamprob(e, True)
-            printmsg(e, prob, clues)
+            printmsg(e, prob, clues, charlimit)
 
         newfneg = Set(t.false_negatives()) - self.falseneg
         self.falseneg |= newfneg
