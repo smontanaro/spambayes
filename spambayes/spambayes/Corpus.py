@@ -200,12 +200,18 @@ class Corpus:
         fromcorpus.removeMessage(msg)
         self.addMessage(msg)
 
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
     def __getitem__(self, key):
         '''Corpus is a dictionary'''
 
-        amsg = self.msgs[key]
+        amsg = self.msgs.get(key)
 
-        if not amsg:
+        if amsg is None:
             amsg = self.makeMessage(key)     # lazy init, saves memory
             self.cacheMessage(amsg)
 
@@ -279,7 +285,10 @@ class Message:
 
         if attributeName in ('hdrtxt', 'payload'):
             self.load()
-        return getattr(self, attributeName)
+        try:
+            return self.__dict__[attributeName]
+        except KeyError:
+            raise AttributeError, attributeName
 
     def load(self):
         '''Method to load headers and body'''
@@ -324,6 +333,10 @@ class Message:
         if bmatch:
             self.payload = bmatch.group(2)
             self.hdrtxt = sub[:bmatch.start(2)]
+        else:
+            # malformed message - punt
+            self.payload = sub
+            self.hdrtxt = ""
 
     def getSubstance(self):
         '''Return this message substance'''
