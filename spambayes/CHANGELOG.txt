@@ -1,5 +1,6 @@
 (Next Release)
 ==============
+Tony Meyer     19/08/2003  Allow @ and = in paths.
 Mark Hammond   18/08/2003  Improve the starting/stopping of the pop3proxy service
 Tony Meyer     18/08/2003  Allow the pop3proxy_service to start smtpproxy as well
 Tony Meyer     18/08/2003  Add version information to the web interface, as requested in [ spambayes-Bugs-790051 ] Can't review messages if probability header is turned on
