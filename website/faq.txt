@@ -412,6 +412,22 @@ You need to have done these things to enable that button:
 4. Changed the action to "copy" or "move", rather than "untouched"
 
 
+How can I get rid of the envelope tray icon for spam?
+-----------------------------------------------------
+
+This is a very difficult thing to do, because Outlook does not expose the hooks
+that are necessary to cleanly do this (feel free to write to Microsoft and tell
+them that they should correct this).  This means that even if you have set
+SpamBayes to mark spam as read, the envelope tray icon will not vanish.
+
+Although there is code available that provides a method to delete this icon,
+it doesn't let us determine whether there is other unread mail as well, which
+means that we do not know whether we should delete the icon or not.
+
+Until someone comes up with a clever solution for all of this, you'll have to
+put up with the little envelope, sorry.
+     
+
 Using Spambayes
 ===============
 
