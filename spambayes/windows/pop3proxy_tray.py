@@ -136,6 +136,11 @@ class MainWindow(object):
                                   1028 : ("Configure ...", self.OpenConfig),
                                   1029 : ("Check for latest version", self.CheckVersion),
                                   1030 : ("-", None),
+        # This could become a submenu, like the Outlook plug-in has, at
+        # some point, if necessary.  For the moment, the only help is a
+        # simple troubleshooting guide, so we'll just open that.
+                                  1031 : ("Help", self.GetHelp),
+                                  1032 : ("-", None),
                                   1099 : ("Exit SpamBayes", self.OnExit),
                                   }
         message_map = {
@@ -503,6 +508,35 @@ class MainWindow(object):
                                 (options["html_ui", "port"],))
         else:
             self.ShowMessage("SpamBayes is not running.")
+
+    def GetHelp(self):
+        # We don't need to be running for this.
+        self.ShowHTML("troubleshooting.html")
+
+    def ShowHTML(self, url):
+        """Displays the main SpamBayes documentation in your Web browser"""
+        # Stolen from Outlook's Manager.py
+        import sys, os, urllib
+        if urllib.splittype(url)[0] is None: # just a file spec
+            if hasattr(sys, "frozen"):
+                # New binary is in ../docs/sb_server relative to executable.
+                fname = os.path.join(os.path.dirname(sys.argv[0]),
+                                     "..", "docs", "sb_server", url)
+                if not os.path.isfile(fname):
+                    # Still support same directory as to the executable.
+                    fname = os.path.join(os.path.dirname(sys.argv[0]), url)
+            else:
+                # ../windows/docs dir
+                fname = os.path.join(os.path.dirname(__file__), "docs", url)
+            fname = os.path.abspath(fname)
+            if not os.path.isfile(fname):
+                self.ShowMessage("Can't find "+url)
+                return
+            url = fname
+        # else assume it is valid!
+        SetWaitCursor(1)
+        os.startfile(url)
+        SetWaitCursor(0)
 
     def CheckVersion(self):
         # Stolen, with few modifications, from addin.py
