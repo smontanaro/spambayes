@@ -189,6 +189,108 @@ class DBStorageManager(BasicStorageManager):
     def is_incremental(self):
         return True # True means only changed records get actually written
 
+# Encapsulates our entire classification database
+# This allows a couple of different "databases" to be open at once
+# eg, a "temporary" one for training, etc.
+# The manager should contain no database state - it should all be here.
+class ClassifierData:
+    def __init__(self, db_manager, logger):
+        self.db_manager = db_manager
+        self.bayes = None
+        self.message_db = None
+        self.dirty = False
+        self.logger = logger # currently the manager, but needed only for logging
+
+    def Load(self):
+        import time
+        start = time.clock()
+        bayes = message_db = None
+        # Exceptions must be caught by caller.
+        # file-not-found handled gracefully by storage.
+        bayes = self.db_manager.open_bayes()
+        fname = self.db_manager.bayes_filename.encode("mbcs", "replace")
+        print "Loaded bayes database from '%s'" % (fname,)
+
+        message_db = self.db_manager.open_mdb()
+        fname = self.db_manager.mdb_filename.encode("mbcs", "replace")
+        print "Loaded message database from '%s'" % (fname,)
+
+        self.logger.LogDebug(0, "Bayes database initialized with "
+                   "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
+        if len(message_db) != bayes.nham + bayes.nspam:
+            print "*** - message database has %d messages - bayes has %d - something is screwey" % \
+                    (len(message_db), bayes.nham + bayes.nspam)
+        self.bayes = bayes
+        self.message_db = message_db
+        self.dirty = False
+        self.logger.LogDebug(1, "Loaded databases in %gms" % ((time.clock()-start)*1000))
+
+    def InitNew(self):
+        if self.bayes is not None:
+            self.db_manager.close_bayes(self.bayes)
+        if self.message_db is not None:
+            self.db_manager.close_mdb(self.message_db)
+        self.bayes = self.db_manager.new_bayes()
+        self.message_db = self.db_manager.new_mdb()
+        self.dirty = True
+
+    def SavePostIncrementalTrain(self):
+        # Save the database after a training operation - only actually
+        # saves if we aren't using pickles.
+        if self.db_manager.is_incremental():
+            if self.dirty:
+                self.Save()
+            else:
+                self.logger.LogDebug(1, "Bayes database is not dirty - not writing")
+        else:
+            print "Using a slow database - not saving after incremental train"
+
+    def Save(self):
+        import time
+        start = time.clock()
+        bayes = self.bayes
+        # Try and work out where this count sometimes goes wrong.
+        if bayes.nspam + bayes.nham != len(self.message_db):
+            print "WARNING: Bayes database has %d messages, " \
+                  "but training database has %d" % \
+                  (bayes.nspam + bayes.nham, len(self.message_db))
+
+        if self.logger.verbose:
+            print "Saving bayes database with %d spam and %d good messages" %\
+                   (bayes.nspam, bayes.nham)
+            print " ->", self.db_manager.bayes_filename
+        self.db_manager.store_bayes(self.bayes)
+        if self.logger.verbose:
+            print " ->", self.db_manager.mdb_filename
+        self.db_manager.store_mdb(self.message_db)
+        self.dirty = False
+        self.logger.LogDebug(1, "Saved databases in %gms" % ((time.clock()-start)*1000))
+
+    def Close(self):
+        if self.dirty and self.bayes:
+            print "Warning: ClassifierData closed while Bayes database dirty"
+        if self.db_manager:
+            self.db_manager.close_bayes(self.bayes)
+            self.db_manager.close_mdb(self.message_db)
+            self.db_manager = None
+        self.bayes = None
+        self.logger = None
+
+    def Adopt(self, other):
+        assert not other.dirty, "Adopting dirty classifier data!"
+        other.db_manager.close_bayes(other.bayes)
+        other.db_manager.close_mdb(other.message_db)
+        self.db_manager.close_bayes(self.bayes)
+        self.db_manager.close_mdb(self.message_db)
+        # Move the files
+        shutil.move(other.db_manager.bayes_filename, self.db_manager.bayes_filename)
+        shutil.move(other.db_manager.mdb_filename, self.db_manager.mdb_filename)
+        # and re-open.
+        self.Load()
+
+def GetStorageManagerClass():
+    return [PickleStorageManager, DBStorageManager][use_db]
+
 # Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=0):
@@ -255,12 +357,26 @@ class BayesManager:
         bayes_base = os.path.join(self.data_directory, "default_bayes_database")
         mdb_base = os.path.join(self.data_directory, "default_message_database")
         # determine which db manager to use, and create it.
-        ManagerClass = [PickleStorageManager, DBStorageManager][use_db]
-        self.db_manager = ManagerClass(bayes_base, mdb_base)
-
-        self.bayes = self.message_db = None
+        ManagerClass = GetStorageManagerClass()
+        db_manager = ManagerClass(bayes_base, mdb_base)
+        self.classifier_data = ClassifierData(db_manager, self)
         self.LoadBayes()
 
+    # "old" bayes functions - new code should use "classifier_data" directly
+    def LoadBayes(self):
+        try:
+            self.classifier_data.Load()
+        except:
+            self.ReportFatalStartupError("Failed to load bayes database")
+            self.classifier_data.InitNew()
+
+    def InitNewBayes(self):
+        self.classifier_data.InitNew()
+    def SaveBayes(self):
+        self.classifier_data.Save()
+    def SaveBayesPostIncrementalTrain(self):
+        self.classifier_data.SavePostIncrementalTrain()
+    # Logging - this too should be somewhere else.
     def LogDebug(self, level, *args):
         if self.verbose >= level:
             for arg in args[:-1]:
@@ -434,42 +550,6 @@ class BayesManager:
                     folder = folders.GetNext()
         # else no items in this folder - not much worth doing!
 
-    def LoadBayes(self):
-        import time
-        start = time.clock()
-        bayes = message_db = None
-        try:
-            # file-not-found handled gracefully by storage.
-            bayes = self.db_manager.open_bayes()
-            fname = self.db_manager.bayes_filename.encode("mbcs", "replace")
-            print "Loaded bayes database from '%s'" % (fname,)
-        except:
-            self.ReportFatalStartupError("Failed to load bayes database")
-        try:
-            message_db = self.db_manager.open_mdb()
-            fname = self.db_manager.mdb_filename.encode("mbcs", "replace")
-            print "Loaded message database from '%s'" % (fname,)
-        except IOError:
-            pass
-        except:
-            self.ReportFatalStartupError("Failed to load bayes message database")
-        if bayes is None or message_db is None:
-            self.bayes = bayes
-            self.message_db = message_db
-            print "Either bayes database or message database is missing - creating new"
-            self.InitNewBayes()
-            bayes = self.bayes
-            message_db = self.message_db
-        self.LogDebug(0, "Bayes database initialized with "
-                   "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
-        if len(message_db) != bayes.nham + bayes.nspam:
-            print "*** - message database has %d messages - bayes has %d - something is screwey" % \
-                    (len(message_db), bayes.nham + bayes.nspam)
-        self.bayes = bayes
-        self.message_db = message_db
-        self.bayes_dirty = False
-        self.LogDebug(1, "Loaded databases in %gms" % ((time.clock()-start)*1000))
-
     def PrepareConfig(self):
         # Load our Outlook specific configuration.  This is done before
         # SpamBayes is imported, and thus we are able to change the INI
@@ -588,47 +668,6 @@ class BayesManager:
                   "time you start Outlook.  Please try rebooting."
             self.ReportError(msg)
 
-    def InitNewBayes(self):
-        if self.bayes is not None:
-            self.db_manager.close_bayes(self.bayes)
-        if self.message_db is not None:
-            self.db_manager.close_mdb(self.message_db)
-        self.bayes = self.db_manager.new_bayes()
-        self.message_db = self.db_manager.new_mdb()
-        self.bayes_dirty = True
-
-    def SaveBayesPostIncrementalTrain(self):
-        # Save the database after a training operation - only actually
-        # saves if we aren't using pickles.
-        if self.db_manager.is_incremental():
-            if self.bayes_dirty:
-                self.SaveBayes()
-            else:
-                self.LogDebug(1, "Bayes database is not dirty - not writing")
-        else:
-            print "Using a slow database - not saving after incremental train"
-
-
-    def SaveBayes(self):
-        import time
-        start = time.clock()
-        bayes = self.bayes
-        # Try and work out where this count sometimes goes wrong.
-        if bayes.nspam + bayes.nham != len(self.message_db):
-            print "WARNING: Bayes database has %d messages, " \
-                  "but training database has %d" % \
-                  (bayes.nspam + bayes.nham, len(self.message_db))
-
-        if self.verbose:
-            print "Saving bayes database with %d spam and %d good messages" %\
-                   (bayes.nspam, bayes.nham)
-            print " ->", self.db_manager.bayes_filename
-        self.db_manager.store_bayes(self.bayes)
-        if self.verbose:
-            print " ->", self.db_manager.mdb_filename
-        self.db_manager.store_mdb(self.message_db)
-        self.bayes_dirty = False
-        self.LogDebug(1, "Saved databases in %gms" % ((time.clock()-start)*1000))
 
     def GetClassifier(self):
         """Return the classifier we're using."""
@@ -651,15 +690,13 @@ class BayesManager:
         # No longer save the config here - do it explicitly when changing it
         # (prevents lots of extra pickle writes, for no good reason.  Other
         # alternative is a dirty flag for config - this is simpler)
-        if self.bayes_dirty:
-            self.SaveBayes()
+        if self.classifier_data.dirty:
+            self.classifier_data.Save()
         else:
             print "Bayes database is not dirty - not writing"
 
     def Close(self):
-        if self.bayes_dirty and self.bayes:
-            print "Warning: BayesManager closed while Bayes database dirty"
-        self.bayes = None
+        self.classifier_data.Close()
         self.config = None
         if self.message_store is not None:
             self.message_store.Close()
@@ -679,7 +716,7 @@ class BayesManager:
         """
         email = msg.GetEmailPackageObject()
         try:
-            return self.bayes.spamprob(bayes_tokenize(email), evidence)
+            return self.classifier_data.bayes.spamprob(bayes_tokenize(email), evidence)
         except AssertionError:
             # See bug 706520 assert fails in classifier
             # For now, just tell the user.
@@ -693,8 +730,8 @@ class BayesManager:
         # Gets the reason why the plugin can not be enabled.
         # If return is None, then it can be enabled (and indeed may be!)
         # Otherwise return is the string reason
-        nspam = self.bayes.nspam
-        nham = self.bayes.nham
+        nspam = self.classifier_data.bayes.nspam
+        nham = self.classifier_data.bayes.nham
         config = self.config.filter
         # For the sake of getting reasonable results, let's insist
         # on 5 spam and 5 ham messages before we can allow filtering
@@ -762,7 +799,8 @@ def ShowManager(mgr):
 
 def main(verbose_level = 1):
     try:
-        mgr = GetManager(verbose=verbose_level)
+        mgr = GetManager()
+        mgr.verbose = max(mgr.verbose, verbose_level)
     except ManagerError, d:
         print "Error initializing Bayes manager"
         print d

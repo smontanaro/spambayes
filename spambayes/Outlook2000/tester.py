@@ -154,10 +154,11 @@ class Driver:
 
     def CreateTestMessage(self, spam_status):
         words = {}
+        bayes = self.manager.classifier_data.bayes
         if spam_status != SPAM:
-            words.update(FindTopWords(self.manager.bayes, 50, False))
+            words.update(FindTopWords(bayes, 50, False))
         if spam_status != HAM:
-            words.update(FindTopWords(self.manager.bayes, 50, True))
+            words.update(FindTopWords(bayes, 50, True))
         # Create a new blank message with our words
         msg = self.manager.outlook.CreateItem(0)
         msg.Body = "\n".join(words.keys())
@@ -181,9 +182,10 @@ def check_words(words, bayes, spam_offset, ham_offset):
 # The "spam" test is huge - we do standard filter tests, but
 # also do incremental retrain tests.
 def TestSpamFilter(driver):
-    nspam = driver.manager.bayes.nspam
-    nham = driver.manager.bayes.nham
-    original_bayes = copy.copy(driver.manager.bayes)
+    bayes = driver.manager.classifier_data.bayes
+    nspam = bayes.nspam
+    nham = bayes.nham
+    original_bayes = copy.copy(driver.manager.classifier_data.bayes)
     # Create a spam message in the Inbox - it should get immediately filtered
     msg, words = driver.CreateTestMessageInFolder(SPAM, driver.folder_watch)
     # sleep to ensure filtering.
@@ -196,18 +198,18 @@ def TestSpamFilter(driver):
     if spam_msg is None:
         TestFailed("The test message vanished from the Inbox, but didn't appear in Spam")
     # Check that none of the above caused training.
-    if nspam != driver.manager.bayes.nspam:
+    if nspam != bayes.nspam:
         TestFailed("Something caused a new spam message to appear")
-    if nham != driver.manager.bayes.nham:
+    if nham != bayes.nham:
         TestFailed("Something caused a new ham message to appear")
-    check_words(words, driver.manager.bayes, 0, 0)
+    check_words(words, bayes, 0, 0)
 
     # Now move the message back to the inbox - it should get trained.
     store_msg = driver.manager.message_store.GetMessage(spam_msg)
     import train
-    if train.been_trained_as_ham(store_msg, driver.manager):
+    if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
         TestFailed("This new spam message should not have been trained as ham yet")
-    if train.been_trained_as_spam(store_msg, driver.manager):
+    if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
         TestFailed("This new spam message should not have been trained as spam yet")
     spam_msg.Move(driver.folder_watch)
     WaitForFilters()
@@ -217,16 +219,16 @@ def TestSpamFilter(driver):
     store_msg = driver.manager.message_store.GetMessage(spam_msg)
     need_untrain = True
     try:
-        if nspam != driver.manager.bayes.nspam:
+        if nspam != bayes.nspam:
             TestFailed("There were not the same number of spam messages after a re-train")
-        if nham+1 != driver.manager.bayes.nham:
+        if nham+1 != bayes.nham:
             TestFailed("There was not one more ham messages after a re-train")
-        if train.been_trained_as_spam(store_msg, driver.manager):
+        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
             TestFailed("This new spam message should not have been trained as spam yet")
-        if not train.been_trained_as_ham(store_msg, driver.manager):
+        if not train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
             TestFailed("This new spam message should have been trained as ham now")
         # word infos should have one extra ham
-        check_words(words, driver.manager.bayes, 0, 1)
+        check_words(words, bayes, 0, 1)
         # Now move it back to the Spam folder.
         # This should see the message un-trained as ham, and re-trained as Spam
         spam_msg.Move(driver.folder_spam)
@@ -235,16 +237,16 @@ def TestSpamFilter(driver):
         if spam_msg is None:
             TestFailed("Could not find the message in the Spam folder")
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
-        if nspam +1 != driver.manager.bayes.nspam:
+        if nspam +1 != bayes.nspam:
             TestFailed("There should be one more spam now")
-        if nham != driver.manager.bayes.nham:
+        if nham != bayes.nham:
             TestFailed("There should be the same number of hams again")
-        if not train.been_trained_as_spam(store_msg, driver.manager):
+        if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
             TestFailed("This new spam message should have been trained as spam by now")
-        if train.been_trained_as_ham(store_msg, driver.manager):
+        if train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
             TestFailed("This new spam message should have been un-trained as ham")
         # word infos should have one extra spam, no extra ham
-        check_words(words, driver.manager.bayes, 1, 0)
+        check_words(words, bayes, 1, 0)
         # Move the message to another folder, and make sure we still
         # identify it correctly as having been trained.
         # Move to the "unsure" folder, just cos we know about it, and
@@ -254,34 +256,34 @@ def TestSpamFilter(driver):
         if spam_msg is None:
             TestFailed("Could not find the message in the Unsure folder")
         store_msg = driver.manager.message_store.GetMessage(spam_msg)
-        if not train.been_trained_as_spam(store_msg, driver.manager):
+        if not train.been_trained_as_spam(store_msg, driver.manager.classifier_data):
             TestFailed("Message was not identified as Spam after moving")
 
         # word infos still be 'spam'
-        check_words(words, driver.manager.bayes, 1, 0)
+        check_words(words, bayes, 1, 0)
 
         # Now undo the damage we did.
-        was_spam = train.untrain_message(store_msg, driver.manager)
+        was_spam = train.untrain_message(store_msg, driver.manager.classifier_data)
         if not was_spam:
             TestFailed("Untraining this message did not indicate it was spam")
-        if train.been_trained_as_spam(store_msg, driver.manager) or \
-           train.been_trained_as_ham(store_msg, driver.manager):
+        if train.been_trained_as_spam(store_msg, driver.manager.classifier_data) or \
+           train.been_trained_as_ham(store_msg, driver.manager.classifier_data):
             TestFailed("Untraining this message kept it has ham/spam")
         need_untrain = False
     finally:
         if need_untrain:
-            train.untrain_message(store_msg, driver.manager)
+            train.untrain_message(store_msg, driver.manager.classifier_data)
 
     # Check all the counts are back where we started.
-    if nspam != driver.manager.bayes.nspam:
+    if nspam != bayes.nspam:
         TestFailed("Spam count didn't get back to the same")
-    if nham != driver.manager.bayes.nham:
+    if nham != bayes.nham:
         TestFailed("Ham count didn't get back to the same")
-    check_words(words, driver.manager.bayes, 0, 0)
+    check_words(words, bayes, 0, 0)
 
-    if driver.manager.bayes.wordinfo != original_bayes.wordinfo:
+    if bayes.wordinfo != original_bayes.wordinfo:
         TestFailed("The bayes object's 'wordinfo' did not compare the same at the end of all this!")
-    if driver.manager.bayes.probcache != original_bayes.probcache:
+    if bayes.probcache != original_bayes.probcache:
         TestFailed("The bayes object's 'probcache' did not compare the same at the end of all this!")
 
     spam_msg.Delete()
@@ -291,8 +293,9 @@ def _DoTestHamTrain(driver, folder1, folder2):
     # [ 780612 ] Outlook incorrectly trains on moved messages
     # Should not train when previously classified message is moved by the user
     # from one watch folder to another.
-    nham = driver.manager.bayes.nham
-    nspam = driver.manager.bayes.nspam
+    bayes = driver.manager.classifier_data.bayes
+    nham = bayes.nham
+    nspam = bayes.nspam
 
     # Create a ham message in the Inbox - it wont get filtered if the other
     # tests pass, but we do need to wait for it to be scored.
@@ -311,7 +314,7 @@ def _DoTestHamTrain(driver, folder1, folder2):
     # sleep to any processing in this folder.
     WaitForFilters()
 
-    if nspam != driver.manager.bayes.nspam or nham != driver.manager.bayes.nham:
+    if nspam != bayes.nspam or nham != bayes.nham:
         TestFailed("Move of existing ham caused a train")
     msg.Delete()
 

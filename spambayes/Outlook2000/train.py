@@ -16,17 +16,17 @@ except NameError:
 
 # Note our Message Database uses PR_SEARCH_KEY, *not* PR_ENTRYID, as the
 # latter changes after a Move operation - see msgstore.py
-def been_trained_as_ham(msg, mgr):
-    if not mgr.message_db.has_key(msg.searchkey):
+def been_trained_as_ham(msg, cdata):
+    if not cdata.message_db.has_key(msg.searchkey):
         return False
-    return mgr.message_db[msg.searchkey]=='0'
+    return cdata.message_db[msg.searchkey]=='0'
 
-def been_trained_as_spam(msg, mgr):
-    if not mgr.message_db.has_key(msg.searchkey):
+def been_trained_as_spam(msg, cdata):
+    if not cdata.message_db.has_key(msg.searchkey):
         return False
-    return mgr.message_db[msg.searchkey]=='1'
+    return cdata.message_db[msg.searchkey]=='1'
 
-def train_message(msg, is_spam, mgr, rescore=False):
+def train_message(msg, is_spam, cdata, rescore=False):
     # Train an individual message.
     # Returns True if newly added (message will be correctly
     # untrained if it was in the wrong category), False if already
@@ -35,10 +35,10 @@ def train_message(msg, is_spam, mgr, rescore=False):
     # be written to the message (so the user can see some effects)
     from spambayes.tokenizer import tokenize
 
-    if not mgr.message_db.has_key(msg.searchkey):
+    if not cdata.message_db.has_key(msg.searchkey):
         was_spam = None
     else:
-        was_spam = mgr.message_db[msg.searchkey]=='1'
+        was_spam = cdata.message_db[msg.searchkey]=='1'
     if was_spam == is_spam:
         return False    # already correctly classified
 
@@ -46,55 +46,82 @@ def train_message(msg, is_spam, mgr, rescore=False):
     stream = msg.GetEmailPackageObject()
     if was_spam is not None:
         # The classification has changed; unlearn the old classification.
-        mgr.bayes.unlearn(tokenize(stream), was_spam)
+        cdata.bayes.unlearn(tokenize(stream), was_spam)
 
     # Learn the correct classification.
-    mgr.bayes.learn(tokenize(stream), is_spam)
-    mgr.message_db[msg.searchkey] = ['0', '1'][is_spam]
-    mgr.bayes_dirty = True
-
-    # Simplest way to rescore is to re-filter with all_actions = False
-    if rescore:
-        import filter
-        filter.filter_message(msg, mgr, all_actions = False)
-
+    cdata.bayes.learn(tokenize(stream), is_spam)
+    cdata.message_db[msg.searchkey] = ['0', '1'][is_spam]
+    cdata.dirty = True
     return True
 
 # Untrain a message.
 # Return: None == not previously trained
 #         True == was_spam
 #         False == was_ham
-def untrain_message(msg, mgr):
+def untrain_message(msg, cdata):
     from spambayes.tokenizer import tokenize
     stream = msg.GetEmailPackageObject()
-    if been_trained_as_spam(msg, mgr):
-        assert not been_trained_as_ham(msg, mgr), "Can't have been both!"
-        mgr.bayes.unlearn(tokenize(stream), True)
-        del mgr.message_db[msg.searchkey]
-        mgr.bayes_dirty = True
+    if been_trained_as_spam(msg, cdata):
+        assert not been_trained_as_ham(msg, cdata), "Can't have been both!"
+        cdata.bayes.unlearn(tokenize(stream), True)
+        del cdata.message_db[msg.searchkey]
+        cdata.dirty = True
         return True
-    if been_trained_as_ham(msg, mgr):
-        assert not been_trained_as_spam(msg, mgr), "Can't have been both!"
-        mgr.bayes.unlearn(tokenize(stream), False)
-        del mgr.message_db[msg.searchkey]
-        mgr.bayes_dirty = True
+    if been_trained_as_ham(msg, cdata):
+        assert not been_trained_as_spam(msg, cdata), "Can't have been both!"
+        cdata.bayes.unlearn(tokenize(stream), False)
+        del cdata.message_db[msg.searchkey]
+        cdata.dirty = True
         return False
     return None
 
-def train_folder(f, isspam, mgr, progress):
+def train_folder(f, isspam, cdata, progress):
     num = num_added = 0
     for message in f.GetMessageGenerator():
         if progress.stop_requested():
             break
         progress.tick()
         try:
-            if train_message(message, isspam, mgr):
+            if train_message(message, isspam, cdata):
                 num_added += 1
         except:
             print "Error training message '%s'" % (message,)
             traceback.print_exc()
         num += 1
     print "Checked", num, "in folder", f.name, "-", num_added, "new entries found."
+
+
+def real_trainer(classifier_data, config, message_store, progress):
+    progress.set_status("Counting messages")
+
+    num_msgs = 0
+    for f in message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
+        num_msgs += f.count
+    for f in message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
+        num_msgs += f.count
+
+    progress.set_max_ticks(num_msgs+3)
+
+    for f in message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
+        progress.set_status("Processing good folder '%s'" % (f.name,))
+        train_folder(f, 0, classifier_data, progress)
+        if progress.stop_requested():
+            return
+
+    for f in message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
+        progress.set_status("Processing spam folder '%s'" % (f.name,))
+        train_folder(f, 1, classifier_data, progress)
+        if progress.stop_requested():
+            return
+
+    progress.tick()
+    if progress.stop_requested():
+        return
+    # Completed training - save the database
+    # Setup the next "stage" in the progress dialog.
+    progress.set_max_ticks(1)
+    progress.set_status("Writing the database...")
+    classifier_data.Save()
 
 # Called back from the dialog to do the actual training.
 def trainer(mgr, progress):
@@ -107,8 +134,22 @@ def trainer(mgr, progress):
         return
 
     if rebuild:
-        mgr.InitNewBayes()
-    bayes = mgr.bayes
+        # Make a new temporary bayes database to use for training.
+        # If we complete, then the manager "adopts" it.
+        # This prevents cancelled training from leaving a "bad" db, and
+        # also prevents mail coming in during training from being classified
+        # with the partial database.
+        import os, manager
+        bayes_base = os.path.join(mgr.data_directory, "$sbtemp$default_bayes_database")
+        mdb_base = os.path.join(mgr.data_directory, "$sbtemp$default_message_database")
+        # determine which db manager to use, and create it.
+        ManagerClass = manager.GetStorageManagerClass()
+        db_manager = ManagerClass(bayes_base, mdb_base)
+        classifier_data = manager.ClassifierData(db_manager, mgr)
+        classifier_data.InitNew()
+    else:
+        classifier_data = mgr.classifier_data
+
     # We do this in possibly 3 stages - train, filter, save
     # re-scoring is much slower and training (as we actually have to save
     # the message back.)
@@ -119,36 +160,13 @@ def trainer(mgr, progress):
         stages = ("Training", .9), ("Saving", .1)
     progress.set_stages(stages)
 
-    progress.set_status("Counting messages")
+    real_trainer(classifier_data, config, mgr.message_store, progress)
+    
+    if rebuild:
+        assert mgr.classifier_data is not classifier_data
+        mgr.classifier_data.Adopt(classifier_data)
+        classifier_data = mgr.classifier_data
 
-    num_msgs = 0
-    for f in mgr.message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
-        num_msgs += f.count
-    for f in mgr.message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
-        num_msgs += f.count
-
-    progress.set_max_ticks(num_msgs+3)
-
-    for f in mgr.message_store.GetFolderGenerator(config.training.ham_folder_ids, config.training.ham_include_sub):
-        progress.set_status("Processing good folder '%s'" % (f.name,))
-        train_folder(f, 0, mgr, progress)
-        if progress.stop_requested():
-            return
-
-    for f in mgr.message_store.GetFolderGenerator(config.training.spam_folder_ids, config.training.spam_include_sub):
-        progress.set_status("Processing spam folder '%s'" % (f.name,))
-        train_folder(f, 1, mgr, progress)
-        if progress.stop_requested():
-            return
-
-    progress.tick()
-    if progress.stop_requested():
-        return
-    # Completed training - save the database
-    # Setup the next "stage" in the progress dialog.
-    progress.set_max_ticks(1)
-    progress.set_status("Writing the database...")
-    mgr.Save()
     progress.tick()
 
     if rescore:
@@ -162,6 +180,7 @@ def trainer(mgr, progress):
         import filter
         filter.filterer(mgr, progress)
 
+    bayes = classifier_data.bayes
     progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
 
 def main():

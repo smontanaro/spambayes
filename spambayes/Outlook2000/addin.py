@@ -172,13 +172,46 @@ def HaveSeenMessage(msgstore_message, manager):
         return True
     # If the message has been trained on, we certainly have seen it before.
     import train
-    if train.been_trained_as_ham(msgstore_message, manager) or \
-       train.been_trained_as_spam(msgstore_message, manager):
+    if train.been_trained_as_ham(msgstore_message, manager.classifier_data) or \
+       train.been_trained_as_spam(msgstore_message, manager.classifier_data):
         return True
     # I considered checking if the "save spam score" option is enabled - but
     # even when enabled, this sometimes fails (IMAP, hotmail)
     # Best we can do now is to assume if it is read, we have seen it.
     return msgstore_message.GetReadState()
+
+# Helper functions
+def TrainAsHam(msgstore_message, manager, rescore = True):
+    import train
+    subject = msgstore_message.subject
+    print "Training on message '%s' - " % subject,
+    if train.train_message(msgstore_message, False, manager.classifier_data):
+        print "trained as good"
+        # Simplest way to rescore is to re-filter with all_actions = False
+        if rescore:
+            import filter
+            filter.filter_message(msgstore_message, manager, all_actions = False)
+            
+    else:
+        print "already was trained as good"
+    assert train.been_trained_as_ham(msgstore_message, manager.classifier_data)
+    manager.SaveBayesPostIncrementalTrain()
+
+def TrainAsSpam(msgstore_message, manager, rescore = True):
+    import train
+    subject = msgstore_message.subject
+    print "Training on message '%s' - " % subject,
+    if train.train_message(msgstore_message, True, manager.classifier_data):
+        print "trained as spam"
+        # Simplest way to rescore is to re-filter with all_actions = False
+        if rescore:
+            import filter
+            filter.filter_message(msgstore_message, manager, all_actions = False)
+    else:
+        print "already was trained as spam"
+    assert train.been_trained_as_spam(msgstore_message, manager.classifier_data)
+    # And if the DB can save itself incrementally, do it now
+    manager.SaveBayesPostIncrementalTrain()
 
 # Function to filter a message - note it is a msgstore msg, not an
 # outlook one
@@ -197,7 +230,7 @@ def ProcessMessage(msgstore_message, manager):
         # otherwise just ignore.
         if manager.config.training.train_recovered_spam:
             import train
-            if train.been_trained_as_spam(msgstore_message, manager):
+            if train.been_trained_as_spam(msgstore_message, manager.classifier_data):
                 need_train = True
             else:
                 prop = msgstore_message.GetField(manager.config.general.field_score_name)
@@ -210,16 +243,10 @@ def ProcessMessage(msgstore_message, manager):
                 # rules moving the item.
                 need_train = manager.config.filter.unsure_threshold < prop * 100
 
-            subject = msgstore_message.subject
             if need_train:
-                print "Training on message '%s' - " % subject,
-                if train.train_message(msgstore_message, False, manager, rescore = True):
-                    print "trained as good"
-                else:
-                    print "already was trained as good"
-                assert train.been_trained_as_ham(msgstore_message, manager)
-                manager.SaveBayesPostIncrementalTrain()
+                TrainAsHam(msgstore_message, manager)
             else:
+                subject = msgstore_message.subject
                 manager.LogDebug(1, "Message '%s' was previously seen, but " \
                                  "did not need to be trained as ham" % subject)
         return
@@ -408,7 +435,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
             # Assuming that rescoring is more expensive than checking if
             # previously trained, try and optimize.
             import train
-            if train.been_trained_as_ham(msgstore_message, self.manager):
+            if train.been_trained_as_ham(msgstore_message, self.manager.classifier_data):
                 need_train = True
             else:
                 prop = msgstore_message.GetField(self.manager.config.general.field_score_name)
@@ -417,16 +444,7 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                     prop = self.manager.score(msgstore_message)
                 need_train = self.manager.config.filter.spam_threshold > prop * 100
             if need_train:
-                subject = item.Subject.encode("mbcs", "replace")
-                print "Training on message '%s' - " % subject,
-                if train.train_message(msgstore_message, True, self.manager, rescore = True):
-                    print "trained as spam"
-                else:
-                    # This shouldn't really happen, but strange shit does
-                    print "already was trained as spam"
-                assert train.been_trained_as_spam(msgstore_message, self.manager)
-                # And if the DB can save itself incrementally, do it now
-                self.manager.SaveBayesPostIncrementalTrain()
+                TrainAsSpam(msgstore_message, self.manager)
 
 # Event function fired from the "Show Clues" UI items.
 def ShowClues(mgr, explorer):
@@ -606,10 +624,7 @@ class ButtonDeleteAsSpamEvent(ButtonDeleteAsEventBase):
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Moving and spam training message '%s' - " % (subject,),
-            if train.train_message(msgstore_message, True, self.manager, rescore = True):
-                print "trained as spam"
-            else:
-                print "already was trained as spam"
+            TrainAsSpam(msgstore_message, self.manager)
             # Do the new message state if necessary.
             try:
                 if new_msg_state == "Read":
@@ -664,10 +679,7 @@ class ButtonRecoverFromSpamEvent(ButtonDeleteAsEventBase):
             # Must train before moving, else we lose the message!
             subject = msgstore_message.GetSubject()
             print "Recovering to folder '%s' and ham training message '%s' - " % (restore_folder.name, subject),
-            if train.train_message(msgstore_message, False, self.manager, rescore = True):
-                print "trained as ham"
-            else:
-                print "already was trained as ham"
+            TrainAsHam(msgstore_message, self.manager)
             # Do the new message state if necessary.
             try:
                 if new_msg_state == "Read":
@@ -1116,8 +1128,8 @@ class OutlookAddin:
                 # valid folders.  If for some reason, we have zero ham or spam,
                 # or no folder definitions but are 'enabled', then it is likely
                 # something got hosed and the user doesn't know.
-                if self.manager.bayes.nham==0 or \
-                   self.manager.bayes.nspam==0 or \
+                bayes = self.manager.classifier_data.bayes
+                if bayes.nham==0 or bayes.nspam==0 or \
                    not self.manager.config.filter.spam_folder_id or \
                    not self.manager.config.filter.watch_folder_ids:
                     msg = "It appears there was an error loading your configuration\r\n\r\n" \
