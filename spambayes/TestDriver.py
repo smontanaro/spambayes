@@ -108,8 +108,9 @@ def printhist(tag, ham, spam, nbuckets=options.nbuckets):
         num_uns = stotal[s] - stotal[h]
         print '->     fp %d; fn %d; unsure ham %d; unsure spam %d' % (
               num_fp, num_fn, num_unh, num_uns)
-        print '->     fp rate %.3g%%; fn rate %.3g%%' % (
-              num_fp*1e2 / ham.n, num_fn*1e2 / spam.n)
+        print '->     fp rate %.3g%%; fn rate %.3g%%; unsure rate %.3g%%' % (
+              num_fp*1e2 / ham.n, num_fn*1e2 / spam.n,
+              (num_unh + num_uns)*1e2 / (ham.n + spam.n))
 
 def printmsg(msg, prob, clues):
     print msg.tag
