@@ -12,6 +12,7 @@ import re
 import math
 import time
 import os
+import binascii
 try:
     from sets import Set
 except ImportError:
@@ -833,7 +834,6 @@ base64_re = re.compile(r"""
 """, re.VERBOSE)
 
 def try_to_repair_damaged_base64(text):
-    import binascii
     i = 0
     while True:
         # text[:i] looks like base64.  Does the line starting at i also?
@@ -1106,7 +1106,11 @@ class Tokenizer:
         # especially significant in this context.  Experiment showed a small
         # but real benefit to keeping case intact in this specific context.
         x = msg.get('subject', '')
-        for x, subjcharset in email.Header.decode_header(x):
+        try:
+            subjcharsetlist = email.Header.decode_header(x)
+        except binascii.Error:
+            subjcharsetlist = [(x, 'invalid')]
+        for x, subjcharset in subjcharsetlist:
             if subjcharset is not None:
                 yield 'subjectcharset:' + subjcharset
             for w in subject_word_re.findall(x):
@@ -1134,7 +1138,11 @@ class Tokenizer:
             noname_count = 0
             for name, addr in email.Utils.getaddresses(addrlist):
                 if name:
-                    for name, charset in email.Header.decode_header(name):
+                    try:
+                        subjcharsetlist = email.Header.decode_header(name)
+                    except binascii.Error:
+                        subjcharsetlist = [(name, 'invalid')]
+                    for name, charset in subjcharsetlist:
                         yield "%s:name:%s" % (field, name.lower())
                         if charset is not None:
                             yield "%s:charset:%s" % (field, charset)
