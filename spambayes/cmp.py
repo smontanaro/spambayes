@@ -29,6 +29,7 @@ def suck(f):
     fps = []
     hamdev = []
     spamdev = []
+    hamdevall = spamdevall = (0.0, 0.0)
 
     get = f.readline
     while 1:
@@ -86,9 +87,9 @@ def tag(p1, p2):
             t += " +(was 0)"
     return t
 
-def mtag(m1,m2):
-    mean1,dev1 = m1
-    mean2,dev2 = m2
+def mtag(m1, m2):
+    mean1, dev1 = m1
+    mean2, dev2 = m2
     t = "%7.2f %7.2f " % (mean1, mean2)
     if mean1:
         mp = (mean2 - mean1) * 100.0 / mean1
@@ -114,8 +115,8 @@ def dump(p1s, p2s):
         print "%-4s %2d times" % (t, alltags.count(t))
     print
 
-def dumpdev(meandev1,meandev2):
-    for m1,m2 in zip(meandev1,meandev2):
+def dumpdev(meandev1, meandev2):
+    for m1, m2 in zip(meandev1, meandev2):
         print mtag(m1, m2)
 
 def windowsfy(fn):
@@ -150,21 +151,26 @@ print "total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2)
 print "mean fn % went from", fnmean1, "to", fnmean2, tag(fnmean1, fnmean2)
 
 print
-print "ham mean                     ham sdev"
-dumpdev(hamdev1,hamdev2)
-print
-print "ham mean and sdev for all runs"
-dumpdev([hamdevall1],[hamdevall2])
+if len(hamdev1) == len(hamdev2) and len(spamdev1) == len(spamdev2):
+    print "ham mean                     ham sdev"
+    dumpdev(hamdev1, hamdev2)
+    print
+    print "ham mean and sdev for all runs"
+    dumpdev([hamdevall1], [hamdevall2])
 
-print
-print "spam mean                    spam sdev"
-dumpdev(spamdev1,spamdev2)
-print
-print "spam mean and sdev for all runs"
-dumpdev([spamdevall1],[spamdevall2])
-print
-diff1 = spamdevall1[0] - hamdevall1[0]
-diff2 = spamdevall2[0] - hamdevall2[0]
-print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,
-                                                        diff2,
-                                                        diff2 - diff1)
+
+    print
+    print "spam mean                    spam sdev"
+    dumpdev(spamdev1, spamdev2)
+    print
+    print "spam mean and sdev for all runs"
+    dumpdev([spamdevall1], [spamdevall2])
+
+    print
+    diff1 = spamdevall1[0] - hamdevall1[0]
+    diff2 = spamdevall2[0] - hamdevall2[0]
+    print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,
+                                                            diff2,
+                                                            diff2 - diff1)
+else:
+    print "[info about ham & spam means & sdevs not available in both files]"
