@@ -27,9 +27,9 @@
         use pickle (instead of database) in PICKLEFILE
     -n
         create a new database
-*   -f
+*+  -f
         filter (default if no processing options are given)
-*   -t
+*+  -t
         [EXPERIMENTAL] filter and train based on the result (you must
         make sure to untrain all mistakes later)
 *   -g
@@ -43,10 +43,8 @@
         [EXPERIMENTAL] untrain spam (only use if you've already trained
         this message)
 
-All processing options (marked with *) operate on stdin.  If no
-processing options are given, stdin will be scored: the same message,
-with a new header containing the score, will be send to stdout.
-
+All options marked with '*' operate on stdin.  Only those processing options
+marked with '+' send a modified message to stdout.
 """
 
 import os
@@ -147,7 +145,8 @@ class HammieFilter(object):
 def main():
     h = HammieFilter()
     actions = []
-    opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGS', ['help', 'examples'])
+    opts, args = getopt.getopt(sys.argv[1:], 'hxd:D:nfgstGS',
+                               ['help', 'examples'])
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
