@@ -5,6 +5,11 @@ Author: spambayes
 <h2>Project documentation</h2>
 <ul>
 <li>A rudimentary set of <a href="faq.html">Frequently Asked Questions (FAQ)</a>.</li>
+<li>The <a href="http://www.entrian.com/sbwiki">SpamBayes wiki</a> exists to let the users
+and developers of SpamBayes cooperate to develop documentation, share tips and recipes,
+and generally help each other out.  It would be great to see documentation improvements,
+hints and tips, scripts and recipes, and anything else (related to SpamBayes) that takes
+your fancy added here.</li>
 <li>Instructions on <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">installing Spambayes</a> and integrating it into your mail system.</li>
 <li>The Outlook plugin includes an <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD">&quot;About&quot; File</a>, and a <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD">
 &quot;Troubleshooting Guide&quot</a> that can be accessed via the toolbar.
