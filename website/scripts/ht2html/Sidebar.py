@@ -3,7 +3,10 @@
 
 import sys
 from types import StringType
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 # a useful constant
 BLANKCELL = (None, '&nbsp;')

@@ -9,7 +9,10 @@ from ht2html import __version__
 import os
 import sys
 import time
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 
 class Skeleton:
