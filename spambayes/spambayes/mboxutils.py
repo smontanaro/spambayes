@@ -146,6 +146,11 @@ def as_string(msg, unixfrom=False):
 
     To Do: This really should be done by subclassing email.Message.Message
     and making this function the as_string() method.  After 1.0.
+
+    [Tony] Better: sb_filter & sb_mboxtrain should stop using this and
+    start using the spambayes.Message classes.  They might need a little
+    bit of rearranging, but that should work nicely, and mean that all
+    this code is together in one place.
     """
     if isinstance(msg, str):
         return msg

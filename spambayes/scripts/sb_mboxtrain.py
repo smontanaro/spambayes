@@ -50,7 +50,7 @@ except NameError:
 
 import sys, os, getopt, email
 import shutil
-from spambayes import hammie, storage
+from spambayes import hammie, storage, mboxutils
 from spambayes.Options import options, get_pathname_option
 
 program = sys.argv[0]
@@ -82,7 +82,7 @@ def msg_train(h, msg, is_spam, force):
     # XXX: big hack -- why is email.Message unable to represent
     # multipart/alternative?
     try:
-        msg.as_string()
+        mboxutils.as_string(msg)
     except TypeError:
         # We'll be unable to represent this as text :(
         return False
@@ -144,7 +144,7 @@ def maildir_train(h, path, is_spam, force, removetrained):
         if not options["Headers", "include_trained"]:
             continue
         f = file(tfn, "wb")
-        f.write(msg.as_string())
+        f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)
 
@@ -189,7 +189,7 @@ def mbox_train(h, path, is_spam, force):
             trained += 1
         if options["Headers", "include_trained"]:
             # Write it out with the Unix "From " line
-            outf.write(msg.as_string(True))
+            outf.write(mboxutils.as_string(msg, True))
 
     if options["Headers", "include_trained"]:
         outf.seek(0)
@@ -245,7 +245,7 @@ def mhdir_train(h, path, is_spam, force):
         if not options["Headers", "include_trained"]:
             continue
         f = file(tfn, "wb")
-        f.write(msg.as_string())
+        f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)
 
