@@ -35,10 +35,10 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
 
 -R        Walk backwards through the mailbox.
 
---ratio=n Define the number of spam messages to be trained for each ham.
-          The default is 1, but given the sorry state of the Net's email
-          infrastructure these days you'll probably want to raise it.  Keep
-          it as close to 1 as you can...
+--ratio=n Define the ratio of spam:ham messages to be trained at once.
+          The default is 1:1, but given the sorry state of the Net's email
+          infrastructure these days you'll probably want to raise it (3:2 or
+          2:1, etc).  Keep it as close to 1 as you can...
 
 Note: The -c command line argument isn't quite as benign as it might first
 appear.  Since the tte protocol trains on the same number of ham and spam
@@ -100,6 +100,8 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
 
+    nspam, nham = ratio
+
     while round < maxrounds and (hmisses or smisses or round == 0):
         hambone = mboxutils.getmbox(hambox)
         spamcan = mboxutils.getmbox(spambox)
@@ -115,9 +117,19 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
         start = datetime.datetime.now()
         try:
             while not maxmsgs or nmsgs < maxmsgs:
-                ham = hambone.next()
+                hams = []
+                for i in range(nham):
+                    try:
+                        hams.append(hambone.next())
+                    except StopIteration:
+                        # no hams left so exit
+                        if not hams:
+                            raise
+                        # use what we've collected
+                        break
+
                 spams = []
-                for i in range(ratio):
+                for i in range(nspam):
                     try:
                         spams.append(spamcan.next())
                     except StopIteration:
@@ -127,19 +139,20 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
                         # use what we've collected
                         break
 
-                nmsgs += 1 + len(spams)
+                nmsgs += len(hams) + len(spams)
                 sys.stdout.write("\r%5d" % nmsgs)
                 sys.stdout.flush()
 
-                score = store.spamprob(tokenize(ham))
-                selector = ham["message-id"] or ham["subject"]
-                if score > ham_cutoff and selector is not None:
-                    if verbose:
-                        print >> sys.stderr, "miss ham:  %.6f %s" % (
-                            score, selector)
-                    hmisses += 1
-                    tdict[ham["message-id"]] = True
-                    store.learn(tokenize(ham), False)
+                for ham in hams:
+                    score = store.spamprob(tokenize(ham))
+                    selector = ham["message-id"] or ham["subject"]
+                    if score > ham_cutoff and selector is not None:
+                        if verbose:
+                            print >> sys.stderr, "miss ham: %.6f %s" % (
+                                score, selector)
+                        hmisses += 1
+                        tdict[ham["message-id"]] = True
+                        store.learn(tokenize(ham), False)
 
                 for spam in spams:
                     score = store.spamprob(tokenize(spam))
@@ -199,7 +212,7 @@ def main(args):
     maxrounds = MAXROUNDS
     verbose = False
     reverse = False
-    sh_ratio = 1
+    sh_ratio = (1, 1)
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
@@ -221,7 +234,8 @@ def main(args):
         elif opt in ('-o', '--option'):
             Options.options.set_from_cmdline(arg, sys.stderr)
         elif opt == '--ratio':
-            sh_ratio = int(arg)
+            arg = arg.split(":")
+            sh_ratio = (int(arg[0]), int(arg[1]))
             
     if ham is None or spam is None:
         usage("require both ham and spam piles")
