@@ -100,6 +100,7 @@ import pickle
 import email
 import email.Message
 import email.Parser
+import email.Header
 
 from spambayes import dbmstorage
 from spambayes.Options import options
@@ -362,6 +363,9 @@ class SBHeaderMessage(Message):
             evd = []
             for word, score in clues:
                 if (word[0] == '*' or score <= hco or score >= sco):
+                    if isinstance(word, types.UnicodeType):
+                        word = email.Header.Header(word,
+                                                   charset='utf-8').encode()
                     evd.append("%r: %.2f" % (word, score))
 
             # Line-wrap this header, because it can get very long.  We don't
