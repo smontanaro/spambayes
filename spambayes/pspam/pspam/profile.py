@@ -91,7 +91,7 @@ class Profile(Persistent):
             self.classifier.update_probabilities()
         get_transaction().commit()
         log("updated probabilities")
-        
+
     def _update(self, folders, is_spam):
         changed = False
         for f in folders:
@@ -99,7 +99,7 @@ class Profile(Persistent):
             added, removed = f.read()
             if added:
                 log("added %d" % len(added))
-            if removed:    
+            if removed:
                 log("removed %d" % len(removed))
             get_transaction().commit()
             if not (added or removed):
@@ -116,7 +116,7 @@ class Profile(Persistent):
             log("learned")
             for msg in removed.keys():
                 self.classifier.unlearn(tokenize(msg), is_spam, False)
-            if removed: 
+            if removed:
                 log("unlearned")
             del removed
             get_transaction().commit(1)

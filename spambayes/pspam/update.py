@@ -38,7 +38,7 @@ def main(rebuild=False):
         p = os.path.join(options.folder_dir, ham)
         if not folder_exists(profile.hams, p):
             profile.add_ham(p)
-    
+
     for spam in options.spam_folders:
         p = os.path.join(options.folder_dir, spam)
         if not folder_exists(profile.spams, p):
@@ -48,7 +48,7 @@ def main(rebuild=False):
     # read new messages from folders
     profile.update()
     get_transaction().commit()
-    
+
     db.close()
 
 if __name__ == "__main__":
@@ -57,5 +57,5 @@ if __name__ == "__main__":
     for k, v in opts:
         if k == '-F':
             FORCE_REBUILD = True
-    
+
     main(FORCE_REBUILD)

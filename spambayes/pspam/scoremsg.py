@@ -38,6 +38,6 @@ def main(fp):
         print clue, prob
 ##    print
 ##    print msg
-        
+
 if __name__ == "__main__":
     main(sys.stdin)

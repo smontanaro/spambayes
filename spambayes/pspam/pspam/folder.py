@@ -67,7 +67,7 @@ class Folder(Persistent):
             if not self.messages.has_key(msgid):
                 self.messages[msgid] = msg
                 new.insert(msg)
-                
+
         removed = difference(self.messages, cur)
         for msgid in removed.keys():
             del self.messages[msgid]
