@@ -4,19 +4,21 @@
 Read a message or a mailbox file on standard input, upload it to a
 web browser and write it to standard output.
 
-usage:  %(progname)s [-h] [-n] [-s server] [-p port]
+usage:  %(progname)s [-h] [-n] [-s server] [-p port] [-r N]
 
 Options:
     -h, --help    - print help and exit
     -n, --null    - suppress writing to standard output (default %(null)s)
     -s, --server= - provide alternate web server (default %(server)s)
     -p, --port=   - provide alternate server port (default %(port)s)
+    -r, --prob=   - feed the message to the trainer w/ prob N [0.0...1.0]
 """
 
 import sys
 import httplib
 import mimetypes
 import getopt
+import random
 from spambayes.Options import options
 
 progname = sys.argv[0]
@@ -90,11 +92,13 @@ def main(argv):
     null = False
     server = "localhost"
     port = options.html_ui_port
+    prob = 1.0
 
     try:
-        opts, args = getopt.getopt(argv, "hns:p:",
-                                   ["help", "null", "server=", "port="])
-    except getopt.Error:
+        opts, args = getopt.getopt(argv, "hns:p:r:",
+                                   ["help", "null", "server=", "port=",
+                                    "prob="])
+    except getopt.error:
         usage(globals(), locals())
         sys.exit(1)
 
@@ -108,15 +112,26 @@ def main(argv):
             server = arg
         elif opt in ("-p", "--port"):
             port = int(arg)
+        elif opt in ("-r", "--prob"):
+            n = float(arg)
+            if n < 0.0 or n > 1.0:
+                usage(globals(), locals())
+                sys.exit(1)
+            prob = n
 
     if args:
         usage(globals(), locals())
         sys.exit(1)
 
     data = sys.stdin.read()
-    post_multipart("%s:%d"%(server,port), "/upload", [],
-                   [('file', 'message.dat', data)])
     sys.stdout.write(data)
+    if random.random() < prob:
+        try:
+            post_multipart("%s:%d"%(server,port), "/upload", [],
+                           [('file', 'message.dat', data)])
+        except:
+            print >> sys.stderr, "upload failed"
+            sys.exit(1)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
