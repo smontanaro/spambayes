@@ -792,7 +792,9 @@ defaults = {
      each monitored server, and there must be a port for
      each monitored server.  Again, you need to configure your email
      client to use this port.  If there are multiple servers, you must
-     specify the same number of ports as servers, separated by commas.""",
+     specify the same number of ports as servers, separated by commas.
+     If you don't know what to use here, and you only have one server,
+     try 110, or if that doesn't work, try 8110.""",
      SERVER, DO_NOT_RESTORE),
 
     ("allow_remote_connections", "Allowed remote connections", "localhost",

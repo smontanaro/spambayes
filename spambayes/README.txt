@@ -134,9 +134,12 @@ All you need to do to configure SpamBayes is to open a web page to
 <http://localhost:8880>, click on the "Configuration" link at the top
 right, and fill in the relevant details.  Everything should be OK with the
 defaults, except for the POP3 and SMTP server information at the top, which
-is required.  Note that *nix users may not have permission to bind ports
-lower than 1025, so instead of proxying on ports 25 and 110, you should
-chose higher numbers, such as 1025 and 1110.
+is required. For the local ports to proxy on, if you are only proxying one
+server, and you are using Windows, then 110 is probably the best port to
+try first.  If that doesn't work, try using 8110 (and if you are proxying
+multiple ports, continue with 8111, 8112, and so on).  Note that *nix users
+may not have permission to bind ports lower than 1025, so should choose
+numbers higher than that.
 
 When you check your mail in your mail client now, messages should have an
 addition SpamBayes header (you may not be able to see this by default).
