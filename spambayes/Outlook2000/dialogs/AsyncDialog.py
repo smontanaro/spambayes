@@ -148,6 +148,11 @@ class AsyncDialogBase(dialog.Dialog):
         if self.running:
             self.progress.request_stop()
         else:
+            # Do anything likely to fail before we screw around with the
+            # control states - this way the dialog doesn't look as 'dead'
+            progress=_Progress(self)
+            # Now screw around with the control states, restored when
+            # the thread terminates.
             for id in self.disable_while_running_ids:
                 self.GetDlgItem(id).EnableWindow(0)
             self.SetDlgItemText(IDC_START, self.process_stop_text)
@@ -172,7 +177,7 @@ class AsyncDialogBase(dialog.Dialog):
 
             # back to the program :)
             import threading
-            t = threading.Thread(target=thread_target, args =(self.GetSafeHwnd(), _Progress(self)))
+            t = threading.Thread(target=thread_target, args =(self.GetSafeHwnd(), progress))
             t.start()
 
 if __name__=='__main__':
