@@ -291,15 +291,20 @@ class ProxyUserInterface(UserInterface.UserInterface):
             unused, unused, messageInfo.received = \
                     self._getTimeRange(self._keyToTimestamp(key))
             row = self.html.reviewRow.clone()
-            score = float(messageInfo.score.rstrip('%'))
+            try:
+                score = float(messageInfo.score.rstrip('%'))
+            except ValueError:
+                score = None
             if label == 'Spam':
-                if score > options["html_ui", "spam_discard_level"]:
+                if score is not None \
+                   and score > options["html_ui", "spam_discard_level"]:
                     r_att = getattr(row, 'discard')
                 else:
                     r_att = getattr(row, options["html_ui",
                                            "default_spam_action"])
             elif label == 'Ham':
-                if score < options["html_ui", "ham_discard_level"]:
+                if score is not None \
+                   and score < options["html_ui", "ham_discard_level"]:
                     r_att = getattr(row, 'discard')
                 else:
                     r_att = getattr(row, options["html_ui",
@@ -351,7 +356,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         id = ''
         numTrained = 0
         numDeferred = 0
-        if params.get('go') != 'refresh':
+        if params.get('go') != 'Refresh':
             for key, value in params.items():
                 if key.startswith('classify:'):
                     id = key.split(':')[2]
