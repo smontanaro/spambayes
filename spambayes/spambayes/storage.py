@@ -189,9 +189,14 @@ class DBDictClassifier(classifier.Classifier):
                 val = self.wordinfo[key]
                 self.db[key] = val.__getstate__()
             elif flag == WORD_DELETED:
-                assert not self.wordinfo.has_key(word), \
+                assert word not in self.wordinfo, \
                        "Should not have a wordinfo for words flagged for delete"
-                del self.db[key]
+                # Word may be deleted before it was ever written.
+                # hrmph - working out what exceptions would be reasonable is
+                # a PITA (but anydbm.errors may be useful) - but for now,
+                # just check the key first.
+                if self.db.has_key(key):
+                    del self.db[key]
             else:
                 raise RuntimeError, "Unknown flag value"
 
