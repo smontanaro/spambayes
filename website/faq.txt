@@ -583,6 +583,29 @@ Further, as "Show Spam Clues" does not attempt to render the HTML nor
 otherwise contact any of the URLs in the message, this will not
 register a hit on the spammer's server.
 
+
+Why can't I set spam to be moved to the Deleted Items folder?
+-------------------------------------------------------------
+
+The problem with this is that you can also set SpamBayes to train all
+messages moved to the designated spam folder.  If you set the deleted
+items folder as the spam folder (early versions of the plug-in allowed
+this), then *all* messages that you delete would be trained as spam.
+
+To get this restriction removed, you'll have to convince the developers
+that there is a way to do this without confusing people - for example,
+if we let you choose the deleted items folder as the spam folder, only
+if the 'incremental training' option was off, people would get confused
+about why it sometimes works and sometimes doesn't.
+
+Note that Outlook 2003 has a "Junk Mail" folder that has many of the
+deleted items folder's properties, and you *can* get SpamBayes to move
+spam to this folder.  You may also find some good advice in the answer
+to `the question about getting SpamBayes to delete spam`_.
+
+.. _`the question about getting SpamBayes to delete spam`: #how-can-i-configure-spambayes-to-delete-spam-rather-than-moving-it
+
+
 Using SpamBayes
 ===============
 
