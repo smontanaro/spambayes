@@ -220,8 +220,9 @@ def train(bayes, msgs, is_spam):
 
 def formatclues(clues, sep="; "):
     """Format the clues into something readable."""
-    # XXX Maybe sort by prob first?
-    return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
+    lst = [(prob, word) for word, prob in clues]
+    lst.sort()
+    return sep.join(["%r: %.2f" % (word, prob) for prob, word in lst])
 
 def filter(bayes, input, output):
     """Filter (judge) a message"""
