@@ -252,13 +252,12 @@ def score(bayes, msgs):
         i += 1
         prob, clues = bayes.spamprob(tokenize(msg), True)
         isspam = prob >= 0.9
-        print "%6d %4.2f %1s" % (i, prob, isspam and "S" or "."),
         if isspam:
             spams += 1
+            print "%6s %4.2f %1s" % (i, prob, isspam and "S" or "."),
             print formatclues(clues)
         else:
             hams += 1
-            print
     print "Total %d spam, %d ham" % (spams, hams)
 
 def usage(code, msg=''):
