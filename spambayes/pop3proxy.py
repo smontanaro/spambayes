@@ -22,7 +22,6 @@ header.  Usage:
             -u port : User interface listens on this port number
                       (default 8880; Browse http://localhost:8880/)
             -b      : Launch a web browser showing the user interface.
-            -s      : Start a SMTPProxy server for training use.
 
         All command line arguments and switches take their default
         values from the [pop3proxy] and [html_ui] sections of
@@ -1652,7 +1651,6 @@ def run():
         sys.exit()
 
     runSelfTest = False
-    launchSMTPProxy = False
     for opt, arg in opts:
         if opt == '-h':
             print >>sys.stderr, __doc__
@@ -1662,8 +1660,6 @@ def run():
             state.runTestServer = True
         elif opt == '-b':
             state.launchUI = True
-        elif opt == '-s':
-            launchSMTPProxy = True
         elif opt == '-d':   # dbm file
             state.useDB = True
             options.pop3proxy_persistent_storage_file = arg
@@ -1685,11 +1681,14 @@ def run():
     # Do whatever we've been asked to do...
     state.createWorkers()
 
-    if launchSMTPProxy:
-        from smtpproxy import LoadServerInfo, CreateProxies
-        servers, proxyPorts = LoadServerInfo()
-        CreateProxies(servers, proxyPorts, state)
-        LoadServerInfo()
+    # Launch any SMTP proxies.  This was once an option, but
+    # is now always carried out - if the user hasn't specified any
+    # SMTP proxy information in their configuration, then nothing
+    # will happen anyway, and this is much clearer for documentation.
+    from smtpproxy import LoadServerInfo, CreateProxies
+    servers, proxyPorts = LoadServerInfo()
+    CreateProxies(servers, proxyPorts, state)
+    LoadServerInfo()
     
     if runSelfTest:
         print "\nRunning self-test...\n"
