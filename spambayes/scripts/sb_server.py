@@ -739,15 +739,17 @@ class State:
         if options["globals", "verbose"]:
             self.logFile = open('_pop3proxy.log', 'wb', 0)
 
-        self.servers = []
-        if options["pop3proxy", "remote_servers"]:
-            for server in options["pop3proxy", "remote_servers"]:
-                server = server.strip()
-                if server.find(':') > -1:
-                    server, port = server.split(':', 1)
-                else:
-                    port = '110'
-                self.servers.append((server, int(port)))
+        if not hasattr(self, "servers"):
+            # Could have already been set via the command line.
+            self.servers = []
+            if options["pop3proxy", "remote_servers"]:
+                for server in options["pop3proxy", "remote_servers"]:
+                    server = server.strip()
+                    if server.find(':') > -1:
+                        server, port = server.split(':', 1)
+                    else:
+                        port = '110'
+                    self.servers.append((server, int(port)))
 
         if not hasattr(self, "proxyPorts"):
             # Could have already been set via the command line.
