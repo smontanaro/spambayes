@@ -110,6 +110,12 @@ spam_cutoff: 0.90
 nbuckets: 40
 show_histograms: True
 
+# When compute_best_cutoffs_from_histograms is enabled, after the display
+# of a ham+spam histogram pair, a listing is given of all the cutoff scores
+# (coinciding with a histogram boundary) that minimize the total number of
+# misclassified messages (false positives + false negatives).
+compute_best_cutoffs_from_histograms: True
+
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
 # and likewise for ham.  The defaults here don't show anything.
@@ -150,7 +156,7 @@ save_trained_pickles: False
 pickle_basename: class
 save_histogram_pickles: False
 
-# default locations for timcv and timtest - these get the set number 
+# default locations for timcv and timtest - these get the set number
 # interpolated.
 spam_directories: Data/Spam/Set%d
 ham_directories: Data/Ham/Set%d
@@ -246,6 +252,7 @@ all_options = {
                    'spam_cutoff': float_cracker,
                    'spam_directories': string_cracker,
                    'ham_directories': string_cracker,
+                   'compute_best_cutoffs_from_histograms': boolean_cracker,
                   },
     'Classifier': {'hambias': float_cracker,
                    'spambias': float_cracker,

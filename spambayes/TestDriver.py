@@ -91,6 +91,41 @@ def printhist(tag, ham, spam):
     print "-> <stat> Spam scores for", tag,
     spam.display()
 
+    if not options.compute_best_cutoffs_from_histograms:
+        return
+
+    # Figure out "the best" spam cutoff point, meaning the one that minimizes
+    # the total number of misclassified msgs (other definitions are
+    # certainly possible!).
+
+    # At cutoff 0, everything is called spam, so there are no false negatives,
+    # and every ham is a false positive.
+    assert ham.nbuckets == spam.nbuckets
+    fp = ham.n
+    fn = 0
+    best_total = fp
+    bests = [(0, fp, fn)]
+    for i in range(ham.nbuckets):
+        # When moving the cutoff beyond bucket i, the ham in bucket i
+        # are redeemed, and the spam in bucket i become false negatives.
+        fp -= ham.buckets[i]
+        fn += spam.buckets[i]
+        if fp + fn <= best_total:
+            if fp + fn < best_total:
+                best_total = fp + fn
+                bests = []
+            bests.append((i+1, fp, fn))
+    assert fp == 0
+    assert fn == spam.n
+
+    i, fp, fn = bests.pop(0)
+    print '-> best cutoff for', tag, float(i) / ham.nbuckets
+    print '->     with', fp, 'fp', '+', fn, 'fn =', best_total, 'mistakes'
+    for i, fp, fn in bests:
+        print '->     matched at %g (%d fp + %d fn)' % (
+              float(i) / ham.nbuckets, fp, fn)
+
+
 def printmsg(msg, prob, clues):
     print msg.tag
     print "prob =", prob
