@@ -478,6 +478,10 @@ class BayesManager:
             # should only happen in source-code versions - older win32alls can't
             # determine this.
             profile_name = "unknown_profile"
+            print "*** NOTE: It appears you are running the source-code version of"
+            print "* SpamBayes, and running a win32all version pre 154."
+            print "* If you work with multiple Outlook profiles, it is recommended"
+            print "* you upgrade - see http://starship.python.net/crew/mhammond"""
         else:
             # xxx - remove me sometime - win32all grew this post 154(ish)
             # binary never released with this, so we can be a little more brutal
