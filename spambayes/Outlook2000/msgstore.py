@@ -197,7 +197,12 @@ class MAPIMsgStore(MsgStore):
 
     def GetFolder(self, folder_id):
         # Return a single folder given the ID.
-        folder_id = self.NormalizeID(folder_id)
+        if hasattr(folder_id, "EntryID"):
+            # An Outlook object
+            folder_id = mapi.BinFromHex(folder_id.StoreID), \
+                         mapi.BinFromHex(folder_id.EntryID)
+        else:
+            folder_id = self.NormalizeID(folder_id)
         folder = self._OpenEntry(folder_id)
         table = folder.GetContentsTable(0)
         rc, props = folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
@@ -246,6 +251,15 @@ class MAPIMsgStoreFolder(MsgStoreMsg):
                                                 self.count,
                                                 mapi.HexFromBin(self.id[0]),
                                                 mapi.HexFromBin(self.id[1]))
+
+    def __eq__(self, other):
+        if other is None: return False
+        ceid = self.msgstore.session.CompareEntryIDs
+        return ceid(self.id[0], other.id[0]) and \
+               ceid(self.id[1], other.id[1])
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def GetID(self):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
@@ -297,12 +311,21 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                                      mapi.HexFromBin(self.id[0]),
                                      mapi.HexFromBin(self.id[1]))
 
+    def __eq__(self, other):
+        if other is None: return False
+        ceid = self.msgstore.session.CompareEntryIDs
+        return ceid(self.id[0], other.id[0]) and \
+               ceid(self.id[1], other.id[1])
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def GetID(self):
         return mapi.HexFromBin(self.id[0]), mapi.HexFromBin(self.id[1])
 
     def GetOutlookItem(self):
         hex_item_id = mapi.HexFromBin(self.id[1])
-        store_hex_id = mapi.HexFromBin(self.id[0])
+        hex_store_id = mapi.HexFromBin(self.id[0])
         return self.msgstore.outlook.Session.GetItemFromID(hex_item_id, hex_store_id)
 
     def _GetPropFromStream(self, prop_id):
