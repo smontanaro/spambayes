@@ -322,6 +322,7 @@ class GrahamBayes(object):
 
         prob = prob_product / (prob_product + inverse_prob_product)
         if evidence:
+            clues.sort(lambda a, b: cmp(a[1], b[1]))
             return prob, clues
         else:
             return prob
@@ -558,6 +559,14 @@ class GrahamBayes(object):
                 prob = MIN_SPAMPROB
             elif prob > MAX_SPAMPROB:
                 prob = MAX_SPAMPROB
+
+
+##            if prob != 0.5:
+##                confbias = 0.01 / (record.hamcount + record.spamcount)
+##                if prob > 0.5:
+##                    prob = max(0.5, prob - confbias)
+##                else:
+##                    prob = min(0.5, prob + confbias)
 
             if record.spamprob != prob:
                 record.spamprob = prob
