@@ -74,6 +74,24 @@ for preventing it.  Please see our `FAQ entry on this issue`_.
 
 .. _FAQ entry on this issue: http://spambayes.sourceforge.net/faq.html#how-can-i-get-rid-of-the-envelope-tray-icon-for-spam
 
+Addin loads with "Could not watch the specified folders" error
+--------------------------------------------------------------
+In this bug, the log file contains:
+
+::
+
+  ...
+  File "out1.pyz/addin", line 1273, in _HookFolderEvents
+  File "out1.pyz/msgstore", line 539, in GetOutlookItem
+  File "...", line 4597, in GetFolderFromID
+  ...
+  com_error: (-2147352567, 'Exception occurred.', (4096, 'Microsoft Office Outlook', 'The operation failed.',None, 0, -2147221241), None)
+
+We are tracking this bug in 
+`[ 843521 ] E_FAIL exception watching folders disables SpamBayes`_.
+
+.. _[ 843521 ] E_FAIL exception watching folders disables SpamBayes: https://sourceforge.net/tracker/index.php?func=detail&aid=843521&group_id=61702&atid=498103
+
 Customize Outlook Today stops working
 -------------------------------------
 This is likely to be a Microsoft Issue - see a 
