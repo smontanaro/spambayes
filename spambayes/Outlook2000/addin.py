@@ -452,16 +452,22 @@ def ShowClues(mgr, explorer):
     # once the Body property has been set.  Thus, there is no reasonable
     # way to get this as text only.  Next best then is to use HTML, 'cos at
     # least we know how to exploit it!
-    body = ["<h2>Spam Score: %d%% (%g)</h2><br>" % (round(score*100), score)]
+    body = ["<h2>Combined Score: %d%% (%g)</h2>\n" %
+            (round(score*100), score)]
     push = body.append
+    # Format internal scores.
+    push("Internal ham score (<tt>%s</tt>): %g<br>\n" % clues.pop(0))
+    push("Internal spam score (<tt>%s</tt>): %g<br>\n" % clues.pop(0))
     # Format the # ham and spam trained on.
     c = mgr.GetClassifier()
-    push("<PRE>\n")
-    push("#  ham trained on: %6d\n" % c.nham)
-    push("# spam trained on: %6d\n" % c.nspam)
-    push("\n")
+    push("<br>\n")
+    push("# ham trained on: %d<br>\n" % c.nham)
+    push("# spam trained on: %d<br>\n" % c.nspam)
     # Format the clues.
-    push("word                                spamprob         #ham  #spam\n")
+    push("<h2>%s Significant Tokens</h2>\n<PRE>" % len(clues))
+    push("<strong>")
+    push("token                               spamprob         #ham  #spam\n")
+    push("</strong>")
     format = " %-12g %8s %6s\n"
     fetchword = c.wordinfo.get
     for word, prob in clues:
@@ -477,7 +483,7 @@ def ShowClues(mgr, explorer):
     push("</PRE>\n")
 
     # Now the raw text of the message, as best we can
-    push("<h2>Message Stream:</h2><br>")
+    push("<h2>Message Stream</h2>\n")
     push("<PRE>\n")
     msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
     push(escape(msg.as_string(), True))
@@ -486,7 +492,7 @@ def ShowClues(mgr, explorer):
     # Show all the tokens in the message
     from spambayes.tokenizer import tokenize
     from spambayes.classifier import Set # whatever classifier uses
-    push("<h2>Message Tokens:</h2><br>")
+    push("<h2>All Message Tokens</h2>\n")
     # need to re-fetch, as the tokens we see may be different based on
     # header stripping.
     toks = Set(tokenize(
@@ -505,7 +511,14 @@ def ShowClues(mgr, explorer):
     body = ''.join(body)
     new_msg.Subject = "Spam Clues: " + item.Subject
     # As above, use HTMLBody else Outlook refuses to behave.
-    new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
+    new_msg.HTMLBody = """\
+<HTML>
+<HEAD>
+<STYLE>
+    h2 {color: green}
+</STYLE>
+</HEAD>
+<BODY>""" + body + "</BODY></HTML>"
     # Attach the source message to it
     # Using the original message has the side-effect of marking the original
     # as unread.  Tried to make a copy, but the copy then refused to delete
