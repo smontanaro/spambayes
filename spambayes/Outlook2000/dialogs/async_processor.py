@@ -12,6 +12,7 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+verbose = 0
 
 IDC_START = 1100
 IDC_PROGRESS = 1101
@@ -49,7 +50,6 @@ class _Progress:
             win32api.PostMessage(self.hprogress, commctrl.PBM_SETRANGE, 0, MAKELPARAM(0,self.total_control_ticks))
             win32api.PostMessage(self.hprogress, commctrl.PBM_SETSTEP, 1, 0)
             win32api.PostMessage(self.hprogress, commctrl.PBM_SETPOS, 0, 0)
-            self.current_control_tick = 0
 
         self.current_stage += 1
         assert self.current_stage <= len(self.stages)
@@ -58,12 +58,17 @@ class _Progress:
         return self.stages[self.current_stage-1]
 
     def set_max_ticks(self, m):
+        # skip to the stage.
         self._next_stage()
-        self.current_stage_tick = 0
         self.current_stage_max = m
+        self.current_stage_tick = -1 # ready to go to zero!
+        # if earlier stages stopped early, skip ahead.
+        self.tick()
 
     def tick(self):
-        self.current_stage_tick += 1
+        if self.current_stage_tick < self.current_stage_max:
+            # Don't let us go beyond our stage max
+            self.current_stage_tick += 1
         # Calc how far through this stage.
         this_prop = float(self.current_stage_tick) / self.current_stage_max
         # How far through the total.
@@ -74,11 +79,9 @@ class _Progress:
         # How may ticks is this on the control (but always have 1, so the
         # user knows the process has actually started.)
         control_tick = max(1,int(total_prop * self.total_control_ticks))
-        #print "Tick", self.current_stage_tick, "is", this_prop, "through the stage,", total_prop, "through the total - ctrl tick is", control_tick
-        while self.current_control_tick < control_tick:
-            self.current_control_tick += 1
-            #print "ticking control", self.current_control_tick
-            win32api.PostMessage(self.hprogress, commctrl.PBM_STEPIT, 0, 0)
+        if verbose:
+            print "Tick", self.current_stage_tick, "is", this_prop, "through the stage,", total_prop, "through the total - ctrl tick is", control_tick
+        win32api.PostMessage(self.hprogress, commctrl.PBM_SETPOS, control_tick)
 
     def _get_stage_text(self, text):
         stage_name, start, end = self._get_current_stage()
@@ -236,21 +239,24 @@ class AsyncCommandProcessor(processors.CommandButtonProcessor):
             t.start()
 
 if __name__=='__main__':
+    verbose = 1
     # Test my "multi-stage" code
     class HackProgress(_Progress):
         def __init__(self): # dont use dlg
             self.hprogress = self.hdlg = 0
             self.dlg = None
             self.stopping = False
-            self.total_control_ticks = 100
+            self.total_control_ticks = 40
             self.current_stage = 0
             self.set_stages( (("", 1.0),) )
 
+    print "Single stage test"
     p = HackProgress()
     p.set_max_ticks(10)
     for i in range(10):
         p.tick()
 
+    print "First stage test"
     p = HackProgress()
     stages = ("Stage 1", 0.2), ("Stage 2", 0.8)
     p.set_stages(stages)
@@ -259,7 +265,28 @@ if __name__=='__main__':
     for i in range(10):
         p.tick()
     # Do stage 2
-    p.set_max_ticks(1000)
-    for i in range(1000):
+    p.set_max_ticks(20)
+    for i in range(20):
         p.tick()
+    print "Second stage test"
+    p = HackProgress()
+    stages = ("Stage 1", 0.9), ("Stage 2", 0.1)
+    p.set_stages(stages)
+    p.set_max_ticks(10)
+    for i in range(7): # do a few less just to check
+        p.tick()
+    p.set_max_ticks(2)
+    for i in range(2):
+        p.tick()
+    print "Third stage test"
+    p = HackProgress()
+    stages = ("Stage 1", 0.9), ("Stage 2", 0.1)
+    p.set_stages(stages)
+    p.set_max_ticks(300)
+    for i in range(313): # do a few more just to check
+        p.tick()
+    p.set_max_ticks(2)
+    for i in range(2):
+        p.tick()
+    
     print "Done!"
