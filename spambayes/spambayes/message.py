@@ -304,7 +304,7 @@ class SBHeaderMessage(Message):
     def delSBHeaders(self):
         del self[options['Hammie','header_name']]
         del self[options['pop3proxy','mailid_header_name']]
-        del self[options['Hammie','header_name' + "-ID"]]  # test mode header
+        del self[options['Hammie','header_name'] + "-ID"]  # test mode header
         del self[options['pop3proxy','prob_header_name']]
         del self[options['pop3proxy','thermostat_header_name']]
         del self[options['pop3proxy','evidence_header_name']]
