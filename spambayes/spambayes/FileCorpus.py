@@ -84,6 +84,8 @@ __credits__ = "Richie Hindle, Tim Peters, all the spambayes contributors."
 
 from __future__ import generators
 
+import email
+
 from spambayes import Corpus
 from spambayes import message
 from spambayes import storage
@@ -120,9 +122,9 @@ filter'''
             if fnmatch.fnmatch(filename, filter):
                 self.msgs[filename] = None
 
-    def makeMessage(self, key):
+    def makeMessage(self, key, content=None):
         '''Ask our factory to make a Message'''
-        msg = self.factory.create(key, self.directory)
+        msg = self.factory.create(key, self.directory, content)
         return msg
 
     def addMessage(self, message):
@@ -185,7 +187,7 @@ filter'''
 class FileMessage(message.SBHeaderMessage):
     '''Message that persists as a file system artifact.'''
 
-    def __init__(self,file_name, directory):
+    def __init__(self, file_name=None, directory=None):
         '''Constructor(message file name, corpus directory name)'''
         message.SBHeaderMessage.__init__(self)
         self.file_name = file_name
@@ -198,6 +200,10 @@ class FileMessage(message.SBHeaderMessage):
 
     def pathname(self):
         '''Derive the pathname of the message file'''
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
+        assert(self.directory is not None,
+               "Must set directory before using FileMessage instances.")
         return os.path.join(self.directory, self.file_name)
 
     def load(self):
@@ -212,6 +218,9 @@ class FileMessage(message.SBHeaderMessage):
         # intended) way of doing this, be my guest.
         if self.loaded:
             return
+
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
 
         if options["globals", "verbose"]:
             print 'loading', self.file_name
@@ -236,6 +245,9 @@ class FileMessage(message.SBHeaderMessage):
     def store(self):
         '''Write the Message substance to the file'''
 
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
+
         if options["globals", "verbose"]:
             print 'storing', self.file_name
 
@@ -244,8 +256,28 @@ class FileMessage(message.SBHeaderMessage):
         fp.close()
 
     def setPayload(self, payload):
+        # This is a less-than-ideal method.  The Python email package
+        # has a clear distinction between parsing an email message and
+        # creating an email message object.  Here, we don't share that
+        # distinction, because our message object is trying to do its
+        # own parsing.  A better system would be to have the factory
+        # that creates these messages do the load from file bit (this
+        # does mean we lose the current load-on-demand feature, but
+        # I'm not sure that's ever used).  Alternatively, we could have
+        # a third type of FileMessage - PickledFileMessage - that stored
+        # the parsed form of the message.  This might also remove the
+        # need for some of the message database (although that would then
+        # expire along with the messages...).  This is something to
+        # consider before 1.1, however.
         self.loaded = True
-        message.SBHeaderMessage.setPayload(self, payload)
+
+        # We parse the content into a generic email.Message object.
+        msg = email.message_from_string(payload, strict=False)
+
+        # And then we set ourselves to be equal to it.
+        self.set_payload(msg.get_payload())
+        self.set_unixfrom(msg.get_unixfrom())
+        self.set_charset(msg.get_charset())
 
     def remove(self):
         '''Message hara-kiri'''
@@ -261,15 +293,18 @@ class FileMessage(message.SBHeaderMessage):
 
     def name(self):
         '''A unique name for the message'''
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
         return self.file_name
 
     def key(self):
         '''The key of this message in the msgs dictionary'''
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
         return self.file_name
 
     def __repr__(self):
         '''Instance as a representative string'''
-
         sub = self.as_string()
 
         if not options["globals", "verbose"]:
@@ -279,11 +314,9 @@ class FileMessage(message.SBHeaderMessage):
                 else:
                     sub = sub[:20]
 
-        pn = os.path.join(self.directory, self.file_name)
-
         return "<%s object at %8.8x, file: %s, %s>" % \
             (self.__class__.__name__, \
-            id(self), pn, sub)
+            id(self), self.pathname(), sub)
 
     def __str__(self):
         '''Instance as a printable string'''
@@ -307,9 +340,14 @@ class FileMessage(message.SBHeaderMessage):
 class FileMessageFactory(Corpus.MessageFactory):
     '''MessageFactory for FileMessage objects'''
 
-    def create(self, key, directory):
+    def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
-
+        if content:
+            msg = email.message_from_string(content, _class=FileMessage,
+                                            strict=False)
+            msg.file_name = key
+            msg.directory = directory
+            return msg
         return FileMessage(key, directory)
 
 
@@ -317,6 +355,8 @@ class GzipFileMessage(FileMessage):
     '''Message that persists as a zipped file system artifact.'''
     def store(self):
         '''Write the Message substance to the file'''
+        assert(self.file_name is not None,
+               "Must set filename before using FileMessage instances.")
 
         if options["globals", "verbose"]:
             print 'storing', self.file_name
@@ -331,11 +371,16 @@ class GzipFileMessage(FileMessage):
 class GzipFileMessageFactory(FileMessageFactory):
     '''MessageFactory for FileMessage objects'''
 
-    def create(self, key, directory):
+    def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
-
+        if content:
+            msg = email.message_from_string(content,
+                                            _class=GzipFileMessage,
+                                            strict=False)
+            msg.file_name = key
+            msg.directory = directory
+            return msg
         return GzipFileMessage(key, directory)
-
 
 
 def runTest(useGzip):
@@ -378,12 +423,11 @@ def runTest(useGzip):
 
     print '\n\nA couple of message related tests'
     if useGzip:
-        fmClass = GzipFileMessage
+        fmFactory = GzipFileMessageFactory()
     else:
-        fmClass = FileMessage
+        fmFactory = FileMessageFactory()
 
-    m1 = fmClass('XMG00001', 'fctestspamcorpus')
-    m1.setPayload(testmsg2())
+    m1 = fmFactory.create('XMG00001', 'fctestspamcorpus', testmsg2())
 
     print '\n\nAdd a message to hamcorpus that does not match the filter'
 
@@ -530,20 +574,17 @@ def setupTest(useGzip):
     tm2 = testmsg2()
 
     if useGzip:
-        fmClass = GzipFileMessage
+        fmFactory = GzipFileMessageFactory()
     else:
-        fmClass = FileMessage
+        fmFactory = FileMessageFactory()
 
-    m1 = fmClass('MSG00001', 'fctestspamcorpus')
-    m1.setPayload(tm1)
+    m1 = fmFactory.create('MSG00001', 'fctestspamcorpus', tm1)
     m1.store()
 
-    m2 = fmClass('MSG00002', 'fctestspamcorpus')
-    m2.setPayload(tm2)
+    m2 = fmFactory.create('MSG00002', 'fctestspamcorpus', tm2)
     m2.store()
 
-    m3 = fmClass('MSG00003', 'fctestunsurecorpus')
-    m3.setPayload(tm1)
+    m3 = fmFactory.create('MSG00003', 'fctestunsurecorpus', tm1)
     m3.store()
 
     for x in range(11):
@@ -554,16 +595,13 @@ def setupTest(useGzip):
             s = 's'
         print 'wait',10-x,'more second%s' % (s)
 
-    m4 = fmClass('MSG00004', 'fctestunsurecorpus')
-    m4.setPayload(tm1)
+    m4 = fmFactory.create('MSG00004', 'fctestunsurecorpus', tm1)
     m4.store()
 
-    m5 = fmClass('MSG00005', 'fctestunsurecorpus')
-    m5.setPayload(tm2)
+    m5 = fmFactory.create('MSG00005', 'fctestunsurecorpus', tm2)
     m5.store()
 
-    m6 = fmClass('MSG00006', 'fctestunsurecorpus')
-    m6.setPayload(tm2)
+    m6 = fmFactory.create('MSG00006', 'fctestunsurecorpus', tm2)
     m6.store()
 
 

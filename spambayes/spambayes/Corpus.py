@@ -249,11 +249,11 @@ class Corpus:
         '''Instance as a representative string'''
         raise NotImplementedError
 
-    def makeMessage(self, key):
+    def makeMessage(self, key, content=None):
         '''Call the factory to make a message'''
 
         # This method will likely be overridden
-        msg = self.factory.create(key)
+        msg = self.factory.create(key, content)
 
         return msg
 
@@ -283,7 +283,7 @@ class MessageFactory:
         '''Constructor()'''
         pass
 
-    def create(self, key):
+    def create(self, key, content=None):
         '''Create a message instance'''
         raise NotImplementedError
 
