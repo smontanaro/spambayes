@@ -92,16 +92,24 @@ __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
 from __future__ import generators
 
+# Python 2.2 compatibility stuff
 try:
     True, False
 except NameError:
-    # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
 try:
     import csv
 except ImportError:
     import spambayes.compatcsv as csv
+
+try:
+    x = UnicodeDecodeError
+except NameError:
+    UnicodeDecodeError = UnicodeError
+else:
+    del x
+
 
 import spambayes.storage
 from spambayes.Options import options
@@ -114,11 +122,16 @@ def uquote(s):
         s = s.encode('utf-8')
     return s
 
+# Heaven only knows what encoding non-ASCII stuff will be in
+# Try a few common western encodings and punt if they all fail
 def uunquote(s):
-    try:
-        return unicode(s, 'utf-8')
-    except UnicodeDecodeError:
-        return s
+    for encoding in ("utf-8", "cp1252", "iso-8859-1"):
+        try:
+            return unicode(s, encoding)
+        except UnicodeDecodeError:
+            pass
+    # punt
+    return s
 
 def runExport(dbFN, useDBM, outFN):
     bayes = spambayes.storage.open_storage(dbFN, useDBM)
