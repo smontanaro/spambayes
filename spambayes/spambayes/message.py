@@ -101,7 +101,7 @@ import email.Parser
 import email.Header
 
 from spambayes import dbmstorage
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
 
 from cStringIO import StringIO
@@ -115,13 +115,24 @@ class MessageInfoBase(object):
     def _getState(self, msg):
         if self.db is not None:
             try:
-                (msg.c, msg.t) = self.db[msg.getId()]
+                attributes = self.db[msg.getId()]
             except KeyError:
                 pass
+            else:
+                if not isinstance(attributes, types.ListType):
+                    # Old-style message info db, which only
+                    # handles storing 'c' and 't'.
+                    (msg.c, msg.t) = attributes
+                    return
+                for att, val in attributes:
+                    setattr(msg, att, val)
 
     def _setState(self, msg):
         if self.db is not None:
-            self.db[msg.getId()] = (msg.c, msg.t)
+            attributes = []
+            for att in msg.stored_attributes:
+                attributes.append((att, getattr(msg, att)))
+            self.db[msg.getId()] = attributes
             self.store()
 
     def _delState(self, msg):
@@ -193,8 +204,7 @@ class MessageInfoDB(MessageInfoBase):
 # For the moment, we get the name of another file from the options,
 # so that these files don't litter lots of working directories.
 # Once there is a master db, this option can be removed.
-message_info_db_name = options["Storage", "messageinfo_storage_file"]
-message_info_db_name = os.path.expanduser(message_info_db_name)
+message_info_db_name = get_pathname_option("Storage", "messageinfo_storage_file")
 if options["Storage", "persistent_use_database"]:
     msginfoDB = MessageInfoDB(message_info_db_name)
 else:
@@ -207,6 +217,7 @@ class Message(email.Message.Message):
         email.Message.Message.__init__(self)
 
         # persistent state
+        self.stored_attributes = ['c', 't',]
         self.id = None
         self.c = None
         self.t = None
