@@ -8,16 +8,21 @@ Author: spambayes
 Sharpen your pencils, this is the mathematical background (such as it is).
 <ul>
 <li>The paper that started the ball rolling:
-Paul Graham's <a href="http://www.paulgraham.com/spam.html">A Plan for Spam.</a>
+Paul Graham's <a href="http://www.paulgraham.com/spam.html">A Plan for Spam.</a></li>
 <li>Gary Robinson has an 
 <a href="http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html">interesting essay</a>
-suggesting some improvements to Graham's original approach.
+suggesting some improvements to Graham's original approach.</li>
+<li>Gary also wrote a <a href="http://www.linuxjournal.com">Linux Journal</a>
+<a href="http://www.linuxjournal.com/article.php?sid=6467">article</a>
+about this.</li>
 </ul>
 <p><i>more links? mail 
 <a href="mailto:anthony@interlink.com.au">anthony@interlink.com.au</a></i></p>
 
 <h2>Overall Approach</h2>
-<p class="note"><b>Please note that I (Anthony) am writing this based on memory and limited understanding of some of the subtler points of the maths. Gentle corrections are welcome, or even encouraged.</b></p>
+<p class="note"><b>Please note that I (Anthony) am writing this based on
+memory and limited understanding of some of the subtler points of the maths.
+Gentle corrections are welcome, or even encouraged.</b></p>
 
 <h3>Tokenizing</h3>
 <p>The architecture of the spambayes system has a couple of distinct 
@@ -251,7 +256,7 @@ the <a href="http://mail.python.org/pipermail/python-dev/">python-dev</a> list, 
 <h2>CVS commit messages</h2>
 <p>Tim Peters has whacked a whole lot of useful information into CVS
 commit messages. As the project was moved from an obscure corner of the
-python CVS tree, there's actually two sources of CVS commits.</p>
+Python CVS tree, there's actually two sources of CVS commits.</p>
 
 <ul>
 <li>The older CVS repository via <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/python/python/nondist/sandbox/spambayes/?hideattic=0">view CVS</a>, or the <a href="presfchangelog.html">entire changelog</a>.
