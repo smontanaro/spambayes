@@ -29,6 +29,24 @@ results of these ideas.
   e.g.: "Ch-eck ou=t ou-r sel)ection _of grea)t R_X -emgffj".  It might be
   helpful to try stripping punctuation.  (Idea from Paul Sorenson)
 
+  [skip] I tried the first (eliding punctuation from words).  From a testing
+  standpoint it turns out to not be all that useful, I think for a couple
+  reasons:
+
+  * There are plenty of other spammy clues in such messages which are
+    sufficient to kick these messages into spam range.  Most of this stuff
+    winds up scoring at 0.95 or above for me.  If they don't score as spam
+    for you, train on a few and see how it does then.
+
+  * Training databases full of old-ish mail won't contain many of these
+    sorts of messages, so enabling punctuation removal won't change things
+    very much.
+
+  [tony] I tried Skip's patch and got basically the same results, and
+  his reasoning above sounds right for my experience, too.  OTOH, I am
+  getting more of these messages now, so my corpus is changing (they're
+  still classified as spam without this, though).
+ 
 - Similarly, some letters get replaced by numbers, e.g.: "V1agra" instead of
   "Viagra".  Mapping numbers to suitable letters might help in some
   situations.
