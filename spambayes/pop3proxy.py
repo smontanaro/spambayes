@@ -101,6 +101,7 @@ from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ProxyUI import ProxyUserInterface
+from spambayes.Version import get_version_string
 
 # Increase the stack size on MacOS X.  Stolen from Lib/test/regrtest.py
 if sys.platform == 'darwin':
@@ -232,19 +233,6 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
             # line will be passed to onTransaction and ignored, then the
             # rest will be proxied straight through.
             return False
-
-    ## This is an attempt to solve the problem whereby the email client
-    ## times out and closes the connection but the ServerLineReader is still
-    ## connected, so you get errors from the POP3 server next time because
-    ## there's already an active connection.  But after introducing this,
-    ## I kept getting unexplained "Bad file descriptor" errors in recv.
-    ##
-    ## def handle_close(self):
-    ##     """If the email client closes the connection unexpectedly, eg.
-    ##     because of a timeout, close the server connection."""
-    ##     self.serverSocket.shutdown(2)
-    ##     self.serverSocket.close()
-    ##     self.close()
 
     def collect_incoming_data(self, data):
         """Asynchat override."""
@@ -708,6 +696,10 @@ def run():
             state.proxyPorts = [_addressAndPort(arg)]
         elif opt == '-u':
             state.uiPort = int(arg)
+
+    # Let the user know what they are using...
+    print get_version_string("POP3 Proxy")
+    print "and engine %s.\n" % (get_version_string(),)
 
     # Do whatever we've been asked to do...
     state.createWorkers()

@@ -106,6 +106,7 @@ from spambayes.Options import options
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
+from spambayes.Version import get_version_string
 
 from imaplib import Debug
 from imaplib import Time2Internaldate
@@ -656,6 +657,10 @@ def run():
             imapDebug = int(arg)
         elif opt == '-l':
             sleepTime = int(arg) * 60
+
+    # Let the user know what they are using...
+    print get_version_string("IMAP Filter")
+    print "and engine %s.\n" % (get_version_string(),)
 
     if not (doClassify or doTrain or launchUI):
         print "-b, -c, or -t operands must be specified."

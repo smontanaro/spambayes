@@ -248,3 +248,4 @@ Mark Hammond    05/06/03    Change Outlook plugin to use new version information
 Neale Pickett   06/06/03    Integrated code for the VM mailer into spambayes.el
 Tony Meyer  08/06/03    Add pop3proxy, hammie, smtpproxy & imapfilter version information.
 Skip Montanaro  10/06/03    Correction to VM mailer addition to spambayes.el
+Tony Meyer  12/06/03    Update pop3proxy and imapfilter to print out version information.
