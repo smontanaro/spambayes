@@ -318,3 +318,36 @@ be random.  If it isn't, bias creeps in to the test results.  This is
 usually screamingly obvious under the NxN grid method (rates vary by a
 factor of 10 or more across training sets, and even within runs against
 a single training set), but harder to spot using N-fold c-v.
+
+
+Making a source release
+=======================
+
+Source releases are built with distutils.  Here's how I (Richie) have been
+building them.  I do this on a Windows box, partly so that the zip release
+can have Windows line endings without needing to run a conversion script.
+I don't think that's actually necessary, because everything would work on
+Windows even with Unix line endings, but you couldn't load the files into
+Notepad and sometimes it's convenient to do so.  End users might not even
+have any other text editor, so it make things like the README unREADable.
+8-)
+
+ o Checkout the 'spambayes' module twice, once with Windows line endings
+   and once with Unix line endings (I use WinCVS for this, using "Admin /
+   Preferences / Globals / Checkout text files with the Unix LF".
+ o Change spambayes/__init__.py to contain the new version number.
+ o In the Windows checkout, run "python setup.py sdist --formats zip"
+ o In the Unix checkout, run "python setup.py sdist --formats gztar"
+ o Take the resulting spambayes-1.0a5.zip and spambayes-1.0a5.tar.gz, and
+   test the former on Windows (ideally in a freshly-installed Python
+   environment; I keep a VMWare snapshot of a clean Windows installation
+   for this, but that's probably overkill 8-) and test the latter on Unix
+   (a Debian VMWare box in my case).
+ o Dance the SourceForge release dance:
+   http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#filereleasesteps
+   When it comes to the "what's new" and the ChangeLog, I cut'n'paste the
+   relevant pieces of WHAT_IS_NEW.txt and CHANGELOG.txt into the form, and
+   check the "Keep my preformatted text" checkbox.
+
+The announce the release on spambayes-announce, spambayes and spambayes-dev
+(why do things by halves?) and whatch the bug reports roll in.  8-)
