@@ -292,7 +292,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
             if too:
                 print "*" * 50
                 print "The timer is configured to fire way " + too + \
-                  "(delay=%s milliseconds, interval=%s milliseconds)" \
+                  " (delay=%s seconds, interval=%s seconds)" \
                   % (start_delay, interval)
                 print "Please adjust your configuration.  The timer is NOT enabled..."
                 print "*" * 50
