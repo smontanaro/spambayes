@@ -25,7 +25,7 @@ def been_trained_as_spam(msg, mgr):
     # spam is None
     return spam == True
 
-def train_message(msg, is_spam, mgr, rescore = False):
+def train_message(msg, is_spam, mgr, rescore=False):
     # Train an individual message.
     # Returns True if newly added (message will be correctly
     # untrained if it was in the wrong category), False if already
@@ -53,6 +53,7 @@ def train_message(msg, is_spam, mgr, rescore = False):
     # Simplest way to rescore is to re-filter with all_actions = False
     if rescore:
         import filter
+        mgr.bayes.update_probabilities()  # else rescoring gives the same score
         filter.filter_message(msg, mgr, all_actions = False)
 
     return True
