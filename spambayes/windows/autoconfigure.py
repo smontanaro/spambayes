@@ -66,7 +66,7 @@ import StringIO
 import ConfigParser
 
 try:
-    import win32ui
+    import win32gui
     import win32api
     import win32con
     import pywintypes
@@ -76,7 +76,7 @@ except ImportError:
     # did it here, the functions that don't need these would still
     # fail.  (And having "import win32api" in lots of functions
     # didn't seem to make much sense).
-    win32api = win32con = shell = shellcon = win32ui = pywintypes = None
+    win32api = win32con = shell = shellcon = win32gui = pywintypes = None
 
 from spambayes import oe_mailbox
 from spambayes import OptionsClass
@@ -736,16 +736,51 @@ def offer_to_configure(mailer):
                        "(This is alpha software! We recommend that you " \
                        "only do this if you know how to re-setup %s " \
                        "if necessary.)" % (mailer, mailer, mailer)
-        ans = win32ui.MessageBox(confirm_text, "Configure?",
-                                 win32con.MB_YESNO)
+        ans = MessageBox(confirm_text, "Configure?",
+                         win32con.MB_YESNO | win32con.MB_ICONQUESTION)
         if ans == win32con.IDYES:
             results = configure(mailer)
             if results is None:
-                win32ui.MessageBox("Configuration unsuccessful.", "Error",
-                                   win32con.MB_OK)
+                MessageBox("Configuration unsuccessful.", "Error",
+                           win32con.MB_OK | win32con.MB_ICONERROR)
             else:
                 text = "Configuration complete.\n\n" + "\n".join(results)
-                win32ui.MessageBox(text, "Complete", win32con.MB_OK)
+                MessageBox(text, "Complete", win32con.MB_OK)
+
+def GetConsoleHwnd():
+    """Returns the window handle of the console window in which this script is
+    running, or 0 if not running in a console window.  This function is taken
+    directly from Pythonwin\dllmain.cpp in the win32all source, ported to
+    Python."""
+
+    # fetch current window title
+    try:
+        oldWindowTitle = win32api.GetConsoleTitle()
+    except:
+        return 0
+
+    # format a "unique" NewWindowTitle
+    newWindowTitle = "%d/%d" % (win32api.GetTickCount(),
+                                win32api.GetCurrentProcessId())
+
+    # change current window title
+    win32api.SetConsoleTitle(newWindowTitle)
+
+    # ensure window title has been updated
+    import time
+    time.sleep(0.040)
+
+    # look for NewWindowTitle
+    hwndFound = win32gui.FindWindow(0, newWindowTitle)
+
+    # restore original window title
+    win32api.SetConsoleTitle(oldWindowTitle)
+
+    return hwndFound
+
+hwndOwner = GetConsoleHwnd()
+def MessageBox(message, title=None, style=win32con.MB_OK):
+    return win32gui.MessageBox(hwndOwner, message, title, style)
 
 
 if __name__ == "__main__":
