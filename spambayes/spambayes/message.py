@@ -105,7 +105,6 @@ from spambayes.tokenizer import tokenize
 
 from cStringIO import StringIO
 
-
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
 class MessageInfoDB:
@@ -199,6 +198,9 @@ class Message(email.Message.Message):
 
     def asTokens(self):
         return tokenize(self.as_string())
+
+    def tokenize(self):
+        return self.asTokens()
 
     def _force_CRLF(self, data):
         """Make sure data uses CRLF for line termination."""
