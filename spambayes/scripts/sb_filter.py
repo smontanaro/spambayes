@@ -6,7 +6,7 @@
 ## The intent is to call this from procmail and its ilk like so:
 ##
 ##   :0 fw
-##   | hammiefilter.py
+##   | sb_filter.py
 ##
 ## Then, you can set up your MUA to pipe ham and spam to it, one at a
 ## time, by calling it with either the -g or -s options, respectively.

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-'''notesfilter.py - Lotus Notes Spambayes interface.
+'''sb_notesfilter.py - Lotus Notes Spambayes interface.
 
 Classes:
 

@@ -23,10 +23,10 @@ following mbox formatted files: python, music, family, cars.  If you wanted
 to create a training database for each of them you could execute this
 series of mboxtrain.py commands:
 
-    mboxtrain.py -f -d python.db -s python -g music -g family -g cars
-    mboxtrain.py -f -d music.db  -g python -s music -g family -g cars
-    mboxtrain.py -f -d family.db -g python -g music -s family -g cars
-    mboxtrain.py -f -d cars.db   -g python -g music -g family -s cars
+    sb_mboxtrain.py -f -d python.db -s python -g music -g family -g cars
+    sb_mboxtrain.py -f -d music.db  -g python -s music -g family -g cars
+    sb_mboxtrain.py -f -d family.db -g python -g music -s family -g cars
+    sb_mboxtrain.py -f -d cars.db   -g python -g music -g family -s cars
 
 You'd then compare messages using a %(prog)s command like this:
 

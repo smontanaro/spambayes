@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""dbExpImp.py - Bayes database export/import
+"""sb_dbexpimp.py - Bayes database export/import
 
 Classes:
 
@@ -40,7 +40,7 @@ Abstract:
     Others?  I'm sure I haven't thought of everything...
     
 Usage:
-    dbExpImp [options]
+    sb_dbexpimp [options]
 
         options:
             -e     : export
@@ -59,24 +59,24 @@ Usage:
 Examples:
 
     Export pickled mybayes.db into mybayes.db.export as a csv flat file
-        dbExpImp -e -d mybayes.db -f mybayes.db.export
+        sb_dbexpimp -e -d mybayes.db -f mybayes.db.export
         
     Import mybayes.eb.export into a new DBM mybayes.db
-        dbExpImp -i -D mybayes.db -f mybayes.db.export
+        sb_dbexpimp -i -D mybayes.db -f mybayes.db.export
        
     Export, then import (reorganize) new pickled mybayes.db
-        dbExpImp -e -i -n -d mybayes.db -f mybayes.db.export
+        sb_dbexpimp -e -i -n -d mybayes.db -f mybayes.db.export
         
     Convert a bayes database from pickle to DBM
-        dbExpImp -e -d abayes.db -f abayes.export
-        dbExpImp -i -D abayes.db -f abayes.export
+        sb_dbexpimp -e -d abayes.db -f abayes.export
+        sb_dbexpimp -i -D abayes.db -f abayes.export
         
     Create a new database (newbayes.db) from two
         databases (abayes.db, bbayes.db)
-        dbExpImp -e -d abayes.db -f abayes.export
-        dbExpImp -e -d bbayes.db -f bbayes.export
-        dbExpImp -i -d newbayes.db -f abayes.export
-        dbExpImp -i -m -d newbayes.db -f bbayes.export
+        sb_dbexpimp -e -d abayes.db -f abayes.export
+        sb_dbexpimp -e -d bbayes.db -f bbayes.export
+        sb_dbexpimp -i -d newbayes.db -f abayes.export
+        sb_dbexpimp -i -m -d newbayes.db -f bbayes.export
 
 To Do:
     o Suggestions?

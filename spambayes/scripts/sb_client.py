@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""A client for hammiesrv.
+"""A client for sb_xmlrpcserver.py.
 
 Just feed it your mail on stdin, and it spits out the same message
 with the spambayes score in a new X-Spambayes-Disposition header.

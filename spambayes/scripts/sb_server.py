@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
-"""A POP3 proxy that works with classifier.py, and adds a simple
+"""The primary server for SpamBayes.
+
+Currently serves the web interface, and any configured POP3 and SMTP
+proxies.
+
+The POP3 proxy works with classifier.py, and adds a simple
 X-Spambayes-Classification header (ham/spam/unsure) to each incoming
-email.  You point pop3proxy at your POP3 server, and configure your
+email.  You point the proxy at your POP3 server, and configure your
 email client to collect mail from the proxy then filter on the added
 header.  Usage:
 
-    pop3proxy.py [options] [<server> [<server port>]]
+    sb_server.py [options] [<server> [<server port>]]
         <server> is the name of your real POP3 server
         <port>   is the port number of your real POP3 server, which
                  defaults to 110.
