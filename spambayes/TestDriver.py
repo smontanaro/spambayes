@@ -63,15 +63,10 @@ class Hist:
 
     def display(self, WIDTH=60):
         from math import sqrt
-        if self.n > 1:
+        if self.n > 0:
             mean = self.sum / self.n
-            # sum (x_i - mean)**2 = sum (x_i**2 - 2*x_i*mean + mean**2) =
-            # sum x_i**2 - 2*mean*sum x_i + sum mean**2 =
-            # sum x_i**2 - 2*mean*mean*n + n*mean**2 =
-            # sum x_i**2 - n*mean**2
-            samplevar = (self.sumsq - self.n * mean**2) / (self.n - 1)
-            print "%d items; mean %.2f; sample sdev %.2f" % (self.n,
-                  mean, sqrt(samplevar))
+            var = self.sumsq / self.n - mean**2
+            print "%d items; mean %.2f; sdev %.2f" % (self.n, mean, sqrt(var))
 
         biggest = max(self.buckets)
         hunit, r = divmod(biggest, WIDTH)
