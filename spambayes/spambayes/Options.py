@@ -8,7 +8,7 @@ try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
-import ConfigParser
+import UpdatableConfigParser
 try:
     from sets import Set
 except ImportError:
@@ -546,7 +546,7 @@ def _warn(msg):
 
 class OptionsClass(object):
     def __init__(self):
-        self._config = ConfigParser.ConfigParser()
+        self._config = UpdatableConfigParser.UpdatableConfigParser()
 
     def mergefiles(self, fnamelist):
         self._config.read(fnamelist)
