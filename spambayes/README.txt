@@ -73,7 +73,10 @@ Apps
 ====
 hammie.py
     A spamassassin-like filter which uses tokenizer and classifier (above).
-    Needs to be made faster, especially for writes.
+
+hammiesrv.py
+    A first stab at making hammie into a client/server model, using
+    XML-RPC.
 
 pop3proxy.py
     A spam-classifying POP3 proxy.  It adds a spam-judgement header to

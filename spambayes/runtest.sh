@@ -24,18 +24,18 @@ fi
 TEST=${1:-robinson1}
 
 # Number of messages per rebalanced set
-RNUM=200
+RNUM=${REBAL_RNUM:-200}
 
 # Number of sets
-SETS=5
+SETS=${REBAL_SETS:-5}
 
 if [ -n "$REBAL" ]; then
     # Put them all into reservoirs
-    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n 0 -Q
-    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n 0 -Q
+    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n 0 -q
+    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n 0 -q
     # Rebalance
-    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n $RNUM -Q
-    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n $RNUM -Q
+    python rebal.py -r Data/Ham/reservoir -s Data/Ham/Set -n $RNUM -q -Q
+    python rebal.py -r Data/Spam/reservoir -s Data/Spam/Set -n $RNUM -q -Q
 fi
 
 case "$TEST" in
@@ -48,5 +48,9 @@ case "$TEST" in
         python rates.py run1 run2 > runrates.txt
 
         python cmp.py run1s run2s | tee results.txt
+	;;
+    *)
+	echo "Available targets:"
+	sed -n 's/^\(  [a-z|]*\))$/\1/p' $0
 	;;
 esac

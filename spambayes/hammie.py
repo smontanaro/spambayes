@@ -17,6 +17,9 @@ Where:
     -u PATH
         mbox of unknown messages.  A ham/spam decision is reported for each.
         Can be specified more than once.
+    -r
+        reverse the meaning of the check (report ham instead of spam).
+        Only meaningful with the -u option.
     -p FILE
         use file as the persistent store.  loads data from this file if it
         exists, and saves data to this file at the end.  Default: %(DEFAULTDB)s
@@ -26,7 +29,8 @@ Where:
         especially for large word databases.
     -f
         run as a filter: read a single message from stdin, add an
-        %(DISPHEADER)s header, and write it to stdout.
+        %(DISPHEADER)s header, and write it to stdout.  If you want to
+        run from procmail, this is your option.
 """
 
 from __future__ import generators
@@ -313,7 +317,7 @@ def train(hammie, msgs, is_spam):
         hammie.train(msg, is_spam)
     print
 
-def score(hammie, msgs):
+def score(hammie, msgs, reverse=0):
     """Score (judge) all messages from a mailbox."""
     # XXX The reporting needs work!
     mbox = mboxutils.getmbox(msgs)
@@ -322,18 +326,22 @@ def score(hammie, msgs):
     for msg in mbox:
         i += 1
         prob, clues = hammie.score(msg, True)
-        isspam = prob >= SPAM_THRESHOLD
         if hasattr(msg, '_mh_msgno'):
             msgno = msg._mh_msgno
         else:
             msgno = i
+        isspam = (prob >= SPAM_THRESHOLD)
         if isspam:
             spams += 1
-            print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
-            print hammie.formatclues(clues)
+            if not reverse:
+                print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
+                print hammie.formatclues(clues)
         else:
             hams += 1
-    print "Total %d spam, %d ham" % (spams, hams)
+            if reverse:
+                print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
+                print hammie.formatclues(clues)
+    return (spams, hams)
 
 def createbayes(pck=DEFAULTDB, usedb=False):
     """Create a Bayes instance for the given pickle (which
@@ -365,7 +373,7 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:u:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:u:r')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -376,6 +384,7 @@ def main():
     good = []
     spam = []
     unknown = []
+    reverse = 0
     do_filter = usedb = False
     for opt, arg in opts:
         if opt == '-h':
@@ -392,6 +401,8 @@ def main():
             do_filter = True
         elif opt == '-u':
             unknown.append(arg)
+        elif opt == '-r':
+            reverse = 1
     if args:
         usage(2, "Positional arguments not allowed")
 
@@ -423,10 +434,15 @@ def main():
         sys.stdout.write(filtered)
 
     if unknown:
+        (spams, hams) = (0, 0)
         for u in unknown:
             if len(unknown) > 1:
                 print "Scoring", u
-            score(h, u)
+            s, h = score(h, u, reverse)
+            spams += s
+            hams += h
+        print "Total %d spam, %d ham" % (spams, hams)
+            
 
 if __name__ == "__main__":
     main()
