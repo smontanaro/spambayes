@@ -308,7 +308,7 @@ class Stats(object):
         else:
             data = self._CombineSessionAndTotal()
 
-        push(_("Messages classified: %d" % (data["num_seen"],)))
+        push(_("Messages classified: %d") % (data["num_seen"],))
         if data["num_seen"] == 0:
             return chunks
 
