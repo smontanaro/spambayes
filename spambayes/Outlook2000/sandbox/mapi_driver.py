@@ -57,10 +57,12 @@ class MAPIDriver:
                                         mapi.MAPI_DEFERRED_ERRORS)
                 yield store, name, def_store
             except pythoncom.com_error, details:
-                print "Error opening message store"
-                print details
-                print "Ignoring this store"
-
+                hr, msg, exc, arg_err = details
+                if hr== mapi.MAPI_E_FAILONEPROVIDER:
+                    # not logged on etc.
+                    pass
+                else:
+                    print "Error opening message store", details, "- ignoring"
 
     def _FindSubfolder(self, store, folder, find_name):
         find_name = find_name.lower()
