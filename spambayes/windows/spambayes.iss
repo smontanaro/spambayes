@@ -28,6 +28,7 @@ Source: "py2exe\dist\docs\outlook\*.*"; DestDir: "{app}\docs\outlook"; Check: In
 Source: "py2exe\dist\docs\outlook\docs\welcome.html"; DestDir: "{app}\docs\outlook\docs"; Check: InstallingOutlook; Flags: isreadme
 
 Source: "py2exe\dist\bin\sb_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
+Source: "py2exe\dist\bin\sb_pop3dnd.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\sb_tray.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\sb_upload.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
 Source: "py2exe\dist\bin\setup_server.exe"; DestDir: "{app}\bin"; Check: InstallingProxy; Flags: ignoreversion
