@@ -14,6 +14,7 @@ import winerror
 import win32api
 import pythoncom
 from win32com.client import constants
+import win32ui
 
 # If we are not running in a console, redirect all print statements to the
 # win32traceutil collector.
