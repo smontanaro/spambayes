@@ -203,6 +203,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
                 else:
                     port = 143
             self.imap = self.imap_session_class(server, port)
+            if not self.imap.connected:
+              # Failed to connect.
+              content = self._buildBox("Error", None,
+                                       "Please check server/port details.")
+              self.write(content)
+              self._writePostamble()
+              return
         if self.imap is None:
             content = self._buildBox("Error", None,
                                      """Must specify server details first.""")

@@ -140,9 +140,10 @@ class IMAPSession(BaseIMAP):
         try:
             BaseIMAP.__init__(self, server, port)
         except (BaseIMAP.error, socket.gaierror, socket.error):
-            print "Cannot connect to server, please check your server " \
-                  "and port settings."
-            sys.exit()
+            print "Cannot connect to server %s on port %s" % (server, port)
+            self.connected = False
+        else:
+            self.connected = True
         self.debug = debug
         self.do_expunge = do_expunge
         self.logged_in = False
@@ -155,11 +156,14 @@ class IMAPSession(BaseIMAP):
 
     def login(self, username, pwd):
         """Log in to the IMAP server, catching invalid username/password."""
+        assert self.connected, "Must be connected before logging in."
         try:
             BaseIMAP.login(self, username, pwd)  # superclass login
         except BaseIMAP.error, e:
-            print "There was an error logging in to the IMAP server."
-            print "The username and/or password may be incorrect."
+            msg = "There was an error logging in to the IMAP server." \
+                  " The username (%s) and/or password may " \
+                  "be incorrect." % (username,)
+            print msg
             sys.exit()
         self.logged_in = True
 
@@ -997,19 +1001,26 @@ or training will be performed.
     else:
         while True:
             imap = IMAPSession(server, port, imapDebug, doExpunge)
-            imap.login(username, pwd)
-            imap_filter.imap_server = imap
+            if imap.connected:
+                imap.login(username, pwd)
+                imap_filter.imap_server = imap
 
-            if doTrain:
-                if options["globals", "verbose"]:
-                    print "Training"
-                imap_filter.Train()
-            if doClassify:
-                if options["globals", "verbose"]:
-                    print "Classifying"
-                imap_filter.Filter()
+                if doTrain:
+                    if options["globals", "verbose"]:
+                        print "Training"
+                    imap_filter.Train()
+                if doClassify:
+                    if options["globals", "verbose"]:
+                        print "Classifying"
+                    imap_filter.Filter()
 
-            imap.logout()
+                imap.logout()
+            else:
+                # Failed to connect.  This may be a temporary problem,
+                # so just continue on and try again.  If we are only
+                # running once we will end, otherwise we'll try again
+                # in sleepTime seconds.
+                pass
 
             if sleepTime:
                 time.sleep(sleepTime)
