@@ -957,7 +957,7 @@ virus_re = re.compile(r"""
     < /? \s* (?: script | iframe) \b
 |   \b src= ['"]? cid:
 |   \b (?: height | width) = ['"]? 0
-""", re.VERBOSE)
+""", re.VERBOSE)                        # '
 
 def find_html_virus_clues(text):
     for bingo in virus_re.findall(text):
@@ -965,14 +965,18 @@ def find_html_virus_clues(text):
 
 class Tokenizer:
 
-    date_hms_re = re.compile(r' (?P<hour>[0-9][0-9]):'
-                             r'(?P<minute>[0-9][0-9]):'
-                             r'(?P<second>[0-9][0-9]) ')
+    date_hms_re = re.compile(r' (?P<hour>[0-9][0-9])'
+                             r':(?P<minute>[0-9][0-9])'
+                             r'(?::[0-9][0-9])? ')
 
     date_formats = ("%a, %d %b %Y %H:%M:%S (%Z)",
                     "%a, %d %b %Y %H:%M:%S %Z",
                     "%d %b %Y %H:%M:%S (%Z)",
-                    "%d %b %Y %H:%M:%S %Z")
+                    "%d %b %Y %H:%M:%S %Z",
+                    "%a, %d %b %Y %H:%M (%Z)",
+                    "%a, %d %b %Y %H:%M %Z",
+                    "%d %b %Y %H:%M (%Z)",
+                    "%d %b %Y %H:%M %Z")
 
     def __init__(self):
         if options.basic_header_tokenize:
