@@ -153,7 +153,6 @@ max_discriminators: 16
 ###########################################################################
 # Speculative options for Gary Robinson's ideas.  These may go away, or
 # a bunch of incompatible stuff above may go away.
-# CAUTION:  evidence to date suggest setting spam_cutoff
 
 # Use Gary's scheme for combining probabilities.
 use_robinson_combining: False
