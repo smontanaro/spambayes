@@ -234,7 +234,7 @@ def main():
                     unixfrom = msg.get_unixfrom() is not None
                 else:
                     unixfrom = True
-                sys.stdout.write(msg.as_string(unixfrom=unixfrom))
+            sys.stdout.write(msg.as_string(unixfrom=unixfrom))
 
 if __name__ == "__main__":
     main()
