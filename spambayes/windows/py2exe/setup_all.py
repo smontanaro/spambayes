@@ -65,11 +65,30 @@ outlook_addin = dict(
 outlook_dump_props = dict(
     script = os.path.join(sb_top_dir, r"Outlook2000\sandbox\dump_props.py"),
     dest_base = "bin/outlook_dump_props",
+    icon_resources = [(100,  os.path.join(sb_top_dir,
+                                          r"windows\resources\sbicon.ico")),
+                     ],
+)
+
+# A "register" utility for Outlook.  This should not be necessary, as
+# 'regsvr32 dllname' does exactly the same thing.  However, Inno Setup
+# version 4 appears to, upon uninstall, do something that prevents the
+# files used by the unregister process to be deleted.  Unregistering via
+# this EXE solves the problem.
+outlook_addin_register = dict(
+    script = os.path.join(sb_top_dir, r"Outlook2000\addin.py"),
+    dest_base = "bin/outlook_addin_register",
+    icon_resources = [(100,  os.path.join(sb_top_dir,
+                                          r"windows\resources\sbicon.ico")),
+                     ],
 )
 
 service = dict(
     dest_base = "bin/sb_service",
-    modules = ["pop3proxy_service"]
+    modules = ["pop3proxy_service"],
+    icon_resources = [(100,  os.path.join(sb_top_dir,
+                                          r"windows\resources\sbicon.ico")),
+                     ],
 )
 sb_server = dict(
     dest_base = "bin/sb_server",
@@ -82,7 +101,8 @@ sb_upload = dict(
 pop3proxy_tray = dict(
     dest_base = "bin/sb_tray",
     script = os.path.join(sb_top_dir, "windows", "pop3proxy_tray.py"),
-    icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
+    icon_resources = [(100,  os.path.join(sb_top_dir, r"windows\resources\sbicon.ico")),
+                      (1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
 
@@ -94,12 +114,20 @@ outlook_data_files = [
 ]
 proxy_data_files = [
     ["docs/sb_server", [os.path.join(sb_top_dir, r"windows\readme_proxy.html")]],
+    # this is hacky - the readme uses the Outlook data files.  We need to
+    # consolidate the documents.
+    ["docs/sb_server/docs/images", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\images\*.jpg"))],
+]
+
+common_data_files = [
+    ["", [os.path.join(sb_top_dir, r"windows\resources\sbicon.ico")]],
 ]
 
 # Default and only distutils command is "py2exe" - save adding it to the
 # command line every single time.
-if len(sys.argv)==1:
-    sys.argv = [sys.argv[0], "py2exe"]
+if len(sys.argv)==1 or \
+   (len(sys.argv)==2 and sys.argv[1] in ['-q', '-n']):
+    sys.argv.append("py2exe")
 
 setup(name="SpamBayes",
       packages = ["spambayes.resources"],
@@ -110,9 +138,9 @@ setup(name="SpamBayes",
       # console exes for debugging
       console=[sb_server, sb_upload, outlook_dump_props],
       # The taskbar
-      windows=[pop3proxy_tray],
+      windows=[pop3proxy_tray, outlook_addin_register],
       # and the misc data files
-      data_files = outlook_data_files + proxy_data_files,
+      data_files = outlook_data_files + proxy_data_files + common_data_files,
       options = {"py2exe" : py2exe_options},
       zipfile = "lib/spambayes.zip",
 )
