@@ -452,7 +452,7 @@ class SMTPTrainer(object):
            not self.train_message_on_imap_server(id, isSpam):
             print "Could not find message (%s); perhaps it was " + \
                   "deleted from the POP3Proxy cache or the IMAP " + \
-                  "server." % (id, )
+                  "server.  This means that no training was done." % (id, )
 
     def train_message_in_pop3proxy_cache(self, id, isSpam):
         if self.state is None:

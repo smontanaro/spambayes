@@ -59,9 +59,9 @@ To Do:
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
     o IMAP over SSL is untested.
-    o Develop a test script, like testtools/pop3proxytest.py that runs
-      through some tests (perhaps with a *real* imap server, rather than
-      a dummy one).  This would make it easier to carry out the tests
+    o Develop a test script, like spambayes/test/test_pop3proxy.py that
+      runs through some tests (perhaps with a *real* imap server, rather
+      than a dummy one).  This would make it easier to carry out the tests
       against each server whenever a change is made.
     o IMAP supports authentication via other methods than the plain-text
       password method that we are using at the moment.  Neither of the
@@ -310,13 +310,14 @@ class IMAPMessage(message.SBHeaderMessage):
         substance of this message.'''
         if self.got_substance:
             return
-        if self.uid is None or self.id is None:
+        if not self.uid or not self.id:
             print "Cannot get substance of message without an id and an UID"
             return
         imap.SelectFolder(self.folder.name)
         # We really want to use RFC822.PEEK here, as that doesn't effect
         # the status of the message.  Unfortunately, it appears that not
         # all IMAP servers support this, even though it is in RFC1730
+        # Actually, it's not: we should be using BODY.PEEK
         try:
             response = imap.uid("FETCH", self.uid, self.rfc822_command)
         except IMAP4.error:
@@ -339,8 +340,8 @@ class IMAPMessage(message.SBHeaderMessage):
         self.preamble = new_msg.preamble
         self.epilogue = new_msg.epilogue
         self._default_type = new_msg._default_type
-        if not self.has_key(options["pop3proxy", "mailid_header_name"]):
-            self[options["pop3proxy", "mailid_header_name"]] = self.id
+        if not self.has_key(options["Headers", "mailid_header_name"]):
+            self[options["Headers", "mailid_header_name"]] = self.id
         self.got_substance = True
         if options["globals", "verbose"]:
             sys.stdout.write(chr(8) + "*")
@@ -359,7 +360,7 @@ class IMAPMessage(message.SBHeaderMessage):
         if self.folder is None:
             raise RuntimeError, """Can't save a message that doesn't
             have a folder."""
-        if self.id is None:
+        if not self.id:
             raise RuntimeError, """Can't save a message that doesn't have
             an id."""
         response = imap.uid("FETCH", self.uid, "(FLAGS INTERNALDATE)")
@@ -402,7 +403,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # have to use it for IMAP operations.
         imap.SelectFolder(self.folder.name)
         response = imap.uid("SEARCH", "(UNDELETED HEADER " + \
-                            options["pop3proxy", "mailid_header_name"] + \
+                            options["Headers", "mailid_header_name"] + \
                             " " + self.id + ")")
         self._check(response, 'search')
         new_id = response[1][0]
@@ -415,6 +416,16 @@ class IMAPMessage(message.SBHeaderMessage):
             if new_id.find(' ') > -1:
                 ids = new_id.split(' ')
                 new_id = ids[-1]
+            # Ok, now we're in trouble if we still haven't found it.
+            # We make a huge assumption that the new message is the one
+            # with the highest UID (they are sequential, so this will be
+            # ok as long as another message hasn't also arrived)
+            if new_id == "":
+                response = imap.uid("SEARCH", "ALL")
+                new_id = response[1][0]
+                if new_id.find(' ') > -1:
+                    ids = new_id.split(' ')
+                    new_id = ids[-1]
         self.uid = new_id
 
 # This performs a similar function to email.message_from_string()
@@ -480,7 +491,7 @@ class IMAPFolder(object):
         msg = IMAPMessage()
         msg.setFolder(self)
         msg.uid = key
-        r = re.compile(re.escape(options["pop3proxy",
+        r = re.compile(re.escape(options["Headers",
                                          "mailid_header_name"]) + \
                        "\:\s*(\d+(\-\d)?)")
         mo = r.search(data["RFC822.HEADER"])
@@ -647,8 +658,8 @@ def run():
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    bdbname = options["pop3proxy", "persistent_storage_file"]
-    useDBM = options["pop3proxy", "persistent_use_database"]
+    bdbname = options["Storage", "persistent_storage_file"]
+    useDBM = options["Storage", "persistent_use_database"]
     doTrain = False
     doClassify = False
     doExpunge = options["imap", "expunge"]
