@@ -43,6 +43,7 @@ import threading
 import cStringIO
 
 # The spambayes imports we need.
+import smtpproxy # eek - pop3proxy fails to import unless we do this :(
 import pop3proxy
 
 # The win32 specific modules.
@@ -72,11 +73,15 @@ class Service(win32serviceutil.ServiceFramework):
     _svc_deps_ =  ['tcpip'] # We depend on the tcpip service.
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
-        self.event_stop = threading.Event()
+        self.event_stopped = threading.Event()
+        self.event_stopping = threading.Event()
         self.thread = None
 
     def SvcStop(self):
-        pop3proxy.stop(pop3proxy.state)
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        self.event_stopping.set()
+        pop3proxy.stop(pop3proxy.state)        
+        
 
     def SvcDoRun(self):
         # Setup our state etc
@@ -96,12 +101,22 @@ class Service(win32serviceutil.ServiceFramework):
             (self._svc_name_, '')
             )
 
-        # Wait for the stop event.
         try:
-            self.event_stop.wait()
+            # Thread running - wait for the stopping event.
+            self.event_stopping.wait()
+            # Either user requested stop, or thread done - wait for it
+            # to actually stop, but reporting we are still alive.
+            for i in range(20): # 20 seconds to shut down.
+                self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+                self.event_stopped.wait(1)
+                if self.event_stopped.isSet():
+                    break
+                print "The service is still shutting down..."
+            else:
+                # eeek - we timed out - give up in disgust.
+                print "The worker failed to stop - aborting it anyway"
         except KeyboardInterrupt:
             pass
-        # How do we cleanly shutdown the server?
         
         # Write another event log record.
         s = pop3proxy.state
@@ -135,8 +150,8 @@ class Service(win32serviceutil.ServiceFramework):
                 import servicemanager
                 servicemanager.LogErrorMsg(message)
         finally:
-            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-            self.event_stop.set()
+            self.event_stopping.set()
+            self.event_stopped.set()
 
 if __name__=='__main__':
     win32serviceutil.HandleCommandLine(Service)
