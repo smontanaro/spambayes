@@ -144,7 +144,7 @@ class Option(object):
         return self.value
     def multiple_values_allowed(self):
         '''Multiple values are allowed for this option.'''
-        return type(self.value) in MultiContainerTypes
+        return type(self.default_value) in MultiContainerTypes
 
     def is_valid(self, value):
         '''Check if this is a valid value for this option.'''
