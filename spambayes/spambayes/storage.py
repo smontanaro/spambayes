@@ -230,7 +230,7 @@ class DBDictClassifier(classifier.Classifier):
         # This seems to reduce the memory footprint of the DBDictClassifier by
         # as much as 60%!!!  This also has the effect of reducing the time it
         # takes to store the database
-        if record and (record.spamcount+record.hamcount <= 1):
+        if record.spamcount + record.hamcount <= 1:
             self.db[word] = record.__getstate__()
             # Remove this word from the changed list (not that it should be
             # there, but strange things can happen :)
