@@ -133,7 +133,6 @@ class DBDictClassifier(classifier.Classifier):
         '''Constructor(database name)'''
 
         classifier.Classifier.__init__(self)
-        self.wordcache = {}
         self.statekey = "saved state"
         self.mode = mode
         self.db_name = db_name
@@ -174,7 +173,7 @@ class DBDictClassifier(classifier.Classifier):
         # Must use .keys() since we modify the dict in the loop
         for key in self.wordinfo.keys():
             val = self.wordinfo[key]
-            if val == None:
+            if val is None:
                 del self.wordinfo[key]
                 try:
                     del self.db[key]
