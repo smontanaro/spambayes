@@ -101,18 +101,20 @@ def printhist(tag, ham, spam):
     # At cutoff 0, everything is called spam, so there are no false negatives,
     # and every ham is a false positive.
     assert ham.nbuckets == spam.nbuckets
+    fpw = options.best_cutoff_fp_weight
     fp = ham.n
     fn = 0
-    best_total = fp
+    best_total = fpw * fp + fn
     bests = [(0, fp, fn)]
     for i in range(ham.nbuckets):
         # When moving the cutoff beyond bucket i, the ham in bucket i
         # are redeemed, and the spam in bucket i become false negatives.
         fp -= ham.buckets[i]
         fn += spam.buckets[i]
-        if fp + fn <= best_total:
-            if fp + fn < best_total:
-                best_total = fp + fn
+        total = fpw * fp + fn
+        if total <= best_total:
+            if total < best_total:
+                best_total = total
                 bests = []
             bests.append((i+1, fp, fn))
     assert fp == 0
@@ -120,10 +122,15 @@ def printhist(tag, ham, spam):
 
     i, fp, fn = bests.pop(0)
     print '-> best cutoff for', tag, float(i) / ham.nbuckets
-    print '->     with', fp, 'fp', '+', fn, 'fn =', best_total, 'mistakes'
+    print '->     with weighted total %g*%d fp + %d fn = %g' % (
+          fpw, fp, fn, best_total)
+    print '->     fp rate %.3g%%  fn rate %.3g%%' % (
+          fp * 1e2 / ham.n, fn * 1e2 / spam.n)
     for i, fp, fn in bests:
-        print '->     matched at %g (%d fp + %d fn)' % (
-              float(i) / ham.nbuckets, fp, fn)
+        print ('->     matched at %g with %d fp & %d fn; '
+               'fp rate %.3g%%; fn rate %.3g%%' % (
+               float(i) / ham.nbuckets, fp, fn,
+               fp * 1e2 / ham.n, fn * 1e2 / spam.n))
 
 
 def printmsg(msg, prob, clues):

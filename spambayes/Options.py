@@ -101,20 +101,28 @@ mine_received_headers: False
 # yet any bound in sight for how low this can go (0.075 would work as
 # well as 0.90 on Tim's large c.l.py data).
 # For Gary Robinson's scheme, some value between 0.50 and 0.60 has worked
-# best in all reports so far.  Note that you can easily deduce the effect
-# of setting spam_cutoff to any particular value by studying the score
-# histograms -- there's no need to run a test again to see what would happen.
+# best in all reports so far.
 spam_cutoff: 0.90
 
 # Number of buckets in histograms.
 nbuckets: 40
 show_histograms: True
 
-# When compute_best_cutoffs_from_histograms is enabled, after the display
-# of a ham+spam histogram pair, a listing is given of all the cutoff scores
-# (coinciding with a histogram boundary) that minimize the total number of
-# misclassified messages (false positives + false negatives).
+# After the display of a ham+spam histogram pair, you can get a listing of
+# all the cutoff values (coinciding histogram bucket boundaries) that
+# minimize
+#
+#      best_cutoff_fp_weight * (# false positives) + (# false negatives)
+#
+# By default, best_cutoff_fp_weight is 1, and so the cutoffs that miminize
+# the total number of misclassified messages (fp+fn) are shown.  If you hate
+# fp more than fn, set the weight to something larger than 1.  For example,
+# if you're willing to endure 100 false negatives to save 1 false positive,
+# set it to 100.
+# Note:  You may wish to increase nbuckets, to give this scheme more cutoff
+# values to analyze.
 compute_best_cutoffs_from_histograms: True
+best_cutoff_fp_weight: 1
 
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
@@ -253,6 +261,7 @@ all_options = {
                    'spam_directories': string_cracker,
                    'ham_directories': string_cracker,
                    'compute_best_cutoffs_from_histograms': boolean_cracker,
+                   'best_cutoff_fp_weight': float_cracker,
                   },
     'Classifier': {'hambias': float_cracker,
                    'spambias': float_cracker,
