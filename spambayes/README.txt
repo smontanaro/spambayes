@@ -59,6 +59,12 @@ hammie.py
     A spamassassin-like filter which uses tokenizer and classifier (above).
     Needs to be made faster, especially for writes.
 
+pop3proxy.py
+    A spam-classifying POP3 proxy.  It adds a spam-judgement header to
+    each mail as it's retrieved, so you can use your email client's
+    filters to deal with them without needing to fiddle with your email
+    delivery system.
+
 
 Concrete Test Drivers
 =====================

@@ -46,6 +46,9 @@ DISPHEADER = "X-Hammie-Disposition"
 # Default database name
 DEFAULTDB = "hammie.db"
 
+# Probability at which a message is considered spam
+SPAM_THRESHOLD = 0.9
+
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
 from tokenizer import tokenize
@@ -231,7 +234,7 @@ def filter(bayes, input, output):
     """Filter (judge) a message"""
     msg = email.message_from_file(input)
     prob, clues = bayes.spamprob(tokenize(msg), True)
-    if prob < 0.9:
+    if prob < SPAM_THRESHOLD:
         disp = "No"
     else:
         disp = "Yes"
@@ -249,7 +252,7 @@ def score(bayes, msgs):
     for msg in mbox:
         i += 1
         prob, clues = bayes.spamprob(tokenize(msg), True)
-        isspam = prob >= 0.9
+        isspam = prob >= SPAM_THRESHOLD
         if hasattr(msg, '_mh_msgno'):
             msgno = msg._mh_msgno
         else:
@@ -261,6 +264,25 @@ def score(bayes, msgs):
         else:
             hams += 1
     print "Total %d spam, %d ham" % (spams, hams)
+
+def createbayes(pck=DEFAULTDB, usedb=False):
+    """Create a GrahamBayes instance for the given pickle (which
+    doesn't have to exist).  Create a PersistentGrahamBayes if
+    usedb is True."""
+    if usedb:
+        bayes = PersistentGrahamBayes(pck)
+    else:
+        bayes = None
+        try:
+            fp = open(pck, 'rb')
+        except IOError, e:
+            if e.errno <> errno.ENOENT: raise
+        else:
+            bayes = pickle.load(fp)
+            fp.close()
+        if bayes is None:
+            bayes = classifier.GrahamBayes()
+    return bayes
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
@@ -303,19 +325,7 @@ def main():
 
     save = False
 
-    if usedb:
-        bayes = PersistentGrahamBayes(pck)
-    else:
-        bayes = None
-        try:
-            fp = open(pck, 'rb')
-        except IOError, e:
-            if e.errno <> errno.ENOENT: raise
-        else:
-            bayes = pickle.load(fp)
-            fp.close()
-        if bayes is None:
-            bayes = classifier.GrahamBayes()
+    bayes = createbayes(pck, usedb)
 
     if good:
         print "Training ham:"
