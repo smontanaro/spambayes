@@ -18,8 +18,6 @@ Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "py2exe\dist\lib\pythoncom23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "py2exe\dist\lib\PyWinTypes23.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
