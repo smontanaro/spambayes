@@ -759,15 +759,21 @@ class ExplorerWithEvents:
 
         # The main tool-bar dropdown with all our entries.
         # Add a pop-up menu to the toolbar
-        popup = self._AddControl(
-                        None,
-                        constants.msoControlPopup,
-                        None, None,
-                        Caption="SpamBayes",
-                        TooltipText = "SpamBayes anti-spam filters and functions",
-                        Enabled = True,
-                        Tag = "SpamBayesCommand.Popup")
-        if popup is not None: # We may not be able to find/create our button
+        # but loop around twice - first time we may find a non-functioning button
+        popup = None
+        for attempt in range(2):
+            popup = self._AddControl(
+                            None,
+                            constants.msoControlPopup,
+                            None, None,
+                            Caption="SpamBayes",
+                            TooltipText = "SpamBayes anti-spam filters and functions",
+                            Enabled = True,
+                            Tag = "SpamBayesCommand.Popup")
+            if popup is None:
+                # If the strategy below works for child buttons, we should
+                # consider trying to re-create the top-level toolbar too.
+                break
             # Convert from "CommandBarItem" to derived
             # "CommandBarPopup" Not sure if we should be able to work
             # this out ourselves, but no introspection I tried seemed
@@ -775,7 +781,7 @@ class ExplorerWithEvents:
             # declarations.
             popup = CastTo(popup, "CommandBarPopup")
             # And add our children.
-            self._AddControl(popup,
+            child = self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (manager.ShowManager,),
                            Caption="SpamBayes Manager...",
@@ -783,6 +789,25 @@ class ExplorerWithEvents:
                            Enabled = True,
                            Visible=True,
                            Tag = "SpamBayesCommand.Manager")
+            # Only necessary to check the first child - if the first works,
+            # the others will too
+            if child is None:
+                # Try and delete the popup, the bounce around the loop again,
+                # which will re-create it.
+                try:
+                    item = self.CommandBars.FindControl(
+                                    Type = constants.msoControlPopup,
+                                    Tag = "SpamBayesCommand.Popup")
+                    if item is None:
+                        print "ERROR: Could't re-find control to delete"
+                        break
+                    item.Delete(False)
+                    print "Deleted the dead popup control - re-creating"
+                except pythoncom.com_error, e:
+                    print "ERROR: Failed to delete our dead toolbar control"
+                    break
+                # ok - toolbar deleted - just run around the loop again
+                continue
             self._AddControl(popup,
                            constants.msoControlButton,
                            ButtonEvent, (ShowClues, self.manager, self),
@@ -908,7 +933,6 @@ class ExplorerWithEvents:
                         toolbar = bars.Item(i+1)
                         if toolbar.Name == "SpamBayes":
                             self.toolbar = toolbar
-                            print "Found SB toolbar - visible state is", toolbar.Visible
                             break
                     else:
                         # for not broken - can't find toolbar.  Create a new one.
@@ -934,7 +958,6 @@ class ExplorerWithEvents:
                 # Toolbars seem to still fail randomly for some users.
                 # eg, bug [ 755738 ] Latest CVS outllok doesn't work
                 print "FAILED to add the toolbar item '%s' - %s" % (tag,e)
-                traceback.print_exc()
                 return
             if image_fname:
                 # Eeek - only available in derived class.
