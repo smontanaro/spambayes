@@ -201,14 +201,14 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
                 prob, clues = bayes.spamprob(tokens, evidence=True)
 
                 if prob < options["Categorization", "ham_cutoff"]:
-                    disposition = options["Hammie", "header_ham_string"]
+                    disposition = options["Headers", "header_ham_string"]
                     numham += 1
                 elif prob > options["Categorization", "spam_cutoff"]:
-                    disposition = options["Hammie", "header_spam_string"]
+                    disposition = options["Headers", "header_spam_string"]
                     docstomove += [doc]
                     numspam += 1
                 else:
-                    disposition = options["Hammie", "header_unsure_string"]
+                    disposition = options["Headers", "header_unsure_string"]
                     numuns += 1
 
                 notesindex[nid] = 'classified'
@@ -234,9 +234,9 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex):
 def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
 
     if is_spam:
-        str = options["Hammie", "header_spam_string"]
+        str = options["Headers", "header_spam_string"]
     else:
-        str = options["Hammie", "header_ham_string"]
+        str = options["Headers", "header_ham_string"]
 
     print "Training %s" % (str)
     
@@ -261,11 +261,11 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex):
         nid = doc.NOTEID
         if notesindex.has_key(nid):
             trainedas = notesindex[nid]
-            if trainedas == options["Hammie", "header_spam_string"] and \
+            if trainedas == options["Headers", "header_spam_string"] and \
                not is_spam:
                 # msg is trained as spam, is to be retrained as ham
                 bayes.unlearn(tokens, True)
-            elif trainedas == options["Hammie", "header_ham_string"] and \
+            elif trainedas == options["Headers", "header_ham_string"] and \
                  is_spam:
                 # msg is trained as ham, is to be retrained as spam
                 bayes.unlearn(tokens, False)
