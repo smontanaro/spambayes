@@ -189,7 +189,7 @@ class MainWindow(object):
         self.started = IsServerRunningAnywhere()
         self.tip = None
         if self.use_service and not self.IsServiceAvailable():
-            print "Service not availible. Using thread."
+            print "Service not available. Using thread."
             self.use_service = False
 
         # Start up sb_server
