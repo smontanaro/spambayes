@@ -16,11 +16,11 @@ Where OPTIONS is one or more of:
         use the DBM store.  A DBM file is larger than the pickle and
         creating it is slower, but loading it is much faster,
         especially for large word databases.  Recommended for use with
-        hammiefilter or any procmail-based filter.
+        s_filter or any procmail-based filter.
     -D DBNAME
         use the pickle store.  A pickle is smaller and faster to create,
-        but much slower to load.  Recommended for use with pop3proxy and
-        hammiesrv.
+        but much slower to load.  Recommended for use with sb_server and
+        sb_xmlrpcserver.
     -g PATH
         mbox or directory of known good messages (non-spam) to train on.
         Can be specified more than once.
@@ -50,7 +50,7 @@ except NameError:
 
 import sys, os, getopt, email
 from spambayes import hammie
-from spambayes.Options import options
+from spambayes.Options import options, get_pathname_option
 
 program = sys.argv[0]
 loud = True
@@ -326,7 +326,10 @@ def main():
         usage(2, "Positional arguments not allowed")
 
     if usedb == None:
-        usage(2, "Must specify one of -d or -D")
+        # Use settings in configuration file.
+        usedb = options["Storage", "persistent_use_database"]
+        pck = get_pathname_option("Storage",
+                                          "persistent_storage_file")
 
     h = hammie.open(pck, usedb, "c")
 
