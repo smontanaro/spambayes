@@ -80,7 +80,7 @@ def export(directory):
     for sub in "Spam", "Ham":
         if os.path.exists(os.path.join(directory, sub)):
             shutil.rmtree(os.path.join(directory, sub))
-        for b in buckets:
+        for b in buckets + ["reservoir"]:
             d = os.path.join(directory, sub, b)
             os.makedirs(d)
 
