@@ -54,7 +54,8 @@ class ConfigurationRoot(_ConfigurationContainer):
             train_recovered_spam = True,
             # Train as stuff dragged into spam folders.
             train_manual_spam = True,
-            rescore = False,
+            # Rescore all messages after training?
+            rescore = True,
             )
         filter = _ConfigurationContainer(
             watch_folder_ids = [],
