@@ -1,3 +1,10 @@
+Copyright (C) 2002 Python Software Foundation; All Rights Reserved
+
+The Python Software Foundation (PSF) holds copyright on all material
+in this project.  You may use it under the terms of the PSF license;
+see LICENSE.txt.
+
+
 Assorted clues.
 
 
@@ -69,7 +76,7 @@ neiltrain.py
     Builds a CDB (constant database) file of word probabilities using
     spam and non-spam mail.  The database in intended for use with
     neilfilter.py.
-    
+
 neilfilter.py
     A delivery agent that uses the CDB created by neiltrain.py and
     delivers a message to one of two Maildir message folders, depending
