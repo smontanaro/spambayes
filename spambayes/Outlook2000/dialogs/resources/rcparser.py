@@ -114,6 +114,10 @@ class RCParser:
             self.token = None
         return self.token
     
+    def getCommaToken(self):
+        tok = self.getToken()
+        assert tok == ",", "Token '%s' should be a comma!" % tok
+    
     def loadDialogs(self, rcFileName):
         """
         RCParser.loadDialogs(rcFileName) -> None
@@ -209,13 +213,13 @@ class RCParser:
             extras.append(self.token)
             self.getToken()
         dlg.x = int(self.token)
-        self.getToken() # should be ,
+        self.getCommaToken()
         self.getToken() # number
         dlg.y = int(self.token)
-        self.getToken() # should be ,
+        self.getCommaToken()
         self.getToken() # number
         dlg.w = int(self.token)
-        self.getToken() # should be ,
+        self.getCommaToken()
         self.getToken() # number
         dlg.h = int(self.token)
         self.getToken()
@@ -286,7 +290,7 @@ class RCParser:
         if "FONT"==self.token:
             self.getToken()
         dlg.fontSize = int(self.token)
-        self.getToken() # ,
+        self.getCommaToken()
         self.getToken() # Font name
         dlg.font = self.token[1:-1] # it's quoted
         self.getToken()
@@ -301,30 +305,33 @@ class RCParser:
             self.getToken()
             if self.token[0:1]=='"':
                 control.label = self.token[1:-1]
-                self.getToken() # ,
+                self.getCommaToken()
                 self.getToken()
             elif self.token.isdigit():
                 control.label = self.token
-                self.getToken() # ,
+                self.getCommaToken()
                 self.getToken()
+            if self.token=='-':
+                raise RuntimeError, \
+                      "Negative literal in rc script - don't know what to do"
             control.id = self.token
             control.idNum = self.addId(control.id)
-            self.getToken() # ,
+            self.getCommaToken()
             if control.controlType == "CONTROL":
                 self.getToken()
                 control.subType = self.token[1:-1]
                 # Styles
-                self.getToken() #,
+                self.getCommaToken()
                 self.getToken()
                 control.style, control.styles = self.styles([], defaultControlStyle)
                 #self.getToken() #,
             # Rect
             control.x = int(self.getToken())
-            self.getToken() # ,
+            self.getCommaToken()
             control.y = int(self.getToken())
-            self.getToken() # ,
+            self.getCommaToken()
             control.w = int(self.getToken())
-            self.getToken() # ,
+            self.getCommaToken()
             self.getToken()
             control.h = int(self.token)
             self.getToken()
@@ -335,5 +342,14 @@ class RCParser:
             dlg.controls.append(control)
 def ParseDialogs(rc_file):
     rcp = RCParser()
-    rcp.loadDialogs(rc_file)
+    try:
+        rcp.loadDialogs(rc_file)
+    except:
+        print "ERROR parsing dialogs at line", rcp.lex.lineno
+        print "Next 10 tokens are:"
+        for i in range(10):
+            print rcp.lex.get_token(),
+        print
+        raise
+
     return rcp
