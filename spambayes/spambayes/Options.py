@@ -19,6 +19,12 @@ To Do:
 
 import sys, os
 
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
 __all__ = ['options']
 
 # Grab the stuff from the core options class.
@@ -829,7 +835,6 @@ defaults = {
     ("rows_per_section", "Rows per section", 10000,
      """Number of rows to display per ham/spam/unsure section.""",
      INTEGER, RESTORE),
-
   ),
 
   "imap" : (
