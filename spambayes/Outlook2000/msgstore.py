@@ -496,7 +496,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     message_init_props = (PR_ENTRYID, PR_STORE_ENTRYID, PR_SEARCH_KEY,
                           PR_PARENT_ENTRYID, # folder ID
                           PR_MESSAGE_CLASS_A, # 'IPM.Note' etc
-                          PR_MESSAGE_FLAGS, #unsent, from_me
+                          PR_RECEIVED_BY_ENTRYID, # who received it
                           ) 
 
     def __init__(self, msgstore, prop_row):
@@ -509,7 +509,7 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         tag, searchkey = prop_row[2]
         tag, parent_eid = prop_row[3]
         tag, msgclass = prop_row[4]
-        tag, flags = prop_row[5]
+        recby_tag, recby = prop_row[5]
 
         self.id = store_eid, eid
         self.folder_id = store_eid, parent_eid
@@ -521,7 +521,18 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         # (ie, someone would need to really want to change it <wink>)
         # Thus, searchkey is our long-lived message key.
         self.searchkey = searchkey
-        self.is_unsent = flags & MSGFLAG_UNSENT
+        # To check if a message has ever been received, we check the
+        # PR_RECEIVED_BY_ENTRYID flag.  Tim wrote in an old comment that
+        # An article on the web said the distinction can't be made with 100%
+        # certainty, but that a good heuristic is to believe that a
+        # msg has been received iff at least one of these properties
+        # has a sensible value: RECEIVED_BY_EMAIL_ADDRESS, RECEIVED_BY_NAME,
+        # RECEIVED_BY_ENTRYID PR_TRANSPORT_MESSAGE_HEADERS
+        # But MarkH can't find it, and believes and tests that
+        # PR_RECEIVED_BY_ENTRYID is all we need.
+        # This also means we don't need to check the 'unsent' flag - unsent
+        # messages never have the PR_RECEIVED_ properties either.
+        self.was_received = PROP_TYPE(recby_tag) == PT_BINARY
         self.dirty = False
 
     def __repr__(self):
@@ -558,23 +569,12 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
     def IsFilterCandidate(self):
         # We don't attempt to filter:
         # * Non-mail items
-        # * Messages that have never been sent (ie, user-composed)
-        
-        # Note:  While we handle messages that have never been sent,
-        # we dont handle messages that were sent and moved from the
-        # Sent Items folder. It would be good not to train on them,
-        # since they are simply not received email.  An article on
-        # the web said the distinction can't be made with 100%
-        # certainty, but that a good heuristic is to believe that a
-        # msg has been received iff at least one of these properties
-        # has a sensible value:
-        #     PR_RECEIVED_BY_EMAIL_ADDRESS
-        #     PR_RECEIVED_BY_NAME
-        #     PR_RECEIVED_BY_ENTRYID
-        #     PR_TRANSPORT_MESSAGE_HEADERS
-
+        # * Messages that weren't actually received - this generally means user
+        #   composed messages yet to be sent, or copies of "sent items".
+        # It does *not* exclude messages that were user composed, but still
+        # actually received by the user (ie, when you mail yourself)
         return self.msgclass.lower().startswith("ipm.note") and \
-               (not self.is_unsent or test_suite_running)
+               (self.was_received or test_suite_running)
 
     def _GetPotentiallyLargeStringProp(self, prop_id, row):
         return GetPotentiallyLargeStringProp(self.mapi_object, prop_id, row)
