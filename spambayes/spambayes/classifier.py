@@ -616,7 +616,16 @@ class Classifier:
         self.http_error_cache_name = os.path.join(dir, "http_error_urls.pck")
         if os.path.exists(self.bad_url_cache_name):
             b_file = file(self.bad_url_cache_name, "r")
-            self.bad_urls = pickle.load(b_file)
+            try:
+                self.bad_urls = pickle.load(b_file)
+            except IOError, ValueError:
+                # Something went wrong loading it (bad pickle,
+                # probably).  Start afresh.
+                if options["globals", "verbose"]:
+                    print >>sys.stderr, "Bad URL pickle, using new."
+                self.bad_urls = {"url:non_resolving": (),
+                                 "url:non_html": (),
+                                 "url:unknown_error": ()}
             b_file.close()
         else:
             if options["globals", "verbose"]:
@@ -626,7 +635,14 @@ class Classifier:
                         "url:unknown_error": ()}
         if os.path.exists(self.http_error_cache_name):
             h_file = file(self.http_error_cache_name, "r")
-            self.http_error_urls = pickle.load(h_file)
+            try:
+                self.http_error_urls = pickle.load(h_file)
+            except IOError, ValueError:
+                # Something went wrong loading it (bad pickle,
+                # probably).  Start afresh.
+                if options["globals", "verbose"]:
+                    print >>sys.stderr, "Bad HHTP error pickle, using new."
+                self.http_error_urls = {}
             h_file.close()
         else:
             self.http_error_urls = {}
@@ -635,12 +651,19 @@ class Classifier:
         # XXX Note that these caches are never refreshed, which might not
         # XXX be a good thing long-term (if a previously invalid URL
         # XXX becomes valid, for example).
-        b_file = file(self.bad_url_cache_name, "w")
-        pickle.dump(self.bad_urls, b_file)
-        b_file.close()
-        h_file = file(self.http_error_cache_name, "w")
-        pickle.dump(self.http_error_urls, h_file)
-        h_file.close()
+        for name, data in [(self.bad_url_cache_name, self.bad_urls),
+                           (self.http_error_cache_name, self.http_error_urls),]:
+            # Save to a temp file first, in case something goes wrong.
+            cache = open(name + ".tmp", "w")
+            pickle.dump(data, cache)
+            cache.close()
+            try:
+                os.rename(name + ".tmp", name)
+            except OSError:
+                # Atomic replace isn't possible with win32, so just
+                # remove and rename.
+                os.remove(name)
+                os.rename(name + ".tmp", name)
 
     def slurp(self, proto, url):
         # We generate these tokens:
