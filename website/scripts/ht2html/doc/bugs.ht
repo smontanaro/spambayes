@@ -1,0 +1,17 @@
+Title: Bugs and Peculiarities
+
+<h3>Bugs and Peculiarities</h3>
+
+<p>If you have really wide &lt;pre&gt; stuff in the body section, the
+banner can get drawn too wide by most browsers.  In this case, you
+might want to but the wide body text in a
+<a href="components.html#continuation">continuation</a> section.
+
+<p>Text in the <a href="components.html#sidebar">sidebar</a> can wrap,
+which sometimes makes it look ugly.  The alternative is to prevent
+wrapping by inserted non-breaking spaces (i.e. &amp;nbsp;) instead of
+soft spaces.
+
+<p>The mixin class structure doesn't work as well as I'd like.
+Writing the style class is more awkward than it should be, but at
+least there are enough examples for you to go by.

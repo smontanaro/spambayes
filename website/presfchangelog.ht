@@ -1,0 +1,905 @@
+<h2>Pre-Sourceforge ChangeLog</h2>
+<p>This changelog lists the commits on the spambayes projects before the
+   separate project was set up. See also the 
+<a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/python/python/nondist/sandbox/spambayes/?hideattic=0">old CVS repository</a>, but don't forget that it's now out of date, and you probably want to be looking at <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/">the current CVS</a>.
+</p>
+<pre>
+2002-09-06 02:27  tim_one
+
+	* GBayes.py (1.16), Tester.py (1.4), classifier.py (1.12),
+	cleanarch (1.3), mboxcount.py (1.6), rebal.py (1.4), setup.py
+	(1.2), split.py (1.6), splitn.py (1.3), timtest.py (1.18):
+
+	This code has been moved to a new SourceForge project (spambayes).
+	
+2002-09-05 15:37  tim_one
+
+	* classifier.py (1.11):
+
+	Added note about MINCOUNT oddities.
+	
+2002-09-05 14:32  tim_one
+
+	* timtest.py (1.17):
+
+	Added note about word length.
+	
+2002-09-05 13:48  tim_one
+
+	* timtest.py (1.16):
+
+	tokenize_word():  Oops!  This was awfully permissive in what it
+	took as being "an email address".  Tightened that, and also
+	avoided 5-gram'ing of email addresses w/ high-bit characters.
+	
+	false positive percentages
+	    0.000  0.000  tied
+	    0.000  0.000  tied
+	    0.050  0.050  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.050  lost
+	    0.075  0.075  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	
+	won   0 times
+	tied 19 times
+	lost  1 times
+	
+	total unique fp went from 7 to 8
+	
+	false negative percentages
+	    0.764  0.691  won
+	    0.691  0.655  won
+	    0.981  0.945  won
+	    1.309  1.309  tied
+	    1.418  1.164  won
+	    0.873  0.800  won
+	    0.800  0.763  won
+	    1.163  1.163  tied
+	    1.491  1.345  won
+	    1.200  1.127  won
+	    1.381  1.345  won
+	    1.454  1.490  lost
+	    1.164  0.909  won
+	    0.655  0.582  won
+	    0.655  0.691  lost
+	    1.163  1.163  tied
+	    1.200  1.018  won
+	    0.982  0.873  won
+	    0.982  0.909  won
+	    1.236  1.127  won
+	
+	won  15 times
+	tied  3 times
+	lost  2 times
+	
+	total unique fn went from 260 to 249
+	
+	Note:  Each of the two losses there consist of just 1 msg difference.
+	The wins are bigger as well as being more common, and 260-249 = 11
+	spams no longer sneak by any run (which is more than 4% of the 260
+	spams that used to sneak thru!).
+	
+2002-09-05 11:51  tim_one
+
+	* classifier.py (1.10):
+
+	Comment about test results moving MAX_DISCRIMINATORS back to 15; doesn't
+	really matter; leaving it alone.
+	
+2002-09-05 10:02  tim_one
+
+	* classifier.py (1.9):
+
+	A now-rare pure win, changing spamprob() to work harder to find more
+	evidence when competing 0.01 and 0.99 clues appear.  Before in the left
+	column, after in the right:
+	
+	false positive percentages
+	    0.000  0.000  tied
+	    0.000  0.000  tied
+	    0.050  0.050  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.075  0.075  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.075  0.025  won
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	
+	won   1 times
+	tied 19 times
+	lost  0 times
+	
+	total unique fp went from 9 to 7
+	
+	false negative percentages
+	    0.909  0.764  won
+	    0.800  0.691  won
+	    1.091  0.981  won
+	    1.381  1.309  won
+	    1.491  1.418  won
+	    1.055  0.873  won
+	    0.945  0.800  won
+	    1.236  1.163  won
+	    1.564  1.491  won
+	    1.200  1.200  tied
+	    1.454  1.381  won
+	    1.599  1.454  won
+	    1.236  1.164  won
+	    0.800  0.655  won
+	    0.836  0.655  won
+	    1.236  1.163  won
+	    1.236  1.200  won
+	    1.055  0.982  won
+	    1.127  0.982  won
+	    1.381  1.236  won
+	
+	won  19 times
+	tied  1 times
+	lost  0 times
+	
+	total unique fn went from 284 to 260
+	
+2002-09-04 11:21  tim_one
+
+	* timtest.py (1.15):
+
+	Augmented the spam callback to display spams with low probability.
+	
+2002-09-04 09:53  tim_one
+
+	* Tester.py (1.3), timtest.py (1.14):
+
+	Added support for simple histograms of the probability distributions for
+	ham and spam.
+	
+2002-09-03 12:13  tim_one
+
+	* timtest.py (1.13):
+
+	A reluctant "on principle" change no matter what it does to the stats:
+	take a stab at removing HTML decorations from plain text msgs.  See
+	comments for why it's *only* in plain text msgs.  This puts an end to
+	false positives due to text msgs talking *about* HTML.  Surprisingly, it
+	also gets rid of some false negatives.  Not surprisingly, it introduced
+	another small class of false positives due to the dumbass regexp trick
+	used to approximate HTML tag removal removing pieces of text that had
+	nothing to do with HTML tags (e.g., this happened in the middle of a
+	uuencoded .py file in such a why that it just happened to leave behind
+	a string that "looked like" a spam phrase; but before this it looked
+	like a pile of "too long" lines that didn't generate any tokens --
+	it's a nonsense outcome either way).
+	
+	false positive percentages
+	    0.000  0.000  tied
+	    0.000  0.000  tied
+	    0.050  0.050  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.025  lost
+	    0.075  0.075  tied
+	    0.050  0.025  won
+	    0.025  0.025  tied
+	    0.000  0.025  lost
+	    0.050  0.075  lost
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	
+	won   1 times
+	tied 16 times
+	lost  3 times
+	
+	total unique fp went from 8 to 9
+	
+	false negative percentages
+	    0.945  0.909  won
+	    0.836  0.800  won
+	    1.200  1.091  won
+	    1.418  1.381  won
+	    1.455  1.491  lost
+	    1.091  1.055  won
+	    1.091  0.945  won
+	    1.236  1.236  tied
+	    1.564  1.564  tied
+	    1.236  1.200  won
+	    1.563  1.454  won
+	    1.563  1.599  lost
+	    1.236  1.236  tied
+	    0.836  0.800  won
+	    0.873  0.836  won
+	    1.236  1.236  tied
+	    1.273  1.236  won
+	    1.018  1.055  lost
+	    1.091  1.127  lost
+	    1.490  1.381  won
+	
+	won  12 times
+	tied  4 times
+	lost  4 times
+	
+	total unique fn went from 292 to 284
+	
+2002-09-03 06:57  tim_one
+
+	* classifier.py (1.8):
+
+	Added a new xspamprob() method, which computes the combined probability
+	"correctly", and a long comment block explaining what happened when I
+	tried it.  There's something worth pursuing here (it greatly improves
+	the false negative rate), but this change alone pushes too many marginal
+	hams into the spam camp
+	
+2002-09-03 05:23  tim_one
+
+	* timtest.py (1.12):
+
+	Made "skip:" tokens shorter.
+	
+	Added a surprising treatment of Organization headers, with a tiny f-n
+	benefit for a tiny cost.  No change in f-p stats.
+	
+	false negative percentages
+	    1.091  0.945  won
+	    0.945  0.836  won
+	    1.236  1.200  won
+	    1.454  1.418  won
+	    1.491  1.455  won
+	    1.091  1.091  tied
+	    1.127  1.091  won
+	    1.236  1.236  tied
+	    1.636  1.564  won
+	    1.345  1.236  won
+	    1.672  1.563  won
+	    1.599  1.563  won
+	    1.236  1.236  tied
+	    0.836  0.836  tied
+	    1.018  0.873  won
+	    1.236  1.236  tied
+	    1.273  1.273  tied
+	    1.055  1.018  won
+	    1.091  1.091  tied
+	    1.527  1.490  won
+	
+	won  13 times
+	tied  7 times
+	lost  0 times
+	
+	total unique fn went from 302 to 292
+	
+2002-09-03 02:18  tim_one
+
+	* timtest.py (1.11):
+
+	tokenize_word():  dropped the prefix from the signature; it's faster
+	to let the caller do it, and this also repaired a bug in one place it
+	was being used (well, a *conceptual* bug anyway, in that the code didn't
+	do what I intended there).  This changes the stats in an insignificant
+	way.  The f-p stats didn't change.  The f-n stats shifted by one message
+	in a few cases:
+	
+	false negative percentages
+	    1.091  1.091  tied
+	    0.945  0.945  tied
+	    1.200  1.236  lost
+	    1.454  1.454  tied
+	    1.491  1.491  tied
+	    1.091  1.091  tied
+	    1.091  1.127  lost
+	    1.236  1.236  tied
+	    1.636  1.636  tied
+	    1.382  1.345  won
+	    1.636  1.672  lost
+	    1.599  1.599  tied
+	    1.236  1.236  tied
+	    0.836  0.836  tied
+	    1.018  1.018  tied
+	    1.236  1.236  tied
+	    1.273  1.273  tied
+	    1.055  1.055  tied
+	    1.091  1.091  tied
+	    1.527  1.527  tied
+	
+	won   1 times
+	tied 16 times
+	lost  3 times
+	
+	total unique unchanged
+	
+2002-09-02 19:30  tim_one
+
+	* timtest.py (1.10):
+
+	Don't ask me why this helps -- I don't really know!  When skipping "long
+	words", generating a token with a brief hint about what and how much got
+	skipped makes a definite improvement in the f-n rate, and doesn't affect
+	the f-p rate at all.  Since experiment said it's a winner, I'm checking
+	it in.  Before (left columan) and after (right column):
+	
+	false positive percentages
+	    0.000  0.000  tied
+	    0.000  0.000  tied
+	    0.050  0.050  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.075  0.075  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.050  0.050  tied
+	    0.025  0.025  tied
+	    0.025  0.025  tied
+	    0.000  0.000  tied
+	    0.025  0.025  tied
+	    0.050  0.050  tied
+	
+	won   0 times
+	tied 20 times
+	lost  0 times
+	
+	total unique fp went from 8 to 8
+	
+	false negative percentages
+	    1.236  1.091  won
+	    1.164  0.945  won
+	    1.454  1.200  won
+	    1.599  1.454  won
+	    1.527  1.491  won
+	    1.236  1.091  won
+	    1.163  1.091  won
+	    1.309  1.236  won
+	    1.891  1.636  won
+	    1.418  1.382  won
+	    1.745  1.636  won
+	    1.708  1.599  won
+	    1.491  1.236  won
+	    0.836  0.836  tied
+	    1.091  1.018  won
+	    1.309  1.236  won
+	    1.491  1.273  won
+	    1.127  1.055  won
+	    1.309  1.091  won
+	    1.636  1.527  won
+	
+	won  19 times
+	tied  1 times
+	lost  0 times
+	
+	total unique fn went from 336 to 302
+	
+2002-09-02 17:55  tim_one
+
+	* timtest.py (1.9):
+
+	Some comment changes and nesting reduction.
+	
+2002-09-02 11:18  tim_one
+
+	* timtest.py (1.8):
+
+	Fixed some out-of-date comments.
+	
+	Made URL clumping lumpier:  now distinguishes among just "first field",
+	"second field", and "everything else".
+	
+	Changed tag names for email address fields (semantically neutral).
+	
+	Added "From:" line tagging.
+	
+	These add up to an almost pure win.  Before-and-after f-n rates across 20
+	runs:
+	
+	1.418   1.236
+	1.309   1.164
+	1.636   1.454
+	1.854   1.599
+	1.745   1.527
+	1.418   1.236
+	1.381   1.163
+	1.418   1.309
+	2.109   1.891
+	1.491   1.418
+	1.854   1.745
+	1.890   1.708
+	1.818   1.491
+	1.055   0.836
+	1.164   1.091
+	1.599   1.309
+	1.600   1.491
+	1.127   1.127
+	1.164   1.309
+	1.781   1.636
+	
+	It only increased in one run.  The variance appears to have been reduced
+	too (I didn't bother to compute that, though).
+	
+	Before-and-after f-p rates across 20 runs:
+	
+	0.000   0.000
+	0.000   0.000
+	0.075   0.050
+	0.000   0.000
+	0.025   0.025
+	0.050   0.025
+	0.075   0.050
+	0.025   0.025
+	0.025   0.025
+	0.025   0.000
+	0.100   0.075
+	0.050   0.050
+	0.025   0.025
+	0.000   0.000
+	0.075   0.050
+	0.025   0.025
+	0.025   0.025
+	0.000   0.000
+	0.075   0.025
+	0.100   0.050
+	
+	Note that 0.025% is a single message; it's really impossible to *measure*
+	an improvement in the f-p rate anymore with 4000-msg ham sets.
+	
+	Across all 20 runs,
+	
+	the total # of unique f-n fell from 353 to 336
+	the total # of unique f-p fell from 13 to 8
+	
+2002-09-02 10:06  tim_one
+
+	* timtest.py (1.7):
+
+	A number of changes.  The most significant is paying attention to the
+	Subject line (I was wrong before when I said my c.l.py ham corpus was
+	unusable for this due to Mailman-injected decorations).  In all, across
+	my 20 test runs,
+	
+	the total # of unique false positives fell from 23 to 13
+	the total # of unique false negatives rose from 337 to 353
+	
+	Neither result is statistically significant, although I bet the first
+	one would be if I pissed away a few days trying to come up with a more
+	realistic model for what "stat. sig." means here <wink>.
+	
+2002-09-01 17:22  tim_one
+
+	* classifier.py (1.7):
+
+	Added a comment block about HAMBIAS experiments.  There's no clearer
+	example of trading off precision against recall, and you can favor either
+	at the expense of the other to any degree you like by fiddling this knob.
+	
+2002-09-01 14:42  tim_one
+
+	* timtest.py (1.6):
+
+	Long new comment block summarizing all my experiments with character
+	n-grams.  Bottom line is that they have nothing going for them, and a
+	lot going against them, under Graham's scheme.  I believe there may
+	still be a place for them in *part* of a word-based tokenizer, though.
+	
+2002-09-01 10:05  tim_one
+
+	* classifier.py (1.6):
+
+	spamprob():  Never count unique words more than once anymore.  Counting
+	up to twice gave a small benefit when UNKNOWN_SPAMPROB was 0.2, but
+	that's now a small drag instead.
+	
+2002-09-01 07:33  tim_one
+
+	* rebal.py (1.3), timtest.py (1.5):
+
+	Folding case is here to stay.  Read the new comments for why.  This may
+	be a bad idea for other languages, though.
+	
+	Refined the embedded-URL tagging scheme.  Curious:  as a protocol,
+	http is spam-neutral, but https is a strong spam indicator.  That
+	surprised me.
+	
+2002-09-01 06:47  tim_one
+
+	* classifier.py (1.5):
+
+	spamprob():  Removed useless check that wordstream isn't empty.  For one
+	thing, it didn't work, since wordstream is often an iterator.  Even if
+	it did work, it isn't needed -- the probability of an empty wordstream
+	gets computed as 0.5 based on the total absence of evidence.
+	
+2002-09-01 05:37  tim_one
+
+	* timtest.py (1.4):
+
+	textparts():  Worm around what feels like a bug in msg.walk() (Barry has
+	details).
+	
+2002-09-01 05:09  tim_one
+
+	* rebal.py (1.2):
+
+	Aha!  Staring at the checkin msg revealed a logic bug that explains why
+	my ham directories sometimes remained unbalanced after running this --
+	if the randomly selected reservoir msg turned out to be spam, it wasn't
+	pushing the too-small directory on the stack again.
+	
+2002-09-01 04:56  tim_one
+
+	* timtest.py (1.3):
+
+	textparts():  This was failing to weed out redundant HTML in cases like
+	this:
+	
+	    multipart/alternative
+	        text/plain
+	        multipart/related
+	            text/html
+	
+	The tokenizer here also transforms everything to lowercase, but that's
+	an accident due simply to that I'm testing that now.  Can't say for
+	sure until the test runs end, but so far it looks like a bad idea for
+	the false positive rate.
+	
+2002-09-01 04:52  tim_one
+
+	* rebal.py (1.1):
+
+	A little script I use to rebalance the ham corpora after deleting what
+	turns out to be spam.  I have another Ham/reservoir directory with a
+	few thousand randomly selected msgs from the presumably-good archive.
+	These aren't used in scoring or training.  This script marches over all
+	the ham corpora directories that are used, and if any have gotten too
+	big (this never happens anymore) deletes msgs at random from them, and
+	if any have gotten too small plugs the holes by moving in random
+	msgs from the reservoir.
+	
+2002-09-01 03:25  tim_one
+
+	* classifier.py (1.4), timtest.py (1.2):
+
+	Boost UNKNOWN_SPAMPROB.
+	# The spam probability assigned to words never seen before.  Graham used
+	# 0.2 here.  Neil Schemenauer reported that 0.5 seemed to work better.  In
+	# Tim's content-only tests (no headers), boosting to 0.5 cut the false
+	# negative rate by over 1/3.  The f-p rate increased, but there were so few
+	# f-ps that the increase wasn't statistically significant.  It also caught
+	# 13 more spams erroneously classified as ham.  By eyeball (and common
+	# sense <wink>), this has most effect on very short messages, where there
+	# simply aren't many high-value words.  A word with prob 0.5 is (in effect)
+	# completely ignored by spamprob(), in favor of *any* word with *any* prob
+	# differing from 0.5.  At 0.2, an unknown word favors ham at the expense
+	# of kicking out a word with a prob in (0.2, 0.8), and that seems dubious
+	# on the face of it.
+	
+2002-08-31 16:50  tim_one
+
+	* timtest.py (1.1):
+
+	This is a driver I've been using for test runs.  It's specific to my
+	corpus directories, but has useful stuff in it all the same.
+	
+2002-08-31 16:49  tim_one
+
+	* classifier.py (1.3):
+
+	The explanation for these changes was on Python-Dev.  You'll find out
+	why if the moderator approves the msg <wink>.
+	
+2002-08-29 07:04  tim_one
+
+	* Tester.py (1.2), classifier.py (1.2):
+
+	Tester.py:  Repaired a comment.  The false_{positive,negative})_rate()
+	functions return a percentage now (e.g., 1.0 instead of 0.01 -- it's
+	too hard to get motivated to reduce 0.01 <0.1 wink>).
+	
+	GrahamBayes.spamprob:  New optional bool argument; when true, a list of
+	the 15 strongest (word, probability) pairs is returned as well as the
+	overall probability (this is how to find out why a message scored as it
+	did).
+	
+2002-08-28 13:45  montanaro
+
+	* GBayes.py (1.15):
+
+	ehh - it actually didn't work all that well.  the spurious report that it
+	did well was pilot error.  besides, tim's report suggests that a simple
+	str.split() may be the best tokenizer anyway.
+	
+2002-08-28 10:45  montanaro
+
+	* setup.py (1.1):
+
+	trivial little setup.py file - i don't expect most people will be interested
+	in this, but it makes it a tad simpler to work with now that there are two
+	files
+	
+2002-08-28 10:43  montanaro
+
+	* GBayes.py (1.14):
+
+	add simple trigram tokenizer - this seems to yield the best results I've
+	seen so far (but has not been extensively tested)
+	
+2002-08-28 08:10  tim_one
+
+	* Tester.py (1.1):
+
+	A start at a testing class.  There isn't a lot here, but it automates
+	much of the tedium, and as the doctest shows it can already do
+	useful things, like remembering which inputs were misclassified.
+	
+2002-08-27 06:45  tim_one
+
+	* mboxcount.py (1.5):
+
+	Updated stats to what Barry and I both get now.  Fiddled output.
+	
+2002-08-27 05:09  bwarsaw
+
+	* split.py (1.5), splitn.py (1.2):
+
+	_factory(): Return the empty string instead of None in the except
+	clauses, so that for-loops won't break prematurely.  mailbox.py's base
+	class defines an __iter__() that raises a StopIteration on None
+	return.
+	
+2002-08-27 04:55  tim_one
+
+	* GBayes.py (1.13), mboxcount.py (1.4):
+
+	Whitespace normalization (and some ambiguous tabs snuck into mboxcount).
+	
+2002-08-27 04:40  bwarsaw
+
+	* mboxcount.py (1.3):
+
+	Some stats after splitting b/w good messages and unparseable messages
+	
+2002-08-27 04:23  bwarsaw
+
+	* mboxcount.py (1.2):
+
+	_factory(): Use a marker object to designate between good messages and
+	unparseable messages.  For some reason, returning None from the except
+	clause in _factory() caused Python 2.2.1 to exit early out of the for
+	loop.
+	
+	main(): Print statistics about both the number of good messages and
+	the number of unparseable messages.
+	
+2002-08-27 03:06  tim_one
+
+	* cleanarch (1.2):
+
+	"From " is a header more than a separator, so don't bump the msg count
+	at the end.
+	
+2002-08-24 01:42  tim_one
+
+	* GBayes.py (1.12), classifier.py (1.1):
+
+	Moved all the interesting code that was in the *original* GBayes.py into
+	a new classifier.py.  It was designed to have a very clean interface,
+	and there's no reason to keep slamming everything into one file.  The
+	ever-growing tokenizer stuff should probably also be split out, leaving
+	GBayes.py a pure driver.
+	
+	Also repaired _test() (Skip's checkin left it without a binding for
+	the tokenize function).
+	
+2002-08-24 01:17  tim_one
+
+	* splitn.py (1.1):
+
+	Utility to split an mbox into N random pieces in one gulp.  This gives
+	a convenient way to break a giant corpus into multiple files that can
+	then be used independently across multiple training and testing runs.
+	It's important to do multiple runs on different random samples to avoid
+	drawing conclusions based on accidents in a single random training corpus;
+	if the algorithm is robust, it should have similar performance across
+	all runs.
+	
+2002-08-24 00:25  montanaro
+
+	* GBayes.py (1.11):
+
+	Allow command line specification of tokenize functions
+	    run w/ -t flag to override default tokenize function
+	    run w/ -H flag to see list of tokenize functions
+	
+	When adding a new tokenizer, make docstring a short description and add a
+	key/value pair to the tokenizers dict.  The key is what the user specifies.
+	The value is a tokenize function.
+	
+	Added two new tokenizers - tokenize_wordpairs_foldcase and
+	tokenize_words_and_pairs.  It's not obvious that either is better than any
+	of the preexisting functions.
+	
+	Should probably add info to the pickle which indicates the tokenizing
+	function used to build it.  This could then be the default for spam
+	detection runs.
+	
+	Next step is to drive this with spam/non-spam corpora, selecting each of the
+	various tokenizer functions, and presenting the results in tabular form.
+	
+2002-08-23 13:10  tim_one
+
+	* GBayes.py (1.10):
+
+	spamprob():  Commented some subtleties.
+	
+	clearjunk():  Undid Guido's attempt to space-optimize this.  The problem
+	is that you can't delete entries from a dict that's being crawled over
+	by .iteritems(), which is why I (I suddenly recall) materialized a
+	list of words to be deleted the first time I wrote this.  It's a lot
+	better to materialize a list of to-be-deleted words than to materialize
+	the entire database in a dict.items() list.
+	
+2002-08-23 12:36  tim_one
+
+	* mboxcount.py (1.1):
+
+	Utility to count and display the # of msgs in (one or more) Unix mboxes.
+	
+2002-08-23 12:11  tim_one
+
+	* split.py (1.4):
+
+	Open files in binary mode.  Else, e.g., about 400MB of Barry's python-list
+	corpus vanishes on Windows.  Also use file.write() instead of print>>, as
+	the latter invents an extra newline.
+	
+2002-08-22 07:01  tim_one
+
+	* GBayes.py (1.9):
+
+	Renamed "modtime" to "atime", to better reflect its meaning, and added a
+	comment block to explain that better.
+	
+2002-08-21 08:07  bwarsaw
+
+	* split.py (1.3):
+
+	Guido suggests a different order for the positional args.
+	
+2002-08-21 07:37  bwarsaw
+
+	* split.py (1.2):
+
+	Get rid of the -1 and -2 arguments and make them positional.
+	
+2002-08-21 07:18  bwarsaw
+
+	* split.py (1.1):
+
+	A simple mailbox splitter
+	
+2002-08-21 06:42  tim_one
+
+	* GBayes.py (1.8):
+
+	Added a bunch of simple tokenizers.  The originals are renamed to
+	tokenize_words_foldcase and tokenize_5gram_foldcase_wscollapse.
+	New ones are tokenize_words, tokenize_split_foldcase, tokenize_split,
+	tokenize_5gram, tokenize_10gram, and tokenize_15gram.  I don't expect
+	any of these to be the last word.  When Barry has the test corpus
+	set up it should be easy to let the data tell us which "pure" strategy
+	works best.  Straight character n-grams are very appealing because
+	they're the simplest and most language-neutral; I didn't have any luck
+	with them over the weekend, but the size of my training data was
+	trivial.
+	
+2002-08-21 05:08  bwarsaw
+
+	* cleanarch (1.1):
+
+	An archive cleaner, adapted from the Mailman 2.1b3 version, but
+	de-Mailman-ified.
+	
+2002-08-21 04:44  gvanrossum
+
+	* GBayes.py (1.7):
+
+	Indent repair in clearjunk().
+	
+2002-08-21 04:22  gvanrossum
+
+	* GBayes.py (1.6):
+
+	Some minor cleanup:
+	
+	- Move the identifying comment to the top, clarify it a bit, and add
+	  author info.
+	
+	- There's no reason for _time and _heapreplace to be hidden names;
+	  change these back to time and heapreplace.
+	
+	- Rename main1() to _test() and main2() to main(); when main() sees
+	  there are no options or arguments, it runs _test().
+	
+	- Get rid of a list comprehension from clearjunk().
+	
+	- Put wordinfo.get as a local variable in _add_msg().
+	
+2002-08-20 15:16  tim_one
+
+	* GBayes.py (1.5):
+
+	Neutral typo repairs, except that clearjunk() has a better chance of
+	not blowing up immediately now <wink -- I have yet to try it!>.
+	
+2002-08-20 13:49  montanaro
+
+	* GBayes.py (1.4):
+
+	help make it more easily executable... ;-)
+	
+2002-08-20 09:32  bwarsaw
+
+	* GBayes.py (1.3):
+
+	Lots of hacks great and small to the main() program, but I didn't
+	touch the guts of the algorithm.
+	
+	Added a module docstring/usage message.
+	
+	Added a bunch of switches to train the system on an mbox of known good
+	and known spam messages (using PortableUnixMailbox only for now).
+	Uses the email package but does not decoding of message bodies.  Also,
+	allows you to specify a file for pickling the training data, and for
+	setting a threshold, above which messages get an X-Bayes-Score
+	header.  Also output messages (marked and unmarked) to an output file
+	for retraining.
+	
+	Print some statistics at the end.
+	
+2002-08-20 05:43  tim_one
+
+	* GBayes.py (1.2):
+
+	Turned off debugging vrbl mistakenly checked in at True.
+	
+	unlearn():  Gave this an update_probabilities=True default arg, for
+	symmetry with learn().
+	
+2002-08-20 03:33  tim_one
+
+	* GBayes.py (1.1):
+
+	An implementation of Paul Graham's Bayes-like spam classifier.
+
+</pre>

@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!-- THIS PAGE IS AUTOMATICALLY GENERATED.  DO NOT EDIT. -->
+<!-- Fri Apr  5 00:01:40 2002 -->
+<!-- USING HT2HTML 2.0 -->
+<!-- SEE http://ht2html.sf.net -->
+<!-- User-specified headers:
+Title: Usage
+
+-->
+
+<head>
+<title>Usage</title>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="HT2HTML/2.0">
+<style type="text/css">
+body { margin: 0px; }
+</style>
+</head>
+<body bgcolor="#ffffff" text="#000000"
+      marginwidth="0" marginheight="0"
+      link="#0000bb"  vlink="#551a8b"
+      alink="#ff0000">
+<!-- start of page table -->
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<!-- start of banner row -->
+<tr>
+<!-- start of corner cells -->
+<td width="150" valign="middle" bgcolor="#4fa445" class="corner">
+
+<center>
+    <a href="index.html">
+    <img alt="ht2html" border="0"
+         src="ht2html.png"></a></center> </td>
+<td width="15" bgcolor="#89aaaa">&nbsp;&nbsp;</td><!--spacer-->
+<!-- end of corner cells -->
+<!-- start of banner -->
+<td width="90%" bgcolor="#89aaaa" class="banner">
+<!-- start of site links table -->
+<table width="100%" border="0"
+cellspacing="0" cellpadding="0"
+       bgcolor="#ffffff">
+<tr>
+    <td bgcolor="#89aaaa">
+<a href="index.html">Home</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://www.python.org/">Python.Org</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://barry.wooz.org/">Barry's home page</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://sf.net/projects/ht2html">ht2html @ SourceForge</a>
+    </td>
+</tr>
+</table><!-- end of site links table -->
+
+</td><!-- end of banner -->
+</tr><!-- end of banner row -->
+<tr><!-- start of sidebar/body row -->
+<!-- start of sidebar cells -->
+<td width="150" valign="top" bgcolor="#89aaaa" class="sidebar">
+<!-- start of sidebar table -->
+<table width="100%" border="0" cellspacing="0" cellpadding="3"
+       bgcolor="#ffffff">
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+Subsections
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="index.html">Introduction</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="components.html">Web&nbsp;page&nbsp;components</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="bugs.html">Bugs&nbsp;and&nbsp;Peculiarities</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<b>Usage</b>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="style.html">Using Stylesheets</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="examples.html">Examples</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">&nbsp;
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+ht2html sites
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://barry.wooz.org/">Barry's&nbsp;home&nbsp;page</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/">Python.Org</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.jython.org/">Jython.Org</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.list.org/">GNU&nbsp;Mailman</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://tmda.sf.net/">TMDA</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://acvalbonne.online.fr/">Cycling&nbsp;Club</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">&nbsp;
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+Email me
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="mailto:barry@python.org">Barry A. Warsaw</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&nbsp;
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/">
+<center>
+    <img alt="[Python Powered]" border="0"
+         src="PythonPoweredSmall.png"></center>
+</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&nbsp;
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&copy; 1999-2002
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/psf/">Python Software Foundation</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<hr>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="docstring.ht">[page source]</a>
+</td></tr>
+</table><!-- end of sidebar table -->
+
+</td>
+<td width="15">&nbsp;&nbsp;</td><!--spacer-->
+<!-- end of sidebar cell -->
+<!-- start of body cell -->
+<td valign="top" width="90%" class="body"><br>
+<h3>Usage</h3>
+
+<h4>Synopsys</h4>
+
+Generate a .html file from a .ht template.
+
+<pre>
+ht2html.py [options] file1 [file2 [...]]
+</pre>
+
+<h4>Options</h4>
+
+<dl>
+<dt>--rootdir <em>directory</em><br>
+    -r <em>directory</em>
+<dd>Specify the root of the Web page hierarchy.  Otherwise the current
+    directory is used.
+
+<p><dt>--style <em>classmod</em><br>
+    -s <em>classmod</em>
+<dd>Specifies the generator style.  <em>classmod</em> is both a module
+    name and a class name.  The module is imported (so it must be
+    findable on your sys.path) and the class is dug out of that module
+    (so they must have the same name).  This class is instantiated by
+    passing the following arguments:
+
+    <ul>
+    <li><b>file</b> -- the .ht file to be parsed
+    <li><b>rootdir</b>  -- as specified above
+    <li><b>relthis</b> -- the directory path to get from rootdir to the current
+                    directory.  Note that <em>rootdir</em> must be a direct
+                    parent of the current directory.
+
+    <em>file</em> should be passed to <tt>HTParser</tt> to create an
+    instance of the file parser.  Your class should also create a
+    <tt>LinkFixer</tt> using (the .html version of) <em>file</em>,
+    <em>rootdir</em>, and <em>relthis</em>.
+
+<p><dt>--backup<br>
+    -b
+<dd>Make a backup of any existing .html if it would get overwritten.
+
+<p><dt>--backupext <em>ext</em><br>
+    -x <em>ext</em>
+<dd>Specify the extension for backup files.  Otherwise <tt>.bak</tt>
+    is used.
+
+<p><dt>--force<br>
+    -f
+<dd>Force overwritting of .html file even if the generated file is the
+    same.  Otherwise only overwrite .html file if the new one is
+    different.
+
+<p><dt>--version<br>
+    -v
+<dd>Print the version number and exit.
+
+<p><dt>--quiet<br>
+    -q
+<dd>Be quiet.
+
+<p><dt>--help<br>
+    -h
+<dd>Print this message and exit.
+
+</td><!-- end of body cell -->
+</tr><!-- end of sidebar/body row -->
+</table><!-- end of page table -->
+</body></html>

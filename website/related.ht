@@ -1,0 +1,16 @@
+Title: SpamBayes: Related Projects
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h2>Related Projects</h2>
+<p>Some projects working in a similar area </p>
+</p>
+<ul>
+<li>Gary Arnold's <a href="http://www.garyarnold.com/projects.php#bayespam">bayespam</a>, a perl qmail filter.
+<li>The mozilla project is working on this, see <a href="http://bugzilla.mozilla.org/show_bug.cgi?id=163188">bug 163188</a>
+<li>Eric Raymond's <a href="http://www.tuxedo.org/~esr/bogofilter/">bogofilter</a>, a C code bayesian filter.
+<li><a href="http://www.ai.mit.edu/~jrennie/ifile/">ifile</a>, a Naive Bayes classification system.
+<li> ...
+</ul>
+
+<p><i>(got more? email anthony at interlink.com.au and I'll add links, or correct descriptions.)</i>

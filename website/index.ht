@@ -1,0 +1,26 @@
+Title: SpamBayes: Bayesian anti-spam classifier written in Python.
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<H2>What is SpamBayes?</h2>
+<p>
+This project is developing a Bayesian anti-spam classifier, initially
+based on the work of <a href="http://www.paulgraham.com/spam.html">Paul Graham.</a>
+</p>
+
+<p>Code is currently available 
+<a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a> - 
+note that it's not yet 
+suitable for end-users, but for people interested in experimenting.
+</p>
+
+<h2>Mailing list</h2>
+<p>There are currently two mailing lists of interest:</p>
+<ul>
+<li>
+The discussion list <a href="http://mail.python.org/mailman-21/listinfo/spambayes">spambayes</a>
+<li>
+CVS commit messages go to the list <a href="http://mail.python.org/mailman-21/listinfo/spambayes-checkins">spambayes-checkins</a>.
+</ul>
+
+

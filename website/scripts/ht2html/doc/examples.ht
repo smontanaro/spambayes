@@ -1,0 +1,48 @@
+Title: Usage
+
+<h3>Examples</h3>
+
+<p>This is what you really want -- examples of how to create your own
+web site styles.  These are done by creating a <em>generator</em>
+class, which customizes not only style elements such as the
+<a href="components#sidebar">sidebar</a>
+colors and the
+<a href="components#corner">corner</a> icon, but also such elements as
+the copyright
+notice and what
+<a href="http://www.faqs.org/rfcs/rfc2822.html">RFC 2822</a>-style
+headers are recognized.  Sorry, but
+there's no really good documentation for how to do this yet, so UTSL.
+Here are a list of generator classes I've included:
+
+<ul>
+<li><b><tt>SelfGenerator.py</tt></b> -- this is the generator class
+    for the <a href="index.html">ht2html</a> documentation pages.
+
+<p><li><b><tt>PDOGenerator.py</tt></b> -- this is the generator
+    class for the
+    <a href="http://www.python.org/">python.org</a> site.
+    Almost all .html files on the site have a corresponding .ht file,
+    so you should be able to just delete the trailing <em>ml</em> from
+    the url to view it.  Also look around for <tt>links.h</tt> files
+    which contain the sidebar links.
+
+<p><li><b><tt>BAWGenerator.py</tt></b> -- this is the generator for
+    <a href="http://barry.wooz.org/">my personal Web pages</a>.
+
+<p><li><b><tt>JPyGenerator.py</tt></b> -- this was the generator for
+    the old JPython site, but I'm not sure if the same one is still used
+    for the new <a href="http://www.jython.org/">Jython site</a>.
+
+<p><li><b><tt>JPyLocalGenerator.py</tt></b> -- this was the generator
+    for the documentation that comes with JPython.  The neat thing
+    about this was that I can maintain one set of source .ht files for
+    both the on-line version of the docs, and the off-line version
+    that you can access via <tt>file:</tt> URLs once you've installed
+    JPython.  This handles the situation where some links for the
+    off-line version will have to send you out onto the web.
+
+<p><li><b><tt>StandardGenerator.py</tt></b> -- not really used
+    anywhere but provides a fallback when no other generator is
+    specified.  Also, it shows you how simple a generator can be.
+</ul>

@@ -1,0 +1,15 @@
+ht2html.py  --  The www.python.org Web site generator
+
+All the documentation is now on-line, and in fact, is written as a
+demonstration of the ht2html tool.  For more information please visit
+
+    file:///doc/index.html
+
+mirrored at:
+
+    http://barry.wooz.org/software/ht2html
+
+Contact:  Barry Warsaw
+Email:    barry@python.org
+Download: http://barry.wooz.org/software/ht2html
+Version:  1.1

@@ -1,0 +1,26 @@
+
+/* $Id$ */
+
+BODY      		{ background:	white;
+	  		  color:	#484848; 
+			  margin-right: 15%;
+}
+
+A:link    		{ color: 	#645460; }
+A:visited 		{ color: 	#303030; }
+A:active  		{ color: 	#ff9933; }
+
+P:footer  		{ font-size:	x-small; }
+
+TABLE:navigation	{ width:	100%;
+			  border:	0;	 }
+
+TABLE:navigation TR	{ background:	white; 
+			  padding:	10%;	 }
+
+TD:navtitle 		{ color:	#f4a560;
+			  font-size:	xx-large;
+			  text-style:	bold;	 }
+
+IMG			{ border:	0;	 }
+

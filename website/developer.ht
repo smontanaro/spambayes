@@ -1,0 +1,36 @@
+Title: SpamBayes: Developer Info
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h1>Developer info</h1>
+<p>So you want to get involved?</p>
+<h2>Running the code</h2>
+<p>First off, note that as yet, this project hasn't really produced 
+code that's suitable for end-user deployment - it's more of an research
+exercise. That's not to say you <i>can't</i> use this stuff, but if it
+eats your email and signs you up to news.admin.net-abuse.email, don't
+come crying &lt;wink&gt;.
+</p>
+<p>This project uses the absolute bleeding edge of python code, available from <a href="https://sourceforge.net/cvs/?group_id=5470">CVS on sourceforge</a>.
+</p>
+<p>The spambayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>
+</p>
+
+<h2>I just want to make suggestions</h2>
+<p>Excellent! Note though, that this project takes a very results-oriented
+approach to code changes - if the change doesn't produce an improvement in
+results from various test corpuses, it's not going to get very far. </p>
+<p>Note that a lot of "intuitive" approaches and ideas end up making 
+things <i>worse</i>, not better - it seems that stupid beats smart in many
+or even most cases.</p>
+<p>There's a bunch of documentation on things that have already been tried
+available as links from the <a href="documentation.html">documentation</a> page.
+
+<h2>Collecting training data</h2>
+<p>One of the tricky problems is collecting a set of data that's 
+"good enough". There's a few collections of spam out on the net - note
+though, that using spam and ham from different sources often leads to 
+the classifier picking up on these clues -- for instance, a different
+set of hostnames in the Received: headers. 
+This isn't a killer problem - it just means that you need to think harder
+about what to feed into the classifier.</p>

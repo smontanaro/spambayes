@@ -1,0 +1,82 @@
+# This requires GNU make.  -*- makefile -*-
+#
+# To use this, a script must include the following minimal set of
+# stuff:
+#
+# include relative/path/to/scripts/make.rules
+# ROOT_DIR = relative/path/to
+# ROOT_OFFSET = path/of/cwd/relative/to/ROOT_DIR
+#
+# E.g. for the cp4e directory:
+#
+# include ../scripts/make.rules
+# ROOT_DIR = ..
+# ROOT_OFFSET = cp4e
+
+# Make rules for www.python.org ht->html generation.  SOURCES
+# indirection filters out "*.ht" value when no ht files are around.
+SOURCES =	$(shell echo *.ht)
+TARGETS =	$(filter-out *.html,$(SOURCES:%.ht=%.html)) $(EXTRA_TARGETS)
+
+# Where to upload stuff for make install.  LIVE_ROOT is the actual
+# physical location of files on the server.
+LIVE_HOST = 	shell1.sourceforge.net
+LIVE_ROOT =	/home/groups/s/sp/spambayes/htdocs/
+LIVE_DEST =	$(LIVE_HOST):$(LIVE_ROOT)/$(ROOT_OFFSET)
+
+# rsync definitions.
+RSYNC_RSH =	ssh
+
+# Validation
+HTML_CATALOG = /usr/share/sgml/html-4.01/HTML4.cat
+NSGMLS = nsgmls
+
+GLOBAL_EXCLUDES = --exclude-from=$(ROOT_DIR)/scripts/rsync-excludes
+# If the file .rsync-excludes exists in the make dir, use it.
+EXCLUDE_FROM =	$(shell if [ -f .rsync-excludes ]; then \
+			   echo "--exclude-from=.rsync-excludes"; \
+			else \
+			   echo ""; \
+			fi)
+LOCAL_INCLUDE =
+
+SCRIPTDIR =	$(ROOT_DIR)/scripts
+HT2HTML =	$(SCRIPTDIR)/ht2html/ht2html.py
+HTSTYLE =	SpamBayesGenerator
+HTALLFLAGS =	-f -s $(HTSTYLE)
+HTROOT = 	$(shell $(SCRIPTDIR)/calcroot.py $(ROOT_OFFSET))
+HTFLAGS =	$(HTALLFLAGS) -r $(HTROOT)
+HTRELDIR =	.
+
+GENERATED_HTML= $(SOURCES:.ht=.html)
+
+.SUFFIXES:	.ht .html
+.ht.html:
+		$(HT2HTML) $(HTFLAGS) $(HTRELDIR)/$<
+
+all: $(TARGETS)
+
+# $(TARGETS): $(HT2HTML)
+
+clean:
+	-rm -f *~
+
+realclean: clean
+	-rm $(GENERATED_HTML)
+
+install: all local_install
+	@if [ -z "$(ROOT_OFFSET)" ]; then \
+	  echo "You have to specify a value for 'ROOT_OFFSET' in the makefile!"; \
+	  false; \
+	fi
+	@echo Push to $(LIVE_DEST) ...
+	rsync --rsh=$(RSYNC_RSH) -v -r -l -t --update $(LOCAL_INCLUDE) $(GLOBAL_EXCLUDES) $(EXCLUDE_FROM) ./ $(LIVE_DEST)
+
+validate:	$(TARGETS)
+	for f in $(TARGETS); \
+	do echo $$f;\
+	$(NSGMLS) -s -c $(HTML_CATALOG) $$f; \
+	done
+
+# Override local_install in Makefile for directory-specific install actions.
+local_install:

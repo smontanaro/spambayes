@@ -1,0 +1,63 @@
+Title: SpamBayes: Documentation
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<H2>Background reading</h2>
+<ul>
+<li>The paper that started the ball rolling:
+Paul Graham's <a href="http://www.paulgraham.com/spam.html">A Plan for Spam.</a>
+<li>Gary Robinson has an 
+<a href="http://radio.weblogs.com/0101454/stories/2002/09/16/spamDetection.html">interesting essay</a>
+suggesting some improvements to Graham's original approach.
+</ul>
+<p><i>more links? mail anthony at interlink.com.au</i></p>
+
+<H2>Mailing list archives</H2>
+<p>There's a lot of background on what's been tried available from
+the mailing list archives. Initially, the discussion started on 
+the <a href="">python-dev</a> list, but then moved to the 
+<a href="">spambayes</a> list. 
+
+<ul>
+<li>The fun started in <a href="http://mail.python.org/pipermail/python-dev/2002-August/thread.html">August 2002</a>. 
+<a href="http://mail.python.org/pipermail/python-dev/2002-August/thread.html#28085">thread 1</a>, <a href="http://mail.python.org/pipermail/python-dev/2002-August/thread.html#28377">thread 2</a>.
+<li>But wait, there's more! In the <a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html">September</a> archive, 
+<a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28503">thread 1</a>,
+<a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28506">thread 2</a>,
+<a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28534">thread 3</a>,
+<a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28590">thread 4</a>,
+<a href="http://mail.python.org/pipermail/python-dev/2002-September/thread.html#28620">thread 5</a>.
+<li>The discussions then moved to the spambayes <a href="http://mail.python.org/pipermail-21/spambayes/">mailing list</a>.
+</ul>
+
+<h2>CVS commit messages</h2>
+<p>Tim Peter's has whacked a whole lot of useful information into CVS
+commit messages. As the project was moved from an obscure corner of the
+python CVS tree, there's actually two sources of CVS commits.</p>
+
+<ul>
+<li>The older CVS repository via <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/python/python/nondist/sandbox/spambayes/?hideattic=0">view CVS</a>, or the <a href="presfchangelog.html">entire changelog</a>. Development here stopped on the 6th of September 2002.
+<li>After that, work moved to this project's <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/">CVS tree</a>
+</ul>
+
+<h2>Project documentation</h2>
+<ul>
+<li>The <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">README.txt</a> file from the project CVS -- a collection of miscellaneous clues of what's what in the project.
+<li>The <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/TESTING.txt?rev=HEAD&content-type=text/plain">TESTING.txt</a> file -- Clues about the practice of statistical testing, adapted from Tim
+ comments on python-dev.
+<li>There's also a vast number of clues and notes scattered as block comments through the code.
+</ul>
+
+<h2>Glossary</h2>
+<p>A useful(?) glossary of terminology</p>
+<dl>
+<dt>ham<dd>a non-spam. an email that is wanted by the user.
+<dt>f-n<dd>false negative
+<dt>f-p<dd>false positive
+<dt>false negative<dd>a spam that's incorrectly classified as ham.
+<dt>false positive<dd>a ham that's incorrectly classified as spam.
+
+<dt>spam<dd>an email that's not wanted by the end-user.
+</dl>
+
+

@@ -1,0 +1,53 @@
+Title: ht2html.py -- A web page template processor
+
+<h3>ht2html.py -- A web page template processor</h3>
+
+<p>HTML frames are cool in theory, but have severe practical problems.
+The biggest problem with them is that they totally break navigation,
+especially when you end up at a frame page not through the frameset
+HTML.  Bookmarks are also more difficult when using frames.
+
+<p>So the brothers Van Rossum designed the current python.org web site
+to use HTML tables, providing much of the benefit of a frames oriented
+table of contents, without the hassles.  Naturally, Guido had to write
+a Python script to generate the <a href="http://www.python.org">python.org</a> 
+style, which was really cool, except he probably didn't figure that
+other people would want to generate web pages using slightly modified
+versions of that style.
+
+<p>Guido's script wasn't easily extensible or modifiable, so
+<a href="http://www.amk.ca/">Andrew
+Kuchling</a> did another implementation based on Digital Creation's
+(now <a href="http://www.zope.com/">Zope Corporation</a>)
+DocumentTemplate.
+I couldn't grok Andrew's script -- which says much more about me
+than his code or DocumentTemplate -- so I did what any
+self-respecting hacker would do.  I reinvented a third wheel.
+Hey, at least this time I mostly understand how it works.
+
+<p>This script is called <em>ht2html</em> because it generates
+<tt>.html</tt> files from <tt>.ht</tt> template files.  The format of
+these <tt>.ht</tt> files is essentially normal HTML, with a set of
+optional <a href="http://www.faqs.org/rfcs/rfc2822.html">RFC
+2822</a>-like headers at the top of the file.  These headers specify
+certain options that ht2html's various classes support.  You must
+include at least one blank line between the last header and the start
+of the body HTML.
+
+<p>Read about the <a href="components.html">components</a> of a web
+page, how to <a href="style.html">work with stylesheets</a> with
+ht2html, the <a href="docstring.html">docstring</a> containing usage
+information, and see some <a href="examples.html">examples</a> of how
+to set up your own site generators.  Of course, these pages are also
+created by using <em>ht2html</em> and you can see the files used as
+input sources:
+<ul><li><a href="index.ht">index.ht</a>
+    <li><a href="components.ht">components.ht</a>
+    <li><a href="style.ht">style.ht</a>
+    <li><a href="bugs.ht">bugs.ht</a>
+    <li><a href="docstring.ht">docstring.ht</a>
+    <li><a href="examples.ht">examples.ht</a>
+    <li><a href="links.h">links.h</a>
+</ul>
+
+<p><strong>Note:</strong> Python 2.0 or newer is required!

@@ -1,0 +1,66 @@
+Title: Usage
+
+<h3>Usage</h3>
+
+<h4>Synopsys</h4>
+
+Generate a .html file from a .ht template.
+
+<pre>
+ht2html.py [options] file1 [file2 [...]]
+</pre>
+
+<h4>Options</h4>
+
+<dl>
+<dt>--rootdir <em>directory</em><br>
+    -r <em>directory</em>
+<dd>Specify the root of the Web page hierarchy.  Otherwise the current
+    directory is used.
+
+<p><dt>--style <em>classmod</em><br>
+    -s <em>classmod</em>
+<dd>Specifies the generator style.  <em>classmod</em> is both a module
+    name and a class name.  The module is imported (so it must be
+    findable on your sys.path) and the class is dug out of that module
+    (so they must have the same name).  This class is instantiated by
+    passing the following arguments:
+
+    <ul>
+    <li><b>file</b> -- the .ht file to be parsed
+    <li><b>rootdir</b>  -- as specified above
+    <li><b>relthis</b> -- the directory path to get from rootdir to the current
+                    directory.  Note that <em>rootdir</em> must be a direct
+                    parent of the current directory.
+
+    <em>file</em> should be passed to <tt>HTParser</tt> to create an
+    instance of the file parser.  Your class should also create a
+    <tt>LinkFixer</tt> using (the .html version of) <em>file</em>,
+    <em>rootdir</em>, and <em>relthis</em>.
+
+<p><dt>--backup<br>
+    -b
+<dd>Make a backup of any existing .html if it would get overwritten.
+
+<p><dt>--backupext <em>ext</em><br>
+    -x <em>ext</em>
+<dd>Specify the extension for backup files.  Otherwise <tt>.bak</tt>
+    is used.
+
+<p><dt>--force<br>
+    -f
+<dd>Force overwritting of .html file even if the generated file is the
+    same.  Otherwise only overwrite .html file if the new one is
+    different.
+
+<p><dt>--version<br>
+    -v
+<dd>Print the version number and exit.
+
+<p><dt>--quiet<br>
+    -q
+<dd>Be quiet.
+
+<p><dt>--help<br>
+    -h
+<dd>Print this message and exit.

@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<!-- THIS PAGE IS AUTOMATICALLY GENERATED.  DO NOT EDIT. -->
+<!-- Fri Apr  5 00:01:40 2002 -->
+<!-- USING HT2HTML 2.0 -->
+<!-- SEE http://ht2html.sf.net -->
+<!-- User-specified headers:
+Title: Usage
+
+-->
+
+<head>
+<title>Usage</title>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta name="generator" content="HT2HTML/2.0">
+<style type="text/css">
+body { margin: 0px; }
+</style>
+</head>
+<body bgcolor="#ffffff" text="#000000"
+      marginwidth="0" marginheight="0"
+      link="#0000bb"  vlink="#551a8b"
+      alink="#ff0000">
+<!-- start of page table -->
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<!-- start of banner row -->
+<tr>
+<!-- start of corner cells -->
+<td width="150" valign="middle" bgcolor="#4fa445" class="corner">
+
+<center>
+    <a href="index.html">
+    <img alt="ht2html" border="0"
+         src="ht2html.png"></a></center> </td>
+<td width="15" bgcolor="#89aaaa">&nbsp;&nbsp;</td><!--spacer-->
+<!-- end of corner cells -->
+<!-- start of banner -->
+<td width="90%" bgcolor="#89aaaa" class="banner">
+<!-- start of site links table -->
+<table width="100%" border="0"
+cellspacing="0" cellpadding="0"
+       bgcolor="#ffffff">
+<tr>
+    <td bgcolor="#89aaaa">
+<a href="index.html">Home</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://www.python.org/">Python.Org</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://barry.wooz.org/">Barry's home page</a>
+    </td>
+    <td bgcolor="#89aaaa">
+<a href="http://sf.net/projects/ht2html">ht2html @ SourceForge</a>
+    </td>
+</tr>
+</table><!-- end of site links table -->
+
+</td><!-- end of banner -->
+</tr><!-- end of banner row -->
+<tr><!-- start of sidebar/body row -->
+<!-- start of sidebar cells -->
+<td width="150" valign="top" bgcolor="#89aaaa" class="sidebar">
+<!-- start of sidebar table -->
+<table width="100%" border="0" cellspacing="0" cellpadding="3"
+       bgcolor="#ffffff">
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+Subsections
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="index.html">Introduction</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="components.html">Web&nbsp;page&nbsp;components</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="bugs.html">Bugs&nbsp;and&nbsp;Peculiarities</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="docstring.html">Usage</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="style.html">Using Stylesheets</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<b>Examples</b>
+</td></tr>
+<tr><td bgcolor="#89aaaa">&nbsp;
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+ht2html sites
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://barry.wooz.org/">Barry's&nbsp;home&nbsp;page</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/">Python.Org</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.jython.org/">Jython.Org</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.list.org/">GNU&nbsp;Mailman</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://tmda.sf.net/">TMDA</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://acvalbonne.online.fr/">Cycling&nbsp;Club</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">&nbsp;
+<tr><td bgcolor="#238e68"><b><font color="#ffffff">
+Email me
+</font></b></td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="mailto:barry@python.org">Barry A. Warsaw</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&nbsp;
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/">
+<center>
+    <img alt="[Python Powered]" border="0"
+         src="PythonPoweredSmall.png"></center>
+</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&nbsp;
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+&copy; 1999-2002
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="http://www.python.org/psf/">Python Software Foundation</a>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<hr>
+</td></tr>
+<tr><td bgcolor="#89aaaa">
+<a href="examples.ht">[page source]</a>
+</td></tr>
+</table><!-- end of sidebar table -->
+
+</td>
+<td width="15">&nbsp;&nbsp;</td><!--spacer-->
+<!-- end of sidebar cell -->
+<!-- start of body cell -->
+<td valign="top" width="90%" class="body"><br>
+<h3>Examples</h3>
+
+<p>This is what you really want -- examples of how to create your own
+web site styles.  These are done by creating a <em>generator</em>
+class, which customizes not only style elements such as the
+<a href="components#sidebar">sidebar</a>
+colors and the
+<a href="components#corner">corner</a> icon, but also such elements as
+the copyright
+notice and what
+<a href="http://www.faqs.org/rfcs/rfc2822.html">RFC 2822</a>-style
+headers are recognized.  Sorry, but
+there's no really good documentation for how to do this yet, so UTSL.
+Here are a list of generator classes I've included:
+
+<ul>
+<li><b><tt>SelfGenerator.py</tt></b> -- this is the generator class
+    for the <a href="index.html">ht2html</a> documentation pages.
+
+<p><li><b><tt>PDOGenerator.py</tt></b> -- this is the generator
+    class for the
+    <a href="http://www.python.org/">python.org</a> site.
+    Almost all .html files on the site have a corresponding .ht file,
+    so you should be able to just delete the trailing <em>ml</em> from
+    the url to view it.  Also look around for <tt>links.h</tt> files
+    which contain the sidebar links.
+
+<p><li><b><tt>BAWGenerator.py</tt></b> -- this is the generator for
+    <a href="http://barry.wooz.org/">my personal Web pages</a>.
+
+<p><li><b><tt>JPyGenerator.py</tt></b> -- this was the generator for
+    the old JPython site, but I'm not sure if the same one is still used
+    for the new <a href="http://www.jython.org/">Jython site</a>.
+
+<p><li><b><tt>JPyLocalGenerator.py</tt></b> -- this was the generator
+    for the documentation that comes with JPython.  The neat thing
+    about this was that I can maintain one set of source .ht files for
+    both the on-line version of the docs, and the off-line version
+    that you can access via <tt>file:</tt> URLs once you've installed
+    JPython.  This handles the situation where some links for the
+    off-line version will have to send you out onto the web.
+
+<p><li><b><tt>StandardGenerator.py</tt></b> -- not really used
+    anywhere but provides a fallback when no other generator is
+    specified.  Also, it shows you how simple a generator can be.
+</ul>
+
+</td><!-- end of body cell -->
+</tr><!-- end of sidebar/body row -->
+</table><!-- end of page table -->
+</body></html>
