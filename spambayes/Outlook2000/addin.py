@@ -1537,7 +1537,7 @@ if __name__ == '__main__':
     # is still the preferred way of registering our binary.
     if hasattr(sys, "frozen"):
         sys.frozendllhandle = win32api.LoadLibrary("outlook_addin.dll")
-        sys.frozen = "dll"
+        pythoncom.frozen = sys.frozen = "dll"
         # Without this, com registration will look at class.__module__, and
         # get all confused about the module name holding our class in the DLL
         OutlookAddin._reg_class_spec_ = "addin.OutlookAddin"
