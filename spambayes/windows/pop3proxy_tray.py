@@ -25,6 +25,7 @@ import sys
 import webbrowser
 import thread
 import traceback
+import socket
 
 # This should just be imported from dialogs.dlgutils, but
 # I'm not sure that we can import from the Outlook2000
@@ -169,7 +170,7 @@ class MainWindow(object):
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon, 
             "SpamBayes")
         Shell_NotifyIcon(NIM_ADD, nid)
-        self.started = False
+        self.started = self.IsPortBound()
         self.tip = None
       
         try:
@@ -194,6 +195,19 @@ class MainWindow(object):
         if not self.started:
             self.StartStop()
 
+    def IsPortBound(self):        
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.25)
+        inuse = False
+        try:
+            s.bind(("0.0.0.0",options["html_ui", "port"],))
+        except:
+            inuse = True
+        s.close()
+        s = None
+        return inuse
+
+
     def BuildToolTip(self):
         tip = None
         if self.started:
@@ -210,13 +224,19 @@ class MainWindow(object):
             
 
     def UpdateIcon(self):
-        flags = NIF_TIP | NIF_ICON
+        flags = NIF_TIP | NIF_ICON        
         if self.started:
             hicon = self.hstartedicon 
         else:
             hicon = self.hstoppedicon
         self.tip = self.BuildToolTip()
         nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, hicon, self.tip)
+        if self.started:
+            self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
+                                                     self.StartStop)
+        else:
+            self.control_functions[START_STOP_ID] = ("Start SpamBayes",
+                                         self.StartStop)
         Shell_NotifyIcon(NIM_MODIFY, nid)
 
     def IsServiceAvailable(self):
@@ -319,7 +339,8 @@ class MainWindow(object):
 
     def OnTaskbarNotify(self, hwnd, msg, wparam, lparam):
         if lparam==win32con.WM_MOUSEMOVE:
-            if self.tip != self.BuildToolTip():
+            if self.tip != self.BuildToolTip() or self.started != self.IsPortBound():
+                self.started = self.IsPortBound()
                 self.UpdateIcon()
         if lparam==win32con.WM_LBUTTONUP:
             # We ignore left clicks
@@ -387,12 +408,6 @@ class MainWindow(object):
             else:
                 self.StartProxyThread()
         self.UpdateIcon()
-        if self.started:
-            self.control_functions[START_STOP_ID] = ("Stop SpamBayes",
-                                                     self.StartStop)
-        else:
-            self.control_functions[START_STOP_ID] = ("Start SpamBayes",
-                                         self.StartStop)
 
     def OpenInterface(self):
         if self.started:
