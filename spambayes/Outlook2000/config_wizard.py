@@ -43,23 +43,31 @@ def InitWizardConfig(manager, new_config, from_existing):
         ids = copy.copy(manager.config.filter.watch_folder_ids)
         for id in ids:
             # Only get the folders that actually exist.
-            if manager.message_store.GetFolder(id) is not None:
+            try:
+                manager.message_store.GetFolder(id)
+                # if we get here, it exists!
                 new_config.filter.watch_folder_ids.append(id)
+            except manager.message_store.MsgStoreException:
+                pass
     if not new_config.filter.watch_folder_ids:
         for folder in manager.message_store.YieldReceiveFolders():
             new_config.filter.watch_folder_ids.append(folder.GetID())
     if from_existing:
         fc = manager.config.filter
         if fc.spam_folder_id:
-            folder = manager.message_store.GetFolder(fc.spam_folder_id)
-            if folder is not None:
+            try:
+                folder = manager.message_store.GetFolder(fc.spam_folder_id)
                 new_config.filter.spam_folder_id = folder.GetID()
                 wc.spam_folder_name = ""
+            except manager.message_store.MsgStoreException:
+                pass
         if fc.unsure_folder_id:
-            folder = manager.message_store.GetFolder(fc.unsure_folder_id)
-            if folder is not None:
+            try:
+                folder = manager.message_store.GetFolder(fc.unsure_folder_id)
                 new_config.filter.unsure_folder_id = folder.GetID()
                 wc.unsure_folder_name = ""
+            except manager.message_store.MsgStoreException:
+                pass
         tc = manager.config.training
         if tc.ham_folder_ids:
             new_config.training.ham_folder_ids = tc.ham_folder_ids
