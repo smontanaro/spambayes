@@ -5,25 +5,17 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>First off, note that as yet, this project hasn't really produced 
-code that's suitable for end-user deployment - it's more of an research
-exercise. That's not to say you <i>can't</i> use this stuff, but if it
-eats your email and signs you up to news.admin.net-abuse.email, don't
-come crying &lt;wink&gt;.
+<p>This project works with either Python 2.2.2, Python2.3 (currently in alpha), 
+or on the bleeding edge of python code,
+available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
+sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
+likely to do so.  </p>
+<p>If you're running Python 2.2 or 2.2.1, you'll need to separately fetch
+the latest <a href="http://mimelib.sf.net">email package</a>. You can get
+this from  
+<a href="http://sourceforge.net/project/showfiles.php?group_id=25568">sourceforge</a> (you'll need version 2.4.3 or later).
 </p>
-<p>This project works with either the absolute bleeding edge of python
-code, available from <a 
-href="http://sourceforge.net/cvs/?group_id=5470">CVS on
-sourceforge</a>, or with Python 2.2 (not 2.1.x or earlier).  Note that
-you really want to be running Python 2.2.2 or Python 2.3cvs to get the
-latest <a href="http://mimelib.sf.net">email package</a>.  If you
-really plan on using an older version of Python, you'll need to
-<a
-href="http://sourceforge.net/project/showfiles.php?group_id=25568">download</a>
-and install the email package (unpack the tarball and read the README
-file for more details).
-</p>
-<p>The spambayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>
+<p>The spambayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>, or from the <a href="download.html">download</a> page.
 </p>
 
 <h2>I just want to make suggestions</h2>

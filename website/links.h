@@ -5,3 +5,7 @@
 <li><a href="applications.html">Applications</a>
 <li><a href="developer.html">Developers</a>
 <li><a href="related.html">Related</a>
+<h3>Getting the code</h3>
+<li><a href="download.html">Releases</a>
+<li><a href="download.html#snapshot">Snapshots</a>
+<li><a href="download.html#cvs">CVS access</a>

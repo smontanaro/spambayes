@@ -2,6 +2,9 @@ Title: SpamBayes: Bayesian anti-spam classifier written in Python.
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
+
+<h2>News</h2>
+<p>First pre-release available. See the <a href="download.html">download</a> page for more.</p>
 <H2>What is SpamBayes?</h2>
 <p>
 The SpamBayes 
@@ -86,21 +89,17 @@ those messages where it can't work out how to rate the message.</p>
 background.</p>
 
 
-<p>The code is currently available 
-<a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a> - 
-note that it's not quite yet suitable for non-technical end-users, but 
-for people interested in experimenting. There's also a <a href="download/spambayes-nightly.tar.gz">nightly snapshot</a> available for download.
+<p>The code is currently available from a variety of methods from the
+<a href="downloads.html">downloads</a> page. The current release is
+1.0 prerelease 1.
 </p>
 
 <p>
 There are now a couple of end-user applications available for those
 excited by the bleeding edge - these are detailed on the 
-<a href="applications.html">Applications</a> page.
+<a href="applications.html">Applications</a> page, and available as
+part of the source download.
 </p>
-
-<p>At the moment, these packages require CVS access to install, 
-but we're currently working on packaging these up for easy end-user 
-use - stay tuned!</p>
 
 <h2>Mailing list</h2>
 <p>There are currently two mailing lists of interest:</p>

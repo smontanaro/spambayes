@@ -1,0 +1,45 @@
+Title: SpamBayes: Download
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h2>Source Releases</h2>
+<p>The first pre-release of version 1.0 of the spambayes project is available.
+Download version 1.0a1 from the sourceforge <a href="https://sourceforge.net/project/showfiles.php?group_id=61702">Files</a> page as either a gzipped tarball or a zip file of the source files.
+</p>
+
+<p>The primary goal of this pre-release is to shake out any packaging, installation, or integration issues that might be lurking. Feedback to <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
+<p>Prerequisites:
+<ul>Either: 
+<li>Python 2.2.2, Python 2.3a1, or a CVS build of python, or
+<li>Python 2.2, 2.2.1, plus the latest <a href="http://mimelib.sf.net">email package</a>.
+</ul>
+<p>Once you've downloaded and unpacked the source archive, do the regular <tt>setup.py build; setup.py install</tt> dance, then:
+<ul>
+<li>if you're running Outlook2000, change to the Outlook2000 directory and run '<tt>addin.py</tt>'. See the 'about.html' file in the Outlook2000 directory for more.
+<li>otherwise, consult the <tt>INTEGRATION.txt</tt> file in the package and choose the method that suits your setup best.
+</ul>
+</p>
+
+<h2>Binary Releases</h2>
+<p>None as yet.</p>
+
+<a name="cvs"><h2>CVS Access</h2></a>
+<p>The code is currently available from sourceforge's CVS server -
+<a href="http://sourceforge.net/cvs/?group_id=61702">see here</a> for
+more details. 
+</p>
+<p><b>Update:</b></p>
+<p class="note">
+(2003-01-14 14:04:19 - Project CVS Services)   As of 2003-01-14,
+pserver-based CVS repository access and ViewCVS (web-based) CVS repository
+access have been taken offline as to stabilize CVS server performance for
+developers. These services will be re-enabled as soon as the underlying
+scalability issues have been analyzed and resolved (as soon as 2003-01-15,
+if possible). Additional updates will be posted to the Site Status page as
+they become available. Your patience is appreciated.
+</p>
+
+<a name="snapshot"><h2>Nightly snapshots</h2></a>
+<p>A nightly snapshot is available: <a href="download/spambayes-nightly.tar.gz">spambayes-nightly.tar.gz</a>. </p>
+<p class="note">Note that due to some Sourceforge issues, this is currently being built with a "manual cron" (i.e. when I remember). Once Sourceforge's CVS issues are resolved, this will be available automatically.</p>
+
