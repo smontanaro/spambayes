@@ -331,9 +331,9 @@ and ham in your 'training' folders for you into this format (or close
 enough).
 
 Basically the idea is that you should have 10 sets of data, each with
-200 to 500 messages in them; this means about 2500 spam and 2500 ham.
-Obviously if you're testing something to do with the size of a corpus,
-you'll want to change that.  You then want to run
+200 to 500 messages in them.  Obviously if you're testing something to
+do with the size of a corpus, you'll want to change that.  You then want
+to run
     timcv.py -n 10 > std.txt
 (call std.txt whatever you like), and then
     rates.py std.txt
