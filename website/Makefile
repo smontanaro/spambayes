@@ -58,4 +58,5 @@ download/Version.cfg: $(VERSION_PY)
 
 local_install: 
 	cd download ; $(MAKE) install
+	cd apps; $(MAKE) install
 
