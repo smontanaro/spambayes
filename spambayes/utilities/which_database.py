@@ -78,6 +78,9 @@ def main():
             print "Your storage %s is a: pickle" % (hammie,)
             return
 
+    if not os.path.exists(hammie):
+        print "Your storage file does not exist yet."
+        return
     db_type = whichdb.whichdb(hammie)
     if db_type == "dbhash":
         # could be dbhash or bsddb3
@@ -87,8 +90,7 @@ def main():
             print "Your storage %s is a: bsddb3" % (hammie,)
             return
     elif db_type is None:
-        print "Your storage %s either does not exist, or is unreadable." % \
-              (hammie,)
+        print "Your storage %s is unreadable." % (hammie,)
     print "Your storage %s is a: %s" % (hammie, db_type)
 
 if __name__ == "__main__":
