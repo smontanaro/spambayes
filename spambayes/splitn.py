@@ -45,6 +45,8 @@ import mailbox
 import email
 import getopt
 
+import mboxutils
+
 program = sys.argv[0]
 
 def usage(code, msg=''):
@@ -52,12 +54,6 @@ def usage(code, msg=''):
     if msg:
         print >> sys.stderr, msg
     sys.exit(code)
-
-def _factory(fp):
-    try:
-        return email.message_from_file(fp)
-    except email.Errors.MessageParseError:
-        return ''
 
 def main():
     try:
@@ -88,7 +84,7 @@ def main():
     outfiles = [file(outputbasepath + ("%d.mbox" % i), 'wb')
                 for i in range(1, n+1)]
 
-    mbox = mailbox.PortableUnixMailbox(infile, _factory)
+    mbox = mailbox.PortableUnixMailbox(infile, mboxutils.get_message)
     counter = 0
     for msg in mbox:
         i = random.randrange(n)

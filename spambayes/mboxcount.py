@@ -33,9 +33,9 @@ import email
 import getopt
 import glob
 
-program = sys.argv[0]
+from mboxutils import get_message
 
-_marker = object()
+program = sys.argv[0]
 
 def usage(code, msg=''):
     print >> sys.stderr, __doc__
@@ -43,19 +43,13 @@ def usage(code, msg=''):
         print >> sys.stderr, msg
     sys.exit(code)
 
-def _factory(fp):
-    try:
-        return email.message_from_file(fp)
-    except email.Errors.MessageParseError:
-        return _marker
-
 def count(fname):
     fp = open(fname, 'rb')
-    mbox = mailbox.PortableUnixMailbox(fp, _factory)
+    mbox = mailbox.PortableUnixMailbox(fp, get_message)
     goodcount = 0
     badcount = 0
     for msg in mbox:
-        if msg is _marker:
+        if msg["to"] is None and msg["cc"] is None:
             badcount += 1
         else:
             goodcount += 1

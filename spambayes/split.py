@@ -31,6 +31,8 @@ import mailbox
 import email
 import getopt
 
+import mboxutils
+
 program = sys.argv[0]
 
 
@@ -40,14 +42,6 @@ def usage(code, msg=''):
     if msg:
         print >> sys.stderr, msg
     sys.exit(code)
-
-
-
-def _factory(fp):
-    try:
-        return email.message_from_file(fp)
-    except email.Errors.MessageParseError:
-        return ''
 
 
 
@@ -80,7 +74,7 @@ def main():
     bin2out = open(bin2, 'wb')
     infp = open(mboxfile, 'rb')
 
-    mbox = mailbox.PortableUnixMailbox(infp, _factory)
+    mbox = mailbox.PortableUnixMailbox(infp, mboxutils.get_message)
     for msg in mbox:
         if random.random() < percent:
             outfp = bin1out
