@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-# At the moment, this requires Python 2.3 from CVS (heapq, Set, enumerate).
 
 # A test driver using "the standard" test directory structure.  See also
-# rates.py and cmp.py for summarizing results.
+# rates.py and cmp.py for summarizing results.  This runs an NxN test grid,
+# skipping the diagonal.
 
-"""Usage: %(program)s [-h] -n nsets
+"""Usage: %(program)s  [options] -n nsets
 
 Where:
     -h
@@ -13,18 +13,32 @@ Where:
         Number of Set directories (Data/Spam/Set1, ... and Data/Ham/Set1, ...).
         This is required.
 
+If you only want to use some of the messages in each set,
+
+    --ham-keep int
+        The maximum number of msgs to use from each Ham set.  The msgs are
+        chosen randomly.  See also the -s option.
+
+    --spam-keep int
+        The maximum number of msgs to use from each Spam set.  The msgs are
+        chosen randomly.  See also the -s option.
+
+    -s int
+        A seed for the random number generator.  Has no effect unless
+        at least on of {--ham-keep, --spam-keep} is specified.  If -s
+        isn't specifed, the seed is taken from current time.
+
 In addition, an attempt is made to merge bayescustomize.ini into the options.
 If that exists, it can be used to change the settings in Options.options.
 """
 
 from __future__ import generators
 
-import os
 import sys
 
 from Options import options
-from tokenizer import tokenize
-from TestDriver import Driver
+import TestDriver
+import msgs
 
 program = sys.argv[0]
 
@@ -36,51 +50,6 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
-class Msg(object):
-    def __init__(self, dir, name):
-        path = dir + "/" + name
-        self.tag = path
-        f = open(path, 'rb')
-        guts = f.read()
-        f.close()
-        self.guts = guts
-
-    def __iter__(self):
-        return tokenize(self.guts)
-
-    def __hash__(self):
-        return hash(self.tag)
-
-    def __eq__(self, other):
-        return self.tag == other.tag
-
-    def __str__(self):
-        return self.guts
-
-class MsgStream(object):
-    def __init__(self, directory):
-        self.directory = directory
-
-    def __str__(self):
-        return self.directory
-
-    def produce(self):
-        directory = self.directory
-        for fname in os.listdir(directory):
-            yield Msg(directory, fname)
-
-    def xproduce(self):
-        import random
-        directory = self.directory
-        all = os.listdir(directory)
-        random.seed(hash(directory))
-        random.shuffle(all)
-        for fname in all[-1500:-1300:]:
-            yield Msg(directory, fname)
-
-    def __iter__(self):
-        return self.produce()
-
 def drive(nsets):
     print options.display()
 
@@ -88,35 +57,48 @@ def drive(nsets):
     hamdirs  = ["Data/Ham/Set%d" % i for i in range(1, nsets+1)]
     spamhamdirs = zip(spamdirs, hamdirs)
 
-    d = Driver()
+    d = TestDriver.Driver()
     for spamdir, hamdir in spamhamdirs:
         d.new_classifier()
-        d.train(MsgStream(hamdir), MsgStream(spamdir))
+        d.train(msgs.HamStream(hamdir, [hamdir]),
+                msgs.SpamStream(spamdir, [spamdir]))
         for sd2, hd2 in spamhamdirs:
             if (sd2, hd2) == (spamdir, hamdir):
                 continue
-            d.test(MsgStream(hd2), MsgStream(sd2))
+            d.test(msgs.HamStream(hd2, [hd2]),
+                   msgs.SpamStream(sd2, [sd2]))
         d.finishtest()
     d.alldone()
 
-if __name__ == "__main__":
+def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hn:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:s:',
+                                   ['ham-keep=', 'spam-keep='])
     except getopt.error, msg:
         usage(1, msg)
 
-    nsets = None
+    nsets = seed = hamkeep = spamkeep = None
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
         elif opt == '-n':
             nsets = int(arg)
+        elif opt == '-s':
+            seed = int(arg)
+        elif opt == '--ham-keep':
+            hamkeep = int(arg)
+        elif opt == '--spam-keep':
+            spamkeep = int(arg)
 
     if args:
         usage(1, "Positional arguments not supported")
     if nsets is None:
         usage(1, "-n is required")
 
+    msgs.setparms(hamkeep, spamkeep, seed)
     drive(nsets)
+
+if __name__ == "__main__":
+    main()

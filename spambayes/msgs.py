@@ -1,6 +1,8 @@
 import os
 import random
 
+from tokenizer import tokenize
+
 HAMKEEP  = None
 SPAMKEEP = None
 SEED = random.randrange(2000000000)
@@ -28,7 +30,8 @@ class Msg(object):
     def __str__(self):
         return self.guts
 
-# The iterator yields a stream of Msg objects, taken from a list of directories.
+# The iterator yields a stream of Msg objects, taken from a list of
+# directories.
 class MsgStream(object):
     __slots__ = 'tag', 'directories', 'keep'
 
