@@ -424,7 +424,7 @@ defaults = {
      REAL, RESTORE),
  
     ("use_gary_combining", "Use gary-combining", False,
-     """The combining scheme currently detailed on the Robinon web page.
+     """The combining scheme currently detailed on the Robinson web page.
      The middle ground here is touchy, varying across corpus, and within
      a corpus across amounts of training data.  It almost never gives
      extreme scores (near 0.0 or 1.0), but the tail ends of the ham and
@@ -870,6 +870,32 @@ defaults = {
     ("spam_train_folders", "Folders with mail to be trained as spam", (),
      """Comma delimited list of folders that will be examined for messages
      to train as spam.""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
+
+    ("move_trained_spam_to_folder", "Folder to move trained spam to", "",
+     """When training, all messages in the spam training folder(s) (above)
+     are examined - if they are new, they are used to train, if not, they
+     are ignored.  This examination does take time, however, so if speed
+     is an issue for you, you may wish to move messages out of this folder
+     once they have been trained (either to delete them or to a storage
+     folder).  If a folder name is specified here, this will happen
+     automatically.  Note that the filter is not yet clever enough to
+     move the mail to different folders depending on which folder it
+     was originally in - *all* messages will be moved to the same
+     folder.""",
+     IMAP_FOLDER, DO_NOT_RESTORE),
+
+    ("move_trained_ham_to_folder", "Folder to move trained ham to", "",
+     """When training, all messages in the ham training folder(s) (above)
+     are examined - if they are new, they are used to train, if not, they
+     are ignored.  This examination does take time, however, so if speed
+     is an issue for you, you may wish to move messages out of this folder
+     once they have been trained (either to delete them or to a storage
+     folder).  If a folder name is specified here, this will happen
+     automatically.  Note that the filter is not yet clever enough to
+     move the mail to different folders depending on which folder it
+     was originally in - *all* messages will be moved to the same
+     folder.""",
      IMAP_FOLDER, DO_NOT_RESTORE),
   ),
  

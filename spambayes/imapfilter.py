@@ -533,6 +533,14 @@ class IMAPFolder(object):
                 classifier.learn(msg.asTokens(), isSpam)
                 num_trained += 1
                 msg.RememberTrained(isSpam)
+                if isSpam:
+                    move_opt_name = "move_trained_spam_to_folder"
+                else:
+                    move_opt_name = "move_trained_ham_to_folder"
+                if options["imap", move_opt_name] != "":
+                    msg.MoveTo(IMAPFolder(options["imap",
+                                                  move_opt_name]))
+                    msg.Save()
         return num_trained                
 
     def Filter(self, classifier, spamfolder, unsurefolder):
