@@ -1172,7 +1172,7 @@ class Tokenizer:
                 pfx = os.path.commonprefix(all_addrs)
                 if pfx:
                     score = (len(pfx) * len(all_addrs)) // 10
-                    # After staring at pflen:* values generated from a large
+                    # After staring at pfxlen:* values generated from a large
                     # number of ham & spam I saw that any scores greater
                     # than 3 were always associated with spam.  Collapsing
                     # all such scores into a single token avoids a bunch of
@@ -1181,6 +1181,37 @@ class Tokenizer:
                         yield "pfxlen:big"
                     else:
                         yield "pfxlen:%d" % score
+
+        # same idea as above, but works for addresses in the same domain
+        # like
+        #   To: "skip" <bugs@mojam.com>, <chris@mojam.com>,
+        #       <concertmaster@mojam.com>, <concerts@mojam.com>,
+        #       <design@mojam.com>, <rob@mojam.com>, <skip@mojam.com>
+        if options.summarize_email_suffixes:
+            all_addrs = []
+            addresses = msg.get_all('to', []) + msg.get_all('cc', [])
+            for name, addr in email.Utils.getaddresses(addresses):
+                # flip address code so following logic is the same as
+                # that for prefixes
+                addr = list(addr)
+                addr.reverse()
+                addr = "".join(addr)
+                all_addrs.append(addr.lower())
+                
+            if len(all_addrs) > 1:
+                # don't be fooled by "os.path." - commonprefix
+                # operates char-by-char!
+                sfx = os.path.commonprefix(all_addrs)
+                if sfx:
+                    score = (len(sfx) * len(all_addrs)) // 10
+                    # Similar analysis as above regarding suffix length
+                    # I suspect the best cutoff is probably dependent on
+                    # how long the recipient domain is (e.g. "mojam.com" vs.
+                    # "montanaro.dyndns.org")
+                    if score > 5:
+                        yield "sfxlen:big"
+                    else:
+                        yield "sfxlen:%d" % score
 
         # To:
         # Cc:
