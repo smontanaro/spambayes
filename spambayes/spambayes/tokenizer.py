@@ -16,9 +16,16 @@ import binascii
 import urlparse
 import urllib
 try:
-    from sets import Set
-except ImportError:
-    from compatsets import Set
+    # We have three possibilities for Set:
+    #  (a) With Python 2.2 and earlier, we use our compatsets class
+    #  (b) With Python 2.3, we use the sets.Set class
+    #  (c) With Python 2.4 and later, we use the builtin set class
+    Set = set
+except NameError:
+    try:
+        from sets import Set
+    except ImportError:
+        from spambayes.compatsets import Set
 
 from spambayes import classifier
 from spambayes.Options import options
