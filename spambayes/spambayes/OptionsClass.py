@@ -139,7 +139,7 @@ class Option(object):
         if self.allowed_values is None:
             return False
 
-        if type(self.value) in MultiContainerTypes:
+        if self.multiple_values_allowed():
             return self.is_valid_multiple(value)
         else:
             return self.is_valid_single(value)

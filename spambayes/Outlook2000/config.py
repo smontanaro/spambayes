@@ -77,6 +77,9 @@ class FolderIDOption(Option):
             return ""
         return str(self.value)
     
+    def multiple_values_allowed(self):
+        return type(self.value)==types.ListType
+
     def is_valid_single(self, value):
         return value is None or \
                (type(value)==types.TupleType and \
