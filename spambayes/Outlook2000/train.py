@@ -5,26 +5,51 @@
 
 import sys, os, traceback
 
-def train_folder( f, isspam, mgr, progress):
+def train_message(msg, is_spam, mgr):
+    # Train an individual message.
+    # Returns True if newly added (message will be correctly
+    # untrained if it was in the wrong category), False if already
+    # in the correct category.  Catch your own damn exceptions.
     from tokenizer import tokenize
-    num = 0
+    stream = msg.GetEmailPackageObject()
+    tokens = tokenize(stream)
+    # Handle we may have already been trained.
+    was_spam = mgr.message_db.get(msg.id)
+    if was_spam is None:
+        # never previously trained.
+        pass
+    elif was_spam == is_spam:
+        # Already in DB - do nothing (full retrain will wipe msg db)
+        # leave now.
+        return False
+    else:
+        mgr.bayes.unlearn(tokens, was_spam, False)
+    # OK - setup the new data.
+    mgr.bayes.learn(tokens, is_spam, False)
+    mgr.message_db[msg.id] = is_spam
+    mgr.bayes_dirty = True
+    return True
+    
+def train_folder( f, isspam, mgr, progress):
+    num = num_added = 0
     for message in f.GetMessageGenerator():
         if progress.stop_requested():
             break
         progress.tick()
         try:
-            stream = message.GetEmailPackageObject()
-            mgr.bayes.learn(tokenize(stream), isspam, False)
+            if train_message(message, isspam, mgr):
+                num_added += 1
         except:
             print "Error training message '%s'" % (message,)
             traceback.print_exc()
         num += 1
-    print "Trained over", num, "in folder", f.name
+    print "Checked", num, "in folder", f.name, "-", num_added, "new entries found."
 
 # Called back from the dialog to do the actual training.
-def trainer(mgr, progress):
+def trainer(mgr, progress, rebuild):
     config = mgr.config
-    mgr.InitNewBayes()
+    if rebuild:
+        mgr.InitNewBayes()
     bayes = mgr.bayes
 
     if not config.training.ham_folder_ids or not config.training.spam_folder_ids:
@@ -58,7 +83,6 @@ def trainer(mgr, progress):
     progress.tick()
     if progress.stop_requested():
         return
-    mgr.bayes_dirty = True
     progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
 
 def main():

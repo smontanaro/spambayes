@@ -51,6 +51,7 @@ class BayesManager:
         config_base = os.path.abspath(config_base)
         self.ini_filename = config_base + "_bayes_customize.ini"
         self.bayes_filename = config_base + "_bayes_database.pck"
+        self.message_db_filename = config_base + "_message_database.pck"
         self.config_filename = config_base + "_configuration.pck"
 
         # First read the configuration file.
@@ -75,7 +76,7 @@ class BayesManager:
             raise ManagerError("The file '%s' must exist before the "
                                "database '%s' can be opened or created" % (
                                self.ini_filename, self.bayes_filename))
-        bayes = None
+        bayes = message_db = None
         try:
             bayes = cPickle.load(open(self.bayes_filename, 'rb'))
             print "Loaded bayes database from '%s'" % (self.bayes_filename,)
@@ -85,13 +86,28 @@ class BayesManager:
             print "Failed to load bayes database"
             import traceback
             traceback.print_exc()
-        if bayes is None:
+        try:
+            message_db = cPickle.load(open(self.message_db_filename, 'rb'))
+            print "Loaded message database from '%s'" % (self.message_db_filename,)
+        except IOError:
+            pass
+        except:
+            print "Failed to load bayes message database"
+            import traceback
+            traceback.print_exc()
+        if bayes is None or message_db is None:
+            print "Either bayes database or message database is missing - creating new"
             self.InitNewBayes()
             bayes = self.bayes
+            message_db = self.message_db
         if self.verbose:
             print ("Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
+        if len(message_db) != bayes.nham + bayes.nspam:
+            print "*** - message database only has %d messages - bayes has %d - something is screwey" % \
+                    (len(message_db), bayes.nham + bayes.nspam)
         self.bayes = bayes
+        self.message_db = message_db
         self.bayes_dirty = False
 
     def LoadConfig(self):
@@ -124,6 +140,7 @@ class BayesManager:
 
     def InitNewBayes(self):
         self.bayes = bayes_classifier.Bayes()
+        self.message_db = {} # OK, so its not quite a DB yet <wink>
         self.bayes_dirty = True
 
     def SaveBayes(self):
@@ -133,6 +150,10 @@ class BayesManager:
                    (bayes.nspam, bayes.nham))
             print " ->", self.bayes_filename
         cPickle.dump(bayes, open(self.bayes_filename,"wb"), 1)
+        if self.verbose:
+            print " ->", self.message_db_filename
+        cPickle.dump(self.message_db, open(self.message_db_filename,"wb"), 1)
+        self.bayes_dirty = False
 
     def SaveConfig(self):
         if self.verbose > 1:
@@ -145,7 +166,6 @@ class BayesManager:
         self.SaveConfig()
         if self.bayes_dirty:
             self.SaveBayes()
-            self.bayes_dirty = False
         else:
             print "Bayes database is not dirty - not writing"
 
