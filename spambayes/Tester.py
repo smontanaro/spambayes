@@ -1,7 +1,7 @@
 from Options import options
 
 class Test:
-    # Pass a classifier instance (an instance of GrahamBayes).
+    # Pass a classifier instance (an instance of Bayes).
     # Loop:
     #     # Train the classifer with new ham and spam.
     #     train(ham, spam) # this implies reset_test_results
@@ -127,13 +127,13 @@ class _Example:
         return iter(self.words)
 
 _easy_test = """
-    >>> from classifier import GrahamBayes
+    >>> from classifier import Bayes
 
     >>> good1 = _Example('', ['a', 'b', 'c'] * 10)
     >>> good2 = _Example('', ['a', 'b'] * 10)
     >>> bad1 = _Example('', ['d'] * 10)
 
-    >>> t = Test(GrahamBayes())
+    >>> t = Test(Bayes())
     >>> t.train([good1, good2], [bad1])
     >>> t.predict([_Example('goodham', ['a', 'b']),
     ...            _Example('badham', ['d'])

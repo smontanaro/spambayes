@@ -216,7 +216,7 @@ class WordInfo(object):
         (self.atime, self.spamcount, self.hamcount, self.killcount,
          self.spamprob) = t
 
-class GrahamBayes(object):
+class Bayes(object):
     __slots__ = ('wordinfo',  # map word to WordInfo record
                  'nspam',     # number of spam messages learn() has seen
                  'nham',      # number of non-spam messages learn() has seen

@@ -38,7 +38,7 @@ def main():
     spam_name = sys.argv[1]
     ham_name = sys.argv[2]
     db_name = sys.argv[3]
-    bayes = classifier.GrahamBayes()
+    bayes = classifier.Bayes()
     print 'Training with spam...'
     train(bayes, spam_name, True)
     print 'Training with ham...'

@@ -135,11 +135,11 @@ class DBDict:
         return self.__iter__(lambda k: k[1])
 
 
-class PersistentGrahamBayes(classifier.GrahamBayes):
+class PersistentGrahamBayes(classifier.Bayes):
 
-    """A persistent GrahamBayes classifier.
+    """A persistent Bayes classifier.
 
-    This is just like classifier.GrahamBayes, except that the dictionary
+    This is just like classifier.Bayes, except that the dictionary
     is a database.  You take less disk this way, I think, and you can
     pretend it's persistent.  It's much slower training, but much faster
     checking, and takes less memory all around.
@@ -160,7 +160,7 @@ class PersistentGrahamBayes(classifier.GrahamBayes):
     # should just use ZODB.
 
     def __init__(self, dbname):
-        classifier.GrahamBayes.__init__(self)
+        classifier.Bayes.__init__(self)
         self.statekey = "saved state"
         self.wordinfo = DBDict(dbname, (self.statekey,))
 
@@ -334,7 +334,7 @@ def score(hammie, msgs):
     print "Total %d spam, %d ham" % (spams, hams)
 
 def createbayes(pck=DEFAULTDB, usedb=False):
-    """Create a GrahamBayes instance for the given pickle (which
+    """Create a Bayes instance for the given pickle (which
     doesn't have to exist).  Create a PersistentGrahamBayes if
     usedb is True."""
     if usedb:
@@ -349,7 +349,7 @@ def createbayes(pck=DEFAULTDB, usedb=False):
             bayes = pickle.load(fp)
             fp.close()
         if bayes is None:
-            bayes = classifier.GrahamBayes()
+            bayes = classifier.Bayes()
     return bayes
 
 def usage(code, msg=''):

@@ -160,7 +160,7 @@ class Driver:
         self.new_classifier()
 
     def new_classifier(self):
-        c = self.classifier = classifier.GrahamBayes()
+        c = self.classifier = classifier.Bayes()
         self.tester = Tester.Test(c)
         self.trained_ham_hist = Hist(options.nbuckets)
         self.trained_spam_hist = Hist(options.nbuckets)
