@@ -398,6 +398,20 @@ about finding this directory, see the `backup question`_.
 .. _`backup question`: #can-i-back-up-the-outlook-database-should-i-do-this
 
 
+Why is the enable filter button is grayed out?
+---------------------------------------------------------
+
+You need to have done these things to enable that button:
+
+1. Trained at least 5 ham and 5 spam
+
+2. Set at least one folder to watch
+
+3. Set folders to move spam to, and to move unsures to
+
+4. Changed the action to "copy" or "move", rather than "untouched"
+
+
 Using Spambayes
 ===============
 
@@ -660,20 +674,6 @@ Words less than 3 characters long are skipped, and words greater than 12
 characters long are converted into a special 'long-word' token.  These
 numbers (3 and 12) were determined by brute force testing, and produced the
 best overall results (including compared to no upper or lower limits).
-
-
-Why is the enable filter button is grayed out in Outlook?
----------------------------------------------------------
-
-You need to have done these things to enable that button:
-
-1. Trained at least 5 ham and 5 spam
-
-2. Set at least one folder to watch
-
-3. Set folders to move spam to, and to move unsures to
-
-4. Changed the action to "copy" or "move", rather than "untouched"
 
 
 Do I have to pay for SpamBayes?  Can I pay you money if I really want to?
