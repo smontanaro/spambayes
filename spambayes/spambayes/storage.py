@@ -130,6 +130,9 @@ class PickledClassifier(classifier.Classifier):
         pickle.dump(self, fp, PICKLE_TYPE)
         fp.close()
 
+# Values for our changed words map
+WORD_DELETED = "D"
+WORD_CHANGED = "C"
 
 class DBDictClassifier(classifier.Classifier):
     '''Classifier object persisted in a caching database'''
@@ -168,6 +171,7 @@ class DBDictClassifier(classifier.Classifier):
             self.nspam = 0
             self.nham = 0
         self.wordinfo = {}
+        self.changed_words = {} # value may be one of the WORD_ constants
 
     def store(self):
         '''Place state into persistent store'''
@@ -175,25 +179,30 @@ class DBDictClassifier(classifier.Classifier):
         if options.verbose:
             print 'Persisting',self.db_name,'state in database'
 
-        # Must use .keys() since we modify the dict in the loop
-        for key in self.wordinfo.keys():
-            val = self.wordinfo[key]
-            if val is None:
-                del self.wordinfo[key]
-                try:
-                    del self.db[key]
-                except KeyError:
-                    pass
-            else:
+        # Iterate over our changed word list.
+        # This is *not* thread-safe - another thread changing our
+        # changed_words could mess us up a little.  Possibly a little
+        # lock while we copy and reset self.changed_words would be appropriate.
+        # For now, just do it the naive way.
+        for key, flag in self.changed_words.items():
+            if flag == WORD_CHANGED:
+                val = self.wordinfo[key]
                 self.db[key] = val.__getstate__()
+            elif flag == WORD_DELETED:
+                assert not self.wordinfo.has_key(word), \
+                       "Should not have a wordinfo for words flagged for delete"
+                del self.db[key]
+            else:
+                raise RuntimeError, "Unknown flag value"
+
+        # Reset the changed word list.
+        self.changed_words = {}
+        # Update the global state, then do the actual save.
         self.db[self.statekey] = (classifier.PICKLE_VERSION,
                                   self.nspam, self.nham)
         self.db.sync()
 
     def _wordinfoget(self, word):
-        # Note an explicit None in the dict means the word
-        # has previously been deleted, but the DB has not been saved,
-        # so therefore should not be re-fecthed.
         try:
             return self.wordinfo[word]
         except KeyError:
@@ -205,11 +214,31 @@ class DBDictClassifier(classifier.Classifier):
                 self.wordinfo[word] = ret
             return ret
 
-    # _wordinfoset is the same
+    def _wordinfoset(self, word, record):
+        # "Singleton" words (i.e. words that only have a single instance)
+        # take up more than 1/2 of the database, but are rarely used
+        # so we don't put them into the wordinfo cache, but write them
+        # directly to the database
+        # If the word occurs again, then it will be brought back in and
+        # never be a singleton again.
+        # This seems to reduce the memory footprint of the DBDictClassifier by
+        # as much as 60%!!!  This also has the effect of reducing the time it
+        # takes to store the database
+        if record and (record.spamcount+record.hamcount <= 1):
+            self.db[word] = record.__getstate__()
+            # Remove this word from the changed list (not that it should be
+            # there, but strange things can happen :)
+            try:
+                del self.changed_words[word]
+            except KeyError:
+                pass
+        else:
+            self.wordinfo[word] = record
+            self.changed_words[word] = WORD_CHANGED
 
     def _wordinfodel(self, word):
-        self.wordinfo[word] = None
-
+        del self.wordinfo[word]
+        self.changed_words[word] = WORD_DELETED
 
 class Trainer:
     '''Associates a Classifier object and one or more Corpora, \
