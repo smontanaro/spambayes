@@ -36,10 +36,17 @@ Outlook plugin fares with them.</p>
 <p>
 <table border="1" cellpadding="2" cellspacing="0">
 <tr>
-<td>&nbsp;</td><td>Win98</td><td>WinMe</td><td>Win2k</td><td>WinXP Pro</td><td>WinXP Home</td>
+<td>&nbsp;</td>
+    <td>Win95</td>
+    <td>Win98</td>
+    <td>WinMe</td>
+    <td>Win2k</td>
+    <td>WinXP Pro</td>
+    <td>WinXP Home</td>
 </tr>
 <tr>
 <td>Outlook 2000</td>
+    <td>&nbsp;</td> <!-- Win95 -->
     <td>works</td>  <!-- Win98 -->
     <td>&nbsp;</td> <!-- WinMe -->
     <td>works</td>  <!-- Win2k -->
@@ -48,6 +55,7 @@ Outlook plugin fares with them.</p>
 </tr>
 <tr>
 <td>Outlook 2002 (XP)</td>
+    <td>&nbsp;</td>                 <!-- Win95 -->
     <td>&nbsp;</td>                 <!-- Win98 -->
     <td>&nbsp;</td>		    <!-- WinMe -->
     <td>&nbsp;</td>		    <!-- Win2k -->
