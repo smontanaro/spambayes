@@ -105,7 +105,10 @@ class Service(win32serviceutil.ServiceFramework):
             self.event_stopping.wait()
             # Either user requested stop, or thread done - wait for it
             # to actually stop, but reporting we are still alive.
-            for i in range(20): # 20 seconds to shut down.
+            # Wait up to 60 seconds for shutdown before giving up and
+            # exiting uncleanly - we wait for current proxy connections
+            # to close, but you have to draw the line somewhere.
+            for i in range(60):
                 self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
                 self.event_stopped.wait(1)
                 if self.event_stopped.isSet():
