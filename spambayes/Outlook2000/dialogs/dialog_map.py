@@ -158,9 +158,10 @@ class TabProcessor(ControlProcessor):
         self.pages = {}
         self.currentPage = None
         self.currentPageIndex = -1
-        self.currentPageHwnd = None
+        self.currentPageHwnd = None        
         for index, page_id in enumerate(self.page_ids):
-            self.addPage(index, page_id, caption_map[page_id])
+            template = self.window.manager.dialog_parser.dialogs[page_id]
+            self.addPage(index, page_id, template[0][0])
         self.switchToPage(0)
     def OnNotify(self, nmhdr, wparam, lparam):
         # this does not appear to be in commctrl module
@@ -228,30 +229,18 @@ class DialogCommand(ButtonProcessor):
 from async_processor import AsyncCommandProcessor
 import filter, train
 
-# This sucks a little, but the captions for the dialogs aren't in the
-# rc script for property pages.
-# A human language map may also be nice :)
-caption_map = {
-    "IDD_GENERAL" : "General",
-    "IDD_TRAINING": "Training",
-    "IDD_FILTER_SPAM": "Spam",
-    "IDD_FILTER_UNSURE": "Possible Spam",
-    "IDD_FILTER_NOW": "Filter Now",
-    "IDD_ADVANCED": "Advanced",
-}
-
 dialog_map = {
     "IDD_MANAGER" : (
         (ImageProcessor,          "IDC_LOGO_GRAPHIC"),
         (CloseButtonProcessor,    "IDOK IDCANCEL"),
         (TabProcessor,            "IDC_TAB",
-                                  """IDD_GENERAL IDD_TRAINING IDD_FILTER_SPAM
-                                  IDD_FILTER_UNSURE IDD_FILTER_NOW
+                                  """IDD_GENERAL IDD_TRAINING IDD_FILTER
+                                  IDD_FILTER_NOW
                                   IDD_ADVANCED"""),
-        (VersionStringProcessor,  "IDC_VERSION"),
         (CommandButtonProcessor,  "IDC_ABOUT_BTN", ShowAbout, ()),
     ),
     "IDD_GENERAL": (
+        (VersionStringProcessor,  "IDC_VERSION"),
         (TrainingStatusProcessor, "IDC_TRAINING_STATUS"),
         (FilterEnableProcessor,   "IDC_BUT_FILTER_ENABLE", "Filter.enabled"),
         (FilterStatusProcessor,   "IDC_FILTER_STATUS"),
@@ -263,7 +252,6 @@ dialog_map = {
         (DialogCommand,           "IDC_BUT_FILTER_DEFINE", "IDD_FILTER"),
         (DialogCommand,           "IDC_BUT_TRAIN_NOW", "IDD_TRAINING"),
         (DialogCommand,           "IDC_ADVANCED_BTN", "IDD_ADVANCED"),
-        (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),
         ),
     "IDD_FILTER_NOW" : (
         (BoolButtonProcessor,     "IDC_BUT_UNREAD",    "Filter_Now.only_unread"),
@@ -278,7 +266,7 @@ dialog_map = {
                                   "IDOK IDCANCEL IDC_TAB IDC_BUT_UNSEEN IDC_BUT_UNREAD IDC_BROWSE " \
                                   "IDC_BUT_ACT_SCORE IDC_BUT_ACT_ALL"),
     ),
-    "IDD_FILTER_SPAM" : (
+    "IDD_FILTER" : (
         (FolderIDProcessor,       "IDC_FOLDER_WATCH IDC_BROWSE_WATCH",
                                   "Filter.watch_folder_ids",
                                   "Filter.watch_include_sub"),
@@ -288,8 +276,6 @@ dialog_map = {
         (EditNumberProcessor,     "IDC_EDIT_CERTAIN IDC_SLIDER_CERTAIN",
                                   "Filter.spam_threshold"),
         (BoolButtonProcessor,     "IDC_MARK_SPAM_AS_READ",    "Filter.spam_mark_as_read"),
-        ),
-    "IDD_FILTER_UNSURE" : (
         (FolderIDProcessor,       "IDC_FOLDER_UNSURE IDC_BROWSE_UNSURE",
                                   "Filter.unsure_folder_id"),
         (EditNumberProcessor,     "IDC_EDIT_UNSURE IDC_SLIDER_UNSURE",
@@ -313,11 +299,15 @@ dialog_map = {
                                   "IDC_BUT_REBUILD IDC_BUT_RESCORE"),
     ),
     "IDD_ADVANCED" : (
-        (IntProcessor,   "IDC_VERBOSE_LOG",  "General.verbose"),
         (MsSliderProcessor,   "IDC_DELAY1_TEXT IDC_DELAY1_SLIDER", "Experimental.timer_start_delay"),
         (MsSliderProcessor,   "IDC_DELAY2_TEXT IDC_DELAY2_SLIDER", "Experimental.timer_interval"),
         (BoolButtonProcessor,   "IDC_INBOX_TIMER_ONLY", "Experimental.timer_only_receive_folders"),
         (ComboProcessor,          "IDC_DEL_SPAM_RS", "General.delete_as_spam_message_state"),
         (ComboProcessor,          "IDC_RECOVER_RS", "General.recover_from_spam_message_state"),
+        ),
+    "IDD_DIAGNOSIC" : (
+        (BoolButtonProcessor,     "IDC_SAVE_SPAM_SCORE",    "Filter.save_spam_info"),
+        (IntProcessor,   "IDC_VERBOSE_LOG",  "General.verbose"),
+        (CloseButtonProcessor,    "IDOK IDCANCEL"),
         )
 }

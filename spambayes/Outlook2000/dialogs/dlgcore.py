@@ -299,5 +299,8 @@ class ProcessorPage(ProcessorDialog):
     def CreateWindow(self):
         # modeless. Pages should have the WS_CHILD window style
         message_map = self.GetMessageMap()
+        # remove frame from dialog and make sure it is a child
+        self.template[0][2] = self.template[0][2] & ~(win32con.DS_MODALFRAME|win32con.WS_POPUP|win32con.WS_OVERLAPPED|win32con.WS_CAPTION)
+        self.template[0][2] = self.template[0][2] | win32con.WS_CHILD
         return win32gui.CreateDialogIndirect(self.hinst, self.template, self.parent, message_map)
 

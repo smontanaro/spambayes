@@ -10,9 +10,9 @@
 #define IDD_ADVANCED                    106
 #define IDB_BITMAP1                     107
 #define IDD_GENERAL                     108
-#define IDD_FILTER_FOLDERS              109
 #define IDD_FILTER_SPAM                 110
 #define IDD_FILTER_UNSURE               111
+#define IDD_DIAGNOSIC                   113
 #define IDC_PROGRESS                    1000
 #define IDC_PROGRESS_TEXT               1001
 #define IDC_STATIC_HAM                  1002
@@ -77,15 +77,15 @@
 #define IDC_ABOUT_BTN                   1070
 #define IDC_DEL_SPAM_RS                 1071
 #define IDC_RECOVER_RS                  1072
-#define IDC_EDIT1                       1073
+#define IDC_EDIT1                       1074
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_RESOURCE_VALUE        114
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1074
+#define _APS_NEXT_CONTROL_VALUE         1075
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
