@@ -1326,6 +1326,9 @@ class Tokenizer:
         for x, subjcharset in subjcharsetlist:
             if subjcharset is not None:
                 yield 'subjectcharset:' + subjcharset
+            # this is a workaround for a bug in the csv module in Python
+            # <= 2.3.4 and 2.4.0 (fixed in 2.5)
+            x = x.replace('\r', ' ')
             for w in subject_word_re.findall(x):
                 for t in tokenize_word(w):
                     yield 'subject:' + t
