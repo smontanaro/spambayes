@@ -19,3 +19,6 @@ results of these ideas.
 - A token indicating the length of a message (rounded to an appropriate
   level.  Also a token indicating the ratio of message length to the
   number of tokens, and a token indicating the number of tokens.
+
+- A token indicating the ratio of hapax legomena to previously seen
+  tokens in the message.
