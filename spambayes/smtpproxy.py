@@ -138,7 +138,7 @@ import os
 
 from spambayes import Dibbler
 from spambayes import storage
-from spambayes.message import message_from_string
+from spambayes.message import sbheadermessage_from_string
 from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64
 from spambayes.Options import options
@@ -229,11 +229,6 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             cooked = self.onTransaction(self.command, self.args)
             if cooked is not None:
                 self.serverSocket.push(cooked + '\r\n')
-                if options["globals", "verbose"]:
-                    # XXX debugging information
-                    # XXX remove this once the problems are sorted out
-                    print "pulled", self.request
-                    print "pushed", cooked + '\r\n'
         self.command = self.args = self.request = ''
 
     def onResponse(self):

@@ -341,7 +341,6 @@ class SBHeaderMessage(Message):
         del self[options['Headers','classification_header_name']]
         del self[options['Headers','mailid_header_name']]
         del self[options['Headers','classification_header_name'] + "-ID"]  # test mode header
-        del self[options['Headers','prob_header_name']]
         del self[options['Headers','thermostat_header_name']]
         del self[options['Headers','evidence_header_name']]
         del self[options['Headers','score_header_name']]
