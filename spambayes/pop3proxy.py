@@ -988,7 +988,10 @@ class UserInterface(BrighterAsyncChat):
             except StopIteration:
                 try:
                     part = typed_subpart_iterator(message, 'text', 'html').next()
-                    text = tokenizer.html_re.sub(' ', part.get_payload())
+                    text = part.get_payload()
+                    text, _ = tokenizer.crack_html_style(text)
+                    text, _ = tokenizer.crack_html_comment(text)
+                    text = tokenizer.html_re.sub(' ', text)
                     text = '(this message only has an HTML body)\n' + text
                 except StopIteration:
                     text = '(this message has no text body)'
