@@ -127,6 +127,7 @@ adv_map = (
     ('Tokenizer',           'replace_nonascii_chars'),
     ('Tokenizer',           'summarize_email_prefixes'),
     ('Tokenizer',           'summarize_email_suffixes'),
+    ('Tokenizer',           'x-pick_apart_urls'),
     ('Training Options',    None),
     ('Hammie',              'train_on_filter'),
     ('Interface Options',   None),

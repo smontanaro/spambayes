@@ -98,6 +98,7 @@ adv_map = (
     ('Tokenizer',           'replace_nonascii_chars'),
     ('Tokenizer',           'summarize_email_prefixes'),
     ('Tokenizer',           'summarize_email_suffixes'),
+    ('Tokenizer',           'x-pick_apart_urls'),
     ('Interface Options',   None),
     ('html_ui',             'display_adv_find'),
 )
