@@ -29,33 +29,37 @@
 # SpamBayes source tree is rooted at ~/src/spambayes.
 #
 
-SBDIR=$(HOME)/src/spambayes
-TIMCV=$(SBDIR)/testtools/timcv.py
-RATE=$(SBDIR)/testtools/rates.py
-CMP=$(SBDIR)/testtools/cmp.py
-NDIR=$(shell ls -d Data/Ham/Set* | wc -l)
+SBDIR  = $(HOME)/src/spambayes
 
-BASE=std
-TRIAL=trial
+PYTHON = python
+TIMCV  = $(PYTHON) $(SBDIR)/testtools/timcv.py
+RATE   = $(PYTHON) $(SBDIR)/testtools/rates.py
+CMP    = $(PYTHON) $(SBDIR)/testtools/cmp.py
+NDIR   = $(shell ls -d Data/Ham/Set* | wc -l)
+
+SEED   = 12345
+
+BASE   = std
+TRIAL  = trial
 
 DATA=$(wildcard Data/Ham/* Data/Spam/*)
 
 all : $(BASE)-$(TRIAL).txt
 
 $(BASE)-$(TRIAL).txt : $(BASE)s.txt $(TRIAL)s.txt
-	python $(CMP) $(BASE)s.txt $(TRIAL)s.txt > $(BASE)-$(TRIAL).txt
+	$(CMP) $(BASE)s.txt $(TRIAL)s.txt > $(BASE)-$(TRIAL).txt
 
 $(BASE)s.txt : $(BASE).txt
-	python $(RATE) $(BASE)
+	$(RATE) $(BASE)
 
 $(TRIAL)s.txt : $(TRIAL).txt
-	python $(RATE) $(TRIAL)
+	$(RATE) $(TRIAL)
 
 $(BASE).txt : $(BASE).ini $(DATA)
-	BAYESCUSTOMIZE=$(BASE).ini python $(TIMCV) -n $(NDIR) -s 12345 > $(BASE).txt
+	BAYESCUSTOMIZE=$(BASE).ini $(TIMCV) -n $(NDIR) -s $(SEED) > $(BASE).txt
 
 $(TRIAL).txt : $(TRIAL).ini $(DATA)
-	BAYESCUSTOMIZE=$(TRIAL).ini python $(TIMCV) -n $(NDIR) -s 12345 > $(TRIAL).txt
+	BAYESCUSTOMIZE=$(TRIAL).ini $(TIMCV) -n $(NDIR) -s $(SEED) > $(TRIAL).txt
 
 clean : FORCE
 	rm -f $(BASE)-$(TRIAL).txt $(BASE)*.txt $(TRIAL)*.txt
