@@ -52,7 +52,7 @@ Filename: "{app}\bin\outlook_addin_register.exe"; StatusMsg: "Registering Outloo
 Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin";Check: InstallingOutlook;
 
 [Tasks]
-Name: startup; Description: "Execute SpamBayes each time Windows starts"; Check: InstallingProxy
+Name: startup; Description: "Execute SpamBayes each time Windows starts";
 Name: desktop; Description: "Add an icon to the desktop"; Flags: unchecked;
 
 [Run]
