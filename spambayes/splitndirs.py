@@ -2,11 +2,16 @@
 
 """Split an mbox into N random directories of files.
 
-Usage: %(program)s [-h] [-s seed] [-v] -n N sourcembox ... outdirbase
+Usage: %(program)s [-h] [-g] [-s seed] [-v] -n N sourcembox ... outdirbase
 
 Options:
     -h / --help
         Print this help message and exit
+
+    -g
+        Do globbing on each sourcepath.  This is helpful on Windows, where
+        the native shells don't glob, or when you have more mboxes than
+        your shell allows you to specify on the commandline.
 
     -s seed
         Seed the random number generator with seed (an integer).
@@ -21,7 +26,7 @@ Options:
 
 Arguments:
     sourcembox
-        The mbox to split.
+        The mbox or path to an mbox to split.
 
     outdirbase
         The base path + name prefix for each of the N output dirs.
@@ -45,6 +50,7 @@ import random
 import mailbox
 import email
 import getopt
+import glob
 
 import mboxutils
 
@@ -64,15 +70,18 @@ def _factory(fp):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hn:s:v', ['help'])
+        opts, args = getopt.getopt(sys.argv[1:], 'hgn:s:v', ['help'])
     except getopt.error, msg:
         usage(1, msg)
 
+    doglob = False
     n = None
     verbose = False
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
+        elif opt == '-g':
+            doglob = True
         elif opt == '-s':
             random.seed(int(arg))
         elif opt == '-n':
@@ -94,19 +103,25 @@ def main():
 
     counter = 0
     for inputpath in inputpaths:
-        mbox = mboxutils.getmbox(inputpath)
-        for msg in mbox:
-            i = random.randrange(n)
-            astext = str(msg)
-            #assert astext.endswith('\n')
-            counter += 1
-            msgfile = open('%s/%d' % (outdirs[i], counter), 'wb')
-            msgfile.write(astext)
-            msgfile.close()
-            if verbose:
-                if counter % 100 == 0:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
+        if doglob:
+            inpaths = glob.glob(inputpath)
+        else:
+            inpaths = [inputpath]
+
+        for inpath in inpaths:
+            mbox = mboxutils.getmbox(inpath)
+            for msg in mbox:
+                i = random.randrange(n)
+                astext = str(msg)
+                #assert astext.endswith('\n')
+                counter += 1
+                msgfile = open('%s/%d' % (outdirs[i], counter), 'wb')
+                msgfile.write(astext)
+                msgfile.close()
+                if verbose:
+                    if counter % 100 == 0:
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
 
     if verbose:
         print
