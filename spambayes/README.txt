@@ -42,12 +42,13 @@ You also need version 2.4.3 or above of the Python "email" package.
 If you're running Python 2.2.3 or above then you already have a good
 version of the email package.
 
-If not, you can download email version 2.5 from <http://mimelib.sf.net>
-and install it - unpack the archive, cd to the email-2.5 directory and
-type "python setup.py install".  This will install it into your Python
-site-packages directory.  You'll also need to move aside the standard
-"email" library - go to your Python "Lib" directory and rename "email"
-to "email_old".
+If not, you can download email version 2.5 from the email SIG at
+<http://www.python.org/sigs/email-sig> and install it - unpack the
+archive, cd to the email-2.5 directory and type "python setup.py
+install".  This will install it into your Python site-packages
+directory.  You'll also need to move aside the standard "email"
+library - go to your Python "Lib" directory and rename "email" to
+"email_old".
 
 To run the Outlook plug-in from source, you also need have the win32com
 extensions installed (win32all-149 or above), which you can get from
