@@ -203,16 +203,18 @@ class BayesManager:
         self._MigrateFile("default_message_database.db")
         self._MigrateFile("default_configuration.pck")
 
+    # Copy a file from the application_directory to the data_directory.
+    # By default (do_move not specified), the source file is deleted.
+    # Pass do_move=False to leave the original file.
     def _MigrateFile(self, filename, do_move = True):
         src = os.path.join(self.application_directory, filename)
         dest = os.path.join(self.data_directory, filename)
         if os.path.isfile(src) and not os.path.isfile(dest):
+            # shutil in 2.2 and earlier don't contain 'move'.
+            # Win95 and Win98 don't support MoveFileEx.
+            shutil.copyfile(src, dest)
             if do_move:
-                # shutil in 2.2 and earlier does not contain 'move'
-                win32api.MoveFileEx(src, dest,
-                                    win32con.MOVEFILE_COPY_ALLOWED)
-            else:
-                shutil.copyfile(src, dest)
+                os.remove(src)
 
     def FormatFolderNames(self, folder_ids, include_sub):
         names = []
