@@ -2,6 +2,36 @@
 
 Release 1.1a1
 =============
+Tony Meyer        09/11/2004  Implement [ 870524 ] Make the message-proxy timeout configurable
+Tony Meyer        09/11/2004  Use email.message_from_string(text, _class) rather than our wrapper functions.
+Tony Meyer        09/11/2004  Implement [ 940547 ] imapfilter interface available when using -l switch
+Tony Meyer        08/11/2004  Outlook: Add two extra items to the "spam clues" for the message: last filtered score/class and if it has been trained.
+Tony Meyer        05/11/2004  Add unittests for sb_pop3dnd.py
+Tony Meyer        05/11/2004  sb_pop3dnd: remove use of the web interface
+Tony Meyer        05/11/2004  sb_pop3dnd: fix bug in getHeaders where negation wouldn't work correctly
+Tony Meyer        05/11/2004  sb_pop3dnd: fix loading of dynamic messages to correctly generate the headers, so that envelope works.
+Tony Meyer        05/11/2004  sb_pop3dnd: change the fake email addresses to the same format as the notate_to option (i.e. @spambayes.invalid)
+Tony Meyer        05/11/2004  sb_pop3dnd: improve the "about" message to include the docstring.
+Tony Meyer        05/11/2004  sb_pop3dnd: add a dynamic stats message.
+Tony Meyer        05/11/2004  sb_pop3dnd: improve the dynamic status message to include everything that would normally be on the web interface.
+Tony Meyer        05/11/2004  sb_pop3dnd: add a "train as spam" folder, to separate out training and classifying as spam.
+Tony Meyer        05/11/2004  sb_pop3dnd: use twisted.Application in the new style to avoid deprecation warnings.
+Tony Meyer        03/11/2004  Add [ 1052816 ] I18N - mostly the patch from Hernan Martinez Foffani
+Tony Meyer        03/11/2004  Fix [ 1022848 ] sb_dbexpimp.py crashes while importing into pickle file
+Tony Meyer        03/11/2004  Fix [ 831864 ] sb_mboxtrain.py: flock vs. lockf
+Tony Meyer        03/11/2004  Fix [ 922063 ] Intermittent sb_filter.py faliure with URL pickle
+Tony Meyer        03/11/2004  Outlook: Also add an "X-Exchange-Delivery-Time" header to the faked up Exchange headers.
+Tony Meyer        02/11/2004  Improve the web interface statistics
+Tony Meyer        29/10/2004  If possible, use the builtin (faster, C-implemented) set class, falling back to sets.Set, then back to our compatsets.Set
+Tony Meyer        28/10/2004  Add [ 715248 ] Pickle classifier should save to a temp file first
+Tony Meyer        28/10/2004  Add [ 938992 ] Allow longer background filtering delays
+Tony Meyer        27/10/2004  Add a variety of improvements to sb_culler.py contributed by Andrew Dalke
+Tony Meyer        27/10/2004  Update sb_culler.py to match current open_storage() usage
+Tony Meyer        21/10/2004  Fix [ 1051081 ] uncaught socket timeoutexception slurping URLs
+Tony Meyer        20/10/2004  Outlook: Let the statistics have a variable number of decimal places for the percentages (1  by default).
+Tony Meyer        18/10/2004  Make msgs.Msg objects pickleable
+Tony Meyer        18/10/2004  Copy Skip's -o command line option (available in all the regular scripts) to timcv.py.
+Tony Meyer        18/10/2004  TestDriver: If show_histograms was False, then the global ham/spam histogram never had the stats computed, but this gets used later, so the script would die with an AtrributeError. Fix that.
 Tony Meyer        13/10/2004  Add Classifier.use_bigrams option to the Advanced options page for sb_server and imapfilter.
 Tony Meyer        13/10/2004  Fix mySQL storage option for the case where the server does not support rollbacks.
 Tony Meyer        07/10/2004  Add patch from Graham Ashton to allow users of sb_upload.py to not just upload, but also train.
