@@ -370,27 +370,40 @@ class IMAPFilter(object):
     def Train(self):
         if options["globals", "verbose"]:
             t = time.time()
+            
+        total_ham_trained = 0
+        total_spam_trained = 0
 
         if options["imap", "ham_train_folders"] != "":
             ham_training_folders = \
                                  options["imap", "ham_train_folders"].split()
             for fol in ham_training_folders:
+                if options['globals', 'verbose']:
+                    print "   Training ham folder %s" % (fol)
                 folder = IMAPFolder(fol)
                 num_ham_trained = folder.Train(self.classifier, False)
+                total_ham_trained += num_ham_trained
+                if options['globals', 'verbose']:
+                    print "       %s trained." % (num_ham_trained)
 
         if options["imap", "spam_train_folders"] != "":
             spam_training_folders = \
                                   options["imap", "spam_train_folders"].split()
             for fol in spam_training_folders:
+                if options['globals', 'verbose']:
+                    print "   Training spam folder %s" % (fol)
                 folder = IMAPFolder(fol)
                 num_spam_trained = folder.Train(self.classifier, True)
+                total_spam_trained += num_spam_trained
+                if options['globals', 'verbose']:
+                    print "       %s trained." % (num_spam_trained)
 
-        if num_ham_trained or num_spam_trained:
+        if total_ham_trained or total_spam_trained:
             self.classifier.store()
         
         if options["globals", "verbose"]:
             print "Training took %s seconds, %s messages were trained" \
-                  % (time.time() - t, num_ham_trained + num_spam_trained)
+                  % (time.time() - t, total_ham_trained + total_spam_trained)
 
     def Filter(self):
         if options["globals", "verbose"]:
