@@ -526,9 +526,12 @@ class Classifier:
         Note that these are *token* bigrams, and not *word* bigrams - i.e.
         'synthetic' tokens get bigram'ed, too.
 
-        The bigram token is simply "unigram1 unigram2" - a space should
+        The bigram token is simply "bi:unigram1 unigram2" - a space should
         be sufficient as a separator, since spaces aren't in any other
-        tokens, apart from 'synthetic' ones.
+        tokens, apart from 'synthetic' ones.  The "bi:" prefix is added
+        to avoid conflict with tokens we generate (like "subject: word",
+        which could be "word" in a subject, or a bigram of "subject:" and
+        "word").
 
         If the experimental "Classifier":"x-use_bigrams" option is
         removed, this function can be removed, too.
@@ -685,6 +688,15 @@ class Classifier:
                 self.bad_urls["url:non_html"] += (url,)
                 return ["url:non_html"]
 
+            # Waiting for the default timeout period slows everything
+            # down far too much, so try and reduce it for just this
+            # call (this will only work with Python 2.3 and above).
+            try:
+                timeout = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(5)
+            except AttributeError:
+                # Probably Python 2.2.
+                pass
             try:
                 if options["globals", "verbose"]:
                     print >>sys.stderr, "Slurping", url
@@ -696,6 +708,12 @@ class Classifier:
                     return ["url:http_" + mo.group(1)]
                 self.bad_urls["url:unknown_error"] += (url,)
                 return ["url:unknown_error"]
+            # Restore the timeout
+            try:
+                socket.setdefaulttimeout(timeout)
+            except AttributeError:
+                # Probably Python 2.2.
+                pass
 
             # Anything that isn't text/html is ignored
             content_type = f.info().get('content-type')
@@ -711,8 +729,8 @@ class Classifier:
 
             # Retrieving the same messages over and over again will tire
             # us out, so we store them in our own wee cache.
-            message = self.urlCorpus.makeMessage(url_key)
-            message.setPayload(fake_message_string)
+            message = self.urlCorpus.makeMessage(url_key,
+                                                 fake_message_string)
             self.urlCorpus.addMessage(message)
         else:
             fake_message_string = cached_message.as_string()
