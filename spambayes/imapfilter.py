@@ -399,16 +399,11 @@ if __name__ == '__main__':
         print "-c and/or -t operands must be specified"
         sys.exit()
 
-    imap = IMAPSession(options.imap_server, options.imap_port, \
-                       imapDebug)
-
     if promptForPass:
         pwd = getpass()
     else:
         pwd = options.imap_password
 
-    imap.login(options.imap_username, pwd)
-    
     bdbname = os.path.expanduser(bdbname)
     
     if options.verbose:
@@ -422,9 +417,14 @@ if __name__ == '__main__':
     if options.verbose:
         print "Done."            
                 
+    imap = IMAPSession(options.imap_server, options.imap_port, \
+                       imapDebug)
+
     imap_filter = IMAPFilter(classifier, imapDebug)
 
     while True:
+        imap.login(options.imap_username, pwd)
+
         if doTrain:
             if options.verbose:
                 print "Training"
@@ -434,9 +434,9 @@ if __name__ == '__main__':
                 print "Classifying"
             imap_filter.Filter()
 
+        imap.logout(doExpunge)
+        
         if sleepTime:
             time.sleep(sleepTime)
         else:
             break
-        
-    imap.logout(doExpunge)
