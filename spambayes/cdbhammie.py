@@ -277,8 +277,6 @@ def main():
             spam = arg
         elif opt == '-p':
             pck = arg
-        elif opt == "-d":
-            usedb = True
         elif opt == "-f":
             do_filter = True
         elif opt == '-u':
@@ -288,19 +286,7 @@ def main():
 
     save = False
 
-    if usedb:
-        bayes = PersistentGrahamBayes(pck)
-    else:
-        bayes = None
-        try:
-            fp = open(pck, 'rb')
-        except IOError, e:
-            if e.errno <> errno.ENOENT: raise
-        else:
-            bayes = pickle.load(fp)
-            fp.close()
-        if bayes is None:
-            bayes = classifier.GrahamBayes()
+    bayes = PersistentGrahamBayes(pck)
 
     if good:
         print "Training ham:"
@@ -313,10 +299,6 @@ def main():
 
     if save:
         bayes.update_probabilities()
-        if not usedb and pck:
-            fp = open(pck, 'wb')
-            pickle.dump(bayes, fp, 1)
-            fp.close()
 
     if do_filter:
         filter(bayes, sys.stdin, sys.stdout)
