@@ -212,10 +212,10 @@ def train(h, path, is_spam, force, trainnew):
         raise ValueError("Nonexistent path: %s" % path)
     elif os.path.isfile(path):
         mbox_train(h, path, is_spam, force)
-    elif trainnew and os.path.isdir(os.path.join(path, "new")):
-        maildir_train(h, os.path.join(path, "new"), is_spam, force)
     elif os.path.isdir(os.path.join(path, "cur")):
         maildir_train(h, os.path.join(path, "cur"), is_spam, force)
+        if trainnew:
+            maildir_train(h, os.path.join(path, "new"), is_spam, force)
     elif os.path.isdir(path):
         mhdir_train(h, path, is_spam, force)
     else:
