@@ -23,12 +23,16 @@
 #
 # This implementation is due to Tim Peters et alia.
 
+import math
 import time
 from sets import Set
 
 from Options import options
+
 if options.use_chi_squared_combining:
     from chi2 import chi2Q
+    LN2 = math.log(2)
+
 if options.use_z_combining:
     from chi2 import normP, normIP
 
@@ -452,6 +456,20 @@ class Bayes(object):
     if options.use_tim_combining:
         spamprob = tim_spamprob
 
+    # Across vectors of length n, containing random uniformly-distributed
+    # probabilities, -2*sum(ln(p_i)) follows the chi-squared distribution
+    # with 2*n degrees of freedom.  This has been proven (in some
+    # appropriate sense) to be the most sensitive possible test for
+    # rejecting the hypothesis that a vector of probabilities is uniformly
+    # distributed.  Gary Robinson's original scheme was monotonic *with*
+    # this test, but skipped the details.  Turns out that getting closer
+    # to the theoretical roots gives a much sharper classification, with
+    # a very small (in # of msgs), but also very broad (in range of scores),
+    # "middle ground", where most of the mistakes live.  In particular,
+    # this scheme seems immune to all forms of "cancellation disease":  if
+    # there are many strong ham *and* spam clues, this reliably scores
+    # close to 0.5.  Most other schemes are extremely certain then -- and
+    # often wrong.
     def chi2_spamprob(self, wordstream, evidence=False):
         """Return best-guess probability that wordstream is spam.
 
@@ -463,21 +481,54 @@ class Bayes(object):
         where evidence is a list of (word, probability) pairs.
         """
 
-        from math import log as ln
+        from math import frexp, log as ln
 
-        H = S = 0.0
+        # We compute two chi-squared statistics, one for ham and one for
+        # spam.  The sum-of-the-logs business is more sensitive to probs
+        # near 0 than to probs near 1, so the spam measure uses 1-p (so
+        # that high-spamprob words have greatest effect), and the ham
+        # measure uses p directly (so that lo-spamprob words have greatest
+        # effect).
+        #
+        # For optimization, sum-of-logs == log-of-product, and f.p.
+        # multiplication is a lot cheaper than calling ln().  It's easy
+        # to underflow to 0.0, though, so we simulate unbounded dynamic
+        # range via frexp.  The real product H = this H * 2**Hexp, and
+        # likewise the real product S = this S * 2**Sexp.
+        H = S = 1.0
+        Hexp = Sexp = 0
+
         clues = self._getclues(wordstream)
         for prob, word, record in clues:
             if record is not None:  # else wordinfo doesn't know about it
                 record.killcount += 1
-            S += ln(1.0 - prob)
-            H += ln(prob)
+            S *= 1.0 - prob
+            H *= prob
+            if S < 1e-200:  # prevent underflow
+                S, e = frexp(S)
+                Sexp += e
+            if H < 1e-200:  # prevent underflow
+                H, e = frexp(H)
+                Hexp += e
+
+        # Compute the natural log of the product = sum of the logs:
+        # ln(x * 2**i) = ln(x) + i * ln(2).
+        S = ln(S) + Sexp * LN2
+        H = ln(H) + Hexp * LN2
 
         n = len(clues)
         if n:
             S = 1.0 - chi2Q(-2.0 * S, 2*n)
             H = 1.0 - chi2Q(-2.0 * H, 2*n)
-            prob = S/(S+H)
+
+            # How to combine these into a single spam score?  We originally
+            # used (S-H)/(S+H) scaled into [0., 1.], which equals S/(S+H).  A
+            # systematic problem is that we could end up being near-certain
+            # a thing was (for example) spam, even if S was small, provided
+            # that H was much smaller.
+            # Rob Hooft stared at these problems and invented the measure
+            # we use now, the simpler S-H, scaled into [0., 1.].
+            prob = (S-H + 1.0) / 2.0
         else:
             prob = 0.5
 

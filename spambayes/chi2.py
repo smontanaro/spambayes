@@ -106,15 +106,24 @@ def main():
     #from uni import uni as random
     #print random
 
-    def judge(ps, ln=_math.log):
-        H = S = 0.0
+    def judge(ps, ln=_math.log, ln2=_math.log(2), frexp=_math.frexp):
+        H = S = 1.0
+        Hexp = Sexp = 0
         for p in ps:
-            S += ln(1.0 - p)
-            H += ln(p)
+            S *= 1.0 - p
+            H *= p
+            if S < 1e-200:
+                S, e = frexp(S)
+                Sexp += e
+            if H < 1e-200:
+                H, e = frexp(H)
+                Hexp += e
+        S = ln(S) + Sexp * ln2
+        H = ln(H) + Hexp * ln2
         n = len(ps)
         S = 1.0 - chi2Q(-2.0 * S, 2*n)
         H = 1.0 - chi2Q(-2.0 * H, 2*n)
-        return S/(S+H)
+        return S, H, (S-H + 1.0) / 2.0
 
     warp = 0
     bias = 0.99
@@ -124,21 +133,47 @@ def main():
         bias = float(sys.argv[2])
 
     h = Hist(20, lo=0.0, hi=1.0)
+    s = Hist(20, lo=0.0, hi=1.0)
+    score = Hist(20, lo=0.0, hi=1.0)
 
     for i in range(5000):
         ps = [random() for j in range(50)]
-        p = judge(ps + [bias] * warp)
-        h.add(p)
+        s1, h1, score1 = judge(ps + [bias] * warp)
+        s.add(s1)
+        h.add(h1)
+        score.add(score1)
 
     print "Result for random vectors of 50 probs, +", warp, "forced to", bias
+
+    # Should be uniformly distributed on all-random data.
     print
+    print 'H',
     h.display()
 
-def showscore(ps, ln=_math.log):
-    H = S = 0.0
+    # Should be uniformly distributed on all-random data.
+    print
+    print 'S',
+    s.display()
+
+    # Distribution doesn't really matter.
+    print
+    print '(S-H+1)/2',
+    score.display()
+
+def showscore(ps, ln=_math.log, ln2=_math.log(2), frexp=_math.frexp):
+    H = S = 1.0
+    Hexp = Sexp = 0
     for p in ps:
-        S += ln(1.0 - p)
-        H += ln(p)
+        S *= 1.0 - p
+        H *= p
+        if S < 1e-200:
+            S, e = frexp(S)
+            Sexp += e
+        if H < 1e-200:
+            H, e = frexp(H)
+            Hexp += e
+    S = ln(S) + Sexp * ln2
+    H = ln(H) + Hexp * ln2
 
     n = len(ps)
     probS = chi2Q(-2*S, 2*n)
@@ -148,10 +183,10 @@ def showscore(ps, ln=_math.log):
 
     S = 1.0 - probS
     H = 1.0 - probH
-    score = S/(S+H)
+    score = (S-H + 1.0) / 2.0
     print "spam prob", S
     print " ham prob", H
-    print "  S/(S+H)", score
+    print "(S-H+1)/2", score
 
 if __name__ == '__main__':
     import random
