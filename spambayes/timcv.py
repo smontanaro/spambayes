@@ -66,6 +66,16 @@ class MsgStream(object):
             for fname in os.listdir(directory):
                 yield Msg(directory, fname)
 
+    def xproduce(self):
+        import random
+        keep = 'Spam' in self.directories[0] and 300 or 300
+        for directory in self.directories:
+            all = os.listdir(directory)
+            random.seed(hash(max(all)) ^ 0x12345678) # reproducible across calls
+            random.shuffle(all)
+            for fname in all[:keep]:
+                yield Msg(directory, fname)
+
     def __iter__(self):
         return self.produce()
 

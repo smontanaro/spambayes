@@ -469,6 +469,15 @@ from Options import options
 # So HTML decorations are still a significant clue when the ham is composed
 # of c.l.py traffic.  Again, this should be revisited if the f-n rate is
 # slashed again.
+#
+# Later:  As the amount of training data increased, the effect of retaining
+# HTML tags decreased to insignificance.  options.retain_pure_html_tags
+# was introduced to control this, and it defaults to False.
+#
+# Later:  The decision to ignore "redundant" HTML is also dubious, since
+# the text/plain and text/html alternatives may have entirely different
+# content.  options.ignore_redundant_html was introduced to control this,
+# and it defaults to False.
 
 ##############################################################################
 # How big should "a word" be?
@@ -491,42 +500,50 @@ from Options import options
 # try testing with lower bound 2.
 
 
+# textparts(msg) returns a set containing all the text components of msg.
+# There's no point decoding binary blobs (like images).
 
-# Find all the text components of the msg.  There's no point decoding
-# binary blobs (like images).  If a multipart/alternative has both plain
-# text and HTML versions of a msg, ignore the HTML part:  HTML decorations
-# have monster-high spam probabilities, and innocent newbies often post
-# using HTML.
-def textparts(msg):
-    text = Set()
-    redundant_html = Set()
-    for part in msg.walk():
-        if part.get_content_type() == 'multipart/alternative':
-            # Descend this part of the tree, adding any redundant HTML text
-            # part to redundant_html.
-            htmlpart = textpart = None
-            stack = part.get_payload()[:]
-            while stack:
-                subpart = stack.pop()
-                ctype = subpart.get_content_type()
-                if ctype == 'text/plain':
-                    textpart = subpart
-                elif ctype == 'text/html':
-                    htmlpart = subpart
-                elif ctype == 'multipart/related':
-                    stack.extend(subpart.get_payload())
+if options.ignore_redundant_html:
+    # If a multipart/alternative has both plain text and HTML versions of a
+    # msg, ignore the HTML part:  HTML decorations have monster-high spam
+    # probabilities, and innocent newbies often post using HTML.
+    def textparts(msg):
+        text = Set()
+        redundant_html = Set()
+        for part in msg.walk():
+            if part.get_content_type() == 'multipart/alternative':
+                # Descend this part of the tree, adding any redundant HTML text
+                # part to redundant_html.
+                htmlpart = textpart = None
+                stack = part.get_payload()[:]
+                while stack:
+                    subpart = stack.pop()
+                    ctype = subpart.get_content_type()
+                    if ctype == 'text/plain':
+                        textpart = subpart
+                    elif ctype == 'text/html':
+                        htmlpart = subpart
+                    elif ctype == 'multipart/related':
+                        stack.extend(subpart.get_payload())
 
-            if textpart is not None:
-                text.add(textpart)
-                if htmlpart is not None:
-                    redundant_html.add(htmlpart)
-            elif htmlpart is not None:
-                text.add(htmlpart)
+                if textpart is not None:
+                    text.add(textpart)
+                    if htmlpart is not None:
+                        redundant_html.add(htmlpart)
+                elif htmlpart is not None:
+                    text.add(htmlpart)
 
-        elif part.get_content_maintype() == 'text':
-            text.add(part)
+            elif part.get_content_maintype() == 'text':
+                text.add(part)
 
-    return text - redundant_html
+        return text - redundant_html
+
+else:
+    # Use all text parts.  If a text/plain and text/html part happen to
+    # have redundant content, so it goes.
+    def textparts(msg):
+        return Set(filter(lambda part: part.get_content_maintype() == 'text',
+                          msg.walk()))
 
 url_re = re.compile(r"""
     (https? | ftp)  # capture the protocol

@@ -12,10 +12,22 @@ __all__ = ['options']
 
 defaults = """
 [Tokenizer]
-# By default, tokenizer.Tokenizer.tokenize_headers() strips HTML tags
-# from pure text/html messages.  Set to True to retain HTML tags in
-# this case.
+# If false, tokenizer.Tokenizer.tokenize_body() strips HTML tags
+# from pure text/html messages.  Set true to retain HTML tags in this
+# case.  On the c.l.py corpus, it helps to set this true because any
+# sign of HTML is so despised on tech lists; however, the advantage
+# of setting it true eventually vanishes even there given enough
+# training data.  If you set this true, you should almost certainly set
+# ignore_redundant_html true too.
 retain_pure_html_tags: False
+
+# If true, when a multipart/alternative has both text/plain and text/html
+# sections, the text/html section is ignored.  That's likely a dubious
+# idea in general, so false is likely a better idea here.  In the c.l.py
+# tests, it helped a lot when retain_pure_html_tags was true (in that case,
+# keeping the HTML tags in the "redundant" HTML was almost certain to score
+# the multipart/alternative as spam, regardless of content).
+ignore_redundant_html: False
 
 # Generate tokens just counting the number of instances of each kind of
 # header line, in a case-sensitive way.
@@ -115,6 +127,7 @@ string_cracker = ('get', None)
 
 all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
+                  'ignore_redundant_html': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'mine_received_headers': boolean_cracker,
