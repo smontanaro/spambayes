@@ -22,11 +22,14 @@ Where:
         Only meaningful with the -u option.
     -p FILE
         use file as the persistent store.  loads data from this file if it
-        exists, and saves data to this file at the end.  Default: %(DEFAULTDB)s
+        exists, and saves data to this file at the end.
+        Default: %(DEFAULTDB)s
     -d
         use the DBM store instead of cPickle.  The file is larger and
         creating it is slower, but checking against it is much faster,
-        especially for large word databases.
+        especially for large word databases. Default: %(USEDB)s
+    -D
+        the reverse of -d: use the cPickle instead of DBM
     -f
         run as a filter: read a single message from stdin, add an
         %(DISPHEADER)s header, and write it to stdout.  If you want to
@@ -52,14 +55,20 @@ from Options import options
 program = sys.argv[0] # For usage(); referenced by docstring above
 
 # Name of the header to add in filter mode
-DISPHEADER = "X-Hammie-Disposition"
+DISPHEADER = options.hammie_header_name
 
 # Default database name
-DEFAULTDB = "hammie.db"
+DEFAULTDB = options.persistant_storage_file
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options.spam_cutoff
 HAM_THRESHOLD = options.ham_cutoff
+
+# Probability limit for a clue to be added to the DISPHEADER
+SHOWCLUE = options.clue_mailheader_cutoff
+
+# Use a database? If False, use a pickle
+USEDB = options.persistant_use_database
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
@@ -208,7 +217,10 @@ class Hammie:
     def formatclues(self, clues, sep="; "):
         """Format the clues into something readable."""
 
-        return sep.join(["%r: %.2f" % (word, prob) for word, prob in clues])
+        return sep.join(["%r: %.2f" % (word, prob)
+                         for word, prob in clues
+                         if (word[0] == '*' or
+                             prob <= SHOWCLUE or prob >= 1.0 - SHOWCLUE)])
 
     def score(self, msg, evidence=False):
         """Score (judge) a message.
@@ -377,7 +389,7 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hdfg:s:p:u:r')
+        opts, args = getopt.getopt(sys.argv[1:], 'hdDfg:s:p:u:r')
     except getopt.error, msg:
         usage(2, msg)
 
@@ -389,7 +401,8 @@ def main():
     spam = []
     unknown = []
     reverse = 0
-    do_filter = usedb = False
+    do_filter = False
+    usedb = USEDB
     for opt, arg in opts:
         if opt == '-h':
             usage(0)
@@ -401,6 +414,8 @@ def main():
             pck = arg
         elif opt == "-d":
             usedb = True
+        elif opt == "-D":
+            usedb = False
         elif opt == "-f":
             do_filter = True
         elif opt == '-u':

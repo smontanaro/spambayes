@@ -48,7 +48,7 @@ octet_prefix_size: 5
 # Generate tokens just counting the number of instances of each kind of
 # header line, in a case-sensitive way.
 #
-# Depending on data collection, some headers aren't safe to count.
+# Depending on data collection, some headers are not safe to count.
 # For example, if ham is collected from a mailing list but spam from your
 # regular inbox traffic, the presence of a header like List-Info will be a
 # very strong ham clue, but a bogus one.  In that case, set
@@ -150,7 +150,7 @@ show_histograms: True
 #
 # The idea is that if something scores < hamc, it's called ham; if
 # something scores >= spamc, it's called spam; and everything else is
-# called "I'm not sure" -- the middle ground.
+# called 'I am not sure' -- the middle ground.
 #
 # Note that cvcost.py does a similar analysis.
 #
@@ -169,7 +169,7 @@ percentiles: 5 25 75 95
 
 # Display spam when
 #     show_spam_lo <= spamprob <= show_spam_hi
-# and likewise for ham.  The defaults here don't show anything.
+# and likewise for ham.  The defaults here do not show anything. 
 show_spam_lo: 1.0
 show_spam_hi: 0.0
 show_ham_lo: 1.0
@@ -179,8 +179,8 @@ show_false_positives: True
 show_false_negatives: False
 show_unsure: False
 
-# Near the end of Driver.test(), you can get a listing of the 'best
-# discriminators' in the words from the training sets.  These are the
+# Near the end of Driver.test(), you can get a listing of the best
+# discriminators in the words from the training sets.  These are the
 # words whose WordInfo.killcount values are highest, meaning they most
 # often were among the most extreme clues spamprob() found.  The number
 # of best discriminators to show is given by show_best_discriminators;
@@ -196,7 +196,7 @@ show_charlimit: 3000
 # pickle_basename, the extension is .pik, and increasing integers are
 # appended to pickle_basename.  By default (if save_trained_pickles is
 # true), the filenames are class1.pik, class2.pik, ...  If a file of that
-# name already exists, it's overwritten.  pickle_basename is ignored when
+# name already exists, it is overwritten.  pickle_basename is ignored when
 # save_trained_pickles is false.
 
 # if save_histogram_pickles is true, Driver.train() saves a binary
@@ -218,9 +218,9 @@ ham_directories: Data/Ham/Set%d
 # training each on N-1 sets, and the predicting against the set not trained
 # on.  By default, it does this in a clever way, learning *and* unlearning
 # sets as it goes along, so that it never needs to train on N-1 sets in one
-# gulp after the first time.  Setting this option true forces "one gulp
-# from-scratch" training every time.  There used to be a set of combining
-# schemes that needed this, but now it's just in case you're paranoid <wink>.
+# gulp after the first time.  Setting this option true forces ''one gulp
+# from-scratch'' training every time.  There used to be a set of combining
+# schemes that needed this, but now it is just in case you are paranoid <wink>.
 build_each_classifier_from_scratch: False
 
 [Classifier]
@@ -230,15 +230,15 @@ build_each_classifier_from_scratch: False
 max_discriminators: 150
 
 # These two control the prior assumption about word probabilities.
-# "x" is essentially the probability given to a word that's never been
+# "x" is essentially the probability given to a word that has never been
 # seen before.  Nobody has reported an improvement via moving it away
 # from 1/2.
 # "s" adjusts how much weight to give the prior assumption relative to
 # the probabilities estimated by counting.  At s=0, the counting estimates
 # are believed 100%, even to the extent of assigning certainty (0 or 1)
-# to a word that's appeared in only ham or only spam.  This is a disaster.
+# to a word that has appeared in only ham or only spam.  This is a disaster.
 # As s tends toward infintity, all probabilities tend toward x.  All
-# reports were that a value near 0.4 worked best, so this doesn't seem to
+# reports were that a value near 0.4 worked best, so this does not seem to
 # be corpus-dependent.
 # NOTE:  Gary Robinson previously used a different formula involving 'a'
 # and 'x'.  The 'x' here is the same as before.  The 's' here is the old
@@ -249,11 +249,11 @@ robinson_probability_s: 0.45
 # When scoring a message, ignore all words with
 # abs(word.spamprob - 0.5) < robinson_minimum_prob_strength.
 # This may be a hack, but it has proved to reduce error rates in many
-# tests over Robinson's base scheme.  0.1 appeared to work well across
+# tests over Robinsons base scheme.  0.1 appeared to work well across
 # all corpora.
 robinson_minimum_prob_strength: 0.1
 
-# The combining scheme currently detailed on Gary Robinon's web page.
+# The combining scheme currently detailed on Gary Robinons web page.
 # The middle ground here is touchy, varying across corpus, and within
 # a corpus across amounts of training data.  It almost never gives extreme
 # scores (near 0.0 or 1.0), but the tail ends of the ham and spam
@@ -261,15 +261,15 @@ robinson_minimum_prob_strength: 0.1
 use_gary_combining: False
 
 # For vectors of random, uniformly distributed probabilities, -2*sum(ln(p_i))
-# follows the chi-squared distribution with 2*n degrees of freedom.  That's
-# the "provably most-sensitive" test Gary's original scheme was monotonic
+# follows the chi-squared distribution with 2*n degrees of freedom.  That is
+# the "provably most-sensitive" test Garys original scheme was monotonic
 # with.  Getting closer to the theoretical basis appears to give an excellent
 # combining method, usually very extreme in its judgment, yet finding a tiny
 # (in # of msgs, spread across a huge range of scores) middle ground where
-# lots of the mistakes live.  This is the best method so far on Tim's data.
-# One systematic benefit is that it's immune to "cancellation disease".  One
-# systematic drawback is that it's sensitive to *any* deviation from a
-# uniform distribution, regardless of whether that's actually evidence of
+# lots of the mistakes live.  This is the best method so far on Tims data.
+# One systematic benefit is that it is immune to "cancellation disease".  One
+# systematic drawback is that it is sensitive to *any* deviation from a
+# uniform distribution, regardless of whether that is actually evidence of
 # ham or spam.  Rob Hooft alleviated that by combining the final S and H
 # measures via (S-H+1)/2 instead of via S/(S+H)).
 # In practice, it appears that setting ham_cutoff=0.05, and spam_cutoff=0.95,
@@ -278,6 +278,26 @@ use_gary_combining: False
 # with ham_cutoff=0.30 and spam_cutoff=0.80 across three test data sets
 # (original c.l.p data, his own email, and newer general python.org traffic).
 use_chi_squared_combining: True
+
+[Hammie]
+# The name of the header that hammie adds to an E-mail in filter mode
+hammie_header_name: X-Hammie-Disposition
+
+# The default database path used by hammie
+persistant_storage_file: hammie.db
+
+# The range of clues that are added to the "hammie" header in the E-mail
+# All clues that have their probability smaller than this number, or larger
+# than one minus this number are added to the header such that you can see
+# why spambayes thinks this is ham/spam or why it is unsure. The default is
+# to show all clues, but you can reduce that by setting showclue to a lower
+# value, such as 0.1 (which Rob is using)
+clue_mailheader_cutoff: 0.5
+
+# hammie can use either a database (quick to score one message) or a pickle
+# (quick to train on huge amounts of messages). Set this to True to use a
+# database by default.
+persistant_use_database: False
 """
 
 int_cracker = ('getint', None)
@@ -333,6 +353,12 @@ all_options = {
                    'use_gary_combining': boolean_cracker,
                    'use_chi_squared_combining': boolean_cracker,
                    },
+    'Hammie': {'hammie_header_name': string_cracker,
+               'persistant_storage_file': string_cracker,
+               'clue_mailheader_cutoff': float_cracker,
+               'persistant_use_database': boolean_cracker,
+               },
+
 }
 
 def _warn(msg):
