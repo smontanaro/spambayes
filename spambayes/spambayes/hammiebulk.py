@@ -66,7 +66,7 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 if options["Storage", "persistent_storage_file"] == \
    options.default("Storage", "persistent_storage_file"):
     options["Storage", "persistent_storage_file"] = \
-                       os.path.join("~", ".hammiedb"))
+                       os.path.join("~", ".hammiedb")
 DEFAULTDB = get_pathname_option("Storage", "persistent_storage_file")
 
 # Probability at which a message is considered spam
