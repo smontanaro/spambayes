@@ -50,7 +50,9 @@ def _export_folders(manager, dir, buckets, folder_ids, include_sub):
             this_dir = os.path.join(dir, sub)
             # filename is the EID.txt
             try:
-                msg_text = str(message.GetEmailPackageObject())
+                # Don't use str(msg) instead -- that inserts an information-
+                # free "Unix From" line at the top of each msg.
+                msg_text = message.GetEmailPackageObject().as_string()
             except KeyboardInterrupt:
                 raise
             except:
@@ -71,7 +73,6 @@ def export(directory):
     print "Loading bayes manager..."
     manager = GetManager()
     config = manager.config
-
     num_spam, num_ham, buckets = BuildBuckets(manager)
     print "Have", num_spam, "spam and", num_ham, "ham to export,",
     print "spread over", len(buckets), "directories."
