@@ -5,6 +5,7 @@ import os
 import sys
 import errno
 import shutil
+import traceback
 import win32api, win32con, win32ui
 
 import win32com.client
@@ -177,6 +178,7 @@ class DBStorageManager(BasicStorageManager):
 # Our main "bayes manager"
 class BayesManager:
     def __init__(self, config_base="default", outlook=None, verbose=1):
+        self.reported_error_map = {}
         self.reported_startup_error = False
         self.config = self.options = None
         self.addin = None
@@ -258,9 +260,19 @@ class BayesManager:
         else:
             # We have reported the error, but for the sake of the log, we
             # still want it logged there.
-            import traceback
             print "ERROR:", message
             traceback.print_exc()
+
+    def ReportErrorOnce(self, msg, title = None, key = None):
+        if key is None: key = msg
+        # Always print the message and traceback.
+        print "ERROR:", msg
+        traceback.print_exc()
+        if key in self.reported_error_map:
+            print "(this error has already been reported - not displaying it again)"
+        else:
+            self.reported_error_map[key] = True
+            ReportError(msg, title)
 
     # Outlook used to give us thread grief - now we avoid Outlook
     # from threads, but this remains a worthwhile abstraction.
@@ -619,7 +631,16 @@ class BayesManager:
         went into determining the score.  Else just the score is returned.
         """
         email = msg.GetEmailPackageObject()
-        return self.bayes.spamprob(bayes_tokenize(email), evidence)
+        try:
+            return self.bayes.spamprob(bayes_tokenize(email), evidence)
+        except AssertionError:
+            # See bug 706520 assert fails in classifier
+            # For now, just tell the user.
+            msg = "It appears your SpamBayes training database is corrupt.\r\n\r\n" \
+                  "We are working on solving this, but unfortunately you\r\n" \
+                  "must re-train the system via the SpamBayes manager."
+            self.ReportErrorOnce(msg)
+            raise
 
     def ShowManager(self):
         def do_train(dlg):
