@@ -55,10 +55,13 @@
 #define IDC_SLIDER_UNSURE               1029
 #define IDC_EDIT_UNSURE                 1030
 #define IDC_ACTION_UNSURE               1031
+#define IDC_ACTION_HAM                  1032
 #define IDC_FOLDER_UNSURE               1033
 #define IDC_BROWSE_UNSURE               1034
 #define IDC_TRAINING_STATUS             1035
+#define IDC_FOLDER_HAM                  1098
 #define IDC_FOLDER_NAMES                1036
+#define IDC_BROWSE_HAM                  1099
 #define IDC_BROWSE                      1037
 #define IDC_FOLDER_WATCH                1038
 #define IDC_BROWSE_WATCH                1039

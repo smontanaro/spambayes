@@ -27,11 +27,11 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_ADVANCED DIALOGEX 0, 0, 248, 209
+IDD_ADVANCED DIALOGEX 0, 0, 248, 257
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Advanced"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma", 400, 0, 0x1
 BEGIN
     GROUPBOX        "Filter timer",IDC_STATIC,7,3,234,117
     CONTROL         "",IDC_DELAY1_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
@@ -47,41 +47,41 @@ BEGIN
     CONTROL         "Only for folders that receive new mail",
                     IDC_INBOX_TIMER_ONLY,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,16,100,217,10
-    PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,7,190,70,14
+    PUSHBUTTON      "Show Data Folder",IDC_SHOW_DATA_FOLDER,7,238,70,14
     CONTROL         "Enable background filtering",IDC_BUT_TIMER_ENABLED,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,12,162,10
-    PUSHBUTTON      "Diagnostics...",IDC_BUT_SHOW_DIAGNOSTICS,171,190,70,14
+    PUSHBUTTON      "Diagnostics...",IDC_BUT_SHOW_DIAGNOSTICS,171,238,70,14
 END
 
-IDD_STATISTICS DIALOG DISCARDABLE  0, 0, 248, 209
+IDD_STATISTICS DIALOG DISCARDABLE  0, 0, 248, 257
 STYLE WS_CHILD | WS_CAPTION
 CAPTION "Statistics"
 FONT 8, "Tahoma"
 BEGIN
-    GROUPBOX        "Statistics",IDC_STATIC,7,3,241,181
+    GROUPBOX        "Statistics",IDC_STATIC,7,3,241,229
     LTEXT           "some stats\nand some more\nline 3\nline 4\nline 5",
-                    IDC_STATISTICS,12,12,230,166
-    PUSHBUTTON      "Reset Statistics",IDC_BUT_RESET_STATS,178,190,70,14
-    LTEXT           "Last reset:",IDC_STATIC,7,193,36,8
-    LTEXT           "<<<Date>>>",IDC_LAST_RESET_DATE,47,193,107,8
+                    IDC_STATISTICS,12,12,230,204
+    PUSHBUTTON      "Reset Statistics",IDC_BUT_RESET_STATS,178,238,70,14
+    LTEXT           "Last reset:",IDC_STATIC,7,241,36,8
+    LTEXT           "<<<Date>>>",IDC_LAST_RESET_DATE,47,241,107,8
 END
 
-IDD_MANAGER DIALOGEX 0, 0, 275, 260
+IDD_MANAGER DIALOGEX 0, 0, 275, 308
 STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "SpamBayes Manager"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma"
 BEGIN
-    DEFPUSHBUTTON   "Close",IDOK,216,239,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,155,239,50,14,NOT WS_VISIBLE
-    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,8,7,258,228
-    PUSHBUTTON      "About",IDC_ABOUT_BTN,8,239,50,14
+    DEFPUSHBUTTON   "Close",IDOK,216,287,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,155,287,50,14,NOT WS_VISIBLE
+    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,8,7,258,276
+    PUSHBUTTON      "About",IDC_ABOUT_BTN,8,287,50,14
 END
 
 IDD_FILTER_SPAM DIALOGEX 0, 0, 251, 147
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Spam"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma", 400, 0, 0x1
 BEGIN
     LTEXT           "Filter the following folders as messages arrive",
                     IDC_STATIC,8,9,168,11
@@ -110,7 +110,7 @@ END
 IDD_FILTER_UNSURE DIALOGEX 0, 0, 249, 124
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Possible Spam"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma", 400, 0, 0x1
 BEGIN
     LTEXT           "To be considered uncertain, a message must score at least",
                     IDC_STATIC,12,11,212,10
@@ -133,7 +133,7 @@ IDD_DIAGNOSTIC DIALOGEX 0, 0, 183, 98
 STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Diagnostics"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma", 400, 0, 0x1
 BEGIN
     LTEXT           "These advanced options are for diagnostic or debugging purposes only.  You should only change these options if specifically asked to, or you know exactly what they mean.",
                     IDC_STATIC,5,3,174,36
@@ -150,7 +150,7 @@ IDD_WIZARD DIALOGEX 0, 0, 384, 190
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "SpamBayes Configuration Wizard"
-FONT 8, "Tahoma", 400
+FONT 8, "Tahoma", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,328,173,50,14
     PUSHBUTTON      "<< Back",IDC_BACK_BTN,216,173,50,14
@@ -163,7 +163,7 @@ END
 IDD_WIZARD_WELCOME DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Welcome to the SpamBayes configuration wizard",
                     IDC_STATIC,20,4,191,14
@@ -188,7 +188,7 @@ END
 IDD_WIZARD_FINISHED_UNTRAINED DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes is now configured and ready to start learning about your Spam",
@@ -206,7 +206,7 @@ END
 IDD_WIZARD_FOLDERS_REST DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM,208,85,60,15
     LTEXT           "Spam and Unsure Folders",IDC_STATIC,20,4,247,14
@@ -226,7 +226,7 @@ END
 IDD_WIZARD_FOLDERS_WATCH DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Browse...",IDC_BROWSE_WATCH,225,134,50,14
     LTEXT           "Folders that receive new messages",IDC_STATIC,20,4,247,
@@ -244,7 +244,7 @@ END
 IDD_WIZARD_FINISHED_UNCONFIGURED DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Configuration cancelled",IDC_STATIC,20,4,247,14
     LTEXT           "The main SpamBayes options will now be displayed.  You must define your folders and enable SpamBayes before it will begin filtering mail.",
@@ -256,7 +256,7 @@ END
 IDD_WIZARD_FOLDERS_TRAIN DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Browse...",IDC_BROWSE_HAM,208,49,60,15
     LTEXT           "Training",IDC_STATIC,20,4,247,10
@@ -280,7 +280,7 @@ END
 IDD_WIZARD_TRAIN DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Training",-1,20,4,247,14
     LTEXT           "SpamBayes is training on your good and spam messages.",
@@ -293,7 +293,7 @@ END
 IDD_WIZARD_FINISHED_TRAINED DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Congratulations",IDC_STATIC,20,4,247,14
     LTEXT           "SpamBayes has been successfully trained and configured.  You should find the system is immediately effective at filtering spam.",
@@ -307,7 +307,7 @@ END
 IDD_WIZARD_TRAINING_IS_IMPORTANT DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "SpamBayes will not be effective until it is trained.",
                     IDC_STATIC,11,8,191,14
@@ -330,7 +330,7 @@ END
 IDD_WIZARD_FINISHED_TRAIN_LATER DIALOGEX 0, 0, 284, 162
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
 EXSTYLE WS_EX_CONTEXTHELP
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "Configuration suspended",IDC_STATIC,20,4,247,14
     LTEXT           "To perform initial training, you should create a folder that contains only examples of good messages, and another that contains only examples of spam.",
@@ -494,7 +494,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
 // Dialog
 //
 
-IDD_GENERAL DIALOGEX 0, 0, 253, 210
+IDD_GENERAL DIALOGEX 0, 0, 253, 257
 STYLE DS_MODALFRAME | WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "General"
@@ -507,17 +507,17 @@ BEGIN
     LTEXT           "123 spam messages; 456 good messages\r\nLine2\r\nLine3",
                     IDC_TRAINING_STATUS,6,101,242,27,SS_SUNKEN
     CONTROL         "Enable SpamBayes",IDC_BUT_FILTER_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,173,97,11
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,221,97,11
     LTEXT           "Certain spam is moved to Folder1\nPossible spam is moved too",
-                    IDC_FILTER_STATUS,6,146,242,19,SS_SUNKEN
-    PUSHBUTTON      "Reset Configuration...",IDC_BUT_RESET,6,190,84,15
-    PUSHBUTTON      "Configuration Wizard...",IDC_BUT_WIZARD,164,190,84,15
+                    IDC_FILTER_STATUS,6,146,242,67,SS_SUNKEN
+    PUSHBUTTON      "Reset Configuration...",IDC_BUT_RESET,6,238,84,15
+    PUSHBUTTON      "Configuration Wizard...",IDC_BUT_WIZARD,164,238,84,15
     LTEXT           "Filter status:",IDC_STATIC,6,135,222,8
     CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
                     SS_REALSIZEIMAGE,0,2,275,52
 END
 
-IDD_TRAINING DIALOGEX 0, 0, 252, 210
+IDD_TRAINING DIALOGEX 0, 0, 252, 257
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Training"
@@ -588,11 +588,11 @@ BEGIN
     PUSHBUTTON      "Close",IDCANCEL,187,162,50,14
 END
 
-IDD_FILTER DIALOGEX 0, 0, 249, 209
+IDD_FILTER DIALOGEX 0, 0, 249, 257
 STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Filtering"
-FONT 8, "Tahoma", 0, 0, 0x1
+FONT 8, "Tahoma"
 BEGIN
     LTEXT           "Filter the following folders as messages arrive",
                     IDC_STATIC,8,4,168,11
@@ -627,17 +627,26 @@ BEGIN
     CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
                     SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
                     WS_GROUP,102,166,77,14
-    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,183,166,50,14
+    PUSHBUTTON      "&Browse",IDC_BROWSE_UNSURE,184,166,50,14
     CONTROL         "Mark spam as read",IDC_MARK_SPAM_AS_READ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,13,100,81,10
     CONTROL         "Mark possible spam as read",IDC_MARK_UNSURE_AS_READ,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,186,101,10
+    GROUPBOX        "Certain Good",IDC_STATIC,6,203,235,48
+    LTEXT           "These messages should be:",IDC_STATIC,12,215,107,10
+    COMBOBOX        IDC_ACTION_HAM,12,228,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "to folder",IDC_STATIC,71,230,27,10
+    CONTROL         "(folder name)",IDC_FOLDER_HAM,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,102,228,77,14
+    PUSHBUTTON      "&Browse",IDC_BROWSE_HAM,184,228,50,14
 END
 
 IDD_FOLDER_SELECTOR DIALOGEX 0, 0, 247, 215
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
-FONT 8, "Tahoma"
+FONT 8, "Tahoma", 0, 0, 0x1
 BEGIN
     LTEXT           "&Folders:",IDC_STATIC,7,7,47,9
     CONTROL         "",IDC_LIST_FOLDERS,"SysTreeView32",TVS_HASBUTTONS | 
@@ -688,7 +697,7 @@ BEGIN
 
     IDD_FILTER, DIALOG
     BEGIN
-        BOTTOMMARGIN, 206
+        BOTTOMMARGIN, 254
         HORZGUIDE, 127
     END
 END
