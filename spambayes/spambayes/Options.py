@@ -1353,7 +1353,7 @@ class OptionsClass(object):
                           (opt, sect, filename)
                 else:
                     if self.multiple_values_allowed(sect, opt):
-                        value = tuple(value.split())
+                        value = self.convert(sect, opt, value)
                     self.set(sect, opt, self.convert(sect, opt, value))
 
     # not strictly necessary, but convenient shortcuts to self._options

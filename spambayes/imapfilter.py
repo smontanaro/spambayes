@@ -63,7 +63,14 @@ To Do:
       "OK", then the filter terminates.  Handling of these errors could be
       much nicer.
     o IMAP over SSL would be nice.  imaplib in Python 2.3 has an SSL class
-      that we could inherit from
+      that we could inherit from.  This idea would be that SSL is available
+      if the SSL class is available (so those using Python 2.2 can't use
+      imapfilter with SSL, but 2.3ers can).  It's easy enough to do the
+      enabling/disabling of the options (don't forget to wipe it from the
+      UI list), but I'm not quite sure how to handle the inheritance.  We
+      don't actually use the IMAP4 class, we use our own class that inherits
+      from that.  How can we dynamically select which class to inherit from?
+      (This is probably where my lack of Python expertise shows up...)
     o Develop a test script, like testtools/pop3proxytest.py that runs
       through some tests (perhaps with a *real* imap server, rather than
       a dummy one).  This would make it easier to carry out the tests
