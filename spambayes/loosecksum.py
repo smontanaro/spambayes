@@ -78,8 +78,8 @@ def flatten(obj):
     if hasattr(obj, "get_payload"):
         return flatten(obj.get_payload())
     if isinstance(obj, list):
-        return "\n".join([flatten(b) for b in body])
-    raise TypeError, ("unrecognized body type: %s" % type(body))
+        return "\n".join([flatten(b) for b in obj])
+    raise TypeError, ("unrecognized body type: %s" % type(obj))
 
 def generate_checksum(f):
     body = flatten(email.Parser.Parser().parse(f))
