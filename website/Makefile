@@ -18,7 +18,7 @@ ROOT_OFFSET = .
 VERSION_PY = $(shell python -c 'import os;\
 from spambayes import Version;\
 f = Version.__file__;\
-print os.path.splitext(f)[0]+".py";\
+print (os.path.splitext(f)[0]+".py").replace("\\", "/");\
 ')
 
 $(TARGETS): links.h
