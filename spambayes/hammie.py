@@ -59,6 +59,7 @@ DEFAULTDB = "hammie.db"
 
 # Probability at which a message is considered spam
 SPAM_THRESHOLD = options.spam_cutoff
+HAM_THRESHOLD = options.ham_cutoff
 
 # Tim's tokenizer kicks far more booty than anything I would have
 # written.  Score one for analysis ;)
@@ -227,7 +228,8 @@ class Hammie:
             import traceback
             traceback.print_exc()
 
-    def filter(self, msg, header=DISPHEADER, cutoff=SPAM_THRESHOLD):
+    def filter(self, msg, header=DISPHEADER, spam_cutoff=SPAM_THRESHOLD,
+               ham_cutoff=HAM_THRESHOLD):
         """Score (judge) a message and add a disposition header.
 
         msg can be a string, a file object, or a Message object.
@@ -245,10 +247,12 @@ class Hammie:
         elif not hasattr(msg, "add_header"):
             msg = email.message_from_string(msg)
         prob, clues = self._scoremsg(msg, True)
-        if prob < cutoff:
+        if prob < ham_cutoff:
             disp = "No"
-        else:
+        elif prob > spam_cutoff:
             disp = "Yes"
+        else:
+            disp = "Unsure"
         disp += "; %.2f" % prob
         disp += "; " + self.formatclues(clues)
         msg.add_header(header, disp)
