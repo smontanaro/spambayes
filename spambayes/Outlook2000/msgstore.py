@@ -28,6 +28,7 @@ MSGFLAG_UNSENT = 0x00000008
 
 MYPR_BODY_HTML_A = 0x1013001e # magic <wink>
 MYPR_BODY_HTML_W = 0x1013001f # ditto
+MYPR_MESSAGE_ID_A = 0x1035001E # more magic (message id field used for Exchange)
 
 CLEAR_READ_FLAG = 0x00000004
 CLEAR_RN_PENDING = 0x00000020
@@ -986,7 +987,7 @@ class MAPIMsgStoreMsg:
         # on an exchange server that do not have such headers of their own
         prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, \
                    PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME, \
-                   PR_SENDER_NAME_A
+                   PR_SENDER_NAME_A, MYPR_MESSAGE_ID_A
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         subject = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         sender = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
@@ -995,6 +996,8 @@ class MAPIMsgStoreMsg:
         delivery_time = data[4][1]
         alt_sender = self._GetPotentiallyLargeStringProp(prop_ids[5],
                                                          data[5])
+        message_id = self._GetPotentiallyLargeStringProp(prop_ids[6],
+                                                         data[6])
         headers = ["X-Exchange-Message: true"]
         if subject:
             headers.append("Subject: "+subject)
@@ -1006,6 +1009,8 @@ class MAPIMsgStoreMsg:
             headers.append("To: "+to)
         if cc:
             headers.append("CC: "+cc)
+        if message_id:
+            headers.append("Message-ID: "+message_id)
         if delivery_time:
             from time import timezone
             from email.Utils import formatdate
