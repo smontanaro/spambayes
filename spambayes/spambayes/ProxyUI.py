@@ -383,11 +383,13 @@ class ProxyUserInterface(UserInterface.UserInterface):
         if params.get('go') != _('Refresh'):
             for key, value in params.items():
                 if key.startswith('classify:'):
-                    id = key.split(':')[2]
+                    old_class, id = key.split(':')[1:3]
                     if value == _('spam'):
                         targetCorpus = state.spamCorpus
+                        stats_as_ham = False
                     elif value == _('ham'):
                         targetCorpus = state.hamCorpus
+                        stats_as_ham = True
                     elif value == _('discard'):
                         targetCorpus = None
                         try:
@@ -416,6 +418,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                     self.write(_("<p><b>Training... "))
                                     self.flush()
                                 numTrained += 1
+                                self.stats.RecordTraining(\
+                                  stats_as_ham, old_class=old_class)
                             except KeyError:
                                 pass  # Must be a reload.
 
