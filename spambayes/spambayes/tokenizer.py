@@ -1023,6 +1023,10 @@ class SlurpingURLStripper(URLStripper):
         username = options["globals", "proxy_username"]
         password = options["globals", "proxy_password"]
         server = options["globals", "proxy_server"]
+        if server.find(":") != -1:
+            server, port = server.split(':', 1)
+        else:
+            port = 8080
         if server:
             # Build a new opener that uses a proxy requiring authorization
             proxy_support = urllib2.ProxyHandler({"http" : \
