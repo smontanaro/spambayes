@@ -41,6 +41,52 @@ to the
 </ul>
 </p>
 
+<h2>Files, MD5 checksums, signatures and sizes</h2>
+<p>The signatures below were generated with
+<a href="http://www.gnupg.org/">GnuPG</a> using release manager
+<a href="http://www.massey.ac.nz/~tameyer/TonyMeyer.asc">Tony Meyer's
+public key</a>, which has a key id of F23F732A.</p>
+
+<ul>
+<li><tt>4c13f502d3df01f31faf4ca16cc03bc2</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.exe?download">spambayes-1.0.1.exe</a>
+(3,019,954 bytes,
+<a href="sigs/spambayes-1.0.1.exe.asc">sig</a>)
+</li>
+<li><tt>b80d25f90be14c9eaffefa172def674b</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.tar.gz?download">spambayes-1.0.1.tar.gz</a>
+(688,955 bytes,
+<a href="sigs/spambayes-1.0.1.tar.gz.asc">sig</a>)
+</li>
+<li><tt>95f2fa43c12163052d9e925c23b0de4d</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.1.zip?download">spambayes-1.0.1.zip</a>
+(785,670 bytes,
+<a href="sigs/spambayes-1.0.1.zip.asc">sig</a>)
+</li>
+</ul>
+
+<!--- Stolen from http://www.python.org/download/index.html#pubkeys -->
+<p>You can import the release manager public keys by either downloading the
+public key file and then running</p>
+
+<pre>% gpg --import TonyMeyer.asc</pre>
+
+<p>or by grabbing the key directly from the keyserver network by running
+this command:</p>
+
+<pre>% gpg --recv-keys F23F732A</pre>
+
+<p>To verify the authenticity of the download, grab both the file(s) and the
+signature(s) (above) and then run this command:</p>
+
+<pre>% gpg --verify spambayes-1.0.1.exe.asc</pre>
+
+<p>Note that you must use the name of the signature file, and you should
+use the one that's appropriate to the download you're verifying.</p>
+
+<p>These instructions are geared to GnuPG and command-line weenies.
+Suggestions are welcome for other OpenPGP applications.</p>
+
 <a name="cvs"><h2>CVS Access</h2></a>
 <p>The code is currently available from sourceforge's CVS server -
 <a href="http://sourceforge.net/cvs/?group_id=61702">see here</a> for
