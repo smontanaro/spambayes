@@ -350,7 +350,31 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
         headers = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         body = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         html = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
+        # Mail delivered internally via Exchange Server etc may not have
+        # headers - fake some up.
+        if not headers:
+            headers = self._GetFakeHeaders ()
+        # Mail delivered via the Exchange Internet Mail MTA may have
+        # gibberish at the start of the headers - fix this.
+        elif headers.startswith("Microsoft Mail"):
+            headers = "X-MS-Mail-Gibberish: " + headers
         return "%s\n%s\n%s" % (headers, html, body)
+
+    def _GetFakeHeaders(self):
+        # This is designed to fake up some SMTP headers for messages
+        # on an exchange server that do not have such headers of their own
+        prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, PR_DISPLAY_CC_A
+        hr, data = self.mapi_object.GetProps(prop_ids,0)
+        subject = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
+        sender = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
+        to = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
+        cc = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
+        headers = ["X-Exchange-Message: true"]
+        if subject: headers.append("Subject: "+subject)
+        if sender: headers.append("From: "+sender)
+        if to: headers.append("To: "+to)
+        if cc: headers.append("CC: "+cc)
+        return "\n".join(headers)
 
     def _EnsureObject(self):
         if self.mapi_object is None:
