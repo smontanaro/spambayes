@@ -42,7 +42,8 @@ class _Progress:
             stage = name, start_pos, prop
             start_pos += prop
             self.stages.append(stage)
-        assert(abs(start_pos-1.0)) < 0.001, "Proportions must add to 1.0"
+        assert (abs(start_pos-1.0)) < 0.001, \
+               "Proportions must add to 1.0 (%g,%r)" % (start_pos, stages)
 
     def _next_stage(self):
         if self.current_stage == 0:
