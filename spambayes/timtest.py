@@ -518,6 +518,11 @@ def tokenize(string):
     # normalize case and whitespace.
     # X-Mailer:  This is a pure and significant win for the f-n rate; f-p
     #            rate isn't affected.
+    # User-Agent:  Skipping it, as it made no difference.  Very few spams
+    #              had a User-Agent field, but lots of hams didn't either,
+    #              and the spam probability of User-Agent was very close to
+    #              0.5 (== not a valuable discriminator) across all training
+    #              sets.
     for field in ('x-mailer',):
         prefix = field + ':'
         subj = msg.get(field, '-None-')
