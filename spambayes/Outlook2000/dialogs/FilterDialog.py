@@ -230,7 +230,9 @@ class FilterArrivalsDialog(dialog.Dialog):
         slider = self.GetDlgItem(idc_slider)
         edit = self.GetDlgItem(idc_edit)
         try:
-            val = float(edit.GetWindowText())
+            # Get as float so we dont fail should the .0 be there, but
+            # then convert to int as the slider only works with ints
+            val = int(float(edit.GetWindowText()))
         except ValueError:
             return
         slider.SetPos(val)
