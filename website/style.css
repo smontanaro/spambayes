@@ -3,7 +3,7 @@
 
 BODY      		{ background:	white;
 	  		  color:	#484848; 
-			  margin-right: 15%;
+			  margin:	0 0;
 font-family: geneva, verdana, arial, "ms sans serif", sans-serif; 
 font-size: 12pt;
 }
@@ -37,6 +37,8 @@ TD.normalSidebar a:hover { color: #005500; }
 
 TD.headerSidebar {  color: #222222; 
                     font-weight: bold;}
+
+TD.body			{ padding-right: 15; }
 
 /* used in the windows/outlook compatibility matrix */
 TD.unknown {
