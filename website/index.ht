@@ -11,7 +11,13 @@ based on the work of <a href="http://www.paulgraham.com/spam.html">Paul Graham.<
 <p>Code is currently available 
 <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a> - 
 note that it's not yet 
-suitable for end-users, but for people interested in experimenting.
+suitable for non-technical end-users, but for people interested 
+in experimenting.
+</p>
+<p>
+There are now a couple of end-user applications available for those
+excited by the bleeding edge - these are detailed on the 
+<a href="applications.html">Applications</a> page.
 </p>
 
 <h2>Mailing list</h2>

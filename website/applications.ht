@@ -1,0 +1,50 @@
+Title: SpamBayes: Applications
+Author-Email: spambayes@python.org
+Author: spambayes
+
+<h2>Applications</h2>
+<p>A number of applications are available in the SpamBayes project. None
+of these are particularly polished, finished pieces of work, but they're
+getting there (and help is always appreciated).
+</p>
+<h3>Outlook2000</h3>
+<p>Sean True and Mark Hammond have developed an addin for Outlook2000 that
+adds support for the spambayes classifier. 
+<h4>Requirements</h4>
+<ul>
+<li>Python2.2 or later (2.2.2 recommended)
+<li>Outlook 2000 (<b>not</b> Outlook Express)
+<li>Python's <a href="http://starship.python.net/crew/mhammond">win32com</a>
+extensions (win32all-149 or later)
+<li>CDO installed.
+</ul>
+For more on this, see the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/README.txt?rev=HEAD&content-type=text/plain">README.txt</a> or 
+<a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD&content-type=text/html">about.html</a> file in the spambayes CVS repository's Outlook2000 directory.
+</p>
+<h4>Availability</h4>
+<p>At the moment, you'll need to use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+
+<h3>hammie.py</h3>
+<p>hammie is a command line tool for marking mail as ham or spam. Skip Montanaro has started a <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/INTEGRATION.txt?rev=HEAD&content-type=text/plain">guide to integrating hammie with your mailer</a> (Unix-only instructions at the moment - additions welcome!). 
+Currently it focusses on running hammie via procmail. </p>
+<h4>Requirements</h4>
+<ul>
+<li>Python2.2 or later (2.2.2 recommended)
+<li>Currently documentation focusses on Unix.
+</ul>
+<h4>Availability</h4>
+<p>At the moment, you'll need to use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+
+<h3>pop3proxy.py</h3>
+<p>pop3proxy sits between your mail client and your real POP3 server and marks
+mail as ham or spam as it passes through. See the <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/pop3proxy.py?rev=HEAD&content-type=text/plain">docstring at the top of pop3proxy.py</a> for more.
+<h4>Requirements</h4>
+<ul>
+<li>Python2.2 or later (2.2.2 recommended)
+<li>Should work on windows/unix/whatever... ?
+</ul>
+</p>
+<h4>Availability</h4>
+<p>At the moment, you'll need to use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+
+
