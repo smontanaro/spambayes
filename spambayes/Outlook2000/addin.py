@@ -1,5 +1,4 @@
 # SpamBayes Outlook Addin
-
 import sys, os
 import warnings
 import traceback
@@ -720,14 +719,24 @@ def SetButtonImage(button, fname, manager):
     # shows how to make a transparent bmp.
     # Also note that the clipboard takes ownership of the handle -
     # thus, we can not simply perform this load once and reuse the image.
-    if not os.path.isabs(fname):
-        # images relative to the application path
-        fname = os.path.join(manager.application_directory,
-                                 "images", fname)
-    if not os.path.isfile(fname):
-        print "WARNING - Trying to use image '%s', but it doesn't exist" % (fname,)
-        return None
-    handle = win32gui.LoadImage(0, fname, win32con.IMAGE_BITMAP, 0, 0, win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE)
+    # Hacks for the binary - we can get the bitmaps from resources.
+    if hasattr(sys, "frozen"):
+        if fname=="recover_ham.bmp":
+            bid = 6000
+        elif fname=="delete_as_spam.bmp":
+            bid = 6001
+        else:
+            raise RuntimeError, "What bitmap to use for '%s'?" % fname
+        handle = win32gui.LoadImage(sys.frozendllhandle, bid, win32con.IMAGE_BITMAP, 0, 0, win32con.LR_DEFAULTSIZE)
+    else:
+        if not os.path.isabs(fname):
+            # images relative to the application path
+            fname = os.path.join(manager.application_directory,
+                                     "images", fname)
+        if not os.path.isfile(fname):
+            print "WARNING - Trying to use image '%s', but it doesn't exist" % (fname,)
+            return None
+        handle = win32gui.LoadImage(0, fname, win32con.IMAGE_BITMAP, 0, 0, win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE)
     win32clipboard.OpenClipboard()
     win32clipboard.SetClipboardData(win32con.CF_BITMAP, handle)
     win32clipboard.CloseClipboard()
@@ -1406,10 +1415,16 @@ def UnregisterAddin(klass):
     except WindowsError:
         pass
 
+def DllRegisterServer():
+    RegisterAddin(OutlookAddin)
+
+def DllUnregisterServer():
+    UnregisterAddin(OutlookAddin)
+
 if __name__ == '__main__':
     import win32com.server.register
     win32com.server.register.UseCommandLine(OutlookAddin)
     if "--unregister" in sys.argv:
-        UnregisterAddin(OutlookAddin)
+        DllUnregisterServer()
     else:
-        RegisterAddin(OutlookAddin)
+        DllRegisterServer()
