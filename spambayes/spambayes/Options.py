@@ -880,9 +880,11 @@ defaults = {
 
   "imap" : (
     ("server", "Server", "",
-     """This is the name of the imap server that stores your mail, and
-     which the imap filter will connect to - for example: mail.example.com
-     or imap.example.com.  If you use more than one server, then things are
+     """This is the name and port of the imap server that stores your mail,
+     and which the imap filter will connect to - for example:
+     mail.example.com or imap.example.com:143.  The default IMAP port is
+     143, or 993 if using SSL; if you connect via one of those ports, you
+     can leave this blank. If you use more than one server, then things are
      a bit more complicated for you at the moment, sorry.  You will need to
      have multiple instances of the imap filter running, each with a
      different server (and possibly username and password) value.  You can
@@ -890,15 +892,7 @@ defaults = {
      but you'll have to do it by hand for the moment.  Please let the
      mailing list know if you are in this situation so that we can consider
      coming up with a better solution.""",
-     SERVER, SINGLE_VALUE, DO_NOT_RESTORE),
-
-    ("port", "Port", 143,
-     """This is the port of the imap server that stores your mail, and
-     which the imap filter will connect to.  The default IMAP port is 143,
-     or 993 if using SSL; you will probably have one of those values here.
-     If you are using multiple imap servers, please see the comments
-     regarding the server value.""",
-     PORT, SINGLE_VALUE, DO_NOT_RESTORE),
+     SERVER, MULTIPLE_ALLOWED, DO_NOT_RESTORE),
 
     ("username", "Username", "",
      """This is the id that you use to log into your imap server.  If your
@@ -906,7 +900,7 @@ defaults = {
      funkyguy. If you are using multiple imap servers, or multiple accounts
      on the same server, please see the comments regarding the server
      value.""",
-     PORT, SINGLE_VALUE, DO_NOT_RESTORE),
+     r"[\w]+", MULTIPLE_ALLOWED, DO_NOT_RESTORE),
 
     ("password", "Password", "",
      """That is that password that you use to log into your imap server.
@@ -916,13 +910,17 @@ defaults = {
      I've just freaked you out, don't panic <wink>.  You can leave this
      blank and use the -p command line option to imapfilter.py and you will
      be prompted for your password.""",
-     r"[\w]+", SINGLE_VALUE, DO_NOT_RESTORE),
+     r"[\w]+", MULTIPLE_ALLOWED, DO_NOT_RESTORE),
 
     ("expunge", "Purge//Expunge", False,
      """Permanently remove *all* messages flagged with //Deleted on logout.
      If you do not know what this means, then please leave this as
      False.""",
      BOOLEAN, SINGLE_VALUE, RESTORE),
+
+    ("use_ssl", "Connect via a secure socket layer", False,
+     """NOT YET IMPLEMENTED""",
+     BOOLEAN, SINGLE_VALUE, DO_NOT_RESTORE),
 
     ("filter_folders", "Folders to filter", "INBOX",
      """Comma delimited list of folders to be filtered""",
@@ -1050,7 +1048,6 @@ all_options = {
                   'ports' : string_cracker, 
                   },
     'imap': {'server' : string_cracker,
-             'port' : int_cracker,
              'username' : string_cracker,
              'password' : string_cracker,
              'filter_folders' : string_cracker,
@@ -1058,7 +1055,8 @@ all_options = {
              'spam_folder' : string_cracker,
              'ham_train_folders' : string_cracker,
              'spam_train_folders' : string_cracker,
-             'expunge' : boolean_cracker, 
+             'expunge' : boolean_cracker,
+             'use_ssl' : boolean_cracker,
             },
     'html_ui': {'port': int_cracker,
                 'launch_browser': boolean_cracker,

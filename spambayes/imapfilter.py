@@ -453,6 +453,12 @@ def run():
 The user interface will be launched, but no classification
 or training will be performed."""
 
+    server = options["imap", "server"]
+    username = options["imap", "username"]
+    if server == "" or username == "":
+        print "You need to specify both a server and a username."
+        sys.exit()
+
     if promptForPass:
         pwd = getpass()
     else:
@@ -471,8 +477,15 @@ or training will be performed."""
     if options["globals", "verbose"]:
         print "Done."            
                 
-    imap = IMAPSession(options["imap", "server"],
-                       options["imap", "port"], imapDebug)
+    if server.find(':') > -1:
+        server, port = server.split(':', 1)
+        port = int(port)
+    else:
+        if options["imap", "use_ssl"]:
+            port = 993
+        else:
+            port = 143
+    imap = IMAPSession(server, port, imapDebug)
 
     imap_filter = IMAPFilter(classifier)
 
@@ -481,13 +494,13 @@ or training will be performed."""
     # XXX then there will be trouble since both interfaces are
     # XXX using the same port by default.
     if launchUI:
-        imap.login(options["imap", "username"], pwd)
+        imap.login(username, pwd)
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imap))
         Dibbler.run(launchBrowser=launchUI)
     else:
         while True:
-            imap.login(options["imap", "username"], pwd)
+            imap.login(username, pwd)
 
             if doTrain:
                 if options["globals", "verbose"]:

@@ -72,6 +72,7 @@ parm_map = \
     'imapport':     ('imap',            'port'),
     'imapusername': ('imap',            'username'),
     'imappassword': ('imap',            'password'),
+    'imapssl':      ('imap',            'use_ssl'),
     'p3notateto':   ('pop3proxy',       'notate_to'),
     'p3notatesub':  ('pop3proxy',       'notate_subject'),
     'p3addid':      ('pop3proxy',       'add_mailid_to'),
@@ -87,7 +88,7 @@ display = ('IMAP Options', 'imapserver', 'imapport', 'imapusername',
            # see (and worse - if we don't restrict connections to
            # localhost, it's available for the world to see)
            # on the other hand, we have to be able to enter it somehow...
-           'imappassword',
+           'imappassword', 'imapssl',
            'Header Options', 'p3notateto', 'p3notatesub', 
            'p3prob', 'p3thermostat', 'p3evidence', 
            'p3addid', 'p3stripid',
