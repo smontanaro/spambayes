@@ -12,6 +12,20 @@ noted in the "Transition" section.
 New in Alpha Release 5
 ======================
 
+--------------------------
+** Incompatible changes **
+--------------------------
+
+The values taken by some options have changed, so if you're upgrading from a
+previous version, you may need to update your configuration file (.spambayesrc
+or bayescustomize.ini)
+
+ o allow_remote_connections now takes a list of allowed IP addresses, or the
+   word 'localhost', or an asterisk (meaning all connections are accepted).
+ o notate_to and notate_subject now take a comma-separated list of one or
+   more of 'spam', 'ham' and 'unsure', allowing you to control which classes
+   of message are notated.
+
 Outlook Plugin
 --------------
  o Added a diagnostics dialog with functions to make it easier for users to
