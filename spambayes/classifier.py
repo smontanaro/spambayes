@@ -227,9 +227,8 @@ class Bayes(object):
 
         nham = float(self.nham or 1)
         nspam = float(self.nspam or 1)
-        A = options.robinson_probability_a
-        X = options.robinson_probability_x
-        AoverX = A/X
+        S = options.robinson_probability_s
+        StimesX = S * options.robinson_probability_x
         for word, record in self.wordinfo.iteritems():
             # Compute prob(msg is spam | msg contains word).
             # This is the Graham calculation, but stripped of biases, and
@@ -247,12 +246,12 @@ class Bayes(object):
 
             # Now do Robinson's Bayesian adjustment.
             #
-            #         a + (n * p(w))
-            # f(w) = ---------------
-            #          (a / x) + n
+            #         s*x + n*p(w)
+            # f(w) = --------------
+            #           s + n
 
             n = hamcount + spamcount
-            prob = (A + n * prob) / (AoverX + n)
+            prob = (StimesX + n * prob) / (S + n)
 
             if record.spamprob != prob:
                 record.spamprob = prob

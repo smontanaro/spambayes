@@ -178,18 +178,18 @@ max_discriminators: 150
 # "x" is essentially the probability given to a word that's never been
 # seen before.  Nobody has reported an improvement via moving it away
 # from 1/2.
-# "a" adjusts how much weight to give the prior assumption relative to
-# the probabilities estimated by counting.  At a=0, the counting estimates
+# "s" adjusts how much weight to give the prior assumption relative to
+# the probabilities estimated by counting.  At s=0, the counting estimates
 # are believed 100%, even to the extent of assigning certainty (0 or 1)
 # to a word that's appeared in only ham or only spam.  This is a disaster.
-# As "a" tends toward infintity, all probabilities tend toward "x".  All
-# reports were that a value near 0.2 worked best, so this doesn't seem to
+# As s tends toward infintity, all probabilities tend toward x.  All
+# reports were that a value near 0.4 worked best, so this doesn't seem to
 # be corpus-dependent.
-# XXX Gary Robinson has since renamed "a" to "s", and redone his formulas
-# XXX to make it a measure of belief strength rather than "a number" from
-# XXX 0 to infinity.  We haven't caught up to that yet.
-robinson_probability_a: 0.225
+# NOTE:  Gary Robinson previously used a different formula involving 'a'
+# and 'x'.  The 'x' here is the same as before.  The 's' here is the old
+# 'a' divided by 'x'.
 robinson_probability_x: 0.5
+robinson_probability_s: 0.45
 
 # When scoring a message, ignore all words with
 # abs(word.spamprob - 0.5) < robinson_minimum_prob_strength.
@@ -253,8 +253,8 @@ all_options = {
                    'best_cutoff_fp_weight': float_cracker,
                   },
     'Classifier': {'max_discriminators': int_cracker,
-                   'robinson_probability_a': float_cracker,
                    'robinson_probability_x': float_cracker,
+                   'robinson_probability_s': float_cracker,
                    'robinson_minimum_prob_strength': float_cracker,
 
                    'use_central_limit': boolean_cracker,
