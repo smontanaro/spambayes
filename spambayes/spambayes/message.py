@@ -114,12 +114,12 @@ class MessageInfoDB:
 
     def _getState(self, msg):
         try:
-            return self.db[msg.getId()]
+            (msg.c, msg.t) = self.db[msg.getId()]
         except KeyError:
-            return None
+            pass
 
     def _setState(self, msg):
-        self.db[msg.getId()] = msg
+        self.db[msg.getId()] = (msg.c, msg.t)
 
     def _delState(self, msg):
         del self.db[msg.getId()]
@@ -163,7 +163,6 @@ class Message(email.Message.Message):
             
         self.id = id
         msginfoDB._getState(self)
-        self.modified()   # id has changed, force storage
         
     def getId(self):
         return self.id
