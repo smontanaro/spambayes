@@ -1,12 +1,13 @@
 # setup_all.py
 # A distutils setup script for SpamBayes binaries
 
-import sys, os
+import sys, os, glob
 sb_top_dir = os.path.abspath(os.path.dirname(os.path.join(__file__, "../../../..")))
 sys.path.append(sb_top_dir)
 sys.path.append(os.path.join(sb_top_dir, "windows"))
 sys.path.append(os.path.join(sb_top_dir, "scripts"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
+sys.path.append(os.path.join(sb_top_dir, "Outlook2000/sandbox"))
 
 # ModuleFinder can't handle runtime changes to __path__, but win32com uses them,
 # particularly for people who build from sources.  Hook this in.
@@ -15,7 +16,6 @@ try:
     import win32com
     for p in win32com.__path__[1:]:
         modulefinder.AddPackagePath("win32com", p)
-    # Not sure why this works for "win32com.mapi" for not "win32com.shell"!
     for extra in ["win32com.shell","win32com.mapi"]:
         __import__(extra)
         m = sys.modules[extra]
@@ -35,15 +35,33 @@ class Options:
 # py2exe_options is a global name found by py2exe
 py2exe_options = Options(
     packages = "spambayes.resources,encodings",
-    excludes = "win32ui,pywin,pywin.debugger" # pywin is a package, and still seems to be included.
+    excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
+    includes = "dialogs.resources.dialogs", # Outlook dynamic dialogs
+    dll_excludes = ["dapi.dll", "mapi32.dll"]
 )
 
+# These must be the same IDs as in the dialogs.  We really should just extract
+# them from our rc scripts.
+outlook_bmp_resources = [
+    ( 125, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sbwizlogo.bmp")),
+    ( 127, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\folders.bmp")),
+    (1062, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp")),
+]
+
 # These are just objects passed to py2exe
-com_server = Options(
+outlook_addin = Options(
     modules = ["addin"],
-    dest_base = "SpamBayes_Outlook_Addin",
-    bitmap_resources = [(1000, os.path.join(sb_top_dir, r"Outlook2000\dialogs\resources\sblogo.bmp"))],
+    dest_base = "spambayes_addin",
+    bitmap_resources = outlook_bmp_resources,
     create_exe = False,
+)
+#outlook_manager = Options(
+#    script = os.path.join(sb_top_dir, r"Outlook2000\manager.py"),
+#    bitmap_resources = outlook_bmp_resources,
+#)
+outlook_dump_props = Options(
+    script = os.path.join(sb_top_dir, r"Outlook2000\sandbox\dump_props.py"),
+    dest_base = "outlook_dump_props",
 )
 
 service = Options(
@@ -57,6 +75,7 @@ pop3proxy_tray = Options(
     icon_resources = [(1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
+
 # Default and only distutils command is "py2exe" - save adding it to the
 # command line every single time.
 if len(sys.argv)==1:
@@ -65,11 +84,11 @@ if len(sys.argv)==1:
 setup(name="SpamBayes",
       packages = ["spambayes.resources"],
       # We implement a COM object.
-      com_server=[com_server],
+      com_server=[outlook_addin],
       # A service
       service=[service],
       # A console exe for debugging
-      console=[sb_server],
+      console=[sb_server, outlook_dump_props],
       # The taskbar
       windows=[pop3proxy_tray],
 )
