@@ -23,7 +23,7 @@ are upgrading from an older version:
    changed.  If you run "setup.py install", it will offer to remove the old
    ones for you, which we recommend.  In the archive, the scripts are all
    in a 'scripts' directory, and all the scripts start with the "sb_"
-   prefix, to avoid clashing with similiarly named scripts from other
+   prefix, to avoid clashing with similarly named scripts from other
    packages.  Some name changes go further - "pop3proxy" is now named
    "sb_server", "hammiefilter" is now named "sb_filter", "hammiecli" is now
    named "sb_client", "hammiesrv" is now named "sb_xmlrpcserver", "proxytee"
@@ -58,7 +58,7 @@ file (.spambayesrc or bayescustomize.ini)
 
 Note that pop3proxy (sb_server) and imapfilter users can simply use the web
 interface to check their options and correct any that are wrong.  All
-incorrectlly named options in the configuration file will be removed.
+incorrectly named options in the configuration file will be removed.
 
 Outlook Plugin
 --------------
@@ -110,7 +110,7 @@ IMAP Filter
  o Count all messages being classified instead of just the ones from the
    last folder.
  o Handle a folder name as a literal when presenting a list to choose from.
- o Handle imap servers that do not pass a blank result line for an empty
+ o Handle IMAP servers that do not pass a blank result line for an empty
    search.
  o Fix IMAP over SSL.
 
@@ -146,8 +146,8 @@ The following bugs tracked via the Sourceforge system were fixed:
 803501, 802545, 802347, 801952, 798362, 800555, 806632, 795145, 806238, 
 805351
 
-A url containing the details of these bugs can be made by appending the
-bug number to this url:
+A URL containing the details of these bugs can be made by appending the
+bug number to this URL:
 http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&aid=
 
 

@@ -24,7 +24,7 @@ has also gotten too small to measure reliably across that much training data.
 
 The code in this project requires Python 2.2 (or later).
 
-You should definately check out the FAQ:
+You should definitely check out the FAQ:
 http://spambayes.org/faq.html
 
 
@@ -70,6 +70,11 @@ tokenizer.py
 chi2.py
     A collection of statistics functions.
 
+IMPORTANT NOTE
+==============
+
+The applications have all been renamed in preparation for 1.0 - the
+following section refers to old application names.
 
 Apps
 ====
@@ -78,7 +83,7 @@ hammie.py
 
 hammiefilter.py
     A simpler hammie front-end that doesn't print anything.  Useful for
-    procmail filering and scoring from your MUA.
+    procmail filtering and scoring from your MUA.
 
 mboxtrain.py
     Trainer for Maildir, MH, or mbox mailboxes.  Remembers which
@@ -91,7 +96,7 @@ mboxtrain.py
     server.
 
 pop3proxy.py
-    A spam-classifying POP3 proxy.  It adds a spam-judgement header to
+    A spam-classifying POP3 proxy.  It adds a spam-judgment header to
     each mail as it's retrieved, so you can use your email client's
     filters to deal with them without needing to fiddle with your email
     delivery system.
@@ -236,7 +241,7 @@ splitndirs.py
     the number of messages per folder.
 
 runtest.sh
-    A bourne shell script (for Unix) which will run some test or other.
+    A Bourne shell script (for Unix) which will run some test or other.
     I (Neale) will try to keep this updated to test whatever Tim is
     currently asking for.  The idea is, if you have a standard directory
     structure (below), you can run this thing, go have some tea while it
@@ -313,7 +318,7 @@ data.  That's recommended now.  timcv.py is to cross-validation testing
 as the older timtest.py is to grid testing.  timcv.py has grown additional
 arguments to allow using only a random subset of messages in each Set.
 
-CAUTION:  The parititioning of your corpora across directories should
+CAUTION:  The partitioning of your corpora across directories should
 be random.  If it isn't, bias creeps in to the test results.  This is
 usually screamingly obvious under the NxN grid method (rates vary by a
 factor of 10 or more across training sets, and even within runs against
@@ -461,6 +466,9 @@ Notepad and sometimes it's convenient to do so.  End users might not even
 have any other text editor, so it make things like the README unREADable.
 8-)
 
+Anthony would rather eat live worms than trying to get a sane environment
+on Windows, so his approach to building the zip file is at the end.
+
  o If any new file types have been added since last time (eg. 1.0a5 went
    out without the Windows .rc and .h files) then add them to MANIFEST.in.
    If there are any new scripts or packages, add them to setup.py.  Test
@@ -479,7 +487,7 @@ have any other text editor, so it make things like the README unREADable.
    for this, but that's probably overkill 8-) and test the latter on Unix
    (a Debian VMWare box in my case).
  o If you can, rename these with "rc" at the end, and make them available
-   to the spambayes-dev crowd as release candidates.  If all is ok, then
+   to the spambayes-dev crowd as release candidates.  If all is OK, then
    fix the names (or redo this) and keep going.
  o Dance the SourceForge release dance:
    http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#filereleasesteps
@@ -495,3 +503,16 @@ have any other text editor, so it make things like the README unREADable.
 
 Then announce the release on the mailing lists and watch the bug reports
 roll in.  8-)
+
+Anthony's Alternate Approach to Building the Zipfile
+
+o Unpack the tarball somewhere, making a spambayes-1.0a7 directory
+  (version number will obviously change in future releases)
+o Run the following two commands:
+
+    find spambayes-1.0a7 -type f -name '*.txt' | xargs zip -l sb107.zip 
+    find spambayes-1.0a7 -type f \! -name '*.txt' | xargs zip sb107.zip 
+
+o This makes a tarball where the .txt files are mangled, but everything
+  else is left alone.
+

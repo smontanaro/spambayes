@@ -25,7 +25,7 @@ mail folder for example.  IMAP and Outlook both have the capacity to do the
 filtering themselves, so the header is not necessary.
 
 If you have any questions that this document does not answer, you should
-definately try the SpamBayes website <http://spambayes.org>, and in
+definitely try the SpamBayes website <http://spambayes.org>, and in
 particular, try reading the list of frequently asked questions:
 <http://spambayes.org/faq.html>
 
@@ -35,7 +35,7 @@ Prerequisites
 
 You need to have Python 2.2 or later (2.3 is recommended).  You can
 download Python from <http://www.python.org/download/>.
-Many distributions of unix now ship with Python - try typing 'python' 
+Many distributions of UNIX now ship with Python - try typing 'python' 
 at a shell prompt.
 
 You also need version 2.4.3 or above of the Python "email" package.
@@ -197,7 +197,7 @@ classify incoming mail like so:
 The above Procmail recipe tells it to run /usr/local/bin/sb_filter.py.
 Since no command line arguments are given, it relies on the options file
 specified by the BAYESCUSTOMIZE variable for all parameters.  While
-sb_filter.py is runnning, Procmail uses the lock file hamlock to prevent
+sb_filter.py is running, Procmail uses the lock file hamlock to prevent
 multiple invocations from stepping on each others' toes.  (It's not strictly
 necessary in this case since no files on-disk are modified, but Procmail
 will still complain if you don't specify a lock file.)
@@ -291,7 +291,7 @@ containing nothing but ham, you can train Spambayes using a command like
 
     sb_mboxtrain.py -g ~/tmp/newham -s ~/tmp/newspam
 
-The above command is command-line-centric (eg. unix, or Windows command
+The above command is command-line-centric (eg. UNIX, or Windows command
 prompt).  You can also use the web interface for training as detailed above.
 
 
@@ -311,10 +311,10 @@ There are eight main components to the SpamBayes system:
    adjusts its probabilities accordingly.  How to train it is covered
    below.  By default it lives in a file called "hammie.db".
 
- o The tokeniser/classifier.  This is the core engine of the system.  The
+ o The tokenizer/classifier.  This is the core engine of the system.  The
    tokenizer splits emails into tokens (words, roughly speaking), and the
    classifier looks at those tokens to determine whether the message looks
-   like spam or not.  You don't use the tokeniser/classifier directly -
+   like spam or not.  You don't use the tokenizer/classifier directly -
    it powers the other parts of the system.
 
  o The POP3 proxy.  This sits between your email client (Eudora, Outlook
@@ -328,7 +328,7 @@ There are eight main components to the SpamBayes system:
        |                 |                              |             |
        +-----------------+                              +-------------+
 
-   The POP3 server runs either at your ISP for internet mail, or somewhere
+   The POP3 server runs either at your ISP for Internet mail, or somewhere
    on your internal network for corporate mail.  The POP3 proxy sits in the
    middle and adds the classification header as you retrieve your email:
 
@@ -359,7 +359,7 @@ There are eight main components to the SpamBayes system:
        |                 |                              |             |
        +-----------------+                              +-------------+
 
-   The SMTP server runs either at your ISP for internet mail, or somewhere
+   The SMTP server runs either at your ISP for Internet mail, or somewhere
    on your internal network for corporate mail.  The SMTP proxy sits in the
    middle and checks for mail to train on as you send your email:
 
