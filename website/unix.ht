@@ -60,7 +60,7 @@ readme</a>.</p>
 <p>If your mail program fetches mail using POP3, then you should run <a
 href="applications.html#sb_server">sb_server.py</a>.</p>
 
-<p>You might wish to set sb_server.py to run as a daemon - Fernando NIÑO and
+<p>You might wish to set sb_server.py to run as a daemon - Fernando Nino and
 Dave Handley have provided these scripts (respectively) which will allow you
 to do this:</p>
 <pre>
@@ -193,6 +193,12 @@ esac
 
 exit $RETVAL
 </pre>
+
+<h2>KMail</h2>
+<p>Toby Dickenson has written a <a href="http://www.tarind.com/kmailsb.html">
+description of his SpamBayes and KMail setup</a> (using sb_bnfilter.py),
+which is an effective guide to setting up your system if you are a KMail
+user.</p>
 
 <h2>IMAP</h2>
 
