@@ -318,24 +318,30 @@ extensibility allows you to easily segregate your incoming mail for training
 purposes.  Here's one such example.  If you place the following code in your
 ~/.vm file::
 
-    (defun copy-to-spam ()
-      (interactive)
+  (defun train-as-spam ()
+    (interactive)
+    (let ((vm-delete-after-saving nil))
       (vm-save-message (expand-file-name "~/tmp/newspam"))
-      (vm-undelete-message 1))
+      (vm-add-message-labels "trained" 1))
+    (vm-pipe-message-to-command "hammiefilter.py -s >/dev/null" nil))
 
-    (defun copy-to-nonspam ()
-      (interactive)
+  (defun train-as-nonspam ()
+    (interactive)
+    (let ((vm-delete-after-saving nil))
       (vm-save-message (expand-file-name "~/tmp/newham"))
-      (vm-undelete-message 1))
+      (vm-add-message-labels "trained" 1))
+    (vm-pipe-message-to-command "hammiefilter.py -g >/dev/null" nil))
 
-    (define-key vm-mode-map "ls" 'copy-to-spam)
-    (define-key vm-summary-mode-map "ls" 'copy-to-spam)
-    (define-key vm-mode-map "lh" 'copy-to-nonspam)
-    (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
+  (define-key vm-mode-map "ls" 'train-as-spam)
+  (define-key vm-summary-mode-map "ls" 'train-as-spam)
+  (define-key vm-mode-map "lh" 'train-as-nonspam)
+  (define-key vm-summary-mode-map "lh" 'train-as-nonspam)
 
 Typing "ls" will save a copy of the current message to ~/tmp/newspam and
 "lh" will save a copy of the current message to ~/tmp/newham.  You can then
-use those files later as arguments to hammie.py for training.
+use those files later as arguments to hammie.py for training.  Both commands
+also add a "trained" label to the message in question as a visual reminder
+that you've already added the message to your training database.
 
 Users limited to POP3/IMAP communications to the server can use the POP3_ or
 IMAP_ proxies which are part of the Spambayes source.
