@@ -22,7 +22,7 @@ def fix_sys_path():
         sb_dir = os.path.abspath(
                      os.path.join(this_dir, "..", ".."))
         sys.path.insert(0, sb_dir)
-        import SpamBayes.Version
+        import spambayes.Version
 
     # Now do the same for the sb_* scripts
     try:
