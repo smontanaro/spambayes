@@ -388,7 +388,7 @@ setting directory, e.g.::
 
 9. Change both server names to ``localhost``.
 
-10, Add the following two lines. Use whatever ports you assigned to
+10. Add the following two lines. Use whatever ports you assigned to
     pop3proxy and smtpproxy for the dominant personality::
 
     POPPort=1110
