@@ -88,10 +88,14 @@ pop3proxy_tray = Options(
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
 
-outlook_doc_files = [
+outlook_data_files = [
     ["outlook", [os.path.join(sb_top_dir, r"Outlook2000\about.html")]],
     ["outlook/docs", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\*.html"))],
     ["outlook/docs/images", glob.glob(os.path.join(sb_top_dir, r"Outlook2000\docs\images\*.jpg"))],
+    ["outlook", [os.path.join(sb_top_dir, r"Outlook2000\default_bayes_customize.ini")]],
+]
+proxy_data_files = [
+    ["proxy", [os.path.join(sb_top_dir, r"windows\readme_proxy.html")]],
 ]
 
 # Default and only distutils command is "py2exe" - save adding it to the
@@ -110,5 +114,5 @@ setup(name="SpamBayes",
       # The taskbar
       windows=[pop3proxy_tray],
       # and the misc data files
-      data_files = outlook_doc_files,
+      data_files = outlook_data_files + proxy_data_files,
 )
