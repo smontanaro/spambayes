@@ -458,8 +458,13 @@ class Bayes(object):
         if evidence:
             clues = [(word, prob) for prob, word, record in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
-            clues.insert(0, ('*zspam*', zspam))
-            clues.insert(0, ('*zham*', zham))
+            extra = [('*zham*', zham),
+                     ('*zspam*', zspam),
+                     ('*hmean*', mean),
+                     ('*smean*', mean),
+                     ('*n*', n),
+                    ]
+            clues[0:0] = extra
             return score, clues
         else:
             return score
@@ -553,8 +558,13 @@ class Bayes(object):
         if evidence:
             clues = [(word, prob) for prob, word, record in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
-            clues.insert(0, ('*zspam*', zspam))
-            clues.insert(0, ('*zham*', zham))
+            extra = [('*zham*', zham),
+                     ('*zspam*', zspam),
+                     ('*hmean*', hmean),
+                     ('*smean*', smean),
+                     ('*n*', n),
+                    ]
+            clues[0:0] = extra
             return score, clues
         else:
             return score
