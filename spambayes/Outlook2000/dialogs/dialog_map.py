@@ -176,7 +176,6 @@ class TabProcessor(ControlProcessor):
         self.switchToPage(0)
 
     def Done(self):
-        print "TabProcessor Done"
         if self.currentPageHwnd is not None:
             if not self.currentPage.SaveAllControls():
                 win32gui.SendMessage(self.GetControl(), commctrl.TCM_SETCURSEL, self.currentPageIndex,0)
@@ -368,7 +367,6 @@ def WizardTrainer(mgr, config, progress):
         stages = ("Training", .9), ("Saving", .1)
     progress.set_stages(stages)
 
-    print "About to train with", config.training.spam_folder_ids
     train.real_trainer(classifier_data, config, mgr.message_store, progress)
 
     # xxx - more hacks - we should pass the classifier data in.
