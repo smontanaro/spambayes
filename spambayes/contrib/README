@@ -1,0 +1,24 @@
+Directory Contents
+------------------
+
+nway.py - demonstration script which can be used to perform n-way
+classification.
+
+nway-train.py - training script to use with nway.py.
+
+SmarterHTTPServer.py - ???
+
+bulkgraph.py, bulktrain.sh, procmailrc - see BULK.txt.
+
+spambayes.el - Emacs Lisp code to integrate SpamBayes into the Gnus and VM
+mail readers.
+
+muttrc - Mutt key bindings for SpamBayes.
+
+mod_spambayes.py - Plugin for Amit Patel's proxy3 web proxy.
+
+mkzip.py - ???
+
+spamcounts.py - print spam and ham counts and spam probability for a
+messages for for select tokens
+
