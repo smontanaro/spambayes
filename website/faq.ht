@@ -191,7 +191,6 @@ Author: spambayes
   almost a certainty this won't happen.) If you need to install
   Python on your system, check the Python download page for the
   version appropriate to your computer:
-</p>
 <pre>
 http://www.python.org/download/
 </pre>You also need version 2.4.3 or above of the Python "email" package.
@@ -201,8 +200,8 @@ unpack the archive, cd to the email-2.4.3 directory and type "python
 setup.py install" (YMMV on different platforms). This will install it
 into your Python site-packages directory. You'll also need to move aside
 the standard "email" library - go to your Python "Lib" directory and
-rename "email" to "email_old".<br>
-<br>
+rename "email" to "email_old".
+</p>
 
 <h3>
   <a name="tenkfoot">Is there a "ten thousand foot view" that shows
@@ -444,15 +443,14 @@ servers, if you have more than one email account.
 </p>
 <p>
   To setup the POP3 and SMTP proxies (optional), run;
-</p>
 <pre>
 pop3proxy.py -b
 </pre>from the command line. The web interface should open in your
 default browser. You need to click on the "Configuration Link" to go to
 the setup page. The minimum you need to do to get started is enter the
 servers and ports information in the POP3 proxy and SMTP proxy
-sections.<br>
-<br>
+sections.
+</p>
 
 <p>
   The POP3 proxy is then ready for your email client to connect to it
@@ -532,13 +530,12 @@ sections.<br>
   a line which begins with 'From '), one containing nothing but spam
   and the other containing nothing but ham, you can train Spambayes
   using a command like:
-</p>
 <pre>
 hammie.py -g ~/tmp/newham -s ~/tmp/newspam
 </pre>The above command is OS-centric (eg. UNIX, or Windows command
 prompt). You can also use the web interface for training as detailed
-above.<br>
-<br>
+above.
+</p>
 
 <h3>
   <a name="unsure">I just got a spam, but the system said it was
@@ -599,12 +596,11 @@ above.<br>
   you can make it look like whatever you like. You can see a list of
   what a configuration file of all the defaults would like like if
   you execute the following Python commands:
-</p>
 <pre>
   &gt;&gt;&gt; from spambayes.Options import options
   &gt;&gt;&gt; print options.display()
-</pre><br>
-<br>
+</pre>
+</p>
 
 <h3>
   <a name="optionstoset">That's great, now I know what the format
@@ -614,7 +610,6 @@ above.<br>
   This depends on exactly what you want to do, and which application
   you are intending to use. The easiest thing is to execute the
   following Python commands:
-</p>
 <pre>
   &gt;&gt;&gt; from spambayes.Options import options
   &gt;&gt;&gt; print options.display_full()
@@ -638,8 +633,8 @@ command:<br>
 
 <pre>
   &gt;&gt;&gt; print options.options(prepend_section_name=False)
-</pre><br>
-<br>
+</pre>
+</p>
 
 <h3>
   <a name="configlocation">I've made a configuration file, but
@@ -710,7 +705,6 @@ command:<br>
   you implement depends on your local architecture. Users with access
   to procmail can just write a recipe that invokes spambayes like
   this:
-</p>
 <pre>
  :0fw 
  | /opt/spambayes/hammiefilter.py
@@ -720,8 +714,8 @@ command:<br>
  :0
  * ^X-Spambayes-Classification: spam 
  ${MAILDIR}/spam
-</pre><br>
-<br>
+</pre>
+</p>
 
 <p>
   Emacs and XEmacs both come with VM, one of a choice of several
@@ -729,7 +723,6 @@ command:<br>
   Pymacs. This extensibility allows you to easily segregate your
   incoming mail for training purposes. Here's one such example. If
   you place the following code in your ~/.vm file:
-</p>
 <pre>
 (defun copy-to-spam ()
   (interactive)
@@ -747,9 +740,9 @@ command:<br>
 (define-key vm-summary-mode-map "lh" 'copy-to-nonspam)
 </pre>"ls" will save a copy of the current message to ~/tmp/newspam and
 "lh" will save a copy of the current message to ~/tmp/newham. You can
-then use those files later as arguments to hammie.py for training. <br>
+then use those files later as arguments to hammie.py for training.
+</p>
 
-<br>
 
 <p>
   Users limited to POP3/IMAP communications to the server can use the
