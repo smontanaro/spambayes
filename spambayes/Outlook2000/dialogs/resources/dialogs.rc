@@ -576,8 +576,8 @@ BEGIN
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
                     129,230,11
     LTEXT           "Static",IDC_PROGRESS_TEXT,7,144,227,10
-    PUSHBUTTON      "Start Filtering",IDC_START,7,161,52,14
-    DEFPUSHBUTTON   "Close",IDOK,187,162,50,14
+    DEFPUSHBUTTON   "Start Filtering",IDC_START,7,161,52,14
+    PUSHBUTTON      "Close",IDCANCEL,187,162,50,14
 END
 
 IDD_FILTER DIALOGEX 0, 0, 249, 209

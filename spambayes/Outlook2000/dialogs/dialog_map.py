@@ -416,7 +416,7 @@ dialog_map = {
         (CommandButtonProcessor,  "IDC_BUT_RESET", ResetConfig, ()),
         ),
     "IDD_FILTER_NOW" : (
-        (CloseButtonProcessor,    "IDOK"),
+        (CloseButtonProcessor,    "IDCANCEL"),
         (BoolButtonProcessor,     "IDC_BUT_UNREAD",    "Filter_Now.only_unread"),
         (BoolButtonProcessor,     "IDC_BUT_UNSEEN",    "Filter_Now.only_unseen"),
         (BoolButtonProcessor,     "IDC_BUT_ACT_ALL IDC_BUT_ACT_SCORE",
@@ -427,7 +427,7 @@ dialog_map = {
         (AsyncCommandProcessor,   "IDC_START IDC_PROGRESS IDC_PROGRESS_TEXT",
                                   filter.filterer,
                                   "Start Filtering", "Stop Filtering",
-                                  """IDOK IDC_BUT_UNSEEN
+                                  """IDCANCEL IDC_BUT_UNSEEN
                                   IDC_BUT_UNREAD IDC_BROWSE IDC_BUT_ACT_SCORE
                                   IDC_BUT_ACT_ALL"""),
     ),
