@@ -110,7 +110,7 @@ class balanced_corrected(corrected):
             elif ratio < (1/self.ratio_maximum) and guess[0] == -1:
                 # Too much spam, and this is spam - don't train.
                 return 0
-        return corrected(self, which, test, guess, actual, msg)
+        return corrected.guess_action(self, which, test, guess, actual, msg)
 
 ###
 ### This is a training regime for the incremental.py harness.
