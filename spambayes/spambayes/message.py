@@ -178,6 +178,18 @@ class Message(email.Message.Message):
     def asTokens(self):
         return tokenize(self.as_string())
 
+    def _force_CRLF(self, data):
+        """Make sure data uses CRLF for line termination."""
+        return CRLF_RE.sub('\r\n', data)
+
+    def as_string(self):
+        # The email package stores line endings in the "internal" Python
+        # format ('\n').  It is up to whoever transmits that information to
+        # convert to appropriate line endings (according to RFC822, that is
+        # \r\n *only*).  imaplib *should* take care of this for us (in the
+        # append function), but does not, so we do it here
+        return self._force_CRLF(message.SBHeaderMessage.as_string(self))
+        
     def modified(self):
         if self.id:    # only persist if key is present
             msginfoDB._setState(self)
