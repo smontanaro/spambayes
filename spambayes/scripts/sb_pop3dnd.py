@@ -115,17 +115,15 @@ from twisted.internet import reactor
 from twisted.internet.app import Application
 from twisted.internet.defer import maybeDeferred
 from twisted.internet.protocol import ServerFactory
+from twisted.protocols.imap4 import IMessage
 from twisted.protocols.imap4 import parseNestedParens, parseIdList
 from twisted.protocols.imap4 import IllegalClientResponse, IAccount
 from twisted.protocols.imap4 import collapseNestedLists, MessageSet
 from twisted.protocols.imap4 import IMAP4Server, MemoryAccount, IMailbox
 from twisted.protocols.imap4 import IMailboxListener, collapseNestedLists
 
-# Provide for those that don't have spambayes on their PYTHONPATH
-sys.path.insert(-1, os.path.dirname(os.getcwd()))
-
+from spambayes import message
 from spambayes.Options import options
-from spambayes.message import Message
 from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_version_string
@@ -145,23 +143,19 @@ def ensureDir(dirname):
             raise
 
 
-class IMAPFileMessage(FileCorpus.FileMessage):
-    '''IMAP Message that persists as a file system artifact.'''
+class IMAPMessage(message.Message):
+    '''IMAP Message base class.'''
+    __implements__ = (IMessage,)
 
-    def __init__(self, file_name, directory):
-        """Constructor(message file name, corpus directory name)."""
-        FileCorpus.FileMessage.__init__(self, file_name, directory)
-        self.id = file_name
-        self.directory = directory
-        self.date = imaplib.Time2Internaldate(time.time())[1:-1]
+    def __init__(self, date):
+        message.Message.__init__(self)
+        self.date = date
         self.clear_flags()
 
     # IMessage implementation
-    def getHeaders(self, negate, names):
+    def getHeaders(self, negate, *names):
         """Retrieve a group of message headers."""
         headers = {}
-        if not isinstance(names, tuple):
-            names = (names,)
         for header, value in self.items():
             if (header.upper() in names and not negate) or names == ():
                 headers[header.upper()] = value
@@ -196,7 +190,6 @@ class IMAPFileMessage(FileCorpus.FileMessage):
         s.write(self.body())
         s.seek(0)
         return s
-        #return file(os.path.join(self.directory, self.id), "r")
 
     def getSize(self):
         """Retrieve the total size, in octets, of this message."""
@@ -206,6 +199,10 @@ class IMAPFileMessage(FileCorpus.FileMessage):
         """Retrieve the unique identifier associated with this message."""
         return self.id
 
+    def isMultipart(self):
+        """Indicate whether this message has subparts."""
+        return False
+    
     def getSubPart(self, part):
         """Retrieve a MIME sub-message
 
@@ -215,6 +212,7 @@ class IMAPFileMessage(FileCorpus.FileMessage):
         @rtype: Any object implementing C{IMessage}.
         @return: The specified sub-part.
         """
+        raise NotImplementedError
 
     # IMessage implementation ends
 
@@ -320,98 +318,28 @@ class IMAPFileMessage(FileCorpus.FileMessage):
         bmatch = bodyRE.search(rfc822)
         return rfc822[:bmatch.start(2)]
 
-    def on(self, date1, date2):
-        "contained within the date"
-        raise NotImplementedError
-    def before(self, date1, date2):
-        "before the date"
-        raise NotImplementedError
-    def since(self, date1, date2):
-        "within or after the date"
-        raise NotImplementedError
 
-    def string_contains(self, whole, sub):
-        return whole.find(sub) != -1
+class DynamicIMAPMessage(IMAPMessage):
+    """An IMAP Message that may change each time it is loaded."""
+    def __init__(self, func):
+        date = imaplib.Time2Internaldate(time.time())[1:-1]
+        IMAPMessage.__init__(self, date)
+        self.func = func
+        self.load()
+    def load(self):
+        self.setPayload(self.func(body=True, headers=True))
 
-    def matches(self, criteria):
-        """Return True iff the messages matches the specified IMAP
-        criteria."""
-        match_tests = {"ALL" : [(True, True)],
-                       "ANSWERED" : [(self.answered, True)],
-                       "DELETED" : [(self.deleted, True)],
-                       "DRAFT" : [(self.draft, True)],
-                       "FLAGGED" : [(self.flagged, True)],
-                       "NEW" : [(self.recent, True), (self.seen, False)],
-                       "RECENT" : [(self.recent, True)],
-                       "SEEN" : [(self.seen, True)],
-                       "UNANSWERED" : [(self.answered, False)],
-                       "UNDELETED" : [(self.deleted, False)],
-                       "UNDRAFT" : [(self.draft, False)],
-                       "UNFLAGGED" : [(self.flagged, False)],
-                       "UNSEEN" : [(self.seen, False)],
-                       "OLD" : [(self.recent, False)],
-                       }
-        complex_tests = {"BCC" : (self.string_contains, self.get("Bcc")),
-                         "SUBJECT" : (self.string_contains, self.get("Subject")),
-                         "CC" : (self.string_contains, self.get("Cc")),
-                         "BODY" : (self.string_contains, self.body()),
-                         "TO" : (self.string_contains, self.get("To")),
-                         "TEXT" : (self.string_contains, self.as_string()),
-                         "FROM" : (self.string_contains, self.get("From")),
-                         "SMALLER" : (operator.lt, len(self.as_string())),
-                         "LARGER" : (operator.gt, len(self.as_string())),
-                         "BEFORE" : (self.before, self.date),
-                         "ON" : (self.on, self.date),
-                         "SENTBEFORE" : (self.before, self.get("Date")),
-                         "SENTON" : (self.on, self.get("Date")),
-                         "SENTSINCE" : (self.since, self.get("Date")),
-                         "SINCE" : (self.since, self.date),
-                         }
 
-        result = True
-        test = None
-        header = None
-        header_field = None
-        for c in criteria:
-            if match_tests.has_key(c) and test is None and header is None:
-                for (test, result) in match_tests[c]:
-                    result = result and (test == result)
-            elif complex_tests.has_key(c) and test is None and header is None:
-                test = complex_tests[c]
-            elif test is not None and header is None:
-                result = result and test[0](test[1], c)
-                test = None
-            elif c == "HEADER" and test is None:
-                # the only criteria that uses the next _two_ elements
-                header = c
-            elif test is None and header is not None and header_field is None:
-                header_field = c
-            elif header is not None and header_field is not None and test is None:
-                result = result and self.string_contains(self.get(header_field), c)
-                header = None
-                header_field = None
-        return result
-"""
-Still to do:
-      <message set>  Messages with message sequence numbers
-                     corresponding to the specified message sequence
-                     number set
-      UID <message set>
-                     Messages with unique identifiers corresponding to
-                     the specified unique identifier set.
+class IMAPFileMessage(IMAPMessage, FileCorpus.FileMessage):
+    '''IMAP Message that persists as a file system artifact.'''
 
-      KEYWORD <flag> Messages with the specified keyword set.
-      UNKEYWORD <flag>
-                     Messages that do not have the specified keyword
-                     set.
-
-      NOT <search-key>
-                     Messages that do not match the specified search
-                     key.
-
-      OR <search-key1> <search-key2>
-                     Messages that match either search key.
-"""
+    def __init__(self, file_name, directory):
+        """Constructor(message file name, corpus directory name)."""
+        date = imaplib.Time2Internaldate(time.time())[1:-1]
+        IMAPMessage.__init__(self, date)
+        FileCorpus.FileMessage.__init__(self, file_name, directory)
+        self.id = file_name
+        self.directory = directory
 
 
 class IMAPFileMessageFactory(FileCorpus.FileMessageFactory):
@@ -451,7 +379,7 @@ class SpambayesMailbox(IMAPMailbox):
                                              directory, r"[0123456789]*")
         # UIDs are required to be strictly ascending.
         if len(self.storage.keys()) == 0:
-            self.nextUID = 0
+            self.nextUID = 1
         else:
             self.nextUID = long(self.storage.keys()[-1]) + 1
         # Calculate initial recent and unseen counts
@@ -473,11 +401,11 @@ class SpambayesMailbox(IMAPMailbox):
             self.nextUID += 1
         return reply
 
-    def getUID(self, message):
+    def getUID(self, msg):
         """Return the UID of a message in the mailbox."""
         # Note that IMAP messages are 1-based, our messages are 0-based
         d = self.storage
-        return long(d.keys()[message - 1])
+        return long(d.keys()[msg - 1])
 
     def getFlags(self):
         """Return the flags defined in this mailbox."""
@@ -527,11 +455,11 @@ class SpambayesMailbox(IMAPMailbox):
                 answer[request] = self.getUnseenCount()
         return answer
 
-    def addMessage(self, message, flags=(), date=None):
+    def addMessage(self, content, flags=(), date=None):
         """Add the given message to this mailbox."""
         msg = self.storage.makeMessage(self.getUIDNext(True))
         msg.date = date
-        msg.setPayload(message.read())
+        msg.setPayload(content.read())
         self.storage.addMessage(msg)
         self.store(MessageSet(long(msg.id), long(msg.id)), flags, 1, True)
         msg.recent = True
@@ -598,7 +526,9 @@ class SpambayesMailbox(IMAPMailbox):
             if msg is None:
                 # Non-existant message.
                 continue
-            msg.load()
+            # Load the message, if necessary
+            if hasattr(msg, "load"):
+                msg.load()
             yield (id, msg)
 
     def fetch(self, messages, uid):
@@ -628,6 +558,75 @@ class SpambayesMailbox(IMAPMailbox):
         return stored_messages
 
 
+class SpambayesInbox(SpambayesMailbox):
+    """A special mailbox that holds status messages from SpamBayes."""
+    def __init__(self, id):
+        IMAPMailbox.__init__(self, "INBOX", "spambayes", id)
+        self.UID_validity = id
+        self.nextUID = 1
+        self.unseen_count = 0
+        self.recent_count = 0
+        self.storage = {}
+        self.createMessages()
+
+    def buildStatusMessage(self, body=False, headers=False):
+        """Build a message containing the current status message.
+
+        If body is True, then return the body; if headers is True
+        return the headers.  If both are true, then return both
+        (and insert a newline between them).
+        """
+        msg = []
+        if headers:
+            msg.append("Subject:SpamBayes Status")
+            msg.append('From:"SpamBayes" <no-reply@localhost>')
+            if body:
+                msg.append('\r\n')
+        if body:
+            state.buildStatusStrings()
+            msg.append(state.warning or "SpamBayes operating correctly.")
+        return "\r\n".join(msg)
+
+    def createMessages(self):
+        """Create the special messages that live in this mailbox."""
+        state.buildStatusStrings()
+        about = 'Subject: About SpamBayes\r\n' \
+                 'From: "SpamBayes" <no-reply@localhost>\r\n\r\n' \
+                 'See <http://spambayes.org>.\r\n'
+        date = imaplib.Time2Internaldate(time.time())[1:-1]
+        msg = IMAPMessage(date)
+        msg.setPayload(about)
+        self.addMessage(msg)
+        msg = DynamicIMAPMessage(self.buildStatusMessage)
+        self.addMessage(msg)
+        # XXX Add other messages here, for example
+        # XXX statistics
+        # XXX information from sb_server homepage about number
+        # XXX   of messages classified etc.
+
+    def isWriteable(self):
+        """Get the read/write status of the mailbox."""
+        return False
+
+    def addMessage(self, msg, flags=(), date=None):
+        """Add the given message to this mailbox."""
+        msg.id = self.getUIDNext(True)
+        self.storage[msg.id] = msg
+        d = defer.Deferred()
+        reactor.callLater(0, d.callback, self.storage.keys().index(msg.id))
+        return d
+
+    def expunge(self):
+        """Remove all messages flagged \\Deleted."""
+        # Mailbox is read-only.
+        return []
+
+    def store(self, messages, flags, mode, uid):
+        """Set the flags of one or more messages."""
+        # Mailbox is read-only.
+        return {}
+
+
 class Trainer(object):
     """Listens to a given mailbox and trains new messages as spam or
     ham."""
@@ -647,7 +646,7 @@ class Trainer(object):
 
     def newMessages(self, exists, recent):
         # We don't get passed the actual message, or the id of
-        # the message, of even the message number.  We just get
+        # the message, or even the message number.  We just get
         # the total number of new/recent messages.
         # However, this function should be called _every_ time
         # that a new message appears, so we should be able to
@@ -662,18 +661,17 @@ class Trainer(object):
 class SpambayesAccount(MemoryAccount):
     """Account for Spambayes server."""
 
-    def __init__(self, id, ham, spam, unsure):
+    def __init__(self, id, ham, spam, unsure, inbox):
         MemoryAccount.__init__(self, id)
         self.mailboxes = {"SPAM" : spam,
                           "UNSURE" : unsure,
-                          "TRAIN_AS_HAM" : ham}
+                          "TRAIN_AS_HAM" : ham,
+                          "INBOX" : inbox}
 
     def select(self, name, readwrite=1):
         # 'INBOX' is a special case-insensitive name meaning the
-        # primary mailbox for the user; we interpret this as an alias
-        # for 'spam'
-        if name.upper() == "INBOX":
-            name = "SPAM"
+        # primary mailbox for the user; for our purposes this contains
+        # special messages from SpamBayes.
         return MemoryAccount.select(self, name, readwrite)
 
 
@@ -858,7 +856,8 @@ state = IMAPState()
 # ===================================================================
 
 def setup():
-    # Setup app, boxes, trainers and account
+    # Setup state, app, boxes, trainers and account
+    state.createWorkers()
     proxyListeners = []
     app = Application("SpambayesIMAPServer")
 
@@ -868,6 +867,7 @@ def setup():
                                                        "unknown_cache"])
     ham_train_box = SpambayesMailbox("TrainAsHam", 2,
                                      options["Storage", "ham_cache"])
+    inbox = SpambayesInbox(3)
 
     spam_trainer = Trainer(spam_box, True)
     ham_trainer = Trainer(ham_train_box, False)
@@ -875,7 +875,8 @@ def setup():
     ham_train_box.addListener(ham_trainer)
 
     user_account = SpambayesAccount(options["imapserver", "username"],
-                                    ham_train_box, spam_box, unsure_box)
+                                    ham_train_box, spam_box, unsure_box,
+                                    inbox)
 
     # add IMAP4 server
     f = OneParameterFactory()
@@ -885,7 +886,6 @@ def setup():
     app.listenTCP(state.imap_port, f)
 
     # add POP3 proxy
-    state.createWorkers()
     for (server, serverPort), proxyPort in zip(state.servers,
                                                state.proxyPorts):
         listener = MyBayesProxyListener(server, serverPort, proxyPort,
@@ -915,14 +915,6 @@ def run():
             sys.exit()
         elif opt == '-b':
             launchUI = True
-        elif opt == '-d':   # dbm file
-            state.useDB = True
-            options["Storage", "persistent_storage_file"] = arg
-        elif opt == '-D':   # pickle file
-            state.useDB = False
-            options["Storage", "persistent_storage_file"] = arg
-        elif opt == '-u':
-            state.uiPort = int(arg)
 
     # Let the user know what they are using...
     print get_version_string("IMAP Server")
