@@ -92,6 +92,9 @@ safe_headers: abuse-reports-to
 # if your test corpora are from different sources.  Else set this to true.
 mine_received_headers: False
 
+# If set, the Message-Id is broken down into, hopefully, useful evidence.
+mine_message_ids: False
+
 [TestDriver]
 # These control various displays in class TestDriver.Driver, and Tester.Test.
 
@@ -238,6 +241,7 @@ all_options = {
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'mine_received_headers': boolean_cracker,
+                  'mine_message_ids': boolean_cracker,
                   'check_octets': boolean_cracker,
                   'octet_prefix_size': int_cracker,
                   'basic_header_tokenize': boolean_cracker,
