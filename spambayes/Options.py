@@ -37,17 +37,8 @@ basic_header_skip: received
 # case.  On the c.l.py corpus, it helps to set this true because any
 # sign of HTML is so despised on tech lists; however, the advantage
 # of setting it true eventually vanishes even there given enough
-# training data.  If you set this true, you should almost certainly set
-# ignore_redundant_html true too.
+# training data.
 retain_pure_html_tags: False
-
-# If true, when a multipart/alternative has both text/plain and text/html
-# sections, the text/html section is ignored.  That's likely a dubious
-# idea in general, so false is likely a better idea here.  In the c.l.py
-# tests, it helped a lot when retain_pure_html_tags was true (in that case,
-# keeping the HTML tags in the "redundant" HTML was almost certain to score
-# the multipart/alternative as spam, regardless of content).
-ignore_redundant_html: False
 
 # If true, the first few characters of application/octet-stream sections
 # are used, undecoded.  What 'few' means is decided by octet_prefix_size.
@@ -281,7 +272,6 @@ string_cracker = ('get', None)
 
 all_options = {
     'Tokenizer': {'retain_pure_html_tags': boolean_cracker,
-                  'ignore_redundant_html': boolean_cracker,
                   'safe_headers': ('get', lambda s: Set(s.split())),
                   'count_all_header_lines': boolean_cracker,
                   'generate_long_skips': boolean_cracker,

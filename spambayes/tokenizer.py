@@ -489,7 +489,7 @@ del aliases # Not needed any more
 # Later:  The decision to ignore "redundant" HTML is also dubious, since
 # the text/plain and text/html alternatives may have entirely different
 # content.  options.ignore_redundant_html was introduced to control this,
-# and it defaults to False.
+# and it defaults to False.  Later:  ignore_redundant_html was removed.
 
 ##############################################################################
 # How big should "a word" be?
@@ -513,51 +513,17 @@ del aliases # Not needed any more
 
 
 # textparts(msg) returns a set containing all the text components of msg.
-# There's no point decoding binary blobs (like images).
-
-if options.ignore_redundant_html:
-    # If a multipart/alternative has both plain text and HTML versions of a
-    # msg, ignore the HTML part:  HTML decorations have monster-high spam
-    # probabilities, and innocent newbies often post using HTML.
-    def textparts(msg):
-        text = Set()
-        redundant_html = Set()
-        for part in msg.walk():
-            if part.get_type() == 'multipart/alternative':
-                # Descend this part of the tree, adding any redundant HTML text
-                # part to redundant_html.
-                htmlpart = textpart = None
-                stack = part.get_payload()[:]
-                while stack:
-                    subpart = stack.pop()
-                    ctype = subpart.get_type('text/plain')
-                    if ctype == 'text/plain':
-                        textpart = subpart
-                    elif ctype == 'text/html':
-                        htmlpart = subpart
-                    elif ctype == 'multipart/related':
-                        stack.extend(subpart.get_payload())
-
-                if textpart is not None:
-                    text.add(textpart)
-                    if htmlpart is not None:
-                        redundant_html.add(htmlpart)
-                elif htmlpart is not None:
-                    text.add(htmlpart)
-
-            elif part.get_content_maintype() == 'text':
-                text.add(part)
-
-        return text - redundant_html
-
-else:
-    # Use all text parts.  If a text/plain and text/html part happen to
-    # have redundant content, so it goes.
-    def textparts(msg):
-        return Set(filter(lambda part: part.get_content_maintype() == 'text',
-                          msg.walk()))
+# There's no point decoding binary blobs (like images).  If a text/plain
+# and text/html part happen to have redundant content, it doesn't matter
+# to results, since training and scoring are done on the set of all
+# words in the msg, without regard to how many times a given word appears.
+def textparts(msg):
+    """Return a set of all msg parts with content maintype 'text'."""
+    return Set(filter(lambda part: part.get_content_maintype() == 'text',
+                      msg.walk()))
 
 def octetparts(msg):
+    """Return a set of all msg parts with type 'application/octet-stream'."""
     return Set(filter(lambda part:
                       part.get_type() == 'application/octet-stream',
                       msg.walk()))
@@ -1055,18 +1021,13 @@ class Tokenizer:
         also stripped from text/html sections.  Except in special cases,
         it's recommended to leave that at its default of false.
 
-        If a multipart/alternative section has both text/plain and text/html
-        sections, options.ignore_redundant_html controls whether the HTML
-        part is ignored.  Except in special cases, it's recommended to
-        leave that at its default of false.
-
         If options.check_octets is True, the first few undecoded characters
         of application/octet-stream parts of the message body become tokens.
         """
 
         if options.check_octets:
             # Find, decode application/octet-stream parts of the body,
-            # tokenizing the first few characters of each chunk
+            # tokenizing the first few characters of each chunk.
             for part in octetparts(msg):
                 text = part.get_payload(decode=False)
                 yield "octet:%s" % text[:options.octet_prefix_size]
