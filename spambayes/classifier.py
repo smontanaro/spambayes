@@ -56,10 +56,10 @@ class WordInfo(object):
     # once-hot topic or scam that's fallen out of favor.  Whatever, if
     # a word is no longer being used, it's just wasting space.
 
-    def __init__(self, atime):
+    def __init__(self, atime, spamprob=None):
         self.atime = atime
         self.spamcount = self.hamcount = self.killcount = 0
-        self.spamprob = None
+        self.spamprob = spamprob
 
     def __repr__(self):
         return "WordInfo%r" % repr((self.atime, self.spamcount,
