@@ -97,7 +97,7 @@ def train_folder(f, isspam, mgr, progress):
     print "Checked", num, "in folder", f.name, "-", num_added, "new entries found."
 
 # Called back from the dialog to do the actual training.
-def trainer(mgr, progress, rebuild):
+def trainer(mgr, progress, rebuild, rescore = True):
     config = mgr.config
     if rebuild:
         mgr.InitNewBayes()
@@ -132,6 +132,16 @@ def trainer(mgr, progress, rebuild):
     if progress.stop_requested():
         return
     progress.set_status("Completed training with %d spam and %d good messages" % (bayes.nspam, bayes.nham))
+    if rescore:
+        # Setup the "filter now" config to what we want.
+        config = mgr.config.filter_now
+        config.only_unread = False
+        config.only_unseen = False
+        config.action_all = False
+        config.folder_ids = mgr.config.training.ham_folder_ids + mgr.config.training.spam_folder_ids
+        config.include_sub = mgr.config.training.ham_include_sub or mgr.config.training.spam_include_sub
+        import filter
+        filter.filterer(mgr, progress)
 
 def main():
     import manager
