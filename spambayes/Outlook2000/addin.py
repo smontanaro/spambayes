@@ -1,6 +1,6 @@
 # SpamBayes Outlook Addin
 
-import sys
+import sys, os
 import warnings
 
 if sys.version_info >= (2, 3):
@@ -15,6 +15,8 @@ import pythoncom
 from win32com.client import constants
 import win32ui
 
+import win32gui, win32con, win32clipboard # for button images!
+
 # If we are not running in a console, redirect all print statements to the
 # win32traceutil collector.
 # You can view output either from Pythonwin's "Tools->Trace Collector Debugging Tool",
@@ -27,13 +29,13 @@ except win32api.error:
     print "Outlook Spam Addin module loading"
 
 
-# A lovely big block that attempts to catch the most common errors - COM objects not installed.
+# Attempt to catch the most common errors - COM objects not installed.
 try:
-    # Support for COM objects we use.
+    # Generate support so we get complete support including events
     gencache.EnsureModule('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, bForDemand=True) # Outlook 9
     gencache.EnsureModule('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, bForDemand=True) # Office 9
 
-    # The TLB defiining the interfaces we implement
+    # Register what vtable based interfaces we need to implement.
     universal.RegisterInterfaces('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, ["_IDTExtensibility2"])
 except pythoncom.com_error, (hr, msg, exc, arg):
     if __name__ != '__main__':
@@ -45,33 +47,24 @@ except pythoncom.com_error, (hr, msg, exc, arg):
     print "COM Error 0x%x (%s)" % (hr, msg)
     if exc:
         print "Exception: %s" % (exc)
-    print "Sorry, I can't be more help, but I can't continue while I have this error."
+    print "Sorry I can't be more help, but I can't continue while I have this error."
     sys.exit(1)
 
-# Something that should be in win32com in some form or another.
+# A couple of functions that are in new win32all, but we dont want to
+# force people to ugrade if we can avoid it.
+# NOTE: Most docstrings and comments removed - see the win32all version
 def CastToClone(ob, target):
     """'Cast' a COM object to another type"""
-    # todo - should support target being an IID
     if hasattr(target, "index"): # string like
     # for now, we assume makepy for this to work.
         if not ob.__class__.__dict__.has_key("CLSID"):
-            # Eeek - no makepy support - try and build it.
             ob = gencache.EnsureDispatch(ob)
         if not ob.__class__.__dict__.has_key("CLSID"):
             raise ValueError, "Must be a makepy-able object for this to work"
         clsid = ob.CLSID
-        # Lots of hoops to support "demand-build" - ie, generating
-        # code for an interface first time it is used.  We assume the
-        # interface name exists in the same library as the object.
-        # This is generally the case - only referenced typelibs may be
-        # a problem, and we can handle that later.  Maybe <wink>
-        # So get the generated module for the library itself, then
-        # find the interface CLSID there.
         mod = gencache.GetModuleForCLSID(clsid)
-        # Get the 'root' module.
         mod = gencache.GetModuleForTypelib(mod.CLSID, mod.LCID,
                                            mod.MajorVersion, mod.MinorVersion)
-        # Find the CLSID of the target
         # XXX - should not be looking in VTables..., but no general map currently exists
         # (Fixed in win32all!)
         target_clsid = mod.VTablesNamesToIIDMap.get(target)
@@ -80,7 +73,6 @@ def CastToClone(ob, target):
                               "same library as object '%r'" % (target, ob)
         mod = gencache.GetModuleForCLSID(target_clsid)
         target_class = getattr(mod, target)
-        # resolve coclass to interface
         target_class = getattr(target_class, "default_interface", target_class)
         return target_class(ob) # auto QI magic happens
     raise ValueError, "Don't know what to do with '%r'" % (ob,)
@@ -89,6 +81,39 @@ try:
 except ImportError: # appears in 151 and later.
     CastTo = CastToClone
 
+# Something else in later win32alls - like "DispatchWithEvents", but the
+# returned object is not both the Dispatch *and* the event handler
+def WithEventsClone(clsid, user_event_class):
+    clsid = getattr(clsid, "_oleobj_", clsid)
+    disp = Dispatch(clsid)
+    if not disp.__dict__.get("CLSID"): # Eeek - no makepy support - try and build it.
+        try:
+            ti = disp._oleobj_.GetTypeInfo()
+            disp_clsid = ti.GetTypeAttr()[0]
+            tlb, index = ti.GetContainingTypeLib()
+            tla = tlb.GetLibAttr()
+            mod = gencache.EnsureModule(tla[0], tla[1], tla[3], tla[4])
+            disp_class = gencache.GetClassForProgID(str(disp_clsid))
+        except pythoncom.com_error:
+            raise TypeError, "This COM object can not automate the makepy process - please run makepy manually for this object"
+    else:
+        disp_class = disp.__class__
+    clsid = disp_class.CLSID
+    import new
+    events_class = getevents(clsid)
+    if events_class is None:
+        raise ValueError, "This COM object does not support events."
+    result_class = new.classobj("COMEventClass", (events_class, user_event_class), {})
+    instance = result_class(disp) # This only calls the first base class __init__.
+    if hasattr(user_event_class, "__init__"):
+        user_event_class.__init__(instance)
+    return instance
+
+try:
+    from win32com.client import WithEvents
+except ImportError: # appears in 151 and later.
+    WithEvents = WithEventsClone
+
 # Whew - we seem to have all the COM support we need - let's rock!
 
 # Button/Menu and other UI event handler classes
@@ -96,7 +121,8 @@ class ButtonEvent:
     def Init(self, handler, args = ()):
         self.handler = handler
         self.args = args
-
+    def Close(self):
+        self.handler = self.args = None
     def OnClick(self, button, cancel):
         self.handler(*self.args)
 
@@ -106,6 +132,8 @@ class _BaseItemsEvent:
         self.application = application
         self.manager = manager
         self.target = target
+    def Close(self):
+        self.application = self.manager = self.target = None
 
 class FolderItemsEvent(_BaseItemsEvent):
     def OnItemAdd(self, item):
@@ -171,26 +199,20 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
                     print "already was trained as spam"
                 assert train.been_trained_as_spam(msgstore_message, self.manager)
 
+# Event function fired from the "Show Clues" UI items.
 def ShowClues(mgr, app):
     from cgi import escape
 
-    sel = app.ActiveExplorer().Selection
-    if sel.Count == 0:
-        win32ui.MessageBox("No items are selected", "No selection")
+    msgstore_message = mgr.addin.GetSelectedMessages(False)
+    if msgstore_message is None:
         return
-    if sel.Count > 1:
-        win32ui.MessageBox("Please select a single item", "Large selection")
-        return
-
-    item = sel.Item(1)
-    if item.Class != constants.olMail:
-        win32ui.MessageBox("This function can only be performed on mail items",
-                           "Not a mail message")
-        return
-
-    msgstore_message = mgr.message_store.GetMessage(item)
+    item = msgstore_message.GetOutlookItem()
     score, clues = mgr.score(msgstore_message, evidence=True, scale=False)
     new_msg = app.CreateItem(0)
+    # NOTE: Silly Outlook always switches the message editor back to RTF
+    # once the Body property has been set.  Thus, there is no reasonable
+    # way to get this as text only.  Next best then is to use HTML, 'cos at
+    # least we know how to exploit it!
     body = ["<h2>Spam Score: %g</h2><br>" % score]
     push = body.append
     # Format the clues.
@@ -209,13 +231,129 @@ def ShowClues(mgr, app):
     body = ''.join(body)
 
     new_msg.Subject = "Spam Clues: " + item.Subject
-    # Stupid outlook always switches to RTF :( Work-around
-##    new_msg.Body = body
+    # As above, use HTMLBody else Outlook refuses to behave.
     new_msg.HTMLBody = "<HTML><BODY>" + body + "</BODY></HTML>"
     # Attach the source message to it
     new_msg.Attachments.Add(item, constants.olByValue,
                             DisplayName="Original Message")
     new_msg.Display()
+
+# The "Delete As Spam" and "Recover Spam" button
+# The event from Outlook's explorer that our folder has changed.
+class ButtonDeleteAsExplorerEvent:
+    def Init(self, but):
+        self.but = but
+    def Close(self):
+        self.but = None
+    def OnFolderSwitch(self):
+        self.but._UpdateForFolderChange()
+
+class ButtonDeleteAsEvent:
+    def Init(self, manager, application, explorer):
+        # NOTE - keeping a reference to 'explorer' in this event
+        # appears to cause an Outlook circular reference, and outlook
+        # never terminates (it does close, but the process remains alive)
+        # This is why we needed to use WithEvents, so the event class
+        # itself doesnt keep such a reference (and we need to keep a ref
+        # to the event class so it doesn't auto-disconnect!)
+        self.manager = manager
+        self.application = application
+        self.explorer_events = WithEvents(explorer,
+                                           ButtonDeleteAsExplorerEvent)
+        self.set_for_as_spam = None
+        self.explorer_events.Init(self)
+        self._UpdateForFolderChange()
+
+    def Close(self):
+        self.manager = self.application = self.explorer = None
+
+    def _UpdateForFolderChange(self):
+        explorer = self.application.ActiveExplorer()
+        if explorer is None:
+            print "** Folder Change, but don't have an explorer"
+            return
+        outlook_folder = explorer.CurrentFolder
+        is_spam = False
+        if outlook_folder is not None:
+            mapi_folder = self.manager.message_store.GetFolder(outlook_folder)
+            look_id = self.manager.config.filter.spam_folder_id
+            if look_id:
+                look_folder = self.manager.message_store.GetFolder(look_id)
+                if mapi_folder == look_folder:
+                    is_spam = True
+            if not is_spam:
+                look_id = self.manager.config.filter.unsure_folder_id
+                if look_id:
+                    look_folder = self.manager.message_store.GetFolder(look_id)
+                    if mapi_folder == look_folder:
+                        is_spam = True
+        if is_spam:
+            set_for_as_spam = False
+        else:
+            set_for_as_spam = True
+        if set_for_as_spam != self.set_for_as_spam:
+            if set_for_as_spam:
+                image = "delete_as_spam.bmp"
+                self.Caption = "Delete As Spam"
+                self.TooltipText = \
+                        "Move the selected message to the Spam folder,\n" \
+                        "and train the system that this is Spam."
+            else:
+                image = "recover_ham.bmp"
+                self.Caption = "Recover from Spam"
+                self.TooltipText = \
+                        "Recovers the selected item back to the folder\n" \
+                        "it was filtered from (or to the Inbox if this\n" \
+                        "folder is not known), and trains the system that\n" \
+                        "this is a good message\n"
+            # Set the image.
+            print "Setting image to", image
+            SetButtonImage(self, image)
+            self.set_for_as_spam = set_for_as_spam
+
+    def OnClick(self, button, cancel):
+        msgstore = self.manager.message_store
+        msgstore_messages = self.manager.addin.GetSelectedMessages(True)
+        if not msgstore_messages:
+            return
+        if self.set_for_as_spam:
+            # Delete this item as spam.
+            spam_folder_id = self.manager.config.filter.spam_folder_id
+            spam_folder = msgstore.GetFolder(spam_folder_id)
+            if not spam_folder:
+                win32ui.MessageBox("You must configure the Spam folder",
+                                   "Invalid Configuration")
+                return
+            import train
+            for msgstore_message in msgstore_messages:
+                # Must train before moving, else we lose the message!
+                print "Training on message - ",
+                if train.train_message(msgstore_message, True, self.manager):
+                    print "trained as spam"
+                else:
+                    print "already was trained as spam"
+                # Now move it.
+                msgstore_message.MoveTo(spam_folder)
+        else:
+            win32ui.MessageBox("Please be patient <wink>")
+
+# Helpers to work with images on buttons/toolbars.
+def SetButtonImage(button, fname):
+    # whew - http://support.microsoft.com/default.aspx?scid=KB;EN-US;q288771
+    # shows how to make a transparent bmp.
+    # Also note that the clipboard takes ownership of the handle -
+    # this, we can not simply perform this load once and reuse the image.
+    if not os.path.isabs(fname):
+        fname = os.path.join( os.path.dirname(__file__), "images", fname)
+    if not os.path.isfile(fname):
+        print "WARNING - Trying to use image '%s', but it doesn't exist" % (fname,)
+        return None
+    handle = win32gui.LoadImage(0, fname, win32con.IMAGE_BITMAP, 0, 0, win32con.LR_DEFAULTSIZE | win32con.LR_LOADFROMFILE)
+    win32clipboard.OpenClipboard()
+    win32clipboard.SetClipboardData(win32con.CF_BITMAP, handle)
+    win32clipboard.CloseClipboard()
+    button.Style = constants.msoButtonIconAndCaption
+    button.PasteFace()
 
 # The outlook Plugin COM object itself.
 class OutlookAddin:
@@ -246,6 +384,14 @@ class OutlookAddin:
         if activeExplorer is not None:
             bars = activeExplorer.CommandBars
             toolbar = bars.Item("Standard")
+            # Add our "Delete as ..." button
+            button = toolbar.Controls.Add(Type=constants.msoControlButton, Temporary=True)
+            # Hook events for the item
+            button.BeginGroup = True
+            button = DispatchWithEvents(button, ButtonDeleteAsEvent)
+            button.Init(self.manager, application, activeExplorer)
+            self.buttons.append(button)
+
             # Add a pop-up menu to the toolbar
             popup = toolbar.Controls.Add(Type=constants.msoControlPopup, Temporary=True)
             popup.Caption="Anti-Spam"
@@ -322,6 +468,28 @@ class OutlookAddin:
                 new_hooks[msgstore_folder.id] = existing
         return new_hooks
 
+    def GetSelectedMessages(self, allow_multi = True, explorer = None):
+        if explorer is None:
+            explorer = self.application.ActiveExplorer()
+        sel = explorer.Selection
+        if sel.Count > 1 and not allow_multi:
+            win32ui.MessageBox("Please select a single item", "Large selection")
+            return None
+
+        ret = []
+        for i in range(sel.Count):
+            item = sel.Item(i+1)
+            if item.Class == constants.olMail:
+                msgstore_message = self.manager.message_store.GetMessage(item)
+                ret.append(msgstore_message)
+
+        if len(ret) == 0:
+            win32ui.MessageBox("No mail items are selected", "No selection")
+            return None
+        if allow_multi:
+            return ret
+        return ret[0]
+
     def OnDisconnection(self, mode, custom):
         print "SpamAddin - Disconnecting from Outlook"
         self.folder_hooks = None
@@ -330,8 +498,10 @@ class OutlookAddin:
             self.manager.Save()
             self.manager.Close()
             self.manager = None
-        self.buttons = None
-
+        if self.buttons:
+            for button in self.buttons:
+                button.Close()
+            self.buttons = None
         print "Addin terminating: %d COM client and %d COM servers exist." \
               % (pythoncom._GetInterfaceCount(), pythoncom._GetGatewayCount())
         try:
