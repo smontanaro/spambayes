@@ -222,6 +222,10 @@ class BayesManager:
         cPickle.dump(self.message_db, open(self.message_db_filename,"wb"), 1)
         self.bayes_dirty = False
 
+    def GetClassifier(self):
+        """Return the classifier we're using."""
+        return self.bayes
+
     def SaveConfig(self):
         if self.verbose > 1:
             print "Saving configuration:"

@@ -224,11 +224,22 @@ def ShowClues(mgr, app):
     push = body.append
     # Format the clues.
     push("<PRE>\n")
+    push("word                                spamprob         #ham  #spam\n")
+    format = " %-12g %8s %6s\n"
+    c = mgr.GetClassifier()
+    fetchword = c.wordinfo.get
     for word, prob in clues:
+        record = fetchword(word)
+        if record:
+            nham = record.hamcount
+            nspam = record.spamcount
+        else:
+            nham = nspam = "-"
         word = repr(word)
-        push(escape(word) + ' ' * (30 - len(word)))
-        push(' %g\n' % prob)
+        push(escape(word) + " " * (35-len(word)))
+        push(format % (prob, nham, nspam))
     push("</PRE>\n")
+
     # Now the raw text of the message, as best we can
     push("<h2>Message Stream:</h2><br>")
     push("<PRE>\n")
