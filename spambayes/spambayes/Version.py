@@ -104,13 +104,20 @@ def get_version_number(app = None,
 # Utilities to check the "latest" version of an app.
 # Assumes that a 'config' version of this file exists at the given URL
 # No exceptions are caught
-import ConfigParser
-class MySafeConfigParser(ConfigParser.SafeConfigParser):
-    def optionxform(self, optionstr):
-        return optionstr # no lower!
+try:
+    import ConfigParser
+    class MySafeConfigParser(ConfigParser.SafeConfigParser):
+        def optionxform(self, optionstr):
+            return optionstr # no lower!
+except AttributeError: # No SafeConfigParser!
+    MySafeConfigParser = None
 
 def fetch_latest_dict(url=LATEST_VERSION_HOME):
-    import ConfigParser, urllib2
+    if MySafeConfigParser is None:
+        raise RuntimeError, \
+              "Sorry, but only Python 2.3 can trust remote config files"
+
+    import urllib2
     stream = urllib2.urlopen(url)
     cfg = MySafeConfigParser()
     cfg.readfp(stream)
@@ -150,6 +157,8 @@ def _make_cfg_section(stream, key, this_dict):
     stream.write("\n")
 
 def make_cfg(stream):
+    stream.write("# This file is generated from spambayes/Version.py" \
+                 " - do not edit\n")
     _make_cfg_section(stream, "SpamBayes", versions)
     for appname in versions["Apps"]:
         _make_cfg_section(stream, appname, versions["Apps"][appname])
