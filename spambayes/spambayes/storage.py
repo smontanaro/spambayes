@@ -140,6 +140,10 @@ class PickledClassifier(classifier.Classifier):
         pickle.dump(self, fp, PICKLE_TYPE)
         fp.close()
 
+    def close(self):
+        # we keep no reasources open - nothing to do
+        pass
+
 # Values for our changed words map
 WORD_DELETED = "D"
 WORD_CHANGED = "C"
@@ -155,6 +159,14 @@ class DBDictClassifier(classifier.Classifier):
         self.mode = mode
         self.db_name = db_name
         self.load()
+
+    def close(self):
+        # Close our underlying database.  Better not assume all databases
+        # have close functions!
+        def noop(): pass
+        getattr(self.db, "close", noop)()
+        getattr(self.dbm, "close", noop)()
+        # should not be a need to drop the 'dbm' or 'db' attributes.
 
     def load(self):
         '''Load state from database'''
@@ -291,6 +303,12 @@ class SQLClassifier(classifier.Classifier):
         self.statekey = "saved state"
         self.db_name = db_name
         self.load()
+
+    def close(self):
+        '''Release all database resources'''
+        # As we (presumably) aren't as constrained as we are by file locking,
+        # don't force sub-classes to override
+        pass
 
     def load(self):
         '''Load state from the database'''
