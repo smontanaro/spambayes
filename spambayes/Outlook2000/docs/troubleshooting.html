@@ -17,27 +17,28 @@ the following problems listed:<br>
 incorrect or unexpected Spam values</a></li>
   <li><a href="#All_other_problems">All other problems</a></li>
 </ul>
+There is also an <a href="http://spambayes.sourceforge.net/faq.html">online
+FAQ for SpamBayes</a> which may have additional information of use.<br>
 <hr style="width: 100%; height: 2px;">
 <h2><a name="Addin_doesnt_load"></a>Addin doesn't load</h2>
 When you start Outlook, there is no Anti-Spam item in the
-toolbar.&nbsp; To resolve this:<br>
+toolbar, and no filtering is happening.&nbsp; To resolve this:<br>
+<br>
 <ul>
-  <li><a href="#CheckLog">Check the log file</a>.&nbsp; <br>
+  <li><a href="#CheckLog">Check the log file</a>.&nbsp; If a log file
+for this session exists, then see if it contains an error.&nbsp; If
+not, then the addin may be operating, but simply not displaying the
+toolbar items.&nbsp; <a href="#NoToolbar">Follow this procedure to
+restore the toolbar</a>.&nbsp; If there is an error in the log file,
+please <a
+ href="file:///E:/src/spambayes/Outlook2000/docs/troubleshooting.html#ReportABug">report
+a bug</a>.&nbsp; If no log file for this session exists, continue the
+following steps.</li>
+</ul>
+<ul>
+  <li><a href="#InstallationType">Determine your
+installation type</a>.&nbsp; <br>
   </li>
-  <li>Make sure that you are displaying the 'Standard' toolbar</li>
-  <li>Try resetting the toolbars:
-    <ol><li>Select <span style="font-style: italic;">View</span>-&gt;
-<span style="font-style: italic;">Toolbars</span>-&gt;
-<span style="font-style: italic;">Customize</span> to display the toolbar options dialog</li>
-    <li>Selectg the tab labelled <span style="font-style: italic;">Toolbars</span>,
- select the 'Standard' toolbar,
-and click <span style="font-style: italic;">Reset</span></li>
-    <li>Restart Outlook.</li>
-  </ol></li>
-  <li>If a log file for this session exists, then it almost certainly
-contains the error, so you can <a href="#ReportABug">report a bug</a>.</li>
-  <li>If no log file for this session exists, then determine your
-installation type.</li>
   <li>If you are running from source code, please re-register the
 addin, as per the README.txt file.</li>
   <li>If you are running a binary version, then perform the following
@@ -59,10 +60,54 @@ spambayes_addin.dll</span> from the SpamBayes directory may also solve
 this problem)</li>
     <li>If the SpamBayes addin is listed but not checked, then simply
 check it and close the dialog.</li>
-    <li>If the SpamBayes addin is listed and checked, but still not
-working and still not creating log files, then I am stumped!</li>
   </ol>
 </ol>
+<ul>
+  <li>If you are running <span style="font-weight: bold;">Outlook 2002</span>,
+you may find that if you go back to the dialog, the addin will still be
+unselected.&nbsp; In this case, perform the following:</li>
+</ul>
+<ol>
+  <ol>
+    <li>Go to <span style="font-style: italic;">Help-&gt;About
+Microsoft Outlook</span>.&nbsp; <br>
+    </li>
+    <li>Click the Disabled Items button. <br>
+    </li>
+    <li>Select SpamBayes.&nbsp;</li>
+    <li>Click Enable.</li>
+    <li>Restart Outlook 2002.</li>
+  </ol>
+</ol>
+If none of that works, I am stumped!
+<ol>
+  <ol>
+  </ol>
+</ol>
+<h2><a name="NoToolbar"></a>Addin loads, but no toolbar items can be
+seen</h2>
+If it appears the addin has loaded and is working correctly (ie, <a
+ href="#CheckLog">checking the log file</a> indicates normal operation)
+but you can not see any toolbar items for the addin, try the
+following:.&nbsp;
+<ul>
+  <li>Make sure that you are displaying the 'Standard' toolbar - select
+View -&gt; Toolbars, and ensure that "Standard" is selected.<br>
+  </li>
+  <li>Try resetting the toolbars:
+    <ol>
+      <li>Select <span style="font-style: italic;">View</span>-&gt;
+        <span style="font-style: italic;">Toolbars</span>-&gt;
+        <span style="font-style: italic;">Customize</span> to display
+the toolbar options dialog</li>
+      <li>Select the tab labelled <span style="font-style: italic;">Toolbars</span>,
+select the 'Standard' toolbar,
+and click <span style="font-style: italic;">Reset</span></li>
+    </ol>
+  </li>
+  <li>Restart Outlook<br>
+  </li>
+</ul>
 <h2><a name="Messages_fail_to_filter"></a>Messages fail to filter</h2>
 This is when messages arrive, but have no <span
  style="font-style: italic;">Spam</span> field.&nbsp; Note that this is
@@ -82,10 +127,8 @@ almost certainly an error listed in the log file.&nbsp; Please <a
  href="#ReportABug">report a bug</a>, attaching both the <a
  href="#CheckLog">log file</a> and the message that caused the error.</li>
   <li>If all messages fail to filter, we have a more serious problem,
-but again, please <a
- href="#ReportABug">report
-a bug</a>, attaching the <a
- href="#CheckLog">log
+but again, please <a href="#ReportABug">report
+a bug</a>, attaching the <a href="#CheckLog">log
 file.</a></li>
 </ul>
 <h2><a name="Messages_have_incorrect_or_unexpected"></a>Messages have
@@ -97,12 +140,14 @@ are wrong.&nbsp; To resolve this<br>
 then you may have lost your training database.&nbsp; From the <span
  style="font-style: italic;">Anti-Spam manager </span>dropdown, check
 how many spam and ham have been loaded by the system.&nbsp; If this
-number is very low (like zero!) then you probably need to perform a full
+number is very low (like zero!) then you probably need to perform a
+full
 re-train of your database.</li>
   <li>If the messages have apparently random, but unexpected scores,
 then there are two possibilities; either SpamBayes is simply behaving
 what appears to be strangely, but really is correctly, or that some of
-the spam payload is invisible to SpamBayes.&nbsp; In both cases, perform
+the spam payload is invisible to SpamBayes.&nbsp; In both cases,
+perform
 the following:</li>
   <ul>
     <li>Ensure the message is selected in the Outlook preview pane, and
@@ -124,7 +169,8 @@ mailing list.</li>
 </ul>
 <h2><a name="All_other_problems"></a>All other problems</h2>
 If you are simply usnure about what SpamBayes is doing, please send a
-mail to the <a href="mailto:spambayes@python.org">SpamBayes mailing list</a>
+mail to the <a href="mailto:spambayes@python.org">SpamBayes mailing
+list</a>
 with as much information as possible.&nbsp; If you are fairly sure you
 have struck a bug, then please <a href="#ReportABug">report it</a>.&nbsp;
 Please do not mail any of the contributors directly.<br>
@@ -143,9 +189,10 @@ downloaded an installer .EXE file, then you are running the <span
 If you are running the source code version, then please see README.txt
 in the Outlook2000 directory.<br>
 If you are running the binary version, then the SpamBayes addin writes
-a log in your Windows temp directory.&nbsp; This directory is generally <span
- style="font-style: italic;">\WINDOWS\TEMP</span> for Windows 9x, or <span
- style="font-style: italic;">\Documents and Settings\{username}\Local
+a log in your Windows temp directory.&nbsp; This directory is generally
+<span style="font-style: italic;">\WINDOWS\TEMP</span> for Windows 9x,
+or <span style="font-style: italic;">\Documents and
+Settings\{username}\Local
 Settings\Temp</span> for Windows 2000/XP.&nbsp; The log file for the
 most recent execution of Outlook is named <span
  style="font-style: italic;">spambayes1.log</span>, the second most
@@ -154,8 +201,8 @@ and so on for the four previous runs.<br>
 You can view this file with notepad.&nbsp; Usually, you will simply see
 messages which indicate that SpamBayes is doing its job.&nbsp; However,
 in some cases there will be errors in this file.<br>
-If SpamBayes fails to perform correctly, please locate the log file and <a
- href="#ReportABug">report a bug</a>.<br>
+If SpamBayes fails to perform correctly, please locate the log file and
+<a href="#ReportABug">report a bug</a>.<br>
 <h3><a name="ReportABug"></a>Report a bug</h3>
 All SpamBayes bugs are maintained in <a
  href="http://sourceforge.net/tracker/?group_id=61702&amp;atid=498103">this
@@ -165,7 +212,8 @@ open a new bug, making sure to set the Category to <span
  style="font-style: italic;">Outlook</span>.&nbsp; Please ensure you
 attach the <a href="#CheckLog">log file</a> to the bug.<br>
 If you are unsure about the bug, or need any assistance, please send a
-mail to the <a href="mailto:spambayes@python.org">SpamBayes mailing list</a>.<br>
+mail to the <a href="mailto:spambayes@python.org">SpamBayes mailing
+list</a>.<br>
 <br>
 <br>
 </body>
