@@ -527,75 +527,77 @@ class BayesManager:
         return ret
 
     def EnsureOutlookFieldsForFolder(self, folder_id, include_sub=False):
+        # Should be called at least once once per folder you are
+        # watching/filtering etc
         # Ensure that our fields exist on the Outlook *folder*
-        # Setting properties via our msgstore (via Ext Mapi) gets the props
+        # Setting properties via our msgstore (via Ext Mapi) sets the props
         # on the message OK, but Outlook doesn't see it as a "UserProperty".
         # Using MAPI to set them directly on the folder also has no effect.
-        # So until we know better, use Outlook to hack this in.
-        # Should be called once per folder you are watching/filtering etc
-        #
-        # Oh the tribulations of our property grail
+        # Later: We have since discovered that Outlook stores user property
+        # information in the 'associated contents' folder - see 
+        # msgstore.MAPIMsgStoreFolder.DoesFolderHaveOutlookField() for more
+        # details.  We can reverse engineer this well enough to determine
+        # if a property exists, but not well enough to actually add a
+        # property.  Thus, we resort to the Outlook object model to actually
+        # add it.
+        # Note that this means we need an object in the folder to modify.
+        # We could go searching for an existing item then modify and save it
+        # (indeed, we did once), but this could be bad-form, as the message
+        # we randomly choose to modify will then have a meaningless 'Spam'
+        # field.  If we are going to go to the effort of creating a temp
+        # item when no item exists, we may as well do it all the time,
+        # especially now we know how to check if the folder has the field
+        # without opening an Outlook item.
+
+        # Regarding the property type:
         # We originally wanted to use the "Integer" Outlook field,
         # but it seems this property type alone is not expose via the Object
         # model.  So we resort to olPercent, and live with the % sign
         # (which really is OK!)
         assert self.outlook is not None, "I need outlook :("
-        try:
-            msgstore_folder = self.message_store.GetFolder(folder_id)
-        except self.message_store.MsgStoreException:
-            print "Checking a folder for our field failed - "\
-                  "there is no such folder."
-            return
-            
-        folder = msgstore_folder.GetOutlookItem()
-        folder_name = msgstore_folder.GetFQName()
-        self.LogDebug(2, "Checking folder '%s' for field '%s'" \
-                  % (folder_name, self.config.general.field_score_name))
-        items = folder.Items
-        item = items.GetFirst()
-        while item is not None:
-            if item.Class != win32com.client.constants.olMail:
-                item = items.GetNext()
+        field_name = self.config.general.field_score_name
+        for msgstore_folder in self.message_store.GetFolderGenerator(
+                                                    [folder_id], include_sub):
+            folder_name = msgstore_folder.GetFQName()
+            if msgstore_folder.DoesFolderHaveOutlookField(field_name):
+                self.LogDebug(1, "Folder '%s' already has field '%s'" \
+                                 % (folder_name, field_name))
                 continue
-            break
-        # OK - item is either a mail item, or None
-        if item is not None:
-            ups = item.UserProperties
-            # *sigh* - need to search by int index
-            for i in range(ups.Count):
-                up = ups[i+1]
-                if up.Name == self.config.general.field_score_name:
-                    break
-            else: # for not broken
-                try:
-                    # Display format is documented as being the 1-based index in
-                    # the combo box in the outlook UI for the given data type.
-                    # 1 is the first - "Rounded", which seems fine.
-                    format = 1
-                    ups.Add(self.config.general.field_score_name,
-                           win32com.client.constants.olPercent,
-                           True, # Add to folder
-                           format)
-                    item.Save()
-                    self.LogDebug(2, "Created the UserProperty!")
-                except pythoncom.com_error, details:
-                    if msgstore.IsReadOnlyCOMException(details):
-                        self.LogDebug(1, "The folder '%s' is read-only - user property can't be added" % \
-                                      (folder_name,))
-                    else:
-                        print "Warning: failed to create the Outlook " \
-                              "user-property in folder '%s'" \
-                              % (folder_name,)
-                        print "", details
-            if include_sub:
-                # Recurse down the folder list.
-                folders = item.Parent.Folders
-                folder = folders.GetFirst()
-                while folder is not None:
-                    this_id = folder.StoreID, folder.EntryID
-                    self.EnsureOutlookFieldsForFolder(this_id, True)
-                    folder = folders.GetNext()
-        # else no items in this folder - not much worth doing!
+            self.LogDebug(0, "Folder '%s' has no field named '%s' - creating" \
+                      % (folder_name, field_name))
+            # Creating the item via the Outlook model does some strange
+            # things (such as moving it to "Drafts" on save), so we create
+            # it using extended MAPI (via our msgstore)
+            message = msgstore_folder.CreateTemporaryMessage(msg_flags=1)
+            outlook_message = message.GetOutlookItem()
+            ups = outlook_message.UserProperties
+            try:
+                # Display format is documented as being the 1-based index in
+                # the combo box in the outlook UI for the given data type.
+                # 1 is the first - "Rounded", which seems fine.
+                format = 1
+                ups.Add(field_name,
+                       win32com.client.constants.olPercent,
+                       True, # Add to folder
+                       format)
+                outlook_message.Save()
+            except pythoncom.com_error, details:
+                if msgstore.IsReadOnlyCOMException(details):
+                    self.LogDebug(1, "The folder '%s' is read-only - user "
+                                     "property can't be added" % (folder_name,))
+                else:
+                    print "Warning: failed to create the Outlook " \
+                          "user-property in folder '%s'" \
+                          % (folder_name,)
+                    print "", details
+            msgstore_folder.DeleteMessages((message,))
+            # Check our DoesFolderHaveOutlookField logic holds up.
+            if not msgstore_folder.DoesFolderHaveOutlookField(field_name):
+                self.LogDebug(0,
+                        "WARNING: We just created the user field in folder "
+                        "%s, but it appears to not exist.  Something is "
+                        "probably wrong with DoesFolderHaveOutlookField()" % \
+                        folder_name)
 
     def PrepareConfig(self):
         # Load our Outlook specific configuration.  This is done before
@@ -814,6 +816,10 @@ class BayesManager:
         dialogs.ShowDialog(0, self, self.config, "IDD_MANAGER")
         # And re-save now, just incase Outlook dies on the way down.
         self.SaveConfig()
+        # And tell the addin that our filters may have changed.
+        if self.addin is not None:
+            self.addin.FiltersChanged()
+
     def ShowFilterNow(self):
         import dialogs
         dialogs.ShowDialog(0, self, self.config, "IDD_FILTER_NOW")

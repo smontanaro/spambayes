@@ -623,6 +623,87 @@ class MAPIMsgStoreFolder:
         ret = folder.CreateFolder(type, name, comments, None, flags)
         return self._FolderFromMAPIFolder(ret)
 
+    def DoesFolderHaveOutlookField(self, field_name):
+        # Returns True if the specified folder has an *Outlook* field with
+        # the given name, False if the folder does not have it, or None
+        # if we can't tell, or there was an error, etc.
+        # We have discovered that Outlook stores 'Fields' for a folder as a
+        # PR_USERFIELDS field in the hidden, 'associated' message with
+        # message class IPC.MS.REN.USERFIELDS.  This is a binary property
+        # which is undocumented, but probably could be reverse-engineered
+        # with a little effort (see 'dump_props --dump-folder-user-props' for
+        # an example of the raw data.  For now, the simplest thing appears
+        # to be to check for a \0 character, followed by the property name
+        # as an ascii string.
+        try:
+            folder = self.msgstore._OpenEntry(self.id)
+            table = folder.GetContentsTable(mapi.MAPI_ASSOCIATED)
+            restriction = (mapi.RES_PROPERTY,
+                          (mapi.RELOP_EQ,
+                           PR_MESSAGE_CLASS_A,
+                           (PR_MESSAGE_CLASS_A, 'IPC.MS.REN.USERFIELDS')))
+            cols = (PR_USERFIELDS,)
+            table.SetColumns(cols, 0)
+            rows = mapi.HrQueryAllRows(table, cols, restriction, None, 0)
+            if len(rows)>1:
+                print "Eeek - only expecting one row from IPC.MS.REN.USERFIELDS"
+                print "got", repr(rows)
+                return None
+            if len(rows)==0:
+                # New folders with no userdefined fields do not have such a row,
+                # but this is a clear indication it does not exist.
+                return False
+            row = rows[0]
+            val = GetPotentiallyLargeStringProp(folder, cols[0], row[0])
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
+        if type(val) != type(''):
+            print "Value type incorrect - expected string, got", repr(val)
+            return None
+        return val.find("\0" + field_name) >= 0
+
+    def DeleteMessages(self, message_things):
+        # A *permanent* delete - MAPI has no concept of 'Deleted Items',
+        # only Outlook does.  If you want a "soft" delete, you must locate
+        # deleted item (via a special ID) and move it to there yourself
+        # message_things may be ID tuples, or MAPIMsgStoreMsg instances.
+        real_ids = []
+        for thing in message_things:
+            if isinstance(thing, MAPIMsgStoreMsg):
+                real_ids.append( thing.id[1] )
+                thing.mapi_object = thing.id = thing.folder_id = None
+            else:
+                real_ids.append(self.msgstore.NormalizeID(thing)[1])
+        try:
+            folder = self.msgstore._OpenEntry(self.id)
+            # Nuke my MAPI reference, and set my ID to None
+            rc = folder.DeleteMessages(real_ids, 0, None, 0)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
+    
+    def CreateTemporaryMessage(self, msg_flags = None):
+        # Create a message designed to be used temporarily.  It is your
+        # responsibility to delete when you are done with it.
+        # If msg_flags is not None, it should be an integer for the
+        # PR_MESSAGE_FLAGS property.  Note that Outlook appears to refuse
+        # to set user properties on a message marked as 'unsent', which
+        # is the default.  Setting to, eg, 1 marks it as a "not unsent, read"
+        # message, which works fine with user properties.
+        try:
+            folder = self.msgstore._OpenEntry(self.id)
+            imsg = folder.CreateMessage(None, 0)
+            if msg_flags is not None:
+                props = (PR_MESSAGE_FLAGS,msg_flags),
+                imsg.SetProps(props)
+            imsg.SaveChanges(0)
+            hr, data = imsg.GetProps((PR_ENTRYID, PR_STORE_ENTRYID), 0)
+            eid = data[0][1]
+            storeid = data[1][1]
+            msg_id = mapi.HexFromBin(storeid), mapi.HexFromBin(eid)
+        except pythoncom.com_error, details:
+            raise MsgStoreExceptionFromCOMException(details)
+        return self.msgstore.GetMessage(msg_id)
+
 class MAPIMsgStoreMsg:
     # All the properties we must initialize a message with.
     # These include all the IDs we need, parent IDs, any properties needed
