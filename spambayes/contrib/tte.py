@@ -4,7 +4,8 @@
 Train to exhaustion: train repeatedly on a pile of ham and spam until
 everything scores properly.
 
-usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] [ -m N ] [ -r N ] [ -c ext ]
+usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] \
+               [ -m N ] [ -r N ] [ -c ext ] [ -o sect:opt:val ]
 
 -h      - Print this usage message and exit.
 
@@ -26,6 +27,9 @@ usage %(prog)s [ -h ] -g file -s file [ -d file | -p file ] [ -m N ] [ -r N ] [ 
           All messages which are never considered (because one training set is
           longer than the other or the -m flag was used to reduce the amount of
           input) are retained.
+
+-o sect:opt:val -
+          Set [sect, opt] in the options database to val.
 
 Note that the -c command line argument isn't quite as benign as it might
 first appear.  Since the tte protocol trains on the same number of ham and
