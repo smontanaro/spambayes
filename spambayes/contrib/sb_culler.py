@@ -18,18 +18,26 @@ This program is designed for me, a programmer.  The structure should
 be helpful enough for other programmers, but even configuration must
 be done by editing the code.
 
+The virus identification and POP3 manipulation code is based on Kevin
+Altis' virus killer code, which I've been gratefully using for the
+last several months.
+
 Written by Andrew Dalke, November 2003.
 Released into the public domain on 2003/11/22.
+Updated 2004/10/26
   == NO copyright protection asserted for this code.  Share and enjoy! ==
 
 This program requires Python 2.3 or newer.
 """
 
-import sets, traceback
+import sets, traceback, md5, os
 import poplib
 import posixpath
-from email import Header
+from email import Header, Utils
 from spambayes import mboxutils, hammie
+
+import socket
+socket.setdefaulttimeout(10)
 
 DO_ACTIONS = 1
 VERBOSE_LEVEL = 1
@@ -112,18 +120,68 @@ def KEEP(mi, log):
 KEEP.descr = "keep in mailbox"
         
 
+class Duplicate:
+    def __init__(self):
+        self.unique = {}
+    def __call__(self, mi, log):
+        digest = md5.md5(mi.text).digest()
+        if digest in self.unique:
+            log.pass_test(SPAM)
+            return "duplicate"
+        self.unique[digest] = 1
+        return False
+
+class IllegalDeliveredTo:
+    def __init__(self, names):
+        self.names = names
+    def __call__(self, mi, log):
+        fields = mi.msg.get_all("Delivered-To")
+        if fields is None:
+            return False
+        
+        for field in fields:
+            field = field.lower()
+            for name in self.names:
+                if name in field:
+                    return False
+        log.pass_test(SPAM)
+        return "sent to random email"
+
+class SpamAssassin:
+    def __init__(self, level = 8):
+        self.level = level
+    def __call__(self, mi, log):
+        if ("*" * self.level) in mi.msg.get("X-Spam-Status", ""):
+            log.pass_test(SPAM)
+            return "assassinated!"
+        return False
+
 class WhiteListFrom:
     """Test: Read a list of email addresses to use a 'from' whitelist"""
     def __init__(self, filename):
+        self.filename = filename
+        self._mtime = 0
+        self._load_if_needed()
+
+    def _load(self):
         lines = [line.strip().lower() for line in
-                           open(filename).readlines()]
+                           open(self.filename).readlines()]
         self.addresses = sets.Set(lines)
+
+    def _load_if_needed(self):
+        mtime = os.path.getmtime(self.filename)
+        if mtime != self._mtime:
+            print "Reloading", self.filename
+            self._mtime = mtime
+            self._load()
         
     def __call__(self, mi, log):
+        self._load_if_needed()
         frm = mi.msg["from"]
+        realname, frm = Utils.parseaddr(frm)
         status = (frm is not None) and (frm.lower() in self.addresses)
         if status:
-            log.pass_test("'from' white list")
+            log.pass_test(SPAM)
             return "it is in 'from' white list"
         return False
         
@@ -211,7 +269,11 @@ def open_mailbox(server, username, password, debuglevel = 0):
 
 def _log_subject(mi, log):
     encoded_subject = mi.msg.get('subject')
-    subject, encoding = Header.decode_header(encoded_subject)[0]
+    try:
+        subject, encoding = Header.decode_header(encoded_subject)[0]
+    except Header.HeaderParseError:
+        log.info("%s Subject cannot be parsed" % (mi.i,))
+        return
     if encoding is None or encoding == 'iso-8859-1':
         s = subject
     else:
@@ -229,6 +291,8 @@ class Filters(list):
         log = Logger()
 
         for i in range(1, count+1):
+            if (i-1) % 10 == 0:
+                print " == %d/%d ==" % (i, count)
             # Kevin's code used -1, but -1 doesn't work for one of
             # my POP accounts, while a million does.
             # Don't use retr because that may mark the message as
@@ -297,8 +361,8 @@ def restart_network():
     print "Network appears to be down.  Bringing Linksys down then up..."
     try:
         # Note this this example uses the default password.  YMMV.
-        urllib.urlopen("http://:admin@192.168.1.1/Gozila.cgi?pppoeAct=2")
-        urllib.urlopen("http://:admin@192.168.1.1/Gozila.cgi?pppoeAct=1")
+        urllib.urlopen("http://:admin@192.168.1.1/Gozila.cgi?pppoeAct=2").read()
+        urllib.urlopen("http://:admin@192.168.1.1/Gozila.cgi?pppoeAct=1").read()
     except KeyboardInterrupt:
         raise
     except:
@@ -328,17 +392,37 @@ def wait(t, delta = 10):
 def main():
     filters = Filters()
 
+    duplicate = Duplicate()
+    filters.add(duplicate, AppendFile("spam2.mbox"))
+
     # A list of everyone who has emailed me this year.
     # Keep their messages on the server.
     filters.add(WhiteListFrom("good_emails.txt"), KEEP)
 
-    # My mailing lists.  Edited to make it slightly harder
-    # for spammers to read this description and figure
-    # out how to spam me.
-    filters.add(WhiteListSubstrings("subject",
-                  ['[Twisted]', 'CompChem:', '[Bioperl]',
-                   '[BioPy]', '[SALSA CLUB]', '[Open-bio]',
-                   '[StarshipCrew]']), KEEP)
+    # My mailing lists.
+    filters.add(WhiteListSubstrings("subject", [
+                   'ABCD:',
+                   '[Python-announce]',
+                   '[Python]',
+                   '[Bioinfo]',
+                   '[EuroPython]',
+                   ]),
+                KEEP)
+
+    filters.add(WhiteListSubstrings("to", [
+        "president@whitehouse.gov",
+        "ceo@big.com",
+        ]),
+                KEEP)
+
+    names = ["john", "", "jon", "johnathan"]
+    valid_emails = ([name + "@lectroid.com" for name in names] +
+                    [name + "@bigboote.org" for name in names] +
+                    ["buckeroo.bonzai@aol.earth"])
+
+    filters.add(IllegalDeliveredTo(valid_emails), DELETE)
+    filters.add(SpamAssassin(), AppendFile("spam2.mbox"))
+    
 
     # Get rid of anything which smells like an exectuable.
     filters.add(IsVirus, DELETE)
@@ -348,10 +432,11 @@ def main():
     h = hammie.open("cull.spambayes", "dbm", "r")
     filters.add(IsSpam(h, 0.90), AppendFile("spam.mbox"))
 
-    # These are my POP3 accounts.  (or not ;)
+    # These are my POP3 accounts.
     server_configs = [("mail.example.com",
-                          "dalke", "password"),
-                      ("mail2.spam.com", "dalke", "1234"), ]
+                          "user@example.com", "password"),
+                      ("popserver.big.com", "ceo", "12345"), ]
+
 
     # The main culling loop.
     error_count = 0
@@ -360,9 +445,12 @@ def main():
     start_time = None  # init'ed only after initial_log is created
     while 1:
         error_flag = False
+        duplicate.unique.clear()  # Hack!
         for server, user, pwd in server_configs:
             try:
                 log = filter_server( (server, user, pwd), filters)
+            except KeyboardInterrupt:
+                raw_input("Press enter to continue. ")
             except StandardError:
                 raise
             except:
@@ -405,13 +493,29 @@ def main():
         if error_flag:
             error_count += 1
 
-        if error_count > 20:
+        if error_count > 0:
             restart_network()
             error_count = 0
 
-        wait(3*60)
-                
-    
+        delay = 10 * 60
+        while delay:
+            try:
+                wait(delay)
+                break
+            except KeyboardInterrupt:
+                print
+                while 1:
+                    cmd = raw_input("enter, delay, or quit? ")
+                    if cmd in ("q", "quit"):
+                        raise SystemExit(0)
+                    elif cmd == "":
+                        delay = 0
+                        break
+                    elif cmd.isdigit():
+                        delay = int(cmd)
+                        break
+                    else:
+                        print "Unknown command."
 
 if __name__ == "__main__":
     main()
