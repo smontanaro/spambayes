@@ -11,9 +11,10 @@ header.  Usage:
         <port>   is the port number of your real POP3 server, which
                  defaults to 110.
 
-        options (the same as hammie):
+        options:
             -p FILE : use the named data file
             -d      : the file is a DBM file rather than a pickle
+            -l port : listen on this port number (default 110)
 
     pop3proxy -t
         Runs a test POP3 server on port 8110; useful for testing.
@@ -38,8 +39,10 @@ import socket, asyncore, asynchat
 import classifier, tokenizer, hammie
 from Options import options
 
+# HEADER_EXAMPLE is the longest possible header - the length of this one
+# is added to the size of each message.
 HEADER_FORMAT = '%s: %%s\r\n' % hammie.DISPHEADER
-HEADER_EXAMPLE = '%s: Yes\r\n' % hammie.DISPHEADER
+HEADER_EXAMPLE = '%s: Unsure\r\n' % hammie.DISPHEADER
 
 
 class Listener(asyncore.dispatcher):
@@ -57,6 +60,7 @@ class Listener(asyncore.dispatcher):
         s.setblocking(False)
         self.set_socket(s, socketMap)
         self.set_reuse_addr()
+        print "Listening on port %d." % port
         self.bind(('', port))
         self.listen(5)
 
@@ -336,16 +340,15 @@ class BayesProxy(POP3ProxyBase):
             # Break off the first line, which will be '+OK'.
             ok, message = response.split('\n', 1)
 
-            # Now find the spam disposition and add the header.  The
-            # trailing space in "No " ensures consistent lengths - this
-            # is required because POP3 commands like 'STAT' and 'LIST'
-            # need to be able to report the size of a message before
-            # it's been classified.
+            # Now find the spam disposition and add the header.
             prob = self.bayes.spamprob(tokenizer.tokenize(message))
-            if prob > options.spam_cutoff:
+            if prob < options.ham_cutoff:
+                disposition = "No"
+            elif prob > options.spam_cutoff:
                 disposition = "Yes"
             else:
-                disposition = "No "
+                disposition = "Unsure"
+            
             headers, body = re.split(r'\n\r?\n', response, 1)
             headers = headers + "\n" + HEADER_FORMAT % disposition + "\r\n"
             return headers + body
@@ -576,12 +579,13 @@ def test():
 if __name__ == '__main__':
     # Read the arguments.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'htdp:')
+        opts, args = getopt.getopt(sys.argv[1:], 'htdp:l:')
     except getopt.error, msg:
         print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     pickleName = hammie.DEFAULTDB
+    proxyPort = 110
     useDB = False
     runTestServer = False
     for opt, arg in opts:
@@ -594,7 +598,9 @@ if __name__ == '__main__':
             useDB = True
         elif opt == '-p':
             pickleName = arg
-
+        elif opt == '-l':
+            proxyPort = int(arg)
+            
     # Do whatever we've been asked to do...
     if not opts and not args:
         print "Running a self-test (use 'pop3proxy -h' for help)"
@@ -608,11 +614,11 @@ if __name__ == '__main__':
 
     elif len(args) == 1:
         # Named POP3 server, default port.
-        main(args[0], 110, 110, pickleName, useDB)
+        main(args[0], 110, proxyPort, pickleName, useDB)
 
     elif len(args) == 2:
         # Named POP3 server, named port.
-        main(args[0], int(args[1]), 110, pickleName, useDB)
+        main(args[0], int(args[1]), proxyPort, pickleName, useDB)
 
     else:
         print >>sys.stderr, __doc__
