@@ -46,18 +46,21 @@ class ControlProcessor:
 
 class ImageProcessor(ControlProcessor):
     def Init(self):
-        filename = ""
         rcp = self.window.manager.dialog_parser;
         text = win32gui.GetWindowText(self.GetControl())
         name = rcp.names[int(text)]
         filename = rcp.bitmaps[name]
-        import os
-        if not os.path.isabs(filename):
-            filename = os.path.join( os.path.dirname( __file__ ), "resources", filename)
+        import os, sys
+        if hasattr(sys, "frozen"):
+            # bitmap in the app/images directory
+            filename = os.path.join(self.window.manager.application_directory,
+                                    "images", filename)
+        else:
+            if not os.path.isabs(filename):
+                filename = os.path.join( os.path.dirname( __file__ ), "resources", filename)
         handle = win32gui.LoadImage(0, filename, win32con.IMAGE_BITMAP,0,0,
                                     win32con.LR_COLOR|win32con.LR_LOADFROMFILE|win32con.LR_SHARED)
         win32gui.SendMessage(self.GetControl(), win32con.STM_SETIMAGE, win32con.IMAGE_BITMAP, handle)
-        
 
     def GetPopupHelpText(self, cid):
         return None
