@@ -80,22 +80,24 @@ else:
     except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
         this_filename = os.path.abspath(sys.argv[0])
 
+# Ensure that a bsddb module is available if we are frozen.
 # See if we can use the new bsddb module. (The old one is unreliable
 # on Windows, so we don't use that)
-try:
-    import bsddb3 as bsddb
-    # bsddb3 is definitely not broken
-    use_db = True
-except ImportError:
-    # Not using the 3rd party bsddb3, so try the one in the std library
+if hasattr(sys, "frozen"):
+    try:
+        import bsddb3
+    except ImportError:
+        bsddb3 = None
     try:
         import bsddb
-        use_db = hasattr(bsddb, "db") # This name is not in the old one.
     except ImportError:
-        # No DB library at all!
-        assert not hasattr(sys, "frozen"), \
-               "Don't build binary versions without bsddb!"
-        use_db = False
+        bsddb = None
+    else:
+        # This name is not in the old (bad) one.
+        if not hasattr(bsddb, "db"):
+            bsddb = None
+    assert bsddb or bsddb3, \
+           "Don't build binary versions without bsddb!"
 
 # This is a little bit of a hack <wink>.  We are generally in a child
 # directory of the bayes code.  To help installation, we handle the
@@ -180,8 +182,10 @@ def SavePickle(what, filename):
 class BasicStorageManager:
     db_extension = None # for pychecker - overwritten by subclass
     def __init__(self, bayes_base_name, mdb_base_name):
-        self.bayes_filename = bayes_base_name + self.db_extension
-        self.mdb_filename = mdb_base_name + self.db_extension
+        self.bayes_filename = bayes_base_name.encode(filesystem_encoding) + \
+                              self.db_extension
+        self.mdb_filename = mdb_base_name.encode(filesystem_encoding) + \
+                            self.db_extension
     def new_bayes(self):
         # Just delete the file and do an "open"
         try:
@@ -196,7 +200,11 @@ class BasicStorageManager:
     def close_bayes(self, bayes):
         bayes.close()
     def open_mdb(self):
-        return bayes_message.open_storage(self.mdb_filename, self.klass)
+        # MessageInfo storage types may lag behind, so use pickle if the
+        # matching type isn't available.
+        if self.klass in bayes_message._storage_types.keys():
+            return bayes_message.open_storage(self.mdb_filename, self.klass)
+        return bayes_message.open_storage(self.mdb_filename, "pickle")
     def store_mdb(self, mdb):
         mdb.store()
     def close_mdb(self, mdb):
@@ -213,11 +221,6 @@ class PickleStorageManager(BasicStorageManager):
 class DBStorageManager(BasicStorageManager):
     db_extension = ".db"
     klass = "dbm"
-    def __init__(self, bayes_base_name, mdb_base_name):
-        self.bayes_filename = bayes_base_name.encode(filesystem_encoding) + \
-                              self.db_extension
-        self.mdb_filename = mdb_base_name.encode(filesystem_encoding) + \
-                            self.db_extension
     def new_mdb(self):
         try:
             os.unlink(self.mdb_filename)
@@ -226,6 +229,10 @@ class DBStorageManager(BasicStorageManager):
         return self.open_mdb()
     def is_incremental(self):
         return True # True means only changed records get actually written
+
+class ZODBStorageManager(DBStorageManager):
+    db_extension = ".fs"
+    klass = "zodb"
 
 # Encapsulates our entire classification database
 # This allows a couple of different "databases" to be open at once
@@ -255,9 +262,12 @@ class ClassifierData:
 
         self.logger.LogDebug(0, "Bayes database initialized with "
                    "%d spam and %d good messages" % (bayes.nspam, bayes.nham))
-        if len(message_db) != bayes.nham + bayes.nspam:
-            print "*** - message database has %d messages - bayes has %d - something is screwey" % \
-                    (len(message_db), bayes.nham + bayes.nspam)
+        # Once, we checked that the message database was the same length
+        # as the training database here.  However, we now store information
+        # about messages that are classified but not trained in the message
+        # database, so the lengths will not be equal (unless all messages
+        # are trained).  That step doesn't really gain us anything, anyway,
+        # since it no longer would tell us useful information, so remove it.
         self.bayes = bayes
         self.message_db = message_db
         self.dirty = False
@@ -287,11 +297,6 @@ class ClassifierData:
         import time
         start = time.clock()
         bayes = self.bayes
-        # Try and work out where this count sometimes goes wrong.
-        if bayes.nspam + bayes.nham != len(self.message_db):
-            print "WARNING: Bayes database has %d messages, " \
-                  "but training database has %d" % \
-                  (bayes.nspam + bayes.nham, len(self.message_db))
 
         if self.logger.verbose:
             print "Saving bayes database with %d spam and %d good messages" %\
@@ -327,7 +332,23 @@ class ClassifierData:
         self.Load()
 
 def GetStorageManagerClass():
-    return [PickleStorageManager, DBStorageManager][use_db]
+    # We used to enforce this so that all binary users used bsddb, and
+    # unless they modified the source, so would all source users.  We
+    # would like more flexibility now, so we match what the rest of the
+    # applications do - this isn't exposed via the GUI, so Outlook users
+    # still get bsddb by default, and have to fiddle with a text file
+    # to change that.
+    use_db = bayes_options["Storage", "persistent_use_database"]
+    available = {"pickle" : PickleStorageManager,
+                 "dbm"    : DBStorageManager,
+                 "zodb"   : ZODBStorageManager,
+                 }
+    if use_db not in available:
+        # User is trying to use something fancy which isn't available.
+        # Fall back on bsddb.
+        print use_db, "storage type not available.  Using bsddb."
+        use_db = "dbm"
+    return available[use_db]
 
 # Our main "bayes manager"
 class BayesManager:
