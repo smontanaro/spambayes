@@ -866,9 +866,11 @@ class Tokenizer:
         #     'sender:email name:python-list-admin'
         # becomes the most powerful indicator in the whole database.
         #
-        # From:
-        # Reply-To:
-        for field in ('from',):# 'reply-to',):
+        # From:         # this helps both rates
+        # Reply-To:     # my error rates are too low now to tell about this
+        #               # one (smalls wins & losses across runs, overall
+        #               # not significant), so leaving it out
+        for field in ('from',):
             prefix = field + ':'
             x = msg.get(field, 'none').lower()
             for w in x.split():
