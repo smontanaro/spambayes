@@ -45,16 +45,22 @@ class MAPIDriver:
         for row in rows:
             (eid_tag, eid), (name_tag, name), (def_store_tag, def_store) = row
             # Open the store.
-            store = self.session.OpenMsgStore(
-                                0,      # no parent window
-                                eid,    # msg store to open
-                                None,   # IID; accept default IMsgStore
-                                # need write access to add score fields
-                                mapi.MDB_WRITE |
-                                    # we won't send or receive email
-                                    mapi.MDB_NO_MAIL |
-                                    mapi.MAPI_DEFERRED_ERRORS)
-            yield store, name, def_store
+            try:
+                store = self.session.OpenMsgStore(
+                                    0,      # no parent window
+                                    eid,    # msg store to open
+                                    None,   # IID; accept default IMsgStore
+                                    # need write access to add score fields
+                                    mapi.MDB_WRITE |
+                                        # we won't send or receive email
+                                        mapi.MDB_NO_MAIL |
+                                        mapi.MAPI_DEFERRED_ERRORS)
+                yield store, name, def_store
+            except pythoncom.com_error, details:
+                print "Error opening message store"
+                print details
+                print "Ignoring this store"
+
 
     def _FindSubfolder(self, store, folder, find_name):
         find_name = find_name.lower()
