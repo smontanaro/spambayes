@@ -3,10 +3,9 @@ recursive-include spambayes/src *.c
 recursive-include spambayes *.py *.txt
 recursive-include pspam *.py *.txt *.ini *.sh
 recursive-include contrib *.py *.sh *.txt *.el *rc
-recursive-include Outlook2000 *.py *.txt *.ini *.html *.bmp *.rc *.h *.jpg *.rtf *.spec *.iss
+recursive-include Outlook2000 *.py *.txt *.ini *.html *.bmp *.rc *.h *.jpg *.rtf
 recursive-include utilities *.py *.txt
 recursive-include scripts *.py *.txt
 recursive-include testtools *.py *.txt *.sh
 recursive-include windows *.py *.txt *.h *.rc *.ico *.html *.iss
 include *.txt *.py MANIFEST.in *.sh
-
