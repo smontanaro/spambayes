@@ -82,11 +82,10 @@ class FilterArrivalsDialog(dialog.Dialog):
         self.filterer = filterer
         self.watch_folder_ids = mgr.config.filter.watch_folder_ids
         self.watch_include_sub = mgr.config.filter.watch_include_sub
-        # If we have no watch folder, suggest the Inbox.
-        if len(self.watch_folder_ids)==0 and mgr.outlook is not None:
-            inbox = self.mgr.outlook.Session.GetDefaultFolder(constants.olFolderInbox)
-            self.watch_folder_ids = [(inbox.StoreID, inbox.EntryID)]
-
+        # If we have no watch folder, we used to suggest the Inbox.
+        # But this mis-lead at least one user, in the case where there are
+        # multiple inboxes - he assumed we guess the "correct" one.  Forcing
+        # the user to specify it means getting the wrong one is their fault.
         self.spam_folder_id = mgr.config.filter.spam_folder_id
         self.unsure_folder_id = mgr.config.filter.unsure_folder_id
         dialog.Dialog.__init__(self, self.dt)
