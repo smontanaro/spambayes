@@ -105,12 +105,17 @@ class Driver:
         self.folder_unsure = folder.GetOutlookItem()
         # The "watch" folder is a folder we can stick stuff into to have them
         # filtered - just use the first one nominated.
-        for folder in mgr.message_store.GetFolderGenerator(
+        self.folder_watch = self.folder_watch_2 = None
+        gen = mgr.message_store.GetFolderGenerator(
                                 mgr.config.filter.watch_folder_ids,
-                                mgr.config.filter.watch_include_sub):
-            self.folder_watch = folder.GetOutlookItem()
-            break
-
+                                mgr.config.filter.watch_include_sub)
+        try:
+            self.folder_watch = gen.next().GetOutlookItem()
+            self.folder_watch_2 = gen.next().GetOutlookItem()
+        except StopIteration:
+            pass
+        if self.folder_watch is None:
+            raise RuntimeError, "Can't test without at least one folder to watch"
         # And the drafts folder where new messages are created.
         self.folder_drafts = mgr.outlook.Session.GetDefaultFolder(constants.olFolderDrafts)
 
@@ -282,15 +287,55 @@ def TestSpamFilter(driver):
     spam_msg.Delete()
     print "Created a Spam message, and saw it get filtered and trained."
 
-def TestHamFilter(driver):
-    # Create a ham message in the Inbox - it should not get filtered
-    msg, words = driver.CreateTestMessageInFolder(HAM, driver.folder_watch)
+def _DoTestHamTrain(driver, folder1, folder2):
+    # [ 780612 ] Outlook incorrectly trains on moved messages
+    # Should not train when previously classified message is moved by the user
+    # from one watch folder to another.
+    nham = driver.manager.bayes.nham
+    nspam = driver.manager.bayes.nspam
+
+    # Create a ham message in the Inbox - it wont get filtered if the other
+    # tests pass, but we do need to wait for it to be scored.
+    msg, words = driver.CreateTestMessageInFolder(HAM, folder1)
     # sleep to ensure filtering.
     WaitForFilters()
     # It should still be in the Inbox.
-    if driver.FindTestMessage(driver.folder_watch) is None:
+    if driver.FindTestMessage(folder1) is None:
+        TestFailed("The test ham message appeared to have been filtered!")
+
+    # Manually move it to folder2
+    msg.Move(folder2)
+    # re-find it in folder2
+    msg = driver.FindTestMessage(folder2)
+
+    # sleep to any processing in this folder.
+    WaitForFilters()
+
+    if nspam != driver.manager.bayes.nspam or nham != driver.manager.bayes.nham:
+        TestFailed("Move of existing ham caused a train")
+    msg.Delete()
+
+def _DoTestHamFilter(driver, folder):
+    # Create a ham message in the Inbox - it should not get filtered
+    msg, words = driver.CreateTestMessageInFolder(HAM, folder)
+    # sleep to ensure filtering.
+    WaitForFilters()
+    # It should still be in the Inbox.
+    if driver.FindTestMessage(folder) is None:
         TestFailed("The test ham message appeared to have been filtered!")
     msg.Delete()
+
+def TestHamFilter(driver):
+    _DoTestHamFilter(driver, driver.folder_watch)
+    # Try again, with the secondary folder if it exists (it is likely one
+    # is the inbox and one isn't, so may be useful)
+    if driver.folder_watch_2 is not None:
+        _DoTestHamFilter(driver, driver.folder_watch_2)
+        # Now test our incremental train logic
+        _DoTestHamTrain(driver, driver.folder_watch, driver.folder_watch_2)
+    else:
+        print "Skipping testing secondary watch folder filtering - " \
+              "only one watch folder is configured"
     print "Created a Ham message, and saw it remain in place."
 
 def TestUnsureFilter(driver):
