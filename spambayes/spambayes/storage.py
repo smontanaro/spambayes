@@ -207,6 +207,8 @@ class DBDictClassifier(classifier.Classifier):
         self.db.sync()
 
     def _wordinfoget(self, word):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
         try:
             return self.wordinfo[word]
         except KeyError:
@@ -229,6 +231,8 @@ class DBDictClassifier(classifier.Classifier):
         # This seems to reduce the memory footprint of the DBDictClassifier by
         # as much as 60%!!!  This also has the effect of reducing the time it
         # takes to store the database
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
         if record.spamcount + record.hamcount <= 1:
             self.db[word] = record.__getstate__()
             # Remove this word from the changed list (not that it should be
@@ -242,6 +246,8 @@ class DBDictClassifier(classifier.Classifier):
             self.changed_words[word] = WORD_CHANGED
 
     def _wordinfodel(self, word):
+        if isinstance(word, unicode):
+            word = word.encode("utf-8")
         del self.wordinfo[word]
         self.changed_words[word] = WORD_DELETED
 
