@@ -18,8 +18,8 @@ Author: spambayes
 </ol>
 <p>If you have any suggestions about other questions and answers that should be included
 here, please mail <a href="mailto:spambayes@python.org">the list</a> with them.</p>
-<h3><a name="#tokentrick">Hey!  Why don't you implement cool tokenizer trick X?  I think it
-   would really foil those spammers!</a></h3>
+<h3><a name="#tokentrick">Hey!  Why don't you implement cool tokenizer trick 
+   X?  I think it would really foil those spammers!</a></h3>
 <p>Have you run your tokenizer trick against a set of messages to see if
    it actually works?  Many times what seems like a good idea turns out
    not to help much, and sometimes even hurts.  If you have a good idea,
@@ -29,9 +29,14 @@ here, please mail <a href="mailto:spambayes@python.org">the list</a> with them.<
    a feature request on the project page, and wait for someone else to
    code it for you (but make sure you do some testing when it's done).
    Otherwise, you will likely get a message from Tim Peters about
-   why you need to test your idea :)</p>
+   why you need to test your idea :)  Note that as a general rule,
+   we've found that with the tokenizer, "stupid beats smart" -- that is, 
+   very specialised tokenizer behaviour usually produces worse results than
+   a more general approach that just generates tokens and throws them at the 
+   classifier.</p>
 
-<h3><a name="#serverside">This software is great!  I want to implement it for all my users.
+<h3><a name="#serverside">This software is great!  I want to implement it 
+   for all my users.
    Are there plans to develop a server-side spambayes solution?</a></h3>
 <p>The problem with a server-side solution is that everyone has a
    different idea of what is spam - that's the whole strength of the
@@ -43,25 +48,26 @@ here, please mail <a href="mailto:spambayes@python.org">the list</a> with them.<
    Please let the list know if you do have success in this area, and
    we'll update this answer.</p>
 
-<h3><a name="#unsure">I just got a spam, but the system said it was "unsure". Why
-   couldn't it tell that it was spam - it's obvious?</a></h3>
+<h3><a name="#unsure">I just got a spam, but the system said it was "unsure". 
+   Why couldn't it tell that it was spam - it's obvious?</a></h3>
 <p>It may be obvious to you, but the classifier only works on
    the information it has been given. Maybe this is "new" (you've
    never seen this particular flavour of spam before), or maybe
    there aren't enough clues in the message which the system is
    aware of as strong spam clues.</p>
 
-<h3><a name="#stillunsure">OK, I trained on that message. But I just got *another* one,
-   and the stupid system still thinks it's unsure. Why did it
-   ignore me???</a></h3>
+<h3><a name="#stillunsure">OK, I trained on that message. But I just got 
+   <i>another</i> one, and the stupid system still thinks it's unsure. Why 
+    did it ignore me???</a></h3>
 <p>It didn't, but you may need to train on a few more of this type
    of message to get it classified as "spam". The classification
    algorithm weights its results based on the number of times it
    has seen a particular clue, so that clues unique to this type
    of message may need a few more instances to become "convincing".</p>
 
-<h3><a name="#wipetraining">I've mucked up my training and I want to start all over again,
-   but there isn't an option for this anywhere.  What do I do?</a></h3>
+<h3><a name="#wipetraining">I've mucked up my training and I want to 
+   start all over again, but there isn't an option for this anywhere.  
+   What do I do?</a></h3>
 <p>Because training from scratch is a very rare occurance, and because
    deleting all your training information is something you don't want
    to do by accident, there isn't an option for this.  However, you
