@@ -417,7 +417,7 @@ class Bayes:
     # because it acted against the various ham biases, giving frequently
     # repeated spam words (like "Viagra") a quick ramp-up in spamprob; else,
     # adding only once in training, a word like that was simply ignored until
-    # it appeared in 5 distinct training hams.  Without the ham-favoring
+    # it appeared in 5 distinct training spams.  Without the ham-favoring
     # biases, though, and never ignoring words, counting n times introduces
     # a subtle and unhelpful bias.
     # There does appear to be some useful info in how many times a word
