@@ -94,7 +94,7 @@ def BuildFolderTreeMAPI(session):
             subtree_eid = data[0][1]
             folder = msgstore.OpenEntry(subtree_eid, None, mapi.MAPI_DEFERRED_ERRORS)
         except pythoncom.com_error, details:
-            # Some weired error opening a folder tree
+            # Some weird error opening a folder tree
             # Just print a warning and ignore the tree.
             print "Failed to open a folder for the FolderSelector dialog"
             print "Exception details:", details
