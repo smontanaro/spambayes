@@ -16,12 +16,47 @@ except NameError:   # enumerate new in 2.3
 
 # "dialog specific" processors:
 class StatsProcessor(ControlProcessor):
+    def __init__(self, window, control_ids):
+        self.button_id = control_ids[1]
+        self.reset_date_id = control_ids[2]
+        ControlProcessor.__init__(self, window, control_ids)
+        self.stats = self.window.manager.stats
+
     def Init(self):
-        text = "\n".join(self.window.manager.stats.GetStats())
+        text = "\n".join(self.stats.GetStats())
         win32gui.SendMessage(self.GetControl(), win32con.WM_SETTEXT, 0, text)
 
-    def GetPopupHelpText(self, cid):
-        return "Displays statistics on mail processed by SpamBayes"
+        date_label = self.GetControl(self.reset_date_id)
+        if self.stats.from_date:
+            from time import localtime, strftime
+            reset_date = localtime(self.stats.from_date)
+            date_string = strftime("%a, %d %b %Y %I:%M:%S %p", reset_date)
+        else:
+            date_string = "None"
+        win32gui.SendMessage(date_label, win32con.WM_SETTEXT, 0, date_string)
+
+    def OnCommand(self, wparam, lparam):
+        id = win32api.LOWORD(wparam)
+        if id == self.button_id:
+            self.ResetStatistics()
+
+    def GetPopupHelpText(self, idFrom):
+        if idFrom == self.control_id:
+            return "Displays statistics on mail processed by SpamBayes"
+        elif idFrom == self.button_id:
+            return "Resets all SpamBayes statistics to zero"
+        elif idFrom == self.reset_date_id:
+            return "The date and time when the SpamBayes statistics were last reset"
+
+    def ResetStatistics(self):
+        question = "This will reset all your saved statistics to zero.\r\n\r\n" \
+                   "Are you sure you wish to reset the statistics?"
+        flags = win32con.MB_ICONQUESTION | win32con.MB_YESNO | win32con.MB_DEFBUTTON2
+        if win32gui.MessageBox(self.window.hwnd,
+                               question, "SpamBayes", flags) == win32con.IDYES:
+            self.stats.Reset()
+            self.stats.ResetTotal(True)
+            self.Init()  # update the statistics display
 
 class VersionStringProcessor(ControlProcessor):
     def Init(self):
@@ -475,7 +510,8 @@ dialog_map = {
 
     ),
     "IDD_STATISTICS" : (
-        (StatsProcessor,        "IDC_STATISTICS"),
+        (StatsProcessor,        "IDC_STATISTICS IDC_BUT_RESET_STATS " \
+                                "IDC_LAST_RESET_DATE"),
         ),
     "IDD_ADVANCED" : (
         (BoolButtonProcessor,   "IDC_BUT_TIMER_ENABLED", "Filter.timer_enabled",
