@@ -428,20 +428,26 @@ defaults = {
      BOOLEAN, RESTORE),
 
     ("x-use_bigrams", "(EXPERIMENTAL) Use mixed uni/bi-grams scheme", False,
-     """Enabling this option means that SpamBayes will generate both
-     unigrams (words) and bigrams (pairs of words). However, Graham's
-     scheme is also used, where, for each clue triplet of two unigrams and
-     the bigram they make, the clue that is strongest (i.e. has a
-     probability furtherest from 0.5) is used, and the other two are not.
+     """Generate both unigrams (words) and bigrams (pairs of words).
+     However, extending an idea originally from Gary Robinson, the message
+     is 'tiled' into  non-overlapping unigrams and bigrams, approximating
+     the strongest outcome over all possible tilings.
 
      Note that to really test this option you need to retrain with it on,
      so that your database includes the bigrams - if you subsequently turn
-     it off, these tokens will have no effect.
+     it off, these tokens will have no effect.  This option will at least
+     double your database size given the same training data, and will
+     probably at least triple it.
 
-     Note also that you should probably also increase the max_discriminators
-     (Maximum number of extreme words) option if you enable this option;
-     this may need to be doubled or quadrupled to see the benefit from the
-     bigrams.
+     You may also wish to increase the max_discriminators (maximum number
+     of extreme words) option if you enable this option, perhaps doubling or
+     quadrupling it.  It's not yet clear.  Bigrams create many more hapaxes,
+     and that seems to increase the brittleness of minimalist training
+     regimes; increasing max_discriminators may help to soften that effect.
+     OTOH, max_discriminators defaults to 150 in part because that makes it
+     easy to prove that the chi-squared math is immune from numeric
+     problems.  Increase it too much, and insane results will eventually
+     result (including fatal floating-point exceptions on some boxes).
 
      This option is experimental, and may be removed in a future release.
      We would appreciate feedback about it if you use it - email

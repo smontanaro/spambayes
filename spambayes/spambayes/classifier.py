@@ -358,39 +358,75 @@ class Classifier:
         this point.  Introduced to fix bug #797890."""
         pass
 
+    # Return list of (prob, word, record) triples, sorted by increasing
+    # prob.  "word" is a token from wordstream; "prob" is its spamprob (a
+    # float in 0.0 through 1.0); and "record" is word's associated
+    # WordInfo record if word is in the training database, or None if it's
+    # not.  No more than max_discriminators items are returned, and have
+    # the strongest (farthest from 0.5) spamprobs of all tokens in wordstream.
+    # Tokens with spamprobs less than minimum_prob_strength away from 0.5
+    # aren't returned.
     def _getclues(self, wordstream):
         mindist = options["Classifier", "minimum_prob_strength"]
 
         if options["Classifier", "x-use_bigrams"]:
+            # This scheme mixes single tokens with pairs of adjacent tokens.
+            # wordstream is "tiled" into non-overlapping unigrams and
+            # bigrams.  Non-overlap is important to prevent a single original
+            # token from contributing to more than one spamprob returned
+            # (systematic correlation probably isn't a good thing).
+
+            # First fill list raw with
+            #     (distance, prob, word, record), indices
+            # pairs, one for each unigram and bigram in wordstream.
+            # indices is a tuple containing the indices (0-based relative to
+            # the start of wordstream) of the tokens that went into word.
+            # indices is a 1-tuple for an original token, and a 2-tuple for
+            # a synthesized bigram token.  The indices are needed to detect
+            # overlap later.
             raw = []
             push = raw.append
             pair = None
-            seen = {pair: 1}
+            # Keep track of which tokens we've already seen.
+            # Don't use a Set here!  This is an innermost loop, so speed is
+            # important here (direct dict fiddling is much quicker than
+            # invoking Python-level Set methods; in Python 2.4 that will
+            # change).
+            seen = {pair: 1} # so the bigram token is skipped on 1st loop trip
             for i, token in enumerate(wordstream):
-                if i:
+                if i:   # not the 1st loop trip, so there is a preceding token
+                    # This string interpolation must match the one in
+                    # _enhance_wordstream().
                     pair = "bi:%s %s" % (last_token, token)
                 last_token = token
                 for clue, indices in (token, (i,)), (pair, (i-1, i)):
-                    if clue not in seen:
+                    if clue not in seen:    # as always, skip duplicates
                         seen[clue] = 1
                         tup = self._worddistanceget(clue)
                         if tup[0] >= mindist:
                             push((tup, indices))
 
+            # Sort raw, strongest to weakest spamprob.
             raw.sort()
             raw.reverse()
+            # Fill clues with the strongest non-overlapping clues.
             clues = []
             push = clues.append
+            # Keep track of which indices have already contributed to a
+            # clue in clues.
             seen = {}
             for tup, indices in raw:
                 overlap = [i for i in indices if i in seen]
-                if not overlap:
+                if not overlap: # no overlap with anything already in clues
                     for i in indices:
                         seen[i] = 1
                     push(tup)
+            # Leave sorted from smallest to largest spamprob.
             clues.reverse()
 
         else:
+            # The all-unigram scheme just scores the tokens as-is.  A Set()
+            # is used to weed out duplicates at high speed.
             clues = []
             push = clues.append
             for word in Set(wordstream):
@@ -442,6 +478,8 @@ class Classifier:
         for token in wordstream:
             yield token
             if last:
+                # This string interpolation must match the one in
+                # _getclues().
                 yield "bi:%s %s" % (last, token)
             last = token
 
