@@ -35,6 +35,14 @@ Outlook Plugin
  o In Outlook plugin, no longer default to the "Inbox".
  o In Outlook plugin, when filtering, saving the spam score is no longer
    fatal.
+ o 2 new [General] options - delete_as_spam_message_state and
+   recover_from_spam_message_state.
+ o Prevent "Deleted items", Outbox and Sent Items from appearing 
+   in the folder list.
+ o Allow either spam or unsure messages to be marked as read as they are filtered.
+ o Significant improvements to the toolbar.
+ o Standardised name from "Anti-Spam" to "Spambayes"
+ o Significant changes to configuration (moving from a pickle to .ini files).
 
 POP3 Proxy
 ----------
@@ -104,6 +112,7 @@ General
  o DB classifier no longer caches hapaxes.
  o In muttrc, fix incorrect Spambayes header name.
  o Integrated code for the VM mailer into spambayes.el
+ o In hammiefilter,  make untrain mode work.
 
 
 Transition
@@ -135,7 +144,7 @@ Reported Bugs Fixed
 The following bugs tracked via the Sourceforge system were fixed:
 677804, 642740, 685746, 693423, 696995, 696476, 697120, 698852, 700165,
 704921, 707491, 725307, 725616, 725307, 725466, 726255, 728886, 715248,
-733247, 737956, 737955, 706170, 737986
+733247, 737956, 737955, 706170, 737986, 743515, 749277
 
 A url containing the details of these bugs can be made by appending the
 bug number to this url:

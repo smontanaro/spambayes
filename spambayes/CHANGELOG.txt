@@ -249,3 +249,22 @@ Neale Pickett   06/06/03    Integrated code for the VM mailer into spambayes.el
 Tony Meyer  08/06/03    Add pop3proxy, hammie, smtpproxy & imapfilter version information.
 Skip Montanaro  10/06/03    Correction to VM mailer addition to spambayes.el
 Tony Meyer  12/06/03    Update pop3proxy and imapfilter to print out version information.
+Mark Hammond	16/06/03	Split OptionsClass into a separate file.
+Mark Hammond	16/06/03	Allow lists to be used for multi-valued options.
+Mark Hammond	16/06/03	Allow the first entry in the "defaults" table to be a sub-class of Option.
+Mark Hammond	16/06/03	In Outlook plugin, when training, instead of suggesting the inbox, suggest folders we watch.
+Mark Hammond	16/06/03	In Outlook plugin, change "Anti-Spam" on the dropdown to "SpamBayes"
+Mark Hammond	16/06/03	In Outlook plugin, huge changes to configuration.  No longer use a pickle, but instead a series of .INI files.
+Mark Hammond	17/06/03	2 new [General] options for Outlook plugin - delete_as_spam_message_state and recover_from_spam_message_state.
+Mark Hammond	17/06/03	In Outlook plugin, prevent "Deleted items", Outbox and Sent Items from appearing in the folder list.  Fixes: [ 749277 ] Should prevent "Deleted Items" being target folder.
+Mark Hammond	17/06/03	In Outlook plugin, catch the assertion error in the classifier, and warn the user their database is corrupt.
+Mark Hammond	17/06/03	In Outlook plugin, introduce ReportErrorOnce, useful for errors on event handlers that you don't want to bombard the user with.
+Mark Hammond	17/06/03	In Outlook plugin, an error on a single sub-folder need not be fatal.  Hopefully fixes [ 743515 ] Unable to expand folders in folder selection dialog.
+Mark Hammond	17/06/03	In Outlook plugin, DeleteAsSpam didn't detect "no folder" correctly.
+Anthony Baxter	17/06/03	In IMAPFilter interface, fix parm_map code.
+Mark Hammond	18/06/03	In Outlook plugin, allow either spam or unsure messages to be marked as read as they are filtered.
+Mark Hammond	18/06/03	In Outlook plugin, more work on the toolbar.
+Mark Hammond	19/06/03	In Outlook plugin, change "Anti-Spam Manager" -> "SpamBayes Manager"
+Mark Hammond	20/06/03	In Outlook plugin, add a 'verbose' option to the options.
+Neale Pickett	21/06/03	In hammiefilter,  make untrain mode work.
+Tony Meyer	22/06/03	Fix RFC822.PEEK error in imapfilter.
