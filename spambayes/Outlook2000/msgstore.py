@@ -16,6 +16,11 @@ from win32com.mapi.mapitags import *
 import pythoncom
 import winerror
 
+try:
+    PR_USERFIELDS # only in new win32all
+except NameError:
+    PR_USERFIELDS = 0x36E30102 # PROP_TAG(PT_BINARY, 0x36e3)
+
 # Additional MAPI constants we dont have in Python
 MESSAGE_MOVE = 0x1 # from MAPIdefs.h
 MSGFLAG_READ = 0x1 # from MAPIdefs.h
