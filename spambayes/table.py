@@ -40,47 +40,57 @@ def suck(f):
     unp = 0.0
     htest = 0
     stest = 0
-    
+
     get = f.readline
     while 1:
         line = get()
         if line.startswith('-> <stat> tested'):
+            # -> <stat> tested 1910 hams & 948 spams against 2741 hams & 948 spams
+            #  0      1      2    3    4 5   6
             print line,
-            htest = int(line.split()[3])
-            stest = int(line.split()[6])
-        if line.find(' items; mean ') != -1:
-            # -> <stat> Ham distribution for this pair: 1000 items; mean 0.05; sample sdev 0.68
-            # and later "sample " went away
+
+        elif line.find(' items; mean ') > 0 and line.find('for all runs') > 0:
+            # -> <stat> Ham scores for all runs: 2741 items; mean 0.86; sdev 6.28
+            #                                             0          1          2
             vals = line.split(';')
             mean = float(vals[1].split()[-1])
             sdev = float(vals[2].split()[-1])
             val = (mean, sdev)
+            ntested = int(vals[0].split()[-2])
             typ = vals[0].split()[2]
             if line.find('for all runs') != -1:
                 if typ == 'Ham':
                     hamdevall = val
+                    htest = ntested
                 else:
                     spamdevall = val
-            continue
-        if line.startswith('-> best cost for all runs: $'):
+                    stest = ntested
+
+        elif line.startswith('-> best cost for all runs: $'):
+            # -> best cost for all runs: $28.20
             bestcost = float(line.split('$')[-1])
-        if line.startswith('-> <stat> all runs false positives: '):
+
+        elif line.startswith('-> <stat> all runs false positives: '):
             fp = int(line.split()[-1])
-        if line.startswith('-> <stat> all runs false negatives: '):
+
+        elif line.startswith('-> <stat> all runs false negatives: '):
             fn = int(line.split()[-1])
-        if line.startswith('-> <stat> all runs unsure: '):
+
+        elif line.startswith('-> <stat> all runs unsure: '):
             un = int(line.split()[-1])
-        if line.startswith('-> <stat> all runs false positive %: '):
+
+        elif line.startswith('-> <stat> all runs false positive %: '):
             fpp = float(line.split()[-1])
-        if line.startswith('-> <stat> all runs false negative %: '):
+
+        elif line.startswith('-> <stat> all runs false negative %: '):
             fnp = float(line.split()[-1])
-        if line.startswith('-> <stat> all runs unsure %: '):
+
+        elif line.startswith('-> <stat> all runs unsure %: '):
             unp = float(line.split()[-1])
-        if line.startswith('-> <stat> all runs cost: '):
+
+        elif line.startswith('-> <stat> all runs cost: '):
             cost = float(line.split('$')[-1])
             break
-        if line.startswith('-> '):
-            continue
 
     return (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
             hamdevall, spamdevall)
@@ -113,15 +123,15 @@ for filename in sys.argv[1:]:
     filename = windowsfy(filename)
     (htest, stest, fp, fn, un, fpp, fnp, unp, cost, bestcost,
      hamdevall, spamdevall) = suck(file(filename))
-    ratio += "%8s" % ("%d:%d" % (htest, stest))
-    fptot += "%8d" % fp
+    ratio += "%8s"   % ("%d:%d" % (htest, stest))
+    fptot += "%8d"   % fp
     fpper += "%8.2f" % fpp
-    fntot += "%8d" % fn
+    fntot += "%8d"   % fn
     fnper += "%8.2f" % fnp
-    untot += "%8d" % un
+    untot += "%8d"   % un
     unper += "%8.2f" % unp
-    rcost += "%8s" % ("$%.2f" % cost)
-    bcost += "%8s" % ("$%.2f" % bestcost)
+    rcost += "%8s"   % ("$%.2f" % cost)
+    bcost += "%8s"   % ("$%.2f" % bestcost)
     hmean += "%8.2f" % hamdevall[0]
     hsdev += "%8.2f" % hamdevall[1]
     smean += "%8.2f" % spamdevall[0]
