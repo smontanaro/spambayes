@@ -6,6 +6,7 @@ import commctrl
 import win32ui
 import win32api
 import pythoncom
+from win32com.client import constants
 
 from DialogGlobals import *
 
@@ -364,7 +365,7 @@ class FilterNowDialog(AsyncDialogBase):
                 self.mgr.WorkerThreadEnding()
 
 if __name__=='__main__':
-    from win32com.client import Dispatch, constants
+    from win32com.client import Dispatch
     outlook = Dispatch("Outlook.Application")
 
     import sys; sys.path.append('..')
