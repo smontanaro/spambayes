@@ -148,17 +148,17 @@ def IsReadOnlyCOMException(exc_val):
 def ReportMAPIError(manager, what, exc_val):
     hr, exc_msg, exc, arg_err = exc_val
     if hr == mapi.MAPI_E_TABLE_TOO_BIG:
-        err_msg = what + " failed as one of your\r\n" \
+        err_msg = what + _(" failed as one of your\r\n" \
                     "Outlook folders is full.  Futher operations are\r\n" \
                     "likely to fail until you clean up this folder.\r\n\r\n" \
                     "This message will not be reported again until SpamBayes\r\n"\
-                    "is restarted."
+                    "is restarted.")
     else:
-        err_msg = what + " failed due to an unexpected Outlook error.\r\n" \
-                  + GetCOMExceptionString(exc_val) + "\r\n\r\n" \
-                  "It is recommended you restart Outlook at the earliest opportunity\r\n\r\n" \
-                  "This message will not be reported again until SpamBayes\r\n"\
-                  "is restarted."
+        err_msg = what + _(" failed due to an unexpected Outlook error.\r\n") \
+                  + GetCOMExceptionString(exc_val) + "\r\n\r\n" + \
+                  _("It is recommended you restart Outlook at the earliest opportunity\r\n\r\n" \
+                    "This message will not be reported again until SpamBayes\r\n"\
+                    "is restarted.")
     manager.ReportErrorOnce(err_msg)
 
 # Our objects.
@@ -975,17 +975,24 @@ class MAPIMsgStoreMsg:
     def _GetFakeHeaders(self):
         # This is designed to fake up some SMTP headers for messages
         # on an exchange server that do not have such headers of their own
-        prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, PR_DISPLAY_CC_A
+        prop_ids = PR_SUBJECT_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TO_A, \
+                   PR_DISPLAY_CC_A, PR_MESSAGE_DELIVERY_TIME
         hr, data = self.mapi_object.GetProps(prop_ids,0)
         subject = self._GetPotentiallyLargeStringProp(prop_ids[0], data[0])
         sender = self._GetPotentiallyLargeStringProp(prop_ids[1], data[1])
         to = self._GetPotentiallyLargeStringProp(prop_ids[2], data[2])
         cc = self._GetPotentiallyLargeStringProp(prop_ids[3], data[3])
+        delivery_time = data[4][1]
         headers = ["X-Exchange-Message: true"]
         if subject: headers.append("Subject: "+subject)
         if sender: headers.append("From: "+sender)
         if to: headers.append("To: "+to)
         if cc: headers.append("CC: "+cc)
+        if delivery_time:
+            from time import timezone
+            from email.Utils import formatdate
+            headers.append("X-Exchange-Delivery-Time: "+\
+                           formatdate(int(delivery_time)-timezone, True))
         return "\n".join(headers) + "\n"
 
     def _EnsureObject(self):
@@ -1210,12 +1217,14 @@ class MAPIMsgStoreMsg:
         try:
             self.MoveTo(folder)
         except MsgStoreException, details:
-            ReportMAPIError(manager, "Moving a message", details.mapi_exception)
+            ReportMAPIError(manager, _("Moving a message"),
+                            details.mapi_exception)
     def CopyToReportingError(self, manager, folder):
         try:
             self.MoveTo(folder)
         except MsgStoreException, details:
-            ReportMAPIError(manager, "Copying a message", details.mapi_exception)
+            ReportMAPIError(manager, _("Copying a message"),
+                            details.mapi_exception)
 
     def GetFolder(self):
         # return a folder object with the parent, or None
