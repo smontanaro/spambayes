@@ -94,7 +94,7 @@ except ImportError:
 
 from spambayes import Stats
 from spambayes import message
-from spambayes.Options import options, get_pathname_option
+from spambayes.Options import options, get_pathname_option, optionsPathname
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface
@@ -1121,11 +1121,38 @@ def run(force_UI=False):
         for server, port, username, password in servers_data:
             imaps.append((IMAPSession(server, port, imapDebug, doExpunge),
                           username, password))
+
+        # In order to make working with multiple servers easier, we
+        # allow the user to have separate configuration files for each
+        # server.  These may specify different folders to watch, different
+        # spam/unsure folders, or any other options (e.g. thresholds).
+        # For each server we use the default (global) options, and load
+        # the specific options on top.  To facilitate this, we use a
+        # restore point for the options with just the default (global)
+        # options.
+        # XXX What about when we are running with -l and change options
+        # XXX via the web interface?  We need to handle that, really.
+        options.set_restore_point()
         while True:
             for imap, username, password in imaps:
                 if options["globals", "verbose"]:
                     print "Account: %s:%s" % (imap.server, imap.port)
                 if imap.connected:
+                    # As above, we load a separate configuration file
+                    # for each server, if it exists.  We look for a
+                    # file in the optionsPathname directory, with the
+                    # name server.name.ini or .spambayes_server_name_rc
+                    # XXX While 1.1 is in alpha these names can be
+                    # XXX changed if desired.  Please let Tony know!
+                    basedir = os.path.dirname(optionsPathname)
+                    fn1 = os.path.join(basedir, imap.server + ".ini")
+                    fn2 = os.path.join(basedir,
+                                       imap.server.replace(".", "_") + \
+                                       "_rc")
+                    for fn in (fn1, fn2):
+                        if os.path.exists(fn):
+                            options.merge_file(fn)
+                            
                     imap.login(username, password)
                     imap_filter.imap_server = imap
 
@@ -1139,11 +1166,13 @@ def run(force_UI=False):
                         imap_filter.Filter()
 
                     imap.logout()
+                    options.revert_to_restore_point()
                 else:
                     # Failed to connect.  This may be a temporary problem,
                     # so just continue on and try again.  If we are only
                     # running once we will end, otherwise we'll try again
                     # in sleepTime seconds.
+                    # XXX Maybe we should log this error message?
                     pass
 
             if sleepTime:
