@@ -379,6 +379,17 @@ proxy or IMAP_ filter which are part of the SpamBayes package.
 .. _IMAP: applications.html#imap
 
 
+Can I use SpamBayes with AOL Mail?
+----------------------------------
+
+You can't use SpamBayes directly with the normal AOL Mail interface, but
+AOL's Mail system is reputed to allow IMAP access.  If that proves to be
+correct you should be able to use the SpamBayes IMAP filter
+(sb_imapfilter.py) to scrub your AOL mailbox.  Should you try this, reports
+of your successes or failures on the spambayes@python.org mailing list would
+be appreciated.
+
+
 How do I configure Eudora for use with SpamBayes?
 -------------------------------------------------
 
