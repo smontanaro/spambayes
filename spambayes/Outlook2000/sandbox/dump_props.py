@@ -81,14 +81,20 @@ def GetAllProperties(obj, make_tag_names = True):
 		ret.append((name, val))
 	return ret
 
-def DumpProps(folder_eid, subject, shorten):
+def DumpItemProps(item, shorten):
+    for prop_name, prop_val in GetAllProperties(item):
+        prop_repr = repr(prop_val)
+        if shorten:
+            prop_repr = prop_repr[:50]
+        print "%-20s: %s" % (prop_name, prop_repr)
+    
+def DumpProps(folder_eid, subject, include_attach, shorten):
     mapi_msgstore = _FindDefaultMessageStore()
     mapi_folder = mapi_msgstore.OpenEntry(folder_eid,
                                           None,
                                           mapi.MAPI_DEFERRED_ERRORS)
     hr, data = mapi_folder.GetProps( (PR_DISPLAY_NAME_A,), 0)
     name = data[0][1]
-    print name
     eids = _FindItemsWithValue(mapi_folder, PR_SUBJECT_A, subject)
     print "Folder '%s' has %d items matching '%s'" % (name, len(eids), subject)
     for eid in eids:
@@ -96,17 +102,23 @@ def DumpProps(folder_eid, subject, shorten):
         item = mapi_msgstore.OpenEntry(eid,
                                        None,
                                        mapi.MAPI_DEFERRED_ERRORS)
-        for prop_name, prop_val in GetAllProperties(item):
-            prop_repr = repr(prop_val)
-            if shorten:
-                prop_repr = prop_repr[:50]
-            print "%-20s: %s" % (prop_name, prop_repr)
+        DumpItemProps(item, shorten)
+        if include_attach:
+            print
+            table = item.GetAttachmentTable(0)
+            rows = mapi.HrQueryAllRows(table, (PR_ATTACH_NUM,), None, None, 0)
+            for row in rows:
+                attach_num = row[0][1]
+                print "Dumping attachment (PR_ATTACH_NUM=%d)" % (attach_num,)
+                attach = item.OpenAttach(attach_num, None, mapi.MAPI_DEFERRED_ERRORS)
+                DumpItemProps(attach, shorten)
 
 def usage():
     msg = """\
 Usage: %s [-f foldername] subject of the message
 -f - Search for the message in the specified folder (default = Inbox)
 -s - Shorten long property values.
+-a - Include attachments
 
 Dumps all properties for all messages that match the subject.  Subject
 matching is substring and ignore-case.
@@ -127,7 +139,7 @@ subfolder in your default store.
 def main():
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "f:s")
+        opts, args = getopt.getopt(sys.argv[1:], "af:s")
     except getopt.error, e:
         print e
         print
@@ -140,11 +152,14 @@ def main():
         sys.exit(1)
 
     shorten = False
+    include_attach = False
     for opt, opt_val in opts:
         if opt == "-f":
             folder_name = opt_val
         elif opt == "-s":
             shorten = True
+        elif opt == "-a":
+            include_attach = True
         else:
             print "Invalid arg"
             return
@@ -156,7 +171,7 @@ def main():
     if eid is None:
         print "*** Cant find folder", folder_name
         return
-    DumpProps(eid, subject, shorten)
+    DumpProps(eid, subject, include_attach, shorten)
 
 if __name__=='__main__':
     main()
