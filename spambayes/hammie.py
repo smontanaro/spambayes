@@ -186,7 +186,11 @@ def train(bayes, msgs, is_spam):
         except email.Errors.MessageParseError:
             return ''
 
-    if os.path.isdir(msgs):
+    if msgs.startswith("+"):
+        import mhlib
+        mh = mhlib.MH()
+        mbox = mailbox.MHMailbox(os.path.join(mh.getpath(), msgs[1:]))
+    elif os.path.isdir(msgs):
         # XXX This is bogus: use an MHMailbox if the pathname contains /Mail/
         # XXX Should really use '+foo' MH folder styles.  Later.
         if msgs.find("/Mail/") >= 0:
