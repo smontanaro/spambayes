@@ -320,36 +320,72 @@ def run_tests(manager):
     TestHamFilter(driver)
     driver.CleanAllTestMessages()
 
-def test(manager):
-    # Run the tests - called from our plugin.
+def run_filter_tests(manager):
+    # setup config to save info with the message, and test
+    print "*" * 10, "Running tests with save_spam_info=True, timer off"
+    manager.config.experimental.timer_start_delay = 0
+    manager.config.experimental.timer_interval = 0
+    manager.config.filter.save_spam_info = True
+    manager.addin.FiltersChanged() # to ensure correct filtler in place
+    run_tests(manager)
+    # do it again with the same config, just to prove we can.
+    print "*" * 10, "Running them again with save_spam_info=True"
+    run_tests(manager)
+    # enable the timer.
+    manager.config.experimental.timer_start_delay = 1000
+    manager.config.experimental.timer_interval = 500
+    manager.addin.FiltersChanged() # to switch to timer based filters.
+    print "*" * 10, "Running them again with save_spam_info=True, and timer enabled"
+    run_tests(manager)
+    # and with save_spam_info False.
+    print "*" * 10, "Running tests with save_spam_info=False"
+    manager.config.filter.save_spam_info = False
+    run_tests(manager)
+    print "*" * 10, "Filtering tests completed successfully."
+
+def run_nonfilter_tests(manager):
+    # And now some other 'sanity' checks.
+    # Check messages we are unable to score.
+    # Must enable the filtering code for this test
     import msgstore
+    msgstore.test_suite_running = False
     try:
+        num_found = num_looked = 0
+        for folder_ids, include_sub in [
+            (manager.config.filter.watch_folder_ids, manager.config.filter.watch_include_sub),
+            ([manager.config.filter.spam_folder_id], False),
+            ]:
+            for folder in manager.message_store.GetFolderGenerator(folder_ids, include_sub):
+                for message in folder.GetMessageGenerator(False):
+                    # If not ipm.note, then no point reporting - but any
+                    # ipm.note messages we don't want to filter should be
+                    # reported.
+                    num_looked += 1
+                    if not message.IsFilterCandidate() and \
+                        message.msgclass.lower().startswith("ipm.note"):
+                        if num_found == 0:
+                            print "*" * 80
+                            print "WARNING: We found the following messages in your folders that would not be filtered by the addin"
+                            print "If any of these messages should be filtered, we have a bug!"
+                        num_found += 1
+                        print " %s/%s" % (folder.name, message.subject)
+        print "Checked %d items, %d non-filterable items found" % (num_looked, num_found)
+    finally:
         msgstore.test_suite_running = True
-        # setup config to save info with the message, and test
-        print "*" * 10, "Running tests with save_spam_info=True, timer off"
-        manager.config.experimental.timer_start_delay = 0
-        manager.config.experimental.timer_interval = 0
-        manager.config.filter.save_spam_info = True
-        manager.addin.FiltersChanged() # to ensure correct filtler in place
-        run_tests(manager)
-        # do it again with the same config, just to prove we can.
-        print "*" * 10, "Running them again with save_spam_info=True"
-        run_tests(manager)
-        # enable the timer.
-        manager.config.experimental.timer_start_delay = 1000
-        manager.config.experimental.timer_interval = 500
-        manager.addin.FiltersChanged() # to switch to timer based filters.
-        print "*" * 10, "Running them again with save_spam_info=True, and timer enabled"
-        run_tests(manager)
-        # and with save_spam_info False.
-        print "*" * 10, "Running tests with save_spam_info=False"
-        manager.config.filter.save_spam_info = False
-        run_tests(manager)
+
+def test(manager):
+    import msgstore, win32ui
+    win32ui.DoWaitCursor(1)
+    try: # restore the plugin config at exit.
+        msgstore.test_suite_running = True
+        run_filter_tests(manager)
+        run_nonfilter_tests(manager)
     finally:
         # Always restore configuration to how we started.
         msgstore.test_suite_running = False
         manager.LoadConfig()
         manager.addin.FiltersChanged() # restore original filters.
+        win32ui.DoWaitCursor(0)
 
 if __name__=='__main__':
     print "NOTE: This will NOT work from the command line"
