@@ -43,13 +43,14 @@ showed that very good classifiers can be gotten by looking only at
 message bodies, or by looking only at message headers.  Looking at both
 does best, of course.</p>
 
-<p>Tokenizing of headers is an area of much experimentation. At the
-moment, the only source of historical information is in the source
-code, as comments. At the moment, a bunch of email headers are broken
-apart, and tagged with the name of the header and the token. Recipient
-(to/cc) headers are broken apart in a variety of ways - for instance,
-we count the number of recipients, and generate a token for the nearest
-power of two to the number. Optionally, "Recieved" lines are parsed for
+<p>Tokenizing of headers is an area of much experimentation. Unfortunately
+the only current source of historical information about previous experiments 
+is in the source code, as comments, or in the mailing list archives. 
+At the moment, a bunch of email headers are broken apart, and tagged 
+with the name of the header and the token. Recipient (to/cc) headers 
+are broken apart in a variety of ways - for instance, we count the 
+number of recipients, and generate a token for the nearest power of 
+two to the number. Optionally, "Recieved" lines are parsed for
 various tokens.</p>
 
 <p>It's likely that remaining "easy wins" in the tokenizing are buried
