@@ -858,44 +858,48 @@ class Tokenizer:
             yield tok
 
     def tokenize_headers(self, msg):
-        # Special tagging of header lines.
+        # Special tagging of header lines and MIME metadata.
+
+        # Content-{Type, Disposition} and their params, and charsets.
+        # This is done for all MIME sections.
+        for x in msg.walk():
+            for w in crack_content_xyz(x):
+                yield w
+
+        # The rest is solely tokenization of header lines.
+        # XXX The headers in my (Tim's) spam and ham corpora are so different
+        # XXX (they came from different sources) that including several kinds
+        # XXX of header analysis renders the classifier's job trivial.  So
+        # XXX lots of this is crippled now, controlled by an ever-growing
+        # XXX collection of funky options.
 
         # Basic header tokenization
-        # Tokenize the contents of each header field just like the
-        # text of the message body, using the name of the header as a
-        # tag.  Tokens look like "header:word".  The basic approach is
-        # simple and effective, but also very sensitive to biases in
-        # the ham and spam collections.  For example, if the ham and
-        # spam were collected at different times, several headers with
-        # date/time information will become the best discriminators.
+        # Tokenize the contents of each header field in the way Subject lines
+        # are tokenized later.
+        # XXX Different kinds of tokenization have gotten better results on
+        # XXX different header lines.  No experiments have been run on
+        # XXX whether the best choice is being made for each of the header
+        # XXX lines tokenized by this section.
+        # The name of the header is used as a tag.  Tokens look like
+        # "header:word".  The basic approach is simple and effective, but
+        # also very sensitive to biases in the ham and spam collections.
+        # For example, if the ham and spam were collected at different
+        # times, several headers with date/time information will become
+        # the best discriminators.
         # (Not just Date, but Received and X-From_.)
         if options.basic_header_tokenize:
             for k, v in msg.items():
                 k = k.lower()
-                match = False
                 for rx in self.basic_skip:
-                    if rx.match(k) is not None:
-                        match = True
-                        continue
-                if match:
-                    continue
-                for w in subject_word_re.findall(v):
-                    for t in tokenize_word(w):
-                        yield "%s:%s" % (k, t)
+                    if rx.match(k):
+                        break   # do nothing -- we're supposed to skip this
+                else:
+                    # Never found a match -- don't skip this.
+                    for w in subject_word_re.findall(v):
+                        for t in tokenize_word(w):
+                            yield "%s:%s" % (k, t)
             if options.basic_header_tokenize_only:
                 return
-
-        # XXX TODO Neil Schemenauer has gotten a good start on this
-        # XXX (pvt email).  The headers in my spam and ham corpora are
-        # XXX so different (they came from different sources) that if
-        # XXX I include them the classifier's job is trivial.  Only
-        # XXX some "safe" header lines are included here, where "safe"
-        # XXX is specific to my sorry <wink> corpora.
-
-        # Content-{Type, Disposition} and their params, and charsets.
-        for x in msg.walk():
-            for w in crack_content_xyz(x):
-                yield w
 
         # Subject:
         # Don't ignore case in Subject lines; e.g., 'free' versus 'FREE' is
