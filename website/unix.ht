@@ -30,7 +30,7 @@ environment.</p>
 <li>Adding the following recipes to the top of your .procmailrc will get the spam and unsure stuff out of the way. Allowing everything else to be filtered as per your normal procmail recipes.
 <pre>
       :0fw:hamlock
-      | /usr/local/bin/hammiefilter.py
+      | /usr/local/bin/hammiefilter.py -d $HOME/.hammie.db
 
       :0
       * ^X-Spambayes-Classification: spam 
