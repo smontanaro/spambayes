@@ -509,8 +509,9 @@ class FolderSelector(FolderSelector_Parent):
                         # empty-display-name parent, which should not be
                         # the case.
                         grandparent = parent.GetParent()
-                    except self.manager.message_storeMsgStoreException, details:
-                        if "0x80070005" in details:
+                    except self.manager.message_store.MsgStoreException, details:
+                        hr, msg, exc, argErr = details.mapi_exception
+                        if hr == winerror.E_ACCESSDENIED:
                             valid = parent is not None
                         else:
                             raise # but only down a couple of lines...
