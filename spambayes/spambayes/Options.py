@@ -665,7 +665,7 @@ defaults = {
      each monitored server.  Again, you need to configure your email
      client to use this port.  If there are multiple servers, you must
      specify the same number of ports as servers, separated by commas.""",
-     PORT, DO_NOT_RESTORE),
+     SERVER, DO_NOT_RESTORE),
 
     ("cache_use_gzip", "Use gzip", False,
      """""",
