@@ -26,7 +26,7 @@ def been_trained_as_spam(msg, cdata):
         return False
     return cdata.message_db[msg.searchkey]=='1'
 
-def train_message(msg, is_spam, cdata, rescore=False):
+def train_message(msg, is_spam, cdata):
     # Train an individual message.
     # Returns True if newly added (message will be correctly
     # untrained if it was in the wrong category), False if already
