@@ -1239,6 +1239,8 @@ anyway.
 
 If you need a fix for this before the next release, you can get sb_imapfilter.py
 from CVS (revision 1.26), and use it instead of the one included with 1.0a9 (0.9).
+You should also get message.py (revision 1.46), and replace the message.py
+in your Python Lib/site-packages/spambayes folder with it.
 
 Note that in addition to the message disappearing, you'll find a new message
 (almost certainly unsure) which is blank, apart from the SpamBayes headers.
