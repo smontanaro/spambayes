@@ -7,7 +7,7 @@ see if it answers your question(s).
 What is Spambayes?
 ------------------
 
-The SpamBayes project was formed to develop a Bayesian anti-spam filter,
+The Spambayes project was formed to develop a Bayesian anti-spam filter,
 initially based on the work of Paul Graham.  The major difference between
 this and other, similar projects is the emphasis on testing newer approaches
 to scoring messages.  You can read all about Spambayes on the project's
