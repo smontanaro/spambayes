@@ -665,7 +665,24 @@ class MAPIMsgStoreMsg(MsgStoreMsg):
                 # probably spam.  We don't care about the exact MIME
                 # structure, just the words it contains, so no harm and
                 # much good in trying to suppress this error.
-                msg = email.message_from_string(text + "\n\n")
+                try:
+                    msg = email.message_from_string(text + "\n\n")
+                except email.Errors.BoundaryError:
+                    # But even this doesn't get *everything*.  We can still see:
+                    #  "multipart message with no defined boundary"
+                    # so now it is time to turn into a butcher - hack out
+                    # the Content-Type header, so we see it as plain text.
+                    butcher_pos = text.lower().find("\ncontent-type: ")
+                    if butcher_pos < 0:
+                        # This error just just gunna get caught below anyway
+                        raise RuntimeError(
+                            "email package croaked with boundary error, but "
+                            "there appears to be no 'Content-Type' header")
+                    # Put it back together, skipping the original "\n" but
+                    # leaving the header leaving "\nSpamBayes-Content-Type: "
+                    butchered = text[:butcher_pos] + "\nSpamBayes-" + \
+                                text[butcher_pos+1:] + "\n\n"
+                    msg = email.message_from_string(butchered)
         except:
             print "FAILED to create email.message from: ", `text`
             raise
