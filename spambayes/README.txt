@@ -179,7 +179,11 @@ clgen.py
     schemes.  Its purpose is to generate a binary pickle containing
     internal information about every prediction made.  This will go
     away someday.
-    XXX Still need tools to analyze this data.
+
+clpik.py
+    An example analysis program showing how to access the pickles
+    produced by clgen.py, and how to generate potentially interesting
+    histograms from them.
 
 
 Standard Test Data Setup
