@@ -383,7 +383,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             sourceCorpus = state.spamCorpus
                         if sourceCorpus is not None:
                             try:
-                                targetCorpus.takeMessage(id, sourceCorpus)
+                                # fromCache is a fix for sf #851785.
+                                # See the comments in Corpus.py
+                                targetCorpus.takeMessage(id, sourceCorpus,
+                                                         fromCache=True)
                                 if numTrained == 0:
                                     self.write("<p><b>Training... ")
                                     self.flush()

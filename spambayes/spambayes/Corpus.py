@@ -179,10 +179,36 @@ class Corpus:
 
         self.msgs[key] = None
 
-    def takeMessage(self, key, fromcorpus):
+    def takeMessage(self, key, fromcorpus, fromCache=False):
         '''Move a Message from another corpus to this corpus'''
         msg = fromcorpus[key]
         msg.load() # ensure that the substance has been loaded
+
+        # If the notate_to or notate_subject options are set, then the
+        # message in the cache has this information, and it will get used
+        # in training, which is not ideal.  So if that option is set, strip
+        # that data before training.  The only time I can see this failing
+        # is if the option is changed at some point, so older messages
+        # don't have the notation, but some other program did do the same
+        # notation, which would be lost. This shouldn't be a big deal,
+        # though.
+        if fromCache:
+            for header, header_opt in (("Subject", "notate_subject"),
+                                       ("To", "notate_to")):
+                # For Python 2.2, which doesn't allow "string in string".
+                if isinstance(options["Headers", header_opt],
+                              types.StringsTypes):
+                    notate_opt = (options["Headers", header_opt],)
+                else:
+                    notate_opt = options["Headers", header_opt]
+
+                for opt, tag in (("ham", "header_ham_string"),
+                                 ("spam", "header_spam_string"),
+                                 ("unsure", "header_unsure_string")):
+                    if opt in notate_opt and \
+                       msg[header].startswith("%s," % options["Headers", tag]):
+                        msg.replace_header(header, msg[header][len(tag)+1:])
+
         fromcorpus.removeMessage(msg)
         self.addMessage(msg)
 
