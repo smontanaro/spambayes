@@ -1,22 +1,35 @@
 #! /usr/bin/env python
 
-### Sort and group the messages in the Data hierarchy.
-### Run this prior to mksets.py for setting stuff up for
-### testing of chronological incremental training.
+"""Usage: sort+group.py [options]
 
-"""Usage: sort+group.py
+Where:
+    -h
+        Show usage and exit.
+    -q
+        Suppress verbose output.
+    -a
+        Run through all directories in the directories that the
+        ham_directories and spam_directories are in.  This is
+        similar (identical with default ham/spam directories)
+        to the 1.0.x sort+group.py behaviour.
+    -o section:option:value
+        set [section, option] in the options database to value.
 
-This program has no options!  Muahahahaha!
+Sort and group the messages in the Data hierarchy.
+Run this prior to mksets.py for setting stuff up for testing of
+chronological incremental training.
 """
 
 import sys
 import os
 import glob
 import time
+import getopt
 
 from email.Utils import parsedate_tz, mktime_tz
 
-loud = True
+from spambayes.Options import options
+
 SECONDS_PER_DAY = 24 * 60 * 60
 
 # Scan the file with path fpath for its first Received header, and return
@@ -59,16 +72,53 @@ def get_time(fpath):
         return None
     return mktime_tz(as_tuple)
 
+def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
+    if msg:
+        print >> sys.stderr, msg
+        print >> sys.stderr
+    print >> sys.stderr, __doc__ % globals()
+    sys.exit(code)
+
 def main():
     """Main program; parse options and go."""
 
     from os.path import join, split
+    import getopt
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hqao:')
+    except getopt.error, msg:
+        usage(1, msg)
+
+    loud = True
+    all_data = False
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-q':
+            loud = False
+        elif opt == '-a':
+            all_data = True
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
 
     data = []   # list of (time_received, dirname, basename) triples
     if loud:
         print "Scanning everything"
     now = time.time()
-    for name in glob.glob('Data/*/*/*'):
+    hdir = os.path.dirname(options["TestDriver", "ham_directories"])
+    sdir = os.path.dirname(options["TestDriver", "spam_directories"])
+    if all_data:
+        hdir = os.path.dirname(hdir)
+        sdir = os.path.dirname(sdir)
+        files = glob.glob(os.path.join(hdir, "*", "*", "*"))
+        if sdir != hdir:
+            files.extend(glob.glob(os.path.join(sdir, "*", "*", "*")))
+    else:
+        files = glob.glob(os.path.join(hdir, "*", "*"))
+        files.extend(glob.glob(os.path.join(sdir, "*", "*")))
+    for name in files:
         if loud:
             sys.stdout.write("%-78s\r" % name)
             sys.stdout.flush()
