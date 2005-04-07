@@ -577,7 +577,7 @@ translate a more recent version, be sure to discuss your plans first on
 spambayes-dev so that you can be warned about any planned changes.
 
 Translation is only feasible for 1.1 and above.  No translation effort
-is planned for the 1.0.x release series.
+is planned for the 1.0.x series of releases.
 
 To translate, you will need:
 
@@ -604,9 +604,8 @@ Setup
 
 You will need to create a directory structure as follows:
 
-spambayes/                                    # root spambayes directory
-                                              # containing contrib, utilities,
-                                              # scripts, etc
+spambayes/                                    # spambayes package directory
+                                              # containing classifier.py, tokenizer.py, etc
           languages/                          # root languages directory,
                                               # possibly already containing
                                               # other translations
@@ -614,9 +613,12 @@ spambayes/                                    # root spambayes directory
                                               # translation - {lang_code} is
                                               # described below
                                 DIALOGS/      # directory for Outlook plug-in
-                                              # dialog resources
+                                              # dialog resources, which should contain an
+                                              # empty __init__.py file, so that py2exe can
+                                              # include the directory
                                 LC_MESSAGES/  # directory for gettext managed
-                                              # strings
+                                              # strings, which should also contain an
+                                              # empty __init__.py file
                                 __init__.py   # Copy of spambayes/spambayes/resources/__init__.py
 
 
@@ -640,8 +642,8 @@ There are four translation tasks:
 
    The easiest method of translating these dialogs is to use a tool like
    VC++ or Visual Studio.  Simply open the
-   'spambayes\Outlook2000\dialogs\resources\dialogs.rc' file, translate the
-   dialog, and save the file as
+   'Outlook2000\dialogs\resources\dialogs.rc' file, translate the dialog,
+   and save the file as
    'spambayes\languages\{lang_code}\DIALOGS\dialogs.rc', where {lang_code}
    is the appropriate language code for the language you have translated
    into (e.g. 'en_UK', 'es', 'de_DE').  If you do not have a GUI tool to
@@ -650,10 +652,10 @@ There are four translation tasks:
 
    Once the dialogs are translated, you need to use the rc2py.py utility
    to create the i18n_dialogs.py file.  For example, in the
-   'spambayes\Outlook2000\dialogs\resources' directory:
+   'Outlook2000\dialogs\resources' directory:
      > rc2py.py {base}\spambayes\languages\de_DE\DIALOGS\dialogs.rc
        {base}\spambayes\languages\de_DE\DIALOGS\i18n_dialogs.py 1
-   Where {base} is the directory that contains the root spambayes directory.
+   Where {base} is the directory that contains the spambayes package directory.
    This should create a 'i18n_dialogs.py' in the same directory as your
    translated dialogs.rc file - this is the file the the Outlook plug-in
    uses.
@@ -662,7 +664,7 @@ There are four translation tasks:
    created by dynamic use of a HTML template file.
 
    The easiest method of translating this file is to use a GUI HTML editor.
-   Simply open the 'spambayes/spambayes/resources/ui.html' file, translate
+   Simply open the 'spambayes/resources/ui.html' file, translate
    it as described within, and save the file as
    'spambayes/languages/{lang_code}/i18n.ui.html', where {lang_code} is
    the appropriate language code as described above.  If you do not have
@@ -680,10 +682,10 @@ There are four translation tasks:
 
    To translate these strings, use the translation template
    'spambayes/languages/messages.pot'.  You can regenerate that file, if
-   necessary, by running this command in the root spambayes directory:
+   necessary, by running this command in the spambayes package directory:
      > {python dir}\tools\i18n\pygettext.py -o languages\messages.pot
-       contrib\*.py Outlook2000\*.py scripts\*.py spambayes\*.py
-       testtools\*.py utilities\*.py windows\*.py
+       ..\contrib\*.py ..\Outlook2000\*.py ..\scripts\*.py *.py
+       ..\testtools\*.py ..\utilities\*.py ..\windows\*.py
 
    You may wish to use a GUI system to create the required *.po file, 
    such as poEdit, but you can also do this manually with a text editor.
@@ -699,5 +701,5 @@ There are two ways to set the language that SpamBayes will use:
  o If you are using Windows, change the preferred Windows language using
    the Control Panel.
 
- o Get the [globals] language SpamBayes option to a list of the
+ o Get the '[globals] language' SpamBayes option to a list of the
    preferred language(s).
