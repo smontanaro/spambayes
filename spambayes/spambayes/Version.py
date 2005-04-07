@@ -167,7 +167,7 @@ class SBVersion:
     def __repr__ (self):
         return "%s('%s', '%s')" % (self.__class__.__name__, str(self), self.date)
 
-    version_re = re.compile(r'^(\d+) \. (\d+) (\. (\d+))? (([ab]|rc)(\d+))?$',
+    version_re = re.compile(r'^(\d+) \. (\d+) (\. (\d+))? (([ab]|rc)(\d+))?\+?$',
                             re.VERBOSE)
 
     def parse(self, vstring):
