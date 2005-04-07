@@ -88,7 +88,6 @@ outlook_addin_register = dict(
                                           r"windows\resources\sbicon.ico")),
                      ],
 )
-
 service = dict(
     dest_base = "bin/sb_service",
     modules = ["pop3proxy_service"],
@@ -139,6 +138,21 @@ proxy_data_files = [
     ["docs/sb_server/docs/images", glob.glob(os.path.join(sb_top_dir, r"windows\docs\images\*.jpg"))],
 ]
 
+language_files = []
+languages_root = os.path.join(sb_top_dir, "languages")
+def add_language_files(current_dir):
+    files = os.listdir(current_dir)
+    for fn in files:
+        full_fn = os.path.join(current_dir, fn)
+        if os.path.isdir(full_fn):
+            add_language_files(full_fn)
+            continue
+        if os.path.splitext(fn)[1] == ".py":
+            dest_name = os.path.join("languages", "%s" %
+                                     (full_fn[len(languages_root)+1:],))
+            language_files.append([os.path.dirname(dest_name), [full_fn]])
+add_language_files(languages_root)
+
 common_data_files = [
     ["", [os.path.join(sb_top_dir, r"windows\resources\sbicon.ico")]],
     ["", [os.path.join(sb_top_dir, r"LICENSE.txt")]],
@@ -163,7 +177,8 @@ setup(name="SpamBayes",
       # The taskbar
       windows=[pop3proxy_tray, outlook_addin_register, autoconfigure],
       # and the misc data files
-      data_files = outlook_data_files + proxy_data_files + common_data_files,
+      data_files = outlook_data_files + proxy_data_files + \
+                   common_data_files + language_files,
       options = {"py2exe" : py2exe_options},
       zipfile = "lib/spambayes.modules",
 )
