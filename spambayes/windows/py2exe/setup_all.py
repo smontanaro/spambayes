@@ -37,9 +37,9 @@ import py2exe
 py2exe_options = dict(
     packages = "spambayes.resources,encodings,spambayes.languages," \
                "spambayes.languages.es,spambayes.languages.es_AR," \
-               "spambayes.languages.fr_FR,spambayes.languages.es.DIALOGS," \
+               "spambayes.languages.fr,spambayes.languages.es.DIALOGS," \
                "spambayes.languages.es_AR.DIALOGS," \
-               "spambayes.languages.fr_FR.DIALOGS",
+               "spambayes.languages.fr.DIALOGS",
     excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
     includes = "dialogs.resources.dialogs,weakref", # Outlook dynamic dialogs
     dll_excludes = "dapi.dll,mapi32.dll",
