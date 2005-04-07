@@ -372,7 +372,7 @@ class BayesManager:
         self.application_directory = os.path.dirname(this_filename)
 
         # Load the environment for translation.
-        lang_manager = bayes_i18n.LanguageManager(self.application_directory)
+        lang_manager = bayes_i18n.LanguageManager()
         # Set the system user default language.
         lang_manager.set_language(lang_manager.locale_default_lang())
 
