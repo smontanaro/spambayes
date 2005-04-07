@@ -115,6 +115,10 @@ pop3proxy_tray = dict(
                       (1000, os.path.join(sb_top_dir, r"windows\resources\sb-started.ico")),
                       (1010, os.path.join(sb_top_dir, r"windows\resources\sb-stopped.ico"))],
 )
+sb_imapfilter = dict(
+    dest_base = "bin/sb_imapfilter",
+    script = os.path.join(sb_top_dir, "scripts", "sb_imapfilter.py"),
+)
 autoconfigure = dict(
     dest_base = "bin/setup_server",
     script = os.path.join(sb_top_dir, "windows", "autoconfigure.py"),
@@ -154,7 +158,8 @@ setup(name="SpamBayes",
       # A service
       service=[service],
       # console exes for debugging
-      console=[sb_server, sb_upload, outlook_dump_props, sb_pop3dnd],
+      console=[sb_server, sb_upload, outlook_dump_props, sb_pop3dnd,
+               sb_imapfilter],
       # The taskbar
       windows=[pop3proxy_tray, outlook_addin_register, autoconfigure],
       # and the misc data files
