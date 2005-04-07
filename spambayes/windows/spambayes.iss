@@ -26,13 +26,8 @@ Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversi
 Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; Is there a cleverer way of including all of these?
-Source: "py2exe\dist\languages\*.py"; DestDir: "{app}\languages"; Flags: ignoreversion
-Source: "py2exe\dist\languages\es\*.py"; DestDir: "{app}\languages\es"; Flags: ignoreversion
-Source: "py2exe\dist\languages\es\DIALOGS\*.py"; DestDir: "{app}\languages\DIALOGS\es"; Flags: ignoreversion
-Source: "py2exe\dist\languages\es_AR\*.py"; DestDir: "{app}\languages\es_AR"; Flags: ignoreversion
-Source: "py2exe\dist\languages\es_AR\DIALOGS\*.py"; DestDir: "{app}\languages\DIALOGS\es_AR"; Flags: ignoreversion
-Source: "py2exe\dist\languages\fr_FR\*.py"; DestDir: "{app}\languages\fr_FR"; Flags: ignoreversion
-Source: "py2exe\dist\languages\fr_FR\DIALOGS\*.py"; DestDir: "{app}\languages\DIALOGS\fr_FR"; Flags: ignoreversion
+Source: "py2exe\dist\languages\es\LC_MESSAGES\*.mo"; DestDir: "{app}\languages\DIALOGS\es"; Flags: ignoreversion
+Source: "py2exe\dist\languages\es_AR\LC_MESSAGES\*.mo"; DestDir: "{app}\languages\DIALOGS\es_AR"; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\outlook_addin.dll"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
 Source: "py2exe\dist\bin\outlook_addin_register.exe"; DestDir: "{app}\bin"; Check: InstallingOutlook; Flags: ignoreversion
