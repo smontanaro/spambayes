@@ -6,9 +6,6 @@ def GetImageParamsFromBitmapID(rc_parser, bmpid):
     if type(bmpid)==type(0):
         bmpid = rc_parser.names[bmpid]
     int_bmpid = rc_parser.ids[bmpid]
-    # For both binary and source versions, we currently load from files.
-    # In future py2exe built binary versions we will be able to load the
-    # bitmaps directly from our DLL.
     filename = rc_parser.bitmaps[bmpid]
     if hasattr(sys, "frozen"):
         # in our .exe/.dll - load from that.
