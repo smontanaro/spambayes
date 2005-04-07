@@ -1,0 +1,731 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "dialogs.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+// spambayes dialog definitions
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ADVANCED DIALOGEX 0, 0, 248, 257
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Avancé"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "Délais de filtrage",IDC_STATIC,7,3,234,117
+    CONTROL         "",IDC_DELAY1_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,16,36,148,22
+    LTEXT           "Délai avant filtrage",IDC_STATIC,16,26,101,8
+    EDITTEXT        IDC_DELAY1_TEXT,165,39,40,14,ES_AUTOHSCROLL
+    LTEXT           "secondes",IDC_STATIC,208,41,28,8
+    CONTROL         "",IDC_DELAY2_SLIDER,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,16,73,148,22
+    LTEXT           "Délai de filtrage entre deux messages",IDC_STATIC,16,62,
+                    142,8
+    EDITTEXT        IDC_DELAY2_TEXT,165,79,40,14,ES_AUTOHSCROLL
+    LTEXT           "secondes",IDC_STATIC,207,82,28,8
+    CONTROL         "Seulement pour les dossiers qui reçoivent de nouveaux messages",
+                    IDC_INBOX_TIMER_ONLY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,100,217,10
+    PUSHBUTTON      "Afficher le répertoire de données",IDC_SHOW_DATA_FOLDER,
+                    7,238,111,14
+    CONTROL         "Activer le filtrage en tâche de fond",
+                    IDC_BUT_TIMER_ENABLED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,12,162,10
+    PUSHBUTTON      "Diagnostiques...",IDC_BUT_SHOW_DIAGNOSTICS,171,238,70,
+                    14
+END
+
+IDD_STATISTICS DIALOG DISCARDABLE  0, 0, 248, 257
+STYLE WS_CHILD | WS_CAPTION
+CAPTION "Statistiques"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "Statistiques",IDC_STATIC,7,3,241,229
+    LTEXT           "some stats\nand some more\nline 3\nline 4\nline 5",
+                    IDC_STATISTICS,12,12,230,204
+    PUSHBUTTON      "Remise à 0 des statistiques",IDC_BUT_RESET_STATS,156,
+                    238,92,14
+    LTEXT           "Dernière remise à 0 :",IDC_STATIC,7,241,36,8
+    LTEXT           "<<<Date>>>",IDC_LAST_RESET_DATE,47,241,107,8
+END
+
+IDD_MANAGER DIALOGEX 0, 0, 275, 308
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "SpamBayes Manager"
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Fermer",IDOK,216,287,50,14
+    PUSHBUTTON      "Annuler",IDCANCEL,155,287,50,14,NOT WS_VISIBLE
+    CONTROL         "",IDC_TAB,"SysTabControl32",0x0,8,7,258,276
+    PUSHBUTTON      "A propos...",IDC_ABOUT_BTN,8,287,50,14
+END
+
+IDD_FILTER_SPAM DIALOGEX 0, 0, 251, 147
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Spam"
+FONT 8, "Tahoma", 400, 0, 0x1
+BEGIN
+    LTEXT           "Dossiers à filtrer lors de l'arrivée de nouveaux messages",
+                    IDC_STATIC,8,9,168,11
+    CONTROL         "Folder names...\nLine 2",IDC_FOLDER_WATCH,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,7,20,177,12
+    PUSHBUTTON      "&Parcourir...",IDC_BROWSE_WATCH,194,19,50,14
+    GROUPBOX        "Spam sûr",IDC_STATIC,7,43,237,80
+    LTEXT           "Pour être considéré comme un spam, un message doit obtenir une note d'au moins",
+                    IDC_STATIC,13,52,212,10
+    CONTROL         "",IDC_SLIDER_CERTAIN,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,13,62,165,22
+    EDITTEXT        IDC_EDIT_CERTAIN,184,63,51,14,ES_AUTOHSCROLL
+    LTEXT           "et ces messages doivent être :",IDC_STATIC,13,82,107,10
+    COMBOBOX        IDC_ACTION_CERTAIN,13,93,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "dans le dossier",IDC_STATIC,75,95,31,10
+    CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,120,93,59,14
+    PUSHBUTTON      "P&arcourir...",IDC_BROWSE_CERTAIN,184,93,50,14
+    CONTROL         "Marquer les messages comme &lus",IDC_MARK_SPAM_AS_READ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,110,81,10
+END
+
+IDD_FILTER_UNSURE DIALOGEX 0, 0, 249, 124
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Messages douteux"
+FONT 8, "Tahoma", 400, 0, 0x1
+BEGIN
+    LTEXT           "Pour être considéré comme douteux, un message doit obtenir une note d'au moins",
+                    IDC_STATIC,12,11,212,10
+    CONTROL         "",IDC_SLIDER_UNSURE,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    TBS_TOP | WS_TABSTOP,12,18,165,20
+    EDITTEXT        IDC_EDIT_UNSURE,183,24,54,14,ES_AUTOHSCROLL
+    LTEXT           "et ces messages doivent être :",IDC_STATIC,12,38,107,10
+    COMBOBOX        IDC_ACTION_UNSURE,12,49,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "dans le dossier",IDC_STATIC,74,52,31,10
+    CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,119,49,59,14
+    PUSHBUTTON      "Pa&rcourir",IDC_BROWSE_UNSURE,183,49,50,14
+    CONTROL         "Marquer les messages l&us",IDC_MARK_UNSURE_AS_READ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,70,101,10
+END
+
+IDD_DIAGNOSTIC DIALOGEX 0, 0, 201, 98
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Diagnostiques"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Ces options avancées sont fournies à des fins de diagnostiques et déboguage seulement. Vous ne devriez changer les valeurs que sur demande ou si vous savez exactement ce que vous faites.",
+                    IDC_STATIC,5,3,192,36
+    LTEXT           "Verbosité du log",IDC_STATIC,5,44,56,8
+    EDITTEXT        IDC_VERBOSE_LOG,73,42,40,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Voir le fichier de log...",IDC_BUT_VIEW_LOG,122,41,75,
+                    14
+    CONTROL         "Enregistrer la note attribuée",IDC_SAVE_SPAM_SCORE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,63,72,10
+    PUSHBUTTON      "Annuler",IDCANCEL,69,79,50,14,NOT WS_VISIBLE
+    DEFPUSHBUTTON   "Fermer",IDOK,147,79,50,14
+END
+
+IDD_WIZARD DIALOGEX 0, 0, 384, 190
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Assistant de configuration SpamBayes"
+FONT 8, "Tahoma"
+BEGIN
+    PUSHBUTTON      "Annuler",IDCANCEL,328,173,50,14
+    PUSHBUTTON      "<< Précédent",IDC_BACK_BTN,204,173,50,14
+    DEFPUSHBUTTON   "Suivant>>,Fin",IDC_FORWARD_BTN,259,173,52,14
+    CONTROL         "",IDC_PAGE_PLACEHOLDER,"Static",SS_ETCHEDFRAME,75,4,303,
+                    167
+    CONTROL         125,IDC_WIZ_GRAPHIC,"Static",SS_BITMAP,0,0,69,190
+END
+
+IDD_WIZARD_WELCOME DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Bienvenue dans l'assistant de paramétrage de SpamBayes",
+                    IDC_STATIC,20,4,191,14
+    LTEXT           "Cet assistant va vous guider dans le paramétrage du module SpamBayes pour Outlook. Merci de préciser où vous en êtes pour le paramétrage.",
+                    IDC_STATIC,20,20,255,18
+    CONTROL         "Je n'ai rien préparé du tout pour SpamBayes.",
+                    IDC_BUT_PREPARATION,"Button",BS_AUTORADIOBUTTON | BS_TOP | 
+                    WS_GROUP,20,42,190,11
+    CONTROL         "J'ai déjà filtré les bon messages (ham) et les mauvais (spam) dans des dossiers séparés adaptés à l'entraînement.",
+                    IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP | 
+                    BS_MULTILINE,20,59,255,18
+    CONTROL         "Je préfère me débrouiller tout seul pour configurer SpamBayes.",
+                    IDC_STATIC,"Button",BS_AUTORADIOBUTTON | BS_TOP,20,82,
+                    187,12
+    LTEXT           "Pour plus d'informations sur l'entraînement et le paramétrage de SpamBayes, cliquer sur le bouton A propos.",
+                    IDC_STATIC,20,103,185,26
+    PUSHBUTTON      "A propos...",IDC_BUT_ABOUT,215,104,60,15
+    LTEXT           "Si vous quittez l'assistant, vous pouvez le relancer à partir du SpamBayes Manager, disponible sur la barre d'outil SpamBayes.",
+                    IDC_STATIC,20,137,232,17
+END
+
+IDD_WIZARD_FINISHED_UNTRAINED DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Bravo !",IDC_STATIC,20,4,247,14
+    LTEXT           "SpamBayes est maintenant paramétré et prêt à filtrer sur vos messages",
+                    IDC_STATIC,20,22,247,16
+    LTEXT           "Comme SpamBayes ne s'est pas encore entraîné, tous les messages vont être rangés dans le dossier Douteux (Unsure). Pour chacun des messages, vous devez cliquer soit sur 'C'est du Spam' soit sur 'Ce n'est pas du Spam'.",
+                    IDC_STATIC,20,42,247,27
+    LTEXT           "Pour accélérer l'entraînement, vous pouvez déplacer manuellement tous les spams de votre 'Boîte de réception' dans le dossier 'Spam', et alors sélectionner 'Entraînement' depuis le SpamBayes manager.",
+                    IDC_STATIC,20,83,247,31
+    LTEXT           "Plus le programme s'entraîne et plus la fiabilité augmente. Notez qu'après seulement quelques messages le résultat est étonnant.",
+                    IDC_STATIC,20,69,247,15
+    LTEXT           "Cliquer sur Fin pour sortir de l'assistant.",IDC_STATIC,
+                    20,121,148,9
+END
+
+IDD_WIZARD_FOLDERS_REST DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_SPAM,208,85,60,15
+    LTEXT           "Dossiers Spam et Douteux",IDC_STATIC,20,4,247,14
+    LTEXT           "SpamBayes utilise deux dossiers pour gérer le spam. Un dossier 'sûr' pour stocker le spam et un dossier 'douteux' qu'il vous faudra aiguiller manuellement.",
+                    IDC_STATIC,20,20,247,22
+    LTEXT           "Si vous entrez un nom de dossier qui n'existe pas, il va être créé automatiquement. Pour choisir un dossier existant, cliquer sur Parcourir.",
+                    IDC_STATIC,20,44,243,24
+    EDITTEXT        IDC_FOLDER_CERTAIN,20,85,179,14,ES_AUTOHSCROLL
+    LTEXT           "Les messages douteux vont être rangés dans le dossier nommé",
+                    IDC_STATIC,20,105,186,12
+    EDITTEXT        IDC_FOLDER_UNSURE,20,117,177,14,ES_AUTOHSCROLL
+    LTEXT           "Les messages spam vont être rangés dans le dossier nommé",
+                    IDC_STATIC,20,72,137,8
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_UNSURE,208,117,60,15
+END
+
+IDD_WIZARD_FOLDERS_WATCH DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_WATCH,225,134,50,14
+    LTEXT           "Dossiers recevant les nouveaux messages",IDC_STATIC,20,
+                    4,247,14
+    LTEXT           "SpamBayes a besoin de connaitre les dossiers utilisés pour réceptionner les nouveaux messages. En général, il s'agit du dossier 'Boîte de réception', mais vous pouvez en préciser d'autres à filtrer.",
+                    IDC_STATIC,20,21,247,25
+    LTEXT           "Les dossiers suivants seront filtrés. Uiliser le bouton Parcourir pour changer la liste puis cliquer sur Suivant.",
+                    IDC_STATIC,20,79,247,20
+    LTEXT           "Astuce : si vous utilisez des règles d'aiguillage de messages, vous devriez ajouter les dossiers destination à la liste.",
+                    IDC_STATIC,20,51,241,20
+    EDITTEXT        IDC_FOLDER_WATCH,20,100,195,48,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_WIZARD_FINISHED_UNCONFIGURED DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Annulation du paramétrage",IDC_STATIC,20,4,247,14
+    LTEXT           "L'écran principal de SpamBayes va maintenant être affiché. Vous devez définir les dossiers et activer SpamBayes pour commencer à filtrer les messages.",
+                    IDC_STATIC,20,29,247,16
+    LTEXT           "Cliquer sur Fin pour quitter l'assistant.",IDC_STATIC,
+                    20,139,148,9
+END
+
+IDD_WIZARD_FOLDERS_TRAIN DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_HAM,208,49,60,15
+    LTEXT           "Entraînement",IDC_STATIC,20,4,247,10
+    LTEXT           "Sélectionner les dossiers contenant les messages pré-triés, un pour les spams et un pour les bons messages.",
+                    IDC_STATIC,20,16,243,16
+    EDITTEXT        IDC_FOLDER_HAM,20,49,179,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Des exemples de messages spams ou indésirables figurent dans le dossier",
+                    IDC_STATIC,20,71,198,8
+    EDITTEXT        IDC_FOLDER_CERTAIN,20,81,177,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    LTEXT           "Des exemples de bons messages figurent dans le dossier",
+                    IDC_STATIC,20,38,153,8
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_SPAM,208,81,60,15
+    LTEXT           "Si vous n'avez pas de messages pré-triés ou que vous avez déjà pratiqué l'entraînement ou voulez garder la base, cliquer sur Précédent et choisissez l'option 'Je n'ai rien préparé du tout'.",
+                    IDC_STATIC,20,128,243,26
+    CONTROL         "Attribuer une note aux messages lorsque l'entraînement est terminé.",
+                    IDC_BUT_RESCORE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,
+                    108,163,16
+END
+
+IDD_WIZARD_TRAIN DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Entraînement",-1,20,4,247,14
+    LTEXT           "SpamBayes s'entraîne sur vos bons messages et sur les spams.",
+                    -1,20,22,247,16
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",WS_BORDER,20,45,255,
+                    11
+    LTEXT           "(progress text)",IDC_PROGRESS_TEXT,20,61,257,10
+END
+
+IDD_WIZARD_FINISHED_TRAINED DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Bravo !",IDC_STATIC,20,4,247,14
+    LTEXT           "SpamBayes s'est entraîné et est maintenant paramétré. Les premiers résultats sont observables dès maintenant !",
+                    IDC_TRAINING_STATUS,20,35,247,26
+    LTEXT           "Bien que SpamBayes ce soit entraîné, il continue à apprendre. Pensez à régulièrement vérifier le contenu du dossier 'Douteux', et utilisez les boutons 'C'est du spam' et 'Ce n'est pas du spam'.",
+                    IDC_STATIC,20,68,249,30
+    LTEXT           "Cliquer sur Fin pour fermer l'assistant.",IDC_STATIC,20,
+                    104,148,9
+END
+
+IDD_WIZARD_TRAINING_IS_IMPORTANT DIALOGEX 0, 0, 328, 156
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "SpamBayes ne fonctionnera pas tant qu'il ne s'est pas entraîné.",
+                    IDC_STATIC,11,8,312,14
+    PUSHBUTTON      "A propos de l'entraînement...",IDC_BUT_ABOUT,258,135,65,
+                    15
+    LTEXT           "SpamBayes est un système qui apprend à reconnaître les bons et les mauvais messages à partir des exemples que vous lui donnez. A la base, il ne dispose d'aucun filtres, il doit donc être entraîné pour devenir effectif.",
+                    IDC_STATIC,11,21,312,30
+    LTEXT           "Pour commencer, SpamBayes va aiguiller tous vos messages dans le dossier 'Douteux'. L'entraînement est simple : pour chaque message, vous spécifiez alors s'il s'agit de spam ou non à partir des boutons 'C'est du spam' et 'Ce n'est pas du spam'. Petit à pete????ctls_progress32",
+                    IDC_STATIC,22,61,301,35
+    LTEXT           "Cette option fermera l'assistant et vous dire comment aiguiller vos messages. Vous pourrez paramétrer SpamBayes et le rendre actif immédiatement sur vos messages",
+                    IDC_STATIC,22,113,301,27
+    LTEXT           "Pour plus d'information, cliquer sur le bouton A propos de l'entraînement.",
+                    IDC_STATIC,11,137,234,8
+    CONTROL         "Je veux stopper l'entraînement et laisser SpamBayes apprendre sur les nouveaux messages",
+                    IDC_BUT_UNTRAINED,"Button",BS_AUTORADIOBUTTON | WS_GROUP,
+                    11,50,312,11
+    CONTROL         "Je vais effectuer le pré-tri moi-même (bon / spam) et paramétrer SpamBayes plus tard",
+                    IDC_BUT_TRAIN,"Button",BS_AUTORADIOBUTTON,11,98,312,11
+END
+
+IDD_WIZARD_FINISHED_TRAIN_LATER DIALOGEX 0, 0, 284, 162
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION
+EXSTYLE WS_EX_CONTEXTHELP
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Paramétrage abandonné",IDC_STATIC,20,4,247,14
+    LTEXT           "Pour effectuer l'entraînement initial, vous devriez créer deux dossiers, un contenant de bons messages et un autre des messages non sollicités.",
+                    IDC_STATIC,20,17,247,27
+    LTEXT           "Cliquer sur Fin pour quitter l'assistant.",IDC_STATIC,
+                    20,145,148,9
+    LTEXT           "Pour des exemples de bons messages, vous pouvez utiliser votre 'Boîte de réception' mais vous evez être SÛR qu'elle ne contient aucun message non sollicité",
+                    IDC_STATIC,20,42,247,26
+    LTEXT           "Si faire ce tri était trop fastidieux, créez simplement un dossier temporaire en mettant quelques messages en exemple.",
+                    IDC_STATIC,20,58,247,17
+    LTEXT           "Pour des exemples de messages non sollicités vous pouvez utiliser le dossier 'Eléments supprimés'. Si faire ce tri était trop fastidieux, créez simplement un dossier temporaire en mettant quelques messages en exemple.",
+                    IDC_STATIC,20,80,247,35
+    LTEXT           "Lorsque vous aurez terminé, ouvrez le SpamBayes Manager via la barre d'outil SpamBayes, et redémarrez l'assistant.",
+                    IDC_STATIC,20,121,245,17
+END
+
+IDD_NOTIFICATIONS DIALOGEX 0, 0, 248, 257
+STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+CAPTION "Notifications"
+FONT 8, "Tahoma", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "New Mail Sounds",IDC_STATIC,7,3,241,229
+    CONTROL         "Enable new mail notification sounds",IDC_ENABLE_SOUNDS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,17,129,10
+    LTEXT           "Good sound:",IDC_STATIC,14,31,42,8
+    EDITTEXT        IDC_HAM_SOUND,14,40,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_HAM_SOUND,192,40,50,14
+    LTEXT           "Unsure sound:",IDC_STATIC,14,58,48,8
+    EDITTEXT        IDC_UNSURE_SOUND,14,67,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_UNSURE_SOUND,192,67,50,14
+    LTEXT           "Spam sound:",IDC_STATIC,14,85,42,8
+    EDITTEXT        IDC_SPAM_SOUND,14,94,174,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse...",IDC_BROWSE_SPAM_SOUND,192,94,50,14
+    LTEXT           "Time to wait for additional messages:",IDC_STATIC,14,
+                    116,142,8
+    CONTROL         "",IDC_ACCUMULATE_DELAY_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,14,127,148,22
+    EDITTEXT        IDC_ACCUMULATE_DELAY_TEXT,163,133,40,14,ES_AUTOHSCROLL
+    LTEXT           "seconds",IDC_STATIC,205,136,28,8
+END
+
+IDD_GENERAL DIALOGEX 0, 0, 253, 257
+STYLE DS_MODALFRAME | WS_CHILD | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "General"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "SpamBayes Version",IDC_VERSION,6,54,242,8
+    LTEXT           "SpamBayes a besoin de s'entraîner avant d'être activé. Cliquer sur l'onglet 'Entraînement', ou utilisez l'assistant en vous laissant guider.",
+                    IDC_STATIC,6,67,242,17
+    LTEXT           "Status de la base d'entraînement :",IDC_STATIC,6,90,222,
+                    8
+    LTEXT           "123 spams ; 456 bons messages\r\nLine2\r\nLine3",
+                    IDC_TRAINING_STATUS,6,101,242,27,SS_SUNKEN
+    CONTROL         "Activer SpamBayes",IDC_BUT_FILTER_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,221,97,11
+    LTEXT           "Les messages classifiés comme spam sont aiguillés dans le dossier Folder1\nLes messages douteux sont également aiguillés",
+                    IDC_FILTER_STATUS,6,146,242,67,SS_SUNKEN
+    PUSHBUTTON      "Revenir au paramétrage initial...",IDC_BUT_RESET,6,238,
+                    109,14
+    PUSHBUTTON      "Assistant...",IDC_BUT_WIZARD,142,238,106,15
+    LTEXT           "Status des filtres :",IDC_STATIC,6,135,222,8
+    CONTROL         1062,IDC_LOGO_GRAPHIC,"Static",SS_BITMAP | 
+                    SS_REALSIZEIMAGE,0,2,275,52
+END
+
+IDD_TRAINING DIALOGEX 0, 0, 252, 257
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Entraînement"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "",IDC_STATIC,5,1,243,113
+    LTEXT           "Dossiers contenant les bons messages",IDC_STATIC,11,11,
+                    124,8
+    CONTROL         "",IDC_STATIC_HAM,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_CENTERIMAGE | SS_SUNKEN,11,21,175,12
+    PUSHBUTTON      "&Parcourir...",IDC_BROWSE_HAM,192,20,50,14
+    LTEXT           "Dossiers contenant les messages non sollicités",
+                    IDC_STATIC,11,36,171,9
+    CONTROL         "Static",IDC_STATIC_SPAM,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_CENTERIMAGE | SS_SUNKEN | WS_GROUP,11,46,174,12
+    PUSHBUTTON      "P&arcourir...",IDC_BROWSE_SPAM,192,46,50,14
+    CONTROL         "Attribuer une note aux messages après l'entraînement",
+                    IDC_BUT_RESCORE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,
+                    64,111,10
+    CONTROL         "&Reconstruire toute la base",IDC_BUT_REBUILD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,137,64,92,10
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,
+                    11,76,231,11
+    PUSHBUTTON      "&Commencer l'entraînement",IDC_START,11,91,90,14,
+                    BS_NOTIFY
+    LTEXT           "status entraînement status entraînement status entraînement status entraînement status entraînements status entraînement status entraînement",
+                    IDC_PROGRESS_TEXT,106,89,135,17
+    GROUPBOX        "Entraînement incremental",IDC_STATIC,4,117,244,87
+    CONTROL         "Déplacer un message d'un dossier spam à la 'Boîte de réception' participe à l'entraînement.",
+                    IDC_BUT_TRAIN_FROM_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,11,127,204,18
+    LTEXT           "Lors d'un click sur 'Ce n'est pas du spam'",IDC_STATIC,
+                    10,148,129,8
+    COMBOBOX        IDC_RECOVER_RS,142,145,99,54,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Déplacer un message d'un dossier de la 'Boîte de réception' au dossier 'Spam' participe à l'entraînement.",
+                    IDC_BUT_TRAIN_TO_SPAM_FOLDER,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,11,163,204,16
+    LTEXT           "Lors d'un click sur 'C'est du spam'",IDC_STATIC,10,183,
+                    106,8
+    COMBOBOX        IDC_DEL_SPAM_RS,127,180,114,54,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_FILTER_NOW DIALOGEX 0, 0, 244, 185
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Filtrer maintenant"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Filtrer les dossiers suivants",IDC_STATIC,8,9,168,11
+    CONTROL         "Dossiers...\nLine 2",IDC_FOLDER_NAMES,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN,7,20,172,
+                    12
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE,187,19,50,14
+    GROUPBOX        "Filtres et actions",IDC_STATIC,7,38,230,40,WS_GROUP
+    CONTROL         "Effectuer les actions (aiguillage du message)",
+                    IDC_BUT_ACT_ALL,"Button",BS_AUTORADIOBUTTON | WS_GROUP | 
+                    WS_TABSTOP,15,49,126,10
+    CONTROL         "Attribuer une note mais ne pas effectuer d'action",
+                    IDC_BUT_ACT_SCORE,"Button",BS_AUTORADIOBUTTON,15,62,203,
+                    10
+    GROUPBOX        "Restrendre le filtre",IDC_STATIC,7,84,230,35,WS_GROUP
+    CONTROL         "Aux messages non lus",IDC_BUT_UNREAD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,94,149,9
+    CONTROL         "Aux messages qui n'ont pas eu de note attribuée",
+                    IDC_BUT_UNSEEN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    106,149,9
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,7,
+                    129,230,11
+    LTEXT           "Static",IDC_PROGRESS_TEXT,7,144,227,10
+    DEFPUSHBUTTON   "Démarrer le filtrage",IDC_START,7,161,67,14
+    PUSHBUTTON      "Fermer",IDCANCEL,187,162,50,14
+END
+
+IDD_FILTER DIALOGEX 0, 0, 249, 257
+STYLE DS_MODALFRAME | WS_CHILD | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Filtrage"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Filtrer les dossiers suivant lors de la réception de nouveaux messages",
+                    IDC_STATIC,8,4,168,11
+    CONTROL         "Dossiers...\nLine 2",IDC_FOLDER_WATCH,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,7,16,177,12
+    PUSHBUTTON      "Parcourir...",IDC_BROWSE_WATCH,192,14,50,14
+    GROUPBOX        "Spam sûr",IDC_STATIC,7,33,235,80
+    LTEXT           "Pour être considéré comme un spam, un message doit obtenir une note d'au moins",
+                    IDC_STATIC,13,42,212,10
+    CONTROL         "Slider1",IDC_SLIDER_CERTAIN,"msctls_trackbar32",
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,13,52,165,22
+    EDITTEXT        IDC_EDIT_CERTAIN,184,53,51,14,ES_AUTOHSCROLL
+    LTEXT           "et ces messages doivent être :",IDC_STATIC,13,72,107,10
+    COMBOBOX        IDC_ACTION_CERTAIN,12,83,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "dans le dossier",IDC_STATIC,71,85,28,10
+    CONTROL         "Folder names...",IDC_FOLDER_CERTAIN,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,102,83,77,14
+    PUSHBUTTON      "&Parcourir",IDC_BROWSE_CERTAIN,184,83,50,14
+    GROUPBOX        "Message douteux",IDC_STATIC,6,117,235,81
+    LTEXT           "Pour être considéré comme douteux, un message doit obtenir une note d'au moins",
+                    IDC_STATIC,12,128,212,10
+    CONTROL         "Slider1",IDC_SLIDER_UNSURE,"msctls_trackbar32",
+                    TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,12,135,165,20
+    EDITTEXT        IDC_EDIT_UNSURE,183,141,54,14,ES_AUTOHSCROLL
+    LTEXT           "et ces messages doivent être :",IDC_STATIC,12,155,107,
+                    10
+    COMBOBOX        IDC_ACTION_UNSURE,12,166,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "dans le dossier",IDC_STATIC,71,169,48,8
+    CONTROL         "(folder name)",IDC_FOLDER_UNSURE,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,122,166,57,14
+    PUSHBUTTON      "P&arcourir",IDC_BROWSE_UNSURE,184,166,50,14
+    CONTROL         "Marquer les spams comme lus",IDC_MARK_SPAM_AS_READ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,100,81,10
+    CONTROL         "Marquer les messages douteux comme lus",
+                    IDC_MARK_UNSURE_AS_READ,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,186,101,10
+    GROUPBOX        "Bons messages",IDC_STATIC,6,203,235,48
+    LTEXT           "Ces messages doivent être :",IDC_STATIC,12,215,107,10
+    COMBOBOX        IDC_ACTION_HAM,12,228,55,40,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "dans le dossier",IDC_STATIC,71,230,48,8
+    CONTROL         "(folder name)",IDC_FOLDER_HAM,"Static",
+                    SS_LEFTNOWORDWRAP | SS_CENTERIMAGE | SS_SUNKEN | 
+                    WS_GROUP,122,228,57,14
+    PUSHBUTTON      "Pa&rcourir...",IDC_BROWSE_HAM,184,228,50,14
+END
+
+IDD_FOLDER_SELECTOR DIALOG DISCARDABLE  0, 0, 253, 215
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "&Dossiers :",IDC_STATIC,7,7,47,9
+    CONTROL         "",IDC_LIST_FOLDERS,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_DISABLEDRAGDROP | 
+                    TVS_SHOWSELALWAYS | TVS_CHECKBOXES | WS_BORDER | 
+                    WS_TABSTOP,7,21,172,140
+    CONTROL         "(sub)",IDC_BUT_SEARCHSUB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,167,126,9
+    LTEXT           "(status1)",IDC_STATUS1,7,180,220,9
+    LTEXT           "(status2)",IDC_STATUS2,7,194,220,9
+    DEFPUSHBUTTON   "OK",IDOK,190,21,57,14
+    PUSHBUTTON      "Annuler",IDCANCEL,190,39,57,14
+    PUSHBUTTON      "&Tout effacer",IDC_BUT_CLEARALL,190,58,57,14
+    PUSHBUTTON      "&Nouveau dossier",IDC_BUT_NEW,190,77,58,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO MOVEABLE PURE 
+BEGIN
+    IDD_ADVANCED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 241
+        VERTGUIDE, 16
+        BOTTOMMARGIN, 204
+    END
+
+    IDD_MANAGER, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 253
+    END
+
+    IDD_FILTER_SPAM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 244
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 140
+    END
+
+    IDD_FILTER_UNSURE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 242
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 117
+    END
+
+    IDD_DIAGNOSTIC, DIALOG
+    BEGIN
+        LEFTMARGIN, 5
+        RIGHTMARGIN, 197
+        BOTTOMMARGIN, 93
+    END
+
+    IDD_WIZARD, DIALOG
+    BEGIN
+        RIGHTMARGIN, 378
+    END
+
+    IDD_WIZARD_WELCOME, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        VERTGUIDE, 275
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FINISHED_UNTRAINED, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FOLDERS_REST, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        VERTGUIDE, 268
+        BOTTOMMARGIN, 161
+        HORZGUIDE, 85
+        HORZGUIDE, 117
+    END
+
+    IDD_WIZARD_FOLDERS_WATCH, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FINISHED_UNCONFIGURED, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FOLDERS_TRAIN, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        VERTGUIDE, 268
+        BOTTOMMARGIN, 161
+        HORZGUIDE, 49
+        HORZGUIDE, 81
+    END
+
+    IDD_WIZARD_TRAIN, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_FINISHED_TRAINED, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_WIZARD_TRAINING_IS_IMPORTANT, DIALOG
+    BEGIN
+        VERTGUIDE, 11
+        VERTGUIDE, 22
+        VERTGUIDE, 323
+        BOTTOMMARGIN, 155
+    END
+
+    IDD_WIZARD_FINISHED_TRAIN_LATER, DIALOG
+    BEGIN
+        VERTGUIDE, 20
+        BOTTOMMARGIN, 161
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_SBLOGO              BITMAP  MOVEABLE PURE   "sblogo.bmp"
+IDB_SBWIZLOGO           BITMAP  MOVEABLE PURE   "sbwizlogo.bmp"
+IDB_FOLDERS             BITMAP  MOVEABLE PURE   "folders.bmp"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "dialogs.h\0"
+END
+
+2 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "// spambayes dialog definitions\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
