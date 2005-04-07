@@ -7,7 +7,7 @@ sys.path.append(sb_top_dir)
 sys.path.append(os.path.join(sb_top_dir, "windows"))
 sys.path.append(os.path.join(sb_top_dir, "scripts"))
 sys.path.append(os.path.join(sb_top_dir, "Outlook2000"))
-sys.path.append(os.path.join(sb_top_dir, "Outlook2000/sandbox"))
+sys.path.append(os.path.join(sb_top_dir, "Outlook2000", "sandbox"))
 
 import spambayes.resources
 
@@ -35,7 +35,11 @@ from distutils.core import setup
 import py2exe
 
 py2exe_options = dict(
-    packages = "spambayes.resources,encodings",
+    packages = "spambayes.resources,encodings,spambayes.languages," \
+               "spambayes.languages.es,spambayes.languages.es_AR," \
+               "spambayes.languages.fr_FR,spambayes.languages.es.DIALOGS," \
+               "spambayes.languages.es_AR.DIALOGS," \
+               "spambayes.languages.fr_FR.DIALOGS",
     excludes = "win32ui,pywin,pywin.debugger", # pywin is a package, and still seems to be included.
     includes = "dialogs.resources.dialogs,weakref", # Outlook dynamic dialogs
     dll_excludes = "dapi.dll,mapi32.dll",
@@ -139,7 +143,7 @@ proxy_data_files = [
 ]
 
 language_files = []
-languages_root = os.path.join(sb_top_dir, "languages")
+languages_root = os.path.join(sb_top_dir, "spambayes", "languages")
 def add_language_files(current_dir):
     files = os.listdir(current_dir)
     for fn in files:
@@ -147,7 +151,7 @@ def add_language_files(current_dir):
         if os.path.isdir(full_fn):
             add_language_files(full_fn)
             continue
-        if os.path.splitext(fn)[1] == ".py":
+        if os.path.splitext(fn)[1] == ".mo":
             dest_name = os.path.join("languages", "%s" %
                                      (full_fn[len(languages_root)+1:],))
             language_files.append([os.path.dirname(dest_name), [full_fn]])
