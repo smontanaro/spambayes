@@ -520,6 +520,7 @@ class UserInterface(BaseUserInterface):
                 # sb_server (exists in state)
                 corpus = getattr(self.state, desired_corpus)
                 setattr(self, desired_corpus, corpus)
+                self.msg_name_func = self.state.getNewMessageName
             else:
                 # sb_imapfilter (need to create)
                 if isSpam:
@@ -537,12 +538,23 @@ class UserInterface(BaseUserInterface):
                 corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
                                           '[0123456789\-]*', cacheSize=20)
                 setattr(self, desired_corpus, corpus)
+                # We need a function to create a new name for the message
+                # as sb_imapfilter doesn't have one.
+                class UniqueNamer(object):
+                    count = -1
+                    def generate_name(self):
+                        self.count += 1
+                        return "%10.10d-%d" % (long(time.time()), self.count)
+                Namer = UniqueNamer()
+                self.msg_name_func = Namer.generate_name
 
         # Train on the uploaded message(s).
         self.write("<b>" + _("Training") + "...</b>\n")
         self.flush()
         for message in messages:
-            msg = factory.create(key, message)
+            key = self.msg_name_func()
+            msg = corpus.makeMessage(key, message)
+            msg.setId(key)
             corpus.addMessage(msg)
             msg.RememberTrained(isSpam)
             self.stats.RecordTraining(not isSpam)
