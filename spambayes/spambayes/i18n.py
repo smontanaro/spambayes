@@ -94,7 +94,7 @@ else:
     except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
         this_filename = os.path.abspath(sys.argv[0])
     LC_DIR = os.path.dirname(this_filename)
-    DIALOGS_DIR = LC_DIR
+    DIALOGS_DIR = os.path.join(LC_DIR, "languages")
     
 
 class LanguageManager:
@@ -168,7 +168,7 @@ class LanguageManager:
         self._clear_syspath()
         for lcode in self.current_langs_codes:
             code_and_country = os.path.join(DIALOGS_DIR, lcode, 'DIALOGS')
-            code_only = os.path.join(LC_DIR, lcode.split("_")[0], 'DIALOGS')
+            code_only = os.path.join(DIALOGS_DIR, lcode.split("_")[0], 'DIALOGS')
             if code_and_country not in sys.path:
                 sys.path.append(code_and_country)
                 self._sys_path_modifications.append(code_and_country)
