@@ -369,6 +369,9 @@ class ProxyUserInterface(UserInterface.UserInterface):
             row.classify.href="showclues?key=%s&subject=%s" % (key, subj)
             row.tokens.href="showclues?key=%s&subject=%s&tokens=1" % (key, subj)
             setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
+            setattr(row, 'onMouseOut',
+                    ["this.className='stripe_on';",
+                     "this.className='stripe_off';"][stripe])
             row = str(row).replace('TYPE', label).replace('KEY', key)
             table += row
             stripe = stripe ^ 1

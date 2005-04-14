@@ -34,6 +34,7 @@ a:hover { color: #6040ff }
 .viewlink a:visited { color: #000000 }
 
 .stripe_on td { background: #ececec }
+.highlight_on td { background: #00ccff }
 
 .uiHtmlHeader { font-size: 120%; color: #800000; font-weight: bold }
 </style>
@@ -426,7 +427,8 @@ a:hover { color: #6040ff }
         </span>
     </tr>
     </div>
-    <tr id="reviewRow" class='stripe_on'>
+    <tr id="reviewRow" class='stripe_on' onMouseOver="this.className='highlight_on';"
+      onMouseOut="this.className='stripe_on';">
         <span id="optionalHeadersValues">
             <td id="headerValue">
                 <span id='text'>
