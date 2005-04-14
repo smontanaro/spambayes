@@ -247,7 +247,6 @@ class IMAPUserInterface(UserInterface.UserInterface):
             self.write(content)
             self._writePostamble()
             return None
-        print usernames[i], self.imap_pwds[i]
         try:
             imap.login(usernames[i], self.imap_pwds[i])
         except KeyError:
