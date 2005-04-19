@@ -103,18 +103,18 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     nspam, nham = ratio
 
     while round < maxrounds and (hmisses or smisses or round == 0):
+        round += 1
+        if verbose:
+            print >> sys.stderr, "*** round", round, "***"
+
+        start = datetime.datetime.now()
         hambone = mboxutils.getmbox(hambox)
         spamcan = mboxutils.getmbox(spambox)
         if reverse:
             hambone = reversed(list(hambone))
             spamcan = reversed(list(spamcan))
-        round += 1
-
-        if verbose:
-            print >> sys.stderr, "*** round", round, "***"
 
         hmisses = smisses = nmsgs = 0
-        start = datetime.datetime.now()
         try:
             while not maxmsgs or nmsgs < maxmsgs:
                 hams = []
