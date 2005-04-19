@@ -25,41 +25,52 @@ has been improving slowly, as we keep training it.</p>
 <ol>
 <li>Create the DB by training with a mailbox of ham and a mailbox of spam.
 I put the DB in /var/spambayes/hammie.db (as a DBM store).</li>
-<li>In master.cf, the smtp line has been changed for the following two lines:<br />
+<li>In master.cf, the smtp line has been changed for the following two
+lines:<br />
+
 <pre>
-smtp      inet  n       -       n       -       -       smtpd
+smtp      inet   n   -   n   -   -   smtpd
   -o content_filter=spambayes:
 </pre>
 and the following two lines were added at the end of the file:<br />
 <pre>
-spambayes unix  -       n       n       -       -       pipe
-  user=nobody argv=/usr/local/bin/hammiewrapper.sh $sender $recipient
+spambayes unix  -   n   n   -   -   pipe
+  user=nobody argv=/usr/local/bin/hammiewrapper.sh
+    $sender $recipient
 </pre></li>
 <li>Here's what the hammiewrapper.sh file looks like:<br />
 <pre>
 #!/bin/sh
-/usr/local/bin/sb_filter.py -d /var/spambayes/hammie.db -f | /usr/sbin/sendmail -f $*
+/usr/local/bin/sb_filter.py \
+    -d /var/spambayes/hammie.db -f \
+| /usr/sbin/sendmail -f $*
 </pre></li>
 </ol>
 
 <h2>qmail notes from Michael Martinez</h2>
-<p>SpamBayes is installed on our agency's smtp / MX gateway. This machine runs Redhat
-Linux 7.1, qmail 1.03, qmail-scanner 1.16, and hbedv's <em>Antivir</em>. Incoming mail is
-accepted by tcpserver and handed off to qmail-scanner. Qmail-scanner runs the virus
-software (<em>antivir</em>) and hands the message to qmail. Qmail accepts local delivery
-on all domain-bound email. This email is delivered to <b>~alias/.qmail-default</b>.
-(This is a standard configuration for qmail).</p>
 
-<p><b>~alias/.qmail-default</b> pipes each email through Spambayes. The .qmail-default
-is set up as follows:<br />
+<p>SpamBayes is installed on our agency's smtp / MX gateway. This machine
+runs Redhat Linux 7.1, qmail 1.03, qmail-scanner 1.16, and hbedv's
+<em>Antivir</em>. Incoming mail is accepted by tcpserver and handed off to
+qmail-scanner. Qmail-scanner runs the virus software (<em>antivir</em>) and
+hands the message to qmail. Qmail accepts local delivery on all domain-bound
+email. This email is delivered to <b>~alias/.qmail-default</b>.  (This is a
+standard configuration for qmail).</p>
+
+<p><b>~alias/.qmail-default</b> pipes each email through Spambayes. The
+.qmail-default is set up as follows (note line wrapping):<br />
 
 <pre>
-| /usr/local/spambayes/hammiefilter.py -d /usr/local/spambayes/.hammiedb | qmail-remote MSServer.csrees.usda.gov "$SENDER" $DEFAULT@csrees.usda.gov
+| /usr/local/spambayes/hammiefilter.py \
+    -d /usr/local/spambayes/.hammiedb \
+| qmail-remote MSServer.csrees.usda.gov \
+    "$SENDER" $DEFAULT@csrees.usda.gov
 </pre>
 </p>
  
-<p>The permissions for the /usr/local/spambayes directory are set with the following command:<br />
-<pre>chown –R qmailq.qmail /usr/local/spambayes</pre>
+<p>The permissions for the /usr/local/spambayes directory are set with the
+following command:<br /> 
+<pre>chown -R qmailq.qmail /usr/local/spambayes</pre>
 </p> 
 
 <p>As shown above, there are two pipes. The first pipes it through Spambayes.
@@ -69,9 +80,10 @@ the email to our Exchange Server.</p>
 <p>Delivered emails are filtered on a per-user basis in Outlook by setting
 the Rules to detect the Spambayes tag in the message header. If the tag
 reads <b>Spambayes-Classification: spam</b> then the email is either deleted
-or placed in the user's Spam folder. If it reads <b>Spambayes-Classification: unsure</b>
-then it's placed in the user's Unsure folder. If it reads <b>Spambayes-Classification: ham</b>
-then nothing special is done – it is delivered to the user's Inbox as normal.</p>
+or placed in the user's Spam folder. If it reads
+<b>Spambayes-Classification: unsure</b> then it's placed in the user's
+Unsure folder. If it reads <b>Spambayes-Classification: ham</b> then nothing
+special is done - it is delivered to the user's Inbox as normal.</p>
  
 <p>The user is given the choice of whether to set up his rules or not.</p>
 
@@ -91,12 +103,19 @@ and placed into the appropriate directory.  When I'm ready to do a training
 (which I do once or twice a month), I run the following commands: <br />
 
 <ol>
-<li>I use a simple script to insert a blank From: line at the top of each email</li>
-<li>I use a simple script to remove the qmail-scanner header from the bottom of each email.</li>
+<li>I use a simple script to insert a blank From: line at the top of each
+email</li> 
+<li>I use a simple script to remove the qmail-scanner header from the bottom
+of each email.</li> 
 <li>uuencoded attachments are removed</li>
-<li><pre>cat /usr/local/spambayes/training/spamdir/* >> /usr/local/spambayes/training/spam</pre></li>
-<li><pre>cat /usr/local/spambayes/training/hamdir/* >> /usr/local/spambayes/training/ham </pre></li>
-<li><pre>/usr/local/spambayes/mboxtrain –d /usr/local/spambayes/.hammiedb –g /usr/local/spambayes/training/ham –s /usr/local/spambayes/training/spam</pre>
+<li><pre>cat /usr/local/spambayes/training/spamdir/* \
+    >> /usr/local/spambayes/training/spam</pre></li>
+<li><pre>cat /usr/local/spambayes/training/hamdir/* \
+    >> /usr/local/spambayes/training/ham </pre></li>
+<li><pre>/usr/local/spambayes/mboxtrain \
+    -d /usr/local/spambayes/.hammiedb \
+    -g /usr/local/spambayes/training/ham \
+    -s /usr/local/spambayes/training/spam</pre>
 (This last step can be run without shutting down qmail.)</li>
 </ol>
 </p>
@@ -127,8 +146,8 @@ in order to have 95% of their junk email not in their Inbox.</p>
 <p>Dave Abrahams has put together
 <a href="http://www.boost-consulting.com/writing/server-side.html">
 notes explaining how he set up server-side filtering with SpamBayes and
-an IMAP server</a>, using imapfilter.py (now sb_imapfilter.py) and
-hammiefilter.py (now sb_filter.py).</p>
+an IMAP server</a>, using <code>sb_imapfilter.py</code> and
+<code>sb_filter.py</code>.</p>
 
 <h2>An Alternate method of Server Mail filtering in Linux or Unix
 environments</h2>
@@ -157,9 +176,9 @@ has been installed on the clients. Of course the SpamBayes software is also
 installed on ther server.</p>
 
 <p>Mail is filtered by the server using a .procmailrc file in the user's
-directory that runs sb_filter.py. One further thing, which should be
-obvious, is that we have created MX records so that all mail addressed to a
-client is actually delivered to the server.</p>
+directory that runs <code>sb_filter.py</code>. One further thing, which
+should be obvious, is that we have created MX records so that all mail
+addressed to a client is actually delivered to the server.</p>
 
 <p>Training can easily be done with a simple script such as:</p>
 
@@ -167,7 +186,10 @@ client is actually delivered to the server.</p>
 #!/bin/bash
 #script: trainsb
 
-/usr/bin/sb_mboxtrain.py -d $HOME/.hammie.db -g  $HOME/Mail/$1 -s $HOME/Mail/$2
+/usr/bin/sb_mboxtrain.py \
+    -d $HOME/.hammie.db \
+    -g  $HOME/Mail/$1 \
+    -s $HOME/Mail/$2
 </pre>
 
 <p>used as follows: <pre>trainsb ham spam</pre></p>
