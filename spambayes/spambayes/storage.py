@@ -671,7 +671,8 @@ class _PersistentClassifier(classifier.Classifier, Persistent):
 
 class ZODBClassifier(object):
     def __init__(self, db_name):
-        self.db_name = db_name
+        self.db_filename = db_name
+        self.db_name = os.path.basename(db_name)
         self.closed = True
         self.load()
 
@@ -692,14 +693,15 @@ class ZODBClassifier(object):
     def create_storage(self):
         import ZODB
         from ZODB.FileStorage import FileStorage
-        self.storage = FileStorage(self.db_name)
+        self.storage = FileStorage(self.db_filename)
 
     def load(self):
         '''Load state from database'''
         import ZODB
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print >> sys.stderr, "Loading state from %s (%s) database" % \
+                  (self.db_filename, self.db_name)
 
         # If we are not closed, then we need to close first before we
         # reload.
@@ -710,6 +712,7 @@ class ZODBClassifier(object):
         self.db = ZODB.DB(self.storage)
         self.conn = self.db.open()
         root = self.conn.root()
+        
         self.classifier = root.get(self.db_name)
         if self.classifier is None:
             # There is no classifier, so create one.
