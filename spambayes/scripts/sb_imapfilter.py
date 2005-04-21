@@ -47,6 +47,8 @@ Warnings:
       from somewhere else, at least at first.
 """
 
+from __future__ import generators
+
 todo = """
     o IMAP supports authentication via other methods than the plain-text
       password method that we are using at the moment.  Neither of the
@@ -68,19 +70,65 @@ __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
 __credits__ = "All the SpamBayes folk. The original filter design owed " \
               "much to isbg by Roger Binns (http://www.rogerbinns.com/isbg)."
 
-from __future__ import generators
-
 try:
     True, False
 except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
-import socket
+# If we are running as a frozen application, then chances are that
+# output is just lost.  We'd rather log this, like sb_server and Oulook
+# log, so that the user can pull up the output if possible.  We could just
+# rely on the user piping the output appropriately, but would rather have
+# more control.  The sb_server tray application only does this if not
+# running in a console window, but we do it whenever we are frozen.
 import os
+import sys
+if hasattr(sys, "frozen"):
+    # We want to move to logging module later, so for now, we
+    # hack together a simple logging strategy.
+    try:
+        import win32api
+    except ImportError:
+        if sys.platform == "win32":
+            # Fall back to CWD, but warn user.
+            status = "Warning: your log is stored in the current " \
+                     "working directory.  We recommend installing " \
+                     "the pywin32 extensions, so that the log is " \
+                     "stored in the Windows temp directory."
+            temp_dir = os.getcwd()
+        else:
+            # Try for a /tmp directory.
+            if os.path.isdir("/tmp"):
+                temp_dir = "/tmp"
+                status = "Log file opened in /tmp"
+            else:
+                status = "Warning: your log is stored in the current " \
+                         "working directory.  If this does not suit you " \
+                         "please let the spambayes@python.org crowd know " \
+                         "so that an alternative can be arranged."
+    else:
+        temp_dir = win32api.GetTempPath()
+        status = "Log file opened in " + temp_dir
+    for i in range(3,0,-1):
+        try:
+            os.unlink(os.path.join(temp_dir, "SpamBayesIMAP%d.log" % (i+1)))
+        except os.error:
+            pass
+        try:
+            os.rename(
+                os.path.join(temp_dir, "SpamBayesIMAP%d.log" % i),
+                os.path.join(temp_dir, "SpamBayesIMAP%d.log" % (i+1))
+                )
+        except os.error:
+            pass
+    # Open this log, as unbuffered, so crashes still get written.
+    sys.stdout = open(os.path.join(temp_dir,"SpamBayesIMAP1.log"), "wt", 0)
+    sys.stderr = sys.stdout
+
+import socket
 import re
 import time
-import sys
 import getopt
 import types
 import thread
