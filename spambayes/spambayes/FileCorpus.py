@@ -147,12 +147,13 @@ filter'''
 class FileMessage(object):
     '''Message that persists as a file system artifact.'''
 
-    def __init__(self, file_name=None, directory=None):
+    def __init__(self, file_name=None, directory=None,
+                 message_database=None):
         '''Constructor(message file name, corpus directory name)'''
         self.file_name = file_name
         self.directory = directory
         self.loaded = False
-        self._msg = message.SBHeaderMessage()
+        self._msg = message.SBHeaderMessage(message_info_db=message_database)
 
     def __getattr__(self, att):
         """Pretend we are a subclass of message.SBHeaderMessage."""
@@ -297,6 +298,10 @@ class FileMessage(object):
 class MessageFactory(Corpus.MessageFactory):
     # Subclass must define a concrete message klass.
     klass = None
+    def __init__(self, message_database=None):
+        self.message_database = message_database
+        Corpus.MessageFactory.__init__(self)
+        
     def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
         if content:
@@ -306,7 +311,7 @@ class MessageFactory(Corpus.MessageFactory):
             msg.directory = directory
             msg.loaded = True
             return msg
-        return self.klass(key, directory)
+        return self.klass(key, directory, self.message_database)
     
 
 class FileMessageFactory(MessageFactory):

@@ -252,11 +252,6 @@ class ExpiryCorpus:
 
 class MessageFactory:
     '''Abstract Message Factory'''
-
-    def __init__(self):
-        '''Constructor()'''
-        pass
-
     def create(self, key, content=None):
         '''Create a message instance'''
         raise NotImplementedError

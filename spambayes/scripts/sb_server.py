@@ -888,9 +888,9 @@ class State:
             uc = get_pathname_option("Storage", "unknown_cache")
             map(storage.ensureDir, [sc, hc, uc])
             if self.gzipCache:
-                factory = GzipFileMessageFactory()
+                factory = GzipFileMessageFactory(self.mdb)
             else:
-                factory = FileMessageFactory()
+                factory = FileMessageFactory(self.mdb)
             age = options["Storage", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
                                                '[0123456789\-]*',
