@@ -4,6 +4,7 @@ import cPickle
 import os
 import sys
 import errno
+import types
 import shutil
 import traceback
 import operator
@@ -395,7 +396,7 @@ class BayesManager:
                 value = value.decode(filesystem_encoding)
             except AttributeError: # May already be Unicode
                 pass
-            assert type(value) == type(u''), "%r should be a unicode" % value
+            assert isinstance(value, types.UnicodeType), "%r should be a unicode" % value
             try:
                 if not os.path.isdir(value):
                     os.makedirs(value)
@@ -940,12 +941,11 @@ class BayesManager:
         # And start a new timer.
         delay = self.config.notification.notify_accumulate_delay
         self._DoStartNotifyTimer(delay)
-        pass
         
     def _DoStartNotifyTimer(self, delay):
         assert thread.get_ident() == self.owner_thread_ident
         assert self.notify_timer_id is None, "Shouldn't start a timer when already have one"
-        assert type(delay)==type(0.0), "Timer values are float seconds"
+        assert isinstance(delay, types.FloatType), "Timer values are float seconds"
         # And start a new timer.
         assert delay, "No delay means no timer!"
         delay = int(delay*1000) # convert to ms.

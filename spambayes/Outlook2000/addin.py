@@ -1,5 +1,6 @@
 # SpamBayes Outlook Addin
 import sys, os
+import types
 import warnings
 import traceback
 import _winreg
@@ -288,7 +289,8 @@ class HamFolderItemsEvent(_BaseItemsEvent):
         # Don't allow insane values for the timer.
         if use_timer:
             too = None
-            if type(start_delay) != type(0.0) or type(interval) != type(0.0):
+            if not isinstance(start_delay, types.FloatType) or \
+               not isinstance(interval, types.FloatType):
                 print "*" * 50
                 print "Timer values are garbage!", repr(start_delay), repr(interval)
                 use_timer = False
@@ -320,7 +322,7 @@ class HamFolderItemsEvent(_BaseItemsEvent):
     def _DoStartTimer(self, delay):
         assert thread.get_ident() == self.owner_thread_ident
         assert self.timer_id is None, "Shouldn't start a timer when already have one"
-        assert type(delay)==type(0.0), "Timer values are float seconds"
+        assert isinstance(delay, types.FloatType), "Timer values are float seconds"
         # And start a new timer.
         assert delay, "No delay means no timer!"
         delay = int(delay*1000) # convert to ms.
