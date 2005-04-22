@@ -64,6 +64,7 @@ except NameError:
 
 import os
 import sys
+import types
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
 import cPickle as pickle
@@ -619,6 +620,18 @@ class CDBClassifier(classifier.Classifier):
         wi.spamcount = int(spam)
         return wi
 
+    # Stolen from sb_dbexpimp.py
+    # Heaven only knows what encoding non-ASCII stuff will be in
+    # Try a few common western encodings and punt if they all fail
+    def uunquote(self, s):
+        for encoding in ("utf-8", "cp1252", "iso-8859-1"):
+            try:
+                return unicode(s, encoding)
+            except UnicodeDecodeError:
+                pass
+        # punt
+        return s
+
     def load(self):
         if os.path.exists(self.db_name):
             db = open(self.db_name, "rb")
@@ -626,7 +639,8 @@ class CDBClassifier(classifier.Classifier):
             db.close()
             self.nham, self.nspam = [int(i) for i in \
                                      data[self.statekey].split(',')]
-            self.wordinfo = dict([(k, self._WordInfoFactory(v)) \
+            self.wordinfo = dict([(self.uunquote(k),
+                                   self._WordInfoFactory(v)) \
                                   for k, v in data.iteritems() \
                                       if k != self.statekey])
             if options["globals", "verbose"]:
@@ -644,6 +658,8 @@ class CDBClassifier(classifier.Classifier):
     def store(self):
         items = [(self.statekey, "%d,%d" % (self.nham, self.nspam))]
         for word, wi in self.wordinfo.iteritems():
+            if isinstance(word, types.UnicodeType):
+                word = word.encode("utf-8")
             items.append((word, "%d,%d" % (wi.hamcount, wi.spamcount)))
         db = open(self.db_name, "wb")
         cdb.cdb_make(db, items)
