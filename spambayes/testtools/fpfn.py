@@ -1,8 +1,31 @@
 #! /usr/bin/env python
-"""Extract false positive and false negative filenames from timcv.py output."""
+"""Extract false positive and false negative filenames from timcv.py output.
 
-import sys
+Usage: %(program)s [options] cv_output(s)
+
+Where:
+    -h
+        Show usage and exit.
+    -i
+        Prompt for each message, letting the user correct classification
+        mistakes, or remove email.
+    -u
+        Also print unsures.
+    -o section:option:value
+        set [section, option] in the options database to value
+        Requires spambayes package on the PYTHONPATH.
+"""
+
+try:
+    True, False
+except NameError:
+    # Maintain compatibility with Python 2.2
+    True, False = 1, 0
+
+import os
 import re
+import sys
+import getopt
 
 def cmpf(a, b):
     # Sort function that sorts by numerical value
@@ -15,8 +38,38 @@ def cmpf(a, b):
     else:
         return cmp(a, b)
 
+program = sys.argv[0]
+
+def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
+    if msg:
+        print >> sys.stderr, msg
+        print >> sys.stderr
+    print >> sys.stderr, __doc__ % globals()
+    sys.exit(code)
+
 def main():
-    for name in sys.argv[1:]:
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hiuo:', [])
+    except getopt.error, msg:
+        usage(1, msg)
+
+    interactive = False
+    do_unsures = False
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-i':
+            interactive = True
+        elif opt == '-u':
+            do_unsures = True
+        elif opt in ('-o', '--option'):
+            # Do the import here, so that it is only necessary to have
+            # spambayes on the PYTHONPATH if this is used.
+            from spambayes.Options import options
+            options.set_from_cmdline(arg, sys.stderr)
+
+    for name in args:
         try:
             f = open(name + ".txt")
         except IOError:
@@ -24,19 +77,72 @@ def main():
         print "===", name, "==="
         fp = []
         fn = []
+        unsures = []
         for line in f:
             if line.startswith('    new fp: '):
                 fp.extend(eval(line[12:]))
             elif line.startswith('    new fn: '):
                 fn.extend(eval(line[12:]))
+            elif line.startswith'    new unsure: '):
+                fn.extend(eval(line[16:]))
         fp.sort(cmpf)
         fn.sort(cmpf)
+        unsures.sort(cmpf)
         print "--- fp ---"
         for x in fp:
-            print x
+            if interactive and os.path.exists(x):
+                print open(x).read()
+                answer = raw_input('(S)pam, (R)emove or (L)eave : ').lower()
+                if answer == 's':
+                    os.rename(x, os.path.join("Data", "Spam",
+                                              "reservoir", x))
+                elif answer == 'r':
+                    os.remove(x)
+                elif answer == 'l':
+                    pass
+                else:
+                    print "Unknown answer. Left."
+            else:
+                print x
         print "--- fn ---"
         for x in fn:
-            print x
+            if interactive and os.path.exists(x):
+                print open(x).read()
+                answer = raw_input('(H)am, (R)emove or (L)eave : ').lower()
+                if answer == 'h':
+                    os.rename(x, os.path.join("Data", "Ham",
+                                              "reservoir", x))
+                elif answer == 'r':
+                    os.remove(x)
+                elif answer == 'l':
+                    pass
+                else:
+                    print "Unknown answer. Left."
+            else:
+                print x
+        if do_unsures:
+            print "--- unsure ---"
+            for x in unsures:
+                if interactive and os.path.exists(x):
+                    print open(x).read()
+                    print x
+                    answer = raw_input('(H)am, (S)pam, (R)emove or (L)eave : ').lower()
+                    # One of these will move from a set to the reservoir,
+                    # but not change ham/spam, depending on what it was.
+                    if answer == 'h':
+                        os.rename(x, os.path.join("Data", "Ham",
+                                                  "reservoir", x))
+                    elif answer == 's':
+                        os.rename(x, os.path.join("Data", "Sam",
+                                                  "reservoir", x))
+                    elif answer == 'r':
+                        os.remove(x)
+                    elif answer == 'l':
+                        pass
+                    else:
+                        print "Unknown answer. Left."
+                else:
+                    print x
 
 if __name__ == '__main__':
     main()
