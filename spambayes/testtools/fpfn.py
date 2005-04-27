@@ -94,8 +94,8 @@ def main():
                 print open(x).read()
                 answer = raw_input('(S)pam, (R)emove or (L)eave : ').lower()
                 if answer == 's':
-                    os.rename(x, os.path.join("Data", "Spam",
-                                              "reservoir", x))
+                    os.rename(x, os.path.join("Data", "Spam", "reservoir",
+                                              os.path.basename(x)))
                 elif answer == 'r':
                     os.remove(x)
                 elif answer == 'l':
@@ -110,8 +110,8 @@ def main():
                 print open(x).read()
                 answer = raw_input('(H)am, (R)emove or (L)eave : ').lower()
                 if answer == 'h':
-                    os.rename(x, os.path.join("Data", "Ham",
-                                              "reservoir", x))
+                    os.rename(x, os.path.join("Data", "Ham", "reservoir",
+                                              os.path.basename(x)))
                 elif answer == 'r':
                     os.remove(x)
                 elif answer == 'l':
@@ -130,11 +130,11 @@ def main():
                     # One of these will move from a set to the reservoir,
                     # but not change ham/spam, depending on what it was.
                     if answer == 'h':
-                        os.rename(x, os.path.join("Data", "Ham",
-                                                  "reservoir", x))
+                        os.rename(x, os.path.join("Data", "Ham", "reservoir",
+                                                  os.path.basename(x)))
                     elif answer == 's':
-                        os.rename(x, os.path.join("Data", "Sam",
-                                                  "reservoir", x))
+                        os.rename(x, os.path.join("Data", "Spam", "reservoir",
+                                                  os.path.basename(x)))
                     elif answer == 'r':
                         os.remove(x)
                     elif answer == 'l':
