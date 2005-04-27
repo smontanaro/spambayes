@@ -84,7 +84,7 @@ def main():
             elif line.startswith('    new fn: '):
                 fn.extend(eval(line[12:]))
             elif line.startswith('    new unsure: '):
-                fn.extend(eval(line[16:]))
+                unsures.extend(eval(line[16:]))
         fp.sort(cmpf)
         fn.sort(cmpf)
         unsures.sort(cmpf)
