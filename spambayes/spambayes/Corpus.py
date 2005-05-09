@@ -250,7 +250,7 @@ class ExpiryCorpus:
                 self.removeMessage(msg, observer_flags=NO_TRAINING_FLAG)
 
 
-class MessageFactory:
+class MessageFactory(object):
     '''Abstract Message Factory'''
     def create(self, key, content=None):
         '''Create a message instance'''
