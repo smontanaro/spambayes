@@ -147,7 +147,7 @@ from spambayes import message
 from spambayes.Options import options, get_pathname_option, optionsPathname
 from spambayes import tokenizer, storage, message, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
-from spambayes.ImapUI import IMAPUserInterface
+from spambayes.ImapUI import IMAPUserInterface, LoginFailure
 from spambayes.Version import get_current_version
 
 from imaplib import IMAP4
@@ -169,6 +169,7 @@ class BadIMAPResponseError(Exception):
     def __str__(self):
         return "The command '%s' failed to give an OK response.\n%s" % \
                (self.command, self.response)
+
 
 class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
@@ -244,17 +245,20 @@ class IMAPSession(BaseIMAP):
     def login(self, username, pwd):
         """Log in to the IMAP server, catching invalid username/password."""
         assert self.connected, "Must be connected before logging in."
+        if 'AUTH=CRAM-MD5' in self.capabilities:
+            login_func = self.login_cram_md5
+            args = (username, pwd)
+            description = "MD5"
+        else:
+            login_func = BaseIMAP.login # superclass login
+            args = (self, username, pwd)
+            description = "plain-text"
         try:
-            if 'AUTH=CRAM-MD5' in self.capabilities:
-                self.login_cram_md5(username, pwd)
-            else:
-                BaseIMAP.login(self, username, pwd)  # superclass login
+            login_func(*args)
         except BaseIMAP.error, e:
-            msg = "There was an error logging in to the IMAP server." \
-                  " The username (%s) and/or password may " \
-                  "be incorrect." % (username,)
-            print msg
-            sys.exit()
+            msg = "The username (%s) and/or password (sent in %s) may " \
+                  "be incorrect." % (username, description)
+            raise LoginFailure(msg)
         self.logged_in = True
 
     def logout(self):
@@ -1219,8 +1223,12 @@ def run(force_UI=False):
                     for fn in (fn1, fn2):
                         if os.path.exists(fn):
                             options.merge_file(fn)
-                            
-                    imap.login(username, password)
+
+                    try:                    
+                        imap.login(username, password)
+                    except LoginFailure, e:
+                        print str(e)
+                        continue
                     imap_filter.imap_server = imap
 
                     if doTrain:

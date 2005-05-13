@@ -108,6 +108,19 @@ adv_map = (
     ('globals',               'language'),
 )
 
+
+# This is here because we need to refer to it here, and in sb_imapfilter.
+# I suppose it really belongs somewhere else, where both can refer to it,
+# but there isn't any such place, and creating it just for this is rather
+# pointless.
+class LoginFailure(Exception):
+    """Login to the IMAP server failed."""
+    def __init__(self, details):
+        self.details = details
+    def __str__(self):
+        return "Login failure: %s" % (self.details,)
+
+
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
     def __init__(self, cls, imaps, pwds, imap_session_class,
@@ -181,6 +194,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
             if imap and imap.logged_in:
                 available_folders.extend(imap.folder_list())
 
+        if not available_folders:
+            content = self._buildBox(_("Error"), None,
+                                     _("No folders available"))
+            self.write(content)
+            self._writePostamble()
+            return
+
         content = self.html.configForm.clone()
         content.configFormContent = ""
         content.introduction = _("This page allows you to change " \
@@ -201,7 +221,9 @@ class IMAPUserInterface(UserInterface.UserInterface):
         new_imaps = []
         for i in xrange(len(self.imaps)):
             imap = self.imaps[i]
-            new_imaps.append(self._login_to_imap_server(imap, i))
+            imap_logged_in = self._login_to_imap_server(imap, i)
+            if imap_logged_in:
+                new_imaps.append(imap_logged_in)
         self.imaps = new_imaps
             
     def _login_to_imap_server(self, imap, i):
@@ -214,7 +236,6 @@ class IMAPUserInterface(UserInterface.UserInterface):
                 content = self._buildBox(_("Error"), None,
                                          _("Please check server/port details."))
                 self.write(content)
-                self._writePostamble()
                 return None
             if server.find(':') > -1:
                 server, port = server.split(':', 1)
@@ -230,14 +251,12 @@ class IMAPUserInterface(UserInterface.UserInterface):
                 content = self._buildBox(_("Error"), None,
                                          _("Please check server/port details."))
                 self.write(content)
-                self._writePostamble()
                 return None
         usernames = options["imap", "username"]
         if not usernames:
             content = self._buildBox(_("Error"), None,
                                      _("Must specify username first."))
             self.write(content)
-            self._writePostamble()
             return None
         if not self.imap_pwds:
             self.imap_pwd = options["imap", "password"]
@@ -245,7 +264,6 @@ class IMAPUserInterface(UserInterface.UserInterface):
             content = self._buildBox(_("Error"), None,
                                      _("Must specify password first."))
             self.write(content)
-            self._writePostamble()
             return None
         try:
             imap.login(usernames[i], self.imap_pwds[i])
@@ -253,7 +271,10 @@ class IMAPUserInterface(UserInterface.UserInterface):
             content = self._buildBox(_("Error"), None,
                                      _("Please check username/password details."))
             self.write(content)
-            self._writePostamble()
+            return None
+        except LoginFailure, e:
+            content = self._buildBox(_("Error"), None, str(e))
+            self.write(content)
             return None
         return imap
 
@@ -264,6 +285,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
         for imap in self.imaps:
             if imap and imap.logged_in:
                 available_folders.extend(imap.folder_list())
+
+        if not available_folders:
+            content = self._buildBox(_("Error"), None,
+                                     _("No folders available"))
+            self.write(content)
+            self._writePostamble()
+            return
 
         content = self.html.configForm.clone()
         content.configFormContent = ""
