@@ -1190,7 +1190,7 @@ def run(force_UI=False):
     if doClassify or doTrain:
         imaps = []
         for server, port, username, password in servers_data:
-            imaps.append((IMAPSession(server, port, imapDebug, doExpunge),
+            imaps.append(((server, port, imapDebug, doExpunge),
                           username, password))
 
         # In order to make working with multiple servers easier, we
@@ -1205,7 +1205,8 @@ def run(force_UI=False):
         # XXX via the web interface?  We need to handle that, really.
         options.set_restore_point()
         while True:
-            for imap, username, password in imaps:
+            for (server, port, imapDebug, doExpunge), username, password in imaps:
+                imap = IMAPSession(server, port, imapDebug, doExpunge)
                 if options["globals", "verbose"]:
                     print "Account: %s:%s" % (imap.server, imap.port)
                 if imap.connected:
