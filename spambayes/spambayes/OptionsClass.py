@@ -97,6 +97,21 @@ except NameError:
     def bool(val):
         return not not val
 
+try:
+    import textwrap
+    raise ImportError
+except ImportError:
+    # textwrap was added in 2.3
+    # We only use this for printing out errors and docstrings, so
+    # it doesn't need to be great (if you want it great, get a more
+    # recent Python!).  So we do it the dumb way; the textwrap code
+    # could be duplicated here if anyone cared.
+    def wrap(s):
+        length = 10
+        return [s[i:i+length].strip() for i in xrange(0, len(s), length)]
+else:
+    wrap = textwrap.wrap
+
 __all__ = ['OptionsClass',
            'HEADER_NAME', 'HEADER_VALUE',
            'INTEGER', 'REAL', 'BOOLEAN',
@@ -653,11 +668,32 @@ class OptionsClass(object):
         '''Set an option.'''
         if self.conversion_table.has_key((sect, opt.lower())):
             sect, opt = self.conversion_table[sect, opt.lower()]
+            
+        # Annoyingly, we have a special case.  The notate_to and
+        # notate_subject allowed values have to be set to the same
+        # values as the header_x_ options, but this can't be done
+        # (AFAIK) dynmaically. If this isn't the case, then if the
+        # header_x_string values are changed, the notate_ options don't
+        # work.  Outlook Express users like both of these options...so
+        # we fix it here. See also sf #944109.
+        # This code was originally in Options.py, after loading in the
+        # options.  But that doesn't work, because if we are setting
+        # both in a config file, we need it done immediately.
+        # We now need the hack here, *and* in UserInterface.py
+        # For the moment, this will do.  Use a real mail client, for
+        # goodness sake!
+        if sect == "Headers" and opt in ("notate_to", "notate_subject"):
+            header_strings = (self.get("Headers", "header_ham_string"),
+                              self.get("Headers",
+                                       "header_spam_string"),
+                              self.get("Headers",
+                                       "header_unsure_string"))
+            return val in header_strings
         if self.is_valid(sect, opt, val):
             self._options[sect, opt.lower()].set(val)
         else:
-            print >> sys.stderr, ("Attempted to set [%s] %s with invalid"
-                                  " value %s (%s)" %
+            print >> sys.stderr, ("Attempted to set [%s] %s with "
+                                  "invalid value %s (%s)" %
                                   (sect, opt.lower(), val, type(val)))
 
     def set_from_cmdline(self, arg, stream=None):
@@ -684,7 +720,6 @@ class OptionsClass(object):
             (opt, sect))
 
     def _report_option_error(self, sect, opt, val, stream, msg):
-        import textwrap
         if sect in self.sections():
             vopts = self.options(True)
             vopts = [v.split(']', 1)[1] for v in vopts
@@ -693,7 +728,7 @@ class OptionsClass(object):
                 print >> stream, "Invalid option:", opt
                 print >> stream, "Valid options for", sect, "are:"
                 vopts = ', '.join(vopts)
-                vopts = textwrap.wrap(vopts)
+                vopts = wrap(vopts)
                 for line in vopts:
                     print >> stream, '  ', line
             else:
@@ -702,7 +737,7 @@ class OptionsClass(object):
             print >> stream, "Invalid section:", sect
             print >> stream, "Valid sections are:"
             vsects = ', '.join(self.sections())
-            vsects = textwrap.wrap(vsects)
+            vsects = wrap(vsects)
             for line in vsects:
                 print >> stream, '  ', line
 
@@ -741,7 +776,6 @@ class OptionsClass(object):
 
     def display(self, add_comments=False):
         '''Display options in a config file form.'''
-        import textwrap
         output = StringIO.StringIO()
         keys = self._options.keys()
         keys.sort()
@@ -759,7 +793,7 @@ class OptionsClass(object):
                 if not doc:
                     doc = "No information available, sorry."
                 doc = re.sub(r"\s+", " ", doc)
-                output.write("\n# %s\n" % ("\n# ".join(textwrap.wrap(doc)),))
+                output.write("\n# %s\n" % ("\n# ".join(wrap(doc)),))
             self._options[sect, opt].write_config(output)
         return output.getvalue()
 
