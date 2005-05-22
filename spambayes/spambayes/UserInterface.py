@@ -721,8 +721,22 @@ class UserInterface(BaseUserInterface):
                 continue
             html_key = sect + '_' + opt
 
+            # Annoyingly, we have a special case.  The notate_to and
+            # notate_subject allowed values have to be set to the same
+            # values as the header_x_ options. See also sf #944109.
+            # This code was originally in Options.py, after loading in the
+            # options.  But that doesn't work, because if we are setting
+            # both in a config file, we need it done immediately.
+            # We now need the hack here, *and* in OptionsClass.py
+            if sect == "Headers" and opt in ("notate_to", "notate_subject"):
+                valid_input = (options["Headers", "header_ham_string"],
+                               options["Headers", "header_spam_string"],
+                               options["Headers", "header_unsure_string"])
+            else:
+                valid_input = options.valid_input(sect, opt)
+
             # Populate the rows with the details and add them to the table.
-            if type(options.valid_input(sect, opt)) in types.StringTypes:
+            if isinstance(valid_input, types.StringTypes):
                 # we provide a text input
                 newConfigRow1 = configTextRow1.clone()
                 newConfigRow1.label = options.display_name(sect, opt)
@@ -735,7 +749,7 @@ class UserInterface(BaseUserInterface):
                 blankOption = newConfigRow1.input.clone()
                 firstOpt = True
                 i = 0
-                for val in options.valid_input(sect, opt):
+                for val in valid_input:
                     newOption = blankOption.clone()
                     if options.multiple_values_allowed(sect, opt):
                         if val in options[sect, opt]:
@@ -885,6 +899,21 @@ class UserInterface(BaseUserInterface):
             if opt is None:
                 nice_section_name = sect
                 continue
+
+            # Annoyingly, we have a special case.  The notate_to and
+            # notate_subject allowed values have to be set to the same
+            # values as the header_x_ options. See also sf #944109.
+            # This code was originally in Options.py, after loading in the
+            # options.  But that doesn't work, because if we are setting
+            # both in a config file, we need it done immediately.
+            # We now need the hack here, *and* in OptionsClass.py
+            if sect == "Headers" and opt in ("notate_to", "notate_subject"):
+                valid_input = (options["Headers", "header_ham_string"],
+                               options["Headers", "header_spam_string"],
+                               options["Headers", "header_unsure_string"])
+            else:
+                valid_input = options.valid_input(sect, opt)
+
             html_key = sect + '_' + opt
             if not parms.has_key(html_key):
                 # This is a set of checkboxes where none are selected
@@ -907,9 +936,9 @@ class UserInterface(BaseUserInterface):
                 errmsg += _('<li>\'%s\' is not a value valid for [%s] %s') % \
                           (entered_value, nice_section_name,
                            options.display_name(sect, opt))
-                if type(options.valid_input(sect, opt)) == type((0,1)):
+                if isinstance(valid_input, types.TupleType):
                     errmsg += _('. Valid values are: ')
-                    for valid in options.valid_input(sect, opt):
+                    for valid in valid_input:
                         errmsg += str(valid) + ','
                     errmsg = errmsg[:-1] # cut last ','
                 errmsg += '</li>'
