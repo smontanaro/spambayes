@@ -433,7 +433,7 @@ defaults = {
      assigning certainty (0 or 1) to a word that has appeared in only ham
      or only spam.  This is a disaster.
 
-     As unknown_word_strength tends toward infintity, all probabilities
+     As unknown_word_strength tends toward infinity, all probabilities
      tend toward unknown_word_prob.  All reports were that a value near 0.4
      worked best, so this does not seem to be corpus-dependent."""),
      REAL, RESTORE),
@@ -1225,20 +1225,6 @@ def load_options():
                     # If the file exists, then load it.
                     if os.path.exists(optionsPathname):
                         options.merge_file(optionsPathname)
-
-    # Annoyingly, we have a special case.  The notate_to and notate_subject
-    # allowed values have to be set to the same values as the header_x_
-    # options, but this can't be done (AFAIK) dynmaically. If this isn't
-    # the case, then if the header_x_string values are changed, the
-    # notate_ options don't work.  Outlook Express users like both of
-    # these options...so we fix it here.  See also sf #944109.
-    header_strings = (options["Headers", "header_ham_string"],
-                      options["Headers", "header_spam_string"],
-                      options["Headers", "header_unsure_string"])
-    notate_to = options.get_option("Headers", "notate_to")
-    notate_subject = options.get_option("Headers", "notate_subject")
-    notate_to.allowed_values = header_strings
-    notate_subject.allowed_values = header_strings
 
 
 def get_pathname_option(section, option):
