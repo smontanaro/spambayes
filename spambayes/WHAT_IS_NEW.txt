@@ -12,7 +12,7 @@ noted in the "Incompatible changes and Transitioning" section.
 Note that this is an alpha release, intended for those willing to try out
 very cutting edge software.  It is likely that there are a few unresolved
 bugs with this release.  If you would rather wait for a more stable release
-to have the new features here, please continue to use 1.0.2 until 1.1 final
+to have the new features here, please continue to use 1.0.4 until 1.1 final
 is released.
 
 New in 1.1 Alpha 1
@@ -59,8 +59,8 @@ Outlook Plugin
  o The Manager dialog is enlarged (at least 800x600 resolution is needed
    to view it - 640x480 users will need to continue with 1.0.2) and
    enhanced to (among other things) include a new "Statistics" tab.
- o Enhance the "Show Clues" message.  This now includes information about
-   the last time the message was trained or classified.
+ o The "Show Clues" message is enchanced.  This now includes information
+   about the last time the message was trained or classified.
  o For messages received from a local Exchange server, which have no
    Internet headers, we now generate more (and better) headers from the
    available message properties.
@@ -70,7 +70,10 @@ Outlook Plugin
  o Enable movement/copying of ham (good) messages, like the existing
    functionality for unsure/spam messages.
  o The "Delete As Spam" button is now simply "Spam", and the
-   "Recover From Spam" button simply "Not Spam".
+   "Recover From Spam" button simply "Not Spam".  The behaviour of
+   the buttons has not changed.  You may need to recreate the toolbar
+   to see these changes (right click on the toolbar, click Customize,
+   select SpamBayes, click Delete, then restart Outlook).
  o Notification sounds can now be set, via the Manager dialog.
  o The SpamBayes menu now includes an "Empty Spam Folder" option.
  o Outlook users can now use a variety of different underlying database
@@ -90,6 +93,12 @@ POP3 Proxy (sb_server.py)
  o A particular type of malformed message (one with no header-body
    separator) would pass through SpamBayes without classification, or
    a X-Spambayes-Exception header.  This is no longer the case.
+ o If you run sb_server as a Windows service messages are now logged
+   to the Windows Event log rather than to SpamBayes log files.
+ o Installation of the Windows service for sb_server has been improved,
+   and a better data directory is now used (if a configuration file
+   does not already exist, then a "SpamBayesData" directory in the
+   directory of the application is used).
 
 Web interface (sb_server.py and sb_imapfilter.py)
 -------------------------------------------------
@@ -98,6 +107,9 @@ Web interface (sb_server.py and sb_imapfilter.py)
    specified date and time.
  o A new option "Use bigrams" is available from the Advanced Configuration
    page.
+ o Messages that are uploaded (from the "Upload" box on the main page,
+   or via sb_upload.py) are now properly added to the cache directories,
+   and _pop3proxyham.mbox and pop3proxy_spam.mbox are no longer created.
  o Various minor fixes and improvements.
 
 IMAP Filter (sb_imapfilter.py)
@@ -117,6 +129,8 @@ IMAP Filter (sb_imapfilter.py)
    server.name.ini or .spambayes_server_name_rc), where you can change
    the folders to filter, the thresholds, or any other options (this
    currently does not include the database names).
+ o AUTH CRAM-MD5 authentication is now supported, in addition to plaintext
+   AUTH Login.
  o Many minor fixes and improvements.
 
 sb_pop3dnd.py
@@ -145,7 +159,7 @@ Other
 -----
  o The sb_upload.py script's help string has been improved, and the
    -n (--null) command line option now works.  The script is now also
-   to train as well as upload.
+   able to train as well as upload.
  o The tte.py script has had many improvements, including Python 2.3
    compatibility, addition of a --ratio flag, deletion of correctly
    scoring messages, an improved scoring algorithm, and improved
@@ -158,7 +172,8 @@ Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
   1078923, 1022848, 831864, 922063, 1051081, 903905, 1036601, 790757,
-  944109, 959937, 943852, 941639, 986353, 990700, 933473, 981970, 1071319
+  944109, 959937, 943852, 941639, 986353, 990700, 933473, 981970, 1071319,
+  1166146, 1175439
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -167,17 +182,25 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Feature Requests Added
 ======================
-No feature requests tracked via the Sourceforge system were added for this
-release.
+The following feature requests tracked via the Sourceforge system were added
+in this release:
 870524, 940547, 715248, 938992, 1039057, 909088, 887984, 753708, 848365,
 1144670, 1122067
+
+A URL containing the details of these bugs can be made by appending the
+bug number to this URL:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&aid=
 
 
 Patches integrated
 ===================
-No patches tracked via the Sourceforge system were integrated for this
-release.
-1052816, 962693, 831941, 858925, 800671
+The following patches tracked via the Sourceforge system were integrated for
+this release:
+1052816, 962693, 831941, 858925, 800671, 1169939
+
+A URL containing the details of these bugs can be made by appending the
+bug number to this URL:
+http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&aid=
 
 
 Deprecated Options
