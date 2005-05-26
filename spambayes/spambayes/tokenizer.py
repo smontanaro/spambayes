@@ -621,7 +621,7 @@ def textparts(msg):
 def octetparts(msg):
     """Return a set of all msg parts with type 'application/octet-stream'."""
     return Set(filter(lambda part:
-                      part.get_type() == 'application/octet-stream',
+                      part.get_content_type() == 'application/octet-stream',
                       msg.walk()))
 
 has_highbit_char = re.compile(r"[\x80-\xff]").search
