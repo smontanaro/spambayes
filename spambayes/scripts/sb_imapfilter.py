@@ -304,6 +304,7 @@ class IMAPSession(BaseIMAP):
                 # a list of all the deleted messages which we don't do
                 # anything with).
                 self.close()
+                self.current_folder = None
 
             if folder == "":
                 # This is Python bug #845560 - if the empty string is
