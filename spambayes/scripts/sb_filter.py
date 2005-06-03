@@ -150,7 +150,7 @@ class HammieFilter(object):
         options.merge_files(['/etc/hammierc',
                             os.path.expanduser('~/.hammierc')])
         self.dbname, self.usedb = storage.database_type([])
-        self.h = None
+        self.mode = self.h = None
 
     def open(self, mode):
         if self.h is None or self.mode != mode:
@@ -171,7 +171,6 @@ class HammieFilter(object):
     def newdb(self):
         self.open('n')
         self.close()
-        print >> sys.stderr, "Created new database in", self.dbname
 
     def filter(self, msg):
         self.open('r')
@@ -230,9 +229,11 @@ def main():
             create_newdb = True
     h.dbname, h.usedb = storage.database_type(opts)
 
-    if create_newdb:
+    if create_newdb or not os.path.exists(h.dbname):
         h.newdb()
-        sys.exit(0)
+        print >> sys.stderr, "Created new database in", h.dbname
+        if create_newdb:
+            sys.exit(0)
 
     if actions == []:
         actions = [h.filter]
