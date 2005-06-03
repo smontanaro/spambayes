@@ -125,7 +125,7 @@ class MessageInfoBase(object):
         return len(self.db)
 
     def get_statistics_start_date(self):
-        if STATS_START_KEY in self.db:
+        if self.db.has_key(STATS_START_KEY):
             return self.db[STATS_START_KEY]
         else:
             return None
