@@ -686,7 +686,7 @@ class FolderSelector(FolderSelector_Parent):
         format = "iii"
         buf = win32gui.PyMakeBuffer(struct.calcsize(format), lparam)
         hwndFrom, id, code = struct.unpack(format, buf)
-        code += 0x4f0000 # hrm - wtf - commctrl uses this, and it works with mfc.  *sigh*
+        code += commctrl.PY_0U # work around silly old pywin32 bug
         id_name = self._GetIDName(id)
         if id_name == "IDC_LIST_FOLDERS":
             if code == commctrl.NM_CLICK:
