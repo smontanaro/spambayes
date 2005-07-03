@@ -675,8 +675,11 @@ class IMAPMessage(message.SBHeaderMessage):
                           (None, msg_time),
                           (flags, Time2Internaldate(time.time())),
                           (None, Time2Internaldate(time.time()))]:
-            response = self.imap_server.append(self.folder.name, flgs, tme,
-                                               self.as_string())
+            try:
+                response = self.imap_server.append(self.folder.name, flgs, tme,
+                                                   self.as_string())
+            except BaseIMAP.error:
+                continue
             try:
                 self.imap_server.check_response("", response)
             except BadIMAPResponseError:
