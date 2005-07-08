@@ -272,8 +272,10 @@ class IMAPSession(BaseIMAP):
             for fol in ["spam_folder",
                         "unsure_folder",
                         "ham_folder"]:
-                self.select(options["imap", fol])
-                self.expunge()
+                folder_name = options["imap", fol]
+                if folder_name:
+                    self.select(folder_name)
+                    self.expunge()
             # Expunge messages from the ham and spam training folders.
             for fol_list in ["ham_train_folders",
                              "spam_train_folders",]:
