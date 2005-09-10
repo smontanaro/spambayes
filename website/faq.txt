@@ -296,6 +296,9 @@ X-Spambayes-Classification), sb_server must add the classification to the
 "To:" line, or the "Subject" line.  The configuration page has options that
 let you do this.
 
+You can find detailed instructions about how to do this, step by step
+in `this FAQ question`_.
+
 Once you've set up sb_server, you also need to create rules (like any other
 rules) in Outlook Express, to take the appropriate action on mail based on
 its classification (move spam to a spam folder, for example).  You do this
@@ -314,6 +317,7 @@ but they're still quite easy to use/setup, and they use the same core, so
 the results will be the same.  We are working on an alternative that should
 move us towards the Outlook simplicity.
 
+.. _this FAQ question: #how-do-i-set-up-spambayes-and-outlook-express
 
 What clients will SpamBayes work with in general?
 -------------------------------------------------
@@ -1258,26 +1262,50 @@ How do I set up SpamBayes and Outlook Express?
 
 1.  Download the latest version of SpamBayes from `the download page`_.
 2.  Run the installer - you want "sb_server", not the Outlook plug-in.
-3.  Open the SpamBayes configuration page at http://localhost:8880/config (you can do this via the tray application, or just type that address into your browser).
-4.  Enter your POP3 server's name in the top box ("Remote Servers").
-5.  Enter "110" (no quotes) in the second box ("SpamBayes ports").
-6.  Tick the "unsure" and "spam" boxes in the "Notate to" option, about halfway down the page.
-7.  Click the "Save configuration" button at the end of the page.
-8.  Open Outlook Express.
-9.  From the "Tools" menu, choose "Accounts".
-10.  Select your mail account and click "Properties".
-11.  Click the "Servers" tab.
-12.  Change the "incoming mail server" from the name of your POP3 server to "localhost" (no quotes).
-13.  Click "OK".
-14.  Click "Close".
+3.  Open Outlook Express.
+4.  From the "Tools" menu, choose "Accounts".
+5.  Select your mail account and click "Properties".
+6.  Click the "Servers" tab.
+7.  Make a note of what you currently have in the "incoming mail server" entry (the name of your POP3 server).
+8.  Change the "incoming mail server" from the name of your POP3 server to "localhost" (no quotes).
+9.  Click "OK".
+10.  Click "Close".
+11.  Open the SpamBayes configuration page at http://localhost:8880/config (you can do this via the tray application, or just type that address into your browser).
+12.  Enter your POP3 server's name in the top box ("Remote Servers").  This is what you wrote down in step 7.
+13.  Enter "110" (no quotes) in the second box ("SpamBayes ports").
+14.  Tick the "unsure" and "spam" boxes in the "Notate to" option, about halfway down the page.
+15.  Click the "Save configuration" button at the end of the page.
 
 Everything should now be setup.  Try doing a send/receive - mail should
 arrive as normal, but any mail that SpamBayes is unsure about will have
-'unsure,' (1.0.x) or 'unsure@spambayes.invalid' (1.1) in the recipient list, and
-any mail that SpamBayes thinks is spam will have 'spam,' (1.0.x) or
-'spam@spambayes.invalid' (1.1) in the recipient list.  You can use Outlook Express's
-Rules Wizard to create rules that automatically move these messages to
-other folders.
+'unsure,' (1.0.x) or 'unsure@spambayes.invalid' (1.1.x) in the recipient
+list, and any mail that SpamBayes thinks is spam will have 'spam,' (1.0.x)
+or 'spam@spambayes.invalid' (1.1.x) in the recipient list.  You can use
+Outlook Express's Rules Wizard to create rules that automatically move
+these messages to other folders, for example:
+
+1.  Create two new folders in Outlook Express, one called "Possible Junk" and one called "Junk Mail".
+2.  Do Tools->Message Rules->Mail.
+3.  Click "New" to create a new rule (I think that if there are no existing rules it will do this for you).
+4.  Click "Where the To line contains people" in the top box, and "Move it to the specified folder" in the second box.
+5.  Click the blue "contains people" in the third box and type "unsure" (no quotes), then click "Add", then click "Ok".
+6.  Click the blue "specified folder" in the third box and find and select the "Possible Junk" folder that you made in step 1, then click "Ok".
+7.  In the fourth box, name the rule "SpamBayes unsure"
+8.  Repeat steps 3 through 8, but type "spam" rather than "unsure", choose the "Junk Mail" folder, and name the rule "SpamBayes spam"
+9.  Click Ok.
+
+Mail will now be split between your Inbox, the Possible Junk folder, and
+the Junk Mail folder, depending on how it was classified.  You do training
+by double-clicking the envelope icon and filling out the review page that
+opens.
+
+Note that there is a flaw in this method: if you get mail from someone who
+has "unsure" or "spam" in their email address, those messages will also be
+moved.  (The problem comes about because Outlook Express is so limited in
+the filtering it can do).  There is a way to workaround this, so ask
+`the mailing list`_ if it's a problem.  When the final 1.1 release is made,
+it will avoid this problem (instead of just "unsure", it adds
+"unsure@spambayes.invalid").
 
 If you have any more queries, please look through the rest of this FAQ,
 and if you can't find the answer, ask `the mailing list`_.
@@ -1380,7 +1408,7 @@ any false positives (this is a small amount of traffic, after all).
 We don't require all posters to be subscribers because this is hard on
 one-time posters, who probably start three-quarters of all threads,
 and account for about half the messages.  These people often want help
-with setting up SpamBayes, and are sometimes not particularly confortable
+with setting up SpamBayes, and are sometimes not particularly comfortable
 with computers, so the fewer loops to jump through to get help, the
 better.  It would also defeat the "submit bug report" ability of
 sb_server (which ensures that we get enough information), which is also
