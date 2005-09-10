@@ -7,13 +7,18 @@ Author: SpamBayes
 <p>SpamBayes 1.0.4 is now available!  (This includes both the source
 archives and a Windows binary installer).</p>
 <p>See the <a href="download.html">download</a> page for more.</p>
+<p>SpamBayes 1.1a1 is also now available!  (This includes both the source
+archives and a Windows binary installers).  This is an <em>alpha</em>
+release, so you should only try it if you are willing to try out
+experimental releases - otherwise stick with 1.0.4.</p>
 <p>You may also like to see what <a href="quotes.html">other people have
 been saying about us in the press and elsewhere</a>.</p>
 
 <h2>What is SpamBayes?</h2>
 <p>
 The SpamBayes 
-project is working on developing a <a href="docs.html#glossary">Bayesian</a> 
+project is working on developing a statistical (commonly, although a little
+inaccurately, referred to as <a href="docs.html#glossary">Bayesian</a>)
 anti-spam filter, initially based on the work of 
 <a href="http://www.paulgraham.com/spam.html">Paul Graham.</a>
 
@@ -27,7 +32,7 @@ yielded a more useful response.
 This is documented on the <a href="background.html">background</a> page.
 </p>
 
-<p> SpamBayes is not a single application.  The core code is a message
+<p>SpamBayes is not a single application.  The core code is a message
 classifier, however there are several applications available as part of the
 SpamBayes project which use the classifier in specific contexts.  For the
 most part, the current crop of applications all operate on the client side
@@ -136,8 +141,8 @@ those messages where it can't work out how to rate the message.</p>
 background.</p>
 
 
-<p>The code is currently available from a variety of methods from the
-<a href="download.html">downloads</a> page.
+<p>The code (implemented in Python) is currently available from a variety
+of methods from the <a href="download.html">downloads</a> page.
 </p>
 
 <p>

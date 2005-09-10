@@ -10,7 +10,7 @@ and for <a href="#non-outlook">all other mail clients</a>
 <h2>Outlook 2000/2002(XP)/2003</h2>
 
 <h3>Latest Release</h3>
-<p>The latest release is <b>1.0.4</b> - see the 
+<p>The latest stable release is <b>1.0.4</b> - see the 
 <a href="https://sourceforge.net/project/shownotes.php?release_id=314901">release notes</a>
 or <a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">download the installation program</a>.
 </p>
@@ -84,3 +84,7 @@ the <a
 href="http://sourceforge.net/project/showfiles.php?group_id=61702">SpamBayes
 source</a>, then setup the <a
 href="applications.html#imap">IMAP filter</a>) for your mail server.
+
+<p>The 1.1 release (see the <a href="download.html">download page</a>) includes
+a binary version of sb_imapfilter.  Although this is still currently in alpha,
+you might like to try it out.</p>
