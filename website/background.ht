@@ -205,10 +205,8 @@ people got caught out by training on current spam, and old ham. The system
 very quickly picked up that anything with a 'Date:' field with a year of
 2001 was ham. If you can't get ham and spam from the same source, make sure
 the tokenizer isn't going to pick up on the non-clues.
-<li>"mistake-based training" - where you only train on messages that the
-system got wrong - results in the system taking a lot longer to get really
-good at what it does. You're better off feeding it the things it gets
-right, as well as the things it gets wrong.
+<li>There is <a href="http://entrian.com/sbwiki/TrainingIdeas">much more
+discussion about training on the wiki</a>.
 </ul>
 </p>
 
