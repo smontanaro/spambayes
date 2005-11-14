@@ -924,13 +924,13 @@ defaults = {
      including wildcard and regular expression searching."""),
      BOOLEAN, RESTORE),
 
-    ("default_ham_action", _("Default training for ham"), _("ham"),
+    ("default_ham_action", _("Default training for ham"), _("discard"),
      _("""When presented with the review list in the web interface,
      which button would you like checked by default when the message
      is classified as ham?"""),
      (_("ham"), _("spam"), _("discard"), _("defer")), RESTORE),
 
-    ("default_spam_action", _("Default training for spam"), _("spam"),
+    ("default_spam_action", _("Default training for spam"), _("discard"),
      _("""When presented with the review list in the web interface,
      which button would you like checked by default when the message
      is classified as spam?"""),
