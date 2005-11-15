@@ -233,6 +233,12 @@ class Context:
     def __init__(self, asyncMap=asyncore.socket_map):
         self._HTTPPort = None  # Stores the port for `run(launchBrowser=True)`
         self._map = asyncMap
+    def pop(self, key):
+        return self._map.pop(key)
+    def keys(self):
+        return self._map.keys()
+    def __len__(self):
+        return len(self._map)
 
 _defaultContext = Context()
 
