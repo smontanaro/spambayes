@@ -137,7 +137,7 @@ class Corpus:
         '''Remove a Message from this corpus'''
         key = message.key()
         if options["globals", "verbose"]:
-            print 'removing message %s from corpus' % (key)
+            print 'removing message %s from corpus' % (key,)
         self.unCacheMessage(key)
         del self.msgs[key]
 
@@ -152,7 +152,7 @@ class Corpus:
         key = message.key()
 
         if options["globals", "verbose"]:
-            print 'placing %s in corpus cache' % (key)
+            print 'placing %s in corpus cache' % (key,)
 
         self.msgs[key] = message
 
@@ -169,7 +169,7 @@ class Corpus:
         # This method should probably not be overridden
 
         if options["globals", "verbose"]:
-            print 'Flushing %s from corpus cache' % (key)
+            print 'Flushing %s from corpus cache' % (key,)
 
         try:
             ki = self.keysInMemory.index(key)
@@ -184,6 +184,8 @@ class Corpus:
         '''Move a Message from another corpus to this corpus'''
         msg = fromcorpus[key]
         msg.load() # ensure that the substance has been loaded
+        # Remove needs to be first, because add changes the directory
+        # of the message, and so remove won't work then.
         fromcorpus.removeMessage(msg)
         self.addMessage(msg)
 
@@ -195,7 +197,10 @@ class Corpus:
 
     def __getitem__(self, key):
         '''Corpus is a dictionary'''
-        amsg = self.msgs.get(key)
+        amsg = self.msgs.get(key, "")
+
+        if amsg == "":
+            raise KeyError(key)
 
         if amsg is None:
             amsg = self.makeMessage(key)     # lazy init, saves memory
@@ -207,13 +212,13 @@ class Corpus:
         '''Message keys in the Corpus'''
         return self.msgs.keys()
 
+    def __contains__(self, other):
+        return other in self.msgs
+
     def __iter__(self):
         '''Corpus is iterable'''
         for key in self.keys():
-            try:
-                yield self[key]
-            except KeyError:
-                pass
+            yield self[key]
 
     def __str__(self):
         '''Instance as a printable string'''
@@ -236,18 +241,31 @@ class ExpiryCorpus:
     '''Mixin Class - Corpus of "young" file system artifacts'''
 
     def __init__(self, expireBefore):
-        '''Constructor'''
         self.expireBefore = expireBefore
+        # Only check for expiry after this time.
+        self.expiry_due = time.time()
 
     def removeExpiredMessages(self):
         '''Kill expired messages'''
+        
+        # Only check for expired messages after this time.  We set this to the
+        # closest-to-expiry message's expiry time, so that this method can be
+        # called very regularly, and most of the time it will just immediately
+        # return.
+        if time.time() < self.expiry_due:
+            return
 
-        for msg in self:
-            if msg.createTimestamp() < time.time() - self.expireBefore:
+        self.expiry_due = time.time() + self.expireBefore
+        for key in self.keys()[:]:
+            msg = self[key]
+            timestamp = msg.createTimestamp()
+            if timestamp < time.time() - self.expireBefore:
                 if options["globals", "verbose"]:
-                    print 'message %s has expired' % (msg.key())
+                    print 'message %s has expired' % (msg.key(),)
                 from spambayes.storage import NO_TRAINING_FLAG
                 self.removeMessage(msg, observer_flags=NO_TRAINING_FLAG)
+            elif timestamp + self.expireBefore < self.expiry_due:
+                self.expiry_due = timestamp + self.expireBefore
 
 
 class MessageFactory(object):
