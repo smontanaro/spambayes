@@ -64,6 +64,7 @@ except NameError:
 
 import os
 import sys
+import time
 import types
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
@@ -676,7 +677,10 @@ class CDBClassifier(classifier.Classifier):
 try:
     from persistent import Persistent
 except ImportError:
-    Persistent = object
+    try:
+        from ZODB import Persistent
+    except ImportError:
+        Persistent = object
 class _PersistentClassifier(classifier.Classifier, Persistent):
     def __init__(self):
         import ZODB
@@ -686,6 +690,9 @@ class _PersistentClassifier(classifier.Classifier, Persistent):
         self.wordinfo = OOBTree()
 
 class ZODBClassifier(object):
+    # Allow subclasses to override classifier class.
+    ClassifierClass = _PersistentClassifier
+
     def __init__(self, db_name):
         self.db_filename = db_name
         self.db_name = os.path.basename(db_name)
@@ -701,7 +708,7 @@ class ZODBClassifier(object):
 
     def __setattr__(self, att, value):
         # For some attributes, we change the classifier instead.
-        if att in ["nham", "nspam"]:
+        if att in ("nham", "nspam") and hasattr(self, "classifier"):
             setattr(self.classifier, att, value)
         else:
             object.__setattr__(self, att, value)
@@ -728,31 +735,45 @@ class ZODBClassifier(object):
         self.db = ZODB.DB(self.storage)
         self.conn = self.db.open()
         root = self.conn.root()
-        
+
         self.classifier = root.get(self.db_name)
         if self.classifier is None:
             # There is no classifier, so create one.
             if options["globals", "verbose"]:
                 print >> sys.stderr, self.db_name, 'is a new ZODB'
-            self.classifier = root[self.db_name] = _PersistentClassifier()
+            self.classifier = root[self.db_name] = self.ClassifierClass()
         else:
             if options["globals", "verbose"]:
                 print >> sys.stderr, '%s is an existing ZODB, with %d ' \
                       'ham and %d spam' % (self.db_name, self.nham,
                                            self.nspam)
         self.closed = False
-        
+
     def store(self):
         '''Place state into persistent store'''
-        import ZODB
-        import transaction
+        try:
+            import ZODB
+            import ZODB.Transaction
+        except ImportError:
+            import transaction
+            commit = transaction.commit
+        else:
+            commit = ZODB.Transaction.get_transaction().commit
+        from ZODB.POSException import ConflictError            
 
         assert self.closed == False, "Can't store a closed database"
 
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Persisting', self.db_name, 'state in database'
 
-        transaction.commit()
+        try:
+            commit()
+        except ConflictError:
+            # We'll save it next time, or on close.  It'll be lost if we
+            # hard-crash, but that's unlikely, and not a particularly big
+            # deal.
+            if options["globals", "verbose"]:
+                print >> sys.stderr, "Conflict on commit", self.db_name
 
     def close(self):
         # Ensure that the db is saved before closing.  Alternatively, we
@@ -764,7 +785,20 @@ class ZODBClassifier(object):
 
         # Do the closing.        
         self.db.close()
+
+        # We don't make any use of the 'undo' capabilities of the
+        # FileStorage at the moment, so might as well pack the database
+        # each time it is closed, to save as much disk space as possible.
+        # Pack it up to where it was 'yesterday'.
+        # XXX What is the 'referencesf' parameter for pack()?  It doesn't
+        # XXX seem to do anything according to the source.
+        if hasattr(self.storage, "pack"):
+            self.storage.pack(time.time()-60*60*24, None)
         self.storage.close()
+
+        # Ensure that we cannot continue to use this classifier.
+        delattr(self, "classifier")
+
         self.closed = True
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Closed', self.db_name, 'database'
@@ -811,10 +845,8 @@ class Trainer:
 
     def onAddMessage(self, message, flags=0):
         '''A message is being added to an observed corpus.'''
-        # There are no flags that we currently care about, so
-        # get rid of the variable so that PyChecker doesn't bother us.
-        del flags
-        self.train(message)
+        if not (flags & NO_TRAINING_FLAG):
+            self.train(message)
 
     def train(self, message):
         '''Train the database with the message'''
