@@ -5,7 +5,9 @@
 Classes:
     Message - an email.Message.Message, extended with spambayes methods
     SBHeaderMessage - A Message with spambayes header manipulations
-    MessageInfoDB - persistent state storage for Message
+    MessageInfoDB - persistent state storage for Message, using dbm
+    MessageInfoZODB - persistent state storage for Message, using ZODB
+    MessageInfoPickle - persistent state storage for Message, using pickle
 
 Abstract:
 
@@ -118,7 +120,7 @@ PERSISTENT_SPAM_STRING = 's'
 PERSISTENT_UNSURE_STRING = 'u'
 
 class MessageInfoBase(object):
-    def __init__(self, db_name):
+    def __init__(self, db_name=None):
         self.db_name = db_name
 
     def __len__(self):
@@ -134,16 +136,24 @@ class MessageInfoBase(object):
         self.db[STATS_START_KEY] = date
         self.store()
 
+    def __getstate__(self):
+        return self.db
+
+    def __setstate__(self, state):
+        self.db = state
+
     def load_msg(self, msg):
         if self.db is not None:
+            key = msg.getDBKey()
+            assert key is not None, "None is not a valid key."
             try:
                 try:
-                    attributes = self.db[msg.getDBKey()]
+                    attributes = self.db[key]
                 except pickle.UnpicklingError:
                     # The old-style Outlook message info db didn't use
                     # shelve, so get it straight from the dbm.
                     if hasattr(self, "dbm"):
-                        attributes = self.dbm[msg.getDBKey()]
+                        attributes = self.dbm[key]
                     else:
                         raise
             except KeyError:
@@ -178,7 +188,9 @@ class MessageInfoBase(object):
             attributes = []
             for att in msg.stored_attributes:
                 attributes.append((att, getattr(msg, att)))
-            self.db[msg.getDBKey()] = attributes
+            key = msg.getDBKey()
+            assert key is not None, "None is not a valid key."
+            self.db[key] = attributes
             self.store()
 
     def remove_msg(self, msg):
@@ -246,6 +258,32 @@ class MessageInfoDB(MessageInfoBase):
         if self.db is not None:
             self.db.sync()
 
+# If ZODB isn't available, then this class won't be useable, but we
+# still need to be able to import this module.  So we pretend that all
+# is ok.
+try:
+    from persistent import Persistent
+except ImportError:
+    Persistent = object
+class _PersistentMessageInfo(MessageInfoBase, Persistent):
+    def __init__(self):
+        import ZODB
+        from BTrees.OOBTree import OOBTree
+
+        MessageInfoBase.__init__(self)
+        self.db = OOBTree()
+
+class MessageInfoZODB(storage.ZODBClassifier):
+    ClassifierClass = _PersistentMessageInfo
+    def __init__(self, db_name):
+        self.nham = self.nspam = 0 # Only used for debugging prints
+        storage.ZODBClassifier.__init__(self, db_name)
+        self.classifier.store = self.store
+    def __setattr__(self, att, value):
+        # Override ZODBClassifier.__setattr__
+        object.__setattr__(self, att, value)
+
+
 # values are classifier class, True if it accepts a mode
 # arg, and True if the argument is a pathname
 _storage_types = {"dbm" : (MessageInfoDB, True, True),
@@ -253,7 +291,7 @@ _storage_types = {"dbm" : (MessageInfoDB, True, True),
 ##                  "pgsql" : (MessageInfoPG, False, False),
 ##                  "mysql" : (MessageInfoMySQL, False, False),
 ##                  "cdb" : (MessageInfoCDB, False, True),
-##                  "zodb" : (MessageInfoZODB, False, True),
+                  "zodb" : (MessageInfoZODB, False, True),
 ##                  "zeo" : (MessageInfoZEO, False, False),
                   }
 
@@ -279,19 +317,14 @@ def database_type():
     return nm, typ
 
 
-class Message(email.Message.Message):
+class Message(object, email.Message.Message):
     '''An email.Message.Message extended for SpamBayes'''
 
-    def __init__(self, id=None, message_info_db=None):
+    def __init__(self, id=None):
         email.Message.Message.__init__(self)
 
         # persistent state
         # (non-persistent state includes all of email.Message.Message state)
-        if message_info_db is not None:
-            self.message_info_db = message_info_db
-        else:
-            nm, typ = database_type()
-            self.message_info_db = open_storage(nm, typ)
         self.stored_attributes = ['c', 't', 'date_modified', ]
         self.getDBKey = self.getId
         self.id = None
@@ -301,6 +334,30 @@ class Message(email.Message.Message):
 
         if id is not None:
             self.setId(id)
+
+    # This whole message info database thing is a real mess.  It really
+    # ought to be a property of the Message class, not each instance.
+    # So we want to access it via classmethods.  However, we have treated
+    # it as a regular attribute, so need to make it a property.  To make
+    # a classmethod property, we have to jump through some hoops, which we
+    # deserver for not doing it right in the first place.
+    _message_info_db = None
+    def _get_class_message_info_db(klass):
+        # If, the first time we access the attribute, it hasn't been
+        # set, then we load up the default one.
+        if klass._message_info_db is None:
+            nm, typ = database_type()
+            klass._message_info_db = open_storage(nm, typ)
+        return klass._message_info_db
+    _get_class_message_info_db = classmethod(_get_class_message_info_db)
+    def _set_class_message_info_db(klass, value):
+        klass._message_info_db = value
+    _set_class_message_info_db = classmethod(_set_class_message_info_db)
+    def _get_message_info_db(self):
+        return self._get_class_message_info_db()
+    def _set_message_info_db(self, value):
+        self._set_class_message_info_db(value)
+    message_info_db = property(_get_message_info_db, _set_message_info_db)
 
     # This function (and it's hackishness) can be avoided by using
     # email.message_from_string(text, _class=SBHeaderMessage)
@@ -331,7 +388,7 @@ class Message(email.Message.Message):
 
     def setId(self, id):
         if self.id and self.id != id:
-            raise ValueError, "MsgId has already been set, cannot be changed"
+            raise ValueError, "MsgId has already been set, cannot be changed" + `self.id` + `id`
 
         if id is None:
             raise ValueError, "MsgId must not be None"
@@ -439,10 +496,7 @@ class SBHeaderMessage(Message):
 
         return self.id
 
-    def addSBHeaders(self, prob, clues):
-        """Add hammie header, and remember message's classification.  Also,
-        add optional headers if needed."""
-
+    def setDisposition(self, prob):
         if prob < options['Categorization','ham_cutoff']:
             disposition = options['Headers','header_ham_string']
         elif prob > options['Categorization','spam_cutoff']:
@@ -450,6 +504,12 @@ class SBHeaderMessage(Message):
         else:
             disposition = options['Headers','header_unsure_string']
         self.RememberClassification(disposition)
+
+    def addSBHeaders(self, prob, clues):
+        """Add hammie header, and remember message's classification.  Also,
+        add optional headers if needed."""
+        self.setDisposition(prob)
+        disposition = self.GetClassification()
         self[options['Headers','classification_header_name']] = disposition
 
         if options['Headers','include_score']:
@@ -478,7 +538,10 @@ class SBHeaderMessage(Message):
                     if isinstance(word, types.UnicodeType):
                         word = email.Header.Header(word,
                                                    charset='utf-8').encode()
-                    evd.append("%r: %.2f" % (word, score))
+                    try:
+                        evd.append("%r: %.2f" % (word, score))
+                    except TypeError:
+                        evd.append("%r: %s" % (word, score))
 
             # Line-wrap this header, because it can get very long.  We don't
             # use email.Header.Header because that can explode with unencoded
@@ -645,4 +708,4 @@ def insert_exception_header(string_msg, msg_id=None):
     if msg_id:
         headers += "%s: %s\r\n" % \
                    (options["Headers", "mailid_header_name"], msg_id)
-    return (headers + body, details)
+    return (headers + '\r\n' + body, details)
