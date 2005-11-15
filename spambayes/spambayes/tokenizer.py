@@ -1223,6 +1223,14 @@ class Tokenizer:
                     "%d %b %Y %H:%M %Z")
 
     def __init__(self):
+        self.setup()
+
+    def setup(self):
+        """Get the tokenizer ready to use; this should be called after
+        all options have been set."""
+        # We put this here, rather than in __init__, so that this can be
+        # done after we set options at runtime (since the tokenizer
+        # instance is generally created when this module is imported).
         if options["Tokenizer", "basic_header_tokenize"]:
             self.basic_skip = [re.compile(s)
                                for s in options["Tokenizer",
@@ -1608,4 +1616,5 @@ class Tokenizer:
                     for t in tokenize_word(w):
                         yield t
 
-tokenize = Tokenizer().tokenize
+global_tokenizer = Tokenizer()
+tokenize = global_tokenizer.tokenize
