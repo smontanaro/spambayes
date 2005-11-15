@@ -87,7 +87,7 @@ filter'''
         msg = self.factory.create(key, self.directory, content)
         return msg
 
-    def addMessage(self, message):
+    def addMessage(self, message, observer_flags=0):
         '''Add a Message to this corpus'''
         if not fnmatch.fnmatch(message.key(), self.filter):
             raise ValueError
@@ -99,7 +99,7 @@ filter'''
         message.store()
         # superclass processing *MUST* be done
         # perform superclass processing *LAST!*
-        Corpus.Corpus.addMessage(self, message)
+        Corpus.Corpus.addMessage(self, message, observer_flags)
 
     def removeMessage(self, message, observer_flags=0):
         '''Remove a Message from this corpus'''
@@ -147,13 +147,13 @@ filter'''
 class FileMessage(object):
     '''Message that persists as a file system artifact.'''
 
-    def __init__(self, file_name=None, directory=None,
-                 message_database=None):
+    message_class = message.SBHeaderMessage
+    def __init__(self, file_name=None, directory=None):
         '''Constructor(message file name, corpus directory name)'''
         self.file_name = file_name
         self.directory = directory
         self.loaded = False
-        self._msg = message.SBHeaderMessage(message_info_db=message_database)
+        self._msg = self.message_class()
 
     def __getattr__(self, att):
         """Pretend we are a subclass of message.SBHeaderMessage."""
@@ -210,7 +210,7 @@ class FileMessage(object):
         fp = gzip.open(pn, 'rb')
         try:
             self._msg = email.message_from_string(\
-                fp.read(), _class = message.SBHeaderMessage)
+                fp.read(), _class = self.message_class)
         except IOError, e:
             if str(e) == 'Not a gzipped file':
                 # We've probably got both gzipped messages and
@@ -218,8 +218,11 @@ class FileMessage(object):
                 fp.close()
                 fp = open(self.pathname(), 'rb')
                 self._msg = email.message_from_string(\
-                    fp.read(), _class = message.SBHeaderMessage)
+                    fp.read(), _class = self.message_class)
                 fp.close()
+            else:
+                # Don't shadow other errors.
+                raise
         else:
             fp.close()
         self.loaded = True
@@ -298,10 +301,6 @@ class FileMessage(object):
 class MessageFactory(Corpus.MessageFactory):
     # Subclass must define a concrete message klass.
     klass = None
-    def __init__(self, message_database=None):
-        self.message_database = message_database
-        Corpus.MessageFactory.__init__(self)
-        
     def create(self, key, directory, content=None):
         '''Create a message object from a filename in a directory'''
         if content:
@@ -311,7 +310,7 @@ class MessageFactory(Corpus.MessageFactory):
             msg.directory = directory
             msg.loaded = True
             return msg
-        return self.klass(key, directory, self.message_database)
+        return self.klass(key, directory)
     
 
 class FileMessageFactory(MessageFactory):
