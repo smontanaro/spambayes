@@ -688,7 +688,7 @@ class OptionsClass(object):
                                        "header_spam_string"),
                               self.get("Headers",
                                        "header_unsure_string"))
-            return val in header_strings
+            return val in header_strings or not val
         if self.is_valid(sect, opt, val):
             self._options[sect, opt.lower()].set(val)
         else:
