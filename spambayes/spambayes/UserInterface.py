@@ -83,7 +83,6 @@ import StringIO
 import oe_mailbox
 
 import PyMeldLite
-import Version
 import Dibbler
 import tokenizer
 from spambayes import Stats
@@ -139,7 +138,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         self.lang_manager = lang_manager
         htmlSource, self._images = self.readUIResources()
         self.html = PyMeldLite.Meld(htmlSource, readonly=True)
-        self.app_for_version = None
+        self.app_for_version = "SpamBayes"
 
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
