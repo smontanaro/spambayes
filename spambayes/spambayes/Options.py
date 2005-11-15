@@ -733,12 +733,12 @@ defaults = {
      As it interferes with replying, you may only wish to do this for
      spam messages; simply tick the boxes of the classifications take
      should be identified in this fashion."""),
-     (_("ham"), _("spam"), _("unsure")), RESTORE),
+     ((), _("ham"), _("spam"), _("unsure")), RESTORE),
 
     ("notate_subject", _("Classify in subject: header"), (),
      _("""This option will add the same information as 'Notate To',
      but to the start of the mail subject line."""),
-     (_("ham"), _("spam"), _("unsure")), RESTORE),
+     ((), _("ham"), _("spam"), _("unsure")), RESTORE),
   ),
 
   # pop3proxy settings: The only mandatory option is pop3proxy_servers, eg.
@@ -781,7 +781,7 @@ defaults = {
      IP_LIST, RESTORE),
 
     ("retrieval_timeout", _("Retrieval timeout"), 30,
-     _("""When proxying mesasges, time out after this length of time if
+     _("""When proxying messages, time out after this length of time if
      all the headers have been received.  The rest of the mesasge will
      proxy straight through.  Some clients have a short timeout period,
      and will give up on waiting for the message if this is too long.
@@ -869,6 +869,54 @@ defaults = {
      SMTP proxy they must enable this option (but as messages are altered,
      may not get the best results, and this is not recommended)."""),
      BOOLEAN, RESTORE),
+  ),
+
+  # imap4proxy settings: The only mandatory option is imap4proxy_servers, eg.
+  # "imap4.my-isp.com:143", or a comma-separated list of those.  The ":143"
+  # is optional.  If you specify more than one server in imap4proxy_servers,
+  # you must specify the same number of ports in imap4proxy_ports.
+  "imap4proxy" : (
+    ("remote_servers", _("Remote Servers"), (),
+     _("""The SpamBayes IMAP4 proxy intercepts incoming email and classifies
+     it before sending it on to your email client.  You need to specify
+     which IMAP4 server(s) you wish it to intercept - a IMAP4 server
+     address typically looks like "mail.myisp.net".  If you use more than
+     one server, simply separate their names with commas.  You can get
+     these server names from your existing email configuration, or from
+     your ISP or system administrator.  If you are using Web-based email,
+     you can't use the SpamBayes IMAP4 proxy (sorry!).  In your email
+     client's configuration, where you would normally put your IMAP4 server
+     address, you should now put the address of the machine running
+     SpamBayes."""),
+     SERVER, DO_NOT_RESTORE),
+
+    ("listen_ports", _("SpamBayes Ports"), (),
+     _("""Each IMAP4 server that is being monitored must be assigned to a
+     'port' in the SpamBayes IMAP4 proxy.  This port must be different for
+     each monitored server, and there must be a port for each monitored
+     server.  Again, you need to configure your email client to use this
+     port.  If there are multiple servers, you must specify the same number
+     of ports as servers, separated by commas. If you don't know what to
+     use here, and you only have one server, try 143, or if that doesn't
+     work, try 8143."""),
+     SERVER, DO_NOT_RESTORE),
+
+    ("allow_remote_connections", _("Allowed remote IMAP4 connections"), "localhost",
+     _("""Enter a list of trusted IPs, separated by commas. Remote IMAP
+     connections from any of them will be allowed. You can trust any
+     IP using a single '*' as field value. You can also trust ranges of
+     IPs using the '*' character as a wildcard (for instance 192.168.0.*).
+     The localhost IP will always be trusted. Type 'localhost' in the
+     field to trust this only address."""),
+     IP_LIST, RESTORE),
+
+    ("use_ssl", "Connect via a secure socket layer", False,
+     """Use SSL to connect to the server. This allows spambayes to connect
+     without sending data in plain text.
+
+     Note that this does not check the server certificate at this point in
+     time.""",
+     (False, True, "automatic"), DO_NOT_RESTORE),
   ),
 
   "html_ui" : (
