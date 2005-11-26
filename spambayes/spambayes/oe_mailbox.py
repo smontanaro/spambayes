@@ -212,7 +212,7 @@ class dbxTree:
         if dbxAddress > 0:
             self.__readValues(dbxStream, 0, dbxAddress, 0, dbxValues)
 
-    def __readValues(self, dbxStream, dbxParent, dbxAddress, dbxPosition, dbxValues):
+    def __readValues(self, dbxStream, unused, dbxAddress, dbxPosition, unused2):
         dbxStream.seek(dbxAddress)
         dbxBuffer = dbxStream.read(dbxTree.TREE_NODE_SIZE)
 
@@ -322,7 +322,7 @@ class dbxIndexedInfo:
 
     def getIndexDataType(self, dbxIndex):
         """Returns the data type of the given index."""
-        return DT_NONE
+        return self.DT_NONE
 
     def getValue(self, dbxIndex):
         """Returns a tuple : (index in buffer of the info, length of the info)."""
