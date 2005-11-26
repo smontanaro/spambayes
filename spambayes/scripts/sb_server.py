@@ -143,9 +143,11 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
     can't connect to the real POP3 server and talk to it
     synchronously, because that would block the process."""
 
-    def __init__(self, serverName, serverPort, lineCallback, ssl=False):
-        Dibbler.BrighterAsyncChat.__init__(self)
+    def __init__(self, serverName, serverPort, lineCallback, ssl=False,
+                 map=None):
+        Dibbler.BrighterAsyncChat.__init__(self, map=map)
         self.lineCallback = lineCallback
+        self.handled_exception = False
         self.request = ''
         self.set_terminator('\r\n')
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -200,6 +202,13 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
     def send_ssl(self, data):
         return self.ssl_socket.write(data)
 
+    def handle_expt(self):
+        # Python 2.4's system of continuously pumping error messages
+        # is stupid.  Print an error once, and then ignore.
+        if not self.handled_exception:
+            print >> sys.stderr, "Unhandled exception in ServerLineReader"
+            self.handled_exception = True
+
     def recv_ssl(self, buffer_size):
         try:
             data = self.ssl_socket.read(buffer_size)
@@ -230,7 +239,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
         self.lineCallback('')
         self.close()
         try:
-            del self.ssl_socket, self.socket
+            del self.ssl_socket
         except AttributeError:
             pass
 
@@ -248,7 +257,8 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
     server).
     """
 
-    def __init__(self, clientSocket, serverName, serverPort, ssl=False):
+    def __init__(self, clientSocket, serverName, serverPort,
+                 ssl=False, map=Dibbler._defaultContext._map):
         Dibbler.BrighterAsyncChat.__init__(self, clientSocket)
         self.request = ''
         self.response = ''
@@ -267,7 +277,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
             return
 
         self.serverSocket = ServerLineReader(serverName, serverPort,
-                                             self.onServerLine, ssl)
+                                             self.onServerLine, ssl, map)
 
     def onIncomingConnection(self, clientSocket):
         """Checks the security settings."""
@@ -529,7 +539,7 @@ class BayesProxy(POP3ProxyBase):
     def onRetr(self, command, args, response):
         """Adds the judgement header based on the raw headers and body
         of the message."""
-        # Previous, we used '\n\r?\n' to detect the end of the headers in
+        # Previously, we used '\n\r?\n' to detect the end of the headers in
         # case of broken emails that don't use the proper line separators,
         # and if we couldn't find it, then we assumed that the response was
         # and error response and passed it unfiltered.  However, if the
@@ -652,9 +662,9 @@ class BayesProxy(POP3ProxyBase):
 # Implementations of a mutex or other resource which can prevent
 # multiple servers starting at once.  Platform specific as no reasonable
 # cross-platform solution exists (however, an old trick is to use a
-# directory for a mutex, as a "create/test" atomic API generally exists.
+# directory for a mutex, as a "create/test" atomic API generally exists).
 # Will return a handle to be later closed, or may throw AlreadyRunningException
-def open_platform_mutex():
+def open_platform_mutex(mutex_name="SpamBayesServer"):
     if sys.platform.startswith("win"):
         try:
             import win32event, win32api, winerror, win32con
@@ -669,7 +679,6 @@ def open_platform_mutex():
             # should consider still creating a non-exclusive
             # "SpamBayesServer" mutex, if for no better reason than so
             # an installer can check if we are running
-            mutex_name = "SpamBayesServer"
             try:
                 hmutex = win32event.CreateMutex(None, True, mutex_name)
             except win32event.error, details:
@@ -888,9 +897,9 @@ class State:
             uc = get_pathname_option("Storage", "unknown_cache")
             map(storage.ensureDir, [sc, hc, uc])
             if self.gzipCache:
-                factory = GzipFileMessageFactory(self.mdb)
+                factory = GzipFileMessageFactory()
             else:
-                factory = FileMessageFactory(self.mdb)
+                factory = FileMessageFactory()
             age = options["Storage", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
                                                '[0123456789\-]*',
