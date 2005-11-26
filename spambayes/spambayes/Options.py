@@ -522,7 +522,7 @@ defaults = {
      PostgrepSQL database."""),
      ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle"), RESTORE),
 
-    ("persistent_storage_file", _("Storage file name"), "hammie.db",
+    ("persistent_storage_file", _("Storage file name"), "hammie.fs",
      _("""Spambayes builds a database of information that it gathers
      from incoming emails and from you, the user, to get better and
      better at classifying your email.  This option specifies the
@@ -531,7 +531,7 @@ defaults = {
      most recent configuration file loaded."""),
      FILE_WITH_PATH, DO_NOT_RESTORE),
 
-    ("messageinfo_storage_file", _("Message information file name"), "spambayes.messageinfo.db",
+    ("messageinfo_storage_file", _("Message information file name"), "messageinfo.fs",
      _("""Spambayes builds a database of information about messages
      that it has already seen and trained or classified.  This
      database is used to ensure that these messages are not retrained

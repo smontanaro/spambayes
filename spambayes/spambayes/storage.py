@@ -1001,6 +1001,39 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
             nm = options[default_name]
     return nm, typ
 
+def convert(old_name=None, old_type=None, new_name=None, new_type=None):
+    # The expected need is to convert the existing hammie.db dbm
+    # database to a hammie.fs ZODB database.
+    if old_name is None:
+        old_name = "hammie.db"
+    if old_type is None:
+        old_type = "dbm"
+    if new_name is None or new_type is None:
+        auto_name, auto_type = database_type({})
+        if new_name is None:
+            new_name = auto_name
+        if new_type is None:
+            new_type = auto_type
+
+    old_bayes = open_storage(old_name, old_type)
+    new_bayes = open_storage(new_name, new_type)
+    words = old_bayes._wordinfokeys()
+
+    new_bayes.nham = old_bayes.nham
+    new_bayes.nspam = old_bayes.nspam
+
+    print >> sys.stderr, "Converting %s (%s database) to " \
+          "%s (%s database)." % (old_name, old_type, new_name, new_type)
+    print >> sys.stderr, "Database has %s ham, %s spam, and %s words." % \
+          (new_bayes.nham, new_bayes.nspam, len(words))
+
+    for word in words:
+        new_bayes._wordinfoset(word, old_bayes._wordinfoget(word))
+
+    print "Storing database, please be patient..."
+    new_bayes.store()
+    print "Conversion complete."
+
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it
     does not exist, attempt to create it."""
