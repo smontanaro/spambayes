@@ -444,13 +444,7 @@ class SQLClassifier(classifier.Classifier):
         c = self.cursor()
         c.execute("select word from bayes")
         rows = self.fetchall(c)
-        # There is probably some clever way to do this with map or
-        # something, but I don't know what it is.  We want the first
-        # element from all the items in 'rows'
-        keys = []
-        for r in rows:
-            keys.append(r[0])
-        return keys
+        return [r[0] for r in rows]
 
 
 class PGClassifier(SQLClassifier):
@@ -757,9 +751,12 @@ class ZODBClassifier(object):
         except ImportError:
             import transaction
             commit = transaction.commit
+            abort = transaction.abort
         else:
             commit = ZODB.Transaction.get_transaction().commit
-        from ZODB.POSException import ConflictError            
+            abort = ZODB.Transaction.get_transaction().abort
+        from ZODB.POSException import ConflictError
+        from ZODB.POSException import TransactionFailedError
 
         assert self.closed == False, "Can't store a closed database"
 
@@ -774,6 +771,13 @@ class ZODBClassifier(object):
             # deal.
             if options["globals", "verbose"]:
                 print >> sys.stderr, "Conflict on commit", self.db_name
+            abort()
+        except TransactionFailedError:
+            # Saving isn't working.  Try to abort, but chances are that
+            # restarting is needed.
+            print >> sys.stderr, "Storing failed.  Need to restart.", \
+                  self.db_name
+            abort()
 
     def close(self):
         # Ensure that the db is saved before closing.  Alternatively, we
