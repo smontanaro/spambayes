@@ -687,10 +687,11 @@ class ZODBClassifier(object):
     # Allow subclasses to override classifier class.
     ClassifierClass = _PersistentClassifier
 
-    def __init__(self, db_name):
+    def __init__(self, db_name, mode='c'):
         self.db_filename = db_name
         self.db_name = os.path.basename(db_name)
         self.closed = True
+        self.mode = mode
         self.load()
 
     def __getattr__(self, att):
@@ -710,7 +711,8 @@ class ZODBClassifier(object):
     def create_storage(self):
         import ZODB
         from ZODB.FileStorage import FileStorage
-        self.storage = FileStorage(self.db_filename)
+        self.storage = FileStorage(self.db_filename,
+                                   read_only=self.mode=='r')
 
     def load(self):
         '''Load state from database'''
@@ -925,7 +927,7 @@ _storage_types = {"dbm" : (DBDictClassifier, True, True),
                   "pgsql" : (PGClassifier, False, False),
                   "mysql" : (mySQLClassifier, False, False),
                   "cdb" : (CDBClassifier, False, True),
-                  "zodb" : (ZODBClassifier, False, True),
+                  "zodb" : (ZODBClassifier, True, True),
                   "zeo" : (ZEOClassifier, False, False),
                   }
 
@@ -989,11 +991,6 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
                 raise MutuallyExclusiveError()
     if nm is None and typ is None:
         typ = options[default_type]
-        # Backwards compatibility crud.
-        if typ is True or typ == "True":
-            typ = "dbm"
-        elif typ is False or typ == "False":
-            typ = "pickle"
         try:
             unused, unused, is_path = _storage_types[typ]
         except KeyError:

@@ -524,8 +524,7 @@ defaults = {
      are selecting "pickle".  We recommend explicitly selecting the type,
      (i.e. changing "True" to "dbm" and "False" to "pickle", or sticking
      with the default."""),
-     # True == "dbm", False == "pickle", "True" == "dbm", "False" == "pickle"
-     ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle", "True", "False", True, False), RESTORE),
+     ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle"), RESTORE),
 
     ("persistent_storage_file", _("Storage file name"), "hammie.db",
      _("""Spambayes builds a database of information that it gathers
