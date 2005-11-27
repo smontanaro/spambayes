@@ -312,8 +312,9 @@ class IMAPSession(BaseIMAP):
                 # This is Python bug #845560 - if the empty string is
                 # passed, we get a traceback, not just an 'invalid folder'
                 # error, so raise our own error.
-                raise BadIMAPResponseError("Cannot have empty string as " \
-                                           "folder name in select", "")
+                raise BadIMAPResponseError("select",
+                                           "Cannot have empty string as "
+                                           "folder name in select")
 
             # We *always* use SELECT and not EXAMINE, because this
             # speeds things up considerably.
@@ -718,7 +719,7 @@ class IMAPMessage(message.SBHeaderMessage):
             if data[0] is not None:
                 break
         else:
-            raise BadIMAPResponseError("Cannot find saved message", "")
+            raise BadIMAPResponseError("recent", "Cannot find saved message")
 
         # We need to update the UID, as it will have changed.
         # Although we don't use the UID to keep track of messages, we do
