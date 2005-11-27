@@ -1,5 +1,46 @@
 [Note that all dates are in English, not American format - i.e. day/month/year]
 
+Release 1.1a2
+=============
+Tony Meyer        27/11/2005  Install the conversion utility and offer to run it on Windows install.
+Tony Meyer        26/11/2005  Add conversion utility to easily convert dbm to ZODB.
+Tony Meyer        26/11/2005  Change database names to hammie.fs and messageinfo.fs
+Tony Meyer        26/11/2005  Have ZODBClassifier honour read-only mode.
+Tony Meyer        26/11/2005  Change default storage to ZODB.
+Tony Meyer        26/11/2005  Remove backwards compatibility option to use True for dbm and False for pickle.
+Tony Meyer        26/11/2005  Fix closing SSL connections in POP3 proxy.
+Tony Meyer        26/11/2005  Abort failed ZODB transactions.
+Tony Meyer        15/11/2005  Fix exception header adding.
+Tony Meyer        15/11/2005  Tidy up the way that messages keep track of the messageinfo database.
+Tony Meyer        15/11/2005  Add ZODB version of MessageInfo class.
+Tony Meyer        15/11/2005  Let the notate_ options be turned off.
+Tony Meyer        15/11/2005  Add simple handling of ZODB ConflictErrors.
+Tony Meyer        15/11/2005  Pack ZODB database.
+Tony Meyer        15/11/2005  Fix tokenizer so that the -o switch can be used with all options.
+Tony Meyer        15/11/2005  Only run through expiry if messages might expire.
+Richie Hindle     15/11/2005  Change default action for review page to discard for ham and spam.
+Tony Meyer        08/07/2005  imapfilter: If a folder (e.g. ham_folder) isn't selected, then don't try and expunge it.
+Sjoerd Mullender  03/07/2005  imapfilter: It seems it is possible that we get an invalid date string from self.extractTime(), so protect against that.
+Mark Hammond      21/06/2005  Update Outlook folder dialogs so we work with new and old pywin32 versions.
+Tony Meyer        03/06/2005  Use has_key() and not "in" for Python 2.2 compat.
+Skip Montanaro    03/06/2005  sb_filter: If database doesn't exist, initialize it.  Closes the ancient #759917.
+Sjoerd Mullender  30/05/2005  imapfilter: After closing a folder, there is no current folder, so set current_folder to None, avoiding a crash on close.
+Tony Meyer        26/05/2005  Use get_content_type instead of the deprecated get_type
+Tony Meyer        22/05/2005  ProxyUI: Fix the handling of the notate_to and notate_subject options.
+Sjoerd Mullender  19/05/2005  imapfilter: In each iteration, create a new IMAPSession object and hence a new connection to the server.
+Tony Meyer        13/05/2005  Fix [ 1182754 ] 1.1a1: imapfilter browser chokes on incorrect password
+Tony Meyer        26/04/2005  Add ability to handle unsures to fpfn.py
+Tony Meyer        26/04/2005  Add [ 618932 ] fpfn.py: add interactivity on unix
+Tony Meyer        22/04/2005  Fix [ 1182671 ] When cache directories are full, 1.1a1 starts slowly
+Tony Meyer        22/04/2005  Fix [ 1187208 ] import into CDB chokes on 8-bit chars
+Tony Meyer        21/04/2005  Use the os.path.basename as the database name for a ZODB FileStorage database, so that if the database is moved it will still work.
+Tony Meyer        21/04/2005  Add [ 1182703 ] sb_imapfilter binary should output to log
+Skip Montanaro    19/04/2005  tte.py: Include time to create & reverse mailbox in accounting for each round
+Tony Meyer        14/04/2005  Fix [ 1179055 ] minor UI correction needed (1.1.a1)
+Tony Meyer        14/04/2005  Highlight current row of review table with a little bit of javascript.
+Tony Meyer        13/04/2005  Fix [ 1181160 ] Language fallback doesn't work
+Tony Meyer        07/04/2005  Add basic options to sort+group.py
+
 Release 1.1a1
 =============
 Tony Meyer        16/03/2005  Optionally load configuration file for each imap server.
