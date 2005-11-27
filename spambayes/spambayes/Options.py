@@ -515,8 +515,8 @@ defaults = {
   # value for each of these options in a configuration file that gets
   # loaded by the appropriate application only.
   "Storage" : (
-    ("persistent_use_database", _("Use database for storage"), "zodb",
-     _("""SpamBayes can use either a ZODB or bsddb database (quick to score
+    ("persistent_use_database", _("Database backend"), "zodb",
+     _("""SpamBayes can use either a ZODB or dbm database (quick to score
      one message) or a pickle (quick to train on huge amounts of messages).
      There is also (currently experimental) the ability to use a mySQL or
      PostgrepSQL database."""),

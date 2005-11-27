@@ -15,7 +15,7 @@ bugs with this release.  If you would rather wait for a more stable release
 to have the new features here, please continue to use 1.0.4 until 1.1 final
 is released.
 
-New in 1.1 Alpha 1
+New in 1.1 Alpha 2
 ==================
 
 
@@ -23,8 +23,40 @@ New in 1.1 Alpha 1
 ** Incompatible changes and Transitioning **
 --------------------------------------------
 
-There should be no incompatible changes (from 1.0.2) in this release.
-If you are transitioning from a version older than 1.0.2, please
+SpamBayes has changed to use ZODB as the default database backend, rather
+than dbm (usually bsddb).  There are three methods for handling this
+transition:
+
+  o You can start with a fresh database.  It's a good idea to start
+    training over occasionally, and SpamBayes learns very rapidly, so this
+    is a feasible option.  This is the default behaviour, unless you have
+    set SpamBayes to use a different name or backend type, in which case
+    your choices will remain unchanged.
+
+  o You can continue to use your existing database files.  To do this, you
+    need to set SpamBayes to use "dbm" as the persistent storage method
+    in the configuration.  POP3 Proxy and IMAP4 filter users can do this
+    via the configuration page; Outlook and command-line tool users need
+    to manually add these lines to their configuration file:
+        [Storage]
+        persistent_use_database:dbm
+
+  o You can convert your existing database files to the new format.
+    Windows users will be given the opportunity to do this on installation;
+    other users should use the utilities/convert_db.py script to do this.
+    Note that only the token database (containing your training) is
+    converted; the 'messageinfo' database (containing statistics about
+    SpamBayes performance and a record of which messages have been
+    filtered and trained) will be replaced with an empty one.  The only
+    noticeable effect of this will be that IMAP Filter users will have
+    all messages refiltered and the Statistics reports will be restarted.
+
+If you have changed your configuration to specify which backend to use in
+the past, note that the deprecated values of "True" (meaning "dbm") and
+"False" (meaning "pickle") are no longer supported (use "dbm" or "pickle").
+    
+There should be no other incompatible changes (from 1.0.4) in this release.
+If you are transitioning from a version older than 1.0.4, please
 read the notes in the previous release notes (accessible from
 <http://sourceforge.net/project/showfiles.php?group_id=61702>).
 
@@ -35,145 +67,46 @@ read the notes in the previous release notes (accessible from
 
 General
 -------
- o Localisations (translations of the user interface) of SpamBayes are
-   now available.  1.1 includes French and Spanish translations - many
-   thanks to the translators for their efforts.  If you would like to
-   add a translation in a new language (or dialect), please contact the
-   SpamBayes development team at spambayes-dev@python.org.  For Windows
-   users, SpamBayes will use the same language as the operating system
-   is set to use (if available).  This can be overridden (or set, for
-   non-Windows users) via the configuration file.
- o The version number scheme has been improved and simplified.
- o Many more unittests have been added.  For the end user, this should
-   mean that changes in later versions are much less likely to break
-   existing functionality.
- o New storage types are available: CDBClassifier (uses a CDB database,
-   similar to that used by CdbClassifier, but not identical),
-   ZODBClassifier (uses a ZODB FileStorage object) and ZEOClassifier
-   (connects to a ZEO server).
- o The "use bigrams" option is no longer experimental, although is still
-   off by default.
+ o Handling of errors when using the ZODB database backend has been
+   improved.
+ o The ZODB databases are now automatically packed, to save space.
+ o The round accounting in tte.py has additional information.
+ o Basic options are now available in sort+group.py
+ o fpfn.py now works with unsures, and offers interactivity.
 
 Outlook Plugin
 --------------
- o The Manager dialog is enlarged (at least 800x600 resolution is needed
-   to view it - 640x480 users will need to continue with 1.0.2) and
-   enhanced to (among other things) include a new "Statistics" tab.
- o The "Show Clues" message is enchanced.  This now includes information
-   about the last time the message was trained or classified.
- o For messages received from a local Exchange server, which have no
-   Internet headers, we now generate more (and better) headers from the
-   available message properties.
- o Statistics are vastly improved.  More statistics are reported, and
-   these are persistent across Outlook sessions.  The statistics may
-   be 'reset' so that they are calculated from a specified date and time.
- o Enable movement/copying of ham (good) messages, like the existing
-   functionality for unsure/spam messages.
- o The "Delete As Spam" button is now simply "Spam", and the
-   "Recover From Spam" button simply "Not Spam".  The behaviour of
-   the buttons has not changed.  You may need to recreate the toolbar
-   to see these changes (right click on the toolbar, click Customize,
-   select SpamBayes, click Delete, then restart Outlook).
- o Notification sounds can now be set, via the Manager dialog.
- o The SpamBayes menu now includes an "Empty Spam Folder" option.
- o Outlook users can now use a variety of different underlying database
-   storage methods, in the same fashion as non-Outlook users.
-
+ o The folder dialogs were broken in 1.1a1; these have been fixed.
+ 
 POP3 Proxy (sb_server.py)
 -------------------------
- o POP over SSL is partially available.  The connection from the mail
-   client to sb_server still cannot be over SSL, but the connection
-   from sb_server to the mail server can be.  The latter is more likely
-   to be at risk (as it is more likely to be non-local), so is the
-   more important, as well as the easier to implement.
- o "Subject" (and "To") notations are removed from messages before display
-   in the review pages and before training such messages.
- o The "To" header notations are in a new form, which is correctly an
-   email address.
- o A particular type of malformed message (one with no header-body
-   separator) would pass through SpamBayes without classification, or
-   a X-Spambayes-Exception header.  This is no longer the case.
- o If you run sb_server as a Windows service messages are now logged
-   to the Windows Event log rather than to SpamBayes log files.
- o Installation of the Windows service for sb_server has been improved,
-   and a better data directory is now used (if a configuration file
-   does not already exist, then a "SpamBayesData" directory in the
-   directory of the application is used).
+ o If an error occurs while filtering, an exception header is added to
+   the message (instead of the SpamBayes headers).  In 1.1a1, this
+   exception header caused the rest of the message headers to move into
+   the message body.  This is now fixed.
 
 Web interface (sb_server.py and sb_imapfilter.py)
 -------------------------------------------------
- o Improve the "More Statistics" page.  More statistics are reported, and
-   the statistics may be 'reset' so that they are calculated from a
-   specified date and time.
- o A new option "Use bigrams" is available from the Advanced Configuration
-   page.
- o Messages that are uploaded (from the "Upload" box on the main page,
-   or via sb_upload.py) are now properly added to the cache directories,
-   and _pop3proxyham.mbox and pop3proxy_spam.mbox are no longer created.
- o Various minor fixes and improvements.
-
+ o The default action for ham and spam in the review page is now 'discard'.
+   We recommend using a 'train on false positives, false negatives and
+   unsures' regime, and these are the most suitable defaults for that.
+ o The "Notate To" and "Notate Subject" options should work correctly
+   from the configuration page now.
+ o The current row of the review page is now highlighted.
+ 
 IMAP Filter (sb_imapfilter.py)
 ------------------------------
- o Use the "Message-ID" header as the SpamBayes ID (when possible).  This
-   means that the IMAP filter should not need to rewrite nearly as many
-   messages (hopefully, should need to rewrite no ham messages), and should
-   also work faster and more reliably.
- o A ham folder may now be specified, like the spam and unsure folders.
- o Continue on (skipping) if a folder is unable to be acccesed for training
-   or filtering.
- o Filtering multiple servers with a single sb_imapfilter process is now
-   supported.  Enter in the server names, separated by commas, and the
-   usernames and passwords separated by '\'s.  The filter will also try
-   and load a configuration file for each server (it will look in the
-   same directory as the main configuration file, for a file called
-   server.name.ini or .spambayes_server_name_rc), where you can change
-   the folders to filter, the thresholds, or any other options (this
-   currently does not include the database names).
- o AUTH CRAM-MD5 authentication is now supported, in addition to plaintext
-   AUTH Login.
- o Many minor fixes and improvements.
-
-sb_pop3dnd.py
--------------
-Many improvements.  Should now be useable.  Binary now included.  Tray
-app now included.
- o Spam classification and spam training have been separated out into
-   separate folders.
- o No longer uses the web interface.  Configuration is available via
-   a dialog, training is via drag and drop between IMAP folders, and
-   information is provided in the "Inbox" IMAP folder.
-
-New
----
- o Andrew Dalke's sb_culler.py script (an updated version) is now
-   included in the source distribution.
- o The new hammie2cdb.py script converts standard spambayes.Storage
-   databases into cdb databases usable by CdbClassifier.
- o The new postfixproxy.py script is a proxy filter for use with
-   PostFix 2.1's content filter functionality.
- o The new pycksum.py script is a fuzzy checksum program.
- o The new showclues.py script outputs to stdout a 'show clues' report like
-   the one that Outlook creates, with the clues, tokens and message stream.
-
-Other
------
- o The sb_upload.py script's help string has been improved, and the
-   -n (--null) command line option now works.  The script is now also
-   able to train as well as upload.
- o The tte.py script has had many improvements, including Python 2.3
-   compatibility, addition of a --ratio flag, deletion of correctly
-   scoring messages, an improved scoring algorithm, and improved
-   detection of whether a message is a miss or not.
- o A version of sb_bnfilter that is implemented in C (for speed) is
-   now available.
+ o One-off errors in connecting to the server when using the -l option
+   are handled better.
+ o A problem with closing a folder twice was fixed.
+ o Invalid dates are handled correctly.
+ o Only selected folders are expunged.
 
 
 Reported Bugs Fixed
 ===================
 The following bugs tracked via the Sourceforge system were fixed:
-  1078923, 1022848, 831864, 922063, 1051081, 903905, 1036601, 790757,
-  944109, 959937, 943852, 941639, 986353, 990700, 933473, 981970, 1071319,
-  1166146, 1175439
+  1181160, 1179055, 1187208, 1182671, 1182754, 759917
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -184,8 +117,7 @@ Feature Requests Added
 ======================
 The following feature requests tracked via the Sourceforge system were added
 in this release:
-870524, 940547, 715248, 938992, 1039057, 909088, 887984, 753708, 848365,
-1144670, 1122067
+  1182703, 618932
 
 A URL containing the details of these bugs can be made by appending the
 bug number to this URL:
@@ -194,13 +126,7 @@ http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&
 
 Patches integrated
 ===================
-The following patches tracked via the Sourceforge system were integrated for
-this release:
-1052816, 962693, 831941, 858925, 800671, 1169939
-
-A URL containing the details of these bugs can be made by appending the
-bug number to this URL:
-http://sourceforge.net/tracker/index.php?func=detail&group_id=61702&atid=498103&aid=
+No patches tracked via the Sourceforge system were integrated for this release.
 
 
 Deprecated Options
