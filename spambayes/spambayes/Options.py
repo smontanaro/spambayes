@@ -35,6 +35,25 @@ __all__ = ['options', '_']
 # Grab the stuff from the core options class.
 from OptionsClass import *
 
+# A little magic.  We'd like to use ZODB as the default storage,
+# because we've had so many problems with bsddb, and we'd like to swap
+# to new ZODB problems <wink>.  However, apart from this, we only need
+# a standard Python install - if the default was ZODB then we would
+# need ZODB to be installed as well (which it will br for binary users,
+# but might not be for source users).  So what we do is check whether
+# ZODB is importable and if it is, default to that, and if not, default
+# to dbm.  If ZODB is sometimes importable and sometimes not (e.g. you
+# muck around with the PYTHONPATH), then this may not work well - the
+# best idea would be to explicitly put the type in your configuration
+# file.
+try:
+    import ZODB
+except ImportError:
+    DB_TYPE = "dbm", "hammie.db", "spambayes.messageinfo.db"
+else:
+    del ZODB
+    DB_TYPE = "zodb", "hammie.fs", "messageinfo.fs"
+
 # Format:
 # defaults is a dictionary, where the keys are the section names
 # each key maps to a tuple consisting of:
@@ -515,14 +534,14 @@ defaults = {
   # value for each of these options in a configuration file that gets
   # loaded by the appropriate application only.
   "Storage" : (
-    ("persistent_use_database", _("Database backend"), "zodb",
+    ("persistent_use_database", _("Database backend"), DB_TYPE[0],
      _("""SpamBayes can use either a ZODB or dbm database (quick to score
      one message) or a pickle (quick to train on huge amounts of messages).
      There is also (currently experimental) the ability to use a mySQL or
      PostgrepSQL database."""),
      ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle"), RESTORE),
 
-    ("persistent_storage_file", _("Storage file name"), "hammie.fs",
+    ("persistent_storage_file", _("Storage file name"), DB_TYPE[1],
      _("""Spambayes builds a database of information that it gathers
      from incoming emails and from you, the user, to get better and
      better at classifying your email.  This option specifies the
@@ -531,7 +550,7 @@ defaults = {
      most recent configuration file loaded."""),
      FILE_WITH_PATH, DO_NOT_RESTORE),
 
-    ("messageinfo_storage_file", _("Message information file name"), "messageinfo.fs",
+    ("messageinfo_storage_file", _("Message information file name"), DB_TYPE[2],
      _("""Spambayes builds a database of information about messages
      that it has already seen and trained or classified.  This
      database is used to ensure that these messages are not retrained
@@ -1195,7 +1214,6 @@ defaults = {
      r"\w\w(?:_\w\w)?", RESTORE),
   ),
 }
-
 
 # `optionsPathname` is the pathname of the last ini file in the list.
 # This is where the web-based configuration page will write its changes.
