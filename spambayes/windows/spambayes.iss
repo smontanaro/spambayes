@@ -48,6 +48,8 @@ Source: "py2exe\dist\docs\sb_server\*.*"; DestDir: "{app}\docs\sb_server"; Check
 
 Source: "py2exe\dist\bin\sb_imapfilter.exe"; DestDir: "{app}\bin"; Check: InstallingIMAP; Flags: ignoreversion
 
+Source: "py2exe\dist\bin\convert_database.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+
 ; There is a problem attempting to get Inno to unregister our DLL.  If we mark our DLL
 ; as 'regserver', it installs and registers OK, but at uninstall time, it unregisters
 ; OK, but Inno is then unable to delete the files.  My guess is Inno loads the DLL,
@@ -65,6 +67,7 @@ Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "HKEY_LOCAL_MACHIN
 Filename: "{app}\bin\outlook_addin_register.exe"; Parameters: "--unregister"; StatusMsg: "Unregistering Outlook Addin"; Check: InstallingOutlook;
 
 [Run]
+FileName:"{app}\bin\convert_database.exe"; Description: "Convert the database from 1.0 to 1.1"; Flags: postinstall skipifdoesntexist; Check: ConvertDatabase
 FileName:"{app}\bin\sb_tray.exe"; Description: "Start the server now"; Flags: postinstall skipifdoesntexist nowait; Check: InstallingProxy
 
 [Icons]
@@ -116,6 +119,10 @@ end;
 function StartupIMAP() : Boolean;
 begin
   Result := startup_imap;
+end;
+function ConvertDatabase() : Boolean;
+begin
+  Result := convert_db;
 end;
 
 function IsOutlookInstalled() : Boolean;
@@ -179,6 +186,7 @@ begin
     desktop := False;
     allusers := False;
     startup_imap := False;
+    convert_db := False;
 end;
 
 // Inno has a pretty primitive "Components/Tasks" concept that
@@ -224,7 +232,8 @@ var
 begin
   { Validate certain pages before allowing the user to proceed }
   if CurPageID = TasksPage.ID then begin
-    I := 0;
+    convert_db := TasksPage.Values[0];
+    I := 1;
     if InstallOutlook then begin
       allusers := TasksPage.Values[I];
       I := I + 1;
@@ -281,6 +290,8 @@ begin
       'Which additional tasks should be performed?',
       'Select the components you would like Setup to perform while installing SpamBayes, then click Next.',
       False, False);
+    TasksPage.Add('Convert 1.0 database to 1.1 format');
+    TasksPage.Values[0] := True;
     if InstallOutlook then
       TasksPage.Add('Register add-in for all users');
     if InstallProxy then begin
@@ -309,6 +320,7 @@ begin
   S := S + MemoGroupInfo + NewLine + NewLine;
 
   S := S + 'Additional Tasks:' + NewLine;
+  if convert_db then S := S + Space + 'Convert database from 1.0 to 1.1 format' + NewLine
   if startup then S := S + Space + 'Run Proxy on Startup' + NewLine
   if desktop then S := S + Space + 'Install Proxy Desktop Icon' + NewLine
   if allusers then S := S + Space + 'Install Addin for all users' + NewLine

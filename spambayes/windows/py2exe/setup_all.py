@@ -126,6 +126,10 @@ autoconfigure = dict(
     dest_base = "bin/setup_server",
     script = os.path.join(sb_top_dir, "windows", "autoconfigure.py"),
 )
+convert = dict(
+    dest_base = "bin/convert_database",
+    script = os.path.join(sb_top_dir, "utilities", "convert_db.py"),
+)
 
 outlook_data_files = [
     ["docs/outlook", [os.path.join(sb_top_dir, r"Outlook2000\about.html")]],
@@ -175,9 +179,9 @@ setup(name="SpamBayes",
       com_server=[outlook_addin],
       # A service
       service=[service],
-      # console exes for debugging
+      # console exes
       console=[sb_server, sb_upload, outlook_dump_props, sb_pop3dnd,
-               sb_imapfilter],
+               sb_imapfilter, convert],
       # The taskbar
       windows=[pop3proxy_tray, outlook_addin_register, autoconfigure],
       # and the misc data files
