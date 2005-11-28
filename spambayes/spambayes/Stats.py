@@ -130,7 +130,7 @@ class Stats(object):
             # Skip the date key.
             if msg_id == STATS_START_KEY:
                 continue
-            m = Message(msg_id, self.messageinfo_db)
+            m = Message(msg_id)
             self.messageinfo_db.load_msg(m)
 
             # Skip all old messages that don't have a date.
