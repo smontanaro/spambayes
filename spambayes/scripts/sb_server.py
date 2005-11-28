@@ -794,6 +794,11 @@ class State:
                 state.bayes.store()
             self.bayes.close()
             self.bayes = None
+        if self.mdb is not None:
+            self.mdb.store()
+            self.mdb.close()
+            self.mdb = None
+            spambayes.message.Message.reload_message_info_db()
 
         self.spamCorpus = self.hamCorpus = self.unknownCorpus = None
         self.spamTrainer = self.hamTrainer = None
@@ -995,8 +1000,9 @@ def _recreateState():
         proxy.close()
     del proxyListeners[:]
 
-    # Close the state (which saves if necessary)
-    state.close()
+    if state.prepared:    
+        # Close the state (which saves if necessary)
+        state.close()
     # And get a new one going.
     state = State()
 
