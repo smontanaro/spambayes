@@ -955,6 +955,7 @@ def open_storage(data_source_name, db_type="dbm", mode=None):
                   ", use Python 2.3 (or above), or install a dbm module " \
                   "such as bsddb (see http://sf.net/projects/pybsddb)."
             sys.exit()
+        raise
 
 # The different database types that are available.
 # The key should be the command-line switch that is used to select this
