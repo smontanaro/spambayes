@@ -834,6 +834,9 @@ class UserInterface(BaseUserInterface):
             self.write(html)
             return
 
+        old_database_type = options["Storage", "persistent_use_database"]
+        old_name = options["Storage", "persistent_storage_file"]
+
         for name, value in parms.items():
             sect, opt = name.split('_', 1)
             if (sect, opt) in pmap:
@@ -846,6 +849,38 @@ class UserInterface(BaseUserInterface):
                 options.set(sect, opt, value)
 
         options.update_file(optionsPathname)
+
+        # If the database type changed, then convert it for them.
+        if options["Storage", "persistent_use_database"] != \
+           old_database_type and os.path.exists(old_name):
+            new_name = options["Storage", "persistent_storage_file"]
+            new_type = options["Storage", "persistent_use_database"]
+            self.state.close()
+            try:
+                os.remove(new_name + ".tmp")
+            except OSError:
+                pass
+            storage.convert(old_name, old_database_type,
+                            new_name + ".tmp", new_type)
+            if os.path.exists(new_name):
+                try:
+                    os.remove(new_name + ".old")
+                except OSError:
+                    pass
+                os.rename(new_name, new_name + ".old")
+            os.rename(new_name + ".tmp", new_name)
+            # Messageinfo db is not converted.
+            if os.path.exists(options["Storage",
+                                      "messageinfo_storage_file"]):
+                try:
+                    os.remove(options["Storage",
+                                      "messageinfo_storage_file"] + ".old")
+                except OSError:
+                    pass
+                os.rename(options["Storage", "messageinfo_storage_file"],
+                          options["Storage",
+                                  "messageinfo_storage_file"] + ".old")
+            
         self.reReadOptions()
 
         html.mainContent.heading = _("Options Changed")

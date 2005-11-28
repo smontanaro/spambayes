@@ -6,7 +6,7 @@ Classes:
 Abstract:
 
 This module implements a browser based Spambayes user interface for the
-POP3 proxy and SMTP proxy.  Users may use it to interface with the
+POP3, IMAP4 SMTP proxies.  Users may use it to interface with the
 proxies.
 
 The following functions are currently included:
@@ -87,6 +87,9 @@ parm_ini_map = (
     ('POP3 Proxy Options',  None),
     ('pop3proxy',           'remote_servers'),
     ('pop3proxy',           'listen_ports'),
+#    ('IMAP4 Proxy Options',  None),
+#    ('imap4proxy',          'remote_servers'),
+#    ('imap4proxy',          'listen_ports'),
     ('SMTP Proxy Options',  None),
     ('smtpproxy',           'remote_servers'),
     ('smtpproxy',           'listen_ports'),
@@ -168,8 +171,9 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                              proxy_state.lang_manager,
                                              proxy_state.stats)
         state = proxy_state
+        self.state = proxy_state
         self.state_recreator = state_recreator # ugly
-        self.app_for_version = "SpamBayes POP3 Proxy"
+        self.app_for_version = "SpamBayes Proxy"
         self.previous_sort = None
         if not proxy_state.can_stop:
             self.html._readonly = False
@@ -227,7 +231,6 @@ class ProxyUserInterface(UserInterface.UserInterface):
         """Given a unix timestamp, returns a 3-tuple: the start timestamp
         of the given day, the end timestamp of the given day, and the
         formatted date of the given day."""
-        # This probably works on Summertime-shift days; time will tell.  8-)
         this = time.localtime(timestamp)
         start = (this[0], this[1], this[2], 0, 0, 0, this[6], this[7], this[8])
         end = time.localtime(time.mktime(start) + 36*60*60)
@@ -776,6 +779,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Recreate the state.
         state = self.state_recreator()
         self.classifier = state.bayes
+        self.state = state
 
     def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
