@@ -124,7 +124,7 @@ class MessageInfoBase(object):
         self.db_name = db_name
 
     def __len__(self):
-        return len(self.db)
+        return len(self.keys())
 
     def get_statistics_start_date(self):
         if self.db.has_key(STATS_START_KEY):
@@ -282,11 +282,10 @@ class MessageInfoZODB(storage.ZODBClassifier):
         self.nham = self.nspam = 0 # Only used for debugging prints
         storage.ZODBClassifier.__init__(self, db_name)
         self.classifier.store = self.store
+        self.db = self.classifier
     def __setattr__(self, att, value):
         # Override ZODBClassifier.__setattr__
         object.__setattr__(self, att, value)
-    def keys(self):
-        return self.classifier.keys()
 
 
 # values are classifier class, True if it accepts a mode
@@ -363,6 +362,9 @@ class Message(object, email.Message.Message):
     def _set_message_info_db(self, value):
         self._set_class_message_info_db(value)
     message_info_db = property(_get_message_info_db, _set_message_info_db)
+    def _reload_message_info_db(klass):
+        klass._message_info_db = None
+    reload_message_info_db = classmethod(_reload_message_info_db)
 
     # This function (and it's hackishness) can be avoided by using
     # email.message_from_string(text, _class=SBHeaderMessage)
