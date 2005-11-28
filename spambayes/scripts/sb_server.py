@@ -798,7 +798,7 @@ class State:
             self.mdb.store()
             self.mdb.close()
             self.mdb = None
-            spambayes.message.Message.reload_message_info_db()
+            spambayes.message.Message.message_info_db = None
 
         self.spamCorpus = self.hamCorpus = self.unknownCorpus = None
         self.spamTrainer = self.hamTrainer = None
