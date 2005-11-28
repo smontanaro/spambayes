@@ -12,12 +12,12 @@ may also wish to look up words in the database, or classify a message.
 
 The following functions are currently included:
 [From the base class UserInterface]
-  onClassify - classify a given message
-  onWordquery - query a word from the database
-  onTrain - train a message or mbox
-  onSave - save the database and possibly shutdown
+    onClassify - classify a given message
+    onWordquery - query a word from the database
+    onTrain - train a message or mbox
+    onSave - save the database and possibly shutdown
 [Here]
-  onHome - a home page with various options
+    onHome - a home page with various options
 
 To do:
  o This could have a neat review page, like pop3proxy, built up by
@@ -124,7 +124,8 @@ class LoginFailure(Exception):
 class IMAPUserInterface(UserInterface.UserInterface):
     """Serves the HTML user interface for the proxies."""
     def __init__(self, cls, imaps, pwds, imap_session_class,
-                 lang_manager=None, stats=None):
+                 lang_manager=None, stats=None,
+                 close_db=None, change_db=None):
         global parm_map
         # Only offer SSL if it is available
         try:
@@ -142,6 +143,8 @@ class IMAPUserInterface(UserInterface.UserInterface):
         self.imap_pwds = pwds
         self.app_for_version = "SpamBayes IMAP Filter"
         self.imap_session_class = imap_session_class
+        self.close_database = close_db
+        self.change_db = change_db
 
     def onHome(self):
         """Serve up the homepage."""
@@ -174,11 +177,11 @@ class IMAPUserInterface(UserInterface.UserInterface):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
         # Re-read the options.
-        self.classifier.store()
         import Options
         Options.load_options()
         global options
         from Options import options
+        self.change_db()
 
     def onSave(self, how):
         for imap in self.imaps:

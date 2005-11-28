@@ -145,7 +145,7 @@ except ImportError:
 from spambayes import Stats
 from spambayes import message
 from spambayes.Options import options, get_pathname_option, optionsPathname
-from spambayes import tokenizer, storage, message, Dibbler
+from spambayes import tokenizer, storage, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface, LoginFailure
 from spambayes.Version import get_current_version
@@ -1184,9 +1184,25 @@ def run(force_UI=False):
             else:
                 imaps.append(IMAPSession(server, port, imapDebug, doExpunge))
 
+        def close_db():
+            message_db.store()
+            message_db.close()
+            message.Message().message_info_db.store()
+            message.Message().message_info_db.close()
+            message.Message.message_info_db = None
+            classifier.store()
+            classifier.close()
+
+        def change_db():
+            classifier = storage.open_storage(*storage.database_type(opts))
+            message_db = message.open_storage(*message.database_type())
+            imap_filter = IMAPFilter(classifier, message_db)
+
         httpServer = UserInterfaceServer(options["html_ui", "port"])
         httpServer.register(IMAPUserInterface(classifier, imaps, pwds,
-                                              IMAPSession, stats=stats))
+                                              IMAPSession, stats=stats,
+                                              close_db=close_db,
+                                              change_db=change_db))
         launchBrowser=launchUI or options["html_ui", "launch_browser"]
         if sleepTime:
             # Run in a separate thread, as we have more work to do.
