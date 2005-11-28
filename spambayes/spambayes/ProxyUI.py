@@ -171,7 +171,6 @@ class ProxyUserInterface(UserInterface.UserInterface):
                                              proxy_state.lang_manager,
                                              proxy_state.stats)
         state = proxy_state
-        self.state = proxy_state
         self.state_recreator = state_recreator # ugly
         self.app_for_version = "SpamBayes Proxy"
         self.previous_sort = None
@@ -766,6 +765,9 @@ class ProxyUserInterface(UserInterface.UserInterface):
         messageInfo.bodySummary = self._trimHeader(text, 200)
         return messageInfo
 
+    def close_database(self):
+        state.close()
+
     def reReadOptions(self):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
@@ -779,7 +781,6 @@ class ProxyUserInterface(UserInterface.UserInterface):
         # Recreate the state.
         state = self.state_recreator()
         self.classifier = state.bayes
-        self.state = state
 
     def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
