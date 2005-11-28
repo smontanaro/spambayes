@@ -344,7 +344,7 @@ class Message(object, email.Message.Message):
     # So we want to access it via classmethods.  However, we have treated
     # it as a regular attribute, so need to make it a property.  To make
     # a classmethod property, we have to jump through some hoops, which we
-    # deserver for not doing it right in the first place.
+    # deserve for not doing it right in the first place.
     _message_info_db = None
     def _get_class_message_info_db(klass):
         # If, the first time we access the attribute, it hasn't been
@@ -362,9 +362,6 @@ class Message(object, email.Message.Message):
     def _set_message_info_db(self, value):
         self._set_class_message_info_db(value)
     message_info_db = property(_get_message_info_db, _set_message_info_db)
-    def _reload_message_info_db(klass):
-        klass._message_info_db = None
-    reload_message_info_db = classmethod(_reload_message_info_db)
 
     # This function (and it's hackishness) can be avoided by using
     # email.message_from_string(text, _class=SBHeaderMessage)
