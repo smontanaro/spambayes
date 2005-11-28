@@ -855,7 +855,7 @@ class UserInterface(BaseUserInterface):
            old_database_type and os.path.exists(old_name):
             new_name = options["Storage", "persistent_storage_file"]
             new_type = options["Storage", "persistent_use_database"]
-            self.state.close()
+            self.close_database()
             try:
                 os.remove(new_name + ".tmp")
             except OSError:
