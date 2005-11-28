@@ -728,8 +728,8 @@ class ZODBClassifier(object):
             self.close()
 
         self.create_storage()
-        self.db = ZODB.DB(self.storage)
-        self.conn = self.db.open()
+        self.DB = ZODB.DB(self.storage)
+        self.conn = self.DB.open()
         root = self.conn.root()
 
         self.classifier = root.get(self.db_name)
@@ -790,7 +790,7 @@ class ZODBClassifier(object):
         self.store()
 
         # Do the closing.        
-        self.db.close()
+        self.DB.close()
 
         # We don't make any use of the 'undo' capabilities of the
         # FileStorage at the moment, so might as well pack the database
@@ -798,7 +798,7 @@ class ZODBClassifier(object):
         # Pack it up to where it was 'yesterday'.
         # XXX What is the 'referencesf' parameter for pack()?  It doesn't
         # XXX seem to do anything according to the source.
-        if hasattr(self.storage, "pack"):
+        if self.mode != 'r' and hasattr(self.storage, "pack"):
             self.storage.pack(time.time()-60*60*24, None)
         self.storage.close()
 
@@ -1015,12 +1015,18 @@ def convert(old_name=None, old_type=None, new_name=None, new_type=None):
         if new_type is None:
             new_type = auto_type
 
-    old_bayes = open_storage(old_name, old_type)
+    old_bayes = open_storage(old_name, old_type, 'r')
     new_bayes = open_storage(new_name, new_type)
     words = old_bayes._wordinfokeys()
 
-    new_bayes.nham = old_bayes.nham
-    new_bayes.nspam = old_bayes.nspam
+    try:
+        new_bayes.nham = old_bayes.nham
+    except AttributeError:
+        new_bayes.nham = 0
+    try:
+        new_bayes.nspam = old_bayes.nspam
+    except AttributeError:
+        new_bayes.nspam = 0
 
     print >> sys.stderr, "Converting %s (%s database) to " \
           "%s (%s database)." % (old_name, old_type, new_name, new_type)
@@ -1029,10 +1035,12 @@ def convert(old_name=None, old_type=None, new_name=None, new_type=None):
 
     for word in words:
         new_bayes._wordinfoset(word, old_bayes._wordinfoget(word))
+    old_bayes.close()
 
-    print "Storing database, please be patient..."
+    print >> sys.stderr, "Storing database, please be patient..."
     new_bayes.store()
-    print "Conversion complete."
+    print >> sys.stderr, "Conversion complete."
+    new_bayes.close()
 
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it
