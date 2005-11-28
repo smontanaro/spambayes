@@ -126,7 +126,7 @@ class Stats(object):
         """
         self.ResetTotal()
         totals = self.totals
-        for msg_id in self.messageinfo_db.db.keys():
+        for msg_id in self.messageinfo_db.keys():
             # Skip the date key.
             if msg_id == STATS_START_KEY:
                 continue

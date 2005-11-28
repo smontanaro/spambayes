@@ -198,6 +198,9 @@ class MessageInfoBase(object):
             del self.db[msg.getDBKey()]
             self.store()
 
+    def keys(self):
+        return self.db.keys()
+
 class MessageInfoPickle(MessageInfoBase):
     def __init__(self, db_name, pickle_type=1):
         MessageInfoBase.__init__(self, db_name)
@@ -282,6 +285,8 @@ class MessageInfoZODB(storage.ZODBClassifier):
     def __setattr__(self, att, value):
         # Override ZODBClassifier.__setattr__
         object.__setattr__(self, att, value)
+    def keys(self):
+        return self.classifier.keys()
 
 
 # values are classifier class, True if it accepts a mode
