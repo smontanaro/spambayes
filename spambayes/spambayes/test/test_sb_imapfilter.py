@@ -19,7 +19,7 @@ from spambayes import message
 from spambayes import Dibbler
 from spambayes.Options import options
 from spambayes.classifier import Classifier
-from sb_imapfilter import run, BadIMAPResponseError
+from sb_imapfilter import run, BadIMAPResponseError, LoginFailure
 from sb_imapfilter import IMAPSession, IMAPMessage, IMAPFolder, IMAPFilter
 
 IMAP_PORT = 8143
@@ -341,7 +341,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
 
     def testBadLogin(self):
         print "\nYou should see a message indicating that login failed."
-        self.assertRaises(SystemExit, self.imap.login, IMAP_USERNAME,
+        self.assertRaises(LoginFailure, self.imap.login, IMAP_USERNAME,
                           "wrong password")
 
     def test_check_response(self):
@@ -611,7 +611,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         response = self.msg.imap_server.fetch(1, "UID")
         self.assertEqual(response[0], "OK")
         self.msg.uid = response[1][0][7:-1]
-        self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server)
+        self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server, None)
 
         new_msg = self.msg.get_full_message()
         self.assertEqual(new_msg.folder, self.msg.folder)
@@ -633,7 +633,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         self.msg.imap_server.login(IMAP_USERNAME, IMAP_PASSWORD)
         self.msg.imap_server.select()
         self.msg.uid = 103 # id of malformed message in dummy server
-        self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server)
+        self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server, None)
         print "\nWith email package versions less than 3.0, you should " \
               "see an error parsing the message."
         new_msg = self.msg.get_full_message()
@@ -660,11 +660,11 @@ class IMAPFolderTest(BaseIMAPFilterTest):
     def setUp(self):
         BaseIMAPFilterTest.setUp(self)
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
-        self.folder = IMAPFolder("testfolder", self.imap)
+        self.folder = IMAPFolder("testfolder", self.imap, None)
 
     def test_cmp(self):
-        folder2 = IMAPFolder("testfolder", self.imap)
-        folder3 = IMAPFolder("testfolder2", self.imap)
+        folder2 = IMAPFolder("testfolder", self.imap, None)
+        folder3 = IMAPFolder("testfolder2", self.imap, None)
         self.assertEqual(self.folder, folder2)
         self.assertNotEqual(self.folder, folder3)
         
@@ -748,7 +748,7 @@ class IMAPFilterTest(BaseIMAPFilterTest):
         BaseIMAPFilterTest.setUp(self)
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
         classifier = Classifier()
-        self.filter = IMAPFilter(classifier)
+        self.filter = IMAPFilter(classifier, None)
         options["imap", "ham_train_folders"] = ("ham_to_train",)
         options["imap", "spam_train_folders"] = ("spam_to_train",)
 
