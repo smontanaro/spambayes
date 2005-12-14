@@ -130,7 +130,7 @@ class CorpusTest(unittest.TestCase):
         ids = [0, 1, 2]
         for id in ids:
             self.corpus.addMessage(simple_msg(id))
-        self.assertRaises(NotImplementedError, self.corpus.__getitem__, 4)
+        self.assertRaises(KeyError, self.corpus.__getitem__, 4)
 
     def test_keys(self):
         self.assertEqual(self.corpus.keys(), [])
