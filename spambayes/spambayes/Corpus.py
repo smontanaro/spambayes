@@ -213,7 +213,7 @@ class Corpus:
         return self.msgs.keys()
 
     def __contains__(self, other):
-        return other in self.msgs
+        return other in self.msgs.values()
 
     def __iter__(self):
         '''Corpus is iterable'''
