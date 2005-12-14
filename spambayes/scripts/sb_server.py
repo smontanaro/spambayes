@@ -886,6 +886,7 @@ class State:
         if not hasattr(self, "MBDName"):
             self.MDBName, self.useMDB = spambayes.message.database_type()
         self.mdb = spambayes.message.open_storage(self.MDBName, self.useMDB)
+        spambayes.message.Message.message_info_db = self.mdb
 
         # Load stats manager.
         self.stats = Stats.Stats(options, self.mdb)

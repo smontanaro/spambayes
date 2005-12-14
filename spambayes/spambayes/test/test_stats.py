@@ -17,6 +17,7 @@ class StatsTest(unittest.TestCase):
         self.messageinfo_db_name = "__unittest.pik"
         self.messageinfo_db = MessageInfoPickle(self.messageinfo_db_name)
         self.s = Stats(options, self.messageinfo_db)
+        Message.message_info_db = self.messageinfo_db
 
     def tearDown(self):
         if os.path.exists(self.messageinfo_db_name):
