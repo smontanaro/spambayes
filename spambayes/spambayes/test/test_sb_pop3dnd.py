@@ -13,7 +13,7 @@ sb_test_support.fix_sys_path()
 from spambayes import Dibbler
 from spambayes.Options import options
 from spambayes.classifier import Classifier
-from spambayes.message import message_from_string
+from spambayes.message import SBHeaderMessage
 from sb_pop3dnd import IMAPMessage, DynamicIMAPMessage, IMAPFileMessage
 from sb_pop3dnd import IMAPFileMessageFactory
 # We borrow the dummy POP3 server that test_sb_server uses.
