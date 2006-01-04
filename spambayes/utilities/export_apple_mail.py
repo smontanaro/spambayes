@@ -1,13 +1,22 @@
 #!/usr/bin/env python
 
-"""export_apple_mail.py
-
-Converts Apple Mail's emlx files to plain text files usable
+"""Convert Apple Mail's emlx files to plain text files usable
 by SpamBayes's testtools.
 
-Adding some way to display help would be good.  For now, read
-this file and run the script with the path to the user's
-~/Library/Mail directory.
+Usage: %(program)s [options] path
+
+Where:
+    -h
+        Show usage and exit.
+    -e mailbox
+        Name of mailbox or account to exclude.  Drafts and
+        Sent Messages are always excluded.
+    -q
+        Don't print status indicators.
+    -o section:option:value
+        Set [section, option] in the options database to value.
+
+"path" should be the path to the user's ~/Library/Mail directory.
 
 (Tested on Windows XP remotely accessing the Mac filesystem.
 I don't know if the bundling of the files in the Mail directory
@@ -17,8 +26,17 @@ out right now).
 
 import os
 import sys
+import getopt
 
 from spambayes.Options import options
+
+def usage(code, msg=''):
+    """Print usage message and sys.exit(code)."""
+    if msg:
+        print >> sys.stderr, msg
+        print >> sys.stderr
+    print >> sys.stderr, __doc__ % globals()
+    sys.exit(code)
 
 def emlx_to_rfc2822(in_fn, out_fn):
     """Convert an individual file in Apple Mail's emlx format
@@ -36,7 +54,7 @@ def emlx_to_rfc2822(in_fn, out_fn):
     fout.write(fin.read(length))
     plist = fin.read()
 
-def export(mail_dir):
+def export(mail_dir, exclude, quiet):
     """Scans through the specified directory, which should be
     the Apple Mail user's ~\Library\Mail folder, converting
     all found emlx files to simple RFC2822 messages suitable
@@ -59,18 +77,17 @@ def export(mail_dir):
         # There is no mail at the top level.
         dirname = os.path.join(mail_dir, dirname)
         if os.path.isdir(dirname):
-            export_directory(mail_dir, dirname)
-    print
+            export_directory(mail_dir, dirname, exclude, quiet)
 
-def export_directory(parent, dirname):
-    if parent == "Junk.mbox":
+def export_directory(parent, dirname, exclude, quiet):
+    base_parent = os.path.splitext(os.path.basename(parent))[0]
+    if base_parent == "Junk":
         # All of these should be spam.  Make sure that you
         # check for false positives first!
         dest_dir = os.path.join(\
             os.path.dirname(options["TestDriver", "spam_directories"]),
             "reservoir")
-    elif parent == "Sent Messages.mbox" or parent == "Drafts.mbox":
-        # We don't do anything with outgoing mail.
+    elif base_parent in exclude:
         return
     else:
         # Everything else is ham.
@@ -81,7 +98,7 @@ def export_directory(parent, dirname):
     for path in os.listdir(dirname):
         path = os.path.join(dirname, path)
         if os.path.isdir(path):
-            export_directory(dirname, path)
+            export_directory(dirname, path, exclude, quiet)
         else:
             fn, ext = os.path.splitext(path)
             if ext == ".emlx":
@@ -89,7 +106,33 @@ def export_directory(parent, dirname):
                 out_fn = os.path.join(dest_dir,
                                       os.path.basename(fn) + ".txt")
                 emlx_to_rfc2822(in_fn, out_fn)
-                sys.stdout.write('.')
+                if not quiet:
+                    sys.stdout.write('.')
+    if not quiet:
+        print
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hqe:o:')
+    except getopt.error, msg:
+        usage(1, msg)
+
+    quiet = False
+    # We don't do anything with outgoing mail.
+    exclude = ["Sent Messages", "Drafts"]
+    for opt, arg in opts:
+        if opt == '-h':
+            usage(0)
+        elif opt == '-e':
+            exclude.append(arg)
+        elif opt == '-q':
+            quiet = True
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
+
+    if len(args) != 1:
+        usage(1, "Must specify exactly one path.")
+    export(args[0], exclude, quiet)
 
 if __name__ == "__main__":
-    export(sys.argv[1])
+    main()
