@@ -99,7 +99,6 @@ except NameError:
 
 try:
     import textwrap
-    raise ImportError
 except ImportError:
     # textwrap was added in 2.3
     # We only use this for printing out errors and docstrings, so
@@ -107,7 +106,7 @@ except ImportError:
     # recent Python!).  So we do it the dumb way; the textwrap code
     # could be duplicated here if anyone cared.
     def wrap(s):
-        length = 10
+        length = 40
         return [s[i:i+length].strip() for i in xrange(0, len(s), length)]
 else:
     wrap = textwrap.wrap
