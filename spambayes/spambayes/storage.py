@@ -524,7 +524,7 @@ class mySQLClassifier(SQLClassifier):
             elif info.startswith("user"):
                 self.username = info[5:]
             elif info.startswith("pass"):
-                self.username = info[5:]
+                self.password = info[5:]
             elif info.startswith("dbname"):
                 db_name = info[7:]
         SQLClassifier.__init__(self, db_name)
