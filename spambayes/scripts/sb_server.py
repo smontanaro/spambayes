@@ -289,7 +289,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
         if trustedIPs == "*" or remoteIP == clientSocket.getsockname()[0]:
             return True
 
-        trustedIPs = trustedIPs.replace('.', '\.').replace('*', '([01]?\d\d?|2[04]\d|25[0-5])')
+        trustedIPs = trustedIPs.replace('.', '\.').replace('*', '([01]?\d\d?|2[0-4]\d|25[0-5])')
         for trusted in trustedIPs.split(','):
             if re.search("^" + trusted + "$", remoteIP):
                 return True
@@ -883,10 +883,7 @@ class State:
         if not hasattr(self, "DBName"):
             self.DBName, self.useDB = storage.database_type([])
         self.bayes = storage.open_storage(self.DBName, self.useDB)
-        if not hasattr(self, "MBDName"):
-            self.MDBName, self.useMDB = spambayes.message.database_type()
-        self.mdb = spambayes.message.open_storage(self.MDBName, self.useMDB)
-        spambayes.message.Message.message_info_db = self.mdb
+        self.mdb = spambayes.message.Message().message_info_db
 
         # Load stats manager.
         self.stats = Stats.Stats(options, self.mdb)
