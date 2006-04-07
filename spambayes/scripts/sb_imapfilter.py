@@ -148,6 +148,7 @@ from spambayes.Options import options, get_pathname_option, optionsPathname
 from spambayes import tokenizer, storage, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface, LoginFailure
+
 from spambayes.Version import get_current_version
 
 from imaplib import IMAP4
@@ -1126,7 +1127,7 @@ def run(force_UI=False):
         print "Loading database %s..." % (bdbname),
 
     classifier = storage.open_storage(bdbname, useDBM)
-    message_db = message.open_storage(*message.database_type())
+    message_db = message.Message().message_info_db
 
     if options["globals", "verbose"]:
         print "Done."
@@ -1195,7 +1196,7 @@ def run(force_UI=False):
 
         def change_db():
             classifier = storage.open_storage(*storage.database_type(opts))
-            message_db = message.open_storage(*message.database_type())
+            message.Message.message_info_db = message_db
             imap_filter = IMAPFilter(classifier, message_db)
 
         httpServer = UserInterfaceServer(options["html_ui", "port"])
