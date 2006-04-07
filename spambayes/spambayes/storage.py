@@ -787,7 +787,8 @@ class ZODBClassifier(object):
         # with it, though, or it will be still around after the db is
         # closed and cause problems.  For now, saving seems to make sense
         # (and we can always add abort methods if they are ever needed).
-        self.store()
+        if self.mode != 'r':
+            self.store()
 
         # Do the closing.        
         self.DB.close()
