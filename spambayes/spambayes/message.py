@@ -278,9 +278,9 @@ class _PersistentMessageInfo(MessageInfoBase, Persistent):
 
 class MessageInfoZODB(storage.ZODBClassifier):
     ClassifierClass = _PersistentMessageInfo
-    def __init__(self, db_name):
+    def __init__(self, db_name, mode='c'):
         self.nham = self.nspam = 0 # Only used for debugging prints
-        storage.ZODBClassifier.__init__(self, db_name)
+        storage.ZODBClassifier.__init__(self, db_name, mode)
         self.classifier.store = self.store
         self.db = self.classifier
     def __setattr__(self, att, value):
@@ -295,7 +295,7 @@ _storage_types = {"dbm" : (MessageInfoDB, True, True),
 ##                  "pgsql" : (MessageInfoPG, False, False),
 ##                  "mysql" : (MessageInfoMySQL, False, False),
 ##                  "cdb" : (MessageInfoCDB, False, True),
-                  "zodb" : (MessageInfoZODB, False, True),
+                  "zodb" : (MessageInfoZODB, True, True),
 ##                  "zeo" : (MessageInfoZEO, False, False),
                   }
 
