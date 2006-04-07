@@ -212,7 +212,8 @@ class FileMessage(object):
             self._msg = email.message_from_string(\
                 fp.read(), _class = self.message_class)
         except IOError, e:
-            if str(e) == 'Not a gzipped file':
+            if str(e) == 'Not a gzipped file' or \
+               str(e) == 'Unknown compression method':
                 # We've probably got both gzipped messages and
                 # non-gzipped messages, and need to work with both.
                 fp.close()
