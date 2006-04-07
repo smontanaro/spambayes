@@ -2,6 +2,10 @@
 
 Release 1.1a2
 =============
+Tony Meyer        03/04/2006  Add [ 1081787 ] Adding the version only to sb_filter.py
+Tony Meyer        03/04/2006  Fix [ 1383801 ] trustedIPs wildcard to regex broken
+Tony Meyer        02/04/2006  Fix [ 1387699 ] train_on_filter=True needs the db to be opened read/write
+Tony Meyer        02/04/2006  Fix [ 1387709 ] If globals:dbm_type is non-default, then don't use whichdb.
 Tony Meyer        27/11/2005  Install the conversion utility and offer to run it on Windows install.
 Tony Meyer        26/11/2005  Add conversion utility to easily convert dbm to ZODB.
 Tony Meyer        26/11/2005  Change database names to hammie.fs and messageinfo.fs
