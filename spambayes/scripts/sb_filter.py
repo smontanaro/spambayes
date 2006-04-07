@@ -19,6 +19,8 @@
 Options can one or more of:
     -h
         show usage and exit
+    -v
+        show version and exit
     -x
         show some usage examples and exit
     -d DBFILE
@@ -135,6 +137,11 @@ def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
     sys.exit(code)
 
+def version():
+    v = get_current_version()
+    print >> sys.stderr, v.get_long_version("SpamBayes Command Line Filter")
+    sys.exit(0)
+
 class HammieFilter(object):
     def __init__(self):
         options = Options.options
@@ -173,7 +180,10 @@ class HammieFilter(object):
         self.close()
 
     def filter(self, msg):
-        self.open('r')
+        if Options.options["Hammie", "train_on_filter"]:
+            self.open('c')
+        else:
+            self.open('r')
         return self.h.filter(msg)
 
     def filter_train(self, msg):
@@ -203,12 +213,14 @@ class HammieFilter(object):
 def main():
     h = HammieFilter()
     actions = []
-    opts, args = getopt.getopt(sys.argv[1:], 'hxd:p:nfgstGSo:',
-                               ['help', 'examples', 'option='])
+    opts, args = getopt.getopt(sys.argv[1:], 'hvxd:p:nfgstGSo:',
+                               ['help', 'version', 'examples', 'option='])
     create_newdb = False
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
+        elif opt in ('-v', '--version'):
+            version()
         elif opt in ('-x', '--examples'):
             examples()
         elif opt in ('-o', '--option'):
