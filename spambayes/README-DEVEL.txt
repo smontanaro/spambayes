@@ -466,6 +466,10 @@ on Windows, so his approach to building the zip file is at the end.
    the checkout dialog).
  o Change spambayes/__init__.py to contain the new version number but don't
    commit it yet, just in case something goes wrong.
+ o Note that if you cheated above, and used an existing checkout, you need
+   to ensure that you don't have extra files in there.  For example, if you
+   have a few thousand email messages in testtools/Data, setup.py will take
+   a *very* long time.
  o In the Windows checkout, run "python setup.py sdist --formats zip"
  o In the Unix checkout, run "python setup.py sdist --formats gztar"
  o Take the resulting spambayes-1.0a5.zip and spambayes-1.0a5.tar.gz, and
@@ -485,12 +489,7 @@ on Windows, so his approach to building the zip file is at the end.
    existing tag names for the tag name format.
  o In either checkout, run "python setup.py register" to register the new
    version with PyPI.
- o Create MD5 checksums for the files, and update download.ht with these.
-   Tony uses wxChecksums (http://wxchecksums.sourceforge.net) for this,
-   but you could just do
-      >>> import md5
-      >>> print md5.md5(file("spambayes-1.0.1.exe", "rb").read()).hexdigest()
- o Calculate the sizes of the files, and update download.ht with these.
+ o Update download.ht with checksums, links, and sizes for the files.
    From release 1.1 doing a "setup.py sdist" will generate checksums
    and sizes for you, and print out the results to stdout.
  o Create OpenPGP/PGP signatures for the files.  Using GnuPG:
