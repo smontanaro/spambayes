@@ -728,7 +728,7 @@ class ZODBClassifier(object):
             self.close()
 
         self.create_storage()
-        self.DB = ZODB.DB(self.storage)
+        self.DB = ZODB.DB(self.storage, cache_size=10000)
         self.conn = self.DB.open()
         root = self.conn.root()
 
