@@ -4,7 +4,6 @@
 
 import os
 import posixpath
-import whrandom
 
 from Skeleton import Skeleton
 from Sidebar import Sidebar, BLANKCELL
