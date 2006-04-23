@@ -26,7 +26,7 @@ import csv
 
 from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
-from spambayes.storage import STATE_KEY
+from spambayes.storage import STATE_KEY, database_type, open_storage
 
 prog = sys.argv[0]
 
@@ -35,33 +35,15 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-# From msgs on spambayes mailing list, spam prob is calculated thusly:
-## hc = ham token count
-## nh = total number of ham messages
-## sc = spam token count
-## ns = total number of spam messages
-## hr = ham ratio = hc / nh
-## sr = spam ratio = sc / ns
-## p = base spam probability = sr / (sr + hr)
-## S = unknown word strength (static factor = 0.45 by default)
-## x = unknown word probability (static factor = 0.5 by default)
-## n = total number of messages the token appeared in = hc + sc
-## sp = final spam probability = ((S * x) + (n * p)) / (S + n)
-
-
 def print_spamcounts(tokens, db, use_re):
     if use_re:
         s = sets.Set()
-        keys = db.keys()
+        keys = db._wordinfokeys()
         for pat in tokens:
             for k in keys:
                 if re.search(pat, k) is not None:
                     s.add(k)
         tokens = list(s)
-
-    S = options["Classifier", "unknown_word_strength"]
-    x = options["Classifier", "unknown_word_prob"]
-    _, ns, nh = db[STATE_KEY]
 
     writer = csv.writer(sys.stdout)
     writer.writerow(("token", "nspam", "nham", "spam prob"))
@@ -71,18 +53,11 @@ def print_spamcounts(tokens, db, use_re):
             continue
         seen.add(t)
 
-        try:
-            sc, hc = db.get(t, (0, 0))
-        except ValueError:
-            _, sc, hc = db.get(t, (0, 0, 0))
+        sc, hc = db._wordinfoget(t).__getstate__()
         if sc == hc == 0:
             continue
 
-        hr = hc / nh
-        sr = sc / ns
-        p = sr / (sr + hr)
-        n = hc + sc
-        sp = ((S * x) + (n * p)) / (S + n)
+        sp = db.spamprob([t])
 
         writer.writerow((t, sc, hc, sp))
 
@@ -116,12 +91,8 @@ def main(args):
         usage("-r and -t may not be used at the same time")
         return 1
 
-    dbname = os.path.expanduser(dbname)
-    print >> sys.stderr, "db:", dbname
-    if ispickle:
-        db = pickle.load(file(dbname))
-    else:
-        db = shelve.open(dbname, flag='r')
+    dbname, usedb = database_type(opts)
+    db = open_storage(dbname, usedb)
 
     if tokenizestdin:
         args = tokenize(sys.stdin)
