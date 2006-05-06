@@ -2,6 +2,7 @@
 
 # Redistribute messages among the classic Data/{Ham,Spam}/Set* directories,
 # based on desired set count.
+# Will use the TestDriver directory options.
 
 """Usage: %(program)s [OPTIONS] ...
 
@@ -14,6 +15,8 @@ Where OPTIONS is one or more of:
         max number of groups; default unlimited
     -m num
         max number of messages per {ham,spam}*group*set; default unlimited
+    -o section:option:value
+        set [section, option] in the options database to value.
 """
 
 import getopt
@@ -23,10 +26,10 @@ import os.path
 import glob
 import shutil
 
+from spambayes.Options import options
+
 program = sys.argv[0]
 loud = True
-hamdir = "Data/Ham"
-spamdir = "Data/Spam"
 nsets = 5               # -n
 ngroups = None          # -g
 nmess = None            # -m
@@ -98,7 +101,7 @@ def main():
     global nmess
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hn:g:m:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hn:g:m:o:', ['option='])
     except getopt.error, msg:
         usage(2, msg)
 
@@ -114,6 +117,11 @@ def main():
             ngroups = int(arg)
         elif opt == '-m':
             nmess = int(arg)
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
+
+    hamdir = os.path.dirname(options["TestDriver", "ham_directories"])
+    spamdir = os.path.dirname(options["TestDriver", "spam_directories"])
 
     distribute(hamdir)
     distribute(spamdir)

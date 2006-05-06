@@ -87,7 +87,7 @@ def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hqao:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hqao:', ['option='])
     except getopt.error, msg:
         usage(1, msg)
 
