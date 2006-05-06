@@ -172,7 +172,4 @@ def main():
     drive(nsets)
 
 if __name__ == "__main__":
-    import time # Sat Apr 22 14:42:39 2006 - Sat Apr 22 15:37:40 2006 ZODB 400
-    print time.asctime() # Sat Apr 22 15:47:58 2006 - Sat Apr 22 16:38:04 2006 ZODB 10000
     main()
-    print time.asctime() # Sat Apr 22 16:38:47 2006 - Sat Apr 22 17:31:08 2006 pickle
