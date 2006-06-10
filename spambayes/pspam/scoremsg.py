@@ -3,6 +3,8 @@
 
 import sys
 import email
+import locale
+from types import UnicodeType
 
 import ZODB
 from ZEO.ClientStorage import ClientStorage
@@ -19,6 +21,10 @@ except NameError:
 
 
 def main(fp):
+    charset = locale.getdefaultlocale()[1]
+    if not charset:
+        charset = 'us-ascii'
+
     db = pspam.database.open()
     r = db.open().root()
 
@@ -31,6 +37,8 @@ def main(fp):
     print "Clues"
     print "-----"
     for clue, prob in evidence:
+        if isinstance(clue, UnicodeType):
+            clue = clue.encode(charset, 'replace')
         print clue, prob
 ##    print
 ##    print msg

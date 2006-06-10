@@ -24,6 +24,8 @@ import sys
 import getopt
 import re
 import cPickle as pickle
+import locale
+from email.Header import make_header, decode_header
 
 from spambayes.mboxutils import getmbox
 
@@ -85,6 +87,10 @@ def main(args):
         usage(msg)
         return 1
 
+    charset = locale.getdefaultlocale()[1]
+    if not charset:
+        charset = 'us-ascii'
+
     mapfile = spamfile = hamfile = None
     features = set()
     for opt, arg in opts:
@@ -98,7 +104,7 @@ def main(args):
         elif opt in ("-S", "--spamfile"):
             spamfile = arg
         elif opt in ("-f", "--feature"):
-            features.add(arg)
+            features.add(unicode(arg, charset))
 
     if hamfile is None and spamfile is None:
         usage("At least one of -S or -H are required")
@@ -125,9 +131,14 @@ def main(args):
             for msg in getmbox(f):
                 evidence = msg.get("X-Spambayes-Evidence", "")
                 evidence = re.sub(r"\s+", " ", evidence)
-                features = [e.rsplit(": ", 1)[0]
-                              for e in evidence.split("; ")[2:]]
-                features = set([eval(f) for f in features])
+                l = [e.rsplit(": ", 1)[0]
+                     for e in evidence.split("; ")[2:]]
+                for s in l:
+                    try:
+                        s = make_header(decode_header(s)).__unicode__()
+                    except:
+                        s = unicode(s, 'us-ascii', 'replace')
+                    features.add(s)
         if not features:
             usage("No X-Spambayes-Evidence headers found")
             return 1

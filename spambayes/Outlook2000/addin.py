@@ -4,6 +4,7 @@ import types
 import warnings
 import traceback
 import _winreg
+from types import UnicodeType
 
 # *sigh* - this is for the binary installer, and for the sake of one line
 # that is implicit anyway, I gave up
@@ -521,7 +522,10 @@ def ShowClues(mgr, explorer):
             nspam = record.spamcount
         else:
             nham = nspam = "-"
-        word = repr(word)
+        if isinstance(word, UnicodeType):
+            word = word.encode('mbcs', 'replace')
+        else:
+            word = repr(word)
         push(escape(word) + " " * (35-len(word)))
         push(format % (prob, nham, nspam))
     push("</PRE>\n")
@@ -549,7 +553,11 @@ def ShowClues(mgr, explorer):
     # However, <code> does not require escaping.
     # could use pprint, but not worth it.
     for token in toks:
-        push("<code>" + repr(token) + "</code><br>\n")
+        if isinstance(token, UnicodeType):
+            token = token.encode('mbcs', 'replace')
+        else:
+            token = repr(token)
+        push("<code>" + token + "</code><br>\n")
 
     # Put the body together, then the rest of the message.
     body = ''.join(body)
