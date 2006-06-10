@@ -533,7 +533,7 @@ class _HTTPHandler(BrighterAsyncChat):
         headers = []
         headers.append("HTTP/1.1 200 OK")
         headers.append("Connection: close")
-        headers.append("Content-Type: %s" % contentType)
+        headers.append('Content-Type: %s; charset="utf-8"' % contentType)
         headers.append("Date: %s" % httpNow)
         for name, value in extraHeaders.items():
             headers.append("%s: %s" % (name, value))
@@ -549,7 +549,7 @@ class _HTTPHandler(BrighterAsyncChat):
         if not self._headersWritten:
             headers.append("HTTP/1.0 %d Error" % code)
             headers.append("Connection: close")
-            headers.append("Content-Type: text/html")
+            headers.append('Content-Type: text/html; charset="utf-8"')
             headers.append("")
             headers.append("")
         self.push("%s<html><body>%s</body></html>" % \
@@ -583,7 +583,7 @@ class _HTTPHandler(BrighterAsyncChat):
         headers.append('HTTP/1.0 401 Unauthorized')
         headers.append('WWW-Authenticate: ' + authString)
         headers.append('Connection: close')
-        headers.append('Content-Type: text/html')
+        headers.append('Content-Type: text/html; charset="utf-8"')
         headers.append('')
         headers.append('')
         self.write('\r\n'.join(headers) + self._server.getCancelMessage())
