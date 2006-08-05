@@ -259,7 +259,7 @@ def main(args):
     train(store, ham, spam, maxmsgs, maxrounds, tdict, reverse, verbose,
           sh_ratio)
 
-    store.store()
+    store.close()
 
     if cullext is not None:
         print "writing new ham mbox..."
