@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 """
-Check spamcounts for various tokens or patterns
+Check spamcounts for one or more tokens or patterns
 
-usage %(prog)s [ -h ] [ -r ] [ -d db ] [ -p ] [ -t ] ...
+usage %(prog)s [ options ] token ...
 
 -h    - print this documentation and exit.
 -r    - treat tokens as regular expressions - may not be used with -t
--d db - use db instead of the default found in the options file
--p    - db is actually a pickle
 -t    - read message from stdin, tokenize it, then display their counts
         may not be used with -r
+-o section:option:value
+      - set [section, option] in the options database to value
 """
 
 from __future__ import division
@@ -63,29 +63,24 @@ def print_spamcounts(tokens, db, use_re):
 
 def main(args):
     try:
-        opts, args = getopt.getopt(args, "hrd:t",
-                                   ["help", "re", "database=", "pickle",
-                                    "tokenize"])
+        opts, args = getopt.getopt(args, "hrto:",
+                                   ["help", "re", "tokenize", "option="])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
 
     usere = False
-    dbname = get_pathname_option("Storage", "persistent_storage_file")
-    ispickle = not options["Storage", "persistent_use_database"]
     tokenizestdin = False
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
             return 0
-        elif opt in ("-d", "--database"):
-            dbname = arg
         elif opt in ("-r", "--re"):
             usere = True
-        elif opt in ("-p", "--pickle"):
-            ispickle = True
         elif opt in ("-t", "--tokenize"):
             tokenizestdin = True
+        elif opt in ('-o', '--option'):
+            options.set_from_cmdline(arg, sys.stderr)
 
     if usere and tokenizestdin:
         usage("-r and -t may not be used at the same time")
