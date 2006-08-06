@@ -46,6 +46,9 @@ Options can one or more of:
     -o section:option:value
         set [section, option] in the options database to value
 
+    -P
+        Run under control of the Python profiler, if it is available
+
 All options marked with '*' operate on stdin, and write the resultant
 message to stdout.
 
@@ -210,12 +213,13 @@ class HammieFilter(object):
         self.h.untrain_spam(msg)
         self.h.store()
 
-def main():
+def main(profiling=False):
     h = HammieFilter()
     actions = []
-    opts, args = getopt.getopt(sys.argv[1:], 'hvxd:p:nfgstGSo:',
+    opts, args = getopt.getopt(sys.argv[1:], 'hvxd:p:nfgstGSo:P',
                                ['help', 'version', 'examples', 'option='])
     create_newdb = False
+    do_profile = False
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             usage(0)
@@ -237,6 +241,15 @@ def main():
             actions.append(h.untrain_ham)
         elif opt == '-S':
             actions.append(h.untrain_spam)
+        elif opt == '-P':
+            do_profile = True
+            if not profiling:
+                try:
+                    import cProfile
+                except ImportError:
+                    pass
+                else:
+                    return cProfile.run("main(True)")
         elif opt == "-n":
             create_newdb = True
     h.dbname, h.usedb = storage.database_type(opts)
