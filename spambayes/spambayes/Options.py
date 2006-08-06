@@ -105,6 +105,20 @@ defaults = {
      """),
      BOOLEAN, RESTORE),
 
+    ("x-lookup_ip", _("Generate IP address tokens from hostnames"), False,
+     _("""(EXPERIMENTAL) Generate IP address tokens from hostnames.
+     Requires PyDNS (http://pydns.sourceforge.net/)."""),
+     BOOLEAN, RESTORE),
+
+    ("lookup_ip_cache", _("x-lookup_ip cache file location"), "",
+     _("""Tell SpamBayes where to cache IP address lookup information.
+     Only comes into play if lookup_ip is enabled. The default
+     (empty string) disables the file cache.  When caching is enabled,
+     the cache file is stored using the same database type as the main
+     token store (only dbm and zodb supported so far, zodb has problems,
+     dbm is untested, hence the default)."""),
+     FILE, RESTORE),
+
     ("count_all_header_lines", _("Count all header lines"), False,
      _("""Generate tokens just counting the number of instances of each kind
      of header line, in a case-sensitive way.

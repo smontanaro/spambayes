@@ -39,6 +39,17 @@ except NameError:
     True, False = 1, 0
 
 
+try:
+    import dnscache
+    cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
+    cache.printStatsAtEnd = True
+except (IOError, ImportError):
+    cache = None
+else:
+    import atexit
+    atexit.register(cache.close)
+
+ 
 # Patch encodings.aliases to recognize 'ansi_x3_4_1968'
 from encodings.aliases import aliases # The aliases dictionary
 if not aliases.has_key('ansi_x3_4_1968'):
