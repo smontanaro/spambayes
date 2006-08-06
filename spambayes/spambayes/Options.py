@@ -133,13 +133,13 @@ defaults = {
      reasons if your corpora are from different sources."""),
      BOOLEAN, RESTORE),
 
-    ("address_headers", _("Address headers to mine"), ("from", "to", "cc", "sender", "reply-to"),
+    ("address_headers", _("Address headers to mine"), ("from", "to", "cc",
+                                                       "sender", "reply-to"),
      _("""Mine the following address headers. If you have mixed source
      corpuses (as opposed to a mixed sauce walrus, which is delicious!)
      then you probably don't want to use 'to' or 'cc') Address headers will
      be decoded, and will generate charset tokens as well as the real
-     address.  Others to consider: to, cc, reply-to, errors-to, sender,
-     ..."""),
+     address.  Others to consider: errors-to, ..."""),
      HEADER_NAME, RESTORE),
 
     ("generate_long_skips", _("Generate long skips"), True,
