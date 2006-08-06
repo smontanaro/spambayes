@@ -635,6 +635,14 @@ def octetparts(msg):
                       part.get_content_type() == 'application/octet-stream',
                       msg.walk()))
 
+def imageparts(msg):
+    """Return a list of all msg parts with type 'image/*'."""
+    # Don't want a set here because we want to be able to process them in
+    # order.
+    return filter(lambda part:
+                  part.get_content_type().startswith('image/'),
+                  msg.walk())
+
 has_highbit_char = re.compile(r"[\x80-\xff]").search
 
 # Cheap-ass gimmick to probabilistically find HTML/XML tags.
@@ -1590,6 +1598,24 @@ class Tokenizer:
 
                 yield "octet:%s" % text[:options["Tokenizer",
                                                  "octet_prefix_size"]]
+
+        parts = imageparts(msg)
+        if options["Tokenizer", "x-image_size"]:
+            # Find image/* parts of the body, calculating the log(size) of
+            # each image.
+            
+            for part in parts:
+                try:
+                    text = part.get_payload(decode=True)
+                except:
+                    yield "control: couldn't decode image"
+                    text = part.get_payload(decode=False)
+
+                if text is None:
+                    yield "control: image payload is None"
+                    continue
+
+                yield "image-size:2**%d" % round(log2(len(text)))
 
         # Find, decode (base64, qp), and tokenize textual parts of the body.
         for part in textparts(msg):

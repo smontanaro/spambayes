@@ -119,6 +119,11 @@ defaults = {
      dbm is untested, hence the default)."""),
      FILE, RESTORE),
 
+    ("x-image_size", _("Generate image size tokens"), False,
+     _("""(EXPERIMENTAL) If true, generate tokens based on the sizes of
+     embedded images."""),
+     BOOLEAN, RESTORE),
+
     ("count_all_header_lines", _("Count all header lines"), False,
      _("""Generate tokens just counting the number of instances of each kind
      of header line, in a case-sensitive way.
