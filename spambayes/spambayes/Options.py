@@ -124,6 +124,20 @@ defaults = {
      embedded images."""),
      BOOLEAN, RESTORE),
 
+    ("x-crack_images", _("Look inside images for text"), False,
+     _("""(EXPERIMENTAL) If true, generate tokens based on the
+     (hopefully) text content contained in any images in each message.
+     The current support is minimal, relies on the installation of
+     ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and netpbm.
+     It is almost certainly only useful in its current form on Unix-like
+     machines."""),
+     BOOLEAN, RESTORE),
+
+    ("max_image_size", _("Max image size to try OCR-ing"), 100000,
+     _("""When crack_images is enabled, this specifies the largest
+     image to try OCR on."""),
+     INTEGER, RESTORE),
+
     ("count_all_header_lines", _("Count all header lines"), False,
      _("""Generate tokens just counting the number of instances of each kind
      of header line, in a case-sensitive way.

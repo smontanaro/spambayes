@@ -1617,6 +1617,14 @@ class Tokenizer:
 
                 yield "image-size:2**%d" % round(log2(len(text)))
 
+        if options["Tokenizer", "x-crack_images"]:
+            from spambayes.ImageStripper import ImageStripper
+            text, tokens = ImageStripper().analyze(parts)
+            for t in tokens:
+                yield t
+            for t in self.tokenize_text(text):
+                yield t
+
         # Find, decode (base64, qp), and tokenize textual parts of the body.
         for part in textparts(msg):
             # Decode, or take it as-is if decoding fails.
