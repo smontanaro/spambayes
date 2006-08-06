@@ -97,6 +97,14 @@ defaults = {
      to use, if check_octets is set to true."""),
      INTEGER, RESTORE),
 
+    ("x-short_runs", _("Count runs of short 'words'"), False,
+     _("""(EXPERIMENTAL) If true, generate tokens based on max number of
+     short word runs. Short words are anything of length < the
+     skip_max_word_size option.  Normally they are skipped, but one common
+     spam technique spells words like 'V I A G RA'.
+     """),
+     BOOLEAN, RESTORE),
+
     ("count_all_header_lines", _("Count all header lines"), False,
      _("""Generate tokens just counting the number of instances of each kind
      of header line, in a case-sensitive way.

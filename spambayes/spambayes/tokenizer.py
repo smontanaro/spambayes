@@ -1530,15 +1530,30 @@ class Tokenizer:
     def tokenize_text(self, text, maxword=options["Tokenizer",
                                                   "skip_max_word_size"]):
         """Tokenize everything in the chunk of text we were handed."""
+        short_runs = Set()
+        short_count = 0
         for w in text.split():
             n = len(w)
-            # Make sure this range matches in tokenize_word().
-            if 3 <= n <= maxword:
-                yield w
+            if n < 3:
+                # count how many short words we see in a row - meant to
+                # latch onto crap like this:
+                # X j A m N j A d X h
+                # M k E z R d I p D u I m A c
+                # C o I d A t L j I v S j
+                short_count += 1
+            else:
+                if short_count:
+                    short_runs.add(short_count)
+                    short_count = 0
+                # Make sure this range matches in tokenize_word().
+                if 3 <= n <= maxword:
+                    yield w
 
-            elif n >= 3:
-                for t in tokenize_word(w):
-                    yield t
+                elif n >= 3:
+                    for t in tokenize_word(w):
+                        yield t
+        if short_runs and options["Tokenizer", "x-short_runs"]:
+            yield "short:%d" % int(log2(max(short_runs)))
 
     def tokenize_body(self, msg):
         """Generate a stream of tokens from an email Message.
