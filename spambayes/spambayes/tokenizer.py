@@ -1615,7 +1615,8 @@ class Tokenizer:
                     yield "control: image payload is None"
                     continue
 
-                yield "image-size:2**%d" % round(log2(len(text)))
+                if text:
+                    yield "image-size:2**%d" % round(log2(len(text)))
 
         if options["Tokenizer", "x-crack_images"]:
             from spambayes.ImageStripper import ImageStripper
