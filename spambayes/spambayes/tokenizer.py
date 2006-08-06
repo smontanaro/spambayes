@@ -1527,8 +1527,20 @@ class Tokenizer:
                 if not k.lower() in options["Tokenizer", "safe_headers"]:
                     yield "noheader:" + k
 
-    def tokenize_body(self, msg, maxword=options["Tokenizer",
-                                                 "skip_max_word_size"]):
+    def tokenize_text(self, text, maxword=options["Tokenizer",
+                                                  "skip_max_word_size"]):
+        """Tokenize everything in the chunk of text we were handed."""
+        for w in text.split():
+            n = len(w)
+            # Make sure this range matches in tokenize_word().
+            if 3 <= n <= maxword:
+                yield w
+
+            elif n >= 3:
+                for t in tokenize_word(w):
+                    yield t
+
+    def tokenize_body(self, msg):
         """Generate a stream of tokens from an email Message.
 
         If options['Tokenizer', 'check_octets'] is True, the first few
@@ -1605,16 +1617,8 @@ class Tokenizer:
             # they can't be used to hide words effectively).
             text = html_re.sub('', text)
 
-            # Tokenize everything in the body.
-            for w in text.split():
-                n = len(w)
-                # Make sure this range matches in tokenize_word().
-                if 3 <= n <= maxword:
-                    yield w
-
-                elif n >= 3:
-                    for t in tokenize_word(w):
-                        yield t
+            for t in self.tokenize_text(text):
+                yield t
 
 global_tokenizer = Tokenizer()
 tokenize = global_tokenizer.tokenize
