@@ -1084,6 +1084,21 @@ class URLStripper(Stripper):
             url = urllib.unquote(url)
             scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
 
+            if cache is not None and options["Tokenizer", "x-lookup_ip"]:
+                ips=cache.lookup(netloc)
+                if len(ips)==0:
+                    pushclue("url-ip:timeout")
+                else:
+                    for ip in ips: # Should we limit to one A record?
+                        pushclue("url-ip:%s/32" % ip)
+                        dottedQuadList=ip.split(".")
+                        pushclue("url-ip:%s/8" % dottedQuadList[0])
+                        pushclue("url-ip:%s.%s/16" % (dottedQuadList[0],
+                                                      dottedQuadList[1]))
+                        pushclue("url-ip:%s.%s.%s/24" % (dottedQuadList[0],
+                                                         dottedQuadList[1],
+                                                         dottedQuadList[2]))
+
             # one common technique in bogus "please (re-)authorize yourself"
             # scams is to make it appear as if you're visiting a valid
             # payment-oriented site like PayPal, CitiBank or eBay, when you
@@ -1604,6 +1619,7 @@ class Tokenizer:
             # Find image/* parts of the body, calculating the log(size) of
             # each image.
             
+            total_len = 0
             for part in parts:
                 try:
                     text = part.get_payload(decode=True)
@@ -1611,12 +1627,12 @@ class Tokenizer:
                     yield "control: couldn't decode image"
                     text = part.get_payload(decode=False)
 
+                total_len += len(text or "")
                 if text is None:
                     yield "control: image payload is None"
-                    continue
 
-                if text:
-                    yield "image-size:2**%d" % round(log2(len(text)))
+            if total_len:
+                yield "image-size:2**%d" % round(log2(total_len))
 
         if options["Tokenizer", "x-crack_images"]:
             from spambayes.ImageStripper import ImageStripper
