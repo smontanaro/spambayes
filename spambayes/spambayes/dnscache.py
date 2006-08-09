@@ -13,8 +13,11 @@ import os
 import operator
 import time
 import types
-import shelve
 import socket
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from spambayes.Options import options
 
@@ -62,7 +65,7 @@ def sort_by_attr(seq, attr):
 
 
 class cache:
-    def __init__(self,dnsServer=None,cachefile=None):
+    def __init__(self,dnsServer=None,cachefile=""):
     # These attributes intended for user setting
         self.printStatsAtEnd=False
 
@@ -92,11 +95,21 @@ class cache:
 
         # end of user-settable attributes
 
-        self.cachefile = cachefile
-        if cachefile:
-            self.open_cachefile(cachefile)
+        self.cachefile = os.path.expanduser(cachefile)
+        if self.cachefile and os.path.exists(self.cachefile):
+            self.caches = pickle.load(open(self.cachefile, "rb"))
         else:
-            self.caches={ "A": {}, "PTR": {} }
+            self.caches = {"A": {}, "PTR": {}}
+
+        if options["globals", "verbose"]:
+            if self.caches["A"] or self.caches["PTR"]:
+                print >> sys.stderr, "opened existing cache with",
+                print >> sys.stderr, len(self.caches["A"]), "A records",
+                print >> sys.stderr, "and", len(self.caches["PTR"]),
+                print >> sys.stderr, "PTR records"
+            else:
+                print >> sys.stderr, "opened new cache"
+
         self.hits=0 # These two for statistics
         self.misses=0
         self.pruneTicker=0
@@ -108,103 +121,25 @@ class cache:
             self.queryObj=DNS.DnsRequest(server=dnsServer)
         return None
 
-    def open_cachefile(self, cachefile):
-        filetype = options["Storage", "persistent_use_database"]
-        cachefile = os.path.expanduser(cachefile)
-        if filetype == "dbm":
-            self.caches=shelve.open(cachefile)
-            if not self.caches.has_key("A"):
-                self.caches["A"] = {}
-            if not self.caches.has_key("PTR"):
-                self.caches["PTR"] = {}
-        elif filetype == "zodb":
-            from ZODB import DB
-            from ZODB.FileStorage import FileStorage
-            self._zodb_storage = FileStorage(cachefile, read_only=False)
-            self._DB = DB(self._zodb_storage, cache_size=10000)
-            self._conn = self._DB.open()
-            root = self._conn.root()
-            self.caches = root.get("dnscache")
-            if self.caches is None:
-                # There is no classifier, so create one.
-                from BTrees.OOBTree import OOBTree
-                self.caches = root["dnscache"] = OOBTree()
-                self.caches["A"] = {}
-                self.caches["PTR"] = {}
-                print "opened new cache"
-            else:
-                print "opened existing cache with", len(self.caches["A"]), "A records",
-                print "and", len(self.caches["PTR"]), "PTR records"
-
     def close(self):
-        if not self.cachefile:
-            return
-        filetype = options["Storage", "persistent_use_database"]
-        if filetype == "dbm":
-            self.caches.close()
-        elif filetype == "zodb":
-            self._zodb_close()
-
-    def _zodb_store(self):
-        import transaction
-        from ZODB.POSException import ConflictError
-        from ZODB.POSException import TransactionFailedError
-
-        try:
-            transaction.commit()
-        except ConflictError, msg:
-            # We'll save it next time, or on close.  It'll be lost if we
-            # hard-crash, but that's unlikely, and not a particularly big
-            # deal.
-            if options["globals", "verbose"]:
-                print >> sys.stderr, "Conflict on commit.", msg
-            transaction.abort()
-        except TransactionFailedError, msg:
-            # Saving isn't working.  Try to abort, but chances are that
-            # restarting is needed.
-            if options["globals", "verbose"]:
-                print >> sys.stderr, "Store failed.  Need to restart.", msg
-            transaction.abort()
-
-    def _zodb_close(self):
-        # Ensure that the db is saved before closing.  Alternatively, we
-        # could abort any waiting transaction.  We need to do *something*
-        # with it, though, or it will be still around after the db is
-        # closed and cause problems.  For now, saving seems to make sense
-        # (and we can always add abort methods if they are ever needed).
-        self._zodb_store()
-
-        # Do the closing.
-        self._DB.close()
-
-        # We don't make any use of the 'undo' capabilities of the
-        # FileStorage at the moment, so might as well pack the database
-        # each time it is closed, to save as much disk space as possible.
-        # Pack it up to where it was 'yesterday'.
-        # XXX What is the 'referencesf' parameter for pack()?  It doesn't
-        # XXX seem to do anything according to the source.
-##       self._zodb_storage.pack(time.time()-60*60*24, None)
-        self._zodb_storage.close()
-
-        self._zodb_closed = True
-        if options["globals", "verbose"]:
-            print >> sys.stderr, 'Closed dnscache database'
-
-
-    def __del__(self):
         if self.printStatsAtEnd:
             self.printStats()
+        if self.cachefile:
+            pickle.dump(self.caches, open(self.cachefile, "wb"))
 
     def printStats(self):
         for key,val in self.caches.items():
             totAnswers=0
             for item in val.values():
                 totAnswers+=len(item)
-            print "cache %s has %i question(s) and %i answer(s)" % (key,len(self.caches[key]),totAnswers)
+            print >> sys.stderr, "cache", key, "has", len(self.caches[key]),
+            print >> sys.stderr, "question(s) and", totAnswers, "answer(s)"
         if self.hits+self.misses==0:
-            print "No queries"
+            print >> sys.stderr, "No queries"
         else:
-            print "%i hits, %i misses (%.1f%% hits)" % (self.hits, self.misses, self.hits/float(self.hits+self.misses)*100)
+            print >> sys.stderr, self.hits, "hits,", self.misses, "misses",
+            print >> sys.stderr, "(%.1f%% hits)" % \
+                  (self.hits/float(self.hits+self.misses)*100)
 
     def prune(self,now):
         # I want this to be as fast as reasonably possible.
@@ -222,12 +157,13 @@ class cache:
             if allAnswers[-1].expiresAt>now:
                 break
             answer=allAnswers.pop()
-            c=self.caches[answer.type]
+            c=self.caches[answer.qType]
             c[answer.question].remove(answer)
             if len(c[answer.question])==0:
                 del c[answer.question]
 
-        self.printStats()
+        if options["globals", "verbose"]:
+            self.printStats()
 
         if len(allAnswers)<=kPruneDownTo:
             return None
@@ -241,7 +177,7 @@ class cache:
         numToDelete=len(allAnswers)-kPruneDownTo
         for count in range(numToDelete):
             answer=allAnswers.pop()
-            c=self.caches[answer.type]
+            c=self.caches[answer.qType]
             c[answer.question].remove(answer)
             if len(c[answer.question])==0:
                 del c[answer.question]
