@@ -2,10 +2,28 @@
 This is the place where we try and discover information buried in images.
 """
 
+from __future__ import division
+
+import sys
 import os
 import tempfile
 import math
 import time
+import md5
+import atexit
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 try:
     # We have three possibilities for Set:
@@ -64,66 +82,131 @@ def find_decoders():
         }
     return decoders
 
-def decode_parts(parts, decoders):
-    pnmfiles = []
-    for part in parts:
-        decoder = decoders.get(part.get_content_type())
-        if decoder is None:
-            continue
-        try:
-            bytes = part.get_payload(decode=True)
-        except:
-            continue
+def imconcat(im1, im2):
+    # concatenate im1 and im2 left-to-right
+    w1, h1 = im1.size
+    w2, h2 = im2.size
+    im3 = Image.new("RGB", (w1+w2, max(h1, h2)))
+    im3.paste(im1, (0, 0))
+    im3.paste(im2, (0, w1))
+    return im3
 
-        if len(bytes) > options["Tokenizer", "max_image_size"]:
-            continue                # assume it's just a picture for now
+class ImageStripper:
+    def __init__(self, cachefile=""):
+        self.cachefile = os.path.expanduser(cachefile)
+        if os.path.exists(self.cachefile):
+            self.cache = pickle.load(open(self.cachefile))
+        else:
+            self.cache = {}
+        self.misses = self.hits = 0
+        if self.cachefile:
+            atexit.register(self.close)
 
-        fd, imgfile = tempfile.mkstemp()
-        os.write(fd, bytes)
-        os.close(fd)
+    def NetPBM_decode_parts(self, parts, decoders):
+        pnmfiles = []
+        for part in parts:
+            decoder = decoders.get(part.get_content_type())
+            if decoder is None:
+                continue
+            try:
+                bytes = part.get_payload(decode=True)
+            except:
+                continue
+
+            if len(bytes) > options["Tokenizer", "max_image_size"]:
+                continue                # assume it's just a picture for now
+
+            fd, imgfile = tempfile.mkstemp()
+            os.write(fd, bytes)
+            os.close(fd)
+
+            fd, pnmfile = tempfile.mkstemp()
+            os.close(fd)
+            os.system("%s <%s >%s 2>dev.null" % (decoder, imgfile, pnmfile))
+            pnmfiles.append(pnmfile)
+            os.unlink(imgfile)
+
+        if not pnmfiles:
+            return
+
+        if len(pnmfiles) > 1:
+            if find_program("pnmcat"):
+                fd, pnmfile = tempfile.mkstemp()
+                os.close(fd)
+                os.system("pnmcat -lr %s > %s 2>/dev/null" %
+                          (" ".join(pnmfiles), pnmfile))
+                for f in pnmfiles:
+                    os.unlink(f)
+                pnmfiles = [pnmfile]
+
+        return pnmfiles
+
+    def PIL_decode_parts(self, parts):
+        full_image = None
+        for part in parts:
+            try:
+                bytes = part.get_payload(decode=True)
+            except:
+                continue
+
+            if len(bytes) > options["Tokenizer", "max_image_size"]:
+                continue                # assume it's just a picture for now
+
+            # We're dealing with spammers here - who knows what garbage they
+            # will call a GIF image to entice you to open it?
+            try:
+                image = Image.open(StringIO.StringIO(bytes))
+                image.load()
+            except IOError:
+                continue
+            else:
+                image = image.convert("RGB")
+
+            if full_image is None:
+                full_image = image
+            else:
+                full_image = imconcat(full_image, image)
+
+        if not full_image:
+            return
 
         fd, pnmfile = tempfile.mkstemp()
         os.close(fd)
-        os.system("%s <%s >%s 2>dev.null" % (decoder, imgfile, pnmfile))
-        pnmfiles.append(pnmfile)
+        full_image.save(open(pnmfile, "wb"), "PPM")
 
-    if not pnmfiles:
-        return
+        return [pnmfile]
 
-    if len(pnmfiles) > 1:
-        if find_program("pnmcat"):
-            fd, pnmfile = tempfile.mkstemp()
-            os.close(fd)
-            os.system("pnmcat -lr %s > %s 2>/dev/null" %
-                      (" ".join(pnmfiles), pnmfile))
-            for f in pnmfiles:
-                os.unlink(f)
-            pnmfiles = [pnmfile]
+    def extract_ocr_info(self, pnmfiles):
+        fd, orf = tempfile.mkstemp()
+        os.close(fd)
 
-    return pnmfiles
+        textbits = []
+        tokens = Set()
+        for pnmfile in pnmfiles:
+            fhash = md5.new(open(pnmfile).read()).hexdigest()
+            if fhash in self.cache:
+                self.hits += 1
+                ctext, ctokens = self.cache[fhash]
+            else:
+                self.misses += 1
+                ocr = os.popen("ocrad -x %s < %s 2>/dev/null" % (orf, pnmfile))
+                ctext = ocr.read().lower()
+                ocr.close()
+                ctokens = set()
+                for line in open(orf):
+                    if line.startswith("lines"):
+                        nlines = int(line.split()[1])
+                        if nlines:
+                            ctokens.add("image-text-lines:%d" %
+                                        int(log2(nlines)))
+                self.cache[fhash] = (ctext, ctokens)
+            textbits.append(ctext)
+            tokens |= ctokens
+            os.unlink(pnmfile)
+        os.unlink(orf)
 
-def extract_ocr_info(pnmfiles):
-    fd, orf = tempfile.mkstemp()
-    os.close(fd)
+        return "\n".join(textbits), tokens
 
-    textbits = []
-    tokens = Set()
-    for pnmfile in pnmfiles:
-        ocr = os.popen("ocrad -x %s < %s 2>/dev/null" % (orf, pnmfile))
-        textbits.append(ocr.read())
-        ocr.close()
-        for line in open(orf):
-            if line.startswith("lines"):
-                nlines = int(line.split()[1])
-                if nlines:
-                    tokens.add("image-text-lines:%d" % int(log2(nlines)))
-
-        os.unlink(pnmfile)
-    os.unlink(orf)
-
-    return "\n".join(textbits), tokens
-
-class ImageStripper:
     def analyze(self, parts):
         if not parts:
             return "", Set()
@@ -132,12 +215,26 @@ class ImageStripper:
         if not find_program("ocrad"):
             return "", Set()
 
-        decoders = find_decoders()
-        pnmfiles = decode_parts(parts, decoders)
+        if Image is not None:
+            pnmfiles = self.PIL_decode_parts(parts)
+        else:
+            pnmfiles = self.NetPBM_decode_parts(parts, find_decoders())
 
-        if not pnmfiles:
-            return "", Set()
+        if pnmfiles:
+            return self.extract_ocr_info(pnmfiles)
 
-        return extract_ocr_info(pnmfiles)
+        return "", Set()
 
-        
+
+    def close(self):
+        if options["globals", "verbose"]:
+            print >> sys.stderr, "saving", len(self.cache),
+            print >> sys.stderr, "items to", self.cachefile,
+            if self.hits + self.misses:
+                print >> sys.stderr, "%.2f%% hit rate" % \
+                      (100 * self.hits / (self.hits + self.misses)),
+            print >> sys.stderr
+        pickle.dump(self.cache, open(self.cachefile, "wb"))
+
+_cachefile = options["Tokenizer", "crack_image_cache"]
+crack_images = ImageStripper(_cachefile).analyze

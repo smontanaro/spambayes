@@ -117,7 +117,7 @@ defaults = {
      the cache file is stored using the same database type as the main
      token store (only dbm and zodb supported so far, zodb has problems,
      dbm is untested, hence the default)."""),
-     FILE, RESTORE),
+     PATH, RESTORE),
 
     ("x-image_size", _("Generate image size tokens"), False,
      _("""(EXPERIMENTAL) If true, generate tokens based on the sizes of
@@ -132,6 +132,11 @@ defaults = {
      It is almost certainly only useful in its current form on Unix-like
      machines."""),
      BOOLEAN, RESTORE),
+
+    ("crack_image_cache", _("Cache to speed up ocr."), "",
+     _("""If non-empty, names a file from which to read cached ocr info
+     at start and to which to save that info at exit."""),
+     PATH, RESTORE),
 
     ("max_image_size", _("Max image size to try OCR-ing"), 100000,
      _("""When crack_images is enabled, this specifies the largest

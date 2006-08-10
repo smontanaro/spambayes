@@ -1635,8 +1635,8 @@ class Tokenizer:
                 yield "image-size:2**%d" % round(log2(total_len))
 
         if options["Tokenizer", "x-crack_images"]:
-            from spambayes.ImageStripper import ImageStripper
-            text, tokens = ImageStripper().analyze(parts)
+            from spambayes.ImageStripper import crack_images
+            text, tokens = crack_images(parts)
             for t in tokens:
                 yield t
             for t in self.tokenize_text(text):
