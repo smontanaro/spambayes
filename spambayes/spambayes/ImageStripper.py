@@ -82,14 +82,137 @@ def find_decoders():
         }
     return decoders
 
-def imconcat(im1, im2):
-    # concatenate im1 and im2 left-to-right
-    w1, h1 = im1.size
-    w2, h2 = im2.size
-    im3 = Image.new("RGB", (w1+w2, max(h1, h2)))
-    im3.paste(im1, (0, 0))
-    im3.paste(im2, (0, w1))
-    return im3
+def imconcatlr(left, right):
+    """Concatenate two images left to right."""
+    w1, h1 = left.size
+    w2, h2 = right.size
+    result = Image.new("RGB", (w1 + w2, max(h1, h2)))
+    result.paste(left, (0, 0))
+    result.paste(right, (w1, 0))
+    return result
+
+def imconcattb(upper, lower):
+    """Concatenate two images top to bottom."""
+    w1, h1 = upper.size
+    w2, h2 = lower.size
+    result = Image.new("RGB", (max(w1, w2), h1 + h2))
+    result.paste(upper, (0, 0))
+    result.paste(lower, (0, h1))
+    return result
+
+def pnmsize(pnmfile):
+    """Return dimensions of a PNM file."""
+    f = open(pnmfile)
+    line1 = f.readline()
+    line2 = f.readline()
+    w, h = [int(n) for n in line2.split()]
+    return w, h
+
+def NetPBM_decode_parts(parts, decoders):
+    """Decode and assemble a bunch of images using NetPBM tools."""
+    rows = []
+    tokens = Set()
+    for part in parts:
+        decoder = decoders.get(part.get_content_type())
+        if decoder is None:
+            continue
+        try:
+            bytes = part.get_payload(decode=True)
+        except:
+            tokens.add("invalid-image:%s" % part.get_content_type())
+            continue
+
+        if len(bytes) > options["Tokenizer", "max_image_size"]:
+            tokens.add("image:big")
+            continue                # assume it's just a picture for now
+
+        fd, imgfile = tempfile.mkstemp()
+        os.write(fd, bytes)
+        os.close(fd)
+
+        fd, pnmfile = tempfile.mkstemp()
+        os.close(fd)
+        os.system("%s <%s >%s 2>dev.null" % (decoder, imgfile, pnmfile))
+        w, h = pnmsize(pnmfile)
+        if not rows:
+            # first image
+            rows.append([pnmfile])
+        elif pnmsize(rows[-1][-1])[1] != h:
+            # new image, different height => start new row
+            rows.append([pnmfile])
+        else:
+            # new image, same height => extend current row
+            rows[-1].append(pnmfile)
+
+    for (i, row) in enumerate(rows):
+        if len(row) > 1:
+            fd, pnmfile = tempfile.mkstemp()
+            os.close(fd)
+            os.system("pnmcat -lr %s > %s 2>/dev/null" %
+                      (" ".join(row), pnmfile))
+            for f in row:
+                os.unlink(f)
+            rows[i] = pnmfile
+        else:
+            rows[i] = row[0]
+
+    fd, pnmfile = tempfile.mkstemp()
+    os.close(fd)
+    os.system("pnmcat -tb %s > %s 2>/dev/null" % (" ".join(rows), pnmfile))
+    for f in rows:
+        os.unlink(f)
+    return [pnmfile], tokens
+
+def PIL_decode_parts(parts):
+    """Decode and assemble a bunch of images using PIL."""
+    tokens = Set()
+    rows = []
+    for part in parts:
+        try:
+            bytes = part.get_payload(decode=True)
+        except:
+            tokens.add("invalid-image:%s" % part.get_content_type())
+            continue
+
+        if len(bytes) > options["Tokenizer", "max_image_size"]:
+            tokens.add("image:big")
+            continue                # assume it's just a picture for now
+
+        # We're dealing with spammers and virus writers here.  Who knows
+        # what garbage they will call a GIF image to entice you to open
+        # it?
+        try:
+            image = Image.open(StringIO.StringIO(bytes))
+            image.load()
+        except IOError:
+            tokens.add("invalid-image:%s" % part.get_content_type())
+            continue
+        else:
+            image = image.convert("RGB")
+
+        if not rows:
+            # first image
+            rows.append(image)
+        elif image.size[1] != rows[-1].size[1]:
+            # new image, different height => start new row
+            rows.append(image)
+        else:
+            # new image, same height => extend current row
+            rows[-1] = imconcatlr(rows[-1], image)
+
+    if not rows:
+        return [], tokens
+
+    # now concatenate the resulting row images top-to-bottom
+    full_image, rows = rows[0], rows[1:]
+    for image in rows:
+        full_image = imconcattb(full_image, image)
+
+    fd, pnmfile = tempfile.mkstemp()
+    os.close(fd)
+    full_image.save(open(pnmfile, "wb"), "PPM")
+
+    return [pnmfile], tokens
 
 class ImageStripper:
     def __init__(self, cachefile=""):
@@ -101,80 +224,6 @@ class ImageStripper:
         self.misses = self.hits = 0
         if self.cachefile:
             atexit.register(self.close)
-
-    def NetPBM_decode_parts(self, parts, decoders):
-        pnmfiles = []
-        for part in parts:
-            decoder = decoders.get(part.get_content_type())
-            if decoder is None:
-                continue
-            try:
-                bytes = part.get_payload(decode=True)
-            except:
-                continue
-
-            if len(bytes) > options["Tokenizer", "max_image_size"]:
-                continue                # assume it's just a picture for now
-
-            fd, imgfile = tempfile.mkstemp()
-            os.write(fd, bytes)
-            os.close(fd)
-
-            fd, pnmfile = tempfile.mkstemp()
-            os.close(fd)
-            os.system("%s <%s >%s 2>dev.null" % (decoder, imgfile, pnmfile))
-            pnmfiles.append(pnmfile)
-            os.unlink(imgfile)
-
-        if not pnmfiles:
-            return
-
-        if len(pnmfiles) > 1:
-            if find_program("pnmcat"):
-                fd, pnmfile = tempfile.mkstemp()
-                os.close(fd)
-                os.system("pnmcat -lr %s > %s 2>/dev/null" %
-                          (" ".join(pnmfiles), pnmfile))
-                for f in pnmfiles:
-                    os.unlink(f)
-                pnmfiles = [pnmfile]
-
-        return pnmfiles
-
-    def PIL_decode_parts(self, parts):
-        full_image = None
-        for part in parts:
-            try:
-                bytes = part.get_payload(decode=True)
-            except:
-                continue
-
-            if len(bytes) > options["Tokenizer", "max_image_size"]:
-                continue                # assume it's just a picture for now
-
-            # We're dealing with spammers here - who knows what garbage they
-            # will call a GIF image to entice you to open it?
-            try:
-                image = Image.open(StringIO.StringIO(bytes))
-                image.load()
-            except IOError:
-                continue
-            else:
-                image = image.convert("RGB")
-
-            if full_image is None:
-                full_image = image
-            else:
-                full_image = imconcat(full_image, image)
-
-        if not full_image:
-            return
-
-        fd, pnmfile = tempfile.mkstemp()
-        os.close(fd)
-        full_image.save(open(pnmfile, "wb"), "PPM")
-
-        return [pnmfile]
 
     def extract_ocr_info(self, pnmfiles):
         fd, orf = tempfile.mkstemp()
@@ -216,14 +265,17 @@ class ImageStripper:
             return "", Set()
 
         if Image is not None:
-            pnmfiles = self.PIL_decode_parts(parts)
+            pnmfiles, tokens = PIL_decode_parts(parts)
         else:
-            pnmfiles = self.NetPBM_decode_parts(parts, find_decoders())
+            if not find_program("pnmcat"):
+                return "", Set()
+            pnmfiles, tokens = NetPBM_decode_parts(parts, find_decoders())
 
         if pnmfiles:
-            return self.extract_ocr_info(pnmfiles)
+            text, new_tokens = self.extract_ocr_info(pnmfiles)
+            return text, tokens | new_tokens
 
-        return "", Set()
+        return "", tokens
 
 
     def close(self):
