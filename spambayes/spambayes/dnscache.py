@@ -313,7 +313,7 @@ class cache:
 
 def main():
     import transaction
-    c=cache(cachefile=os.path.expanduser("~skip/.dnscache"))
+    c=cache(cachefile=os.path.expanduser("~/.dnscache"))
     c.printStatsAtEnd=True
     for host in ["www.python.org", "www.timsbloggers.com",
                  "www.seeputofor.com", "www.completegarbage.tv",
