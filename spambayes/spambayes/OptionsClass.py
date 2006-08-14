@@ -118,6 +118,7 @@ __all__ = ['OptionsClass',
            'PATH', 'VARIABLE_PATH', 'FILE', 'FILE_WITH_PATH',
            'IMAP_FOLDER', 'IMAP_ASTRING',
            'RESTORE', 'DO_NOT_RESTORE', 'IP_LIST',
+           'OCRAD_CHARSET',
           ]
 
 MultiContainerTypes = (types.TupleType, types.ListType)
@@ -870,3 +871,5 @@ IMAP_ASTRING = r"\"?[" + re.escape(''.join(IMAP_ASTRING)) + r"]+\"?"
 # Again, for ease of reading, we define these here:
 RESTORE = True
 DO_NOT_RESTORE = False
+
+OCRAD_CHARSET = r"ascii|iso-8859-9|iso-8859-15"

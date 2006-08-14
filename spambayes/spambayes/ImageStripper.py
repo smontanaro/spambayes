@@ -231,6 +231,8 @@ class ImageStripper:
 
         textbits = []
         tokens = Set()
+        scale = options["Tokenizer", "ocrad_scale"] or 1
+        charset = options["Tokenizer", "ocrad_charset"]
         for pnmfile in pnmfiles:
             fhash = md5.new(open(pnmfile).read()).hexdigest()
             if fhash in self.cache:
@@ -238,7 +240,8 @@ class ImageStripper:
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
-                ocr = os.popen("ocrad -x %s < %s 2>/dev/null" % (orf, pnmfile))
+                ocr = os.popen("ocrad -s %s -c %s -x %s < %s 2>/dev/null" %
+                               (scale, charset, orf, pnmfile))
                 ctext = ocr.read().lower()
                 ocr.close()
                 ctokens = set()

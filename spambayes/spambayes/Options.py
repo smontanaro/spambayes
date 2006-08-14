@@ -138,6 +138,18 @@ defaults = {
      at start and to which to save that info at exit."""),
      PATH, RESTORE),
 
+    ("ocrad_scale", _("Scale factor to use with ocrad."), 2,
+     _("""Specifies the scale factor to apply when running ocrad.  While
+     you can specify a negative scale it probably won't help.  Scaling up
+     by a factor of 2 or 3 seems to work well for the sort of spam images
+     encountered by SpamBayes."""),
+     INTEGER, RESTORE),
+
+    ("ocrad_charset", _("Charset to apply with ocrad."), "ascii",
+     _("""Specifies the charset to use when running ocrad.  Valid values
+     are 'ascii', 'iso-8859-9' and 'iso-8859-15'."""),
+     OCRAD_CHARSET, RESTORE),
+
     ("max_image_size", _("Max image size to try OCR-ing"), 100000,
      _("""When crack_images is enabled, this specifies the largest
      image to try OCR on."""),
