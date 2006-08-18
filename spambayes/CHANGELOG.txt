@@ -1,5 +1,24 @@
 [Note that all dates are in ISO 8601 format, e.g. YYYY-MM-DD to ease sorting]
 
+Release 1.1a3
+=============
+
+Skip Montanaro    2006-08-18  Update pycksum.py to try and identify more duplicates
+Skip Montanaro	  2006-08-14  Add scale and charset options to ImageStripper
+Skip Montanaro	  2006-08-13  Stitch spam images back together properly, add a couple more tokens
+Skip Montanaro	  2006-08-10  Add support for PIL to ImageStripper.py
+Skip Montanaro	  2006-08-09  Cache x-lookup_ip in a pickle instead of trying to use anydbm or zodb
+Skip Montanaro	  2006-08-06  Add crude OCR capability to try and parse image-based spam using Ocrad & NetPBM
+Skip Montanaro	  2006-08-06  Add x-short_runs option
+Skip Montanaro	  2006-08-06  Add x-image_size option & corresponding token
+Skip Montanaro	  2006-08-06  Add Matt Cowles' x-lookup_ip extension w/ slight modifications
+Skip Montanaro	  2006-08-06  Add profiling using cProfile (if available) to sb_filter.py
+Skip Montanaro	  2006-08-06  Delete -d and -p flags from spamcounts.py
+Skip Montanaro	  2006-08-06  Refactor basic text tokenizing out of tokenize_body into a separate method, tokenize_text
+Skip Montanaro	  2006-08-05  Explicitly close ZODB store in tte.py
+Skip Montanaro	  2006-04-23  Reduce sensitivity of spamcounts.py to classifier changes
+
+
 Release 1.1a2
 =============
 Tony Meyer        2006-04-03  Add [ 1081787 ] Adding the version only to sb_filter.py
