@@ -38,24 +38,15 @@ addresses funnels into skip@mojam.com.)
 import getopt
 import sys
 import email.Parser
+import email.generator
 import md5
 import anydbm
 import re
 import time
-import binascii
-
-def flatten(body):
-    # three types are possible: list, string, Message
-    if isinstance(body, str):
-        return body
-    if hasattr(body, "get_payload"):
-        payload = body.get_payload()
-        if payload is None:
-            return ""
-        return flatten(payload)
-    if isinstance(body, list):
-        return "\n".join([flatten(b) for b in body])
-    raise TypeError, ("unrecognized body type: %s" % type(body))
+try:
+    import cStringIO as StringIO
+except ImportError:
+    import StringIO
 
 def clean(data):
     """Clean the obviously variable stuff from a chunk of data.
@@ -66,10 +57,23 @@ def clean(data):
     # Get rid of anything which looks like an HTML tag and downcase it all
     data = re.sub(r"<[^>]*>", "", data).lower()
 
+    # Map all digits to '#'
+    data = re.sub(r"[0-9]+", "#", data)
+
+    # Map a few common html entities
+    data = re.sub(r"(&nbsp;)+", " ", data)
+    data = re.sub(r"&lt;", "<", data)
+    data = re.sub(r"&gt;", ">", data)
+    data = re.sub(r"&amp;", "&", data)
+
+    # Elide blank lines and multiple horizontal whitespace
+    data = re.sub(r"\n+", "\n", data)
+    data = re.sub(r"[ \t]+", " ", data)
+
     # delete anything which looks like a url or email address
     # not sure what a pmguid: url is but it seems to occur frequently in spam
     # also convert all runs of whitespace into a single space
-    return " ".join([w for w in data.split()
+    return " ".join([w for w in data.split(" ")
                      if ('@' not in w and
                          (':' not in w or
                           w[:4] != "ftp:" and
@@ -86,13 +90,17 @@ def generate_checksum(msg):
     # processes can split those chunks into pieces and consider them
     # separately or in various combinations if desired.
 
-    body = flatten(msg)
-    lines = clean(body)
+    fp = StringIO.StringIO()
+    g = email.generator.Generator(fp, mangle_from_=False, maxheaderlen=60)
+    g.flatten(msg)
+    text = fp.getvalue()
+    body = text.split("\n\n", 1)[1]
+    lines = clean(body).split("\n")
     chunksize = len(lines)//4+1
     sum = []
     for i in range(4):
         chunk = "\n".join(lines[i*chunksize:(i+1)*chunksize])
-        sum.append(binascii.b2a_hex(md5.new(chunk).digest()))
+        sum.append(md5.new(chunk).hexdigest())
 
     return ".".join(sum)
 
@@ -101,12 +109,12 @@ def save_checksum(cksum, f):
     result = 1
     db = anydbm.open(f, "c")
     maxdblen = 2**14
-    # consider the first three pieces, the last three pieces and the middle
-    # two pieces - one or more will likely eliminate attempts at disrupting
-    # the checksum - if any are found in the db file, call it a match
-    for subsum in (".".join(pieces[:-1]),
+    # consider the first two pieces, the middle two pieces and the last two
+    # pieces - one or more will likely eliminate attempts at disrupting the
+    # checksum - if any are found in the db file, call it a match
+    for subsum in (".".join(pieces[:-2]),
                    ".".join(pieces[1:-1]),
-                   ".".join(pieces[1:])):
+                   ".".join(pieces[2:])):
         if not db.has_key(subsum):
             db[subsum] = str(time.time())
             if len(db) > maxdblen:
@@ -154,4 +162,3 @@ def main(args):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-
