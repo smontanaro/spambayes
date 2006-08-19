@@ -16,7 +16,12 @@ Skip Montanaro	  2006-08-06  Add profiling using cProfile (if available) to sb_f
 Skip Montanaro	  2006-08-06  Delete -d and -p flags from spamcounts.py
 Skip Montanaro	  2006-08-06  Refactor basic text tokenizing out of tokenize_body into a separate method, tokenize_text
 Skip Montanaro	  2006-08-05  Explicitly close ZODB store in tte.py
+Tony Meyer	  2006-06-22  Fix bug in regex preventing valid IPs
+Toby Dickenson	  2006-06-12  Suppress spurious duplicate From_ lines in sb_bnfilter.py
+Tony Meyer	  2006-06-10  Add simple parts of [ 824651 ] Multibyte message support
+Tony Meyer	  2006-05-06  Enable -o command line option setting, and follow TestDriver directories in testtools/mksets.py
 Skip Montanaro	  2006-04-23  Reduce sensitivity of spamcounts.py to classifier changes
+Tony Meyer	  2006-04-22  Set zodb cache size to 10,000
 
 
 Release 1.1a2
