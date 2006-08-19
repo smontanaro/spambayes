@@ -15,6 +15,75 @@ bugs with this release.  If you would rather wait for a more stable release
 to have the new features here, please continue to use 1.0.4 until 1.1 final
 is released.
 
+New in 1.1 Alpha 3
+==================
+
+
+--------------------------------------------
+** Incompatible changes and Transitioning **
+--------------------------------------------
+
+There should be no incompatible changes since 1.1a2, though users new to the
+1.1 series should pay careful attention to the database changes introduced
+in 1.1a2.
+
+
+-------------------
+** Other changes **
+-------------------
+
+General
+-------
+
+Reported Bugs Fixed
+===================
+No bugs tracked via the Sourceforge system were fixed.
+
+
+Patches integrated
+===================
+The following patches tracked via the Sourceforge system were integrated
+in this release:
+    824651
+
+Feature Requests Added
+======================
+No feature requests tracked via the Sourceforge system were added
+in this release.
+
+
+Experimental Options
+====================
+
+In addition to the experimental options listed for the 1.1a2 release, four
+more new experimental options were added to SpamBayes.  They all need
+further testing.
+
+  o x-short_runs - If true, generate tokens based on max number of short
+    word runs. Short words are anything of length < the skip_max_word_size
+    option.  Normally they are skipped, but one common spam technique spells
+    words like 'V m I n A o G p RA' to try and avoid exposing them to
+    content filters.
+
+  o x-lookup_ip - If true, generate IP address tokens from hostnames.  This
+    requires PyDNS (http://pydns.sourceforge.net/).
+
+  o x-image_size - If true, generate tokens based on the size of the largest
+    attached image.
+
+  o x-crack_images - A lot of recent spam contains the entire message
+    embedded in one or more attached images.  This option, if true,
+    generates tokens based on the (hopefully) text content contained in any
+    images in each message.  The current support is minimal, relies on the
+    installation of ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and
+    the Python Imaging Library (a.k.a. PIL, available at
+    http://www.pythonware.com/products/pil/).  It has not yet been tested on
+    Windows, but for brave souls there is a simple zip file binary of ocrad
+    called "ocrad-cygwin" on the SpamBayes download page for Windows users
+    who can't build it themselves.  PIL has its own Windows binary
+    installers specific to versions of Python as far back as 2.1.
+
+
 New in 1.1 Alpha 2
 ==================
 
