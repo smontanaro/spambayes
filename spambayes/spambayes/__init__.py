@@ -5,5 +5,5 @@ try:
 except NameError:
     _ = lambda arg: arg
 
-__version__ = "1.1a2"
-__date__ = _("April 2005")
+__version__ = "1.1a3"
+__date__ = _("August 2006")
