@@ -143,7 +143,9 @@ class MainWindow(object):
                                   1032 : ("-", None),
                                   1099 : ("Exit SpamBayes", self.OnExit),
                                   }
+        msg_TaskbarRestart = RegisterWindowMessage("TaskbarCreated");
         message_map = {
+            msg_TaskbarRestart: self.OnTaskbarRestart,
             win32con.WM_DESTROY: self.OnDestroy,
             win32con.WM_COMMAND: self.OnCommand,
             WM_TASKBAR_NOTIFY : self.OnTaskbarNotify,
@@ -187,10 +189,7 @@ class MainWindow(object):
             self.hstoppedicon = LoadImage(hinst, stoppedIconPathName, win32con.IMAGE_ICON,
                                           16, 16, icon_flags)
 
-        flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
-        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon,
-            "SpamBayes")
-        Shell_NotifyIcon(NIM_ADD, nid)
+        self._AddTaskbarIcon()
         self.started = IsServerRunningAnywhere()
         self.tip = None
         if self.use_service and not self.IsServiceAvailable():
@@ -203,6 +202,20 @@ class MainWindow(object):
         else:
             print "The server is already running externally - not starting " \
                   "a local server"
+
+    def _AddTaskbarIcon(self):
+        flags = NIF_ICON | NIF_MESSAGE | NIF_TIP
+        nid = (self.hwnd, 0, flags, WM_TASKBAR_NOTIFY, self.hstartedicon,
+            "SpamBayes")
+        try:
+            Shell_NotifyIcon(NIM_ADD, nid)
+        except win32api_error:
+            # Apparently can be seen as XP is starting up.  Certainly can
+            # be seen if explorer.exe is not running when started.
+            print "Ignoring error adding taskbar icon - explorer may not " \
+                  "be running (yet)."
+            # The TaskbarRestart message will fire in this case, and
+            # everything will work out :)
 
     def BuildToolTip(self):
         tip = None
@@ -392,6 +405,11 @@ class MainWindow(object):
             print "Unknown command -", id
             return
         function()
+
+    def OnTaskbarRestart(self, hwnd, msg, wparam, lparam):
+        # Called as the taskbar is created (either as Windows starts, or
+        # as Windows recovers from a crashed explorer.exe)
+        self._AddTaskbarIcon()
 
     def OnExit(self):
         if self.started and not self.use_service:
