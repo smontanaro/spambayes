@@ -4,9 +4,9 @@
 
 [Setup]
 ; Version specific constants
-AppVerName=SpamBayes 1.1a1
-AppVersion=1.1a1
-OutputBaseFilename=spambayes-1.1a1
+AppVerName=SpamBayes 1.1a3
+AppVersion=1.1a3
+OutputBaseFilename=spambayes-1.1a3
 ; Normal constants.  Be careful about changing 'AppName'
 AppName=SpamBayes
 DefaultDirName={pf}\SpamBayes
@@ -14,6 +14,7 @@ DefaultGroupName=SpamBayes
 OutputDir=.
 ShowComponentSizes=no
 UninstallDisplayIcon={app}\sbicon.ico
+LicenseFile=py2exe\dist\license.txt
 
 [Files]
 Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
@@ -49,6 +50,10 @@ Source: "py2exe\dist\docs\sb_server\*.*"; DestDir: "{app}\docs\sb_server"; Check
 Source: "py2exe\dist\bin\sb_imapfilter.exe"; DestDir: "{app}\bin"; Check: InstallingIMAP; Flags: ignoreversion
 
 Source: "py2exe\dist\bin\convert_database.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+
+; Include ocrad.exe and the patch required to get it to compile for Windows.
+Source: "py2exe\ocrad.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\ocrad.patch"; DestDir: "{app}\docs"; Flags: ignoreversion
 
 ; There is a problem attempting to get Inno to unregister our DLL.  If we mark our DLL
 ; as 'regserver', it installs and registers OK, but at uninstall time, it unregisters
@@ -89,7 +94,7 @@ Name: "{group}\SpamBayes Outlook Addin\Troubleshooting Guide"; Filename: "{app}\
 var
   InstallOutlook, InstallProxy, InstallIMAP: Boolean;
   WarnedNoOutlook, WarnedBoth : Boolean;
-  startup, desktop, allusers, startup_imap : Boolean; // Tasks
+  startup, desktop, allusers, startup_imap, convert_db : Boolean; // Tasks
 
 function InstallingOutlook() : Boolean;
 begin
