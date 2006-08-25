@@ -66,10 +66,11 @@ further testing.
     content filters.
 
   o x-lookup_ip - If true, generate IP address tokens from hostnames.  This
-    requires PyDNS (http://pydns.sourceforge.net/).
+    requires PyDNS (http://pydns.sourceforge.net/).  This is included in the
+    Windows installer. 
 
   o x-image_size - If true, generate tokens based on the size of the largest
-    attached image.
+    attached image. 
 
   o x-crack_images - A lot of recent spam contains the entire message
     embedded in one or more attached images.  This option, if true,
@@ -78,10 +79,7 @@ further testing.
     installation of ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and
     the Python Imaging Library (a.k.a. PIL, available at
     http://www.pythonware.com/products/pil/).  It has not yet been tested on
-    Windows, but for brave souls there is a simple zip file binary of ocrad
-    called "ocrad-cygwin" on the SpamBayes download page for Windows users
-    who can't build it themselves.  PIL has its own Windows binary
-    installers specific to versions of Python as far back as 2.1.
+    Windows, but is available in the Windows installer (as is PIL). 
 
 
 New in 1.1 Alpha 2
