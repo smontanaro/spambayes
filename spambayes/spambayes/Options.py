@@ -128,7 +128,7 @@ defaults = {
      _("""(EXPERIMENTAL) If true, generate tokens based on the
      (hopefully) text content contained in any images in each message.
      The current support is minimal, relies on the installation of
-     ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and netpbm.
+     ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and PIL.
      It is almost certainly only useful in its current form on Unix-like
      machines."""),
      BOOLEAN, RESTORE),
