@@ -21,7 +21,7 @@ except ImportError:
     import StringIO
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageSequence
 except ImportError:
     Image = None
 
@@ -188,6 +188,33 @@ def PIL_decode_parts(parts):
             tokens.add("invalid-image:%s" % part.get_content_type())
             continue
         else:
+            # Spammers are now using GIF image sequences.  From examining a
+            # miniscule set of multi-frame GIFs it appears the frame with
+            # the fewest number of background pixels is the one with the
+            # text content.
+
+            if "duration" in image.info:
+                # Big assumption?  I don't know.  If the image's info dict
+                # has a duration key assume it's a multi-frame image.  This
+                # should save some needless construction of pixel
+                # histograms for single-frame images.
+                bgpix = 1e17           # ridiculously large number of pixels
+                try:
+                    for frame in ImageSequence.Iterator(image):
+                        # Assume the pixel with the largest value is the
+                        # background.
+                        bg = max(frame.histogram())
+                        if bg < bgpix:
+                            image = frame
+                            bgpix = bg
+                # I've empirically determined:
+                #   * ValueError => GIF image isn't multi-frame.
+                #   * IOError => Decoding error
+                except IOError:
+                    tokens.add("invalid-image:%s" % part.get_content_type())
+                    continue
+                except ValueError:
+                    pass
             image = image.convert("RGB")
 
         if not rows:
