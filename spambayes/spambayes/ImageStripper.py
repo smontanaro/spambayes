@@ -57,31 +57,6 @@ def find_program(prog):
             return program
     return ""
 
-def find_decoders():
-    # check for filters to convert to netpbm
-    for decode_jpeg in ["jpegtopnm", "djpeg"]:
-        if find_program(decode_jpeg):
-            break
-    else:
-        decode_jpeg = None
-    for decode_png in ["pngtopnm"]:
-        if find_program(decode_png):
-            break
-    else:
-        decode_png = None
-    for decode_gif in ["giftopnm"]:
-        if find_program(decode_gif):
-            break
-    else:
-        decode_gif = None
-
-    decoders = {
-        "image/jpeg": decode_jpeg,
-        "image/gif": decode_gif,
-        "image/png": decode_png,
-        }
-    return decoders
-
 def imconcatlr(left, right):
     """Concatenate two images left to right."""
     w1, h1 = left.size
@@ -99,69 +74,6 @@ def imconcattb(upper, lower):
     result.paste(upper, (0, 0))
     result.paste(lower, (0, h1))
     return result
-
-def pnmsize(pnmfile):
-    """Return dimensions of a PNM file."""
-    f = open(pnmfile)
-    line1 = f.readline()
-    line2 = f.readline()
-    w, h = [int(n) for n in line2.split()]
-    return w, h
-
-def NetPBM_decode_parts(parts, decoders):
-    """Decode and assemble a bunch of images using NetPBM tools."""
-    rows = []
-    tokens = Set()
-    for part in parts:
-        decoder = decoders.get(part.get_content_type())
-        if decoder is None:
-            continue
-        try:
-            bytes = part.get_payload(decode=True)
-        except:
-            tokens.add("invalid-image:%s" % part.get_content_type())
-            continue
-
-        if len(bytes) > options["Tokenizer", "max_image_size"]:
-            tokens.add("image:big")
-            continue                # assume it's just a picture for now
-
-        fd, imgfile = tempfile.mkstemp()
-        os.write(fd, bytes)
-        os.close(fd)
-
-        fd, pnmfile = tempfile.mkstemp()
-        os.close(fd)
-        os.system("%s <%s >%s 2>dev.null" % (decoder, imgfile, pnmfile))
-        w, h = pnmsize(pnmfile)
-        if not rows:
-            # first image
-            rows.append([pnmfile])
-        elif pnmsize(rows[-1][-1])[1] != h:
-            # new image, different height => start new row
-            rows.append([pnmfile])
-        else:
-            # new image, same height => extend current row
-            rows[-1].append(pnmfile)
-
-    for (i, row) in enumerate(rows):
-        if len(row) > 1:
-            fd, pnmfile = tempfile.mkstemp()
-            os.close(fd)
-            os.system("pnmcat -lr %s > %s 2>/dev/null" %
-                      (" ".join(row), pnmfile))
-            for f in row:
-                os.unlink(f)
-            rows[i] = pnmfile
-        else:
-            rows[i] = row[0]
-
-    fd, pnmfile = tempfile.mkstemp()
-    os.close(fd)
-    os.system("pnmcat -tb %s > %s 2>/dev/null" % (" ".join(rows), pnmfile))
-    for f in rows:
-        os.unlink(f)
-    return [pnmfile], tokens
 
 def PIL_decode_parts(parts):
     """Decode and assemble a bunch of images using PIL."""
@@ -297,9 +209,7 @@ class ImageStripper:
         if Image is not None:
             pnmfiles, tokens = PIL_decode_parts(parts)
         else:
-            if not find_program("pnmcat"):
-                return "", Set()
-            pnmfiles, tokens = NetPBM_decode_parts(parts, find_decoders())
+            return "", Set()
 
         if pnmfiles:
             text, new_tokens = self.extract_ocr_info(pnmfiles)
