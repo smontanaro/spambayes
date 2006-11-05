@@ -174,9 +174,6 @@ class ImageStripper:
             atexit.register(self.close)
 
     def extract_ocr_info(self, pnmfiles):
-        fd, orf = tempfile.mkstemp()
-        os.close(fd)
-
         textbits = []
         tokens = Set()
         scale = options["Tokenizer", "ocrad_scale"] or 1
@@ -188,23 +185,19 @@ class ImageStripper:
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
-                ocr = os.popen("%s -s %s -c %s -x %s -f %s 2>%s" %
+                ocr = os.popen("%s -s %s -c %s -f %s 2>%s" %
                                (find_program("ocrad"), scale, charset,
-                                orf, pnmfile, os.path.devnull))
+                                pnmfile, os.path.devnull))
                 ctext = ocr.read().lower()
                 ocr.close()
                 ctokens = set()
-                for line in open(orf):
-                    if line.startswith("lines"):
-                        nlines = int(line.split()[1])
-                        if nlines:
-                            ctokens.add("image-text-lines:%d" %
-                                        int(log2(nlines)))
+                nlines = len(ctext.strip().split("\n"))
+                if nlines:
+                    ctokens.add("image-text-lines:%d" % int(log2(nlines)))
                 self.cache[fhash] = (ctext, ctokens)
             textbits.append(ctext)
             tokens |= ctokens
             os.unlink(pnmfile)
-        os.unlink(orf)
 
         return "\n".join(textbits), tokens
 
