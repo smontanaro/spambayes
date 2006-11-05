@@ -43,15 +43,24 @@ from spambayes.Options import options
 def log2(n, log=math.log, c=math.log(2)):
     return log(n)/c
 
-# I'm sure this is all wrong for Windows.  Someone else can fix it. ;-)
 def is_executable(prog):
+    if sys.platform == "win32":
+        return True
     info = os.stat(prog)
     return (info.st_uid == os.getuid() and (info.st_mode & 0100) or
             info.st_gid == os.getgid() and (info.st_mode & 0010) or
             info.st_mode & 0001)
 
 def find_program(prog):
-    for directory in os.environ.get("PATH", "").split(os.pathsep):
+    path = os.environ.get("PATH", "").split(os.pathsep)
+    if sys.platform == "win32":
+        # Outlook plugin puts executables in (for example):
+        #    C:/Program Files/SpamBayes/bin
+        # so add that directory to the path and make sure we
+        # look for a file ending in ".exe".
+        path.append(os.path.dirname(sys.executable))
+        prog = "%s.exe" % prog
+    for directory in path:
         program = os.path.join(directory, prog)
         if os.path.exists(program) and is_executable(program):
             return program
@@ -179,8 +188,9 @@ class ImageStripper:
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
-                ocr = os.popen("ocrad -s %s -c %s -x %s < %s 2>/dev/null" %
-                               (scale, charset, orf, pnmfile))
+                ocr = os.popen("%s -s %s -c %s -x %s -f %s 2>%s" %
+                               (find_program("ocrad"), scale, charset,
+                                orf, pnmfile, os.path.devnull))
                 ctext = ocr.read().lower()
                 ocr.close()
                 ctokens = set()
