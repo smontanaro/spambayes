@@ -185,7 +185,7 @@ class ImageStripper:
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
-                ocr = os.popen("%s -s %s -c %s -f '%s' 2>%s" %
+                ocr = os.popen('%s -s %s -c %s -f "%s" 2>%s' %
                                (find_program("ocrad"), scale, charset,
                                 pnmfile, os.path.devnull))
                 ctext = ocr.read().lower()
