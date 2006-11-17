@@ -11,7 +11,7 @@ from proxy3_filter import *
 import proxy3_options
 
 from spambayes import hammie, Options, mboxutils
-bdf = Options.get_pathname_option("Storage", "persistent_storage_file")
+dbf = Options.get_pathname_option("Storage", "persistent_storage_file")
 
 class SpambayesFilter(BufferAllFilter):
     hammie = hammie.open(dbf, 1, 'r')
