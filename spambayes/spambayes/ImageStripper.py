@@ -191,9 +191,15 @@ class ImageStripper:
                 ctext = ocr.read().lower()
                 ocr.close()
                 ctokens = set()
-                nlines = len(ctext.strip().split("\n"))
-                if nlines:
-                    ctokens.add("image-text-lines:%d" % int(log2(nlines)))
+                if not ctext.strip():
+                    # Lots of spam now contains images in which it is
+                    # difficult or impossible (using ocrad) to find any
+                    # text.  Make a note of that.
+                    ctokens.add("image-text:no text found")
+                else:
+                    nlines = len(ctext.strip().split("\n"))
+                    if nlines:
+                        ctokens.add("image-text-lines:%d" % int(log2(nlines)))
                 self.cache[fhash] = (ctext, ctokens)
             textbits.append(ctext)
             tokens |= ctokens
