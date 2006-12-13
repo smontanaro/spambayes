@@ -42,7 +42,7 @@ except NameError:
 try:
     import dnscache
     cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
-    cache.printStatsAtEnd = True
+    cache.printStatsAtEnd = False
 except (IOError, ImportError):
     cache = None
 else:
@@ -1086,8 +1086,8 @@ class URLStripper(Stripper):
 
             if cache is not None and options["Tokenizer", "x-lookup_ip"]:
                 ips=cache.lookup(netloc)
-                if len(ips)==0:
-                    pushclue("url-ip:timeout")
+                if not ips:
+                    pushclue("url-ip:lookup error")
                 else:
                     for ip in ips: # Should we limit to one A record?
                         pushclue("url-ip:%s/32" % ip)
