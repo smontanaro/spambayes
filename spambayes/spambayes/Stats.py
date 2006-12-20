@@ -56,9 +56,9 @@ class Stats(object):
         self.options = options
         # Reset session stats.
         self.Reset()
-        # Load persistent stats.
+        # Initialize persistent stats.
         self.from_date = self.messageinfo_db.get_statistics_start_date()
-        self.CalculatePersistentStats()
+        self.persistentStatsCalculated = False
 
     def Reset(self):
         self.num_ham = self.num_spam = self.num_unsure = 0
@@ -166,6 +166,16 @@ class Stats(object):
                     totals["num_trained_ham"] += 1
                 elif trained == True:
                     totals["num_trained_spam"] += 1
+
+        # If we have already accumulated any session statistics then we need
+        # to subtract those from the totals to prevent double-counting.
+        totals["num_ham"] -= self.num_ham
+        totals["num_spam"] -= self.num_spam
+        totals["num_unsure"] -= self.num_unsure
+        totals["num_trained_ham"] -= self.num_trained_ham
+        totals["num_trained_ham_fp"] -= self.num_trained_ham_fp
+        totals["num_trained_spam"] -= self.num_trained_spam
+        totals["num_trained_spam_fn"] -= self.num_trained_spam_fn
 
     def _CombineSessionAndTotal(self):
         totals = self.totals
@@ -323,6 +333,10 @@ class Stats(object):
             data["num_trained_spam"] = self.num_trained_spam
             data["num_trained_spam_fn"] = self.num_trained_spam_fn
         else:
+            if not self.persistentStatsCalculated:
+                # Load persistent stats.
+                self.CalculatePersistentStats()
+                self.persistentStatsCalculated = True
             data = self._CombineSessionAndTotal()
 
         push(_("Messages classified: %d") % (data["num_seen"],))
