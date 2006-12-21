@@ -35,7 +35,7 @@ href="http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse">bu
 report</a> and add any useful information you may have, or to open a new bug
 report if your problem seems to be a new one.  Please be sure to go through
 the <a
-href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html"">
+href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?content-type=text%2Fhtml">
 troubleshooting.html</a> file that is installed with the plugin.</p>
 
 <h3>Installing the Outlook Client From Source</h3>
@@ -50,7 +50,7 @@ To do this, you will need three pieces of software:
   latest release with no letters in its version).</li>
 
   <li>Mark Hammond's <a
-  href="http://starship.python.net/crew/mhammond/win32/Downloads.html">pywin32
+  href="https://sourceforge.net/projects/pywin32/">pywin32
   extensions</a>.  Choose the version which corresponds to the version of
   Python you downloaded.</li>
 
