@@ -67,7 +67,7 @@ something back to the project, you have a few options:
   This should give you some additional benefits like support or greater 
   ease-of-use.
 
-.. _the PSF license: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/LICENSE.txt
+.. _the PSF license: http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/LICENSE.txt
 .. _I'm not a programmer but still want to help: #i-m-not-a-programmer-but-want-to-help-out-what-can-i-do
 .. _Python Software Foundation: http://www.python.org/psf/
 .. _donations page: donations.html
@@ -530,7 +530,7 @@ Internet Explorer possible, but we are not certain about this.  The
 `troubleshooting guide`_ for the Outlook plugin contains the most
 up-to-date help for working around known problems.
 
-.. _troubleshooting guide: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?rev=HEAD&content-type=text/html
+.. _troubleshooting guide: http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?content-type=text/html
 
 
 Do I have to have Python installed to use SpamBayes with Outlook?
@@ -1342,7 +1342,7 @@ this information (Windows users should run it from a command prompt).  Note
 that users of the pop3proxy_service can not currently use which_database.py.
 
 
-.. _which_database.py: http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/*checkout*/spambayes/spambayes/utilities/which_database.py?rev=HEAD&content-type=text/plain
+.. _which_database.py: http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/utilities/which_database.py?content-type=text/plain
 .. _mailing list: mailto:spambayes@python.org
 
 
