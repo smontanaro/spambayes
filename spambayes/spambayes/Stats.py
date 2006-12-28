@@ -42,7 +42,7 @@ except NameError:
 import time
 import types
 
-from spambayes.message import STATS_START_KEY
+from spambayes.message import STATS_START_KEY, STATS_STORAGE_KEY
 from spambayes.message import database_type, open_storage, Message
 
 try:
@@ -58,7 +58,7 @@ class Stats(object):
         self.Reset()
         # Initialize persistent stats.
         self.from_date = self.messageinfo_db.get_statistics_start_date()
-        self.persistentStatsCalculated = False
+        self.LoadPersistentStats()
 
     def Reset(self):
         self.num_ham = self.num_spam = self.num_unsure = 0
@@ -75,15 +75,23 @@ class Stats(object):
             # Reset the date.
             self.from_date = time.time()
             self.messageinfo_db.set_statistics_start_date(self.from_date)
+            self.messageinfo_db.set_persistent_statistics(self.totals)
 
     def RecordClassification(self, score):
         """Record that a message has been classified this session."""
+        totals = self.totals
         if score >= self.options["Categorization", "spam_cutoff"]:
             self.num_spam += 1
+            totals["num_spam"] += 1
         elif score >= self.options["Categorization", "ham_cutoff"]:
             self.num_unsure += 1
+            totals["num_unsure"] += 1
         else:
             self.num_ham += 1
+            totals["num_ham"] += 1
+        # We have to record the updated totals every time or else the
+        # persistent statistics will get out of sync.
+        self.messageinfo_db.set_persistent_statistics(self.totals)
 
     def RecordTraining(self, as_ham, old_score=None, old_class=None):
         """Record that a message has been trained this session.
@@ -96,24 +104,45 @@ class Stats(object):
         """
         # XXX Why, oh why, does this function have as_ham, when every
         # XXX other function has isSpam???
+        totals = self.totals
         if as_ham:
             self.num_trained_ham += 1
+            totals["num_trained_ham"] += 1
             # If we are recovering an item that is in the "spam" threshold,
             # then record it as a "false positive"
             if old_score is not None and \
                old_score > self.options["Categorization", "spam_cutoff"]:
                 self.num_trained_ham_fp += 1
+                totals["num_trained_ham_fp"] += 1
             elif old_class == self.options["Headers", "header_spam_string"]:
                 self.num_trained_ham_fp += 1
+                totals["num_trained_ham_fp"] += 1
         else:
             self.num_trained_spam += 1
+            totals["num_trained_spam"] += 1
             # If we are deleting as Spam an item that was in our "good"
             # range, then record it as a false negative.
             if old_score is not None and \
                old_score < self.options["Categorization", "ham_cutoff"]:
                 self.num_trained_spam_fn += 1
+                totals["num_trained_spam_fn"] += 1
             elif old_class == self.options["Headers", "header_ham_string"]:
                 self.num_trained_spam_fn += 1
+                totals["num_trained_spam_fn"] += 1
+        # We have to record the updated totals every time or else the
+        # persistent statistics will get out of sync.
+        self.messageinfo_db.set_persistent_statistics(self.totals)
+
+    def LoadPersistentStats(self):
+        """Load the persistent statistics from the messageinfo db.
+        
+        If the persistent statistics have not yet been stored in the db
+        then we need to recalculate them by iterating through all the
+        messages.  This will result in a one-time performance hit, but
+        will greatly improve the startup time in the future."""
+        self.totals = self.messageinfo_db.get_persistent_statistics()
+        if self.totals is None:
+            self.CalculatePersistentStats()
 
     def CalculatePersistentStats(self):
         """Calculate the statistics totals (i.e. not this session).
@@ -121,15 +150,18 @@ class Stats(object):
         This is done by running through the messageinfo database and
         adding up the various information.  This could get quite time
         consuming if the messageinfo database gets very large, so
-        some consideration should perhaps be made about what to do
-        then.
+        it should only be done if the statistics start date is reset
+        to an arbitrary point in the past.
         """
         self.ResetTotal()
         totals = self.totals
         for msg_id in self.messageinfo_db.keys():
-            # Skip the date key.
+            # Skip the date and persistent statistics keys.
             if msg_id == STATS_START_KEY:
                 continue
+            if msg_id == STATS_STORAGE_KEY:
+                continue
+
             m = Message(msg_id)
             self.messageinfo_db.load_msg(m)
 
@@ -167,33 +199,7 @@ class Stats(object):
                 elif trained == True:
                     totals["num_trained_spam"] += 1
 
-        # If we have already accumulated any session statistics then we need
-        # to subtract those from the totals to prevent double-counting.
-        totals["num_ham"] -= self.num_ham
-        totals["num_spam"] -= self.num_spam
-        totals["num_unsure"] -= self.num_unsure
-        totals["num_trained_ham"] -= self.num_trained_ham
-        totals["num_trained_ham_fp"] -= self.num_trained_ham_fp
-        totals["num_trained_spam"] -= self.num_trained_spam
-        totals["num_trained_spam_fn"] -= self.num_trained_spam_fn
-
-    def _CombineSessionAndTotal(self):
-        totals = self.totals
-        data = {}
-        data["num_ham"] = self.num_ham + totals["num_ham"]
-        data["num_spam"] = self.num_spam + totals["num_spam"]
-        data["num_unsure"] = self.num_unsure + totals["num_unsure"]
-        data["num_seen"] = data["num_ham"] + data["num_spam"] + \
-                           data["num_unsure"]
-        data["num_trained_ham"] = self.num_trained_ham + \
-                                  totals["num_trained_ham"]
-        data["num_trained_ham_fp"] = self.num_trained_ham_fp + \
-                                     totals["num_trained_ham_fp"]
-        data["num_trained_spam"] = self.num_trained_spam + \
-                                   totals["num_trained_spam"]
-        data["num_trained_spam_fn"] = self.num_trained_spam_fn + \
-                                      totals["num_trained_spam_fn"]
-        return data
+        self.messageinfo_db.set_persistent_statistics(totals)
 
     def _CalculateAdditional(self, data):
         data["perc_ham"] = 100.0 * data["num_ham"] / data["num_seen"]
@@ -321,10 +327,8 @@ class Stats(object):
         chunks = []
         push = chunks.append
 
+        data = {}
         if session_only:
-            data = {}
-            data["num_seen"] = self.num_ham + self.num_spam + \
-                               self.num_unsure
             data["num_ham"] = self.num_ham
             data["num_spam"] = self.num_spam
             data["num_unsure"] = self.num_unsure
@@ -333,11 +337,12 @@ class Stats(object):
             data["num_trained_spam"] = self.num_trained_spam
             data["num_trained_spam_fn"] = self.num_trained_spam_fn
         else:
-            if not self.persistentStatsCalculated:
-                # Load persistent stats.
-                self.CalculatePersistentStats()
-                self.persistentStatsCalculated = True
-            data = self._CombineSessionAndTotal()
+            for stat in ["num_ham", "num_spam", "num_unsure",
+                         "num_trained_spam", "num_trained_spam_fn",
+                         "num_trained_ham", "num_trained_ham_fp",]:
+                data[stat] = self.totals[stat]
+        data["num_seen"] = data["num_ham"] + data["num_spam"] + \
+                           data["num_unsure"]
 
         push(_("Messages classified: %d") % (data["num_seen"],))
         if data["num_seen"] == 0:

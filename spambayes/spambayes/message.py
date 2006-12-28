@@ -115,6 +115,7 @@ except ImportError:
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
 STATS_START_KEY = "Statistics start date"
+STATS_STORAGE_KEY = "Persistent statistics"
 PERSISTENT_HAM_STRING = 'h'
 PERSISTENT_SPAM_STRING = 's'
 PERSISTENT_UNSURE_STRING = 'u'
@@ -134,6 +135,16 @@ class MessageInfoBase(object):
 
     def set_statistics_start_date(self, date):
         self.db[STATS_START_KEY] = date
+        self.store()
+
+    def get_persistent_statistics(self):
+        if self.db.has_key(STATS_STORAGE_KEY):
+            return self.db[STATS_STORAGE_KEY]
+        else:
+            return None
+            
+    def set_persistent_statistics(self, stats):
+        self.db[STATS_STORAGE_KEY] = stats
         self.store()
 
     def __getstate__(self):
@@ -401,7 +412,10 @@ class Message(object, email.Message.Message):
             raise TypeError, "Id must be a string"
 
         if id == STATS_START_KEY:
-            raise ValueError, "MsgId must not be" + STATS_START_KEY
+            raise ValueError, "MsgId must not be " + STATS_START_KEY
+
+        if id == STATS_STORAGE_KEY:
+            raise ValueError, "MsgId must not be " + STATS_STORAGE_KEY
 
         self.id = id
         self.message_info_db.load_msg(self)
