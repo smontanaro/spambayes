@@ -1,7 +1,7 @@
 <h2>Pre-Sourceforge ChangeLog</h2>
 <p>This changelog lists the commits on the spambayes projects before the
    separate project was set up. See also the 
-<a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/python/python/nondist/sandbox/spambayes/?hideattic=0">old CVS repository</a>, but don't forget that it's now out of date, and you probably want to be looking at <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/">the current CVS</a>.
+<a href="http://spambayes.cvs.sourceforge.net/python/python/nondist/sandbox/spambayes/?hideattic=0">old CVS repository</a>, but don't forget that it's now out of date, and you probably want to be looking at <a href="http://spambayes.cvs.sourceforge.net/spambayes/spambayes/">the current CVS</a>.
 </p>
 <pre>
 2002-09-06 02:27  tim_one

@@ -256,9 +256,9 @@ commit messages. As the project was moved from an obscure corner of the
 Python CVS tree, there's actually two sources of CVS commits.</p>
 
 <ul>
-<li>The older CVS repository via <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/python/python/nondist/sandbox/spambayes/?hideattic=0">view CVS</a>, or the <a href="presfchangelog.html">entire changelog</a>.
+<li>The older CVS repository via <a href="http://spambayes.cvs.sourceforge.net/python/python/nondist/sandbox/spambayes/?hideattic=0">view CVS</a>, or the <a href="presfchangelog.html">entire changelog</a>.
 Development here stopped on the 6th of September 2002.
-<li>After that, work moved to this project's <a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/spambayes/spambayes/">CVS tree</a>
+<li>After that, work moved to this project's <a href="http://spambayes.cvs.sourceforge.net/spambayes/spambayes/">CVS tree</a>
 </ul>
 
 <h2>Papers about SpamBayes</h2>
