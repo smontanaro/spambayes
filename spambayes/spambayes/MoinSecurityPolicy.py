@@ -65,7 +65,7 @@ class SecurityPolicy(Permissions):
     def open_spamdb(self, request):
         if self.sbayes is None:
             event_log = request.rootpage.getPagePath('event-log', isfile=1)
-            spam_db = os.path.join(os.path.dirname(event_log, self.spam_db))
+            spam_db = os.path.join(os.path.dirname(event_log), self.spam_db)
             self.sbayes = Hammie(storage.open_storage(spam_db, "pickle", 'c'))
             atexit.register(self.close_spamdb)
 
@@ -106,6 +106,7 @@ class SecurityPolicy(Permissions):
         return (nham, nspam)
 
     def save(self, editor, newtext, rev, **kw):
+        self.open_spamdb(editor.request)
         score = self.sbayes.score(newtext)
         save_result = Permissions.save(self, editor, newtext, rev, **kw)
 
