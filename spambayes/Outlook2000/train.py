@@ -167,7 +167,7 @@ def trainer(mgr, config, progress):
 
     if rebuild:
         assert mgr.classifier_data is not classifier_data
-        mgr.classifier_data.Adopt(classifier_data)
+        mgr.AdoptClassifierData(classifier_data)
         classifier_data = mgr.classifier_data
         # If we are rebuilding, then we reset the statistics, too.
         # (But output them to the log for reference).

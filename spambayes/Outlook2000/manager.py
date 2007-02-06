@@ -469,6 +469,10 @@ class BayesManager:
         self.stats = bayes_stats.Stats(bayes_options,
                                        self.classifier_data.message_db)
 
+    def AdoptClassifierData(self, new_classifier_data):
+        self.classifier_data.Adopt(new_classifier_data)
+        self.stats.messageinfo_db = self.classifier_data.message_db
+
     # Logging - this should be somewhere else.
     def LogDebug(self, level, *args):
         if self.verbose >= level:
