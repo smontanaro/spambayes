@@ -25,6 +25,18 @@ try:
 except ImportError:
     Image = None
 
+# The email mime object carrying the image data can have a special attribute
+# which indicates that a message had an image, but it was large (ie, larger
+# than the 'max_image_size' option.)  This allows the provider of the email
+# object to avoid loading huge images into memory just to have this image
+# stripper ignore it.
+# If the attribute exists, it should be the size of the image (we assert it
+# is > max_image_size).  The image payload is ignored.
+# A 'cleaner' option would be to look at a header - but an attribute was
+# chosen to avoid spammers getting wise and 'injecting' the header into the
+# message body of a mime section.
+image_large_size_attribute = "spambayes_image_large_size"
+
 try:
     # We have three possibilities for Set:
     #  (a) With Python 2.2 and earlier, we use our compatsets class
@@ -54,12 +66,20 @@ def is_executable(prog):
 def find_program(prog):
     path = os.environ.get("PATH", "").split(os.pathsep)
     if sys.platform == "win32":
-        # Outlook plugin puts executables in (for example):
-        #    C:/Program Files/SpamBayes/bin
-        # so add that directory to the path and make sure we
-        # look for a file ending in ".exe".
-        path.append(os.path.dirname(sys.executable))
         prog = "%s.exe" % prog
+        if hasattr(sys, "frozen"): # a binary (py2exe) build..
+            # Outlook plugin puts executables in (for example):
+            #    C:/Program Files/SpamBayes/bin
+            # so add that directory to the path and make sure we
+            # look for a file ending in ".exe".
+            # Put it at the *start* of the paths we search - who knows
+            # what else me may encounter in the wild!
+            path.insert(0, os.path.dirname(sys.executable))
+        else:
+            # a source build - for testing, allow it in SB package dir.
+            import spambayes
+            path.insert(0, os.path.abspath(spambayes.__path__[0]))
+
     for directory in path:
         program = os.path.join(directory, prog)
         if os.path.exists(program) and is_executable(program):
@@ -88,14 +108,24 @@ def PIL_decode_parts(parts):
     """Decode and assemble a bunch of images using PIL."""
     tokens = Set()
     rows = []
+    max_image_size = options["Tokenizer", "max_image_size"]
     for part in parts:
-        try:
-            bytes = part.get_payload(decode=True)
-        except:
-            tokens.add("invalid-image:%s" % part.get_content_type())
-            continue
+        # See 'image_large_size_attribute' above - the provider may have seen
+        # an image, but optimized the fact we don't bother processing large
+        # images.
+        nbytes = getattr(part, image_large_size_attribute, None)
+        if nbytes is None: # no optimization - process normally...
+            try:
+                bytes = part.get_payload(decode=True)
+                nbytes = len(bytes)
+            except:
+                tokens.add("invalid-image:%s" % part.get_content_type())
+                continue
+        else:
+            # optimization should not have remove images smaller than our max
+            assert nbytes > max_image_size, (len(bytes), max_image_size)
 
-        if len(bytes) > options["Tokenizer", "max_image_size"]:
+        if nbytes > max_image_size:
             tokens.add("image:big")
             continue                # assume it's just a picture for now
 
@@ -156,11 +186,103 @@ def PIL_decode_parts(parts):
     for image in rows:
         full_image = imconcattb(full_image, image)
 
-    fd, pnmfile = tempfile.mkstemp()
+    fd, pnmfile = tempfile.mkstemp('-spambayes-image')
     os.close(fd)
     full_image.save(open(pnmfile, "wb"), "PPM")
 
     return [pnmfile], tokens
+
+class OCREngine(object):
+    """Base class for an OCR "engine" that extracts text.  Ideally would
+       also deal with image format (as different engines will have different
+       requirements), but all currently supported ones deal with the PNM
+       formats (ppm/pgm/pbm)
+    """
+    engine_name = None # sub-classes should override.
+    def __init__(self):
+        pass
+
+    def is_enabled(self):
+        """Return true if this engine is able to be used.  Note that
+           returning true only means it is *capable* of being used - not that
+           it is enabled.  eg, it should check the program is needs to use
+           is installed, etc.
+        """
+        raise NotImplementedError
+
+    def extract_text(self, pnmfiles):
+        """Extract the text as an unprocessed stream (but as a string).
+           Typically this will be the raw output from the OCR engine.
+        """
+        raise NotImplementedError
+
+class OCRExecutableEngine(OCREngine):
+    """Uses a simple executable that writes to stdout to extract the text"""
+    program_name = None
+    def __init__(self):
+        # we go looking for the program first use and cache its location
+        self._program = None
+        OCREngine.__init__(self)
+
+    def is_enabled(self):
+        return self.program is not None
+
+    def get_program(self):
+        # by default, executable is same as engine name
+        if not self._program:
+            self._program = find_program(self.engine_name)
+        return self._program
+    
+    program = property(get_program)
+
+class OCREngineOCRAD(OCRExecutableEngine):
+    engine_name = "ocrad"
+
+    def extract_text(self, pnmfile):
+        assert self.is_enabled(), "I'm not working!"
+        scale = options["Tokenizer", "ocrad_scale"] or 1
+        charset = options["Tokenizer", "ocrad_charset"]
+        ocr = os.popen('%s -s %s -c %s -f "%s" 2>%s' %
+                       (self.program, scale, charset,
+                        pnmfile, os.path.devnull))
+        ret = ocr.read()
+        ocr.close()
+        return ret
+
+class OCREngineGOCR(OCRExecutableEngine):
+    engine_name="gocr"
+
+    def extract_text(self, pnmfile):
+        assert self.is_enabled(), "I'm not working!"
+        ocr = os.popen('%s "%s" 2>%s' %
+                       (self.program, pnmfile, os.path.devnull))
+        ret = ocr.read()
+        ocr.close()
+        return ret
+
+# This lists all engines, with the first listed that is enabled winning.
+# Matched with the engine name, as specified in Options.py, via the
+# 'engine_name' attribute on the class.
+_ocr_engines = [
+    OCREngineGOCR,
+    OCREngineOCRAD,
+]
+
+def get_engine(engine_name):
+    if not engine_name:
+        candidates = _ocr_engines
+    else:
+        for e in _ocr_engines:
+            if e.engine_name == engine_name:
+                candidates = [e]
+                break
+        else:
+            candidates = []
+    for candidate in candidates:
+        engine = candidate()
+        if engine.is_enabled():
+            return engine
+    return None
 
 class ImageStripper:
     def __init__(self, cachefile=""):
@@ -172,12 +294,12 @@ class ImageStripper:
         self.misses = self.hits = 0
         if self.cachefile:
             atexit.register(self.close)
-
+        self.engine = None
+    
     def extract_ocr_info(self, pnmfiles):
+        assert self.engine, "must have an engine!"
         textbits = []
         tokens = Set()
-        scale = options["Tokenizer", "ocrad_scale"] or 1
-        charset = options["Tokenizer", "ocrad_charset"]
         for pnmfile in pnmfiles:
             fhash = md5.new(open(pnmfile).read()).hexdigest()
             if fhash in self.cache:
@@ -185,11 +307,17 @@ class ImageStripper:
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
-                ocr = os.popen('%s -s %s -c %s -f "%s" 2>%s' %
-                               (find_program("ocrad"), scale, charset,
-                                pnmfile, os.path.devnull))
-                ctext = ocr.read().lower()
-                ocr.close()
+                if self.engine.program:
+                    ctext = self.engine.extract_text(pnmfile).lower()
+                else:
+                    # We should not get here if no OCR is enabled.  If it
+                    # is enabled and we have no program, its OK to spew lots
+                    # of warnings - they should either disable OCR (it is by
+                    # default), or fix their config.
+                    print >> sys.stderr, \
+                          "No OCR program '%s' available - can't get text!" \
+                          % (self.engine.program_name,)
+                    ctext = ""
                 ctokens = set()
                 if not ctext.strip():
                     # Lots of spam now contains images in which it is
@@ -207,12 +335,20 @@ class ImageStripper:
 
         return "\n".join(textbits), tokens
 
-    def analyze(self, parts):
-        if not parts:
+    def analyze(self, engine_name, parts):
+        # check engine hasn't changed...
+        if self.engine is not None and self.engine.engine_name!=engine_name:
+            self.engine = None
+        # check engine exists and is valid
+        if self.engine is None:
+            self.engine = get_engine(engine_name)
+        if self.engine is None:
+            # We only get here if explicitly enabled - spewing msgs is ok.
+            print >> sys.stderr, "invalid engine name '%s' - OCR disabled" \
+                                 % (engine_name,)
             return "", Set()
 
-        # need ocrad
-        if not find_program("ocrad"):
+        if not parts:
             return "", Set()
 
         if Image is not None:

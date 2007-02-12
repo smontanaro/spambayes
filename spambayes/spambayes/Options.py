@@ -128,10 +128,18 @@ defaults = {
      _("""(EXPERIMENTAL) If true, generate tokens based on the
      (hopefully) text content contained in any images in each message.
      The current support is minimal, relies on the installation of
-     ocrad (http://www.gnu.org/software/ocrad/ocrad.html) and PIL.
-     It is almost certainly only useful in its current form on Unix-like
-     machines."""),
+     an OCR 'engine' (see x-ocr_engine.)"""),
      BOOLEAN, RESTORE),
+
+    ("x-ocr_engine", _("OCR engine to use"), "",
+     _("""(EXPERIMENTAL) The name of the OCR engine to use.  If empty, all
+     supported engines will be checked to see if they are installed.
+     Engines currently supported include ocrad
+     (http://www.gnu.org/software/ocrad/ocrad.html) and gocr
+     (http://jocr.sourceforge.net/download.html) and they require the
+     appropriate executable be installed in either your PATH, or in the
+     main spambayes directory."""),
+     HEADER_VALUE, RESTORE),
 
     ("crack_image_cache", _("Cache to speed up ocr."), "",
      _("""If non-empty, names a file from which to read cached ocr info

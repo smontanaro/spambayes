@@ -1618,7 +1618,7 @@ class Tokenizer:
         if options["Tokenizer", "x-image_size"]:
             # Find image/* parts of the body, calculating the log(size) of
             # each image.
-            
+
             total_len = 0
             for part in parts:
                 try:
@@ -1635,8 +1635,9 @@ class Tokenizer:
                 yield "image-size:2**%d" % round(log2(total_len))
 
         if options["Tokenizer", "x-crack_images"]:
+            engine_name = options["Tokenizer", 'x-ocr_engine']
             from spambayes.ImageStripper import crack_images
-            text, tokens = crack_images(parts)
+            text, tokens = crack_images(engine_name, parts)
             for t in tokens:
                 yield t
             for t in self.tokenize_text(text):
