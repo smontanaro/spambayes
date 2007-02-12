@@ -40,8 +40,11 @@ def BuildBuckets(manager, num_buckets):
 
 # Return the text of msg (a MAPIMsgStoreMsg object) as a string.
 # There are subtleties, alas.
-def get_text(msg):
-    email_object = msg.GetEmailPackageObject()
+def get_text(msg, old_style):
+    if old_style:
+        email_object = msg.OldGetEmailPackageObject()
+    else:
+        email_object = msg.GetEmailPackageObject()
     try:
         # Don't use str(msg) instead -- that inserts an information-
         # free "Unix From" line at the top of each msg.
@@ -92,7 +95,7 @@ def get_text(msg):
 # bucket subdirectory chosen at random (among all bucket subdirectories).
 # Returns the total number of .txt files created (== the number of msgs
 # successfully exported).
-def _export_folders(manager, root, buckets, folder_ids, include_sub):
+def _export_folders(manager, root, buckets, folder_ids, include_sub, old_style):
     from random import choice
 
     num = 0
@@ -103,7 +106,7 @@ def _export_folders(manager, root, buckets, folder_ids, include_sub):
             this_dir = os.path.join(root,  choice(buckets))
             # filename is the EID.txt
             try:
-                msg_text = get_text(message)
+                msg_text = get_text(message, old_style)
             except KeyboardInterrupt:
                 raise
             except:
@@ -120,7 +123,7 @@ def _export_folders(manager, root, buckets, folder_ids, include_sub):
 
 # This does all the work.  'directory' is the parent directory for the
 # generated Ham and Spam sub-folders.
-def export(directory, num_buckets):
+def export(directory, num_buckets, old_style):
     print "Loading bayes manager..."
     manager = GetManager()
     config = manager.config
@@ -140,7 +143,8 @@ def export(directory, num_buckets):
                           os.path.join(directory, "Spam"),
                           buckets,
                           config.training.spam_folder_ids,
-                          config.training.spam_include_sub)
+                          config.training.spam_include_sub,
+                          old_style)
     print "Exported", num, "spam messages."
 
     print "Exporting ham..."
@@ -148,17 +152,19 @@ def export(directory, num_buckets):
                           os.path.join(directory, "Ham"),
                           buckets,
                           config.training.ham_folder_ids,
-                          config.training.ham_include_sub)
+                          config.training.ham_include_sub,
+                          old_style)
     print "Exported", num, "ham messages."
 
 def main():
     import getopt
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hqn:")
+        opts, args = getopt.getopt(sys.argv[1:], "hqon:")
     except getopt.error, d:
         usage(d)
     quiet = 0
+    old_style = False
     num_buckets = NUM_BUCKETS
     for opt, val in opts:
         if opt == '-h':
@@ -167,6 +173,8 @@ def main():
             quiet = 1
         elif opt == '-n':
             num_buckets = int(val)
+        elif opt == '-o':
+            old_style = True
         else:
             assert 0, "internal error on option '%s'" % opt
 
@@ -190,7 +198,7 @@ def main():
         print "*******"
     if not quiet:
         raw_input("Press enter to continue, or Ctrl+C to abort.")
-    export(directory, num_buckets)
+    export(directory, num_buckets, old_style=old_style)
 
 # Display errormsg (if specified), a blank line, and usage information; then
 # exit with status 1 (usage doesn't return).

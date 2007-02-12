@@ -443,19 +443,11 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
             if need_train:
                 TrainAsSpam(msgstore_message, self.manager)
 
-# Event function fired from the "Show Clues" UI items.
-def ShowClues(mgr, explorer):
+def GetClues(mgr, msgstore_message):
     from cgi import escape
-
-    app = explorer.Application
-    msgstore_message = explorer.GetSelectedMessages(False)
-    if msgstore_message is None:
-        return
     mgr.classifier_data.message_db.load_msg(msgstore_message)
-
-    item = msgstore_message.GetOutlookItem()
     score, clues = mgr.score(msgstore_message, evidence=True)
-    new_msg = app.CreateItem(0)
+
     # NOTE: Silly Outlook always switches the message editor back to RTF
     # once the Body property has been set.  Thus, there is no reasonable
     # way to get this as text only.  Next best then is to use HTML, 'cos at
@@ -532,8 +524,8 @@ def ShowClues(mgr, explorer):
 
     # Now the raw text of the message, as best we can
     push("<h2>Message Stream</h2>\n")
-    push("<PRE>\n")
     msg = msgstore_message.GetEmailPackageObject(strip_mime_headers=False)
+    push("<PRE>\n")
     push(escape(msg.as_string(), True))
     push("</PRE>\n")
 
@@ -561,6 +553,19 @@ def ShowClues(mgr, explorer):
 
     # Put the body together, then the rest of the message.
     body = ''.join(body)
+    return body
+
+# Event function fired from the "Show Clues" UI items.
+def ShowClues(mgr, explorer):
+
+    app = explorer.Application
+    msgstore_message = explorer.GetSelectedMessages(False)
+    if msgstore_message is None:
+        return
+
+    body = GetClues(mgr, msgstore_message)
+    item = msgstore_message.GetOutlookItem()
+    new_msg = app.CreateItem(0)
     new_msg.Subject = "Spam Clues: " + item.Subject
     # As above, use HTMLBody else Outlook refuses to behave.
     new_msg.HTMLBody = """\

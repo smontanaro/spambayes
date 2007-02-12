@@ -2,6 +2,20 @@ from __future__ import generators
 
 import sys, os, re
 import locale
+from time import timezone
+
+import email
+from email.MIMEImage import MIMEImage
+from email.Message import Message
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.Parser import HeaderParser
+from email.Utils import formatdate
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 try:
     True, False
@@ -722,7 +736,7 @@ class MAPIMsgStoreFolder:
         try:
             folder = self.msgstore._OpenEntry(self.id)
             # Nuke my MAPI reference, and set my ID to None
-            rc = folder.DeleteMessages(real_ids, 0, None, 0)
+            folder.DeleteMessages(real_ids, 0, None, 0)
         except pythoncom.com_error, details:
             raise MsgStoreExceptionFromCOMException(details)
 
@@ -883,7 +897,9 @@ class MAPIMsgStoreMsg:
 
     def _GetMessageText(self):
         parts = self._GetMessageTextParts()
-        # parts is (headers, body, html), but could possibly grow
+        # parts is (headers, body, html) - which needs more formalizing -
+        # GetMessageText should become deprecated - it makes no sense in the
+        # face of multi-part messages.
         return "\n".join(parts)
 
     def _GetMessageTextParts(self):
@@ -892,6 +908,9 @@ class MAPIMsgStoreMsg:
         # in an attachment.  Later.
         # Note we *dont* look in plain text attachments, which we arguably
         # should.
+        # This should be refactored into a function that returns the headers,
+        # plus a list of email package sub-objects suitable for sending to
+        # the classifier.
         from spambayes import mboxutils
 
         self._EnsureObject()
@@ -935,6 +954,8 @@ class MAPIMsgStoreMsg:
             # without any better clues, just handle this.
             # Find all attachments with
             # PR_ATTACH_MIME_TAG_A=multipart/signed
+            # XXX - see also self._GetAttachmentsToInclude(), which
+            # scans the attachment table - we should consolidate!
             table = self.mapi_object.GetAttachmentTable(0)
             restriction = (mapi.RES_PROPERTY,   # a property restriction
                            (mapi.RELOP_EQ,      # check for equality
@@ -972,7 +993,6 @@ class MAPIMsgStoreMsg:
                 # exactly what we are doing ourselves right here - putting
                 # it into a message object, so we can extract the text, so
                 # we can stick it back into another one.  Ahhhhh.
-                import email
                 msg = email.message_from_string(attach_body)
                 assert msg.is_multipart(), "Should be multi-part: %r" % attach_body
                 # reduce down all sub messages, collecting all text/ subtypes.
@@ -1031,8 +1051,6 @@ class MAPIMsgStoreMsg:
         return "(via local Exchange server); %s" % (self._format_time(raw),)
 
     def _format_time(self, raw):
-        from time import timezone
-        from email.Utils import formatdate
         return formatdate(int(raw)-timezone, True)
 
     def _format_importance(self, raw):
@@ -1067,7 +1085,178 @@ class MAPIMsgStoreMsg:
             except pythoncom.com_error, details:
                 raise MsgStoreExceptionFromCOMException(details)
 
+    def _GetAttachmentsToInclude(self):
+        # Get the list of attachments to include in the email package
+        # Message object. Currently only images (BUT - consider consolidating
+        # with the attachment handling above for signed messages!)
+        from spambayes.Options import options
+        from spambayes.ImageStripper import image_large_size_attribute
+
+        # For now, we know these are the only 2 options that need attachments.
+        if not options['Tokenizer', 'x-crack_images'] and \
+           not options['Tokenizer', 'x-image_size']:
+            return []
+        try:
+            table = self.mapi_object.GetAttachmentTable(0)
+            tags = PR_ATTACH_NUM,PR_ATTACH_MIME_TAG_A,PR_ATTACH_SIZE,PR_ATTACH_DATA_BIN
+            attach_rows = mapi.HrQueryAllRows(table, tags, None, None, 0)
+        except pythoncom.com_error, why:
+            attach_rows = []
+
+        attachments = []
+        # Create a new attachment for each image.
+        for row in attach_rows:
+            attach_num = row[0][1]
+            # mime-tag may not exist - eg, seen on bounce messages
+            mime_tag = None
+            if PROP_TYPE(row[1][0]) != PT_ERROR:
+                mime_tag = row[1][1]
+            # oh - what is the library for this!?
+            if mime_tag:
+                typ, subtyp = mime_tag.split('/', 1)
+                if typ == 'image':
+                    size = row[2][1]
+                    # If it is too big, just write the size.  ImageStripper.py
+                    # checks this attribute.
+                    if size > options["Tokenizer", "max_image_size"]:
+                        sub = MIMEImage(None, subtyp)
+                        setattr(sub, image_large_size_attribute, size)
+                    else:
+                        attach = self.mapi_object.OpenAttach(attach_num,
+                                        None, mapi.MAPI_DEFERRED_ERRORS)
+                        data = GetPotentiallyLargeStringProp(attach,
+                                    PR_ATTACH_DATA_BIN, row[3])
+                        sub = MIMEImage(data, subtyp)
+                    attachments.append(sub)
+        return attachments
+
     def GetEmailPackageObject(self, strip_mime_headers=True):
+        # Return an email.Message object.
+        #
+        # strip_mime_headers is a hack, and should be left True unless you're
+        # trying to display all the headers for diagnostic purposes.  If we
+        # figure out something better to do, it should go away entirely.
+        #
+        # Problem #1:  suppose a msg is multipart/alternative, with
+        # text/plain and text/html sections.  The latter MIME decorations
+        # are plain missing in what _GetMessageText() returns.  If we leave
+        # the multipart/alternative in the headers anyway, the email
+        # package's "lax parsing" won't complain about not finding any
+        # sections, but since the type *is* multipart/alternative then
+        # anyway, the tokenizer finds no text/* parts at all to tokenize.
+        # As a result, only the headers get tokenized.  By stripping
+        # Content-Type from the headers (if present), the email pkg
+        # considers the body to be text/plain (the default), and so it
+        # does get tokenized.
+        #
+        # Problem #2:  Outlook decodes quoted-printable and base64 on its
+        # own, but leaves any Content-Transfer-Encoding line in the headers.
+        # This can cause the email pkg to try to decode the text again,
+        # with unpleasant (but rarely fatal) results.  If we strip that
+        # header too, no problem -- although the fact that a msg was
+        # encoded in base64 is usually a good spam clue, and we miss that.
+        #
+        # Short course:  we either have to synthesize non-insane MIME
+        # structure, or eliminate all evidence of original MIME structure.
+        # We used to do the latter - but now that we must give valid
+        # multipart messages which include attached images, we are forced
+        # to try and do the former (but actually the 2 options are not
+        # mutually exclusive - first we eliminate all evidence of original
+        # MIME structure, before allowing the email package to synthesize
+        # non-insane MIME structure.
+
+        # We still jump through hoops though - if we have no interesting
+        # attachments we attempt to return as close as possible as what
+        # we always returned in the past - a "single-part" message with the
+        # text and HTML as a simple text body.
+        header_text, body, html = self._GetMessageTextParts()
+
+        try: # catch all exceptions!
+            # Try and decide early if we want multipart or not.
+            # We originally just looked at the content-type - but Outlook
+            # is unreliable WRT that header!  Also, consider a message multipart message
+            # with only text and html sections and no additional attachments.
+            # Outlook will generally have copied the HTML and Text sections
+            # into the relevant properties and they will *not* appear as
+            # attachments. We should return the 'single' message here to keep
+            # as close to possible to what we used to return.  We can change
+            # this policy in the future - but we would probably need to insist
+            # on a full re-train as the training tokens will have changed for
+            # many messages.
+            attachments = self._GetAttachmentsToInclude()
+            new_content_type = None
+            if attachments:
+                _class = MIMEMultipart
+                payload = []
+                if body:
+                    payload.append(MIMEText(body))
+                if html:
+                    payload.append(MIMEText(html, 'html'))
+                payload += attachments
+                new_content_type = "multipart/mixed"
+            else:
+                # Single message part with both text and HTML.
+                _class = Message
+                payload = body + '\n' + html
+
+            try:
+                root_msg = HeaderParser(_class=_class).parsestr(header_text)
+            except email.Errors.HeaderParseError:
+                raise # sob
+                # ack - it is about here we need to do what the old code did
+                # below:  But - the fact the code below is dealing only
+                # with content-type (and the fact we handle that above) makes
+                # it less obvious....
+
+                ## But even this doesn't get *everything*.  We can still see:
+                ##  "multipart message with no defined boundary" or the
+                ## HeaderParseError above.  Time to get brutal - hack out
+                ## the Content-Type header, so we see it as plain text.
+                #if msg is None:
+                #    butcher_pos = text.lower().find("\ncontent-type: ")
+                #    if butcher_pos < 0:
+                #        # This error just just gunna get caught below anyway
+                #        raise RuntimeError(
+                #            "email package croaked with a MIME related error, but "
+                #            "there appears to be no 'Content-Type' header")
+                #    # Put it back together, skipping the original "\n" but
+                #    # leaving the header leaving "\nSpamBayes-Content-Type: "
+                #    butchered = text[:butcher_pos] + "\nSpamBayes-" + \
+                #                text[butcher_pos+1:] + "\n\n"
+                #    msg = email.message_from_string(butchered)
+    
+            # patch up mime stuff - these headers will confuse the email
+            # package as it walks the attachments.
+            if strip_mime_headers:
+                for h, new_val in (('content-type', new_content_type),
+                                   ('content-transfer-encoding', None)):
+                    try:
+                        root_msg['X-SpamBayes-Original-' + h] = root_msg[h]
+                        del root_msg[h]
+                    except KeyError:
+                        pass
+                    if new_val is not None:
+                        root_msg[h] = new_val
+
+            root_msg.set_payload(payload)
+
+            # We used to call email.message_from_string(text) and catch:
+            # email.Errors.BoundaryError: should no longer happen - we no longer
+            # ask the email package to parse anything beyond headers.
+            # email.Errors.HeaderParseError: caught above
+        except:
+            text = '\r\n'.join([header_text, body, html])
+            print "FAILED to create email.message from: ", `text`
+            raise
+
+        return root_msg
+
+    # XXX - this is the OLD version of GetEmailPackageObject() - it
+    # temporarily remains as a testing aid, to ensure that the different
+    # mime structure we now generate has no negative affects.
+    # Use 'sandbox/export.py -o' to export to the testdata directory
+    # in the old format, then run the cross-validation tests.
+    def OldGetEmailPackageObject(self, strip_mime_headers=True):
         # Return an email.Message object.
         #
         # strip_mime_headers is a hack, and should be left True unless you're
@@ -1145,7 +1334,8 @@ class MAPIMsgStoreMsg:
                 del msg['content-transfer-encoding']
 
         return msg
-
+    # end of OLD GetEmailPackageObject
+    
     def SetField(self, prop, val):
         # Future optimization note - from GetIDsFromNames doco
         # Name-to-identifier mapping is represented by an object's
@@ -1340,7 +1530,6 @@ class MAPIMsgStoreMsg:
             return None
 
 def test():
-    from win32com.client import Dispatch
     outlook = Dispatch("Outlook.Application")
     inbox = outlook.Session.GetDefaultFolder(constants.olFolderInbox)
     folder_id = inbox.Parent.StoreID, inbox.EntryID
