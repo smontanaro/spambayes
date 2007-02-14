@@ -218,7 +218,7 @@ class OCREngine(object):
 
 class OCRExecutableEngine(OCREngine):
     """Uses a simple executable that writes to stdout to extract the text"""
-    program_name = None
+    engine_name = None
     def __init__(self):
         # we go looking for the program first use and cache its location
         self._program = None
@@ -316,7 +316,7 @@ class ImageStripper:
                     # default), or fix their config.
                     print >> sys.stderr, \
                           "No OCR program '%s' available - can't get text!" \
-                          % (self.engine.program_name,)
+                          % (self.engine.engine_name,)
                     ctext = ""
                 ctokens = set()
                 if not ctext.strip():
