@@ -686,7 +686,7 @@ There are four translation tasks:
        ..\contrib\*.py ..\Outlook2000\*.py ..\scripts\*.py *.py
        ..\testtools\*.py ..\utilities\*.py ..\windows\*.py
 
-   You may wish to use a GUI system to create the required *.po file, 
+   You may wish to use a GUI system to create the required messages.po file, 
    such as poEdit, but you can also do this manually with a text editor.
    If your utility does not do it for you, you will also need to
    compile the .po file to a .mo file.  The utility msgfmt.py will do
