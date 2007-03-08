@@ -9,7 +9,14 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+# Action texts could be localized.
+# So comparing the action texts should be done using the same localized text.
+# These variables store the actions texts in the same localized form how the
+# user sees them in the Action dropdowns from configuration dialogs
+ACTION_MOVE, ACTION_COPY, ACTION_NONE = None, None, None
+
 def filter_message(msg, mgr, all_actions=True):
+
     config = mgr.config.filter
     prob = mgr.score(msg)
     prob_perc = prob * 100
@@ -31,6 +38,11 @@ def filter_message(msg, mgr, all_actions=True):
 
     ms = mgr.message_store
     try:
+        global ACTION_NONE, ACTION_COPY, ACTION_MOVE
+        if ACTION_NONE is None: ACTION_NONE = _("Untouched").lower()
+        if ACTION_COPY is None: ACTION_COPY = _("Copied").lower()
+        if ACTION_MOVE is None: ACTION_MOVE = _("Moved").lower()
+
         try:
             # Save the score
             # Catch msgstore exceptions, as failing to save the score need
@@ -83,9 +95,9 @@ def filter_message(msg, mgr, all_actions=True):
             mark_as_read = getattr(config, attr_prefix + "_mark_as_read")
             if mark_as_read:
                 msg.SetReadState(True)
-            if action.startswith("un"): # untouched
+            if action == ACTION_NONE:
                 mgr.LogDebug(1, "Not touching message '%s'" % msg.subject)
-            elif action.startswith("co"): # copied
+            elif action == ACTION_COPY:
                 try:
                     dest_folder = ms.GetFolder(folder_id)
                 except ms.MsgStoreException:
@@ -95,7 +107,7 @@ def filter_message(msg, mgr, all_actions=True):
                     msg.CopyToReportingError(mgr, dest_folder)
                     mgr.LogDebug(1, "Copied message '%s' to folder '%s'" \
                                  % (msg.subject, dest_folder.GetFQName()))
-            elif action.startswith("mo"): # Moved
+            elif action == ACTION_MOVE:
                 try:
                     dest_folder = ms.GetFolder(folder_id)
                 except ms.MsgStoreException:
