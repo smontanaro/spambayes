@@ -87,15 +87,16 @@ if hasattr(sys, "frozen"):
         # Not Outlook
         this_filename = __file__
     LC_DIR = os.path.dirname(os.path.dirname(this_filename))
-    DIALOGS_DIR = os.path.join(os.path.dirname(__file__), "languages")
+    LANG_DIR = os.path.join(os.path.dirname(__file__), "languages")
+
 else:
     try:
         this_filename = os.path.abspath(__file__)
     except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
         this_filename = os.path.abspath(sys.argv[0])
-    LC_DIR = os.path.dirname(this_filename)
-    DIALOGS_DIR = os.path.join(LC_DIR, "languages")
-    
+    LANG_DIR = os.path.join(os.path.dirname(this_filename), "languages")
+    LC_DIR = LANG_DIR
+
 
 class LanguageManager:
     def __init__(self):
@@ -167,8 +168,8 @@ class LanguageManager:
         code only, so we can simulate the fallback procedures."""
         self._clear_syspath()
         for lcode in self.current_langs_codes:
-            code_and_country = os.path.join(DIALOGS_DIR, lcode, 'DIALOGS')
-            code_only = os.path.join(DIALOGS_DIR, lcode.split("_")[0], 'DIALOGS')
+            code_and_country = os.path.join(LANG_DIR, lcode, 'DIALOGS')
+            code_only = os.path.join(LANG_DIR, lcode.split("_")[0], 'DIALOGS')
             if code_and_country not in sys.path:
                 sys.path.append(code_and_country)
                 self._sys_path_modifications.append(code_and_country)
