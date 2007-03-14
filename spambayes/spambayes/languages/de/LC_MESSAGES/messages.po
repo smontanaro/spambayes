@@ -1,0 +1,3292 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: SpamBayes 1.1\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2007-03-13 09:09+0100\n"
+"Last-Translator: Marko von Oppen <marko@von-oppen.com>\n"
+"Language-Team: Marko von Oppen <marko@von-oppen.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+
+#: ..\Outlook2000\addin.py:602
+msgid "Are you sure you want to permanently delete all items in the \"%s\" folder?"
+msgstr "Sind Sie sicher, dass Sie alle Nachrichten im Ordner \"%s\" löschen wollen?"
+
+#: ..\Outlook2000\addin.py:613
+msgid "The \"%s\" folder is already empty."
+msgstr "Der Ordner \"%s\" ist bereits leer."
+
+#: ..\Outlook2000\addin.py:639
+msgid ""
+"There was an error checking for the latest version\r\n"
+"For specific details on the error, please see the SpamBayes log\r\n"
+"\r\n"
+"Please check your internet connection, or try again later"
+msgstr ""
+
+#: ..\Outlook2000\addin.py:648
+msgid ""
+"You are running %s\r\n"
+"\r\n"
+"The latest available version is %s\r\n"
+"\r\n"
+"The download page for the latest version is\r\n"
+"%s\r\n"
+"\r\n"
+"Would you like to visit this page now?"
+msgstr ""
+
+#: ..\Outlook2000\addin.py:656
+msgid ""
+"The latest available version is %s\r\n"
+"\r\n"
+"No later version is available."
+msgstr ""
+"Die späteste verfügbare Version ist %s\r\n"
+"\r\n"
+"Keine neuere Version verfügbar."
+
+#: ..\Outlook2000\addin.py:696
+msgid "You must configure and enable SpamBayes before you can mark messages as spam"
+msgstr "Sie müssen SpamBayes konfigurieren und einschalten, bevor Sie Nachrichten als Spam markieren können."
+
+#: ..\Outlook2000\addin.py:711
+msgid "You must configure the Spam folder"
+msgstr "Sie müssen den Spamordner festlegen"
+
+#: ..\Outlook2000\addin.py:712
+msgid "Invalid Configuration"
+msgstr "Falsche Konfiguration"
+
+#: ..\Outlook2000\addin.py:759
+msgid "You must configure and enable SpamBayes before you can mark messages as not spam"
+msgstr "Sie müssen SpamBayes konfigurieren und einschalten, bevor Sie Nachrichten als Kein-Spam markieren können."
+
+#: ..\Outlook2000\addin.py:859
+msgid ""
+"Move the selected message to the Spam folder,\n"
+"and train the system that this is Spam."
+msgstr ""
+"Verschiebt die Nachricht in den Spamordner und bringt\n"
+"dem System bei, dass es sich um Spam handelt."
+
+#: ..\Outlook2000\addin.py:865
+#: ..\Outlook2000\config.py:95
+#: ProxyUI.py:315
+msgid "Spam"
+msgstr "Spam"
+
+#: ..\Outlook2000\addin.py:871
+msgid ""
+"Recovers the selected item back to the folder\n"
+"it was filtered from (or to the Inbox if this\n"
+"folder is not known), and trains the system that\n"
+"this is a good message\n"
+msgstr ""
+
+#: ..\Outlook2000\addin.py:880
+msgid "Not Spam"
+msgstr "Kein Spam"
+
+#: ..\Outlook2000\addin.py:894
+msgid "SpamBayes"
+msgstr "SpamBayes"
+
+#: ..\Outlook2000\addin.py:895
+msgid "SpamBayes anti-spam filters and functions"
+msgstr "SpamBayes Anti-Spam Filter und Funktionen"
+
+#: ..\Outlook2000\addin.py:912
+msgid "SpamBayes Manager..."
+msgstr "SpamBayes Manager..."
+
+#: ..\Outlook2000\addin.py:913
+msgid "Show the SpamBayes manager dialog."
+msgstr "Zeigt den SpamBayes Manager an."
+
+#: ..\Outlook2000\addin.py:940
+msgid "Show spam clues for current message"
+msgstr "Zeige Spam-Werte für die aktuelle Nachricht."
+
+#: ..\Outlook2000\addin.py:947
+msgid "Filter messages..."
+msgstr "Nachrichten filtern..."
+
+#: ..\Outlook2000\addin.py:954
+msgid "Empty Spam Folder"
+msgstr "Spamordner leeren"
+
+#: ..\Outlook2000\addin.py:962
+msgid "Check for new version"
+msgstr "Nach neuer Version suchen"
+
+#: ..\Outlook2000\addin.py:971
+#: UserInterface.py:1001
+#: UserInterface.py:1033
+#: UserInterface.py:1120
+#: UserInterface.py:1126
+#: i18n.py:193
+#: i18n.py:199
+#: i18n.py:208
+#: i18n.py:219
+msgid "Help"
+msgstr "Hilfe"
+
+#: ..\Outlook2000\addin.py:972
+msgid "SpamBayes help documents"
+msgstr "SpamBayes Hilfe Dokumente"
+
+#: ..\Outlook2000\addin.py:978
+msgid "About SpamBayes"
+msgstr "Über SpamBayes"
+
+#: ..\Outlook2000\addin.py:982
+msgid "Troubleshooting Guide"
+msgstr "Hilfe bei Problemen"
+
+#: ..\Outlook2000\addin.py:986
+msgid "SpamBayes Website"
+msgstr "SpamBayes Webseite"
+
+#: ..\Outlook2000\addin.py:990
+msgid "Frequently Asked Questions"
+msgstr "Häufig gestellte Fragen"
+
+#: ..\Outlook2000\addin.py:994
+msgid "SpamBayes Bug Tracker"
+msgstr "SpamBayes Fehler melden"
+
+#: ..\Outlook2000\addin.py:1003
+msgid "Execute test suite"
+msgstr "Tests ausführen"
+
+#: ..\Outlook2000\addin.py:1117
+msgid "Please select a single item"
+msgstr "Bitte wählen Sie ein einzelnes Element aus."
+
+#: ..\Outlook2000\addin.py:1118
+msgid "Large selection"
+msgstr "Große Auswahl"
+
+#: ..\Outlook2000\addin.py:1137
+msgid "No filterable mail items are selected"
+msgstr "Keine filterbaren Mails ausgewählt."
+
+#: ..\Outlook2000\addin.py:1138
+msgid "No selection"
+msgstr "Keine Auswahl"
+
+#: ..\Outlook2000\addin.py:1208
+msgid ""
+"There appears to be a problem with the SpamBayes configuration\r\n"
+"\r\n"
+"Please select the SpamBayes manager, and run the\r\n"
+"Configuration Wizard to reconfigure the filter."
+msgstr ""
+"Die Konfiguration von SpamBayes ist nicht vollständig oder nicht konsistent\n"
+"\n"
+"Bitte öffnen Sie den SpamBayes Manager und starten den\n"
+"Konfigurationsassistenten, um die Filter neu zu konfigurieren."
+
+#: ..\Outlook2000\addin.py:1213
+msgid "Invalid SpamBayes Configuration"
+msgstr "Unbrauchbare SpamBayes Konfiguration"
+
+#: ..\Outlook2000\addin.py:1347
+msgid ""
+"It appears there was an error loading your configuration\r\n"
+"\r\n"
+"Please re-configure SpamBayes via the SpamBayes dropdown"
+msgstr ""
+
+#: ..\Outlook2000\addin.py:1362
+msgid "*** SpamBayes is NOT enabled, so will not filter incoming mail. ***"
+msgstr "*** SpamBayes nicht aktiviert. Eingehende Nachrichten werden nicht gefiltert. ***"
+
+#: ..\Outlook2000\config.py:28
+msgid "Copied"
+msgstr "Kopieren"
+
+#: ..\Outlook2000\config.py:28
+msgid "Moved"
+msgstr "Verschieben"
+
+#: ..\Outlook2000\config.py:28
+msgid "Untouched"
+msgstr "Unverändert"
+
+#: ..\Outlook2000\config.py:29
+msgid "None"
+msgstr "Keine"
+
+#: ..\Outlook2000\config.py:29
+msgid "Read"
+msgstr "Gelesen"
+
+#: ..\Outlook2000\config.py:29
+msgid "Unread"
+msgstr "Ungelesen"
+
+#: ..\Outlook2000\config.py:95
+msgid "The name of the field used to store the spam score"
+msgstr "Der Name des Feldes, in welchem der Spamwert gespeichert wird."
+
+#: ..\Outlook2000\config.py:96
+msgid ""
+"SpamBayes stores the spam score for each message in a custom field.\n"
+"        This option specifies the name of the field"
+msgstr ""
+
+#: ..\Outlook2000\config.py:99
+msgid "The directory to store the data files."
+msgstr "Das Verzeichnis für die Datenbank"
+
+#: ..\Outlook2000\config.py:102
+#: ..\Outlook2000\config.py:106
+msgid "How the 'read' flag on a message is modified"
+msgstr "Wie das 'gelesen' Attribut einer Nachricht behandelt wird."
+
+#: ..\Outlook2000\config.py:103
+msgid ""
+"When the 'Spam' function is used, the message 'read' flag can\n"
+"           also be set."
+msgstr ""
+
+#: ..\Outlook2000\config.py:107
+msgid ""
+"When the 'Not Spam' function is used, the message 'read' flag can\n"
+"           also be set."
+msgstr ""
+
+#: ..\Outlook2000\config.py:110
+msgid "Changes the verbosity of the debug output from the program"
+msgstr "Ändert den Umfang der Debug-Ausgaben des Programms."
+
+#: ..\Outlook2000\config.py:111
+msgid "Indicates how much information is written to the SpamBayes log file."
+msgstr ""
+
+#: ..\Outlook2000\config.py:127
+msgid "Folders containing known good messages"
+msgstr "Ordner, die 'gute' Nachrichten enthalten."
+
+#: ..\Outlook2000\config.py:128
+msgid ""
+"A list of folders known to contain good (ham) messages.  When SpamBayes\n"
+"        is trained, these messages will be used as examples of good messages."
+msgstr ""
+
+#: ..\Outlook2000\config.py:131
+msgid "Does the nominated ham folders include sub-folders?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:135
+msgid "Folders containing known bad or spam messages"
+msgstr "Ordner die bekanntermaßen Spam bzw. 'schlechte' Nachrichten enthalten."
+
+#: ..\Outlook2000\config.py:136
+msgid ""
+"A list of folders known to contain bad (spam) messages.  When SpamBayes\n"
+"        is trained, these messages will be used as examples of messages to filter."
+msgstr ""
+
+#: ..\Outlook2000\config.py:139
+msgid "Does the nominated spam folders include sub-folders?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:142
+msgid "Train as good as items are recovered?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:143
+msgid ""
+"SpamBayes can detect when a message previously classified as spam\n"
+"        (or unsure) is moved back to the folder from which it was filtered.\n"
+"        If this option is enabled, SpamBayes will automatically train on\n"
+"        such messages"
+msgstr ""
+
+#: ..\Outlook2000\config.py:148
+msgid "Train as spam items are manually moved?"
+msgstr "Sollen manuell verschobene Nachrichten als Spam trainiert werden?"
+
+#: ..\Outlook2000\config.py:149
+msgid ""
+"SpamBayes can detect when a message previously classified as good\n"
+"        (or unsure) is manually moved to the Spam folder.  If this option is\n"
+"        enabled, SpamBayes will automatically train on such messages"
+msgstr ""
+
+#: ..\Outlook2000\config.py:153
+#: ..\Outlook2000\config.py:159
+msgid "Rescore message after training?"
+msgstr "Sollen Nachrichten neu bewertet werden nach dem Training."
+
+#: ..\Outlook2000\config.py:154
+msgid ""
+"After the training has completed, should all the messages be\n"
+"        scored for their Spam value.  This is particularly useful after\n"
+"        your initial training runs, so you can see how effective your\n"
+"        sorting of spam and ham was."
+msgstr ""
+
+#: ..\Outlook2000\config.py:160
+msgid ""
+"Should the entire database be rebuilt?  If enabled, then all\n"
+"        training information is reset, and a complete new database built\n"
+"        from the existing messages in your folders.  If disabled, then only\n"
+"        new messages in the folders that have not previously been trained\n"
+"        on will be processed"
+msgstr ""
+
+#: ..\Outlook2000\config.py:170
+msgid "State of 'Filter Now' checkbox"
+msgstr "Status der 'Jetzt Filtern' Auswahlbox."
+
+#: ..\Outlook2000\config.py:171
+msgid "Something useful."
+msgstr ""
+
+#: ..\Outlook2000\config.py:173
+msgid "Save spam score"
+msgstr "Spamwert speichern"
+
+#: ..\Outlook2000\config.py:174
+msgid ""
+"Should the spam score and other information be saved in each message\n"
+"        as it is filtered or scored?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:178
+msgid "Folders to watch for new messages"
+msgstr "Ordner, die auf das Eintreffen neuer Nachrichten überwacht werden."
+
+#: ..\Outlook2000\config.py:179
+msgid ""
+"The list of folders SpamBayes will watch for new messages,\n"
+"        processing messages as defined by the filters."
+msgstr ""
+
+#: ..\Outlook2000\config.py:182
+msgid "Does the nominated watch folders include sub-folders?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:186
+msgid "The folder used to track spam"
+msgstr ""
+
+#: ..\Outlook2000\config.py:187
+msgid "The folder SpamBayes moves or copies spam to."
+msgstr ""
+
+#: ..\Outlook2000\config.py:189
+msgid "The score necessary to be considered 'certain' spam"
+msgstr ""
+
+#: ..\Outlook2000\config.py:190
+msgid ""
+"Any message with a Spam score greater than or equal to this value\n"
+"        will be considered spam, and processed accordingly."
+msgstr ""
+
+#: ..\Outlook2000\config.py:193
+msgid "The action to take for new spam"
+msgstr "Die für neuen Spam auszuführende Aktion."
+
+#: ..\Outlook2000\config.py:194
+msgid "The action that should be taken as Spam messages arrive."
+msgstr ""
+
+#: ..\Outlook2000\config.py:196
+msgid "Should filtered spam also be marked as 'read'"
+msgstr "Soll gefilterter Spam als 'gelesen' markiert werden?"
+
+#: ..\Outlook2000\config.py:197
+msgid ""
+"Determines if spam messages are marked as 'Read' as they are\n"
+"        filtered.  This can be set to 'True' if the new-mail folder counts bother\n"
+"        you when the only new items are spam.  It can be set to 'False'\n"
+"        if you use the 'read' state of these messages to determine which\n"
+"        items you are yet to review. This option does not affect the\n"
+"        new-mail icon in the system tray."
+msgstr ""
+
+#: ..\Outlook2000\config.py:205
+msgid "The folder used to track uncertain messages"
+msgstr ""
+
+#: ..\Outlook2000\config.py:206
+msgid "The folder SpamBayes moves or copies uncertain messages to."
+msgstr ""
+
+#: ..\Outlook2000\config.py:208
+msgid "The score necessary to be considered 'unsure'"
+msgstr "Der Wert, ab die Nachricht als 'unsicher' gilt"
+
+#: ..\Outlook2000\config.py:209
+msgid ""
+"Any message with a Spam score greater than or equal to this value\n"
+"        (but less than the spam threshold) will be considered spam, and\n"
+"        processed accordingly."
+msgstr ""
+
+#: ..\Outlook2000\config.py:213
+msgid "The action to take for new uncertain messages"
+msgstr ""
+
+#: ..\Outlook2000\config.py:214
+msgid "The action that should be taken as unsure messages arrive."
+msgstr ""
+
+#: ..\Outlook2000\config.py:216
+msgid "Should filtered uncertain message also be marked as 'read'"
+msgstr ""
+
+#: ..\Outlook2000\config.py:217
+msgid ""
+"Determines if unsure messages are marked as 'Read' as they are\n"
+"        filtered.  See 'spam_mark_as_read' for more details."
+msgstr ""
+
+#: ..\Outlook2000\config.py:221
+msgid "The folder to which good messages are moved"
+msgstr "Der Ordner, in den 'gute' Nachrichten verschoben werden."
+
+#: ..\Outlook2000\config.py:222
+msgid "The folder SpamBayes moves or copies good messages to."
+msgstr ""
+
+#: ..\Outlook2000\config.py:224
+msgid "The action to take for new good messages"
+msgstr "Die für 'gute' Nachrichten auszuführende Aktion."
+
+#: ..\Outlook2000\config.py:225
+msgid "The action that should be taken as good messages arrive."
+msgstr ""
+
+#: ..\Outlook2000\config.py:227
+msgid "Should filtered good message also be marked as 'read'"
+msgstr ""
+
+#: ..\Outlook2000\config.py:228
+msgid ""
+"Determines if good messages are marked as 'Read' as they are\n"
+"        filtered.  See 'spam_mark_as_read' for more details."
+msgstr ""
+
+#: ..\Outlook2000\config.py:231
+msgid "Is filtering enabled?"
+msgstr "Ist Filtern eingeschaltet?"
+
+#: ..\Outlook2000\config.py:235
+msgid "Should items be filtered by a timer?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:236
+msgid ""
+"Depending on a number of factors, SpamBayes may occasionally miss\n"
+"        messages or conflict with builtin Outlook rules.  If this option\n"
+"        is set, SpamBayes will filter all messages in the background.  This\n"
+"        generally solves both of these problem, at the cost of having Spam stay\n"
+"        in your inbox for a few extra seconds."
+msgstr ""
+
+#: ..\Outlook2000\config.py:242
+msgid "The interval (in seconds) before the timer starts."
+msgstr ""
+
+#: ..\Outlook2000\config.py:243
+msgid ""
+"Once a new item is received in the inbox, SpamBayes will begin\n"
+"        processing messages after the given delay.  If a new message arrives\n"
+"        during this period, the timer will be reset and the delay will start again."
+msgstr ""
+
+#: ..\Outlook2000\config.py:247
+msgid "The interval between subsequent timer checks (in seconds)"
+msgstr ""
+
+#: ..\Outlook2000\config.py:248
+msgid ""
+"Once the new message timer finds a new message, how long should\n"
+"        SpamBayes wait before checking for another new message, assuming no\n"
+"        other new messages arrive.  Should a new message arrive during this\n"
+"        process, the timer will reset, meaning that timer_start_delay will\n"
+"        elapse before the process begins again."
+msgstr ""
+
+#: ..\Outlook2000\config.py:255
+msgid "Should the timer only be used for 'Inbox' type folders?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:256
+msgid ""
+"The point of using a timer is to prevent the SpamBayes filter\n"
+"        getting in the way the builtin Outlook rules.  Therefore, is it\n"
+"        generally only necessary to use a timer for folders that have new\n"
+"        items being delivered directly to them.  Folders that are not inbox\n"
+"        style folders generally are not subject to builtin filtering, so\n"
+"        generally have no problems filtering messages in 'real time'."
+msgstr ""
+
+#: ..\Outlook2000\config.py:265
+msgid "Folders to filter in a 'Filter Now' operation"
+msgstr ""
+
+#: ..\Outlook2000\config.py:266
+msgid "The list of folders that will be filtered by this process."
+msgstr ""
+
+#: ..\Outlook2000\config.py:268
+msgid "Does the nominated folders include sub-folders?"
+msgstr "Enthält der ausgewählte Ordner Unterordner?"
+
+#: ..\Outlook2000\config.py:271
+msgid "Only filter unread messages?"
+msgstr "Nur ungelesene Nachrichten filtern?"
+
+#: ..\Outlook2000\config.py:272
+msgid ""
+"When scoring messages, should only messages that are unread be\n"
+"        considered?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:275
+msgid "Only filter previously unseen ?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:276
+msgid ""
+"When scoring messages, should only messages that have never\n"
+"        previously Spam scored be considered?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:279
+msgid "Perform all filter actions?"
+msgstr "Alle Filteraktionen ausführen?"
+
+#: ..\Outlook2000\config.py:280
+msgid ""
+"When scoring the messages, should all items be performed (such as\n"
+"        moving the items based on the score) or should the items only be scored,\n"
+"        but otherwise untouched."
+msgstr ""
+
+#: ..\Outlook2000\config.py:288
+msgid "Play a notification sound when new messages arrive?"
+msgstr ""
+
+#: ..\Outlook2000\config.py:289
+msgid ""
+"If enabled, SpamBayes will play a notification sound after a\n"
+"            batch of new messages is processed.  A different sound can be\n"
+"            assigned to each of the three classifications of messages.  The\n"
+"            good sound will be played if any good messages are received.  The\n"
+"            unsure sound will be played if unsure messages are received,\n"
+"            but no good messages.  The spam sound will be played if all\n"
+"            received messages are spam."
+msgstr ""
+
+#: ..\Outlook2000\config.py:297
+msgid "Sound file to play for good messages"
+msgstr "Sounddatei für 'gute' Nachrichten spielen"
+
+#: ..\Outlook2000\config.py:298
+msgid ""
+"Specifies the full path to a Windows sound file (WAV format) that\n"
+"            will be played as notification that a good message has been received."
+msgstr ""
+
+#: ..\Outlook2000\config.py:301
+msgid "Sound file to play for possible spam messages"
+msgstr ""
+
+#: ..\Outlook2000\config.py:302
+msgid ""
+"Specifies the full path to a Windows sound file (WAV format) that\n"
+"            will be played as notification that a possible spam message has been\n"
+"            received.  The unsure notification sound will only be played if no\n"
+"            good messages have been received."
+msgstr ""
+
+#: ..\Outlook2000\config.py:307
+msgid "Sound file to play for spam messages"
+msgstr "Sounddatei für Spam spielen"
+
+#: ..\Outlook2000\config.py:308
+msgid ""
+"Specifies the full path to a Windows sound file (WAV format) that\n"
+"            will be played as notification that a spam message has been\n"
+"            received.  The spam notification sound will only be played if no\n"
+"            good or unsure messages have been received."
+msgstr ""
+
+#: ..\Outlook2000\config.py:313
+msgid "The delay time to wait for additional received messages (in seconds)"
+msgstr ""
+
+#: ..\Outlook2000\config.py:314
+msgid ""
+"When SpamBayes classifies a new message, it sets a timer to wait\n"
+"            for additional new messages.  If another new message is received\n"
+"            before the timer expires then the delay time is reset and SpamBayes\n"
+"            continues to wait.  If no new messages arrive within the delay time\n"
+"            then SpamBayes will play the appropriate notification sound for the\n"
+"            received messages."
+msgstr ""
+
+#: ..\Outlook2000\config_wizard.py:85
+msgid ""
+"There was an error creating the folder named '%s'\r\n"
+"Please restart Outlook and try again"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:35
+msgid "Never"
+msgstr "Niemals"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:45
+msgid "Displays statistics on mail processed by SpamBayes"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:47
+msgid "Resets all SpamBayes statistics to zero"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:49
+msgid "The date and time when the SpamBayes statistics were last reset"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:52
+msgid ""
+"This will reset all your saved statistics to zero.\r\n"
+"\r\n"
+"Are you sure you wish to reset the statistics?"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:68
+msgid " from source"
+msgstr " vom Source Code"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:72
+msgid "The version of SpamBayes running"
+msgstr "Die Version von SpamBayes laufend"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:80
+msgid "Database has %d good and %d spam."
+msgstr "Die Datenbank hat %d 'gute' Nachrichten und %d Spam."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:84
+msgid ""
+"%s\n"
+"Warning: you have much more ham than spam - SpamBayes works best with approximately even numbers of ham and spam."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:88
+msgid ""
+"%s\n"
+"Warning: you have much more spam than ham - SpamBayes works best with approximately even numbers of ham and spam."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:92
+#: ..\scripts\sb_server.py:853
+msgid "Database only has %d good and %d spam - you should consider performing additional training."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:95
+#: ..\scripts\sb_server.py:857
+msgid "Database has no training information.  SpamBayes will classify all messages as 'unsure', ready for you to train."
+msgstr "Die Datenbank enthält keine Training Informationen. SpamBayes wird alle Nachrichten als 'unsicher' einstufen, damit Sie diese Nachrichten trainieren können."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:107
+msgid "SpamBayes has been successfully trained and configured.  You should find the system is immediately effective at filtering spam."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:111
+msgid "SpamBayes has been successfully trained and configured.  However, as the number of messages trained is quite small, SpamBayes may take some time to become truly effective."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:170
+msgid "Filtering is disabled.  Select 'Enable SpamBayes' to enable."
+msgstr "Filtern ist ausgeschaltet. Wählen Sie \"SpamBayes aktivieren', um SpamBayes einzuschalten."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:181
+msgid "Unsure managed in '%s'"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:183
+msgid "Unsure messages untouched"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:187
+msgid "Good managed in '%s'"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:189
+msgid "Good messages untouched"
+msgstr "Gute Nachrichten unverändert."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:193
+msgid ""
+"Watching '%s'.\r\n"
+"%s.\r\n"
+"Spam managed in '%s'.\r\n"
+"%s."
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:287
+msgid "The log file for this session can not be located"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:292
+msgid ""
+"As you are running from source-code, viewing the\n"
+"log means executing a Python program.  If you already\n"
+"have a viewer running, the output may appear in either.\n"
+"\n"
+"Do you want to execute this viewer?"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:309
+msgid ""
+"This will reset all configuration options to their default values\r\n"
+"\r\n"
+"It will not reset the folders you have selected, nor your\r\n"
+"training information, but all other options will be reset\r\n"
+"and SpamBayes will need to be re-enabled before it will\r\n"
+"continue filtering.\r\n"
+"\r\n"
+"Are you sure you wish to reset all options?"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:345
+msgid "Displays the %s dialog"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:359
+msgid "Nothing to see here."
+msgstr "Nichts zu sehen hier."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:385
+msgid "Wizard Done!"
+msgstr "Assistent fertig."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:405
+#: ..\Outlook2000\dialogs\dialog_map.py:407
+#: ..\Outlook2000\train.py:158
+#: ..\Outlook2000\train.py:160
+msgid "Saving"
+msgstr "Speichern"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:405
+#: ..\Outlook2000\dialogs\dialog_map.py:407
+#: ..\Outlook2000\train.py:158
+#: ..\Outlook2000\train.py:160
+#: UserInterface.py:551
+msgid "Training"
+msgstr "Trainieren"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:405
+#: ..\Outlook2000\train.py:158
+msgid "Scoring"
+msgstr "Bewerten"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:432
+#: ..\Outlook2000\train.py:194
+msgid "Completed training with %d spam and %d good messages"
+msgstr "Training fertig mit %d Spam und %d 'guten' Nachrichten."
+
+#: ..\Outlook2000\dialogs\dialog_map.py:470
+msgid "Start Filtering"
+msgstr "Filtern beginnen"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:470
+msgid "Stop Filtering"
+msgstr "Filtern anhalten"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:505
+msgid "Start Training"
+msgstr "Start Training"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:505
+msgid "Stop"
+msgstr ""
+
+#: ..\Outlook2000\dialogs\dialog_map.py:513
+#: ..\Outlook2000\dialogs\dialog_map.py:515
+msgid "not change the message,mark the message as read,mark the message as unread"
+msgstr "nicht ändern,als gelesen markieren,als ungelesen markieren"
+
+#: ..\Outlook2000\dialogs\dialog_map.py:530
+#: ..\Outlook2000\dialogs\dialog_map.py:532
+#: ..\Outlook2000\dialogs\dialog_map.py:534
+msgid "Sound Files (*.wav)|*.wav|All Files (*.*)|*.*"
+msgstr "Sounddateien (*.wav)|*.wav|Alle Dateien (*.*)|*.*"
+
+#: ..\Outlook2000\dialogs\opt_processors.py:270
+#: ..\Outlook2000\dialogs\opt_processors.py:309
+msgid "Browse for file"
+msgstr "Datei auswählen"
+
+#: ..\Outlook2000\dialogs\processors.py:82
+msgid ""
+"There appears to be a problem with SpamBayes' configuration\r\n"
+"If you do not fix this problem, SpamBayes will be disabled.\r\n"
+"\r\n"
+"%s\r\n"
+"\r\n"
+"Do you wish to re-configure?"
+msgstr ""
+"Es scheint ein Problem zu geben mit der Konfiguration von SpamBayes\n"
+"\n"
+"Wenn Sie das Problem nicht beheben, wird SpamBayes deaktiviert.\n"
+"\n"
+"%s\n"
+"\n"
+"Möchten Sie jetzt neu konfigurieren?"
+
+#: ..\Outlook2000\filter.py:152
+msgid "You must specify at least one folder"
+msgstr "Sie müssen zumindest einen Ordner angeben."
+
+#: ..\Outlook2000\filter.py:155
+#: ..\Outlook2000\train.py:96
+msgid "Counting messages"
+msgstr "Nachrichten werden gezählt."
+
+#: ..\Outlook2000\filter.py:162
+msgid "Filtering folder '%s'"
+msgstr "Ordner '%s' wird gefiltert."
+
+#: ..\Outlook2000\filter.py:171
+msgid " (%d errors)"
+msgstr "(%d Fehler)"
+
+#: ..\Outlook2000\filter.py:173
+msgid "Found %d spam, %d unsure and %d good messages%s"
+msgstr "Gefunden: %d Spam, %d unsicher und %d 'gute' Nachrichten%s"
+
+#: ..\Outlook2000\manager.py:506
+msgid ""
+"There was an error initializing the Spam plugin.\r\n"
+"\r\n"
+"Spam filtering has been disabled.  Please re-configure\r\n"
+"and re-enable this plugin\r\n"
+"\r\n"
+"Error details:\r\n"
+msgstr ""
+
+#: ..\Outlook2000\manager.py:671
+msgid ""
+"The configuration file named below is invalid.\r\n"
+"Please either correct or remove this file\r\n"
+"\r\n"
+"Filename: "
+msgstr ""
+
+#: ..\Outlook2000\manager.py:734
+msgid ""
+"There was an error loading your old\r\n"
+"SpamBayes configuration file.\r\n"
+"\r\n"
+"It is likely that you will need to re-configure\r\n"
+"SpamBayes before it will function correctly."
+msgstr ""
+
+#: ..\Outlook2000\manager.py:763
+msgid ""
+"There was an error migrating and removing your old\r\n"
+"SpamBayes configuration file.  Configuration changes\r\n"
+"you make are unlikely to be reflected next\r\n"
+"time you start Outlook.  Please try rebooting."
+msgstr ""
+
+#: ..\Outlook2000\manager.py:829
+msgid ""
+"It appears your SpamBayes training database is corrupt.\r\n"
+"\r\n"
+"We are working on solving this, but unfortunately you\r\n"
+"must re-train the system via the SpamBayes manager."
+msgstr ""
+
+#: ..\Outlook2000\manager.py:844
+msgid "You must define folders to watch for new messages.  Select the 'Filtering' tab to define these folders."
+msgstr "Sie müssen Ordner definiert, welche nach neuen Nachrichten überwacht werden. Wählen Sie die Registerkarte 'Filtern' und definieren Sie diese Ordner."
+
+#: ..\Outlook2000\manager.py:849
+msgid "You must define the folder to receive your certain spam.  Select the 'Filtering' tab to define this folder."
+msgstr ""
+
+#: ..\Outlook2000\manager.py:860
+msgid "The unsure folder is invalid: %s"
+msgstr ""
+
+#: ..\Outlook2000\manager.py:864
+msgid "The spam folder is invalid: %s"
+msgstr ""
+
+#: ..\Outlook2000\manager.py:870
+#: Options.py:717
+#: Options.py:816
+#: Options.py:821
+msgid "unsure"
+msgstr "unsicher"
+
+#: ..\Outlook2000\manager.py:873
+#: Options.py:704
+#: Options.py:816
+#: Options.py:821
+#: Options.py:1059
+#: Options.py:1065
+#: Options.py:1071
+#: ProxyUI.py:392
+msgid "spam"
+msgstr "Spam"
+
+#: ..\Outlook2000\manager.py:876
+msgid "You can not specify folder '%s' as both the %s folder, and as being watched."
+msgstr ""
+
+#: ..\Outlook2000\msgstore.py:166
+msgid ""
+" failed as one of your\r\n"
+"Outlook folders is full.  Futher operations are\r\n"
+"likely to fail until you clean up this folder.\r\n"
+"\r\n"
+"This message will not be reported again until SpamBayes\r\n"
+"is restarted."
+msgstr ""
+
+#: ..\Outlook2000\msgstore.py:172
+msgid " failed due to an unexpected Outlook error.\r\n"
+msgstr ""
+
+#: ..\Outlook2000\msgstore.py:174
+msgid ""
+"It is recommended you restart Outlook at the earliest opportunity\r\n"
+"\r\n"
+"This message will not be reported again until SpamBayes\r\n"
+"is restarted."
+msgstr ""
+
+#: ..\Outlook2000\msgstore.py:1474
+msgid "Moving a message"
+msgstr "Eine Nachricht verschieben"
+
+#: ..\Outlook2000\msgstore.py:1480
+msgid "Copying a message"
+msgstr "Eine Nachricht kopieren."
+
+#: ..\Outlook2000\train.py:107
+msgid "Processing good folder '%s'"
+msgstr ""
+
+#: ..\Outlook2000\train.py:113
+msgid "Processing spam folder '%s'"
+msgstr ""
+
+#: ..\Outlook2000\train.py:124
+msgid "Writing the database..."
+msgstr "Schreibe die Datenbank..."
+
+#: ..\Outlook2000\train.py:133
+msgid "You must specify at least one spam or one good folder"
+msgstr ""
+
+#: ..\scripts\sb_server.py:841
+msgid "Warning: you have much more ham than spam - SpamBayes works best with approximately even numbers of ham and spam."
+msgstr ""
+
+#: ..\scripts\sb_server.py:846
+msgid "Warning: you have much more spam than ham - SpamBayes works best with approximately even numbers of ham and spam."
+msgstr ""
+
+#: ..\scripts\sb_server.py:865
+msgid "<br/>Warning: we do not recommend setting the spam threshold less than 0.5."
+msgstr ""
+
+#: ..\scripts\sb_server.py:868
+msgid "<br/>Warning: we do not recommend setting the ham threshold greater than 0.5."
+msgstr ""
+
+#: ..\scripts\sb_server.py:871
+msgid "<br/>Warning: your ham threshold is <b>higher</b> than your spam threshold. Results are unpredictable."
+msgstr ""
+
+#: ..\scripts\sb_server.py:1047
+msgid "Save & shutdown"
+msgstr "Sichern und Beenden"
+
+#: ImapUI.py:57
+msgid "IMAP Options"
+msgstr "IMAP Optionen"
+
+#: ImapUI.py:67
+#: ImapUI.py:87
+#: ProxyUI.py:122
+msgid "Header Options"
+msgstr "Header Optionen"
+
+#: ImapUI.py:70
+#: ImapUI.py:94
+#: ProxyUI.py:129
+msgid "Storage Options"
+msgstr "Speicheroptionen"
+
+#: ImapUI.py:73
+#: ImapUI.py:81
+#: ProxyUI.py:116
+msgid "Statistics Options"
+msgstr "Statistikoptionen"
+
+#: ImapUI.py:96
+#: ProxyUI.py:136
+msgid "Tokenising Options"
+msgstr ""
+
+#: ImapUI.py:102
+#: ProxyUI.py:143
+msgid "Interface Options"
+msgstr "Schnittstellenoptionen"
+
+#: ImapUI.py:158
+msgid "You can also <a href='filterfolders'>configure folders to filter</a><br />and <a href='trainingfolders'>Configure folders to train</a>"
+msgstr ""
+
+#: ImapUI.py:162
+#: ProxyUI.py:190
+#: UserInterface.py:399
+#: UserInterface.py:448
+msgid "Word query"
+msgstr ""
+
+#: ImapUI.py:166
+#: ProxyUI.py:194
+msgid "Status and Configuration"
+msgstr "Status und Konfiguration"
+
+#: ImapUI.py:172
+#: ProxyUI.py:204
+#: UserInterface.py:186
+#: UserInterface.py:188
+msgid "Home"
+msgstr "Home"
+
+#: ImapUI.py:193
+msgid "Select Filter Folders"
+msgstr "Filterordner auswählen"
+
+#: ImapUI.py:201
+#: ImapUI.py:239
+#: ImapUI.py:254
+#: ImapUI.py:260
+#: ImapUI.py:267
+#: ImapUI.py:274
+#: ImapUI.py:279
+#: ImapUI.py:293
+#: UserInterface.py:1120
+#: UserInterface.py:1121
+msgid "Error"
+msgstr "Fehler"
+
+#: ImapUI.py:202
+#: ImapUI.py:294
+msgid "No folders available"
+msgstr ""
+
+#: ImapUI.py:209
+msgid "This page allows you to change which folders are filtered, and where filtered mail ends up."
+msgstr ""
+
+#: ImapUI.py:212
+#: ImapUI.py:318
+msgid "Save Filter Folders"
+msgstr "Filterordner sichern"
+
+#: ImapUI.py:240
+#: ImapUI.py:255
+msgid "Please check server/port details."
+msgstr ""
+
+#: ImapUI.py:261
+msgid "Must specify username first."
+msgstr ""
+
+#: ImapUI.py:268
+msgid "Must specify password first."
+msgstr ""
+
+#: ImapUI.py:275
+msgid "Please check username/password details."
+msgstr ""
+
+#: ImapUI.py:285
+msgid "Select Training Folders"
+msgstr ""
+
+#: ImapUI.py:301
+msgid "This page allows you to change which folders contain mail to train Spambayes."
+msgstr ""
+
+#: ImapUI.py:304
+#: ImapUI.py:317
+msgid "Save Training Folders"
+msgstr ""
+
+#: MoinSecurityPolicy.py:142
+msgid "Thank you for your changes. Your attention to detail is appreciated."
+msgstr ""
+
+#: Options.py:68
+msgid "Basic header tokenising"
+msgstr ""
+
+#: Options.py:69
+msgid ""
+"If true, tokenizer.Tokenizer.tokenize_headers() will tokenize the\n"
+"     contents of each header field just like the text of the message\n"
+"     body, using the name of the header as a tag.  Tokens look like\n"
+"     \"header:word\".  The basic approach is simple and effective, but also\n"
+"     very sensitive to biases in the ham and spam collections.  For\n"
+"     example, if the ham and spam were collected at different times,\n"
+"     several headers with date/time information will become the best\n"
+"     discriminators.  (Not just Date, but Received and X-From_.)"
+msgstr ""
+
+#: Options.py:79
+msgid "Only basic header tokenising"
+msgstr ""
+
+#: Options.py:80
+msgid ""
+"If true and basic_header_tokenize is also true, then\n"
+"     basic_header_tokenize is the only action performed."
+msgstr ""
+
+#: Options.py:84
+msgid "Basic headers to skip"
+msgstr ""
+
+#: Options.py:85
+msgid ""
+"If basic_header_tokenize is true, then basic_header_skip is a set\n"
+"     of headers that should be skipped."
+msgstr ""
+
+#: Options.py:89
+msgid "Check application/octet-stream sections"
+msgstr ""
+
+#: Options.py:90
+msgid ""
+"If true, the first few characters of application/octet-stream\n"
+"     sections are used, undecoded.  What 'few' means is decided by\n"
+"     octet_prefix_size."
+msgstr ""
+
+#: Options.py:95
+msgid "Number of characters of octet stream to process"
+msgstr ""
+
+#: Options.py:96
+msgid ""
+"The number of characters of the application/octet-stream sections\n"
+"     to use, if check_octets is set to true."
+msgstr ""
+
+#: Options.py:100
+msgid "Count runs of short 'words'"
+msgstr ""
+
+#: Options.py:101
+msgid ""
+"(EXPERIMENTAL) If true, generate tokens based on max number of\n"
+"     short word runs. Short words are anything of length < the\n"
+"     skip_max_word_size option.  Normally they are skipped, but one common\n"
+"     spam technique spells words like 'V I A G RA'.\n"
+"     "
+msgstr ""
+
+#: Options.py:108
+msgid "Generate IP address tokens from hostnames"
+msgstr ""
+
+#: Options.py:109
+msgid ""
+"(EXPERIMENTAL) Generate IP address tokens from hostnames.\n"
+"     Requires PyDNS (http://pydns.sourceforge.net/)."
+msgstr ""
+
+#: Options.py:113
+msgid "x-lookup_ip cache file location"
+msgstr ""
+
+#: Options.py:114
+msgid ""
+"Tell SpamBayes where to cache IP address lookup information.\n"
+"     Only comes into play if lookup_ip is enabled. The default\n"
+"     (empty string) disables the file cache.  When caching is enabled,\n"
+"     the cache file is stored using the same database type as the main\n"
+"     token store (only dbm and zodb supported so far, zodb has problems,\n"
+"     dbm is untested, hence the default)."
+msgstr ""
+
+#: Options.py:122
+msgid "Generate image size tokens"
+msgstr ""
+
+#: Options.py:123
+msgid ""
+"(EXPERIMENTAL) If true, generate tokens based on the sizes of\n"
+"     embedded images."
+msgstr ""
+
+#: Options.py:127
+msgid "Look inside images for text"
+msgstr ""
+
+#: Options.py:128
+msgid ""
+"(EXPERIMENTAL) If true, generate tokens based on the\n"
+"     (hopefully) text content contained in any images in each message.\n"
+"     The current support is minimal, relies on the installation of\n"
+"     an OCR 'engine' (see x-ocr_engine.)"
+msgstr ""
+
+#: Options.py:134
+msgid "OCR engine to use"
+msgstr ""
+
+#: Options.py:135
+msgid ""
+"(EXPERIMENTAL) The name of the OCR engine to use.  If empty, all\n"
+"     supported engines will be checked to see if they are installed.\n"
+"     Engines currently supported include ocrad\n"
+"     (http://www.gnu.org/software/ocrad/ocrad.html) and gocr\n"
+"     (http://jocr.sourceforge.net/download.html) and they require the\n"
+"     appropriate executable be installed in either your PATH, or in the\n"
+"     main spambayes directory."
+msgstr ""
+
+#: Options.py:144
+msgid "Cache to speed up ocr."
+msgstr ""
+
+#: Options.py:145
+msgid ""
+"If non-empty, names a file from which to read cached ocr info\n"
+"     at start and to which to save that info at exit."
+msgstr ""
+
+#: Options.py:149
+msgid "Scale factor to use with ocrad."
+msgstr ""
+
+#: Options.py:150
+msgid ""
+"Specifies the scale factor to apply when running ocrad.  While\n"
+"     you can specify a negative scale it probably won't help.  Scaling up\n"
+"     by a factor of 2 or 3 seems to work well for the sort of spam images\n"
+"     encountered by SpamBayes."
+msgstr ""
+
+#: Options.py:156
+msgid "Charset to apply with ocrad."
+msgstr ""
+
+#: Options.py:157
+msgid ""
+"Specifies the charset to use when running ocrad.  Valid values\n"
+"     are 'ascii', 'iso-8859-9' and 'iso-8859-15'."
+msgstr ""
+
+#: Options.py:161
+msgid "Max image size to try OCR-ing"
+msgstr ""
+
+#: Options.py:162
+msgid ""
+"When crack_images is enabled, this specifies the largest\n"
+"     image to try OCR on."
+msgstr ""
+
+#: Options.py:166
+msgid "Count all header lines"
+msgstr ""
+
+#: Options.py:167
+msgid ""
+"Generate tokens just counting the number of instances of each kind\n"
+"     of header line, in a case-sensitive way.\n"
+"\n"
+"     Depending on data collection, some headers are not safe to count.\n"
+"     For example, if ham is collected from a mailing list but spam from\n"
+"     your regular inbox traffic, the presence of a header like List-Info\n"
+"     will be a very strong ham clue, but a bogus one.  In that case, set\n"
+"     count_all_header_lines to False, and adjust safe_headers instead."
+msgstr ""
+
+#: Options.py:177
+msgid "Record header absence"
+msgstr ""
+
+#: Options.py:178
+msgid ""
+"When True, generate a \"noheader:HEADERNAME\" token for each header\n"
+"     in safe_headers (below) that *doesn't* appear in the headers.  This\n"
+"     helped in various of Tim's python.org tests, but appeared to hurt a\n"
+"     little in Anthony Baxter's tests."
+msgstr ""
+
+#: Options.py:184
+msgid "Safe headers"
+msgstr ""
+
+#: Options.py:191
+msgid ""
+"Like count_all_header_lines, but restricted to headers in this list.\n"
+"     safe_headers is ignored when count_all_header_lines is true, unless\n"
+"     record_header_absence is also true."
+msgstr ""
+
+#: Options.py:196
+msgid "Mine the received headers"
+msgstr ""
+
+#: Options.py:197
+msgid ""
+"A lot of clues can be gotten from IP addresses and names in\n"
+"     Received: headers.  This can give spectacular results for bogus\n"
+"     reasons if your corpora are from different sources."
+msgstr ""
+
+#: Options.py:202
+msgid "Address headers to mine"
+msgstr ""
+
+#: Options.py:204
+msgid ""
+"Mine the following address headers. If you have mixed source\n"
+"     corpuses (as opposed to a mixed sauce walrus, which is delicious!)\n"
+"     then you probably don't want to use 'to' or 'cc') Address headers will\n"
+"     be decoded, and will generate charset tokens as well as the real\n"
+"     address.  Others to consider: errors-to, ..."
+msgstr ""
+
+#: Options.py:211
+msgid "Generate long skips"
+msgstr ""
+
+#: Options.py:212
+msgid ""
+"If legitimate mail contains things that look like text to the\n"
+"     tokenizer and turning turning off this option helps (perhaps binary\n"
+"     attachments get 'defanged' by something upstream from this operation\n"
+"     and thus look like text), this may help, and should be an alert that\n"
+"     perhaps the tokenizer is broken."
+msgstr ""
+
+#: Options.py:219
+msgid "Summarise email prefixes"
+msgstr ""
+
+#: Options.py:220
+#: Options.py:224
+msgid "Try to capitalize on mail sent to multiple similar addresses."
+msgstr ""
+
+#: Options.py:223
+msgid "Summarise email suffixes"
+msgstr ""
+
+#: Options.py:227
+msgid "Long skip trigger length"
+msgstr ""
+
+#: Options.py:228
+msgid ""
+"Length of words that triggers 'long skips'. Longer than this\n"
+"     triggers a skip."
+msgstr ""
+
+#: Options.py:232
+msgid "Extract clues about url structure"
+msgstr ""
+
+#: Options.py:233
+msgid ""
+"(EXPERIMENTAL) Note whether url contains non-standard port or\n"
+"     user/password elements."
+msgstr ""
+
+#: Options.py:237
+msgid "Extract URLs without http:// prefix"
+msgstr ""
+
+#: Options.py:238
+msgid ""
+"(EXPERIMENTAL) Recognize 'www.python.org' or ftp.python.org as URLs\n"
+"     instead of just long words."
+msgstr ""
+
+#: Options.py:242
+msgid "Replace non-ascii characters"
+msgstr ""
+
+#: Options.py:243
+msgid ""
+"If true, replace high-bit characters (ord(c) >= 128) and control\n"
+"     characters with question marks.  This allows non-ASCII character\n"
+"     strings to be identified with little training and small database\n"
+"     burden.  It's appropriate only if your ham is plain 7-bit ASCII, or\n"
+"     nearly so, so that the mere presence of non-ASCII character strings is\n"
+"     known in advance to be a strong spam indicator."
+msgstr ""
+
+#: Options.py:251
+msgid "Search for Habeas Headers"
+msgstr ""
+
+#: Options.py:252
+msgid ""
+"(EXPERIMENTAL) If true, search for the habeas headers (see\n"
+"     http://www.habeas.com). If they are present and correct, this should\n"
+"     be a strong ham sign, if they are present and incorrect, this should\n"
+"     be a strong spam sign."
+msgstr ""
+
+#: Options.py:258
+msgid "Reduce Habeas Header Tokens to Single"
+msgstr ""
+
+#: Options.py:259
+msgid ""
+"(EXPERIMENTAL) If SpamBayes is set to search for the Habeas\n"
+"     headers, nine tokens are generated for messages with habeas headers.\n"
+"     This should be fine, since messages with the headers should either be\n"
+"     ham, or result in FN so that we can send them to habeas so they can\n"
+"     be sued.  However, to reduce the strength of habeas headers, we offer\n"
+"     the ability to reduce the nine tokens to one. (This option has no\n"
+"     effect if 'Search for Habeas Headers' is False)"
+msgstr ""
+
+#: Options.py:273
+msgid "Tokenize text content at the end of URLs"
+msgstr ""
+
+#: Options.py:274
+msgid ""
+"(EXPERIMENTAL) If this option is enabled, when a message normally\n"
+"     scores in the 'unsure' range, and has fewer tokens than the maximum\n"
+"     looked at, and contains URLs, then the text at those URLs is obtained\n"
+"     and tokenized.  If those tokens result in the message moving to a\n"
+"     score outside the 'unsure' range, then they are added to the\n"
+"     tokens for the message.  This should be particularly effective\n"
+"     for messages that contain only a single URL and no other text."
+msgstr ""
+
+#: Options.py:283
+msgid "Number of days to store URLs in cache"
+msgstr ""
+
+#: Options.py:284
+msgid ""
+"(EXPERIMENTAL) This is the number of days that local cached copies\n"
+"     of the text at the URLs will be stored for."
+msgstr ""
+
+#: Options.py:288
+msgid "URL Cache Directory"
+msgstr ""
+
+#: Options.py:289
+msgid ""
+"(EXPERIMENTAL) So that SpamBayes doesn't need to retrieve the same\n"
+"     URL over and over again, it stores local copies of the text at the\n"
+"     end of the URL.  This is the directory that will be used for those\n"
+"     copies."
+msgstr ""
+
+#: Options.py:295
+msgid "Retrieve base url"
+msgstr ""
+
+#: Options.py:296
+msgid ""
+"(EXPERIMENTAL) To try and speed things up, and to avoid following\n"
+"     unique URLS, if this option is enabled, SpamBayes will convert the URL\n"
+"     to as basic a form it we can.  All directory information is removed\n"
+"     and the domain is reduced to the two (or three for those with a\n"
+"     country TLD) top-most elements.  For example,\n"
+"         http://www.massey.ac.nz/~tameyer/index.html?you=me\n"
+"     would become\n"
+"         http://massey.ac.nz\n"
+"     and\n"
+"         http://id.example.com\n"
+"     would become http://example.com\n"
+"\n"
+"     This should have two beneficial effects:\n"
+"      o It's unlikely that any information could be contained in this 'base'\n"
+"        url that could identify the user (unless they have a *lot* of domains).\n"
+"      o Many urls (both spam and ham) will strip down into the same 'base' url.\n"
+"        Since we have a limited form of caching, this means that a lot fewer\n"
+"        urls will have to be retrieved.\n"
+"     However, this does mean that if the 'base' url is hammy and the full is\n"
+"     spammy, or vice-versa, that the slurp will give back the wrong information.\n"
+"     Whether or not this is the case would have to be determined by testing.\n"
+"     "
+msgstr ""
+
+#: Options.py:320
+msgid "Prefix for tokens from web pages"
+msgstr ""
+
+#: Options.py:321
+msgid ""
+"(EXPERIMENTAL) It may be that what is hammy/spammy for you in email\n"
+"     isn't from webpages.  You can then set this option (to \"web:\", for\n"
+"     example), and effectively create an independent (sub)database for\n"
+"     tokens derived from parsing web pages."
+msgstr ""
+
+#: Options.py:351
+msgid "Ham cutoff"
+msgstr ""
+
+#: Options.py:352
+msgid ""
+"Spambayes gives each email message a spam probability between\n"
+"     0 and 1. Emails below the Ham Cutoff probability are classified\n"
+"     as Ham. Larger values will result in more messages being\n"
+"     classified as ham, but with less certainty that all of them\n"
+"     actually are ham. This value should be between 0 and 1,\n"
+"     and should be smaller than the Spam Cutoff."
+msgstr ""
+
+#: Options.py:360
+msgid "Spam cutoff"
+msgstr ""
+
+#: Options.py:361
+msgid ""
+"Emails with a spam probability above the Spam Cutoff are\n"
+"     classified as Spam - just like the Ham Cutoff but at the other\n"
+"     end of the scale.  Messages that fall between the two values\n"
+"     are classified as Unsure."
+msgstr ""
+
+#: Options.py:371
+msgid "Number of buckets"
+msgstr ""
+
+#: Options.py:372
+msgid "Number of buckets in histograms."
+msgstr ""
+
+#: Options.py:375
+msgid "Show histograms"
+msgstr ""
+
+#: Options.py:379
+msgid "Compute best cutoffs from histograms"
+msgstr ""
+
+#: Options.py:380
+msgid ""
+"After the display of a ham+spam histogram pair, you can get a\n"
+"     listing of all the cutoff values (coinciding with histogram bucket\n"
+"     boundaries) that minimize:\n"
+"         best_cutoff_fp_weight * (# false positives) +\n"
+"         best_cutoff_fn_weight * (# false negatives) +\n"
+"         best_cutoff_unsure_weight * (# unsure msgs)\n"
+"\n"
+"     This displays two cutoffs:  hamc and spamc, where\n"
+"        0.0 <= hamc <= spamc <= 1.0\n"
+"\n"
+"     The idea is that if something scores < hamc, it's called ham; if\n"
+"     something scores >= spamc, it's called spam; and everything else is\n"
+"     called 'I am not sure' -- the middle ground.\n"
+"\n"
+"     Note:  You may wish to increase nbuckets, to give this scheme more cutoff\n"
+"     values to analyze."
+msgstr ""
+
+#: Options.py:398
+msgid "Best cutoff false positive weight"
+msgstr ""
+
+#: Options.py:402
+msgid "Best cutoff false negative weight"
+msgstr ""
+
+#: Options.py:406
+msgid "Best cutoff unsure weight"
+msgstr ""
+
+#: Options.py:410
+msgid "Percentiles"
+msgstr ""
+
+#: Options.py:411
+msgid ""
+"Histogram analysis also displays percentiles.  For each percentile\n"
+"     p in the list, the score S such that p% of all scores are <= S is\n"
+"     given. Note that percentile 50 is the median, and is displayed (along\n"
+"     with the min score and max score) independent of this option."
+msgstr ""
+
+#: Options.py:418
+#: Options.py:423
+#: Options.py:428
+#: Options.py:433
+msgid ""
+"Display spam when show_spam_lo <= spamprob <= show_spam_hi and\n"
+"     likewise for ham.  The defaults here do not show anything."
+msgstr ""
+
+#: Options.py:437
+msgid "Show false positives"
+msgstr ""
+
+#: Options.py:441
+msgid "Show false negatives"
+msgstr ""
+
+#: Options.py:445
+msgid "Show unsure"
+msgstr ""
+
+#: Options.py:449
+msgid "Show character limit"
+msgstr ""
+
+#: Options.py:450
+msgid ""
+"The maximum # of characters to display for a msg displayed due to\n"
+"     the show_xyz options above."
+msgstr ""
+
+#: Options.py:454
+msgid "Save trained pickles"
+msgstr ""
+
+#: Options.py:455
+msgid ""
+"If save_trained_pickles is true, Driver.train() saves a binary\n"
+"     pickle of the classifier after training.  The file basename is given\n"
+"     by pickle_basename, the extension is .pik, and increasing integers are\n"
+"     appended to pickle_basename.  By default (if save_trained_pickles is\n"
+"     true), the filenames are class1.pik, class2.pik, ...  If a file of\n"
+"     that name already exists, it is overwritten.  pickle_basename is\n"
+"     ignored when save_trained_pickles is false."
+msgstr ""
+
+#: Options.py:464
+msgid "Pickle basename"
+msgstr ""
+
+#: Options.py:468
+msgid "Save histogram pickles"
+msgstr ""
+
+#: Options.py:469
+msgid ""
+"If save_histogram_pickles is true, Driver.train() saves a binary\n"
+"     pickle of the spam and ham histogram for \"all test runs\". The file\n"
+"     basename is given by pickle_basename, the suffix _spamhist.pik\n"
+"     or _hamhist.pik is appended  to the basename."
+msgstr ""
+
+#: Options.py:475
+msgid "Spam directories"
+msgstr ""
+
+#: Options.py:476
+#: Options.py:481
+msgid ""
+"default locations for timcv and timtest - these get the set number\n"
+"     interpolated."
+msgstr ""
+
+#: Options.py:480
+msgid "Ham directories"
+msgstr ""
+
+#: Options.py:487
+msgid "Build each classifier from scratch"
+msgstr ""
+
+#: Options.py:488
+msgid ""
+"A cross-validation driver takes N ham+spam sets, and builds N\n"
+"     classifiers, training each on N-1 sets, and the predicting against the\n"
+"     set not trained on.  By default, it does this in a clever way,\n"
+"     learning *and* unlearning sets as it goes along, so that it never\n"
+"     needs to train on N-1 sets in one gulp after the first time.  Setting\n"
+"     this option true forces ''one gulp from-scratch'' training every time.\n"
+"     There used to be a set of combining schemes that needed this, but now\n"
+"     it is just in case you are paranoid <wink>."
+msgstr ""
+
+#: Options.py:500
+msgid "Maximum number of extreme words"
+msgstr ""
+
+#: Options.py:501
+msgid ""
+"The maximum number of extreme words to look at in a message, where\n"
+"     \"extreme\" means with spam probability farthest away from 0.5.  150\n"
+"     appears to work well across all corpora tested."
+msgstr ""
+
+#: Options.py:506
+msgid "Unknown word probability"
+msgstr ""
+
+#: Options.py:507
+msgid ""
+"These two control the prior assumption about word probabilities.\n"
+"     unknown_word_prob is essentially the probability given to a word that\n"
+"     has never been seen before.  Nobody has reported an improvement via\n"
+"     moving it away from 1/2, although Tim has measured a mean spamprob of\n"
+"     a bit over 0.5 (0.51-0.55) in 3 well-trained classifiers."
+msgstr ""
+
+#: Options.py:514
+msgid "Unknown word strength"
+msgstr ""
+
+#: Options.py:515
+msgid ""
+"This adjusts how much weight to give the prior\n"
+"     assumption relative to the probabilities estimated by counting.  At 0,\n"
+"     the counting estimates are believed 100%, even to the extent of\n"
+"     assigning certainty (0 or 1) to a word that has appeared in only ham\n"
+"     or only spam.  This is a disaster.\n"
+"\n"
+"     As unknown_word_strength tends toward infinity, all probabilities\n"
+"     tend toward unknown_word_prob.  All reports were that a value near 0.4\n"
+"     worked best, so this does not seem to be corpus-dependent."
+msgstr ""
+
+#: Options.py:526
+msgid "Minimum probability strength"
+msgstr ""
+
+#: Options.py:527
+msgid ""
+"When scoring a message, ignore all words with\n"
+"     abs(word.spamprob - 0.5) < minimum_prob_strength.\n"
+"     This may be a hack, but it has proved to reduce error rates in many\n"
+"     tests.  0.1 appeared to work well across all corpora."
+msgstr ""
+
+#: Options.py:533
+msgid "Use chi-squared combining"
+msgstr ""
+
+#: Options.py:534
+msgid ""
+"For vectors of random, uniformly distributed probabilities,\n"
+"     -2*sum(ln(p_i)) follows the chi-squared distribution with 2*n degrees\n"
+"     of freedom.  This is the \"provably most-sensitive\" test the original\n"
+"     scheme was monotonic with.  Getting closer to the theoretical basis\n"
+"     appears to give an excellent combining method, usually very extreme in\n"
+"     its judgment, yet finding a tiny (in # of msgs, spread across a huge\n"
+"     range of scores) middle ground where lots of the mistakes live.  This\n"
+"     is the best method so far. One systematic benefit is is immunity to\n"
+"     \"cancellation disease\". One systematic drawback is sensitivity to\n"
+"     *any* deviation from a uniform distribution, regardless of whether\n"
+"     actually evidence of ham or spam. Rob Hooft alleviated that by\n"
+"     combining the final S and H measures via (S-H+1)/2 instead of via\n"
+"     S/(S+H)). In practice, it appears that setting ham_cutoff=0.05, and\n"
+"     spam_cutoff=0.95, does well across test sets; while these cutoffs are\n"
+"     rarely optimal, they get close to optimal.  With more training data,\n"
+"     Tim has had good luck with ham_cutoff=0.30 and spam_cutoff=0.80 across\n"
+"     three test data sets (original c.l.p data, his own email, and newer\n"
+"     general python.org traffic)."
+msgstr ""
+
+#: Options.py:554
+msgid "Use mixed uni/bi-grams scheme"
+msgstr ""
+
+#: Options.py:555
+msgid ""
+"Generate both unigrams (words) and bigrams (pairs of\n"
+"     words). However, extending an idea originally from Gary Robinson, the\n"
+"     message is 'tiled' into non-overlapping unigrams and bigrams,\n"
+"     approximating the strongest outcome over all possible tilings.\n"
+"\n"
+"     Note that to really test this option you need to retrain with it on,\n"
+"     so that your database includes the bigrams - if you subsequently turn\n"
+"     it off, these tokens will have no effect.  This option will at least\n"
+"     double your database size given the same training data, and will\n"
+"     probably at least triple it.\n"
+"\n"
+"     You may also wish to increase the max_discriminators (maximum number\n"
+"     of extreme words) option if you enable this option, perhaps doubling or\n"
+"     quadrupling it.  It's not yet clear.  Bigrams create many more hapaxes,\n"
+"     and that seems to increase the brittleness of minimalist training\n"
+"     regimes; increasing max_discriminators may help to soften that effect.\n"
+"     OTOH, max_discriminators defaults to 150 in part because that makes it\n"
+"     easy to prove that the chi-squared math is immune from numeric\n"
+"     problems.  Increase it too much, and insane results will eventually\n"
+"     result (including fatal floating-point exceptions on some boxes).\n"
+"\n"
+"     This option is experimental, and may be removed in a future release.\n"
+"     We would appreciate feedback about it if you use it - email\n"
+"     spambayes@python.org with your comments and results.\n"
+"     "
+msgstr ""
+
+#: Options.py:584
+msgid "Train when filtering"
+msgstr ""
+
+#: Options.py:585
+msgid ""
+"Train when filtering?  After filtering a message, hammie can then\n"
+"     train itself on the judgement (ham or spam).  This can speed things up\n"
+"     with a procmail-based solution.  If you do enable this, please make\n"
+"     sure to retrain any mistakes.  Otherwise, your word database will\n"
+"     slowly become useless.  Note that this option is only used by\n"
+"     sb_filter, and will have no effect on sb_server's POP3 proxy, or\n"
+"     the IMAP filter."
+msgstr ""
+
+#: Options.py:603
+msgid "Database backend"
+msgstr ""
+
+#: Options.py:604
+msgid ""
+"SpamBayes can use either a ZODB or dbm database (quick to score\n"
+"     one message) or a pickle (quick to train on huge amounts of messages).\n"
+"     There is also (currently experimental) the ability to use a mySQL or\n"
+"     PostgrepSQL database."
+msgstr ""
+
+#: Options.py:610
+msgid "Storage file name"
+msgstr ""
+
+#: Options.py:611
+msgid ""
+"Spambayes builds a database of information that it gathers\n"
+"     from incoming emails and from you, the user, to get better and\n"
+"     better at classifying your email.  This option specifies the\n"
+"     name of the database file.  If you don't give a full pathname,\n"
+"     the name will be taken to be relative to the location of the\n"
+"     most recent configuration file loaded."
+msgstr ""
+
+#: Options.py:619
+msgid "Message information file name"
+msgstr ""
+
+#: Options.py:620
+msgid ""
+"Spambayes builds a database of information about messages\n"
+"     that it has already seen and trained or classified.  This\n"
+"     database is used to ensure that these messages are not retrained\n"
+"     or reclassified (unless specifically requested to).  This option\n"
+"     specifies the name of the database file.  If you don't give a\n"
+"     full pathname, the name will be taken to be relative to the location\n"
+"     of the most recent configuration file loaded."
+msgstr ""
+
+#: Options.py:629
+msgid "Use gzip"
+msgstr ""
+
+#: Options.py:630
+msgid "Use gzip to compress the cache."
+msgstr ""
+
+#: Options.py:633
+msgid "Days before cached messages expire"
+msgstr ""
+
+#: Options.py:634
+msgid ""
+"Messages will be expired from the cache after this many days.\n"
+"     After this time, you will no longer be able to train on these messages\n"
+"     (note this does not affect the copy of the message that you have in\n"
+"     your mail client)."
+msgstr ""
+
+#: Options.py:640
+msgid "Spam cache directory"
+msgstr ""
+
+#: Options.py:641
+msgid ""
+"Directory that SpamBayes should cache spam in.  If this does\n"
+"     not exist, it will be created."
+msgstr ""
+
+#: Options.py:645
+msgid "Ham cache directory"
+msgstr ""
+
+#: Options.py:646
+msgid ""
+"Directory that SpamBayes should cache ham in.  If this does\n"
+"     not exist, it will be created."
+msgstr ""
+
+#: Options.py:650
+msgid "Unknown cache directory"
+msgstr ""
+
+#: Options.py:651
+msgid ""
+"Directory that SpamBayes should cache unclassified messages in.\n"
+"     If this does not exist, it will be created."
+msgstr ""
+
+#: Options.py:655
+msgid "Cache messages"
+msgstr "Nachrichten zwischenspeichern"
+
+#: Options.py:656
+msgid ""
+"You can disable the pop3proxy caching of messages.  This\n"
+"     will make the proxy a bit faster, and make it use less space\n"
+"     on your hard drive.  The proxy uses its cache for reviewing\n"
+"     and training of messages, so if you disable caching you won't\n"
+"     be able to do further training unless you re-enable it.\n"
+"     Thus, you should only turn caching off when you are satisfied\n"
+"     with the filtering that Spambayes is doing for you."
+msgstr ""
+
+#: Options.py:665
+msgid "Suppress caching of bulk ham"
+msgstr ""
+
+#: Options.py:666
+msgid ""
+"Where message caching is enabled, this option suppresses caching\n"
+"     of messages which are classified as ham and marked as\n"
+"     'Precedence: bulk' or 'Precedence: list'.  If you subscribe to a\n"
+"     high-volume mailing list then your 'Review messages' page can be\n"
+"     overwhelmed with list messages, making training a pain.  Once you've\n"
+"     trained Spambayes on enough list traffic, you can use this option\n"
+"     to prevent that traffic showing up in 'Review messages'."
+msgstr ""
+
+#: Options.py:675
+msgid "Maximum size of cached messages"
+msgstr ""
+
+#: Options.py:676
+msgid ""
+"Where message caching is enabled, this option suppresses caching\n"
+"     of messages which are larger than this value (measured in bytes).\n"
+"     If you receive a lot of messages that include large attachments\n"
+"     (and are correctly classified), you may not wish to cache these.\n"
+"     If you set this to zero (0), then this option will have no effect."
+msgstr ""
+
+#: Options.py:692
+msgid "Classification header name"
+msgstr ""
+
+#: Options.py:693
+msgid ""
+"Spambayes classifies each message by inserting a new header into\n"
+"     the message.  This header can then be used by your email client\n"
+"     (provided your client supports filtering) to move spam into a\n"
+"     separate folder (recommended), delete it (not recommended), etc.\n"
+"     This option specifies the name of the header that Spambayes inserts.\n"
+"     The default value should work just fine, but you may change it to\n"
+"     anything that you wish."
+msgstr ""
+
+#: Options.py:704
+msgid "Spam disposition name"
+msgstr ""
+
+#: Options.py:705
+msgid ""
+"The header that Spambayes inserts into each email has a name,\n"
+"     (Classification eader name, above), and a value.  If the classifier\n"
+"     determines that this email is probably spam, it places a header named\n"
+"     as above with a value as specified by this string.  The default\n"
+"     value should work just fine, but you may change it to anything\n"
+"     that you wish."
+msgstr ""
+
+#: Options.py:713
+msgid "Ham disposition name"
+msgstr ""
+
+#: Options.py:713
+#: Options.py:816
+#: Options.py:821
+#: Options.py:1059
+#: Options.py:1065
+#: Options.py:1071
+#: ProxyUI.py:395
+msgid "ham"
+msgstr ""
+
+#: Options.py:714
+msgid "As for Spam Designation, but for emails classified as Ham."
+msgstr ""
+
+#: Options.py:717
+msgid "Unsure disposition name"
+msgstr ""
+
+#: Options.py:718
+msgid ""
+"As for Spam/Ham Designation, but for emails which the\n"
+"     classifer wasn't sure about (ie. the spam probability fell between\n"
+"     the Ham and Spam Cutoffs).  Emails that have this classification\n"
+"     should always be the subject of training."
+msgstr ""
+
+#: Options.py:724
+msgid "Accuracy of reported score"
+msgstr ""
+
+#: Options.py:725
+msgid "Accuracy of the score in the header in decimal digits."
+msgstr ""
+
+#: Options.py:728
+msgid "Augment score with logarithm"
+msgstr ""
+
+#: Options.py:729
+msgid ""
+"Set this option to augment scores of 1.00 or 0.00 by a\n"
+"     logarithmic \"one-ness\" or \"zero-ness\" score (basically it shows the\n"
+"     \"number of zeros\" or \"number of nines\" next to the score value)."
+msgstr ""
+
+#: Options.py:734
+msgid "Add probability (score) header"
+msgstr ""
+
+#: Options.py:735
+msgid ""
+"You can have Spambayes insert a header with the calculated spam\n"
+"     probability into each mail.  If you can view headers with your\n"
+"     mailer, then you can see this information, which can be interesting\n"
+"     and even instructive if you're a serious SpamBayes junkie."
+msgstr ""
+
+#: Options.py:741
+msgid "Probability (score) header name"
+msgstr ""
+
+#: Options.py:745
+msgid "Add level header"
+msgstr ""
+
+#: Options.py:746
+msgid ""
+"You can have spambayes insert a header with the calculated spam\n"
+"     probability, expressed as a number of '*'s, into each mail (the more\n"
+"     '*'s, the higher the probability it is spam). If your mailer\n"
+"     supports it, you can use this information to fine tune your\n"
+"     classification of ham/spam, ignoring the classification given."
+msgstr ""
+
+#: Options.py:753
+msgid "Level header name"
+msgstr ""
+
+#: Options.py:757
+msgid "Add evidence header"
+msgstr ""
+
+#: Options.py:758
+msgid ""
+"You can have spambayes insert a header into mail, with the\n"
+"     evidence that it used to classify that message (a collection of\n"
+"     words with ham and spam probabilities).  If you can view headers\n"
+"     with your mailer, then this may give you some insight as to why\n"
+"     a particular message was scored in a particular way."
+msgstr ""
+
+#: Options.py:765
+msgid "Evidence header name"
+msgstr ""
+
+#: Options.py:769
+msgid "Spambayes id header name"
+msgstr ""
+
+#: Options.py:773
+msgid "Add trained header"
+msgstr ""
+
+#: Options.py:774
+msgid ""
+"sb_mboxtrain.py and sb_filter.py can add a header that details\n"
+"     how a message was trained, which lets you keep track of it, and\n"
+"     appropriately re-train messages.  However, if you would rather\n"
+"     mboxtrain/sb_filter didn't rewrite the message files, you can disable\n"
+"     this option."
+msgstr ""
+
+#: Options.py:781
+msgid "Trained header name"
+msgstr ""
+
+#: Options.py:782
+msgid ""
+"When training on a message, the name of the header to add with how\n"
+"     it was trained"
+msgstr ""
+
+#: Options.py:786
+msgid "Debug header cutoff"
+msgstr ""
+
+#: Options.py:787
+msgid ""
+"The range of clues that are added to the \"debug\" header in the\n"
+"     E-mail. All clues that have their probability smaller than this number,\n"
+"     or larger than one minus this number are added to the header such that\n"
+"     you can see why spambayes thinks this is ham/spam or why it is unsure.\n"
+"     The default is to show all clues, but you can reduce that by setting\n"
+"     showclue to a lower value, such as 0.1"
+msgstr ""
+
+#: Options.py:795
+msgid "Add unique spambayes id"
+msgstr ""
+
+#: Options.py:796
+msgid ""
+"If you wish to be able to find a specific message (via the 'find'\n"
+"     box on the home page), or use the SMTP proxy to train using cached\n"
+"     messages, you will need to know the unique id of each message.  This\n"
+"     option adds this information to a header added to each message."
+msgstr ""
+
+#: Options.py:802
+msgid "Notate to"
+msgstr ""
+
+#: Options.py:803
+msgid ""
+"Some email clients (Outlook Express, for example) can only set up\n"
+"     filtering rules on a limited set of headers.  These clients cannot\n"
+"     test for the existence/value of an arbitrary header and filter mail\n"
+"     based on that information.  To accommodate these kind of mail clients,\n"
+"     you can add \"spam\", \"ham\", or \"unsure\" to the recipient list.  A\n"
+"     filter rule can then use this to see if one of these words (followed\n"
+"     by a comma) is in the recipient list, and route the mail to an\n"
+"     appropriate folder, or take whatever other action is supported and\n"
+"     appropriate for the mail classification.\n"
+"\n"
+"     As it interferes with replying, you may only wish to do this for\n"
+"     spam messages; simply tick the boxes of the classifications take\n"
+"     should be identified in this fashion."
+msgstr ""
+
+#: Options.py:818
+msgid "Classify in subject: header"
+msgstr ""
+
+#: Options.py:819
+msgid ""
+"This option will add the same information as 'Notate To',\n"
+"     but to the start of the mail subject line."
+msgstr ""
+
+#: Options.py:829
+#: Options.py:882
+#: Options.py:959
+msgid "Remote Servers"
+msgstr "Remote Server"
+
+#: Options.py:830
+msgid ""
+"The SpamBayes POP3 proxy intercepts incoming email and classifies\n"
+"     it before sending it on to your email client.  You need to specify\n"
+"     which POP3 server(s) you wish it to intercept - a POP3 server\n"
+"     address typically looks like \"pop3.myisp.net\".  If you use more than\n"
+"     one server, simply separate their names with commas.  You can get\n"
+"     these server names from your existing email configuration, or from\n"
+"     your ISP or system administrator.  If you are using Web-based email,\n"
+"     you can't use the SpamBayes POP3 proxy (sorry!).  In your email\n"
+"     client's configuration, where you would normally put your POP3 server\n"
+"     address, you should now put the address of the machine running\n"
+"     SpamBayes."
+msgstr ""
+
+#: Options.py:843
+#: Options.py:900
+#: Options.py:973
+msgid "SpamBayes Ports"
+msgstr "SpamBayes Ports"
+
+#: Options.py:844
+msgid ""
+"Each POP3 server that is being monitored must be assigned to a\n"
+"     'port' in the SpamBayes POP3 proxy.  This port must be different for\n"
+"     each monitored server, and there must be a port for\n"
+"     each monitored server.  Again, you need to configure your email\n"
+"     client to use this port.  If there are multiple servers, you must\n"
+"     specify the same number of ports as servers, separated by commas.\n"
+"     If you don't know what to use here, and you only have one server,\n"
+"     try 110, or if that doesn't work, try 8110."
+msgstr ""
+
+#: Options.py:854
+msgid "Allowed remote POP3 connections"
+msgstr ""
+
+#: Options.py:855
+msgid ""
+"Enter a list of trusted IPs, separated by commas. Remote POP\n"
+"     connections from any of them will be allowed. You can trust any\n"
+"     IP using a single '*' as field value. You can also trust ranges of\n"
+"     IPs using the '*' character as a wildcard (for instance 192.168.0.*).\n"
+"     The localhost IP will always be trusted. Type 'localhost' in the\n"
+"     field to trust this only address."
+msgstr ""
+
+#: Options.py:863
+msgid "Retrieval timeout"
+msgstr ""
+
+#: Options.py:864
+msgid ""
+"When proxying messages, time out after this length of time if\n"
+"     all the headers have been received.  The rest of the mesasge will\n"
+"     proxy straight through.  Some clients have a short timeout period,\n"
+"     and will give up on waiting for the message if this is too long.\n"
+"     Note that the shorter this is, the less of long messages will be\n"
+"     used for classifications (i.e. results may be effected)."
+msgstr ""
+
+#: Options.py:883
+msgid ""
+"Use of the SMTP proxy is optional - if you would rather just train\n"
+"     via the web interface, or the pop3dnd or mboxtrain scripts, then you\n"
+"     can safely leave this option blank.  The Spambayes SMTP proxy\n"
+"     intercepts outgoing email - if you forward mail to one of the\n"
+"     addresses below, it is examined for an id and the message\n"
+"     corresponding to that id is trained as ham/spam.  All other mail is\n"
+"     sent along to your outgoing mail server.  You need to specify which\n"
+"     SMTP server(s) you wish it to intercept - a SMTP server address\n"
+"     typically looks like \"smtp.myisp.net\".  If you use more than one\n"
+"     server, simply separate their names with commas.  You can get these\n"
+"     server names from your existing email configuration, or from your ISP\n"
+"     or system administrator.  If you are using Web-based email, you can't\n"
+"     use the Spambayes SMTP proxy (sorry!).  In your email client's\n"
+"     configuration, where you would normally put your SMTP server address,\n"
+"     you should now put the address of the machine running SpamBayes."
+msgstr ""
+
+#: Options.py:901
+msgid ""
+"Each SMTP server that is being monitored must be assigned to a\n"
+"     'port' in the Spambayes SMTP proxy.  This port must be different for\n"
+"     each monitored server, and there must be a port for\n"
+"     each monitored server.  Again, you need to configure your email\n"
+"     client to use this port.  If there are multiple servers, you must\n"
+"     specify the same number of ports as servers, separated by commas."
+msgstr ""
+
+#: Options.py:909
+msgid "Allowed remote SMTP connections"
+msgstr ""
+
+#: Options.py:910
+msgid ""
+"Enter a list of trusted IPs, separated by commas. Remote SMTP\n"
+"     connections from any of them will be allowed. You can trust any\n"
+"     IP using a single '*' as field value. You can also trust ranges of\n"
+"     IPs using the '*' character as a wildcard (for instance 192.168.0.*).\n"
+"     The localhost IP will always be trusted. Type 'localhost' in the\n"
+"     field to trust this only address.  Note that you can unwittingly\n"
+"     turn a SMTP server into an open proxy if you open this up, as\n"
+"     connections to the server will appear to be from your machine, even\n"
+"     if they are from a remote machine *through* your machine, to the\n"
+"     server.  We do not recommend opening this up fully (i.e. using '*').\n"
+"     "
+msgstr ""
+
+#: Options.py:923
+msgid "Train as ham address"
+msgstr "Als Ham-Adresse trainieren"
+
+#: Options.py:924
+msgid ""
+"When a message is received that you wish to train on (for example,\n"
+"     one that was incorrectly classified), you need to forward or bounce\n"
+"     it to one of two special addresses so that the SMTP proxy can identify\n"
+"     it.  If you wish to train it as ham, forward or bounce it to this\n"
+"     address.  You will want to use an address that is not\n"
+"     a valid email address, like ham@nowhere.nothing."
+msgstr ""
+
+#: Options.py:932
+msgid "Train as spam address"
+msgstr "Als Spam-Adresse trainieren"
+
+#: Options.py:933
+msgid ""
+"As with Ham Address above, but the address that you need to forward\n"
+"     or bounce mail that you wish to train as spam.  You will want to use\n"
+"     an address that is not a valid email address, like\n"
+"     spam@nowhere.nothing."
+msgstr ""
+
+#: Options.py:939
+msgid "Lookup message in cache"
+msgstr "Nachricht in Zwischenspeicher nachschlagen."
+
+#: Options.py:940
+msgid ""
+"If this option is set, then the smtpproxy will attempt to\n"
+"     look up the messages sent to it (for training) in the POP3 proxy cache\n"
+"     or IMAP filter folders, and use that message as the training data.\n"
+"     This avoids any problems where your mail client might change the\n"
+"     message when forwarding, contaminating your training data.  If you can\n"
+"     be sure that this won't occur, then the id-lookup can be avoided.\n"
+"\n"
+"     Note that Outlook Express users cannot use the lookup option (because\n"
+"     of the way messages are forwarded), and so if they wish to use the\n"
+"     SMTP proxy they must enable this option (but as messages are altered,\n"
+"     may not get the best results, and this is not recommended)."
+msgstr ""
+
+#: Options.py:960
+msgid ""
+"The SpamBayes IMAP4 proxy intercepts incoming email and classifies\n"
+"     it before sending it on to your email client.  You need to specify\n"
+"     which IMAP4 server(s) you wish it to intercept - a IMAP4 server\n"
+"     address typically looks like \"mail.myisp.net\".  If you use more than\n"
+"     one server, simply separate their names with commas.  You can get\n"
+"     these server names from your existing email configuration, or from\n"
+"     your ISP or system administrator.  If you are using Web-based email,\n"
+"     you can't use the SpamBayes IMAP4 proxy (sorry!).  In your email\n"
+"     client's configuration, where you would normally put your IMAP4 server\n"
+"     address, you should now put the address of the machine running\n"
+"     SpamBayes."
+msgstr ""
+
+#: Options.py:974
+msgid ""
+"Each IMAP4 server that is being monitored must be assigned to a\n"
+"     'port' in the SpamBayes IMAP4 proxy.  This port must be different for\n"
+"     each monitored server, and there must be a port for each monitored\n"
+"     server.  Again, you need to configure your email client to use this\n"
+"     port.  If there are multiple servers, you must specify the same number\n"
+"     of ports as servers, separated by commas. If you don't know what to\n"
+"     use here, and you only have one server, try 143, or if that doesn't\n"
+"     work, try 8143."
+msgstr ""
+
+#: Options.py:984
+msgid "Allowed remote IMAP4 connections"
+msgstr ""
+
+#: Options.py:985
+msgid ""
+"Enter a list of trusted IPs, separated by commas. Remote IMAP\n"
+"     connections from any of them will be allowed. You can trust any\n"
+"     IP using a single '*' as field value. You can also trust ranges of\n"
+"     IPs using the '*' character as a wildcard (for instance 192.168.0.*).\n"
+"     The localhost IP will always be trusted. Type 'localhost' in the\n"
+"     field to trust this only address."
+msgstr ""
+
+#: Options.py:1003
+msgid "Port"
+msgstr "Port"
+
+#: Options.py:1007
+msgid "Launch browser"
+msgstr ""
+
+#: Options.py:1008
+msgid ""
+"If this option is set, then whenever sb_server or sb_imapfilter is\n"
+"     started the default web browser will be opened to the main web\n"
+"     interface page.  Use of the -b switch when starting from the command\n"
+"     line overrides this option."
+msgstr ""
+
+#: Options.py:1014
+msgid "Allowed remote UI connections"
+msgstr ""
+
+#: Options.py:1015
+msgid ""
+"Enter a list of trusted IPs, separated by commas. Remote\n"
+"     connections from any of them will be allowed. You can trust any\n"
+"     IP using a single '*' as field value. You can also trust ranges of\n"
+"     IPs using the '*' character as a wildcard (for instance 192.168.0.*).\n"
+"     The localhost IP will always be trusted. Type 'localhost' in the\n"
+"     field to trust this only address."
+msgstr ""
+
+#: Options.py:1023
+msgid "Headers to display in message review"
+msgstr ""
+
+#: Options.py:1024
+msgid ""
+"When reviewing messages via the web user interface, you are\n"
+"     presented with various information about the message.  By default, you\n"
+"     are shown the subject and who the message is from.  You can add other\n"
+"     message headers to display, however, such as the address the message\n"
+"     is to, or the date that the message was sent."
+msgstr ""
+
+#: Options.py:1031
+msgid "Display date received in message review"
+msgstr ""
+
+#: Options.py:1032
+msgid ""
+"When reviewing messages via the web user interface, you are\n"
+"     presented with various information about the message.  If you set\n"
+"     this option, you will be shown the date that the message was received.\n"
+"     "
+msgstr ""
+
+#: Options.py:1038
+msgid "Display score in message review"
+msgstr ""
+
+#: Options.py:1039
+msgid ""
+"When reviewing messages via the web user interface, you are\n"
+"     presented with various information about the message.  If you\n"
+"     set this option, this information will include the score that\n"
+"     the message received when it was classified.  You might wish to\n"
+"     see this purely out of curiousity, or you might wish to only\n"
+"     train on messages that score towards the boundaries of the\n"
+"     classification areas.  Note that in order to use this option,\n"
+"     you must also enable the option to include the score in the\n"
+"     message headers."
+msgstr ""
+
+#: Options.py:1050
+msgid "Display the advanced find query"
+msgstr ""
+
+#: Options.py:1051
+msgid ""
+"Present advanced options in the 'Word Query' box on the front page,\n"
+"     including wildcard and regular expression searching."
+msgstr ""
+
+#: Options.py:1055
+msgid "Default training for ham"
+msgstr ""
+
+#: Options.py:1055
+#: Options.py:1059
+#: Options.py:1061
+#: Options.py:1065
+#: Options.py:1071
+#: ProxyUI.py:398
+msgid "discard"
+msgstr "verwerfen"
+
+#: Options.py:1056
+msgid ""
+"When presented with the review list in the web interface,\n"
+"     which button would you like checked by default when the message\n"
+"     is classified as ham?"
+msgstr ""
+
+#: Options.py:1059
+#: Options.py:1065
+#: Options.py:1067
+#: Options.py:1071
+msgid "defer"
+msgstr ""
+
+#: Options.py:1061
+msgid "Default training for spam"
+msgstr ""
+
+#: Options.py:1062
+msgid ""
+"When presented with the review list in the web interface,\n"
+"     which button would you like checked by default when the message\n"
+"     is classified as spam?"
+msgstr ""
+
+#: Options.py:1067
+msgid "Default training for unsure"
+msgstr ""
+
+#: Options.py:1068
+msgid ""
+"When presented with the review list in the web interface,\n"
+"     which button would you like checked by default when the message\n"
+"     is classified as unsure?"
+msgstr ""
+
+#: Options.py:1073
+msgid "Ham Discard Level"
+msgstr ""
+
+#: Options.py:1074
+msgid ""
+"Hams scoring less than this percentage will default to being\n"
+"     discarded in the training interface (they won't be trained). You'll\n"
+"     need to turn off the 'Train when filtering' option, above, for this\n"
+"     to have any effect"
+msgstr ""
+
+#: Options.py:1080
+msgid "Spam Discard Level"
+msgstr ""
+
+#: Options.py:1081
+msgid ""
+"Spams scoring more than this percentage will default to being\n"
+"     discarded in the training interface (they won't be trained). You'll\n"
+"     need to turn off the 'Train when filtering' option, above, for this\n"
+"     to have any effect"
+msgstr ""
+
+#: Options.py:1087
+msgid "HTTP Authentication"
+msgstr "HTTP Authentifizierung"
+
+#: Options.py:1088
+msgid ""
+"This option lets you choose the security level of the web interface.\n"
+"     When selecting Basic or Digest, the user will be prompted a login and a\n"
+"     password to access the web interface. The Basic option is faster, but\n"
+"     transmits the password in clear on the network. The Digest option\n"
+"     encrypts the password before transmission."
+msgstr ""
+
+#: Options.py:1095
+msgid "User name"
+msgstr "Benutzername"
+
+#: Options.py:1096
+msgid ""
+"If you activated the HTTP authentication option, you can modify the\n"
+"     authorized user name here."
+msgstr ""
+
+#: Options.py:1100
+#: Options.py:1126
+#: Options.py:1240
+msgid "Password"
+msgstr "Kennwort"
+
+#: Options.py:1101
+msgid ""
+"If you activated the HTTP authentication option, you can modify the\n"
+"     authorized user password here."
+msgstr ""
+
+#: Options.py:1105
+msgid "Rows per section"
+msgstr "Zeilen pro Abschnitt"
+
+#: Options.py:1106
+msgid "Number of rows to display per ham/spam/unsure section."
+msgstr ""
+
+#: Options.py:1111
+msgid "Server"
+msgstr "Server"
+
+#: Options.py:1112
+msgid ""
+"These are the names and ports of the imap servers that store your\n"
+"     mail, and which the imap filter will connect to - for example:\n"
+"     mail.example.com or imap.example.com:143.  The default IMAP port is\n"
+"     143 (or 993 if using SSL); if you connect via one of those ports, you\n"
+"     can leave this blank. If you use more than one server, use a comma\n"
+"     delimited list of the server:port values."
+msgstr ""
+
+#: Options.py:1120
+#: Options.py:1236
+msgid "Username"
+msgstr "Benutzername"
+
+#: Options.py:1121
+msgid ""
+"This is the id that you use to log into your imap server.  If your\n"
+"     address is funkyguy@example.com, then your username is probably\n"
+"     funkyguy."
+msgstr ""
+
+#: Options.py:1127
+msgid ""
+"That is that password that you use to log into your imap server.\n"
+"     This will be stored in plain text in your configuration file, and if\n"
+"     you have set the web user interface to allow remote connections, then\n"
+"     it will be available for the whole world to see in plain text.  If\n"
+"     I've just freaked you out, don't panic <wink>.  You can leave this\n"
+"     blank and use the -p command line option to imapfilter.py and you will\n"
+"     be prompted for your password."
+msgstr ""
+
+#: Options.py:1136
+msgid "Purge//Expunge"
+msgstr ""
+
+#: Options.py:1137
+msgid ""
+"Permanently remove *all* messages flagged with //Deleted on logout.\n"
+"     If you do not know what this means, then please leave this as\n"
+"     False."
+msgstr ""
+
+#: Options.py:1142
+msgid "Connect via a secure socket layer"
+msgstr ""
+
+#: Options.py:1143
+msgid ""
+"Use SSL to connect to the server. This allows spambayes to connect\n"
+"     without sending the password in plain text.\n"
+"\n"
+"     Note that this does not check the server certificate at this point in\n"
+"     time."
+msgstr ""
+
+#: Options.py:1150
+msgid "Folders to filter"
+msgstr "Zu filternde Ordner"
+
+#: Options.py:1151
+msgid "Comma delimited list of folders to be filtered"
+msgstr "Komma getrennte Liste der zu filternden Ordner"
+
+#: Options.py:1154
+msgid "Folder for unsure messages"
+msgstr "Ordner für unsichere Nachrichten."
+
+#: Options.py:1158
+msgid "Folder for suspected spam"
+msgstr "Ordner für verdächtigen Spam."
+
+#: Options.py:1162
+msgid "Folder for ham messages"
+msgstr "Ordner für Ham Nachrichten"
+
+#: Options.py:1163
+msgid ""
+"If you leave this option blank, messages classified as ham will not\n"
+"     be moved.  However, if you wish to have ham messages moved, you can\n"
+"     select a folder here."
+msgstr ""
+
+#: Options.py:1168
+msgid "Folders with mail to be trained as ham"
+msgstr ""
+
+#: Options.py:1169
+msgid ""
+"Comma delimited list of folders that will be examined for messages\n"
+"     to train as ham."
+msgstr ""
+
+#: Options.py:1173
+msgid "Folders with mail to be trained as spam"
+msgstr ""
+
+#: Options.py:1174
+msgid ""
+"Comma delimited list of folders that will be examined for messages\n"
+"     to train as spam."
+msgstr ""
+
+#: Options.py:1178
+msgid "Folder to move trained spam to"
+msgstr ""
+
+#: Options.py:1179
+msgid ""
+"When training, all messages in the spam training folder(s) (above)\n"
+"     are examined - if they are new, they are used to train, if not, they\n"
+"     are ignored.  This examination does take time, however, so if speed\n"
+"     is an issue for you, you may wish to move messages out of this folder\n"
+"     once they have been trained (either to delete them or to a storage\n"
+"     folder).  If a folder name is specified here, this will happen\n"
+"     automatically.  Note that the filter is not yet clever enough to\n"
+"     move the mail to different folders depending on which folder it\n"
+"     was originally in - *all* messages will be moved to the same\n"
+"     folder."
+msgstr ""
+
+#: Options.py:1191
+msgid "Folder to move trained ham to"
+msgstr ""
+
+#: Options.py:1192
+msgid ""
+"When training, all messages in the ham training folder(s) (above)\n"
+"     are examined - if they are new, they are used to train, if not, they\n"
+"     are ignored.  This examination does take time, however, so if speed\n"
+"     is an issue for you, you may wish to move messages out of this folder\n"
+"     once they have been trained (either to delete them or to a storage\n"
+"     folder).  If a folder name is specified here, this will happen\n"
+"     automatically.  Note that the filter is not yet clever enough to\n"
+"     move the mail to different folders depending on which folder it\n"
+"     was originally in - *all* messages will be moved to the same\n"
+"     folder."
+msgstr ""
+
+#: Options.py:1237
+msgid "The username to use when logging into the SpamBayes IMAP server."
+msgstr ""
+
+#: Options.py:1241
+msgid "The password to use when logging into the SpamBayes IMAP server."
+msgstr ""
+
+#: Options.py:1244
+msgid "IMAP Listen Port"
+msgstr "IMAP Port"
+
+#: Options.py:1245
+msgid "The port to serve the SpamBayes IMAP server on."
+msgstr ""
+
+#: Options.py:1250
+msgid "Verbose"
+msgstr "Erweitert"
+
+#: Options.py:1254
+msgid "Database storage type"
+msgstr "Datenbank Speicherart"
+
+#: Options.py:1255
+msgid ""
+"What DBM storage type should we use?  Must be best, db3hash,\n"
+"     dbhash or gdbm.  Windows folk should steer clear of dbhash.  Default\n"
+"     is \"best\", which will pick the best DBM type available on your\n"
+"     platform."
+msgstr ""
+
+#: Options.py:1261
+msgid "HTTP Proxy Username"
+msgstr "HTTP Proxy Banutzername"
+
+#: Options.py:1262
+msgid ""
+"The username to give to the HTTP proxy when required.  If a\n"
+"     username is not necessary, simply leave blank."
+msgstr ""
+
+#: Options.py:1265
+msgid "HTTP Proxy Password"
+msgstr "HTTP Proxy Kennwort"
+
+#: Options.py:1266
+msgid ""
+"The password to give to the HTTP proxy when required.  This is\n"
+"     stored in clear text in your configuration file, so if that bothers\n"
+"     you then don't do this.  You'll need to use a proxy that doesn't need\n"
+"     authentication, or do without any SpamBayes HTTP activity."
+msgstr ""
+
+#: Options.py:1271
+msgid "HTTP Proxy Server"
+msgstr "HTTP Proxy Server"
+
+#: Options.py:1272
+msgid ""
+"If a spambayes application needs to use HTTP, it will try to do so\n"
+"     through this proxy server.  The port defaults to 8080, or can be\n"
+"     entered with the server:port form."
+msgstr ""
+
+#: Options.py:1277
+msgid "User Interface Language"
+msgstr "Sprache der Benutzeroberfläche"
+
+#: Options.py:1278
+msgid ""
+"If possible, the user interface should use a language from this\n"
+"     list (in order of preference)."
+msgstr ""
+
+#: ProxyUI.py:141
+msgid "Training Options"
+msgstr "Optionen für Training"
+
+#: ProxyUI.py:160
+msgid "POP3 Proxy Options"
+msgstr ""
+
+#: ProxyUI.py:189
+msgid "No POP3 proxies running.<br/>"
+msgstr ""
+
+#: ProxyUI.py:196
+msgid "Train on proxied messages"
+msgstr ""
+
+#: ProxyUI.py:201
+#: ProxyUI.py:540
+msgid "Find message"
+msgstr "Nachrichten finden"
+
+#: ProxyUI.py:221
+msgid "<p>OK. Return <a href='home'>Home</a>.</p>"
+msgstr ""
+
+#: ProxyUI.py:322
+msgid "Ham"
+msgstr "Ham"
+
+#: ProxyUI.py:388
+msgid "Refresh"
+msgstr "Aktualiseren"
+
+#: ProxyUI.py:423
+msgid "<p><b>Training... "
+msgstr "<p><b>Training... "
+
+#: ProxyUI.py:461
+msgid "Next day"
+msgstr "Nächster Tag"
+
+#: ProxyUI.py:463
+msgid "Previous day"
+msgstr "Vorheriger Tag"
+
+#: ProxyUI.py:485
+msgid "<p>You must enter a search string.</p>"
+msgstr ""
+
+#: ProxyUI.py:499
+msgid "<p>Searching...</p>"
+msgstr ""
+
+#: ProxyUI.py:530
+msgid "Found message"
+msgstr "Gefundene Nachricht"
+
+#: ProxyUI.py:532
+msgid "Found messages"
+msgstr "Gefundene Nachrichten..."
+
+#: ProxyUI.py:535
+msgid "<p>Could not find any matching messages. Maybe they expired?</p>"
+msgstr ""
+
+#: ProxyUI.py:537
+msgid "Did not find message"
+msgstr "Nachricht wurde nicht gefunden"
+
+#: ProxyUI.py:639
+msgid "Untrained messages received on %s"
+msgstr ""
+
+#: ProxyUI.py:642
+msgid "<p>There are no untrained messages to display. Return <a href='home'>Home</a>, or <a href='review'>check again</a>.</p>"
+msgstr ""
+
+#: ProxyUI.py:645
+msgid "No untrained messages"
+msgstr "Keine untrainierten Nachrichten"
+
+#: ProxyUI.py:662
+msgid "View message"
+msgstr "Nachricht ansehen"
+
+#: ProxyUI.py:663
+#: ProxyUI.py:684
+msgid "Review"
+msgstr "Überarbeiten"
+
+#: ProxyUI.py:677
+#: ProxyUI.py:701
+msgid "<p>Can't find message %r. Maybe it expired.</p>"
+msgstr ""
+
+#: ProxyUI.py:683
+msgid "Message clues"
+msgstr "Bewertung der Nachricht"
+
+#: ProxyUI.py:746
+msgid "(this message only has an HTML body)\n"
+msgstr ""
+
+#: ProxyUI.py:748
+msgid "(this message has no text body)"
+msgstr ""
+
+#: ProxyUI.py:750
+msgid "(this message is a digest of %s messages)"
+msgstr ""
+
+#: ProxyUI.py:752
+msgid "(this message has no body)"
+msgstr ""
+
+#: ProxyUI.py:798
+msgid "<li>The number of POP3 proxy ports specified must match the number of servers specified</li>\n"
+msgstr ""
+
+#: ProxyUI.py:806
+msgid "<li>All POP3 port numbers must be unique</li>"
+msgstr ""
+
+#: ProxyUI.py:815
+msgid "<li>The number of SMTP proxy ports specified must match the number of servers specified</li>\n"
+msgstr ""
+
+#: ProxyUI.py:823
+msgid "<li>All SMTP port numbers must be unique</li>"
+msgstr ""
+
+#: Stats.py:347
+msgid "Messages classified: %d"
+msgstr "Nachrichten klassifiziert: %d"
+
+#: Stats.py:360
+msgid "%(tab)sGood:%(tab)s%(num_ham)d (%(perc_ham_s)s)"
+msgstr ""
+
+#: Stats.py:362
+msgid "%(tab)sSpam:%(tab)s%(num_spam)d (%(perc_spam_s)s)"
+msgstr ""
+
+#: Stats.py:364
+msgid "%(tab)sUnsure:%(tab)s%(num_unsure)d (%(perc_unsure_s)s)"
+msgstr ""
+
+#: Stats.py:368
+msgid "Classified correctly:%(tab)s%(num_correct)d (%(perc_correct_s)s of total)"
+msgstr ""
+
+#: Stats.py:370
+msgid "Classified incorrectly:%(tab)s%(num_incorrect)d (%(perc_incorrect_s)s of total)"
+msgstr ""
+
+#: Stats.py:373
+msgid "%(tab)sFalse positives:%(tab)s%(num_trained_ham_fp)d (%(perc_fp_s)s of total)"
+msgstr ""
+
+#: Stats.py:375
+msgid "%(tab)sFalse negatives:%(tab)s%(num_trained_spam_fn)d (%(perc_fn_s)s of total)"
+msgstr ""
+
+#: Stats.py:379
+msgid "Manually classified as good:%(tab)s%(num_trained_ham)d"
+msgstr ""
+
+#: Stats.py:380
+msgid "Manually classified as spam:%(tab)s%(num_trained_spam)d"
+msgstr ""
+
+#: Stats.py:384
+msgid "Unsures trained as good:%(tab)s%(num_unsure_trained_ham)d (%(perc_unsure_trained_ham_s)s of unsures)"
+msgstr ""
+
+#: Stats.py:386
+msgid "Unsures trained as spam:%(tab)s%(num_unsure_trained_spam)d (%(perc_unsure_trained_spam_s)s of unsures)"
+msgstr ""
+
+#: Stats.py:388
+msgid "Unsures not trained:%(tab)s%(tab)s%(num_unsure_not_trained)d (%(perc_unsure_not_trained_s)s of unsures)"
+msgstr ""
+
+#: Stats.py:393
+msgid "Spam correctly identified:%(tab)s%(perc_spam_correct_s)s (+ %(perc_spam_unsure_s)s unsure)"
+msgstr ""
+
+#: Stats.py:396
+msgid "Good incorrectly identified:%(tab)s%(perc_ham_incorrect_s)s (+ %(perc_ham_unsure_s)s unsure)"
+msgstr ""
+
+#: Stats.py:401
+msgid "Total cost of spam:%(tab)s$%(total_cost).2f"
+msgstr ""
+
+#: Stats.py:402
+msgid "SpamBayes savings:%(tab)s$%(cost_savings).2f"
+msgstr ""
+
+#: UserInterface.py:107
+msgid "(deprecated)"
+msgstr ""
+
+#: UserInterface.py:115
+msgid "User interface url is http://localhost:%d/"
+msgstr ""
+
+#: UserInterface.py:121
+msgid "SpamBayes Web Interface"
+msgstr "SpamBayes Weboberfläsche"
+
+#: UserInterface.py:132
+msgid "You must login to use SpamBayes."
+msgstr "Sie müssen sich anmelden, um SpamBayes zu benutzen."
+
+#: UserInterface.py:285
+msgid "Classify"
+msgstr ""
+
+#: UserInterface.py:331
+msgid "Tokens"
+msgstr "Worte"
+
+#: UserInterface.py:335
+msgid "Clues"
+msgstr ""
+
+#: UserInterface.py:364
+msgid "Original clues: (%s)"
+msgstr ""
+
+#: UserInterface.py:366
+msgid "Original clues for: %s (%s)"
+msgstr ""
+
+#: UserInterface.py:375
+#: UserInterface.py:394
+#: UserInterface.py:406
+msgid "basic"
+msgstr ""
+
+#: UserInterface.py:405
+msgid "You must enter a word."
+msgstr "Bitte geben Sie ein Wort ein."
+
+#: UserInterface.py:412
+msgid "%r does not exist in the database."
+msgstr "%r existiert nicht in der Datenbank."
+
+#: UserInterface.py:416
+msgid "regex"
+msgstr ""
+
+#: UserInterface.py:418
+msgid "wildcard"
+msgstr ""
+
+#: UserInterface.py:441
+msgid "There are no words that begin with '%s' in the database."
+msgstr ""
+
+#: UserInterface.py:445
+msgid "Additional tokens not shown: %d"
+msgstr ""
+
+#: UserInterface.py:459
+#: UserInterface.py:476
+#: UserInterface.py:479
+msgid "Statistics for '%s'"
+msgstr ""
+
+#: UserInterface.py:487
+msgid "Train"
+msgstr "Trainieren"
+
+#: UserInterface.py:491
+msgid "Train as Spam"
+msgstr "Trainieren als Spam"
+
+#: UserInterface.py:564
+msgid "%sOK. Return %sHome%s or train again:%s"
+msgstr ""
+
+#: UserInterface.py:598
+msgid "Saving..."
+msgstr "Speichern..."
+
+#: UserInterface.py:601
+msgid "Done."
+msgstr "Bereit."
+
+#: UserInterface.py:606
+msgid "Save"
+msgstr "Sichern"
+
+#: UserInterface.py:627
+msgid "Classify a message"
+msgstr "Nachricht klassifizieren"
+
+#: UserInterface.py:636
+msgid "Train on a message, mbox file or dbx file"
+msgstr ""
+
+#: UserInterface.py:646
+msgid "Home &gt; Experimental Configuration"
+msgstr ""
+
+#: UserInterface.py:647
+msgid "&gt; Experimental Configuration"
+msgstr "Experimentelle Konfiguration"
+
+#: UserInterface.py:648
+#: UserInterface.py:660
+msgid "Back to basic configuration"
+msgstr "Zurück zur Basiskonfiguration."
+
+#: UserInterface.py:650
+#: UserInterface.py:820
+msgid "Save experimental options"
+msgstr ""
+
+#: UserInterface.py:651
+#: UserInterface.py:897
+msgid "Restore experimental options defaults (all off)"
+msgstr ""
+
+#: UserInterface.py:658
+msgid "Home &gt; Advanced Configuration"
+msgstr "Home &gt; Erweiterte Konfiguration"
+
+#: UserInterface.py:659
+msgid "&gt; Advanced Configuration"
+msgstr "&gt; Erweiterte Konfiguration"
+
+#: UserInterface.py:662
+#: UserInterface.py:818
+msgid "Save advanced options"
+msgstr "Erweiterte Optionen speichern"
+
+#: UserInterface.py:663
+#: UserInterface.py:895
+msgid "Restore advanced options defaults"
+msgstr ""
+
+#: UserInterface.py:670
+msgid "Home &gt; Configure"
+msgstr ""
+
+#: UserInterface.py:671
+msgid "&gt; Configure"
+msgstr "&gt; Konfigurieren"
+
+#: UserInterface.py:796
+#: UserInterface.py:961
+msgid "No"
+msgstr "Nein"
+
+#: UserInterface.py:798
+#: UserInterface.py:963
+msgid "Yes"
+msgstr "Ja"
+
+#: UserInterface.py:829
+msgid "Errors Detected"
+msgstr "Fehler entdeckt"
+
+#: UserInterface.py:831
+msgid "Home &gt; Error"
+msgstr ""
+
+#: UserInterface.py:832
+msgid "&gt; Error"
+msgstr ""
+
+#: UserInterface.py:886
+msgid "Options Changed"
+msgstr "Optionen geändert"
+
+#: UserInterface.py:887
+msgid "Options changed.  Return <a href='home'>Home</a>."
+msgstr ""
+
+#: UserInterface.py:889
+msgid "Home &gt; Options Changed"
+msgstr ""
+
+#: UserInterface.py:890
+msgid "&gt; Options Changed"
+msgstr ""
+
+#: UserInterface.py:906
+msgid "Option Defaults Restored"
+msgstr ""
+
+#: UserInterface.py:907
+msgid "Defaults restored.  Return <a href='home'>Home</a>."
+msgstr ""
+
+#: UserInterface.py:909
+msgid "Home &gt; Defaults Restored"
+msgstr ""
+
+#: UserInterface.py:910
+msgid "&gt; Defaults Restored"
+msgstr ""
+
+#: UserInterface.py:970
+msgid "<li>'%s' is not a value valid for [%s] %s"
+msgstr ""
+
+#: UserInterface.py:974
+msgid ". Valid values are: "
+msgstr ". Werte sind: "
+
+#: UserInterface.py:1018
+#: UserInterface.py:1021
+#: UserInterface.py:1024
+msgid "Statistics"
+msgstr "Statistik"
+
+#: UserInterface.py:1025
+msgid "Statistics not available"
+msgstr "Statistik nicht verfügbar"
+
+#: UserInterface.py:1033
+msgid "Send Help Message"
+msgstr "Hilfenachricht senden"
+
+#: UserInterface.py:1095
+msgid "Warning"
+msgstr "Warnung"
+
+#: UserInterface.py:1096
+msgid "You will be unable to send this message from this page, as you do not have your SMTP server's details entered in your configuration. Please either <a href='config'>enter those details</a>, or copy the text below into your regular mail application."
+msgstr ""
+
+#: UserInterface.py:1122
+msgid "You must fill in the details that describe your specific problem before you can send the message."
+msgstr ""
+
+#: UserInterface.py:1126
+msgid "Sent"
+msgstr "Gesendet"
+
+#: UserInterface.py:1192
+msgid "Sent message.  Please do not send again, or refresh this page!"
+msgstr "Nachricht gesendet. Bitte nicht noch einmal senden oder die Seite aktualisieren."
+
+#: UserInterface.py:1199
+msgid "[YOUR EMAIL ADDRESS]"
+msgstr ""
+
+#: UserInterface.py:1201
+msgid "[DESCRIBE YOUR PROBLEM HERE]"
+msgstr ""
+
+#: UserInterface.py:1203
+msgid "[PROBLEM SUMMARY]"
+msgstr ""
+
+#: Version.py:224
+msgid "%s Version %s (%s)"
+msgstr "%s Version %s (%s)"
+
+#: __init__.py:9
+msgid "August 2006"
+msgstr "August 2006"
+
