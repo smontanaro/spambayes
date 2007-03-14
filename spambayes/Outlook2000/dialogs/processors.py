@@ -79,15 +79,15 @@ class CloseButtonProcessor(ButtonProcessor):
     def OnClicked(self, id):
         problem = self.window.manager.GetDisabledReason()
         if problem:
-            q = "There appears to be a problem with SpamBayes' configuration" \
+            q = _("There appears to be a problem with SpamBayes' configuration" \
                 "\r\nIf you do not fix this problem, SpamBayes will be" \
-                " disabled.\r\n\r\n" + problem + \
-                "\r\n\r\nDo you wish to re-configure?"
+                " disabled.\r\n\r\n%s" \
+                "\r\n\r\nDo you wish to re-configure?") % (problem,)
             if self.window.manager.AskQuestion(q):
                 return
         win32gui.EndDialog(self.window.hwnd, id)
     def GetPopupHelpText(self, ctrlid):
-        return "Closes this dialog"
+        return _("Closes this dialog")
 
 class CommandButtonProcessor(ButtonProcessor):
     def __init__(self, window, control_ids, func, args):
