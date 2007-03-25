@@ -86,7 +86,7 @@ install: all local_install
 	  false; \
 	fi
 	@echo Push to $(LIVE_DEST) ...
-	rsync --rsh=$(RSYNC_RSH) -v -r -l -t --update $(LOCAL_INCLUDE) $(GLOBAL_EXCLUDES) $(EXCLUDE_FROM) ./* $(LIVE_DEST)
+	rsync --rsh=$(RSYNC_RSH) -v -r -l --update $(LOCAL_INCLUDE) $(GLOBAL_EXCLUDES) $(EXCLUDE_FROM) ./* $(LIVE_DEST)
 
 validate:	$(TARGETS)
 	for f in $(TARGETS); \
