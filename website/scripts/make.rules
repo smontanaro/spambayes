@@ -20,7 +20,7 @@ TARGETS =	$(filter-out *.html,$(SOURCES:%.ht=%.html)) $(EXTRA_TARGETS)
 
 # Where to upload stuff for make install.  LIVE_ROOT is the actual
 # physical location of files on the server.
-LIVE_HOST = 	shell1.sourceforge.net
+LIVE_HOST = 	anadelonbrin@shell1.sourceforge.net
 LIVE_ROOT =	/home/groups/s/sp/spambayes/htdocs/
 LIVE_DEST =	$(LIVE_HOST):$(LIVE_ROOT)/$(ROOT_OFFSET)
 
@@ -49,7 +49,7 @@ HTFLAGS =	$(HTALLFLAGS) -r $(HTROOT)
 HTRELDIR =	.
 
 # docutils 'html.py' script.
-DUHTML = html.py
+DUHTML = rst2html.py
 
 GENERATED_HTML= $(SOURCES:.ht=.html)
 
