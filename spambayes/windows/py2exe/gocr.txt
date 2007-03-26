@@ -1,0 +1,14 @@
+SpamBayes includes the unmodified gocr 0.43 binary from:
+
+  http://www-e.uni-magdeburg.de/jschulen/ocr/gocr043.exe 
+  md5sum: b21b3c565a185791cf64e546a69b1d55
+
+gocr is distributed under the GPL - please see:
+
+  http://sourceforge.net/projects/jocr
+
+for more information on gocr, or:
+
+  http://spambayes.org
+
+for more information on spambayes.
