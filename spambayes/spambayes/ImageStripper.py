@@ -72,9 +72,16 @@ def find_program(prog):
             #    C:/Program Files/SpamBayes/bin
             # so add that directory to the path and make sure we
             # look for a file ending in ".exe".
-            # Put it at the *start* of the paths we search - who knows
-            # what else me may encounter in the wild!
-            path.insert(0, os.path.dirname(sys.executable))
+            if sys.frozen=="dll":
+                import win32api
+                sentinal = win32api.GetModuleFileName(sys.frozendllhandle)
+            else:
+                sentinal = sys.executable
+            # os.popen() trying to quote both the program and argv[1] fails.
+            # So just use the short version.
+            # For the sake of safety, in a binary build we *only* look in
+            # our bin dir.
+            path=[win32api.GetShortPathName(os.path.dirname(sentinal))]
         else:
             # a source build - for testing, allow it in SB package dir.
             import spambayes
@@ -235,30 +242,35 @@ class OCRExecutableEngine(OCREngine):
     
     program = property(get_program)
 
+    def get_command_line(self, pnmfile):
+        raise NotImplementedError, "base classes must override"
+
+    def extract_text(self, pnmfile):
+        # Generically reads output from stdout.
+        assert self.is_enabled(), "I'm not working!"
+        cmdline = self.get_command_line(pnmfile)
+        ocr = os.popen(cmdline)
+        ret = ocr.read()
+        exit_code = ocr.close()
+        if exit_code:
+            print "warning:", self.engine_name, "failed with exit code", exit_code
+            print "command line was:", repr(cmdline)
+        return ret
+
 class OCREngineOCRAD(OCRExecutableEngine):
     engine_name = "ocrad"
 
-    def extract_text(self, pnmfile):
-        assert self.is_enabled(), "I'm not working!"
+    def get_command_line(self, pnmfile):
         scale = options["Tokenizer", "ocrad_scale"] or 1
         charset = options["Tokenizer", "ocrad_charset"]
-        ocr = os.popen('%s -s %s -c %s -f "%s" 2>%s' %
-                       (self.program, scale, charset,
-                        pnmfile, os.path.devnull))
-        ret = ocr.read()
-        ocr.close()
-        return ret
+        return '%s -s %s -c %s -f "%s" 2>%s' % \
+                (self.program, scale, charset, pnmfile, os.path.devnull)
 
 class OCREngineGOCR(OCRExecutableEngine):
     engine_name="gocr"
 
-    def extract_text(self, pnmfile):
-        assert self.is_enabled(), "I'm not working!"
-        ocr = os.popen('%s "%s" 2>%s' %
-                       (self.program, pnmfile, os.path.devnull))
-        ret = ocr.read()
-        ocr.close()
-        return ret
+    def get_command_line(self, pnmfile):
+        return '%s "%s" 2>%s' % (self.program, pnmfile, os.path.devnull)
 
 # This lists all engines, with the first listed that is enabled winning.
 # Matched with the engine name, as specified in Options.py, via the
