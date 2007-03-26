@@ -51,16 +51,15 @@ py2exe_options = dict(
     excludes = "Tkinter," # side-effect of PIL and markh doesn't have it :)
                 "win32ui,pywin,pywin.debugger," # *sob* - these still appear
                 # Keep zope out else outlook users lose training.
-                # (sob - but some of these may still appear!)
-               "ZODB,_zope_interface_coptimizations,_OOBTree,cPersistence",
+               "ZODB,ZEO,zope,persistent,BTrees",
     includes = "dialogs.resources.dialogs,weakref," # Outlook dynamic dialogs
                "BmpImagePlugin,JpegImagePlugin", # PIL modules not auto found
     dll_excludes = "dapi.dll,mapi32.dll,"
                    "tk84.dll,tcl84.dll", # No Tkinter == no tk/tcl dlls
     typelibs = [
-        ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0),
-        ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1),
-        ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0),
+        ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, 'gen_py/outlook-9.py'),
+        ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, 'gen_py/office-9.py'),
+        ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, 'gen_py/addin-designer.py'),
     ]
 )
 
