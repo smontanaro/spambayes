@@ -51,9 +51,11 @@ Source: "py2exe\dist\bin\sb_imapfilter.exe"; DestDir: "{app}\bin"; Check: Instal
 
 Source: "py2exe\dist\bin\convert_database.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 
-; Include ocrad.exe and the patch required to get it to compile for Windows.
-Source: "py2exe\ocrad.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "py2exe\ocrad.patch"; DestDir: "{app}\docs"; Flags: ignoreversion
+; Include flavour-of-the-day OCR pacakge - currently gocr.
+; Get from the spambayes package directory - its likely to exist
+; there as the developer running a source version will have it there.
+Source: "..\spambayes\gocr.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\gocr.txt"; DestDir: "{app}\docs"; Flags: ignoreversion
 
 ; There is a problem attempting to get Inno to unregister our DLL.  If we mark our DLL
 ; as 'regserver', it installs and registers OK, but at uninstall time, it unregisters
