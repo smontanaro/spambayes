@@ -1093,8 +1093,8 @@ class MAPIMsgStoreMsg:
         from spambayes.ImageStripper import image_large_size_attribute
 
         # For now, we know these are the only 2 options that need attachments.
-        if not options['Tokenizer', 'x-crack_images'] and \
-           not options['Tokenizer', 'x-image_size']:
+        if not options['Tokenizer', 'crack_images'] and \
+           not options['Tokenizer', 'image_size']:
             return []
         try:
             table = self.mapi_object.GetAttachmentTable(0)

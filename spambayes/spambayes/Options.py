@@ -119,20 +119,20 @@ defaults = {
      dbm is untested, hence the default)."""),
      PATH, RESTORE),
 
-    ("x-image_size", _("Generate image size tokens"), False,
-     _("""(EXPERIMENTAL) If true, generate tokens based on the sizes of
+    ("image_size", _("Generate image size tokens"), False,
+     _("""If true, generate tokens based on the sizes of
      embedded images."""),
      BOOLEAN, RESTORE),
 
-    ("x-crack_images", _("Look inside images for text"), False,
-     _("""(EXPERIMENTAL) If true, generate tokens based on the
+    ("crack_images", _("Look inside images for text"), False,
+     _("""If true, generate tokens based on the
      (hopefully) text content contained in any images in each message.
      The current support is minimal, relies on the installation of
-     an OCR 'engine' (see x-ocr_engine.)"""),
+     an OCR 'engine' (see ocr_engine.)"""),
      BOOLEAN, RESTORE),
 
-    ("x-ocr_engine", _("OCR engine to use"), "",
-     _("""(EXPERIMENTAL) The name of the OCR engine to use.  If empty, all
+    ("ocr_engine", _("OCR engine to use"), "",
+     _("""The name of the OCR engine to use.  If empty, all
      supported engines will be checked to see if they are installed.
      Engines currently supported include ocrad
      (http://www.gnu.org/software/ocrad/ocrad.html) and gocr
