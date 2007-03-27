@@ -30,9 +30,15 @@ import re
 import traceback
 
 class DirOfTxtFileMailbox:
-
     """Directory of files each assumed to contain an RFC-822 message.
 
+    If the filename ends with ".emlx", assumes that the file is an
+    RFC-822 message wrapped in Apple Mail's proprietory .emlx format.
+    The emlx format is simply the length of the message (as a string
+    on the first line, then the raw message text, then the contents of
+    a plist (XML) file that contains data that Mail uses (subject,
+    flags, sender, and so forth).  We ignore this plist data).
+    
     Subdirectories are traversed recursively.
     """
 
@@ -46,6 +52,11 @@ class DirOfTxtFileMailbox:
             if os.path.isdir(name):
                 for mbox in DirOfTxtFileMailbox(name, self.factory):
                     yield mbox
+            elif os.path.splitext(name)[1] == ".emlx":
+                f = open(name)
+                length = int(f.readline().rstrip())
+                yield self.factory(f.read(length))
+                f.close()
             else:
                 try:
                     f = open(name)
