@@ -66,6 +66,7 @@ import os
 import sys
 import time
 import types
+import tempfile
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
 import cPickle as pickle
@@ -675,6 +676,7 @@ except ImportError:
         from ZODB import Persistent
     except ImportError:
         Persistent = object
+
 class _PersistentClassifier(classifier.Classifier, Persistent):
     def __init__(self):
         import ZODB
@@ -758,6 +760,7 @@ class ZODBClassifier(object):
             commit = ZODB.Transaction.get_transaction().commit
             abort = ZODB.Transaction.get_transaction().abort
         from ZODB.POSException import ConflictError
+        from ZODB.POSException import ReadOnlyError
         from ZODB.POSException import TransactionFailedError
 
         assert self.closed == False, "Can't store a closed database"
@@ -780,8 +783,11 @@ class ZODBClassifier(object):
             print >> sys.stderr, "Storing failed.  Need to restart.", \
                   self.db_name
             abort()
+        except ReadOnlyError:
+            print >> sys.stderr, "Can't store transaction to read-only db."
+            abort()
 
-    def close(self):
+    def close(self, pack=True, retain_backup=True):
         # Ensure that the db is saved before closing.  Alternatively, we
         # could abort any waiting transaction.  We need to do *something*
         # with it, though, or it will be still around after the db is
@@ -790,17 +796,15 @@ class ZODBClassifier(object):
         if self.mode != 'r':
             self.store()
 
-        # Do the closing.        
-        self.DB.close()
-
         # We don't make any use of the 'undo' capabilities of the
         # FileStorage at the moment, so might as well pack the database
         # each time it is closed, to save as much disk space as possible.
         # Pack it up to where it was 'yesterday'.
-        # XXX What is the 'referencesf' parameter for pack()?  It doesn't
-        # XXX seem to do anything according to the source.
-        if self.mode != 'r' and hasattr(self.storage, "pack"):
-            self.storage.pack(time.time()-60*60*24, None)
+        if pack and self.mode != 'r':
+            self.pack(time.time()-60*60*24, retain_backup)
+
+        # Do the closing.        
+        self.DB.close()
         self.storage.close()
 
         # Ensure that we cannot continue to use this classifier.
@@ -810,6 +814,19 @@ class ZODBClassifier(object):
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Closed', self.db_name, 'database'
 
+    def pack(self, t, retain_backup=True):
+        """Like FileStorage pack(), but optionally remove the .old
+        backup file that is created.  Often for our purposes we do
+        not care about being able to recover from this.  Also
+        ignore the referencesf parameter, which appears to not do
+        anything."""
+        if hasattr(self.storage, "pack"):
+            self.storage.pack(t, None)
+        if not retain_backup:
+            old_name = self.db_filename + ".old"
+            if os.path.exists(old_name):
+                os.remove(old_name)
+
 
 class ZEOClassifier(ZODBClassifier):
     def __init__(self, data_source_name):
@@ -817,13 +834,33 @@ class ZEOClassifier(ZODBClassifier):
         self.host = "localhost"
         self.port = None
         db_name = "SpamBayes"
+        self.username = ''
+        self.password = ''
+        self.storage_name = '1'
+        self.wait = None
+        self.wait_timeout = None
         for info in source_info:
             if info.startswith("host"):
-                self.host = info[5:]
+                try:
+                    # ZEO only accepts strings, not unicode.
+                    self.host = str(info[5:])
+                except UnicodeDecodeError, e:
+                    print >> sys.stderr, "Couldn't set host", \
+                          info[5:], str(e)
             elif info.startswith("port"):
                 self.port = int(info[5:])
             elif info.startswith("dbname"):
                 db_name = info[7:]
+            elif info.startswith("user"):
+                self.username = info[5:]
+            elif info.startswith("pass"):
+                self.password = info[5:]
+            elif info.startswith("storage_name"):
+                self.storage_name = info[13:]
+            elif info.startswith("wait_timeout"):
+                self.wait_timeout = int(info[13:])
+            elif info.startswith("wait"):
+                self.wait = info[5:] == "True"
         ZODBClassifier.__init__(self, db_name)
 
     def create_storage(self):
@@ -832,19 +869,54 @@ class ZEOClassifier(ZODBClassifier):
             addr = self.host, self.port
         else:
             addr = self.host
-        self.storage = ClientStorage(addr)
+        if options["globals", "verbose"]:
+            print >> sys.stderr, "Connecting to ZEO server", addr, \
+                  self.username, self.password
+        # Use persistent caches, with the cache in the temp directory.
+        # If the temp directory is cleared out, we lose the cache, but
+        # that doesn't really matter, and we should always be able to
+        # write to it.
+        try:
+            self.storage = ClientStorage(addr, name=self.db_name,
+                                         read_only=self.mode=='r',
+                                         username=self.username,
+                                         client=self.db_name,
+                                         wait=self.wait,
+                                         wait_timeout=self.wait_timeout,
+                                         storage=self.storage_name,
+                                         var=tempfile.gettempdir(),
+                                         password=self.password)
+        except ValueError:
+            # Probably bad cache; remove it and try without the cache.
+            try:
+                os.remove(os.path.join(tempfile.gettempdir(),
+                                       self.db_name + \
+                                       self.storage_name + ".zec"))
+            except OSError:
+                pass
+            self.storage = ClientStorage(addr, name=self.db_name,
+                                         read_only=self.mode=='r',
+                                         username=self.username,
+                                         wait=self.wait,
+                                         wait_timeout=self.wait_timeout,
+                                         storage=self.storage_name,
+                                         password=self.password)
+
+    def is_connected(self):
+        return self.storage.is_connected()
 
 
 # Flags that the Trainer will recognise.  These should be or'able integer
 # values (i.e. 1, 2, 4, 8, etc.).
 NO_TRAINING_FLAG = 1
 
-class Trainer:
+class Trainer(object):
     '''Associates a Classifier object and one or more Corpora, \
     is an observer of the corpora'''
 
     def __init__(self, bayes, is_spam, updateprobs=NO_UPDATEPROBS):
-        '''Constructor(Classifier, is_spam(True|False), updprobs(True|False)'''
+        '''Constructor(Classifier, is_spam(True|False),
+        updateprobs(True|False)'''
 
         self.bayes = bayes
         self.is_spam = is_spam
@@ -859,10 +931,9 @@ class Trainer:
         '''Train the database with the message'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'training with',message.key()
+            print >> sys.stderr, 'training with ', message.key()
 
         self.bayes.learn(message.tokenize(), self.is_spam)
-#                         self.updateprobs)
         message.setId(message.key())
         message.RememberTrained(self.is_spam)
 
