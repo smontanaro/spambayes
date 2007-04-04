@@ -518,6 +518,7 @@ class mySQLClassifier(SQLClassifier):
         self.username = "root"
         self.password = ""
         db_name = "spambayes"
+        self.charset = None
         source_info = data_source_name.split()
         for info in source_info:
             if info.startswith("host"):
@@ -528,6 +529,8 @@ class mySQLClassifier(SQLClassifier):
                 self.password = info[5:]
             elif info.startswith("dbname"):
                 db_name = info[7:]
+            elif info.startswith("charset"):
+                self.charset = info[8:]
         SQLClassifier.__init__(self, db_name)
 
     def cursor(self):
@@ -547,8 +550,12 @@ class mySQLClassifier(SQLClassifier):
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
-        self.db = MySQLdb.connect(host=self.host, db=self.db_name,
-                                  user=self.username, passwd=self.password)
+        params = {
+          'host': self.host, 'db': self.db_name,
+          'user': self.username, 'passwd': self.password,
+          'charset': self.charset
+        }
+        self.db = MySQLdb.connect(**params)
 
         c = self.cursor()
         try:
