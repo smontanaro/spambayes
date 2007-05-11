@@ -476,7 +476,7 @@ class PGClassifier(SQLClassifier):
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
-        self.db = psycopg.connect(self.db_name)
+        self.db = psycopg.connect('dbname=' + self.db_name)
 
         c = self.cursor()
         try:
@@ -767,8 +767,11 @@ class ZODBClassifier(object):
             commit = ZODB.Transaction.get_transaction().commit
             abort = ZODB.Transaction.get_transaction().abort
         from ZODB.POSException import ConflictError
+        try:
+            from ZODB.POSException import TransactionFailedError
+        except:
+            from ZODB.POSException import TransactionError as TransactionFailedError
         from ZODB.POSException import ReadOnlyError
-        from ZODB.POSException import TransactionFailedError
 
         assert self.closed == False, "Can't store a closed database"
 

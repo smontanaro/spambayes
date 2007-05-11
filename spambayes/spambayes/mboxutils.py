@@ -65,6 +65,14 @@ class DirOfTxtFileMailbox:
                 yield self.factory(f)
                 f.close()
 
+def full_messages(msgs):
+    """A generator that transforms each message by calling its
+    get_full_message() method.  Used for IMAP messages since they don't really
+    have their content by default.
+    """
+    for x in msgs:
+        yield x.get_full_message()
+    
 def _cat(seqs):
     for seq in seqs:
         for item in seq:
@@ -98,6 +106,38 @@ def getmbox(name):
         else:
             return _cat(mboxes)
 
+    elif name.startswith(":"):
+        # IMAP mailbox name:
+        #   :username:password@server:folder1,...folderN
+        #   :username:password@server:port:folder1,...folderN
+        #   :username:password@server:ALL
+        #   :username:password@server:port:ALL
+        parts = re.compile(
+':(?P<user>[^@:]+):(?P<pwd>[^@]+)@(?P<server>[^:]+(:[0-9]+)?):(?P<name>[^:]+)'
+        ).match(name).groupdict()
+        
+        from scripts.sb_imapfilter import IMAPSession, IMAPFolder
+        from spambayes import Stats, message
+        from spambayes.Options import options
+        
+        session = IMAPSession(parts['server'])
+        session.login(parts['user'], parts['pwd'])
+        folder_list = session.folder_list()
+        
+        if name == "ALL":
+            names = folder_list
+        else:
+            names = parts['name'].split(',')
+
+        message_db = message.Message().message_info_db
+        stats = Stats.Stats(options, message_db)
+        mboxes = [ IMAPFolder(n,session,stats) for n in names ]
+        
+        if len(mboxes) == 1:
+            return full_messages(mboxes[0])
+        else:
+            return _cat([full_messages(x) for x in mboxes])
+        
     if os.path.isdir(name):
         # XXX Bogus: use a Maildir if /cur is a subdirectory, else a MHMailbox
         # if the pathname contains /Mail/, else a DirOfTxtFileMailbox.

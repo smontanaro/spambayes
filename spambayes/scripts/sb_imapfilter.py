@@ -176,7 +176,17 @@ class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
 
     timeout = 60 # seconds
-    def __init__(self, server, port, debug=0, do_expunge=False):
+    def __init__(self, server, debug=0, do_expunge = options["imap", "expunge"] ):
+
+        if server.find(':') > -1:
+            server, port = server.split(':', 1)
+            port = int(port)
+        else:
+            if options["imap", "use_ssl"]:
+                port = 993
+            else:
+                port = 143
+                    
         # There's a tricky situation where if use_ssl is False, but we
         # try to connect to a IMAP over SSL server, we will just hang
         # forever, waiting for a response that will never come.  To
@@ -385,6 +395,7 @@ class IMAPSession(BaseIMAP):
     BODY_PEEK_RE = re.compile(r"(BODY\[\]) (\{[\d]+\})")
     RFC822_HEADER_RE = re.compile(r"(RFC822.HEADER) (\{[\d]+\})")
     UID_RE = re.compile(r"(UID) ([\d]+)")
+    UID_RE2 = re.compile(r" *(UID) ([\d]+)\)")
     FETCH_RESPONSE_RE = re.compile(r"([0-9]+) \(([" + \
                                    re.escape(FLAG_CHARS) + r"\"\{\}\(\)\\ ]*)\)?")
     LITERAL_RE = re.compile(r"^\{[\d]+\}$")
@@ -406,6 +417,9 @@ class IMAPSession(BaseIMAP):
 
         data = {}
         expected_literal = None
+        if self.UID_RE2.match(response[-1]):
+            response = response[:-1]
+            
         for part in response:
             # We ignore parentheses by themselves, for convenience.
             if part == ')':
@@ -720,6 +734,7 @@ class IMAPMessage(message.SBHeaderMessage):
             if data[0] is not None:
                 break
         else:
+            self.imap_server.print_log()
             raise BadIMAPResponseError("recent", "Cannot find saved message")
 
         # We need to update the UID, as it will have changed.
@@ -1075,6 +1090,24 @@ class IMAPFilter(object):
             print "Classifying took %.4f seconds." % (time.time() - t,)
 
 
+def servers(promptForPass = False):
+    """Returns a list containing a tuple (server,user,passwd) for each IMAP server in options.
+
+If promptForPass is True or at least on password is missing from options,
+prompts the user for each server's password.
+"""
+    
+    servers = options["imap", "server"]
+    usernames = options["imap", "username"]
+    pwds = options["imap", "password"]
+
+    if promptForPass or len(pwds) < len(usernames):
+        pwds = []
+        for u in usernames:
+            pwds.append(getpass("Enter password for %s:" % (u,)))
+            
+    return zip(servers,usernames,pwds)
+            
 def run(force_UI=False):
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:')
@@ -1089,8 +1122,6 @@ def run(force_UI=False):
     sleepTime = 0
     promptForPass = False
     launchUI = False
-    servers = ""
-    usernames = ""
 
     for opt, arg in opts:
         if opt == '-h':
@@ -1132,34 +1163,12 @@ def run(force_UI=False):
     if options["globals", "verbose"]:
         print "Done."
 
-    if options["imap", "server"]:
-        servers = options["imap", "server"]
-        usernames = options["imap", "username"]
-        if not promptForPass:
-            pwds = options["imap", "password"]
-    else:
-        pwds = None
-        if not launchUI and not force_UI:
-            print "You need to specify both a server and a username."
-            sys.exit()
+    if not ( launchUI or force_UI or options["imap", "server"] ):
+        print "You need to specify both a server and a username."
+        sys.exit()
 
-    if promptForPass:
-        pwds = []
-        for i in xrange(len(usernames)):
-            pwds.append(getpass("Enter password for %s:" % (usernames[i],)))
-
-    servers_data = []
-    for server, username, password in zip(servers, usernames, pwds or []):
-        if server.find(':') > -1:
-            server, port = server.split(':', 1)
-            port = int(port)
-        else:
-            if options["imap", "use_ssl"]:
-                port = 993
-            else:
-                port = 143
-        servers_data.append((server, port, username, password))
-
+    servers_data = servers(promptForPass)
+    
     # Load stats manager.
     stats = Stats.Stats(options, message_db)
     
@@ -1179,11 +1188,11 @@ def run(force_UI=False):
     # don't want to slow classification/training down, either.
     if sleepTime or not (doClassify or doTrain):
         imaps = []
-        for server, port, username, password in servers_data:
+        for server, username, password in servers_data:
             if server == "":
                 imaps.append(None)
             else:
-                imaps.append(IMAPSession(server, port, imapDebug, doExpunge))
+                imaps.append(IMAPSession(server, imapDebug, doExpunge))
 
         def close_db():
             message_db.store()
@@ -1200,6 +1209,7 @@ def run(force_UI=False):
             imap_filter = IMAPFilter(classifier, message_db)
 
         httpServer = UserInterfaceServer(options["html_ui", "port"])
+        pwds = [ x[2] for x in servers_data ]
         httpServer.register(IMAPUserInterface(classifier, imaps, pwds,
                                               IMAPSession, stats=stats,
                                               close_db=close_db,
@@ -1213,8 +1223,8 @@ def run(force_UI=False):
             Dibbler.run(launchBrowser=launchBrowser)
     if doClassify or doTrain:
         imaps = []
-        for server, port, username, password in servers_data:
-            imaps.append(((server, port, imapDebug, doExpunge),
+        for server, username, password in servers_data:
+            imaps.append(((server, imapDebug, doExpunge),
                           username, password))
 
         # In order to make working with multiple servers easier, we
@@ -1229,8 +1239,8 @@ def run(force_UI=False):
         # XXX via the web interface?  We need to handle that, really.
         options.set_restore_point()
         while True:
-            for (server, port, imapDebug, doExpunge), username, password in imaps:
-                imap = IMAPSession(server, port, imapDebug, doExpunge)
+            for (server, imapDebug, doExpunge), username, password in imaps:
+                imap = IMAPSession(server, imapDebug, doExpunge)
                 if options["globals", "verbose"]:
                     print "Account: %s:%s" % (imap.server, imap.port)
                 if imap.connected:
