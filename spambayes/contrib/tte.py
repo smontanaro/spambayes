@@ -227,7 +227,8 @@ def main(args):
                                    ["help", "good=", "spam=",
                                     "database=", "pickle=", "verbose",
                                     "option=", "max=", "maxrounds=",
-                                    "cullext=", "reverse", "ratio=", "unbalanced"])
+                                    "cullext=", "cull", "reverse",
+                                    "ratio=", "unbalanced"])
     except getopt.GetoptError, msg:
         usage(msg)
         return 1
@@ -250,7 +251,7 @@ def main(args):
             spam = arg
         elif opt in ("-c", "--cullext"):
             cullext = arg
-        elif opt in ("-C", "--cullext"):
+        elif opt in ("-C", "--cull"):
             cullext = ''
         elif opt in ("-m", "--max"):
             maxmsgs = int(arg)
