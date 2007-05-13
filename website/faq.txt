@@ -281,6 +281,17 @@ in the SpamBayes distribution for more information.
 Compatibility
 =============
 
+Does SpamBayes work on Windows Vista?
+-------------------------------------
+
+SpamBayes does work on Vista, though you will have to tweak the permissions
+on:
+
+    c:\\program files\\spambayes
+
+More details are available here:
+
+http://mail.python.org/pipermail/spambayes-bugs/2007-January/004119.html
 
 Does SpamBayes work with Outlook Express?
 -----------------------------------------
