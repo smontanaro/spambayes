@@ -265,6 +265,8 @@ class Hammie:
 
         self.bayes.store()
 
+    def close(self):
+        self.store()
 
 def open(filename, useDB="dbm", mode='r'):
     """Open a file, returning a Hammie instance.
