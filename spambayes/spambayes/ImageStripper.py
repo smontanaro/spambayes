@@ -142,7 +142,9 @@ def PIL_decode_parts(parts):
         try:
             image = Image.open(StringIO.StringIO(bytes))
             image.load()
-        except IOError:
+        except:
+            # Any error whatsoever is reason for not looking further at
+            # the image.
             tokens.add("invalid-image:%s" % part.get_content_type())
             continue
         else:
