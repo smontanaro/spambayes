@@ -293,6 +293,12 @@ More details are available here:
 
 http://mail.python.org/pipermail/spambayes-bugs/2007-January/004119.html
 
+Note that you will probably have to execute the installer with elevated
+privileges.  Right-clicking on the EXE and selecting "Run as Administrator"
+should work (and will be necessary even if you are logged in as an admin
+user).
+
+
 Does SpamBayes work with Outlook Express?
 -----------------------------------------
 

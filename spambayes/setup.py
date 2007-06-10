@@ -99,6 +99,7 @@ scripts=['scripts/sb_client.py',
          'scripts/sb_notesfilter.py',
          'scripts/sb_pop3dnd.py',
          'scripts/sb_server.py',
+         'scripts/core_server.py',
          'scripts/sb_unheader.py',
          'scripts/sb_upload.py',
          'scripts/sb_xmlrpcserver.py',
@@ -127,6 +128,7 @@ setup(
     packages = [
         'spambayes',
         'spambayes.resources',
+        'spambayes.core_resources',
         ],
     classifiers = [
         'Development Status :: 5 - Production/Stable',

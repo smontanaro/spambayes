@@ -79,6 +79,7 @@ import cgi
 import mailbox
 import types
 import StringIO
+from email.Iterators import typed_subpart_iterator
 
 import oe_mailbox
 
@@ -276,6 +277,7 @@ class UserInterface(BaseUserInterface):
         self.advanced_options_map = adv_parms
         self.stats = stats
         self.app_for_version = None # subclasses must fill this in
+        self.previous_sort = None
 
     def onClassify(self, file, text, which):
         """Classify an uploaded or pasted message."""
@@ -819,6 +821,8 @@ class UserInterface(BaseUserInterface):
                 pmap = self.advanced_options_map
             elif parms["how"] == _("Save experimental options"):
                 pmap = experimental_ini_map
+            elif parms["how"] == _("Save plugin options"):
+                pmap = self.plugin_ini_map
             del parms["how"]
         html = self._getHTMLClone()
         html.shutdownTableCell = "&nbsp;"
@@ -1250,3 +1254,195 @@ class UserInterface(BaseUserInterface):
             if cur_line:
                 lines.append(''.join(cur_line))
         return lines
+
+    def _keyToTimestamp(self, key):
+        """Given a message key (as seen in a Corpus), returns the timestamp
+        for that message.  This is the time that the message was received,
+        not the Date header."""
+        return long(key[:10])
+
+    def _getTimeRange(self, timestamp):
+        """Given a unix timestamp, returns a 3-tuple: the start timestamp
+        of the given day, the end timestamp of the given day, and the
+        formatted date of the given day."""
+        this = time.localtime(timestamp)
+        start = (this[0], this[1], this[2], 0, 0, 0, this[6], this[7], this[8])
+        end = time.localtime(time.mktime(start) + 36*60*60)
+        end = (end[0], end[1], end[2], 0, 0, 0, end[6], end[7], end[8])
+        date = time.strftime("%A, %B %d, %Y", start)
+        return time.mktime(start), time.mktime(end), date
+
+    def _sortMessages(self, messages, sort_order, reverse=False):
+        """Sorts the message by the appropriate attribute.  If this was the
+        previous sort order, then reverse it."""
+        if sort_order is None or sort_order == "received":
+            # Default sorting, which is in reverse order of appearance.
+            # This is complicated because the 'received' info is the key.
+            messages.sort()
+            if self.previous_sort == sort_order:
+                messages.reverse()
+                self.previous_sort = None
+            else:
+                self.previous_sort = 'received'
+            return messages
+        tmplist = [(getattr(x[1], sort_order), x) for x in messages]
+        tmplist.sort()
+        if reverse:
+            tmplist.reverse()
+        return [x for (key, x) in tmplist]
+
+    def _appendMessages(self, table, keyedMessageInfo, label, sort_order,
+                        reverse=False):
+        """Appends the rows of a table of messages to 'table'."""
+        stripe = 0
+
+        keyedMessageInfo = self._sortMessages(keyedMessageInfo, sort_order,
+                                              reverse)
+        nrows = options["html_ui", "rows_per_section"]
+        for key, messageInfo in keyedMessageInfo[:nrows]:
+            unused, unused, messageInfo.received = \
+                    self._getTimeRange(self._keyToTimestamp(key))
+            row = self.html.reviewRow.clone()
+            try:
+                score = messageInfo.score
+            except ValueError:
+                score = None
+            if label == _('Spam'):
+                if score is not None \
+                   and score > options["html_ui", "spam_discard_level"]:
+                    r_att = getattr(row, 'discard')
+                else:
+                    r_att = getattr(row, options["html_ui",
+                                           "default_spam_action"])
+            elif label == _('Ham'):
+                if score is not None \
+                   and score < options["html_ui", "ham_discard_level"]:
+                    r_att = getattr(row, 'discard')
+                else:
+                    r_att = getattr(row, options["html_ui",
+                                           "default_ham_action"])
+            else:
+                r_att = getattr(row, options["html_ui",
+                                           "default_unsure_action"])
+            setattr(r_att, "checked", 1)
+
+            row.optionalHeadersValues = '' # make way for real list
+            for header in options["html_ui", "display_headers"]:
+                header = header.lower()
+                text = getattr(messageInfo, "%sHeader" % (header,))
+                if header == "subject":
+                    # Subject is special, because it links to the body.
+                    # If the user doesn't display the subject, then there
+                    # is no link to the body.
+                    h = self.html.reviewRow.linkedHeaderValue.clone()
+                    h.text.title = messageInfo.bodySummary
+                    h.text.href = "view?key=%s&corpus=%s" % (key, label)
+                else:
+                    h = self.html.reviewRow.headerValue.clone()
+                h.text = text
+                row.optionalHeadersValues += h
+
+            # Apart from any message headers, we may also wish to display
+            # the message score, and the time the message was received.
+            if options["html_ui", "display_score"]:
+                if isinstance(messageInfo.score, types.StringTypes):
+                    # Presumably either "?" or "Err".
+                    row.score_ = messageInfo.score
+                else:
+                    row.score_ = "%.2f%%" % (messageInfo.score,)
+            else:
+                del row.score_
+            if options["html_ui", "display_received_time"]:
+                row.received_ = messageInfo.received
+            else:
+                del row.received_
+
+            # Many characters can't go in the URL or they cause problems
+            # (&, ;, ?, etc).  So we use the hex values for them all.
+            subj_list = []
+            for c in messageInfo.subjectHeader:
+                subj_list.append("%%%s" % (hex(ord(c))[2:],))
+            subj = "".join(subj_list)
+            row.classify.href = "showclues?key=%s&subject=%s" % (key, subj)
+            row.tokens.href = ("showclues?key=%s&subject=%s&tokens=1" %
+                               (key, subj))
+            setattr(row, 'class', ['stripe_on', 'stripe_off'][stripe]) # Grr!
+            setattr(row, 'onMouseOut',
+                    ["this.className='stripe_on';",
+                     "this.className='stripe_off';"][stripe])
+            row = str(row).replace('TYPE', label).replace('KEY', key)
+            table += row
+            stripe = stripe ^ 1
+
+    def _contains(self, a, b, ignore_case=False):
+        """Return true if substring b is part of string a."""
+        assert isinstance(a, types.StringTypes)
+        assert isinstance(b, types.StringTypes)
+        if ignore_case:
+            a = a.lower()
+            b = b.lower()
+        return a.find(b) >= 0
+
+    def _makeMessageInfo(self, message):
+        """Given an email.Message, return an object with subjectHeader,
+        bodySummary and other header (as needed) attributes.  These objects
+        are passed into appendMessages by onReview - passing email.Message
+        objects directly uses too much memory.
+        """
+        # Remove notations before displaying - see:
+        # [ 848365 ] Remove subject annotations from message review page
+        message.delNotations()
+        subjectHeader = message["Subject"] or "(none)"
+        headers = {"subject" : subjectHeader}
+        for header in options["html_ui", "display_headers"]:
+            headers[header.lower()] = (message[header] or "(none)")
+        score = message[options["Headers", "score_header_name"]]
+        if score:
+            # the score might have the log info at the end
+            op = score.find('(')
+            if op >= 0:
+                score = score[:op]
+            try:
+                score = float(score) * 100
+            except ValueError:
+                # Hmm.  The score header should only contain a floating
+                # point number.  What's going on here, then?
+                score = "Err"  # Let the user know something is wrong.
+        else:
+            # If the lookup fails, this means that the "include_score"
+            # option isn't activated. We have the choice here to either
+            # calculate it now, which is pretty inefficient, since we have
+            # already done so, or to admit that we don't know what it is.
+            # We'll go with the latter.
+            score = "?"
+        try:
+            part = typed_subpart_iterator(message, 'text', 'plain').next()
+            text = part.get_payload()
+        except StopIteration:
+            try:
+                part = typed_subpart_iterator(message, 'text', 'html').next()
+                text = part.get_payload()
+                text, unused = tokenizer.crack_html_style(text)
+                text, unused = tokenizer.crack_html_comment(text)
+                text = tokenizer.html_re.sub(' ', text)
+                text = _('(this message only has an HTML body)\n') + text
+            except StopIteration:
+                text = _('(this message has no text body)')
+        if type(text) == type([]):  # gotta be a 'right' way to do this
+            text = _("(this message is a digest of %s messages)") % (len(text))
+        elif text is None:
+            text = _("(this message has no body)")
+        else:
+            text = text.replace('&nbsp;', ' ')      # Else they'll be quoted
+            text = re.sub(r'(\s)\s+', r'\1', text)  # Eg. multiple blank lines
+            text = text.strip()
+
+        class _MessageInfo:
+            pass
+        messageInfo = _MessageInfo()
+        for headerName, headerValue in headers.items():
+            headerValue = self._trimHeader(headerValue, 45, True)
+            setattr(messageInfo, "%sHeader" % (headerName,), headerValue)
+        messageInfo.score = score
+        messageInfo.bodySummary = self._trimHeader(text, 200)
+        return messageInfo

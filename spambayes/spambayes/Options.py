@@ -652,6 +652,21 @@ defaults = {
      If this does not exist, it will be created."""),
      PATH, DO_NOT_RESTORE),
 
+    ("core_spam_cache", _("Spam cache directory"), "core-spam-cache",
+     _("""Directory that SpamBayes should cache spam in.  If this does
+     not exist, it will be created."""),
+     PATH, DO_NOT_RESTORE),
+
+    ("core_ham_cache", _("Ham cache directory"), "core-ham-cache",
+     _("""Directory that SpamBayes should cache ham in.  If this does
+     not exist, it will be created."""),
+     PATH, DO_NOT_RESTORE),
+
+    ("core_unknown_cache", _("Unknown cache directory"), "core-unknown-cache",
+     _("""Directory that SpamBayes should cache unclassified messages in.
+     If this does not exist, it will be created."""),
+     PATH, DO_NOT_RESTORE),
+
     ("cache_messages", _("Cache messages"), True,
      _("""You can disable the pop3proxy caching of messages.  This
      will make the proxy a bit faster, and make it use less space
@@ -1279,6 +1294,17 @@ defaults = {
      list (in order of preference)."""),
      r"\w\w(?:_\w\w)?", RESTORE),
   ),
+  "Plugin": (
+    ("xmlrpc_path", _("XML-RPC path"), "/sbrpc",
+     _("""The path to respond to."""),
+     r"[\w]+", RESTORE),
+    ("xmlrpc_host", _("XML-RPC host"), "localhost",
+     _("""The host to listen on."""),
+     SERVER, RESTORE),
+    ("xmlrpc_port", _("XML-RPC port"), 8001,
+     _("""The port to listen on."""),
+     r"[\d]+", RESTORE),
+    ),
 }
 
 # `optionsPathname` is the pathname of the last ini file in the list.

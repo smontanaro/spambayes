@@ -1,13 +1,12 @@
-"""POP3Proxy and SMTPProxy Web Interface
+"""Core Web Interface
 
 Classes:
-    ProxyUserInterface - Interface class for pop3proxy and smtpproxy
+    CoreUserInterface - Interface class for basic (non-plugin) display
 
 Abstract:
 
 This module implements a browser based Spambayes user interface for the
-POP3, IMAP4 SMTP proxies.  Users may use it to interface with the
-proxies.
+the core server.  Users may use it to interface with various plugins.
 
 The following functions are currently included:
 [From the base class UserInterface]
@@ -41,8 +40,8 @@ User interface improvements:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-# This module was once part of pop3proxy.py; if you are looking through
-# the history of the file, you may need to go back there.
+# This module was forked from ProxyUI.py to provide a basic user interface
+# for core_server.py.
 
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
@@ -53,6 +52,7 @@ except NameError:
     # Maintain compatibility with Python 2.2
     True, False = 1, 0
 
+import sys
 import cgi
 import time
 import types
@@ -71,31 +71,20 @@ except NameError:
         from spambayes.compatsets import Set
 
 import UserInterface
-from spambayes.Options import options, _
+from spambayes.Options import options, load_options, get_pathname_option, _
+## no i18n yet...
+##from spambayes import i18n
+from spambayes import storage
+from spambayes import Stats
+from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
+from spambayes.FileCorpus import ExpiryFileCorpus
+import spambayes.message
 
-state = None
-
-# These are the options that will be offered on the configuration page.
-# If the option is None, then the entry is a header and the following
-# options will appear in a new box on the configuration page.
-# These are also used to generate http request parameters and template
-# fields/variables.
+# These are the options that will be offered on the configuration page.  If
+# the option is None, then the entry is a header and the following options
+# will appear in a new box on the configuration page.  These are also used
+# to generate http request parameters and template fields/variables.
 parm_ini_map = (
-    ('POP3 Proxy Options',  None),
-    ('pop3proxy',           'remote_servers'),
-    ('pop3proxy',           'listen_ports'),
-#    ('IMAP4 Proxy Options',  None),
-#    ('imap4proxy',          'remote_servers'),
-#    ('imap4proxy',          'listen_ports'),
-    ('SMTP Proxy Options',  None),
-    ('smtpproxy',           'remote_servers'),
-    ('smtpproxy',           'listen_ports'),
-    ('smtpproxy',           'ham_address'),
-    ('smtpproxy',           'spam_address'),
-    ('smtpproxy',           'use_cached_message'),
-    ('Header Options',      None),
-    ('Headers',             'notate_to'),
-    ('Headers',             'notate_subject'),
     ('Storage Options',     None),
     ('Storage',             'persistent_storage_file'),
     ('Storage',             'messageinfo_storage_file'),
@@ -151,38 +140,34 @@ adv_map = (
     ('html_ui',               'http_authentication'),
     ('html_ui',               'http_user_name'),
     ('html_ui',               'http_password'),
-    ('pop3proxy',             'allow_remote_connections'),
-    ('smtpproxy',             'allow_remote_connections'),
     ('globals',               'language'),
-    (_('POP3 Proxy Options'), None),
-    ('pop3proxy',             'retrieval_timeout'),
 )
 
-class ProxyUserInterface(UserInterface.UserInterface):
-    """Serves the HTML user interface for the proxies."""
+class AlreadyRunningException(Exception):
+    "exception may be raised if we are already running and check such things."
+    pass
 
-    def __init__(self, proxy_state, state_recreator):
-        global state
-        UserInterface.UserInterface.__init__(self, proxy_state.bayes,
+class CoreUserInterface(UserInterface.UserInterface):
+    """Serves the HTML user interface for the core server."""
+
+    def __init__(self, state):
+        UserInterface.UserInterface.__init__(self, state.bayes,
                                              parm_ini_map, adv_map,
-                                             proxy_state.lang_manager,
-                                             proxy_state.stats)
-        state = proxy_state
-        self.state_recreator = state_recreator # ugly
+                                             state.lang_manager,
+                                             state.stats)
+        self.state = state
         self.app_for_version = "SpamBayes Proxy"
-        if not proxy_state.can_stop:
+        if not state.can_stop:
             self.html._readonly = False
             self.html.shutdownTableCell = "&nbsp;"
             self.html._readonly = True
 
     def onHome(self):
         """Serve up the homepage."""
-        state.buildStatusStrings()
-        stateDict = state.__dict__.copy()
-        stateDict.update(state.bayes.__dict__)
+        self.state.buildStatusStrings()
+        stateDict = self.state.__dict__.copy()
+        stateDict.update(self.state.bayes.__dict__)
         statusTable = self.html.statusTable.clone()
-        if not state.servers:
-            statusTable.proxyDetails = _("No POP3 proxies running.<br/>")
         findBox = self._buildBox(_('Word query'), 'query.gif',
                                  self.html.wordQuery)
         if not options["html_ui", "display_adv_find"]:
@@ -201,17 +186,17 @@ class ProxyUserInterface(UserInterface.UserInterface):
         self.write(content)
         self._writePostamble(help_topic="home_proxy")
 
-    def onUpload(self, file):
+    def onUpload(self, filename):
         """Save a message for later training - used by Skip's proxytee.py."""
         # Convert platform-specific line endings into unix-style.
-        file = file.replace('\r\n', '\n').replace('\r', '\n')
+        filename = filename.replace('\r\n', '\n').replace('\r', '\n')
 
         # Get a message list from the upload and write it into the cache.
-        messages = self._convertUploadToMessageList(file)
+        messages = self._convertUploadToMessageList(filename)
         for m in messages:
-            messageName = state.getNewMessageName()
-            message = state.unknownCorpus.makeMessage(messageName, m)
-            state.unknownCorpus.addMessage(message)
+            messageName = self.state.getNewMessageName()
+            message = self.state.unknownCorpus.makeMessage(messageName, m)
+            self.state.unknownCorpus.addMessage(message)
 
         # Return a link Home.
         self.write(_("<p>OK. Return <a href='home'>Home</a>.</p>"))
@@ -223,7 +208,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         page or zero if there isn't one, likewise the start of the given page,
         and likewise the start of the next page."""
         # Fetch all the message keys
-        allKeys = state.unknownCorpus.keys()
+        allKeys = self.state.unknownCorpus.keys()
         # We have to sort here to split into days.
         # Later on, we also sort the messages that will be on the page
         # (by whatever column we wish).
@@ -268,16 +253,16 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 if key.startswith('classify:'):
                     old_class, id = key.split(':')[1:3]
                     if value == _('spam'):
-                        targetCorpus = state.spamCorpus
+                        targetCorpus = self.state.spamCorpus
                         stats_as_ham = False
                     elif value == _('ham'):
-                        targetCorpus = state.hamCorpus
+                        targetCorpus = self.state.hamCorpus
                         stats_as_ham = True
                     elif value == _('discard'):
                         targetCorpus = None
                         try:
-                            state.unknownCorpus.removeMessage(\
-                                state.unknownCorpus[id])
+                            self.state.unknownCorpus.removeMessage(
+                                self.state.unknownCorpus[id])
                         except KeyError:
                             pass  # Must be a reload.
                     else: # defer
@@ -285,12 +270,12 @@ class ProxyUserInterface(UserInterface.UserInterface):
                         numDeferred += 1
                     if targetCorpus:
                         sourceCorpus = None
-                        if state.unknownCorpus.get(id) is not None:
-                            sourceCorpus = state.unknownCorpus
-                        elif state.hamCorpus.get(id) is not None:
-                            sourceCorpus = state.hamCorpus
-                        elif state.spamCorpus.get(id) is not None:
-                            sourceCorpus = state.spamCorpus
+                        if self.state.unknownCorpus.get(id) is not None:
+                            sourceCorpus = self.state.unknownCorpus
+                        elif self.state.hamCorpus.get(id) is not None:
+                            sourceCorpus = self.state.hamCorpus
+                        elif self.state.spamCorpus.get(id) is not None:
+                            sourceCorpus = self.state.spamCorpus
                         if sourceCorpus is not None:
                             try:
                                 # fromCache is a fix for sf #851785.
@@ -319,7 +304,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
 
         title = ""
         keys = []
-        sourceCorpus = state.unknownCorpus
+        sourceCorpus = self.state.unknownCorpus
         # If any messages were deferred, show the same page again.
         if numDeferred > 0:
             start = self._keyToTimestamp(id)
@@ -364,19 +349,20 @@ class ProxyUserInterface(UserInterface.UserInterface):
             else:
                 if len(keys) < max_results and \
                    params.has_key('id'):
-                    if state.unknownCorpus.get(key):
-                        push((key, state.unknownCorpus))
-                    elif state.hamCorpus.get(key):
-                        push((key, state.hamCorpus))
-                    elif state.spamCorpus.get(key):
-                        push((key, state.spamCorpus))
+                    if self.state.unknownCorpus.get(key):
+                        push((key, self.state.unknownCorpus))
+                    elif self.state.hamCorpus.get(key):
+                        push((key, self.state.hamCorpus))
+                    elif self.state.spamCorpus.get(key):
+                        push((key, self.state.spamCorpus))
                 if params.has_key('subject') or params.has_key('body') or \
                    params.has_key('headers'):
                     # This is an expensive operation, so let the user know
                     # that something is happening.
                     self.write(_('<p>Searching...</p>'))
-                    for corp in [state.unknownCorpus, state.hamCorpus,
-                                   state.spamCorpus]:
+                    for corp in [self.state.unknownCorpus,
+                                 self.state.hamCorpus,
+                                 self.state.spamCorpus]:
                         for k in corp.keys():
                             if len(keys) >= max_results:
                                 break
@@ -437,7 +423,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             if isinstance(key, types.TupleType):
                 key, sourceCorpus = key
             else:
-                sourceCorpus = state.unknownCorpus
+                sourceCorpus = self.state.unknownCorpus
             # Parse the message, get the judgement header and build a message
             # info object for each message.
             message = sourceCorpus[key]
@@ -532,18 +518,19 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             parent=('review', _('Review')))
         sourceCorpus = None
         message = None
-        if state.unknownCorpus.get(key) is not None:
-            sourceCorpus = state.unknownCorpus
-        elif state.hamCorpus.get(key) is not None:
-            sourceCorpus = state.hamCorpus
-        elif state.spamCorpus.get(key) is not None:
-            sourceCorpus = state.spamCorpus
+        if self.state.unknownCorpus.get(key) is not None:
+            sourceCorpus = self.state.unknownCorpus
+        elif self.state.hamCorpus.get(key) is not None:
+            sourceCorpus = self.state.hamCorpus
+        elif self.state.spamCorpus.get(key) is not None:
+            sourceCorpus = self.state.spamCorpus
         if sourceCorpus is not None:
             message = sourceCorpus.get(key)
         if message is not None:
             self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
         else:
-            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") % key)
+            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") %
+                       key)
         self._writePostamble()
 
     def onShowclues(self, key, subject, tokens='0'):
@@ -553,39 +540,49 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             parent=('review', _('Review')))
         sourceCorpus = None
         message = None
-        if state.unknownCorpus.get(key) is not None:
-            sourceCorpus = state.unknownCorpus
-        elif state.hamCorpus.get(key) is not None:
-            sourceCorpus = state.hamCorpus
-        elif state.spamCorpus.get(key) is not None:
-            sourceCorpus = state.spamCorpus
+        if self.state.unknownCorpus.get(key) is not None:
+            sourceCorpus = self.state.unknownCorpus
+        elif self.state.hamCorpus.get(key) is not None:
+            sourceCorpus = self.state.hamCorpus
+        elif self.state.spamCorpus.get(key) is not None:
+            sourceCorpus = self.state.spamCorpus
         if sourceCorpus is not None:
             message = sourceCorpus.get(key).as_string()
         if message is not None:
-            message = message.replace('\r\n', '\n').replace('\r', '\n') # For Macs
+            # For Macs?
+            message = message.replace('\r\n', '\n').replace('\r', '\n')
             results = self._buildCluesTable(message, subject, tokens)
             del results.classifyAnother
             self.write(results)
         else:
-            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") % key)
+            self.write(_("<p>Can't find message %r. Maybe it expired.</p>") %
+                       key)
         self._writePostamble()
 
+    def onPluginconfig(self):
+        html = self._buildConfigPage(self.plugin.plugin_map)
+        html.title = _('Home &gt; Plugin Configuration')
+        html.pagename = _('&gt; Plugin Configuration')
+        html.plugin_button.name.value = _("Back to basic configuration")
+        html.plugin_button.action = "config"
+        html.config_submit.value = _("Save plugin options")
+        html.restore.value = _("Restore plugin options defaults")
+        del html.exp_button
+        del html.adv_button
+        self.writeOKHeaders('text/html')
+        self.write(html)
+
     def close_database(self):
-        state.close()
+        self.state.close()
 
     def reReadOptions(self):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
-        # Re-read the options.
-        global state
-        import Options
-        Options.load_options()
-        global options
-        from Options import options
+        load_options()
 
         # Recreate the state.
-        state = self.state_recreator()
-        self.classifier = state.bayes
+        self.state = self.state.recreate_state()
+        self.classifier = self.state.bayes
 
     def verifyInput(self, parms, pmap):
         '''Check that the given input is valid.'''
@@ -596,38 +593,308 @@ class ProxyUserInterface(UserInterface.UserInterface):
         if pmap != parm_ini_map:
             return errmsg
 
-        # check for equal number of pop3servers and ports
-        slist = list(parms['pop3proxy_remote_servers'])
-        plist = list(parms['pop3proxy_listen_ports'])
-        if len(slist) != len(plist):
-            errmsg += _('<li>The number of POP3 proxy ports specified ' \
-                        'must match the number of servers specified</li>\n')
-
-        # check for duplicate ports
-        plist.sort()
-        for p in range(len(plist)-1):
-            try:
-                if plist[p] == plist[p+1]:
-                    errmsg += _('<li>All POP3 port numbers must be unique</li>')
-                    break
-            except IndexError:
-                pass
-
-        # check for equal number of smtpservers and ports
-        slist = list(parms['smtpproxy_remote_servers'])
-        plist = list(parms['smtpproxy_listen_ports'])
-        if len(slist) != len(plist):
-            errmsg += _('<li>The number of SMTP proxy ports specified ' \
-                        'must match the number of servers specified</li>\n')
-
-        # check for duplicate ports
-        plist.sort()
-        for p in range(len(plist)-1):
-            try:
-                if plist[p] == plist[p+1]:
-                    errmsg += _('<li>All SMTP port numbers must be unique</li>')
-                    break
-            except IndexError:
-                pass
-
         return errmsg
+
+    def readUIResources(self):
+        """Returns ui.html and a dictionary of Gifs."""
+        if self.lang_manager:
+            ui_html = self.lang_manager.import_ui_html()
+        else:
+            from spambayes.core_resources import ui_html
+        images = {}
+        for baseName in UserInterface.IMAGES:
+            moduleName = '%s.%s_gif' % ('spambayes.core_resources', baseName)
+            module = __import__(moduleName, {}, {}, ('spambayes',
+                                                     'core_resources'))
+            images[baseName] = module.data
+        return ui_html.data, images
+
+class CoreState:
+    """This keeps the global state of the module - the command-line options,
+    statistics like how many mails have been classified, the handle of the
+    log file, the Classifier and FileCorpus objects, and so on."""
+
+    def __init__(self):
+        """Initialises the State object that holds the state of the app.
+        The default settings are read from Options.py and bayescustomize.ini
+        and are then overridden by the command-line processing code in the
+        __main__ code below."""
+        self.log_file = None
+        self.bayes = None
+        self.mutex = None
+        self.prepared = False
+        self.can_stop = True
+        self.plugin = None
+
+        # Unique names for cached messages - see `getNewMessageName()` below.
+        self.last_base_message_name = ''
+        self.uniquifier = 2
+
+        # Set up the statistics.
+        self.numSpams = 0
+        self.numHams = 0
+        self.numUnsure = 0
+
+        self.servers = ""
+
+        # Load up the other settings from Option.py / bayescustomize.ini
+        self.ui_port = options["html_ui", "port"]
+        self.launch_ui = options["html_ui", "launch_browser"]
+        self.gzip_cache = options["Storage", "cache_use_gzip"]
+        self.run_test_server = False
+        self.is_test = False
+
+        self.spamCorpus = self.hamCorpus = self.unknownCorpus = None
+        self.spam_trainer = self.ham_trainer = None
+
+        self.init()
+
+    def init(self):
+        assert not self.prepared, "init after prepare, but before close"
+## no i18n yet...
+##         # Load the environment for translation.
+##         self.lang_manager = i18n.LanguageManager()
+##         # Set the system user default language.
+##         self.lang_manager.set_language(\
+##             self.lang_manager.locale_default_lang())
+##         # Set interface to use the user language in the configuration file.
+##         for language in reversed(options["globals", "language"]):
+##             # We leave the default in there as the last option, to fall
+##             # back on if necessary.
+##             self.lang_manager.add_language(language)
+##         if options["globals", "verbose"]:
+##             print "Asked to add languages: " + \
+##                   ", ".join(options["globals", "language"])
+##             print "Set language to " + \
+##                   str(self.lang_manager.current_langs_codes)
+        self.lang_manager = None
+
+        # Open the log file.
+        if options["globals", "verbose"]:
+            self.log_file = open('_core_server.log', 'wb', 0)
+
+        # Remember reported errors.
+        self.reported_errors = {}
+
+    def close(self):
+        assert self.prepared, "closed without being prepared!"
+        if self.bayes is not None:
+            # Only store a non-empty db.
+            if self.bayes.nham != 0 and self.bayes.nspam != 0:
+                self.bayes.store()
+            self.bayes.close()
+            self.bayes = None
+        spambayes.message.Message().message_info_db = None
+
+        self.spamCorpus = self.hamCorpus = self.unknownCorpus = None
+        self.spam_trainer = self.ham_trainer = None
+
+        self.prepared = False
+        self.close_platform_mutex()
+
+    def prepare(self, can_stop=True):
+        """Do whatever needs to be done to prepare for running.  If
+        can_stop is False, then we may not let the user shut down the
+        proxy - for example, running as a Windows service this should
+        be the case."""
+
+        self.init()
+        # If we can, prevent multiple servers from running at the same time.
+        assert self.mutex is None, "Should not already have the mutex"
+        self.open_platform_mutex()
+
+        self.can_stop = can_stop
+
+        # Do whatever we've been asked to do...
+        self.create_workers()
+        self.prepared = True
+
+    def build_status_strings(self):
+        """Build the status message(s) to display on the home page of the
+        web interface."""
+        nspam = self.bayes.nspam
+        nham = self.bayes.nham
+        if nspam > 10 and nham > 10:
+            db_ratio = nham/float(nspam)
+            if db_ratio > 5.0:
+                self.warning = _("Warning: you have much more ham than " \
+                                 "spam - SpamBayes works best with " \
+                                 "approximately even numbers of ham and " \
+                                 "spam.")
+            elif db_ratio < (1/5.0):
+                self.warning = _("Warning: you have much more spam than " \
+                                 "ham - SpamBayes works best with " \
+                                 "approximately even numbers of ham and " \
+                                 "spam.")
+            else:
+                self.warning = ""
+        elif nspam > 0 or nham > 0:
+            self.warning = _("Database only has %d good and %d spam - " \
+                             "you should consider performing additional " \
+                             "training.") % (nham, nspam)
+        else:
+            self.warning = _("Database has no training information.  " \
+                             "SpamBayes will classify all messages as " \
+                             "'unsure', ready for you to train.")
+        # Add an additional warning message if the user's thresholds are
+        # truly odd.
+        spam_cut = options["Categorization", "spam_cutoff"]
+        ham_cut = options["Categorization", "ham_cutoff"]
+        if spam_cut < 0.5:
+            self.warning += _("<br/>Warning: we do not recommend " \
+                              "setting the spam threshold less than 0.5.")
+        if ham_cut > 0.5:
+            self.warning += _("<br/>Warning: we do not recommend " \
+                              "setting the ham threshold greater than 0.5.")
+        if ham_cut > spam_cut:
+            self.warning += _("<br/>Warning: your ham threshold is " \
+                              "<b>higher</b> than your spam threshold. " \
+                              "Results are unpredictable.")
+
+    def create_workers(self):
+        """Using the options that were initialised in __init__ and then
+        possibly overridden by the driver code, create the Bayes object,
+        the Corpuses, the Trainers and so on."""
+        if self.is_test:
+            self.use_db = "pickle"
+            self.db_name = '_core_server.pickle'   # This is never saved.
+        if not hasattr(self, "db_name"):
+            self.db_name, self.use_db = storage.database_type([])
+        self.bayes = storage.open_storage(self.db_name, self.use_db)
+
+        # Load stats manager.
+        self.stats = Stats.Stats(options,
+                                 spambayes.message.Message().message_info_db)
+
+        self.build_status_strings()
+
+        # Don't set up the caches and training objects when running the
+        # self-test, so as not to clutter the filesystem.
+        if not self.is_test:
+            # Create/open the Corpuses.  Use small cache sizes to avoid
+            # hogging lots of memory.
+            sc = get_pathname_option("Storage", "core_spam_cache")
+            hc = get_pathname_option("Storage", "core_ham_cache")
+            uc = get_pathname_option("Storage", "core_unknown_cache")
+            for d in [sc, hc, uc]:
+                storage.ensureDir(d)
+            if self.gzip_cache:
+                factory = GzipFileMessageFactory()
+            else:
+                factory = FileMessageFactory()
+            age = options["Storage", "cache_expiry_days"]*24*60*60
+            self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
+                                               '[0123456789\-]*',
+                                               cacheSize=20)
+            self.hamCorpus = ExpiryFileCorpus(age, factory, hc,
+                                              '[0123456789\-]*',
+                                              cacheSize=20)
+            self.unknownCorpus = ExpiryFileCorpus(age, factory, uc,
+                                                  '[0123456789\-]*',
+                                                  cacheSize=20)
+
+            # Given that (hopefully) users will get to the stage
+            # where they do not need to do any more regular training to
+            # be satisfied with spambayes' performance, we expire old
+            # messages from not only the trained corpora, but the unknown
+            # as well.
+            self.spamCorpus.removeExpiredMessages()
+            self.hamCorpus.removeExpiredMessages()
+            self.unknownCorpus.removeExpiredMessages()
+
+            # Create the Trainers.
+            self.spam_trainer = storage.SpamTrainer(self.bayes)
+            self.ham_trainer = storage.HamTrainer(self.bayes)
+            self.spamCorpus.addObserver(self.spam_trainer)
+            self.hamCorpus.addObserver(self.ham_trainer)
+
+    def getNewMessageName(self):
+        """The message name is the time it arrived with a uniquifier
+        appended if two arrive within one clock tick of each other.
+        """
+        message_name = "%10.10d" % long(time.time())
+        if message_name == self.last_base_message_name:
+            message_name = "%s-%d" % (message_name, self.uniquifier)
+            self.uniquifier += 1
+        else:
+            self.last_base_message_name = message_name
+            self.uniquifier = 2
+        return message_name
+
+    def record_classification(self, cls, score):
+        """Record the classification in the session statistics.
+
+        cls should match one of the options["Headers", "header_*_string"]
+        values.
+
+        score is the score the message received.        
+        """
+        if cls == options["Headers", "header_ham_string"]:
+            self.numHams += 1
+        elif cls == options["Headers", "header_spam_string"]:
+            self.numSpams += 1
+        else:
+            self.numUnsure += 1
+        self.stats.RecordClassification(score)
+
+    def buildStatusStrings(self):
+        return ""
+
+    def recreate_state(self):
+        if self.prepared:    
+            # Close the state (which saves if necessary)
+            self.close()
+        # And get a new one going.
+        state = CoreState()
+
+        state.prepare()
+        return state
+
+    def open_platform_mutex(self, mutex_name="SpamBayesServer"):
+        """Implementations of a mutex or other resource which can prevent
+        multiple servers starting at once.  Platform specific as no
+        reasonable cross-platform solution exists (however, an old trick is
+        to use a directory for a mutex, as a create/test atomic API
+        generally exists).  Will set self.mutex or may throw
+        AlreadyRunningException
+        """
+
+        if sys.platform.startswith("win"):
+            try:
+                import win32event, win32api, winerror
+                # ideally, the mutex name could include either the username,
+                # or the munged path to the INI file - this would mean we
+                # would allow multiple starts so long as they weren't for
+                # the same user.  However, as of now, the service version
+                # is likely to start as a different user, so a single mutex
+                # is best for now.
+                # XXX - even if we do get clever with another mutex name, we
+                # should consider still creating a non-exclusive
+                # "SpamBayesServer" mutex, if for no better reason than so
+                # an installer can check if we are running
+                try:
+                    hmutex = win32event.CreateMutex(None, True, mutex_name)
+                except win32event.error, details:
+                    # If another user has the mutex open, we get an "access
+                    # denied" error - this is still telling us what we need
+                    # to know.
+                    if details[0] != winerror.ERROR_ACCESS_DENIED:
+                        raise
+                    raise AlreadyRunningException
+                # mutex opened - now check if we actually created it.
+                if win32api.GetLastError()==winerror.ERROR_ALREADY_EXISTS:
+                    win32api.CloseHandle(hmutex)
+                    raise AlreadyRunningException
+                self.mutex = hmutex
+                return
+            except ImportError:
+                # no win32all - no worries, just start
+                pass
+        self.mutex = None
+
+    def close_platform_mutex(self):
+        """Toss out the current mutex."""
+        if sys.platform.startswith("win"):
+            if self.mutex is not None:
+                self.mutex.Close()
+        self.mutex = None

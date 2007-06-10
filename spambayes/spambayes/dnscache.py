@@ -22,9 +22,12 @@ except ImportError:
 from spambayes.Options import options
 
 kCheckForPruneEvery=20
-kMaxTTL=60 * 60 * 24 * 7 # One week
-kPruneThreshold=1500 # May go over slightly; numbers chosen at random
-kPruneDownTo=1000
+kMaxTTL=60 * 60 * 24 * 7                # One week
+# Some servers always return a TTL of zero.  We'll hold onto data a bit
+# longer.
+kMinTTL=24 * 60 * 60 * 1                # one day
+kPruneThreshold=5000 # May go over slightly; numbers chosen at random
+kPruneDownTo=2500
 
 
 class lookupResult(object):
@@ -87,11 +90,6 @@ class cache:
 
         # How long to wait for the server
         self.dnsTimeout=10
-
-        # Some servers always return a TTL of zero.
-        # In those cases, turning this up a bit is
-        # probably reasonable.
-        self.minTTL=0
 
         # end of user-settable attributes
 
@@ -159,7 +157,7 @@ class cache:
             answer=allAnswers.pop()
             c=self.caches[answer.qType]
             c[answer.question].remove(answer)
-            if len(c[answer.question])==0:
+            if  not c[answer.question]:
                 del c[answer.question]
 
         if options["globals", "verbose"]:
@@ -179,7 +177,7 @@ class cache:
             answer=allAnswers.pop()
             c=self.caches[answer.qType]
             c[answer.question].remove(answer)
-            if len(c[answer.question])==0:
+            if not c[answer.question]:
                 del c[answer.question]
 
         return None
@@ -217,18 +215,20 @@ class cache:
         except KeyError:
             pass
         else:
-            assert len(answers)>0
-            ind=0
-            # No guarantee that expire has already been done
-            while ind<len(answers):
-                thisAnswer=answers[ind]
-                if thisAnswer.expiresAt<now:
-                    del answers[ind]
-                else:
-                    thisAnswer.lastUsed=now
-                    ind+=1
+            if answers:
+                ind=0
+                # No guarantee that expire has already been done
+                while ind<len(answers):
+                    thisAnswer=answers[ind]
+                    if thisAnswer.expiresAt<now:
+                        del answers[ind]
+                    else:
+                        thisAnswer.lastUsed=now
+                        ind+=1
+            else:
+                print >> sys.stderr, "lookup failure:", question
 
-            if len(answers)==0:
+            if not answers:
                 del cacheToLookIn[question]
             else:
                 self.hits+=1
@@ -249,28 +249,28 @@ class cache:
             reply=self.queryObj.req(queryQuestion,qtype=qType,timeout=self.dnsTimeout)
         except DNS.Base.DNSError,detail:
             if detail.args[0]<>"Timeout":
-                print "Error, fixme",detail
-                print "Question was",queryQuestion
-                print "Origianal question was",question
-                print "Type was",qType
+                print >> sys.stderr, "Error, fixme", detail
+                print >> sys.stderr, "Question was", queryQuestion
+                print >> sys.stderr, "Original question was", question
+                print >> sys.stderr, "Type was", qType
             objs=[ lookupResult(qType,None,question,self.cacheErrorSecs+now,now) ]
             cacheToLookIn[question]=objs # Add to format for return?
             return self.formatForReturn(objs)
         except socket.gaierror,detail:
-            print "DNS connection failure:", self.queryObj.ns, detail
-            print "Defaults:", DNS.defaults
+            print >> sys.stderr, "DNS connection failure:", self.queryObj.ns, detail
+            print >> sys.stderr, "Defaults:", DNS.defaults
 
         objs=[]
         for answer in reply.answers:
             if answer["typename"]==qType:
-                # PyDNS returns TTLs as longs but RFC 1035 says that the
-                # TTL value is a signed 32-bit value and must be positive,
-                # so it should be safe to coerce it to a Python integer.
-                # And anyone who sets a time to live of more than 2^31-1
-                # seconds (68 years and change) is drunk.
-                # Arguably, I ought to impose a maximum rather than continuing
-                # with longs (int(long) returns long in recent versions of Python).
-                ttl=max(min(int(answer["ttl"]),kMaxTTL),self.minTTL)
+                # PyDNS returns TTLs as longs but RFC 1035 says that the TTL
+                # value is a signed 32-bit value and must be positive, so it
+                # should be safe to coerce it to a Python integer.  And
+                # anyone who sets a time to live of more than 2^31-1 seconds
+                # (68 years and change) is drunk.  Arguably, I ought to
+                # impose a maximum rather than continuing with longs
+                # (int(long) returns long in recent versions of Python).
+                ttl=max(min(int(answer["ttl"]),kMaxTTL),kMinTTL)
                 # RFC 2308 says that you should cache an NXDOMAIN for the
                 # minimum of the minimum field of the SOA record and the TTL
                 # of the SOA.
@@ -278,12 +278,12 @@ class cache:
                     item=lookupResult(qType,answer["data"],question,ttl+now,now)
                     objs.append(item)
 
-        if len(objs)>0:
+        if objs:
             cacheToLookIn[question]=objs
             return self.formatForReturn(objs)
 
         # Probably SERVFAIL or the like
-        if len(reply.authority)==0:
+        if not reply.authority:
             objs=[ lookupResult(qType,None,question,self.cacheErrorSecs+now,now) ]
             cacheToLookIn[question]=objs
             return self.formatForReturn(objs)
@@ -318,24 +318,24 @@ def main():
     for host in ["www.python.org", "www.timsbloggers.com",
                  "www.seeputofor.com", "www.completegarbage.tv",
                  "www.tradelinkllc.com"]:
-        print "checking", host
+        print >> sys.stderr, "checking", host
         now=time.time()
         ips=c.lookup(host)
-        print ips,time.time()-now
+        print >> sys.stderr, ips,time.time()-now
         now=time.time()
         ips=c.lookup(host)
-        print ips,time.time()-now
+        print >> sys.stderr, ips,time.time()-now
 
         if ips:
             ip=ips[0]
             now=time.time()
             name=c.lookup(ip,qType="PTR")
-            print name,time.time()-now
+            print >> sys.stderr, name,time.time()-now
             now=time.time()
             name=c.lookup(ip,qType="PTR")
-            print name,time.time()-now
+            print >> sys.stderr, name,time.time()-now
         else:
-            print "unknown"
+            print >> sys.stderr, "unknown"
 
     c.close()
 

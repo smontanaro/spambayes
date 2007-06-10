@@ -1,0 +1,732 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title id="title">SpamBayes Core Server User Interface</title>
+<meta http-equiv="Cache" content="no-cache" />
+<meta http-equiv="Expires" content="Thu, 01 Jan 1970 00:00:00 GMT" />
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate, no-store" />
+<style>
+body { font: 90% arial, swiss, helvetica; margin: 0 }
+table { font: 90% arial, swiss, helvetica }
+form { margin: 0 }
+
+a:link { color: #0000c0 }
+a:visited { color: #0000c0 }
+a:hover { color: #6040ff }
+.content a { font-weight: bold }
+.viewlink a { font-weight: normal }
+
+.banner { background: #c0e0ff; padding=5; padding-left: 15;
+          border-top: 1px solid black;
+          border-bottom: 1px solid black }
+.header { font-size: 133% }
+.content { margin: 15 }
+.messagetable td { padding-left: 1ex; padding-right: 1ex }
+.sectiontable { border: 1px solid #808080; width: 95% }
+.sectionheading { background: #fffae0; padding-left: 1ex;
+                  border-bottom: 1px solid #808080;
+                  font-weight: bold }
+.sectionbody { padding: 10px }
+
+.reviewheaders a:link { color: #000000 }
+.reviewheaders a:visited { color: #000000 }
+.viewlink a:link { color: #000000 }
+.viewlink a:visited { color: #000000 }
+
+.stripe_on td { background: #ececec }
+.highlight_on td { background: #00ccff }
+
+.uiHtmlHeader { font-size: 120%; color: #800000; font-weight: bold }
+</style>
+</head>
+
+<body id="body">
+
+    <div class='banner'>
+    <span id="helmet"><img src='helmet.gif' align='absmiddle'/>&nbsp;</span>
+    <span class='header'>
+        <span id="productName">SpamBayes Web Interface</span>:
+        <a id="homelink" href='home'>Home</a>
+        <span id="pagename">&gt; ui.html</span>
+    </span>
+    </div>
+
+<div id="mainContent" class="content">
+
+<h4>Introduction</h4>
+
+    <p>This file, <code>ui.html</code>, defines the look-and-feel
+    of the user interface of the SpamBayes Core Server.  The various
+    pieces of HTML defined here are extracted and manipulated at
+    runtime to dynamically produce the HTML that the SpamBayes
+    Server serves up - this file acts as a palette of HTML
+    components.  <code>PyMeldLite</code> is the module that provides
+    the HTML-to-object mapping layer that makes all this possible.
+    Each piece of HTML that needs to be manipulated has an
+    <code>id</code> tag, and becomes a Python object at runtime.</p>
+
+    <p>This "Introduction" section serves as an introduction to this file.
+    It does not require translation and is never used in the run-time
+    interface.</p>
+
+    <p>As an example of how this works, here is an editbox with
+    an <code>id</code> of <code>examplebox</code>:
+    <input id="examplebox" type="text" value="example" size="10"/>
+    PyMeldLite lets you manipulate the HTML programmatically:</p>
+
+    <div style='border: 1px solid #606060'>
+    <pre style='background: #fffae0; margin: 0; padding: 10'>
+    <font color="#0000C0">>>></font> import PyMeldLite
+    <font color="#0000C0">>>></font> html = open("ui.html", "rt").read()
+    <font color="#0000C0">>>></font> doc = PyMeldLite.Container(html)
+    <font color="#0000C0">>>></font> print doc.examplebox
+    <i>&lt;input id="examplebox" size="10" type="text" value="example"/&gt;</i>
+    <font color="#0000C0">>>></font> doc.examplebox.value = "Changed"
+    <font color="#0000C0">>>></font> print doc.examplebox
+    <i>&lt;input id="examplebox" size="10" type="text" value="Changed"/&gt;</i>
+    </pre>
+    </div>
+
+    <p>So the Python code to build the HTML user interface pages doesn't
+    need to faff about pasting strings together, or building HTML components
+    from scratch in code.  And the look-and-feel is controlled solely by
+    this one HTML file - changing the stylesheet, translating into
+    other languages, adding a new piece of user interface - all of these
+    things are very easy.</p>
+
+    <p>Below are all the user interface components along with their
+    <code>id</code>s.</p>
+
+
+<hr/>
+<p class="uiHtmlHeader">headedBox</p>
+
+    <span id="headedBox">
+    <table class='sectiontable' cellspacing='0'>
+    <tr><td id="heading" class='sectionheading' colspan='2'>Headed box</td></tr>
+    <tr><td id='iconCell' valign='top' class='sectionbody' width='20'>
+            <img id='icon' src='status.gif' width='40' height='40'/>&nbsp;
+        </td>
+        <td id="boxContent" class='sectionbody'>
+        This is a "headedBox".  Most of the user interfaces pieces are
+        presented in one of these.  The pieces aren't presented in these
+        boxes here in <code>ui.html</code> to avoid duplication of HTML.
+        As such, this section does not need translation.
+    </td></tr></table>
+    &nbsp;<br/>
+    </span>
+
+<hr/>
+<p class="uiHtmlHeader">The help page</p>
+
+<div id="helppage">
+    <table class='sectiontable' cellspacing='0'>
+    <tr><td class='sectionheading' colspan='2' id="helpheader">SpamBayes Help</td></tr>
+    <tr><td valign='top' class='sectionbody' width='20' rowspan='3'>
+            <img id='icon' src='help.gif' width='22' height='32'/>&nbsp;
+        </td>
+        <td id="helptext" class='sectionbody'>
+        Sorry, there isn't any specific help available for that section.
+        </td>
+    </tr>
+    <tr>
+        <td class="sectionbody"><hr /></td>
+    </tr>
+    <tr>
+        <td id="aboutbugreport" class='sectionbody'>
+        If you believe you may have found a bug in SpamBayes, or are
+        at a loss as to how you can proceed, you can ask the SpamBayes
+        mailing list for assistance.  Note that the members of this list
+        are volunteers that answer questions in their free time, so an
+        answer to your question might take a little while to appear.  If
+        you are quite certain that you have found a bug, then you're
+        probably better off submitting this via the <a href="http://sourceforge.net/tracker/?group_id=61702">
+        SourceForge tracking system</a>, as sometimes things get lost on
+        the list, particularly in busy times or when the latest virus is
+        flooding the net with bogus messages.<br />&nbsp;<br />
+        There is certain information which people need to know in order to
+        suggest how you might fix any problems.  To help make sure that you
+        have all this information, SpamBayes can <a href="bugreport">create
+        a help message</a> for you.  If you choose to email the list without
+        using this, please ensure that you have all the pertinent information.
+        (Otherwise your response is likely to be "please tell us ...").
+        </td>
+    </tr></table>
+</div>
+
+<hr/>
+<p class="uiHtmlHeader">Context-sensitive help page text</p>
+
+<h5 id="helpheader_review">Review Page Help</h5>
+<div id="helptext_review">
+  <p>When you first start using
+  SpamBayes, all your mail will be classified as 'unsure' because SpamBayes
+  doesn't have any preconceived ideas about what good or bad mail looks like.
+  As soon as you start training the classification will improve, and by the
+  time you've classified even 20 messages of each you'll be seeing quite
+  reasonable results.</p>
+  
+  <p>SpamBayes saves a <strong>temporary copy</strong> of all incoming mail
+  so that classification can be independant of whatever mail client you are
+  using. You need to run through these messages and tell SpamBayes how to
+  handle mail like that in the future. This page lists messages that have
+  arrived in the last %(cache_expiry_days)s days and that have not yet been
+  trained. For each message listed, you need to choose to either
+  <strong>discard</strong> (don't train on this message),
+  <strong>defer</strong> (leave training on this message until later), or
+  train (as either good - <strong>ham</strong>, or bad -
+  <strong>spam</strong>). You do this by simply clicking in the circle in
+  the appropriate column; if you wish to change all the messages to the same
+  action, you can simply click the column heading.</p>
+  
+  <p>You are presented with the subject and sender of each message, but, if
+  this isn't enough information for you to make a decision on the message,
+  you can also view the message text (this is the raw text, so you can't do
+  any damage if the message contains a virus or any other malignant data).
+  To do this, simply click on the subject of the message.</p>
+  
+  <p>Once you have chosen the actions you wish to perform on all the
+  displayed messages, click the <em>Train</em> button at the end of the page.
+  SpamBayes will then update its database to reflect this data.</p>
+  
+  <p>Note that the messages are split up into the classification that
+  SpamBayes would place the message with current training data (if this is
+  correct, you might choose to <em>Discard</em> the message, rather than
+  train on it - see the <a href="http://entrian.com/sbwiki">SpamBayes wiki
+  </a> for discussion of training techniques).  You can also see the
+  <em>Tokens</em> that the message contains (the words in the message,
+  plus some additional tokens that SpamBayes generates) and the <em>Clues
+  </em> that SpamBayes used in classifying the message (not all tokens are
+  used in classification).</p>
+  
+  <p>So that the page isn't overwhelmingly long, messages waiting for review
+  are split by the day they arrived.  You can use the <em>Previous Day</em>
+  or <em>Next Day</em> buttons at the top of the page to move between days.
+  If mail arrives while the review page is open the new messages will
+  <strong>not</strong> be automatically added to the displayed list; to add
+  the new message, click the <em>Refresh</em> button at the top of the page.
+  </p>
+</div>
+
+<h5 id="helpheader_stats">Statistics Page Help</h5>
+<div id="helptext_stats">
+  <p>SpamBayes keeps track of certain
+  information about the messages that are classified.  For your interest,
+  this page displays statistics about the messages that have been classified
+  and trained so far.</p>
+  
+  <p>Currently the page displays information about the
+  number of messages that have been classified as good, bad and unsure, how
+  many of these were false negatives or positives, and how many messages
+  were classified as unsure (and what their correct classification was).</p>
+  
+  <p>Note that the data for this page resides in the &quot;message info&quot;
+  database that SpamBayes uses, and so only reflects messages since the
+  last time this database was created.</p>
+</div>
+
+<h5 id="helpheader_home_proxy">Home Page Help</h5>
+<div id="helptext_home_proxy">
+  <p>This is the main page for the
+  SpamBayes web interface.  You are presented with some information about
+  the current status of SpamBayes, and can follow links to review messages
+  or alter your configuration.</p>
+  
+  <p>If you have messages stored in a mbox or dbx (Outlook Express) file
+  that you wish to 'bulk' train, or if you wish to train on a message
+  that you type in, you can do this on this page.  Click the
+  &quot;Browse&quot; button (or paste the text in, including headers),
+  and then click the <em>Train as Ham</em> or <em>Train as Spam</em>
+  button.</p>
+  
+  <p>Likewise, if you have a message that you wish to classify, you
+  can do this.  Either paste the message into the text box, or click
+  &quot;Browse&quot; and locate the text file that the message is
+  located in.  Click <em>Classify</em>, and you will be taken to a
+  page describing the classification of that message.</p>
+  
+  <p>If you want to find out information about a word in the statistics
+  database that forms the heart of SpamBayes, you can use the &quot;Word
+  Query&quot; facility.  Enter in the word that you wish to search for
+  and click <em>Tell me about this word</em>.  If you enable the advanced
+  find query, you can also search using wildcards or regular expressions.</p>
+  
+  <p>You can also search for a specific message in the cache of temporary
+  copies of messages that have been proxied.  You might wish to do this if
+  you realise that you have incorrectly trained a message and need to correct
+  the training.  You can search the subject, headers, or message body, or
+  for the SpamBayes ID (which is in the headers of messages that SpamBayes
+  proxies).  Messages that are found will be presented in the standard
+  review page.  Note that once messages expire from the cache (after
+  %(cache_expiry_days)s days), you can no longer find them.</p>
+</div>
+
+<hr/>
+<p class="uiHtmlHeader">A pre-filled-in 'help' message</p>
+
+<div id="bugreport">
+    <form action="submitreport" method="GET">
+        <!-- Mail things that we could offer, but won't, for the moment at
+        least:
+            <input name="reply-to" size="30" value="ta-meyer@ihug.co.nz" style="width: 265px" tabindex="6" />
+            <input name="bcc" size="30" value="" style="width: 265px" tabindex="6" />
+            <select name="priority">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+            </select>
+        -->
+        <table class='sectiontable' cellspacing='0'>
+        <tr><td class='sectionheading' colspan='2'>Send Help Message</td></tr>
+        <tr><td class='sectionbody'>From:</td><td class='sectionbody'>
+            <input type="text" name="from_addr" size="30" id="from_addr" value="ta-meyer@ihug.co.nz" style="width: 265px" tabindex="0" />
+        </td></tr>
+        <tr><td class='sectionbody'>Subject:</td><td class='sectionbody'>
+            <input name="subject" size="60" id="subject" value="Problem with sb_server: [problem summary here]" style="width: 450px" tabindex="3" />
+        </td></tr>
+        <tr><td class='sectionbody'>Message:</td><td class='sectionbody'>
+            <textarea wrap="physical" name="message" id="message_body" cols="60" rows="10" style="width: 450px" tabindex="4"></textarea>
+        </td></tr>
+        <tr><td class='sectionbody'>Attach Log file:</td><td class='sectionbody'>
+            <input type="file" name="attach" size="60" id="file" tabindex="7" value="" />
+        </td></tr>
+        <tr id="submitrow"><td class='sectionbody' colspan='2' style="text-align:center">
+            <input type="submit" value="Send"/>
+        </td></tr>
+        </table>
+    </form>
+</div>
+
+<hr/>
+<p class="uiHtmlHeader">status</p>
+
+    <table id="statusTable" border="0" cellspacing="0" cellpadding="0">
+    <tr><td>
+        <span id="status">
+        Messages classified this session:
+            <b><span id="numSpams">0</span></b> spam,
+            <b><span id="numHams">0</span></b> ham,
+            <b><span id="numUnsure">0</span></b> unsure.<br/>
+        Total messages trained:
+            Spam: <b><span id="nspam">0</span></b>
+            Ham: <b><span id="nham">0</span></b><br/>
+        <a href="stats">More statistics...</a>
+        </span>
+    </td>
+    <td style='width: 6ex'>&nbsp;&nbsp;&nbsp;</td>
+    <td valign='top'>
+        <img src='config.gif' width='40' height='40' align='left'/>
+        <span id="configurationLink">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can configure your SpamBayes<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;system using the
+            <a href='config'>Configuration page</a>.
+        </span></td>
+    </tr>
+    <tr style="padding: 1em">
+        <td colspan='3'><b id="warning">
+            Warning: please insert warning message here!  The warnings are
+            all dynamically inserted, and so translating this text is not
+            necessary.
+        </b></td>
+    </tr>
+    </table>
+
+<hr/>
+<p class="uiHtmlHeader">reviewText</p>
+
+    <p id="reviewText">
+    The SpamBayes server stores all the messages it sees.
+    You can train the classifier based on those messages
+    using the <a href='review'>Review messages</a> page.
+    </p>
+
+
+<hr/>
+<p class="uiHtmlHeader">reviewTable</p>
+
+    <span id="reviewtable">
+    <p>These are messages that you can use to train the
+    classifier.  Check the appropriate button for each message,
+    then click 'Train' below.  'Defer' leaves the message
+    here, to be trained on later.  Click one of the
+    Discard / Defer / Ham / Spam headers to check all of the
+    buttons in that section in one go.  Click one of the other
+    headers to sort messages (within their classification) by that
+    header (note that sorting will lose any changes you have
+    made to the page).</p>
+
+    <form action='review' method='GET'>
+       <input type='hidden' name='prior' id='prior' value='0'/>
+       <input type='hidden' name='next' id='next' value='0'/>
+       <table border='0' cellpadding='0' cellspacing='0'>
+       <tr><td><input type='submit' name='go' id='priorButton'
+                      value='Previous day' disabled='1'/>&nbsp;</td>
+           <td><input type='submit' name='go' id='refresh'
+                      value='Refresh'/>&nbsp;</td>
+           <td><input type='submit' name='go' id='nextButton'
+                      value='Next day' disabled='1'/>&nbsp;</td>
+           <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        </tr></table>
+    </form>
+    &nbsp;
+
+    <script type='text/javascript'>//<![CDATA[
+    function onHeader(type, switchTo)
+    {
+        if (document.forms && document.forms.length >= 2)
+        {
+            form = document.forms[1];
+            for (i = 0; i < form.length; i++)
+            {
+                splitName = form[i].name.split(':');
+                if (splitName.length == 3 && splitName[1] == type &&
+                    form[i].value == switchTo.toLowerCase())
+                {
+                    form[i].checked = true;
+                }
+            }
+        }
+    }
+    //]]>
+    </script>
+
+    <form action='review' method='POST'>
+    <table id='table' class='messagetable' cellpadding='0' cellspacing='0'>
+    <div id="reviewSubHeader">
+    <tr>
+        <td><b>Messages classified as TYPE:</b></td>
+    </tr>
+    <tr>
+        <span id='optionalHeaders'>
+            <td class='reviewheaders' id='headerHeader'>
+                <a href="review" id='headerLink'>
+                    <b id='headerName'>Subject</b>
+                </a>
+            </td>
+        </span>
+        <span id="received_header">
+            <td class='reviewheaders'><a href="review?sort=received"><b>Received:</b></a></td>
+        </span>
+        <td class='reviewheaders' nowrap='1'><b>
+            <a href="javascript: onHeader('TYPE', 'Discard');">Discard</a> /
+            <a href="javascript: onHeader('TYPE', 'Defer');">Defer</a> /
+            <a href="javascript: onHeader('TYPE', 'Ham');">Ham</a> /
+            <a href="javascript: onHeader('TYPE', 'Spam');">Spam</a>
+            </b>
+        </td>
+        <span id="score_header">
+            <td class='reviewheaders'><a href="review?sort=score"><b>Score:</b></a></td>
+        </span>
+    </tr>
+    </div>
+    <tr id="reviewRow" class='stripe_on' onMouseOver="this.className='highlight_on';"
+      onMouseOut="this.className='stripe_on';">
+        <span id="optionalHeadersValues">
+            <td id="headerValue">
+                <span id='text'>
+                    Richie Hindle &lt;richie@entrian.com&gt;
+                </span>
+            </td>
+            <td id="linkedHeaderValue" class="viewlink">
+                <a id="text" href="view">
+                    Re: SpamBayes and PyMeld rock!  8-)
+                </a>
+            </td>
+        </span>
+        <td id="received_">Sat, 11 Sep 2003 19:03:11</td>
+        <td align='center'>&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="discard" value='discard'/>&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="defer"   value='defer'/>&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="ham"     value='ham'/>&nbsp;&nbsp;&nbsp;&nbsp;
+            <input type='radio' name='classify:TYPE:KEY'
+                   id="spam"    value='spam'/>
+        </td>
+        <td id="score_" align='center'>0.00%</td>
+        <td nowrap="nowrap"><a id="classify" href="classify">Clues</a> |
+        <a id="tokens" href="classify">Tokens</a></td>
+    </tr>
+    <tr id="blankRow"><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    <tr id="trainRow"><td>&nbsp;</td><td>&nbsp;</td>
+        <td align='center'>&nbsp;<br/>
+            <input type='submit' name='Train' value='Train'/>
+        </td>
+    </tr>
+    </table>
+    </form>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">upload</p>
+
+    <form id="upload" action='train'
+          method='POST' enctype='multipart/form-data'>
+    Either upload a message<span id="or_mbox">, mbox or dbx</span> file:
+    <input type='file' name='file' value=''/><br/>
+    Or paste one whole message (including headers) here:<br/>
+    <textarea name='text' rows='3' cols='60'></textarea><br/>
+    <input id="submit_spam" type='submit' name='which' value='Train as Spam'/>
+    <input id="submit_ham" type='submit' name='which' value='Train as Ham'/>
+    <input id="submit_classify" type='submit' name='which' value='Classify'/>
+    </form>
+
+    <p>(The upload form gets used for both training and classifying - the
+     inappropriate pieces are removed at runtime.)</p>
+
+
+<hr/>
+<p class="uiHtmlHeader">wordQuery</p>
+    <form id="wordQuery" action='wordquery' name="wordquery">
+    <table>
+    <tr>
+    <td width='55%'>
+        <input id="word" name='word' value='' type='text' size='30'/>
+        <br/>
+        <input type='submit' value='Tell me about this word'/>
+    </td>
+    <span id="advanced">
+        <td>
+            <input id="basic" name='query_type' type='radio' checked='checked' 
+                value='basic' onClick="document.wordquery.max_results.disabled='disabled'"/>
+            <span id="basic_label">Basic Query</span>
+            <br/>
+            <input id="wildcard" name='query_type' value='wildcard' type='radio'
+                onClick="document.wordquery.max_results.disabled=''"/>
+            <span id="wildcard_label">Wildcard Query</span>
+            <br/>
+            <input id="regex" name='query_type' value='regex' type='radio'
+                onClick="document.wordquery.max_results.disabled=''"/>
+            <span id="regex_label">Regular Expression Query</span>
+            <br/>
+            <input id="ignore_case" name='ignore_case' value='ignore_case' type='checkbox'/>
+            <span id="ignore_case_label">Ignore Case</span>
+            <br/>
+            <span id="max_results_label">Maximum results</span>
+            <input id="max_results" name='max_results' value='10' type='text'
+                size='4' disabled='disabled'/>
+            <br/>
+        </td>
+    </span>
+    </tr>
+    </table>
+    </form>
+<hr/>
+<p class="uiHtmlHeader">findMessage</p>
+
+    <form id="findMessage" action='review' method='GET'>
+    <table>
+    <tr>
+    <td style='padding-right: 20' width="150">
+        <b>Search in...</b>
+        <br/>
+        <input name='id' id="id" type='checkbox' checked='checked'/>
+        <span id="basic_label">SpamBayes ID</span>
+        <br/>
+        <input name='subject' id="subject" type='checkbox'/>
+        <span id="wildcard_label">Subject</span>
+        <br/>
+        <input name='headers' id="all_headers" type='checkbox'/>
+        <span id="wildcard_label">Message headers</span>
+        <br/>
+        <input name='body' id="body" type='checkbox'/>
+        <span id="regex_label">Message body</span>
+    </td>
+    <td style='padding-right: 20'>
+        <input name="ignore_case" id="ignore_case" type='checkbox'/>
+        <span id="ignore_case_label">Ignore Case</span>
+        <br/>
+        <span id="max_results_label">Maximum results</span>
+        <input id="max_results" name='max_results' value='20' type='text' size='4'/>
+        <br/>
+    </td>
+    <td>
+        <input id="find" name='find' value='' type='text' size='20'/>
+        <input type='submit' value='Search'/>
+    </td>
+    </tr>
+    </table>
+    </form>
+
+
+<hr/>
+<p class="uiHtmlHeader">wordStats</p>
+
+    <span id="wordStats">
+    Number of spam messages: <b><span id="spamcount">123</span></b>.<br/>
+    Number of ham messages: <b><span id="hamcount">456</span></b>.<br/>
+    Probability that a message containing this word is spam:
+    <b><span id="spamprob">0.789</span></b>.<br/>
+    </span>
+    <span id="multiStats">
+    <table id="multiTable">
+    <tr id="multiHeader">
+        <td width="55%"><strong>Word</strong></td>
+        <td width="15%" align='center'><strong># Spam</strong></td>
+        <td width="15%" align='center'><strong># Ham</strong></td>
+        <td width="15%" align='center'><strong>Probability</strong></td>
+    </tr>
+    <tr id="statsRow" class='stripe_on'>
+        <td id='word'>spambayes</td>
+        <td align='center' id='spamcount'>123</td>
+        <td align='center' id='hamcount'>436</td>
+        <td align='center' id='spamprob'>.789</td>
+    </tr>
+    </table>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">classifyResults</p>
+
+    <span id="classifyResults">
+    <p>Spam probability: <b id="probability">0.123</b>.
+    <span id="orig_prob">Original probability: <b id="orig_prob_num">0.125</b>.</span></p>
+    <span id="cluesBox">
+        (The table of clues goes here, like this but in a headedBox):
+        <table id="cluesTable">
+            <tr id="cluesHeader">
+                <td style='padding-right: 10'><b>Word</b></td>
+                <td align='center' style='padding-right: 10'><b>Probability</b></td>
+                <td align='center' style='padding-right: 10'><b>Times in ham</b></td>
+                <td align='center'><b>Times in spam</b></td>
+            </tr>
+            <tr id="cluesRow">
+                <td id="clue" style='padding-right: 10'>Example word</td>
+                <td id="probability" align='center'>0.123</td>
+                <td id="nham" align='center'>1</td>
+                <td id="nspam" align='center'>2</td>
+            </tr>
+        </table>
+    </span>
+    <p>Return <a href='home'>Home</a> or classify another:</p>
+    <span id="classifyAnother">(The Classify form goes here)</span>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">configForm</p>
+
+    <span id="configForm">
+    <form id="action_page" action="changeopts" method="POST">
+
+    <p><span id="introduction">This page allows you to change the options
+    that control how SpamBayes processes your messages.</span> Your options
+    are stored in <b><span id='optionsPathname'>/example/pathname</span></b>.</p>
+
+    <span id="configFormContent">
+    <TABLE id="configTable" border="0" cellpadding="0">
+    <TR id="configTextRow1">
+        <TD align="right" nowrap='1'>
+            <span id="label">Label</span>:&nbsp;
+        </TD>
+        <TD>
+            <input type="text" size="26" id="input" name="from_parm_ini_map"/>
+        </TD>
+        <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' valign='top' rowspan='2'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    <TR id="configCbRow1">
+        <TD align="right" nowrap='1' valign='top'>
+            <span id="label">Label</span>:&nbsp;
+        </TD>
+        <TD width='110' nowrap='1' valign='top'>
+            <div id="input">
+                <input type="checkbox" id="input_box" value="value" name="from_parm_ini_map"/>
+                <span id="val_label">Value Label</span>&nbsp;
+            </div>
+        </TD>
+        <TD id='helpSpacer'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+        <TD id='helpCell' valign='top' rowspan='2'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    <TR id="configRow2">
+        <TD nowrap='1' align='right' valign='top'>Current Value:</TD>
+        <TD nowrap='0' width='150' valign='top'>&nbsp;<span id="currentValue">(value)</span></TD>
+    </TR>
+    <TR id="configTextRow2">
+        <TD nowrap='1' align='right' valign='top'>Current Value:</TD>
+        <TD valign='top'>&nbsp;<span id="currentValue">(value)</span></TD>
+    </TR>
+    <TR id="blankRow"><TD>&nbsp;</TD></TR>
+    <TR id="folderRow">
+        <TD width="25%">
+            <input type="checkbox" id="folderBox" value="value" name="folderName">
+            <span id="folderName">Folder name</span>
+            </input>
+        </TD>
+        <TD id='helpCell' valign='top' rowspan='1000'>
+            <p>(Help text goes here.)</p>
+        </TD>
+    </TR>
+    </TABLE>
+    </span>
+
+    <center>
+      <input id="config_submit" type="submit" name="how" value="Save"/>
+    </center>
+
+    </form>
+
+    <form id="restore_form" action="restoredefaults" method="POST">
+    <center>
+      <input id="restore" type="submit" name="how" value="Restore Defaults"/>
+    </center>
+    </form>
+
+    <form action="pluginconfig" method="post" id="plugin_button">
+    <center>
+      <input type="submit" value="Plugin Configuration" id="name"/>
+    </center>
+    </form>
+
+    <form action="advancedconfig" method="post" id="adv_button">
+    <center>
+      <input type="submit" value="Advanced Configuration" id="name"/>
+    </center>
+    </form>
+
+    <form action="experimentalconfig" method="post" id="exp_button">
+    <center>
+      <input type="submit" value="Experimental Configuration" id="name"/>
+    </center>
+    </form>
+    </span>
+
+
+<hr/>
+<p class="uiHtmlHeader">shutdownMessage</p>
+
+    <p id="shutdownMessage"><b>Shutdown</b>. Goodbye.</p>
+
+<hr/>
+
+</div>
+
+
+<form id="footer" action='save' method='POST'>
+<table width='100%' cellspacing='0'>
+<tr>
+    <td class='banner'>
+        <span id="version">Version 0.00</span><br />
+        <a id='footerHome' href='home'>SpamBayes Web Interface</a>,
+        <span id="timestamp">Mon Dec 30 14:04:32 2002</span>.
+        <a href='http://www.spambayes.org/'>Spambayes.org</a></td>
+    <td class='banner' style="align:top">
+        <a href="help" id="helplink">
+            <img id='icon' src='help.gif' width='22' height='32' style='border:none'/>Help
+        </a></td>
+    <td align='right' class='banner' id="shutdownTableCell">
+        <input type='submit' id='shutdownButton' name='how'
+               value='Save &amp; shutdown'/></td>
+</tr>
+</table>
+</form>
+
+</body>
+</html>
+

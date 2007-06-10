@@ -720,8 +720,13 @@ class ZODBClassifier(object):
     def create_storage(self):
         import ZODB
         from ZODB.FileStorage import FileStorage
-        self.storage = FileStorage(self.db_filename,
-                                   read_only=self.mode=='r')
+        try:
+            self.storage = FileStorage(self.db_filename,
+                                       read_only=self.mode=='r')
+        except IOError, msg:
+            print >> sys.stderr, ("Could not create FileStorage from",
+                                  self.db_filename)
+            raise
 
     def load(self):
         '''Load state from database'''
@@ -773,7 +778,7 @@ class ZODBClassifier(object):
             from ZODB.POSException import TransactionError as TransactionFailedError
         from ZODB.POSException import ReadOnlyError
 
-        assert self.closed == False, "Can't store a closed database"
+        assert not self.closed, "Can't store a closed database"
 
         if options["globals", "verbose"]:
             print >> sys.stderr, 'Persisting', self.db_name, 'state in database'
