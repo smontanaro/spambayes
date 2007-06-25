@@ -10,8 +10,9 @@ upcoming 1.1 release) we expect that this will be the last release in the
 1.0.x line. Feedback to
 <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
 
-<p>The second alpha release of 1.1 is also now available.  It is highly likely
-that there are new bugs in this release (especially with the IMAP filter),
+<p>The latest alpha release of 1.1 is 1.1a4.  At the moment it is only
+available as a source release.  There is no Windows installer. It is highly likely
+that there are new bugs in this release
 but if you are willing and able to give it a spin for us, that would be
 greatly appreciated.  You might like to look at this
 <a href="http://entrian.com/sbwiki/TryOutThePreRelease">list
@@ -71,19 +72,15 @@ public key</a>, which has a key id of F23F732A.</p>
 </li>
 <hr />
 <li><tt></tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a2.exe?download">spambayes-1.1a2.exe</a>
-(3,025,816 bytes,
-<a href="sigs/spambayes-1.1a2.exe.asc">sig</a>)
-</li>
-<li><tt>6c94cb14008580c309dd176af73f2132</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a2.tar.gz?download">spambayes-1.1a2.tar.gz</a>
-(830,084 bytes,
-<a href="sigs/spambayes-1.1a2.tar.gz.asc">sig</a>)
+<li><tt>35494ade1bf380651bcc3077bf108310</tt>
+<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">spambayes-1.1a4.tar.gz</a>
+(992,533 bytes,
+<a href="sigs/spambayes-1.1a4.tar.gz.asc">sig</a>)
 </li>
 <li><tt></tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a2.zip?download">spambayes-1.1a2.zip</a>
-(971,031 bytes,
-<a href="sigs/spambayes-1.1a2.zip.asc">sig</a>)
+<a href="http://prdownloads.sourceforge.net/spambayes/sb-1.1a4.zip?download">sb-1.1a4.zip</a>
+(1,128,015 bytes,
+<a href="sigs/sb-1.1a4.zip.asc">sig</a>)
 </li>
 </ul>
 

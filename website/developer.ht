@@ -34,24 +34,22 @@ or even most cases.</p>
 available as links from the <a href="docs.html">documentation</a> page.
 
 <h3>So what needs to be done</h3>
-<p>1.0 was released in July 2004, and was followed up by a bugfix 1.0.1
-release in November 2004.  We intend to fix as many remaining bugs with the
-1.0.x branch as is practical and hope to release 1.0.2 towards the end of
-January 2005.  This is likely to be the final release in the 1.0.x line,
-unless there are unforeseen problems with the 1.0.2 or 1.1 releases.</p>
+
+<p>1.0 was released in July 2004, and was followed up by three bugfix
+releases starting in November 2004.  The current stable release is 1.0.4.
+This is likely to be the final release in the 1.0.x line.</p>
 
 <p>Since May 2004, work has been carried out on a 1.1 release, which
 includes many improvements, as well as bug fixes, compared to the 1.0.x
-branch.  We hope to release 1.1a1 for public testing at the end of January
-2005, to be followed by at least one more alpha, at least one beta, and
-at least one release candidate.  We hope that a stable 1.1 release will
-be made in April 2005, although this date is certainly not fixed.</p>
+branch.  The latest alpha release is 1.1a4 (June 2007).  If we could find
+more time or more help we could get to beta, release candidate and final
+releases of 1.1.  We hope that a stable 1.1 release will be made during
+2007, although this date is certainly not fixed.</p>
 
-<p>The 1.1 line will be frozen for non-bugfix changes from the first
-beta release (probably early March 2005).  Many of the changes desired
-by the developers have been implemented, or partly so, but there is
-still time for further improvement.  <strong>There is no time limit on
-implementing bug fixes</strong>.</p>
+<p>The 1.1 line will be frozen for non-bugfix changes from the first beta
+release.  Many of the changes desired by the developers have been
+implemented, or partly so, but there is still time for further improvement.
+<strong>There is no time limit on implementing bug fixes</strong>.</p>
 
 <p>Some key work that is in progress for 1.1, which you could assist
 with (particularly in testing) includes:</p>
@@ -66,6 +64,16 @@ solution is problematic, in that users' databases sometimes get
 corrupted, but we don't know what causes that.  New backends, particularly
 ZODB/ZEO, have been added, and the SQL backends improved.</li>
 <li>Improvement in the unit testing suite.</li>
+<li>Testing and/or improving the image handling capabilities.  1.1a3
+introduced OCR capability using the open source <tt>gocr</tt> program and
+PIL.</li>
+<li>Testing the new <tt>core_server.py</tt> application which implements a
+plugin architecture for external protocol adapters.  The first adapter
+provides an XML-RPC interface, making it possible to extend SpamBayes to
+websites and other non-mail applications.  You could interface this server
+to web applications such as Trac, MoinMoin or your favorite blog software.
+You could also implement a POP3 protocol adapter so we can merge
+<tt>core_server.py</tt> and <tt>sb-server.py</tt>.
 </ul>
 
 <p>The other big body of work is monitoring the bug reports and feature
