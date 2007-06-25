@@ -2,8 +2,14 @@
 
 Release 1.1a4
 
-Skip Montanaro    2006-09-09  First crack at handling image sequences
 Skip Montanaro    2006-09-09  Dump NetPBM decode support in favor of PIL
+Skip Montanaro    2006-09-09  First crack at handling image sequences
+Skip Montanaro    2007-05-11  IMAP patch for contrib/tte.py (Dave Abrahams)
+Skip Montanaro    2007-05-11  Remove duplicate use of --cullext flag to contrib/tte.py
+Skip Montanaro    2007-05-22  Note missing file name in error message - FileStorage.py
+Skip Montanaro    2007-05-24  Set MinTTL to one day in dnscache.py
+Skip Montanaro    2007-05-25  Catch broader exception in ImageStripper.py when image load fails (Sjoerd Mullender)
+Skip Montanaro    2007-06-10  Add core_server.py & friends - plugin-based server
 
 Release 1.1a3
 =============
