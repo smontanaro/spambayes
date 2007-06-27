@@ -178,6 +178,77 @@ mail that you have told it to, and the '-l 5' means that the script should
 execute every five minutes (you can change this as required).
 
 
+XML-RPC Server
+--------------
+
+The XML-RPC server (new in 1.1a4) web interface is almost identical the the
+POP3 proxy user interface.  Instead of proxying POP3 communications though
+it provides an XML-RPC server your (typically non-mail) applications can use
+to score content submissions.
+
+To install and configure it:
+
+1. Unpack and install the distribution:
+
+    tar xvfz spambayes-1.1a4.tar.gz
+    cd spambayes-1.1a4
+    python setup.py install
+
+2. Devote a runtime directory to it:
+
+    SBDIR=/usr/local/spambayes/core_server  # or whatever...
+    mkdir -p $SBDIR
+
+3. Create an INI file:
+
+    cd $SBDIR
+    cat > bayescustomize.ini <<EOF
+[globals]
+verbose:False
+
+[Headers]
+include_evidence:True
+include_score:True
+
+[Tokenizer]
+record_header_absence:True
+summarize_email_prefixes:True
+summarize_email_suffixes:True
+mine_received_headers:True
+x-pick_apart_urls:True
+x-fancy_url_recognition:False
+x-lookup_ip:True
+lookup_ip_cache:$SBDIR/dnscache.pck
+max_image_size:100000
+crack_image_cache:$SBDIR/imagecache.pck
+
+crack_images:True
+image_size:True
+ocr_engine:gocr
+[Classifier]
+use_bigrams:False
+
+[Categorization]
+ham_cutoff:0.2
+spam_cutoff:0.85
+
+[Storage]
+persistent_storage_file:$SBDIR/hammie.db
+persistent_use_database:pickle
+messageinfo_storage_file:$SBDIR/messageinfo.fs
+
+[html_ui]
+display_score:True
+EOF
+
+4. Finally, start it:
+
+    BAYESCUSTOMIZE=$SBDIR/bayescustomize.ini core_server.py -m XMLRPCPlugin
+
+Note that it creates both a web server (defaulting to localhost:8880) and an
+XML-RPC server (defaulting to localhost:8001).
+
+
 Procmail filtering
 ------------------
 
