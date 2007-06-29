@@ -177,6 +177,11 @@ add_language_files(languages_root)
 common_data_files = [
     ["", [os.path.join(sb_top_dir, r"windows\resources\sbicon.ico")]],
     ["", [os.path.join(sb_top_dir, r"LICENSE.txt")]],
+    # We insist gocr.exe is in the 'spambayes' package dir (we can make
+    # this smarter as necessary)
+    ["bin", [os.path.join(sb_top_dir, "spambayes", "gocr.exe")]],
+    # Our .txt file with info on gocr itself.
+    ["bin", [os.path.join(sb_top_dir, "windows", "py2exe", "gocr.txt")]],
 ]
 
 # Default and only distutils command is "py2exe" - save adding it to the
