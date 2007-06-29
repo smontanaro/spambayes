@@ -25,8 +25,11 @@ except NameError:
 
 FOLDER_ID = r"\(\'[a-fA-F0-9]+\', \'[a-fA-F0-9]+\'\)"
 FIELD_NAME = r"[a-zA-Z0-9 ]+"
-FILTER_ACTION = _("Untouched"), _("Moved"), _("Copied")
-MSG_READ_STATE = _("None"), _("Read"), _("Unread")
+# These are stored in the INI file.  They must not be localized - we can't
+# have all option settings being unrecognized just because a new localization
+# becomes available for users.  The dialogs manage this.
+FILTER_ACTION = "Untouched", "Moved", "Copied"
+MSG_READ_STATE = "None", "Read", "Unread"
 
 from spambayes.OptionsClass import OptionsClass, Option
 from spambayes.OptionsClass import RESTORE, DO_NOT_RESTORE
