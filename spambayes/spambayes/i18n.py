@@ -114,8 +114,11 @@ class LanguageManager:
     def locale_default_lang(self):
         """Get the default language for the locale."""
         # Note that this may return None.
-        return getdefaultlocale()[0] 
-            
+        try:
+            return os.environ["SPAMBAYES_LANG"]
+        except KeyError:
+            return getdefaultlocale()[0] 
+
     def add_language(self, lang_code=None):
         """Add a language to the current languages list.
 
