@@ -33,6 +33,11 @@ def open_gdbm(*args):
     import gdbm
     return gdbm.open(*args)
 
+def open_dbm(*args):
+    """Open a dbm database."""
+    import dbm
+    return dbm.open(*args)
+ 
 def open_best(*args):
     if sys.platform == "win32":
         # Note that Python 2.3 and later ship with the new bsddb interface
@@ -41,7 +46,8 @@ def open_best(*args):
         if sys.version_info >= (2,3):
             funcs.insert(0, open_dbhash)
     else:
-        funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+        funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash,
+                 open_dbm]
     for f in funcs:
         try:
             return f(*args)
@@ -55,6 +61,7 @@ open_funcs = {
     "dbhash": open_dbhash,
     "bsddb185": open_db185hash,
     "gdbm": open_gdbm,
+    "dbm": open_dbm,
     }
 
 def open(db_name, mode):
