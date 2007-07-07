@@ -15,6 +15,38 @@ bugs with this release.  If you would rather wait for a more stable release
 to have the new features here, please continue to use 1.0.4 until 1.1 final
 is released.
 
+New in 1.1 Alpha 4
+==================
+
+--------------------------------------------
+** Incompatible changes and Transitioning **
+--------------------------------------------
+
+Some options that were 'experimental' in 1.1a3 have now been upgraded to
+non-experimental, meaning the option names have had their 'x-' prefix removed.
+See below for details.
+
+Otherwise, there should be no incompatible changes since 1.1a3, though users 
+new to the 1.1 series should pay careful attention to the database changes 
+introduced in 1.1a2.
+
+-------------------
+** Other changes **
+-------------------
+
+The previously experimental options 'x-crack-images', 'x-ocr-engine' 
+and 'x-image-size' have all had their 'x-' prefix removed.  'crack-images'
+now defaults to True (meaning you don't need to change anything for it
+to be enabled), and ocr-engine defaults to 'gocr'.  The Windows binary ships 
+with the gocr engine, so this should work out-of-the-box for both for Outlook 
+and POP/IMAP/etc users.
+
+Image Cracking (ie, using OCR to extract text from images) has been
+implemented for the Outlook addin.
+
+Some localization related issues have been fixed, and a German translation
+contributed.
+
 New in 1.1 Alpha 3
 ==================
 
@@ -90,6 +122,10 @@ New in 1.1 Alpha 2
 ** Incompatible changes and Transitioning **
 --------------------------------------------
 
+* NOTE * - this section does not apply to people running SpamBayes on
+Windows using the binary installer - only source code installations are 
+affected.
+
 SpamBayes has changed to use ZODB as the default database backend, rather
 than dbm (usually bsddb).  There are three methods for handling this
 transition:
@@ -108,9 +144,8 @@ transition:
         [Storage]
         persistent_use_database:dbm
 
-  o You can convert your existing database files to the new format.
-    Windows users will be given the opportunity to do this on installation;
-    other users should use the utilities/convert_db.py script to do this.
+  o You can convert your existing database files to the new format using 
+    the utilities/convert_db.py script.
     Note that only the token database (containing your training) is
     converted; the 'messageinfo' database (containing statistics about
     SpamBayes performance and a record of which messages have been
