@@ -1,5 +1,9 @@
 [Note that all dates are in ISO 8601 format, e.g. YYYY-MM-DD to ease sorting]
 
+Release 1.1a5
+
+Skip Montanaro	  2007-07-14  Add train and train_mime methods to XML-RPC plugin (from Marian Neagul).
+
 Release 1.1a4
 
 Skip Montanaro    2006-09-09  Dump NetPBM decode support in favor of PIL
