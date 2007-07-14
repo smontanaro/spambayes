@@ -36,6 +36,13 @@ The following options are available in the Plugin section of the options.
 
 """
 
+__author__ = "Skip Montanaro <skip@pobox.com>"
+__credits__ = "All the Spambayes folk."
+
+# This module is part of the spambayes project, which is Copyright 2002 The
+# Python Software Foundation and is covered by the Python Software
+# Foundation license.
+
 import threading
 import xmlrpclib
 from email import Message, message_from_string
@@ -69,15 +76,96 @@ class XMLRPCPlugin(Plugin):
         self.thread.start()
 
     def _dispatch(self, method, params):
-        if method in ("score", "score_mime"):
+        if method in ("score", "score_mime", "train", "train_mime"):
             return getattr(self, method)(*params)
         else:
             raise xmlrpclib.Fault(404, '"%s" is not supported' % method)
 
+    def train(self, form_dict, extra_tokens, attachments, is_spam=True):
+        newdict={}
+        for (i, k) in form_dict.items():
+            if type(k)==unicode:
+                k = k.encode("utf-8")
+            newdict[i] = k
+        mime_message = form_to_mime(newdict, extra_tokens, attachments)
+        mime_message = unicode(mime_message.as_string(), "utf-8").encode("utf-8")
+        self.train_mime(mime_message, "utf-8", is_spam)
+        return ""
+    
+    def train_mime(self, msg_text, encoding, is_spam):
+        if self.state.bayes is None:
+            self.state.create_workers()
+        # Get msg_text into canonical string representation.
+        # Make sure we have a unicode object...
+        if isinstance(msg_text, str):
+            msg_text = unicode(msg_text, encoding)
+        # ... then encode it as utf-8.
+        if isinstance(msg_text, unicode):
+            msg_text = msg_text.encode("utf-8")
+        msg = message_from_string(msg_text,
+                                  _class=spambayes.message.SBHeaderMessage)
+        tokens = tokenize(msg)
+        if is_spam:
+            desired_corpus = "spamCorpus"
+        else:
+            desired_corpus = "hamCorpus"
+        if hasattr(self, desired_corpus):
+            corpus = getattr(self, desired_corpus)
+        else:
+            if hasattr(self, "state"):
+                corpus = getattr(self.state, desired_corpus)
+                setattr(self, desired_corpus, corpus)
+                self.msg_name_func = self.state.getNewMessageName
+            else:
+                if isSpam:
+                    fn = storage.get_pathname_option("Storage",
+                                                     "spam_cache")
+                else:
+                    fn = storage.get_pathname_option("Storage",
+                                                     "ham_cache")
+                storage.ensureDir(fn)
+                if options["Storage", "cache_use_gzip"]:
+                    factory = FileCorpus.GzipFileMessageFactory()
+                else:
+                    factory = FileCorpus.FileMessageFactory()
+                age = options["Storage", "cache_expiry_days"]*24*60*60
+                corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
+                                                     '[0123456789\-]*', cacheSize=20)
+                setattr(self, desired_corpus, corpus)
+                class UniqueNamer(object):
+                    count = -1
+                    def generate_name(self):
+                        self.count += 1
+                        return "%10.10d-%d" % (long(time.time()), self.count)
+                Namer = UniqueNamer()
+                self.msg_name_func = Namer.generate_name
+        key = self.msg_name_func()
+        mime_message = unicode(msg.as_string(), "utf-8").encode("utf-8")
+        msg = corpus.makeMessage(key, mime_message)
+        msg.setId(key)
+        corpus.addMessage(msg)
+        msg.RememberTrained(is_spam)
+        #self.stats.RecordTraining(not is_spam)
+        #if is_spam:
+        #    self.state.bayes.nspam += 1
+        #else:
+        #    self.state.bayes.nham += 1
+
+    def train_spam(self, form_dict, extra_tokens, attachments):
+        pass
+
+    def train_ham(self, form_dict, extra_tokens, attachments):
+        pass
+
     def score(self, form_dict, extra_tokens, attachments):
         """Score a dictionary + extra tokens."""
-        mime_message = form_to_mime(form_dict, extra_tokens, attachments)
-        mime_message = unicode(mime_message).encode("utf-8")
+        newdict={}
+        for (i, k) in form_dict.items():
+            if isinstance(k,unicode):
+                k = k.encode("utf-8")
+            newdict[i] = k
+        mime_message = form_to_mime(newdict, extra_tokens, attachments)
+        mime_message = unicode(mime_message.as_string(), "utf-8").encode("utf-8")
         return self.score_mime(mime_message, "utf-8")
 
     def score_mime(self, msg_text, encoding):

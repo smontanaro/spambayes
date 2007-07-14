@@ -15,6 +15,12 @@ bugs with this release.  If you would rather wait for a more stable release
 to have the new features here, please continue to use 1.0.4 until 1.1 final
 is released.
 
+New in 1.1 Alpha 5
+==================
+
+The XML-RPC plugin for core_server.py now has "train" and "train_mime"
+methods.
+
 New in 1.1 Alpha 4
 ==================
 
@@ -46,6 +52,10 @@ implemented for the Outlook addin.
 
 Some localization related issues have been fixed, and a German translation
 contributed.
+
+There is a new application, core_server.py.  It is functionally similar to
+sb_server.py but uses a plugin architecture to adapt to different
+protocols.  The first plugin is for XML-RPC.
 
 New in 1.1 Alpha 3
 ==================
