@@ -3,6 +3,7 @@
 Release 1.1a5
 
 Skip Montanaro	  2007-07-14  Add train and train_mime methods to XML-RPC plugin (from Marian Neagul).
+Skip Montanaro    2007-07-15  Switch repository from CVS to Subversion.
 
 Release 1.1a4
 
