@@ -27,6 +27,11 @@ The code in this project requires Python 2.2 (or later).
 You should definitely check out the FAQ:
 http://spambayes.org/faq.html
 
+Getting Source Code
+===================
+
+The SpamBayes project source code is hosted at SourceForge
+(http://spambayes.sourceforge.net/).  Access is via Subversion.
 
 Primary Core Files
 ==================
