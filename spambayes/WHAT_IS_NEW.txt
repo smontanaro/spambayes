@@ -18,7 +18,7 @@ is released.
 New in 1.1 Alpha 5
 ==================
 
-The XML-RPC plugin for core_server.py now has "train" and "train_mime"
+The XML-RPC plugin for core_server.py now has 'train' and 'train_mime'
 methods.
 
 The source code repository was switched from CVS to Subversion.
