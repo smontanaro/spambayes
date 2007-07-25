@@ -38,7 +38,7 @@ to the
 
 <p>Prerequisites:
 <ul>Either: 
-<li>Python 2.2.2 or above, or a CVS build of python, or
+<li>Python 2.2.2 or above, or a Subversion build of python, or
 <li>Python 2.2, 2.2.1, plus the latest <a href="http://www.python.org/sigs/email-sig/">email package</a>.
 </ul>
 <p>Once you've downloaded and unpacked the source archive, do the regular <tt>setup.py build; setup.py install</tt> dance, then:
@@ -106,10 +106,8 @@ use the one that's appropriate to the download you're verifying.</p>
 <p>These instructions are geared to GnuPG and command-line weenies.
 Suggestions are welcome for other OpenPGP applications.</p>
 
-<a name="cvs"><h2>CVS Access</h2></a>
-<p>The code is currently available from sourceforge's CVS server -
-<a href="http://sourceforge.net/cvs/?group_id=61702">see here</a> for
-more details. Note that due to capacity problems with Sourceforge, 
-the public CVS servers often run up to 48 hours behind the real CVS
-servers. This is something that SF are working on improving.
+<a name="svn"><h2>Subversion Access</h2></a>
+
+<p>The code is currently available the SourceForge <a
+gref="http://sourceforge.net/svn/?group_id=61702">Subversion server</a>.
 </p>

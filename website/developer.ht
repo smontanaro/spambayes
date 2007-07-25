@@ -5,10 +5,9 @@ Author: spambayes
 <h1>Developer info</h1>
 <p>So you want to get involved?</p>
 <h2>Running the code</h2>
-<p>This project works with Python 2.2, Python 2.3, Python 2.4, 
-or on the bleeding edge of python code,
-available from <a href="http://sourceforge.net/cvs/?group_id=5470">CVS on
-sourceforge</a>. It will not work on python 2.1.x or earlier, nor is it ever
+<p>This project works with Python 2.2 or later,
+available from <a href="http://sourceforge.net/svn/?group_id=5470">Subversion on
+SourceForge</a>. It will not work on python 2.1.x or earlier, nor is it ever
 likely to do so.</p>
 <p>If you're running Python 2.2 or 2.2.1, you'll need to separately fetch
 the latest <a href="http://mimelib.sf.net">email package</a>. You can get
@@ -17,7 +16,7 @@ this from
 (you'll need version 2.4.3 or later - version 3.0 or later is recommended).
 </p>
 
-<p>The SpamBayes code itself is also available <a href="http://sourceforge.net/cvs/?group_id=61702">via CVS</a>, or from the <a href="download.html">download</a> page.
+<p>The SpamBayes code itself is also available via <a href="http://sourceforge.net/svn/?group_id=61702">via Subversion</a>, or from the <a href="download.html">download</a> page.
 </p>
 
 <h2>I just want to make suggestions</h2>

@@ -25,13 +25,13 @@ latest source archive</a>.  Note that you will also need:</p>
 <li>Python's <a href="http://starship.python.net/crew/mhammond">win32com</a>
 extensions (win32all-149 or later - currently ActivePython is not suitable)
 </ul>
-For more on this, see the <a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/Outlook2000/README.txt?rev=HEAD&content-type=text/plain">README.txt</a> or 
-<a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/Outlook2000/about.html?rev=HEAD&content-type=text/html">about.html</a> file in the spambayes CVS repository's Outlook2000 directory.
-<p>Alternatively, you can use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+For more on this, see the <a href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/Outlook2000/README.txt">README.txt</a> or 
+<a href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/Outlook2000/about.html">about.html</a> file in the spambayes Subversion repository's Outlook2000 directory.
+<p>Alternatively, you can use Subversion to get the code - go <a href="tp://sourceforge.net/svn/?group_id=61702">to the Subversion page</a> on the project's SourceForge site for more.</p>
 
 <h3><a name="sb_filter">sb_filter.py</a></h3>
 <p>sb_filter is a command line tool for marking mail as ham or spam.  The readme
-<a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">
+<a href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">
 includes a guide to integrating it with your mailer</a> (Unix-only
 instructions at the moment - additions welcome!). 
 Currently it focuses on running sb_filter via procmail. </p>
@@ -44,11 +44,11 @@ Currently it focuses on running sb_filter via procmail. </p>
 
 <h4>Availability</h4>
 <p><a href="download.html">Download the source archive.</a></p>
-<p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+<p>Alternatively, use Subversion to get the code.  Go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>
 
 <h3><a name="sb_server">sb_server.py</a></h3>
 <p>sb_server provides a POP3 proxy which sits between your mail client and your real POP3 server and marks
-mail as ham or spam as it passes through. See the <a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">README</a> for more.
+mail as ham or spam as it passes through. See the <a href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">README</a> for more.
 sb_server can also be used with the sb_upload.py script as a procmail (or similar) solution.</p>
 
 <h4>Requirements</h4>
@@ -63,12 +63,12 @@ for a binary version of sb_server, including a tray application to access
 it.</p>
 <p>Alternatively, to run from source, <a href="download.html">download the
 source archive.</a></p>
-<p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+<p>Alternatively, use Subversion to get the code - go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>
 
 <h3><a name="imap">sb_imapfilter.py</a></h3>
 <p>imapfilter connects to your imap server and marks mail as ham or spam,
 moving it to appropriate folders as it arrives.
-See the <a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">README</a> for more.</p>
+See the <a href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">README</a> for more.</p>
 
 <h4>Requirements</h4>
 <ul>
@@ -78,7 +78,7 @@ See the <a href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spamb
 
 <h4>Availability</h4>
 <p><a href="download.html">Download the source archive.</a></p>
-<p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+<p>Alternatively, use Subversion to get the code - go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>
 
 <h3><a name="mboxtrain">sb_mboxtrain.py</a></h3>
 <p>This application allows you to train incrementally on ham and spam
@@ -94,7 +94,7 @@ seen previously.</p>
 
 <h4>Availability</h4>
 <p><a href="download.html">Download the source archive.</a></p>
-<p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+<p>Alternatively, use Subversion to get the code - go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>
 
 <h3><a name="notesfilter">sb_notesfilter.py</a></h3>
 <p>This application allows you to filter Lotus Notes folders, rather like
@@ -112,4 +112,4 @@ caution.</p>
 
 <h4>Availability</h4>
 <p><a href="download.html">Download the source archive.</a></p>
-<p>Alternatively, use CVS to get the code - go <a href="http://sourceforge.net/cvs/?group_id=61702">to the CVS page</a> on the project's sourceforge site for more.</p>
+<p>Alternatively, use Subversion to get the code - go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>

@@ -9,8 +9,8 @@ systems<sup><font size="-2">1</font></sup>.  You must make sure a <a
 href="download.html">recent enough version of Python</a> is installed, then
 install the Spambayes source either as a <a
 href="https://sourceforge.net/project/showfiles.php?group_id=61702">bundled
-package</a> or <a href="https://sourceforge.net/cvs/?group_id=61702">from
-CVS</a>, then choose the Spambayes application which best fits into your
+package</a> or <a href="https://sourceforge.net/svn/?group_id=61702">from
+Subversion</a>, then choose the Spambayes application which best fits into your
 mail setup.</p>
 
 <h2>Procmail</h2>
@@ -52,8 +52,8 @@ be /usr/local if you built your own. You can refer to the output of
 </li>
 </ol>
 <p>Additional details are available in the <a
-href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/README.txt?rev=HEAD&content-type=text/plain">Hammie
-readme</a>.</p>
+href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">README</a>
+file.</p>
 
 <h2>POP3</h2>
 
@@ -208,8 +208,8 @@ user.</p>
 <h2>Training</h2>
 
 <p>See the <a
-href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/README.txt?content-type=text%2Fplain&revision=HEAD">Hammie
-readme</a> for a detailed discussion of the many training options
+href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">
+README file</a>for a detailed discussion of the many training options
 on Unix systems.</p>
 
 <h2>Notes</h2>

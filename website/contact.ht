@@ -34,7 +34,7 @@ make SB work with Outlook version X?"), use the "spambayes" list for that.
 This list is also unmoderated.
 </li>
 <li>
-CVS commit messages go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-checkins">spambayes-checkins</a>.
+Subversion commit messages go to the list <a href="http://mail.python.org/mailman/listinfo/spambayes-checkins">spambayes-checkins</a>.
 You shouldn't send email to this list; a program running at SourceForge
 automatically creates and sends emails to this list as a result of code
 checkins.

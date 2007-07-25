@@ -35,7 +35,7 @@ href="http://sourceforge.net/tracker/?atid=498103&group_id=61702&func=browse">bu
 report</a> and add any useful information you may have, or to open a new bug
 report if your problem seems to be a new one.  Please be sure to go through
 the <a
-href="http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/Outlook2000/docs/troubleshooting.html?content-type=text%2Fhtml">
+href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/Outlook2000/docs/troubleshooting.html">
 troubleshooting.html</a> file that is installed with the plugin.</p>
 
 <h3>Installing the Outlook Client From Source</h3>
@@ -56,10 +56,10 @@ To do this, you will need three pieces of software:
 
   <li>The SpamBayes source, either as a <a
   href="http://sourceforge.net/project/showfiles.php?group_id=61702">zip
-  file</a> or <a href="http://sourceforge.net/cvs/?group_id=61702">via
-  CVS</a>.  The zip file will probably be easier to handle, but there may
-  be improvements to the code which make the CVS version a
-  viable option (though you will have to have a CVS client for Windows
+  file</a> or <a href="http://sourceforge.net/svn/?group_id=61702">via
+  Subversion</a>.  The zip file will probably be easier to handle, but there may
+  be improvements to the code which make the Subversion version a
+  viable option (though you will have to have a Subversion client for Windows
   installed).</li>
 </ol>
 </p>

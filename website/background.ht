@@ -250,10 +250,10 @@ the <a href="http://mail.python.org/pipermail/python-dev/">python-dev</a> list, 
 <li>The discussions then moved to the spambayes <a href="http://mail.python.org/pipermail/spambayes/">mailing list</a>.
 </ul>
 
-<h2>CVS commit messages</h2>
+<h2>CVS Commit Messages</h2>
 <p>Tim Peters has whacked a whole lot of useful information into CVS
 commit messages. As the project was moved from an obscure corner of the
-Python CVS tree, there's actually two sources of CVS commits.</p>
+Python CVS tree, there are actually two sources of CVS commits.</p>
 
 <ul>
 <li>The older CVS repository via <a href="http://spambayes.cvs.sourceforge.net/python/python/nondist/sandbox/spambayes/?hideattic=0">view CVS</a>, or the <a href="presfchangelog.html">entire changelog</a>.
