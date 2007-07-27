@@ -13,4 +13,4 @@
 <li><a href="mac.html">Mac OS</a>
 <h3>Getting the code</h3>
 <li><a href="download.html">Releases</a>
-<li><a href="download.html#cvs">CVS access</a>
+<li><a href="download.html#svn">Subversion access</a>
