@@ -1369,7 +1369,7 @@ class Tokenizer:
         x = msg.get('subject', '')
         try:
             subjcharsetlist = email.Header.decode_header(x)
-        except (binascii.Error, email.Errors.HeaderParseError):
+        except (binascii.Error, email.Errors.HeaderParseError, ValueError):
             subjcharsetlist = [(x, 'invalid')]
         for x, subjcharset in subjcharsetlist:
             if subjcharset is not None:
@@ -1404,7 +1404,8 @@ class Tokenizer:
                 if name:
                     try:
                         subjcharsetlist = email.Header.decode_header(name)
-                    except (binascii.Error, email.Errors.HeaderParseError):
+                    except (binascii.Error, email.Errors.HeaderParseError,
+                            ValueError):
                         subjcharsetlist = [(name, 'invalid')]
                     for name, charset in subjcharsetlist:
                         yield "%s:name:%s" % (field, name.lower())
