@@ -22,7 +22,7 @@ really an easy way around this, but it's easily fixed by hand, and if you
 don't look at the config file, you'll never know <wink>.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

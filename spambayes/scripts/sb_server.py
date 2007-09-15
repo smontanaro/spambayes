@@ -41,7 +41,7 @@ To make rebuilding the database easier, uploaded messages are appended
 to _pop3proxyham.mbox and _pop3proxyspam.mbox.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright (C) 2003 Python Software Foundation; All Rights Reserved
+# Copyright (C) 2003-2007 Python Software Foundation; All Rights Reserved
 #
 # Licensed under the Python Software Foundation License, which you should have
 # received as part of the Spambayes distribution.

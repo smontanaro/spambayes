@@ -8,7 +8,7 @@ Abstract:
 Manages the internationalisation (i18n) aspects of SpamBayes.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-4
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

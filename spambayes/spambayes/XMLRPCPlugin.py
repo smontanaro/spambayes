@@ -39,8 +39,8 @@ The following options are available in the Plugin section of the options.
 __author__ = "Skip Montanaro <skip@pobox.com>"
 __credits__ = "All the Spambayes folk."
 
-# This module is part of the spambayes project, which is Copyright 2002 The
-# Python Software Foundation and is covered by the Python Software
+# This module is part of the spambayes project, which is Copyright 2002-2007
+# The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
 import threading

@@ -4,7 +4,7 @@
 POP3 proxy.
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-3
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

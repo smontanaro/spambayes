@@ -25,7 +25,7 @@ except NameError:
 LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
 DEFAULT_DOWNLOAD_PAGE="http://spambayes.sourceforge.net/windows.html"
 
-# This module is part of the spambayes project, which is Copyright 2002-5
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

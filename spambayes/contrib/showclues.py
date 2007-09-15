@@ -38,7 +38,7 @@ command line, each will be processed according to the following rules:
       begin on a line starting with 'From ').
 """
 
-# This module is part of the spambayes project, which is Copyright 2002-5
+# This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 

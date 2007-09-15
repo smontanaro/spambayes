@@ -1,4 +1,4 @@
-Copyright (C) 2002-2004 Python Software Foundation; All Rights Reserved
+Copyright (C) 2002-2007 Python Software Foundation; All Rights Reserved
 
 The Python Software Foundation (PSF) holds copyright on all material
 in this project.  You may use it under the terms of the PSF license:
