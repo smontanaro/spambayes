@@ -116,6 +116,18 @@ messages.
 .. _sourceforge: http://www.sourceforge.net
 
 
+How do I subscribe/unsubscribe from the SpamBayes mailing lists?
+----------------------------------------------------------------
+
+To subscribe, visit the relevant page referenced in the previous Q&A and
+follow the directions there.  To unsubscribe, visit the same link.  Scroll
+to the bottom of the page and enter your email address in the last field
+then click the "Unsubscribe or edit options" button.  From there you can
+simply click the "Unsubscribe" button.  A confirmation mail will be sent to
+your email address.  To confirm the unsubscribe request, simply reply to
+that message.
+
+
 What do I need to install SpamBayes?
 ------------------------------------
 
