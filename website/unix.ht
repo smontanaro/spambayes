@@ -197,7 +197,7 @@ exit $RETVAL
 <h2>Thunderbird</h2>
 
 <p>Thunderbird users might find the <a
-href="http://pieces.openpolitics.com/thunderbayes/">ThunderBayes extension
+href="http://pieces.openpolitics.com/thunderbayes/">ThunderBayes extension</a>
 useful.  It provides tighter integrateion between Thunderbird and the
 SpamBayes POP3 proxy.</p>
 
