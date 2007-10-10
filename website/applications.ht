@@ -64,6 +64,8 @@ it.</p>
 <p>Alternatively, to run from source, <a href="download.html">download the
 source archive.</a></p>
 <p>Alternatively, use Subversion to get the code - go to the <a href="http://sourceforge.net/svn/?group_id=61702">Subversion page</a> on the project's SourceForge site for more.</p>
+<p>For Thunderbird users the ThunderBayes extension provides tighter
+integration between Thunderbird and sb_server.py.  It is <a href="http://pieces.openpolitics.com/thunderbayes/">available separately</a>.</p>
 
 <h3><a name="imap">sb_imapfilter.py</a></h3>
 <p>imapfilter connects to your imap server and marks mail as ham or spam,

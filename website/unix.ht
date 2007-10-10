@@ -194,6 +194,13 @@ esac
 exit $RETVAL
 </pre>
 
+<h2>Thunderbird</h2>
+
+<p>Thunderbird users might find the <a
+href="http://pieces.openpolitics.com/thunderbayes/">ThunderBayes extension
+useful.  It provides tighter integrateion between Thunderbird and the
+SpamBayes POP3 proxy.</p>
+
 <h2>KMail</h2>
 <p>Toby Dickenson has written a <a href="http://www.tarind.com/kmailsb.html">
 description of his SpamBayes and KMail setup</a> (using sb_bnfilter.py),

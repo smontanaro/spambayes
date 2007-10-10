@@ -77,6 +77,10 @@ can download the same
 installation program</a> and use it to install a binary version of
 sb_server, including a tray application.</p>
 <p>See also the information about <a href="applications.html#sb_server">sb_server</a>.</p>
+<p> Thunderbird users might find the <a
+href="http://pieces.openpolitics.com/thunderbayes/">ThunderBayes extension
+useful.  It provides tighter integrateion between Thunderbird and the
+SpamBayes POP3 proxy.</p>
 
 <p>If you retrieve mail via IMAP, you currently need to
 install a recent version of <a href="http://www.python.org/">Python</a> and

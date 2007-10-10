@@ -14,4 +14,8 @@ Mac OS X and Mac OS 9.
   <li> If you're a Unix weenie using a Mac OS X system, the <a
   href="unix.html">Unix/Linux notes</a> are probably more appropriate than
   these notes.
+  <li> Thunderbird users might find the <a
+  href="http://pieces.openpolitics.com/thunderbayes/">ThunderBayes extension
+  useful.  It provides tighter integrateion between Thunderbird and the
+  SpamBayes POP3 proxy.
 </ol>

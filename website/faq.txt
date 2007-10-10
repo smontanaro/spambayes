@@ -348,6 +348,19 @@ move us towards the Outlook simplicity.
 
 .. _this FAQ question: #how-do-i-set-up-spambayes-and-outlook-express
 
+What is ThunderBayes?
+---------------------
+
+ThunderBayes (http://pieces.openpolitics.com/thunderbayes/) is an extension
+for the Thunderbird email client.  It provides a toolbar button similar to
+Thunderbird's Junk button with which email can be classified as Spam or Ham.
+Clicking the button causes two things to happen: (1) it sends the source of
+the selected messages to SpamBayes to be classified and (2) it optionally
+moves the messages to a folder of your choice (this can be configured in the
+extension options).  It includes a custom version of SpamBayes, and provides
+a simple preference page in the Thunderbird Account Settings where the
+SpamBayes POP3 proxy and message filters can be configured.
+
 What clients will SpamBayes work with in general?
 -------------------------------------------------
 
