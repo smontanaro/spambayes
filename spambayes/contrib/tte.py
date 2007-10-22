@@ -114,10 +114,13 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
         hambone_ = list(reversed(hambone_))
         spamcan_ = list(reversed(spamcan_))
     
+    nspam,nham = len(spamcan_),len(hambone_)
     if ratio:
         rspam,rham = ratio
-    else:
-        rspam,rham = len(spamcan_),len(hambone_)
+        # If the actual ratio of spam to ham in the database is better than
+        # what was asked for, use that better ratio.
+        if (rspam > rham) == (rspam * nham > rham * nspam):
+            rspam,rham = nspam,nham
 
     # define some indexing constants
     ham = 0
