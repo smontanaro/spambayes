@@ -94,9 +94,15 @@ class cache:
         # end of user-settable attributes
 
         self.cachefile = os.path.expanduser(cachefile)
+        self.caches = None
+
         if self.cachefile and os.path.exists(self.cachefile):
-            self.caches = pickle.load(open(self.cachefile, "rb"))
-        else:
+            try:
+                self.caches = pickle.load(open(self.cachefile, "rb"))
+            except:
+                os.unlink(self.cachefile)
+
+        if self.caches is None:
             self.caches = {"A": {}, "PTR": {}}
 
         if options["globals", "verbose"]:
@@ -123,7 +129,8 @@ class cache:
         if self.printStatsAtEnd:
             self.printStats()
         if self.cachefile:
-            pickle.dump(self.caches, open(self.cachefile, "wb"))
+            from storage import safe_pickle
+            safe_pickle(self.cachefile, self.caches)
 
     def printStats(self):
         for key,val in self.caches.items():
