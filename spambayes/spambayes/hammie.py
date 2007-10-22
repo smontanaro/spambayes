@@ -21,8 +21,9 @@ class Hammie:
 
     """
 
-    def __init__(self, bayes):
+    def __init__(self, bayes, mode):
         self.bayes = bayes
+        self.mode = mode
 
     def _scoremsg(self, msg, evidence=False):
         """Score a Message.
@@ -266,7 +267,8 @@ class Hammie:
         self.bayes.store()
 
     def close(self):
-        self.store()
+        if self.mode != 'r':
+            self.store()
 
 def open(filename, useDB="dbm", mode='r'):
     """Open a file, returning a Hammie instance.
@@ -274,7 +276,7 @@ def open(filename, useDB="dbm", mode='r'):
     mode is used as the flag to open DBDict objects.  'c' for read-write
     (create if needed), 'r' for read-only, 'w' for read-write.
     """
-    return Hammie(storage.open_storage(filename, useDB, mode))
+    return Hammie(storage.open_storage(filename, useDB, mode), mode)
 
 
 if __name__ == "__main__":
