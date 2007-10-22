@@ -652,17 +652,8 @@ class Classifier:
         # XXX becomes valid, for example).
         for name, data in [(self.bad_url_cache_name, self.bad_urls),
                            (self.http_error_cache_name, self.http_error_urls),]:
-            # Save to a temp file first, in case something goes wrong.
-            cache = open(name + ".tmp", "w")
-            pickle.dump(data, cache)
-            cache.close()
-            try:
-                os.rename(name + ".tmp", name)
-            except OSError:
-                # Atomic replace isn't possible with win32, so just
-                # remove and rename.
-                os.remove(name)
-                os.rename(name + ".tmp", name)
+            from storage import safe_pickle
+            safe_pickle(name, data)
 
     def slurp(self, proto, url):
         # We generate these tokens:
