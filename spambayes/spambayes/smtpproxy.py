@@ -122,15 +122,10 @@ is set, and if view all headers is true.
 import string
 import re
 import socket
-import asyncore
-import asynchat
-import getopt
 import sys
-import os
 import email
 
 from spambayes import Dibbler
-from spambayes import storage
 from spambayes import message
 from spambayes.tokenizer import textparts
 from spambayes.tokenizer import try_to_repair_damaged_base64

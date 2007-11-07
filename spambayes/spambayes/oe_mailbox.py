@@ -49,11 +49,8 @@ except ImportError:
     # Some functions will not work, but some will.
     win32api = win32con = win32gui = shell = shellcon = None
 
-import hammie
 import oe_mailbox
 import mboxutils
-
-from spambayes.Options import options
 
 ###########################################################################
 ## DBX FILE HEADER

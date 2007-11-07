@@ -169,7 +169,7 @@ try:
 except ImportError:
     import StringIO
 
-import os, sys, re, time, traceback, md5, base64
+import sys, re, time, traceback, md5, base64
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
 
 try:

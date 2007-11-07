@@ -86,7 +86,6 @@ import oe_mailbox
 import PyMeldLite
 import Dibbler
 import tokenizer
-from spambayes import Stats
 from spambayes import Version
 from spambayes import storage
 from spambayes import FileCorpus

@@ -7,7 +7,6 @@ uses this classifier.
 """
 
 from spambayes import cdb
-from spambayes.tokenizer import tokenize
 from spambayes.classifier import Classifier
 
 class CdbClassifier(Classifier):

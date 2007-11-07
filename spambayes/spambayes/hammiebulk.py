@@ -50,7 +50,7 @@ import os
 import getopt
 
 from spambayes.Options import options, get_pathname_option
-from spambayes import classifier, mboxutils, hammie, Corpus, storage
+from spambayes import mboxutils, hammie, Corpus, storage
 
 Corpus.Verbose = True
 

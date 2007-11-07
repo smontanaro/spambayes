@@ -38,7 +38,6 @@ containing the event-log file.
 
 import os
 import atexit
-import urllib
 import urlparse
 
 from MoinMoin.security import Permissions
@@ -49,7 +48,7 @@ from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 
 from spambayes import hammie, storage
-from spambayes.tokenizer import log2, Tokenizer, numeric_entity_re, \
+from spambayes.tokenizer import Tokenizer, numeric_entity_re, \
      numeric_entity_replacer, crack_urls, breaking_entity_re, html_re, \
      tokenize_word
 
@@ -133,7 +132,6 @@ class SecurityPolicy(Permissions):
 ##        self.mail_admins_about(editor.request, editor.page_name, score)
 
     def force_revert(self, pagename, request):
-        from MoinMoin.PageEditor import PageEditor
         rev = int(request.form['rev'][0])
         revstr = '%08d' % rev
         oldpg = Page(request, pagename, rev=rev)

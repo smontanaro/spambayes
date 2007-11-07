@@ -21,7 +21,6 @@ import re
 import sets
 import os
 import shelve
-import pickle
 import csv
 
 from spambayes.Options import options, get_pathname_option

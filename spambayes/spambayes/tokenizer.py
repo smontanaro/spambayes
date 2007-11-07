@@ -10,7 +10,6 @@ import email.Utils
 import email.Errors
 import re
 import math
-import time
 import os
 import binascii
 import urlparse

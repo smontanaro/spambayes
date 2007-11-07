@@ -48,8 +48,7 @@ import email
 
 from spambayes import Corpus
 from spambayes import message
-from spambayes import storage
-import sys, os, gzip, fnmatch, getopt, time, stat
+import os, gzip, fnmatch, time, stat
 from spambayes.Options import options
 
 class FileCorpus(Corpus.Corpus):

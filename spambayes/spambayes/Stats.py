@@ -40,10 +40,9 @@ except NameError:
     True, False = 1, 0
 
 import time
-import types
 
 from spambayes.message import STATS_START_KEY, STATS_STORAGE_KEY
-from spambayes.message import database_type, open_storage, Message
+from spambayes.message import Message
 
 try:
     _

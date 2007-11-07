@@ -91,7 +91,7 @@ except NameError:
 
 import sys           # for output of docstring
 import time
-import types
+
 from spambayes.Options import options
 
 SPAM = True
