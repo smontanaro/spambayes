@@ -732,10 +732,13 @@ class IMAPMessage(message.SBHeaderMessage):
             response = self.imap_server.recent()
             data = self.imap_server.check_response("recent", response)
             if data[0] is not None:
+                if options["globals", "verbose"]:
+                        print "[imapfilter] found saved message %s in iteration" % self.uid, i
                 break
         else:
-            self.imap_server.print_log()
-            raise BadIMAPResponseError("recent", "Cannot find saved message")
+            if options["globals", "verbose"]:
+                print "[imapfilter] can't find saved message after 100 iterations:", self.uid
+            # raise BadIMAPResponseError("recent", "Cannot find saved message")
 
         # We need to update the UID, as it will have changed.
         # Although we don't use the UID to keep track of messages, we do
@@ -872,14 +875,17 @@ class IMAPFolder(object):
                 msg.setId(mo.group(1))
                 break
         else:
-            msg.setId(self._generate_id())
+            newid = self._generate_id()
+            if options["globals", "verbose"]:
+                print "[imapfilter] saving %s with new id:" % msg.uid, newid
+            msg.setId(newid)
             # Unfortunately, we now have to re-save this message, so that
             # our id is stored on the IMAP server.  The vast majority of
             # messages have Message-ID headers, from what I can tell, so
             # we should only rarely have to do this.  It's less often than
             # with the previous solution, anyway!
-            msg = msg.get_full_message()
-            msg.Save()
+            # msg = msg.get_full_message()
+            # msg.Save()
 
         if options["globals", "verbose"]:
             sys.stdout.write(".")
@@ -954,7 +960,11 @@ class IMAPFolder(object):
         count["spam"] = 0
         count["unsure"] = 0
         for msg in self:
-            if msg.GetClassification() is None:
+            cls = msg.GetClassification()
+            if cls is None or hamfolder is not None:
+                if options["globals", "verbose"]:
+                    print "[imapfilter] classified as %s:"%cls, msg.uid
+                
                 msg = msg.get_full_message()
                 if msg.could_not_retrieve:
                     # Something went wrong, and we couldn't even get
@@ -962,7 +972,11 @@ class IMAPFolder(object):
                     # Annoyingly, we'll try to do it every time the
                     # script runs, but hopefully the user will notice
                     # the errors and move it soon enough.
+
+                    if options["globals", "verbose"]:
+                        print "[imapfilter] could not retrieve:", msg.uid
                     continue
+                
                 (prob, clues) = classifier.spamprob(msg.tokenize(),
                                                     evidence=True)
                 # Add headers and remember classification.
@@ -973,16 +987,26 @@ class IMAPFolder(object):
                 cls = msg.GetClassification()
                 if cls == options["Headers", "header_ham_string"]:
                     if hamfolder:
+                        if options["globals", "verbose"]:
+                            print "[imapfilter] moving to ham folder:", msg.uid
                         msg.MoveTo(hamfolder)
                     # Otherwise, we leave ham alone.
                     count["ham"] += 1
                 elif cls == options["Headers", "header_spam_string"]:
+                    if options["globals", "verbose"]:
+                        print "[imapfilter] moving to spam folder:", msg.uid
                     msg.MoveTo(spamfolder)
                     count["spam"] += 1
                 else:
+                    if options["globals", "verbose"]:
+                        print "[imapfilter] moving to unsure folder:", msg.uid
                     msg.MoveTo(unsurefolder)
                     count["unsure"] += 1
                 msg.Save()
+            else:
+                if options["globals", "verbose"]:
+                    print "[imapfilter] already classified:", msg.uid
+                
         return count
 
 
@@ -1032,13 +1056,23 @@ class IMAPFilter(object):
     def Filter(self):
         assert self.imap_server, "Cannot do anything without IMAP server."
         if not self.spam_folder:
-            self.spam_folder = IMAPFolder(options["imap", "spam_folder"],
-                                          self.imap_server, self.stats)
+            spam_folder_name = options["imap", "spam_folder"]
+            if options["globals", "verbose"]:
+                print "[imapfilter] spam folder:", spam_folder_name
+            self.spam_folder = IMAPFolder(
+                spam_folder_name, self.imap_server, self.stats)
+            
         if not self.unsure_folder:
-            self.unsure_folder = IMAPFolder(options["imap",
-                                                    "unsure_folder"],
-                                            self.imap_server, self.stats)
+            unsure_folder_name = options["imap", "unsure_folder"]
+            if options["globals", "verbose"]:
+                print "[imapfilter] unsure folder:", unsure_folder_name
+            self.unsure_folder = IMAPFolder(
+                unsure_folder_name, self.imap_server, self.stats)
+
         ham_folder_name = options["imap", "ham_folder"]
+        if options["globals", "verbose"]:
+            print "[imapfilter] ham folder:", ham_folder_name
+            
         if ham_folder_name and not self.ham_folder:
             self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server,
                                          self.stats)
