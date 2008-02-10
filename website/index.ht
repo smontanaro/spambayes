@@ -3,6 +3,123 @@ Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
 
+<h2>SpamBayes Downloads</h2>
+
+<p> Locate the row which contains your operating system and mail program to
+see which version of SpamBayes is right for you.  If you can test any of the
+configurations, please <a href="mailto:spambayes@python.org">let us
+know</a>.  Note that <a
+href="http://spambayes.svn.sourceforge.net/viewvc/*checkout*/spambayes/trunk/spambayes/README.txt">installing
+a source release</a> is more involved than the binary releases.</p>
+
+<table style="font-size: 80%" cellspacing="0" cellpadding="2" border="1">
+
+<tr>
+<th>Mail&nbsp;Program</th>
+<th>Operating&nbsp;System</th>
+<th>Stable&nbsp;Release</th>
+<th>Test&nbsp;Release</th>
+<th>Notes</th>
+</tr>
+
+<tr>
+<td>Outlook 2000/2003/2007</td>
+<td>Windows&nbsp;XP</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4-070629.exe?download">1.1a4</a></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>Outlook 2003/2007</td>
+<td>Windows&nbsp;Vista</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4-070629.exe?download">1.1a4</a></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>Outlook Express</td>
+<td>Windows&nbsp;XP</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4-070629.exe?download">1.1a4</a></td>
+<td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>Windows Live Mail</td>
+<td>Windows&nbsp;Vista</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4-070629.exe?download">1.1a4</a></td>
+<td>Untested.  It should work at least as well as Outlook Express though.</td>
+</tr>
+
+<tr>
+<td>Other</td>
+<td>Windows&nbsp;XP/Vista</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/sb11a4.zip?download">1.1a4</a> (source)</td>
+<td>Source code for the rest of the Windows world.</td>
+</tr>
+
+<tr>
+<td>IncrediMail</td>
+<td>Windows&nbsp;XP/Vista</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>Completely untested.  May work with POP3.  Rudimentary IMAP support may prevent that protocol.</td>
+</tr>
+
+<tr>
+<td>Thunderbird</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://pieces.openpolitics.com/thunderbayes/">Thunderbayes</a></td>
+<td>Tighter integration similar to Outlook plugin.  Uses 1.0.4.</td>
+</tr>
+
+<tr>
+<td>Gmail</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>POP3 works.  IMAP maybe (untested).</td>
+</tr>
+
+<tr>
+<td>Yahoo! Mail</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>Completely untested.  POP3 &amp; IMAP?</td>
+</tr>
+
+<tr>
+<td>MSN Hotmail</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>Completely untested.  POP3 &amp; IMAP?</td>
+</tr>
+
+<tr>
+<td>AOL Mail</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>Completely untested.  IMAP only?</td>
+</tr>
+
+<tr>
+<td>Any</td>
+<td>Mac&nbsp;OS&nbsp;X/Linux/Solaris</td>
+<td>&nbsp;</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td>POP3/IMAP, etc.</td>
+</tr>
+
+</table>
+
 <h2>News</h2>
 <p>SpamBayes 1.0.4 is now available!  (This includes both the source
 archives and a Windows binary installer).</p>
