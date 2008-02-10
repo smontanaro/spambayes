@@ -58,8 +58,10 @@ a source release</a> is more involved than the binary releases.</p>
 <td>Other</td>
 <td>Windows&nbsp;XP/Vista</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/sb11a4.zip?download">1.1a4</a> (source)</td>
-<td>Source code for the rest of the Windows world.</td>
+<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4-070629.exe?download">1.1a4&nbsp;(binary)</a><br>
+<a href="http://prdownloads.sourceforge.net/spambayes/sb11a4.zip?download">1.1a4&nbsp;(source)</a></td>
+<td>Source code for the rest of the Windows world.  (Binary installer also -
+might work in some circumstances.)</td>
 </tr>
 
 <tr>
