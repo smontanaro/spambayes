@@ -1581,9 +1581,9 @@ information about this situtation, we would love to hear it.
 After installing SpamBayes, Outlook crashes and then asks for the plug-in to be disabled.
 -----------------------------------------------------------------------------------------
 
-Are you using an Athlon 64 with DEP?  There are issues with DEP and Outlook
-with a SpamBayes-based plug-in.  Listing Outlook as a safe application on
-an Athlon 64 should "solve" the problem.
+Are you using an Athlon 64 or Core 2 Duo with DEP?  There are issues with
+DEP and Outlook with a SpamBayes-based plug-in.  Listing Outlook as a safe
+application on these processors should "solve" the problem.
                                  
 
 Development
