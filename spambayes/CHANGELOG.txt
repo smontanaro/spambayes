@@ -1,11 +1,13 @@
 [Note that all dates are in ISO 8601 format, e.g. YYYY-MM-DD to ease sorting]
 
 Release 1.1a5
+=============
 
 Skip Montanaro	  2007-07-14  Add train and train_mime methods to XML-RPC plugin (from Marian Neagul).
 Skip Montanaro    2007-07-15  Switch repository from CVS to Subversion.
 
 Release 1.1a4
+=============
 
 Skip Montanaro    2006-09-09  Dump NetPBM decode support in favor of PIL
 Skip Montanaro    2006-09-09  First crack at handling image sequences
@@ -268,12 +270,14 @@ Tony Meyer        2004-05-24  imapfilter: With the verbose output, put the final
 Tony Meyer        2004-05-16  imapfilter: Sometimes we can't fetch a message, so we can't add the exception header.  Don't crash, just warn and continue.
 Toby Dickenson    2004-05-06  Add a C implementation of sb_bnfilter. Tweak the Python version to minimise differences between the two. Enable psyco in sb_bnserver.
 
-1.0 Final
-=========
+Release 1.0 Final
+=================
+
 (no changes from 1.0rc2)
 
-Release Candidate 2
-===================
+Release 1.0 Release Candidate 2
+===============================
+
 Tony Meyer        2004-06-10  Install license with binaries.
 Mark Hammond      2004-06-01  Fix Tony's fix for [ 943397 ] Cannot choose more than one Inbox folder to filter
 Tony Meyer        2004-06-02  Fix [ 961713 ] server error when trying to change Statistics Options
@@ -287,8 +291,9 @@ Tony Meyer        2004-05-14  Handle people using a storage type that isn't pick
 Tony Meyer        2004-05-13  If a user tried to send a bug report before entering in any servers to proxy, this would generate an IndexError.  Fix that.
 Tony Meyer        2004-05-12  Fix [ 943397 ] Cannot choose more than one Inbox folder to filter
 
-Release Candidate 1
-===================
+Release 1.0 Release Candidate 1
+===============================
+
 Skip Montanaro    2004-05-05  sb_filter, sb_bnfilter use new mboxutils as_string().
 Skip Montanaro    2004-05-04  mboxutils: Added as_string() - a function which attempts to work around problems flatten()-ing some Message objects in versions of the email package < 2.5.5.
 Mark Hammond      2004-05-04  Fix [ 918157 ] "Could not watch the specified folders". msgstore.IsReceiveFolder() would fail on an exchange server.
@@ -301,8 +306,9 @@ Tony Meyer        2004-04-25  If the move_trained_[ham|spam]_to_folder options w
 Tony Meyer        2004-04-25  Update message.py for the newer way that the persistent_use_database option works.
 Tony Meyer        2004-04-23  Fix [ 940155 ] Data Folder location
 
-Beta Release 1
-==============
+Release 1.0 Beta 1
+==================
+
 Kenny Pitt        2004-04-07  Fix some problems with the [851785] fix
 Toby Dickenson    2004-03-26  New script: sb_bnfilter - like sb_filter but without the startup overhead
 Tony Meyer        2004-03-24  When messages expired from the sb_server caches during a USER check (rather than on launch) they would be untrained.  This is not right at all, and so was fixed.
@@ -335,8 +341,9 @@ Tony Meyer        2004-02-13  Fix [ 895606 ] 1.0a9 proxy raises an X-Spambayes-E
 Skip Montanaro    2004-02-12  Big speedup when using sb_filter.py to process an entire mailbox.  Instead of opening the database for each filter operation, cache the open db object and reuse as long as its mode is the same as the last time we used it.
 Kenny Pitt        2004-02-11  Fix typo in sb_dbexpimp.py usage statement.
 
-Alpha Release 9
-===============
+Release 1.0 Alpha 9
+===================
+
 Skip Montanaro    2004-02-07  New script - tte.py: Train to exhaustion based upon my understanding of the technique as described in Gary Robinson's blog.
 Tony Meyer        2004-02-05  Web interface: added a third configuration page, which dynamically has all the experimental options (not the deprecated ones).
 Tony Meyer        2004-02-05  Make all the scripts consistent in their command line setting of database type/name.  -d is dbm, -p is pickle.  Also setup things nicer for mysql and pgsql.
@@ -514,12 +521,14 @@ Tony Meyer        2003-09-20  Improve the 'Find Message' query on the front page
 Tony Meyer        2003-09-20  Add an advanced word query to the web UI.
 Tony Meyer        2003-09-20  Make the review messages page on the web UI more customizable.
 
-Alpha Release 8
-===============
+Release 1.0 Alpha 8
+===================
+
 There was no Alpha Release 8.
 
-Alpha Release 7
-===============
+Release 1.0 Alpha 7
+===================
+
 Skip Montanaro	  2003-10-28  Determine dbm format from the file if it already exists
 Tony Meyer        2003-10-09  An old-style option was left in hammiebulk; fix this.
 Tony Meyer        2003-10-08  If the (stats) db uses a pickle, then use a pickle for the messageinfo db as well.
@@ -540,8 +549,9 @@ Tony Meyer        2003-09-26  If the user is using Windows, also install pop3pro
 Tony Meyer        2003-09-24  Fix sb_xmlrpcserver to work with the renamed options/scripts.
 Tony Meyer        2003-09-24  Fix [ 809769 ] TypeError when training 1.0a6
 
-Alpha Release 6
-===============
+Release 1.0 Alpha 6
+===================
+
 Skip Montanaro    2003-09-19  Worm around a possible email pkg bug.
 Skip Montanaro    2003-09-19  hammiebulk & mboxtrain: Minor performance boost when training on lots of mail.
 Skip Montanaro    2003-09-19  Place a threshold on the number of items displayed per section in the review page of the UI.
@@ -595,8 +605,9 @@ Tony Meyer        2003-09-06  Fix [ 800555 ] 1.0a5 release missing key outlook f
 Tony Meyer        2003-09-05  Remove backwards compat code for options, and update all (I hope) the remaining code that uses it.
 Tony Meyer        2003-09-05  Move and rename all top-level scripts other than setup.py
 
-Alpha Release 5
-===============
+Release 1.0 Alpha 5
+===================
+
 Tony Meyer     2003-09-03  imapfilter: We would crash if we hadn't set anything up and didn't prompt for password.
 Adam Walker    2003-09-03  pop3proxy_tray: Switch icons based on if the proxy is running or not. Provide some info found on the information page in the tooltip of the icon.
 Tony Meyer     2003-09-02  Add a rough autoconfigure script, which will set up both spambayes and a mail client to use pop3proxy
@@ -727,8 +738,9 @@ Richie Hindle  2003-07-07  Added no_cache_bulk_ham option: suppresses caching of
 Richie Hindle  2003-07-07  Prevent the "Show clues" links on the web UI's training page from word-wrapping and making all the table rows two lines high.
 
 
-Alpha Release 4
-===============
+Release 1.0 Alpha 4
+===================
+
 Tony Meyer  2003-07-04  Fix SF#761677 ("mboxtrain.py's -n option has no effect")
 Richie Hindle   2003-07-03  Put the current date and time into the footer of the web interface, rather than always displaying "Mon Dec 30 14:04:32 2002".
 Richie Hindle   2003-07-03  Fix a bug in pop3proxy where long attachments would be broken.
@@ -752,8 +764,9 @@ Tony Meyer	2003-06-23	Fix the -i switch in imapfilter.
 Barry Warsaw	2003-06-22	Don't try and get password from options if -p is specified in imapfilter.
 Barry Warsaw	2003-06-22	Fix an import error in imapfilter.
 
-Alpha Release 3
-===============
+Release 1.0 Alpha 3
+===================
+
 Tony Meyer	2003-06-22	Fix RFC822.PEEK error in imapfilter.
 Neale Pickett	2003-06-21	"In hammiefilter,  make untrain mode work."
 Mark Hammond	2003-06-20	"In Outlook plugin, add a 'verbose' option to the options."
