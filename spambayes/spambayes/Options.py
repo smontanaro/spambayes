@@ -842,28 +842,33 @@ defaults = {
   # you must specify the same number of ports in pop3proxy_ports.
   "pop3proxy" : (
     ("remote_servers", _("Remote Servers"), (),
-     _("""The SpamBayes POP3 proxy intercepts incoming email and classifies
-     it before sending it on to your email client.  You need to specify
-     which POP3 server(s) you wish it to intercept - a POP3 server
-     address typically looks like "pop3.myisp.net".  If you use more than
-     one server, simply separate their names with commas.  You can get
-     these server names from your existing email configuration, or from
-     your ISP or system administrator.  If you are using Web-based email,
-     you can't use the SpamBayes POP3 proxy (sorry!).  In your email
-     client's configuration, where you would normally put your POP3 server
-     address, you should now put the address of the machine running
-     SpamBayes."""),
+     _("""\
+     The SpamBayes POP3 proxy intercepts incoming email and classifies it
+     before sending it on to your email client.  You need to specify which
+     POP3 server(s) and port(s) you wish it to connect to - a POP3 server
+     address typically looks like 'pop3.myisp.net:110' where
+     'pop3.myisp.net' is the name of the computer where the POP3 server runs
+     and '110' is the port on which the POP3 server listens.  The other port
+     you might find is '995', which is used for secure POP3.  If you use
+     more than one server, simply separate their names with commas.  For
+     example:  'pop3.myisp.net:110,pop.gmail.com:995'.  You can get
+     these server names and port numbers from your existing email
+     configuration, or from your ISP or system administrator.  If you are
+     using Web-based email, you can't use the SpamBayes POP3 proxy (sorry!).
+     In your email client's configuration, where you would normally put your
+     POP3 server address, you should now put the address of the machine
+     running SpamBayes.
+"""),
      SERVER, DO_NOT_RESTORE),
 
     ("listen_ports", _("SpamBayes Ports"), (),
-     _("""Each POP3 server that is being monitored must be assigned to a
-     'port' in the SpamBayes POP3 proxy.  This port must be different for
-     each monitored server, and there must be a port for
-     each monitored server.  Again, you need to configure your email
-     client to use this port.  If there are multiple servers, you must
-     specify the same number of ports as servers, separated by commas.
-     If you don't know what to use here, and you only have one server,
-     try 110, or if that doesn't work, try 8110."""),
+     _("""\
+     Each monitored POP3 server must be assigned to a different port in the
+     SpamBayes POP3 proxy.  You need to configure your email client to
+     connect to this port instead of the actual remote POP3 server.  If you
+     don't know what port to use, try 8110 and go up from there.  If you
+     have two servers, your list of listen ports might then be '8110,8111'.
+"""),
      SERVER, DO_NOT_RESTORE),
 
     ("allow_remote_connections", _("Allowed remote POP3 connections"), "localhost",
