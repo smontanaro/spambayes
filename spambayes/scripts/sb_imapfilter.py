@@ -1094,7 +1094,7 @@ class IMAPFilter(object):
         try:
             self.imap_server.SelectFolder(self.unsure_folder.name)
         except BadIMAPResponseError:
-            print "Cannot select spam folder.  Please check configuration."
+            print "Cannot select unsure folder.  Please check configuration."
             sys.exit(-1)
         if self.ham_folder:
             try:
