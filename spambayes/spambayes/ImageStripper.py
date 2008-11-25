@@ -8,13 +8,11 @@ import sys
 import os
 import tempfile
 import math
-import time
-import md5
-import atexit
 try:
-    import cPickle as pickle
+    from hashlib import md5
 except ImportError:
-    import pickle
+    from md5 import new as md5
+import atexit
 try:
     import cStringIO as StringIO
 except ImportError:
@@ -24,6 +22,8 @@ try:
     from PIL import Image, ImageSequence
 except ImportError:
     Image = None
+
+from spambayes.safepickle import pickle_read, pickle_write
 
 # The email mime object carrying the image data can have a special attribute
 # which indicates that a message had an image, but it was large (ie, larger
@@ -72,7 +72,7 @@ def find_program(prog):
             #    C:/Program Files/SpamBayes/bin
             # so add that directory to the path and make sure we
             # look for a file ending in ".exe".
-            if sys.frozen=="dll":
+            if sys.frozen == "dll":
                 import win32api
                 sentinal = win32api.GetModuleFileName(sys.frozendllhandle)
             else:
@@ -81,7 +81,7 @@ def find_program(prog):
             # So just use the short version.
             # For the sake of safety, in a binary build we *only* look in
             # our bin dir.
-            path=[win32api.GetShortPathName(os.path.dirname(sentinal))]
+            path = [win32api.GetShortPathName(os.path.dirname(sentinal))]
         else:
             # a source build - for testing, allow it in SB package dir.
             import spambayes
@@ -255,8 +255,8 @@ class OCRExecutableEngine(OCREngine):
         ret = ocr.read()
         exit_code = ocr.close()
         if exit_code:
-            print "warning:", self.engine_name, "failed with exit code", exit_code
-            print "command line was:", repr(cmdline)
+            raise SystemError, ("%s failed with exit code %s" %
+                                (self.engine_name, exit_code))
         return ret
 
 class OCREngineOCRAD(OCRExecutableEngine):
@@ -269,7 +269,7 @@ class OCREngineOCRAD(OCRExecutableEngine):
                 (self.program, scale, charset, pnmfile, os.path.devnull)
 
 class OCREngineGOCR(OCRExecutableEngine):
-    engine_name="gocr"
+    engine_name = "gocr"
 
     def get_command_line(self, pnmfile):
         return '%s "%s" 2>%s' % (self.program, pnmfile, os.path.devnull)
@@ -302,7 +302,7 @@ class ImageStripper:
     def __init__(self, cachefile=""):
         self.cachefile = os.path.expanduser(cachefile)
         if os.path.exists(self.cachefile):
-            self.cache = pickle.load(open(self.cachefile))
+            self.cache = pickle_read(self.cachefile)
         else:
             self.cache = {}
         self.misses = self.hits = 0
@@ -315,14 +315,20 @@ class ImageStripper:
         textbits = []
         tokens = Set()
         for pnmfile in pnmfiles:
-            fhash = md5.new(open(pnmfile).read()).hexdigest()
+            preserve = False
+            fhash = md5(open(pnmfile).read()).hexdigest()
             if fhash in self.cache:
                 self.hits += 1
                 ctext, ctokens = self.cache[fhash]
             else:
                 self.misses += 1
                 if self.engine.program:
-                    ctext = self.engine.extract_text(pnmfile).lower()
+                    try:
+                        ctext = self.engine.extract_text(pnmfile).lower()
+                    except SystemError, msg:
+                        print >> sys.stderr, msg
+                        preserve = True
+                        ctext = ""
                 else:
                     # We should not get here if no OCR is enabled.  If it
                     # is enabled and we have no program, its OK to spew lots
@@ -345,13 +351,14 @@ class ImageStripper:
                 self.cache[fhash] = (ctext, ctokens)
             textbits.append(ctext)
             tokens |= ctokens
-            os.unlink(pnmfile)
+            if not preserve:
+                os.unlink(pnmfile)
 
         return "\n".join(textbits), tokens
 
     def analyze(self, engine_name, parts):
         # check engine hasn't changed...
-        if self.engine is not None and self.engine.engine_name!=engine_name:
+        if self.engine is not None and self.engine.engine_name != engine_name:
             self.engine = None
         # check engine exists and is valid
         if self.engine is None:
@@ -385,7 +392,7 @@ class ImageStripper:
                 print >> sys.stderr, "%.2f%% hit rate" % \
                       (100 * self.hits / (self.hits + self.misses)),
             print >> sys.stderr
-        pickle.dump(self.cache, open(self.cachefile, "wb"))
+        pickle_write(self.cachefile, self.cache)
 
 _cachefile = options["Tokenizer", "crack_image_cache"]
 crack_images = ImageStripper(_cachefile).analyze
