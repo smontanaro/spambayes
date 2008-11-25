@@ -94,11 +94,9 @@ Gimmicks:
  o Graphs.  Of something.  Who cares what?
 """
 
-import sys, getopt, time
-from email.Header import Header
+import sys, getopt
 
 from spambayes import Dibbler
-from spambayes import storage
 from spambayes.Options import options, _
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.Version import get_current_version

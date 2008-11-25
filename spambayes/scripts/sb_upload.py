@@ -58,7 +58,7 @@ def post_multipart(host, selector, fields, files):
     h.putheader('content-length', str(len(body)))
     h.endheaders()
     h.send(body)
-    errcode, errmsg, headers = h.getreply()
+    h.getreply()
     return h.file.read()
 
 def encode_multipart_formdata(fields, files):
@@ -153,7 +153,7 @@ def main(argv):
                                 ("text", "")],
                                [("file", "message.dat", data)])
             else:
-                post_multipart("%s:%d" % (server,port), "/upload", [],
+                post_multipart("%s:%d" % (server, port), "/upload", [],
                                [('file', 'message.dat', data)])
         except:
             # not an error if the server isn't responding

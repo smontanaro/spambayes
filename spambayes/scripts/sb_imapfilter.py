@@ -110,7 +110,7 @@ if hasattr(sys, "frozen"):
     else:
         temp_dir = win32api.GetTempPath()
         status = "Log file opened in " + temp_dir
-    for i in range(3,0,-1):
+    for i in range(3, 0, -1):
         try:
             os.unlink(os.path.join(temp_dir, "SpamBayesIMAP%d.log" % (i+1)))
         except os.error:
@@ -132,20 +132,15 @@ import time
 import getopt
 import types
 import thread
-import traceback
 import email
 import email.Parser
 from getpass import getpass
 from email.Utils import parsedate
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
 
 from spambayes import Stats
 from spambayes import message
-from spambayes.Options import options, get_pathname_option, optionsPathname
-from spambayes import tokenizer, storage, Dibbler
+from spambayes.Options import options, optionsPathname
+from spambayes import storage, Dibbler
 from spambayes.UserInterface import UserInterfaceServer
 from spambayes.ImapUI import IMAPUserInterface, LoginFailure
 
@@ -177,7 +172,6 @@ class IMAPSession(BaseIMAP):
 
     timeout = 60 # seconds
     def __init__(self, server, debug=0, do_expunge = options["imap", "expunge"] ):
-
         if server.find(':') > -1:
             server, port = server.split(':', 1)
             port = int(port)
@@ -494,7 +488,7 @@ class IMAPSession(BaseIMAP):
 
 class IMAPMessage(message.SBHeaderMessage):
     def __init__(self):
-        message.Message.__init__(self)
+        message.SBHeaderMessage.__init__(self)
         self.folder = None
         self.previous_folder = None
         self.rfc822_command = "(BODY.PEEK[])"
@@ -548,7 +542,7 @@ class IMAPMessage(message.SBHeaderMessage):
             # Can't select the folder, so getting the substance will not
             # work.
             self.could_not_retrieve = True
-            print >>sys.stderr, "Could not select folder %s for message " \
+            print >> sys.stderr, "Could not select folder %s for message " \
                   "%s (uid %s)" % (self.folder.name, self.id, self.uid)
             return self
 
@@ -571,7 +565,7 @@ class IMAPMessage(message.SBHeaderMessage):
             # characters for classification.  For now, we just carry on,
             # warning the user and ignoring the message.
             self.could_not_retrieve = True
-            print >>sys.stderr, "MemoryError with message %s (uid %s)" % \
+            print >> sys.stderr, "MemoryError with message %s (uid %s)" % \
                   (self.id, self.uid)
             return self
 
@@ -614,7 +608,7 @@ class IMAPMessage(message.SBHeaderMessage):
             self.got_substance = True
 
             # Print the exception and a traceback.
-            print >>sys.stderr, details
+            print >> sys.stderr, details
 
             return self            
 
@@ -660,7 +654,7 @@ class IMAPMessage(message.SBHeaderMessage):
         We can't actually update the message with IMAP, so what we do is
         create a new message and delete the old one."""
 
-        assert self.folder is not None,\
+        assert self.folder is not None, \
                "Can't save a message that doesn't have a folder."
         assert self.id, "Can't save a message that doesn't have an id."
         assert self.imap_server, "Can't do anything without IMAP connection."
@@ -733,7 +727,8 @@ class IMAPMessage(message.SBHeaderMessage):
             data = self.imap_server.check_response("recent", response)
             if data[0] is not None:
                 if options["globals", "verbose"]:
-                        print "[imapfilter] found saved message %s in iteration" % self.uid, i
+                    print "[imapfilter] found saved message", self.uid,
+                    print "in iteration", i
                 break
         else:
             if options["globals", "verbose"]:
@@ -963,7 +958,7 @@ class IMAPFolder(object):
             cls = msg.GetClassification()
             if cls is None or hamfolder is not None:
                 if options["globals", "verbose"]:
-                    print "[imapfilter] classified as %s:"%cls, msg.uid
+                    print "[imapfilter] classified as %s:" % cls, msg.uid
                 
                 msg = msg.get_full_message()
                 if msg.could_not_retrieve:
@@ -1140,13 +1135,13 @@ prompts the user for each server's password.
         for u in usernames:
             pwds.append(getpass("Enter password for %s:" % (u,)))
             
-    return zip(servers,usernames,pwds)
+    return zip(servers, usernames, pwds)
             
 def run(force_UI=False):
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     doTrain = False
@@ -1159,7 +1154,7 @@ def run(force_UI=False):
 
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == "-b":
             launchUI = True
@@ -1248,7 +1243,7 @@ def run(force_UI=False):
                                               IMAPSession, stats=stats,
                                               close_db=close_db,
                                               change_db=change_db))
-        launchBrowser=launchUI or options["html_ui", "launch_browser"]
+        launchBrowser = launchUI or options["html_ui", "launch_browser"]
         if sleepTime:
             # Run in a separate thread, as we have more work to do.
             thread.start_new_thread(Dibbler.run, (),

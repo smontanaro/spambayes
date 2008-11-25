@@ -64,16 +64,17 @@ except NameError:
 import os
 import re
 import sys
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import new as md5
 import time
 import errno
-import types
 import email
 import thread
 import getopt
 import socket
 import imaplib
-import operator
 import email.Utils
 
 try:
@@ -85,14 +86,12 @@ from twisted import cred
 import twisted.application.app
 from twisted.internet import defer
 from twisted.internet import reactor
-from twisted.internet.defer import maybeDeferred
 from twisted.internet.protocol import ServerFactory
 from twisted.protocols.imap4 import IMessage
-from twisted.protocols.imap4 import parseNestedParens, parseIdList
-from twisted.protocols.imap4 import IllegalClientResponse, IAccount
-from twisted.protocols.imap4 import collapseNestedLists, MessageSet
+from twisted.protocols.imap4 import IAccount
+from twisted.protocols.imap4 import MessageSet
 from twisted.protocols.imap4 import IMAP4Server, MemoryAccount, IMailbox
-from twisted.protocols.imap4 import IMailboxListener, collapseNestedLists
+from twisted.protocols.imap4 import IMailboxListener
 
 from spambayes import storage
 from spambayes import message
@@ -101,7 +100,7 @@ from spambayes.Options import options
 from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_current_version
-from sb_server import POP3ProxyBase, State, _addressPortStr, _recreateState
+from sb_server import POP3ProxyBase, State, _addressPortStr
 
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it
@@ -263,7 +262,7 @@ class IMAPMessage(message.Message):
             if part.get_main_type() == "text":
                 part_s.append(str(part.as_string().count("\n")))
             if ext:
-                part_s.extend([md5.new(part.as_string()).digest(),
+                part_s.extend([md5(part.as_string()).digest(),
                                part.get('Content-Disposition'),
                                part.get('Content-Language')])
             s.append(part_s)
@@ -538,7 +537,7 @@ class SpambayesMailbox(IMAPMailbox):
 class SpambayesInbox(SpambayesMailbox):
     """A special mailbox that holds status messages from SpamBayes."""
     def __init__(self, id, state):
-        IMAPMailbox.__init__(self, "INBOX", "spambayes", id)
+        SpambayesMailbox.__init__(self, "INBOX", "spambayes", id)
         self.mdb = state.mdb
         self.UID_validity = id
         self.nextUID = 1
@@ -826,8 +825,8 @@ class RedirectingBayesProxy(POP3ProxyBase):
                 msg = email.message_from_string(messageText,
                                                 _class=message.SBHeaderMessage)
                 # Now find the spam disposition and add the header.
-                (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
-                                 evidence=True)
+                (prob, clues) = state.bayes.spamprob(msg.tokenize(),
+                                                     evidence=True)
 
                 # Note that the X-SpamBayes-MailID header will be worthless
                 # because we don't know the message id at this point.  It's
@@ -870,7 +869,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                              message.insert_exception_header(messageText)
 
                 # Print the exception and a traceback.
-                print >>sys.stderr, details
+                print >> sys.stderr, details
             retval = ok + "\n" + messageText
             if terminatingDotPresent:
                 retval += '.\r\n'
@@ -1009,12 +1008,12 @@ def run():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'ho:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
