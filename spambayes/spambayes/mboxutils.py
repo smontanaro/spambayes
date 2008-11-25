@@ -131,7 +131,7 @@ def getmbox(name):
 
         message_db = message.Message().message_info_db
         stats = Stats.Stats(options, message_db)
-        mboxes = [ IMAPFolder(n,session,stats) for n in names ]
+        mboxes = [IMAPFolder(n, session, stats) for n in names]
         
         if len(mboxes) == 1:
             return full_messages(mboxes[0])
@@ -268,9 +268,6 @@ def extract_headers(text):
         text = ""
     return text
 
-def _test():
-    import doctest, mboxutils
-    return doctest.testmod(mboxutils)
-
 if __name__ == "__main__":
-    _test()
+    import doctest
+    doctest.testmod()
