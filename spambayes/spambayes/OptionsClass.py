@@ -683,11 +683,6 @@ class OptionsClass(object):
         # For the moment, this will do.  Use a real mail client, for
         # goodness sake!
         if sect == "Headers" and opt in ("notate_to", "notate_subject"):
-            header_strings = (self.get("Headers", "header_ham_string"),
-                              self.get("Headers",
-                                       "header_spam_string"),
-                              self.get("Headers",
-                                       "header_unsure_string"))
             self._options[sect, opt.lower()].set(val)
             return
         if self.is_valid(sect, opt, val):
@@ -860,9 +855,10 @@ IMAP_FOLDER = r"[^,]+"
 #   where number represents the number of CHAR8 octets
 # but this is too complex for us at the moment.
 IMAP_ASTRING = []
-for i in range(1, 128):
-    if not chr(i) in ['"', '\\', '\n', '\r']:
+for _i in xrange(1, 128):
+    if chr(i) not in ['"', '\\', '\n', '\r']:
         IMAP_ASTRING.append(chr(i))
+del _i
 IMAP_ASTRING = r"\"?[" + re.escape(''.join(IMAP_ASTRING)) + r"]+\"?"
 
 # Similarly, each option must specify whether it should be reset to
