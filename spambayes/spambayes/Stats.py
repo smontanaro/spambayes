@@ -403,6 +403,6 @@ class Stats(object):
         return chunks
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     s = Stats()
     print "\n".join(s.GetStats())
