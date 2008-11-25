@@ -856,8 +856,8 @@ IMAP_FOLDER = r"[^,]+"
 # but this is too complex for us at the moment.
 IMAP_ASTRING = []
 for _i in xrange(1, 128):
-    if chr(i) not in ['"', '\\', '\n', '\r']:
-        IMAP_ASTRING.append(chr(i))
+    if chr(_i) not in ['"', '\\', '\n', '\r']:
+        IMAP_ASTRING.append(chr(_i))
 del _i
 IMAP_ASTRING = r"\"?[" + re.escape(''.join(IMAP_ASTRING)) + r"]+\"?"
 
