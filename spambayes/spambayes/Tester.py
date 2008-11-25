@@ -42,10 +42,10 @@ class Test:
         # The number of test instances correctly and incorrectly classified.
         self.nham_right = 0
         self.nham_wrong = 0
-        self.nham_unsure = 0;
+        self.nham_unsure = 0
         self.nspam_right = 0
         self.nspam_wrong = 0
-        self.nspam_unsure = 0;
+        self.nspam_unsure = 0
 
         # Lists of bad predictions.
         self.ham_wrong_examples = []    # False positives:  ham called spam.
@@ -194,9 +194,6 @@ _easy_test = """
 
 __test__ = {'easy': _easy_test}
 
-def _test():
-    import doctest, Tester
-    doctest.testmod(Tester)
-
 if __name__ == '__main__':
-    _test()
+    import doctest
+    doctest.testmod()
