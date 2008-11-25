@@ -16,7 +16,7 @@ class CostCounter:
         return "%s: $%.4f" % (self.name, self.total)
 
 class CompositeCostCounter:
-    def __init__(self,cclist):
+    def __init__(self, cclist):
         self.clients = cclist
 
     def spam(self, scr):
@@ -34,10 +34,10 @@ class CompositeCostCounter:
         return '\n'.join(s)
 
 class DelayedCostCounter(CompositeCostCounter):
-    def __init__(self,cclist):
-        CompositeCostCounter.__init__(self,cclist)
-        self.spamscr=[]
-        self.hamscr=[]
+    def __init__(self, cclist):
+        CompositeCostCounter.__init__(self, cclist)
+        self.spamscr = []
+        self.hamscr = []
 
     def spam(self, scr):
         self.spamscr.append(scr)
@@ -47,10 +47,10 @@ class DelayedCostCounter(CompositeCostCounter):
 
     def __str__(self):
         for scr in self.spamscr:
-            CompositeCostCounter.spam(self,scr)
+            CompositeCostCounter.spam(self, scr)
         for scr in self.hamscr:
-            CompositeCostCounter.ham(self,scr)
-        s=[]
+            CompositeCostCounter.ham(self, scr)
+        s = []
         for line in CompositeCostCounter.__str__(self).split('\n'):
             s.append('Delayed-'+line)
         return '\n'.join(s)
@@ -108,7 +108,7 @@ class CountCostCounter(CostCounter):
                     zd(100.*(self._fp+self._fn),self._total),
                     zd(100.*self._unsure,self._total)))
 
-def zd(x,y):
+def zd(x, y):
     if y > 0:
         return x / y
     else:
@@ -180,12 +180,12 @@ def nodelay():
                Flex2CostCounter(),
            ])
 
-if __name__=="__main__":
-    cc=default()
+if __name__ == "__main__":
+    cc = default()
     cc.ham(0)
     cc.spam(1)
     cc.ham(0.5)
     cc.spam(0.5)
-    options["Categorization", "spam_cutoff"]=0.7
-    options["Categorization", "ham_cutoff"]=0.4
+    options["Categorization", "spam_cutoff"] = 0.7
+    options["Categorization", "ham_cutoff"] = 0.4
     print cc
