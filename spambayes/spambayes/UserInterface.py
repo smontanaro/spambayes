@@ -81,15 +81,16 @@ import types
 import StringIO
 from email.Iterators import typed_subpart_iterator
 
-import oe_mailbox
+from spambayes import oe_mailbox
 
-import PyMeldLite
-import Dibbler
-import tokenizer
+from spambayes import PyMeldLite
+from spambayes import Dibbler
+from spambayes import tokenizer
 from spambayes import Version
 from spambayes import storage
 from spambayes import FileCorpus
-from Options import options, optionsPathname, defaults, OptionsClass, _
+from spambayes.Options import options, optionsPathname, defaults, \
+     OptionsClass, _
 
 IMAGES = ('helmet', 'status', 'config', 'help',
           'message', 'train', 'classify', 'query')
@@ -994,7 +995,7 @@ class UserInterface(BaseUserInterface):
         for section, option in parm_map:
             if option is not None:
                 if not options.no_restore(section, option):
-                    options.set(section, option, d.get(section,option))
+                    options.set(section, option, d.get(section, option))
 
         options.update_file(optionsPathname)
 
@@ -1058,7 +1059,7 @@ class UserInterface(BaseUserInterface):
         remote_servers = options["pop3proxy", "remote_servers"]
         if remote_servers:
             domain_guess = remote_servers[0]
-            for pre in ["pop.", "pop3.", "mail.",]:
+            for pre in ["pop.", "pop3.", "mail."]:
                 if domain_guess.startswith(pre):
                     domain_guess = domain_guess[len(pre):]
         else:
@@ -1074,7 +1075,7 @@ class UserInterface(BaseUserInterface):
         else:
             if hasattr(sys, "frozen"):
                 temp_dir = win32api.GetTempPath()
-                for name in ["SpamBayesService", "SpamBayesServer",]:
+                for name in ["SpamBayesService", "SpamBayesServer"]:
                     for i in xrange(3):
                         pn = os.path.join(temp_dir, "%s%d.log" % (name,
                                                                   (i+1)))
@@ -1212,19 +1213,16 @@ class UserInterface(BaseUserInterface):
         try:
             from textwrap import fill
         except ImportError:
+            # No textwrap module, so do the same stuff (more-or-less)
+            # ourselves.
+            def fill(text, width):
+                if len(text) <= width:
+                    return text
+                wordsep_re = re.compile(r'(-*\w{2,}-(?=\w{2,})|' # hyphenated words
+                                        r'(?<=\S)-{2,}(?=\w))')  # em-dash
+                chunks = wordsep_re.split(text)
+                chunks = filter(None, chunks)
             pass
-        else:
-            return "\n".join([fill(paragraph, width) \
-                              for paragraph in text.split('\n')])
-        # No textwrap module, so do the same stuff (more-or-less) ourselves.
-        def fill(text, width):
-            if len(text) <= width:
-                return text
-            wordsep_re = re.compile(r'(-*\w{2,}-(?=\w{2,})|'   # hyphenated words
-                                    r'(?<=\S)-{2,}(?=\w))')    # em-dash
-            chunks = wordsep_re.split(text)
-            chunks = filter(None, chunks)
-            return '\n'.join(self._wrap_chunks(chunks, width))
         return "\n".join([fill(paragraph, width) \
                           for paragraph in text.split('\n')])
 
