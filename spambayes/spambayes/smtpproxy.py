@@ -119,7 +119,6 @@ Mozilla Mail 1.2.1 Forward (inline, html)                  *1    *
 is set, and if view all headers is true.
 """
 
-import string
 import re
 import socket
 import sys
@@ -317,8 +316,8 @@ class BayesSMTPProxy(SMTPProxyBase):
         getting FROM: addresses.
         """
         if '<' in address:
-            start = string.index(address, '<') + 1
-            end = string.index(address, '>')
+            start = address.index('<') + 1
+            end = address.index('>')
             return address[start:end]
         else:
             return address
@@ -368,7 +367,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         rv = "%s:%s" % (command, ' '.join(args))
         return rv
 
-    def onUnknown(self, command, args):
+    def onUnknown(self, _command, _args):
         """Default handler."""
         return self.request
 
