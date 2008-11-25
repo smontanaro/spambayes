@@ -43,8 +43,6 @@ def usage(code, msg=''):
 def main():
     """Main program; parse options and go."""
 
-    global loud
-
     everything = None
     spam = []
 
@@ -71,7 +69,8 @@ def main():
     spamsizes = {}
 
     for s in spam:
-        if loud: print "Scanning spamdir (%s):" % s
+        if loud:
+            print "Scanning spamdir (%s):" % s
         files = os.listdir(s)
         for f in files:
             if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
@@ -85,7 +84,8 @@ def main():
     os.makedirs(spamdir)
     os.makedirs(hamdir)
 
-    if loud: print "Scanning everything"
+    if loud:
+        print "Scanning everything"
     for f in os.listdir(everything):
         if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
             name = os.path.join(everything, f)
