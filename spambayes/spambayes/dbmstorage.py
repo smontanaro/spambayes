@@ -38,7 +38,7 @@ def open_best(*args):
         # Note that Python 2.3 and later ship with the new bsddb interface
         # as the default bsddb module - so 2.3 can use the old name safely.
         funcs = [open_db3hash, open_gdbm]
-        if sys.version_info >= (2,3):
+        if sys.version_info >= (2, 3):
             funcs.insert(0, open_dbhash)
     else:
         funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
@@ -65,8 +65,9 @@ def open(db_name, mode):
         dbm_type = whichdb.whichdb(db_name)
         # if we are using Windows and Python < 2.3, then we need to use
         # db3hash, not dbhash.
-        if sys.platform == "win32" and sys.version_info < (2,3) and \
-           dbm_type == "dbhash":
+        if (sys.platform == "win32" and
+            sys.version_info < (2, 3) and
+            dbm_type == "dbhash"):
             dbm_type = "db3hash"
     else:
         # fresh file or overridden - open with what the user specified
