@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import math
 
 from spambayes import mboxutils
 from spambayes import storage
@@ -122,14 +123,13 @@ class Hammie:
         basic_disp = disp
         disp += "; %.*f" % (options["Headers", "header_score_digits"], prob)
         if options["Headers", "header_score_logarithm"]:
-            if prob<=0.005 and prob>0.0:
+            if prob <= 0.005 and prob > 0.0:
                 import math
-                x=-math.log10(prob)
-                disp += " (%d)"%x
-            if prob>=0.995 and prob<1.0:
-                import math
-                x=-math.log10(1.0-prob)
-                disp += " (%d)"%x
+                x = -math.log10(prob)
+                disp += " (%d)" % x
+            if prob >= 0.995 and prob < 1.0:
+                x = -math.log10(1.0-prob)
+                disp += " (%d)" % x
         del msg[header]
         msg.add_header(header, disp)
 
@@ -151,7 +151,7 @@ class Hammie:
     def filter(self, msg, header=None, spam_cutoff=None,
                ham_cutoff=None, debugheader=None,
                debug=None, train=None):
-        prob, result = self.score_and_filter(
+        _prob, result = self.score_and_filter(
             msg, header, spam_cutoff, ham_cutoff, debugheader,
             debug, train)
         return result
@@ -281,6 +281,6 @@ def open(filename, useDB="dbm", mode='r'):
 
 if __name__ == "__main__":
     # Everybody's used to running hammie.py.  Why mess with success?  ;)
-    import hammiebulk
+    from spambayes import hammiebulk
 
     hammiebulk.main()
