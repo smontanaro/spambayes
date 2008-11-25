@@ -276,4 +276,4 @@ class MessageFactory(object):
 
 
 if __name__ == '__main__':
-    print >>sys.stderr, __doc__
+    print >> sys.stderr, __doc__
