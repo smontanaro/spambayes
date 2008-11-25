@@ -43,7 +43,7 @@ except NameError:
 
 import cgi
 
-import UserInterface
+from spambayes import UserInterface
 from spambayes.Options import options, optionsPathname, _
 
 # These are the options that will be offered on the configuration page.
