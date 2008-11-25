@@ -6,11 +6,7 @@ import email
 import locale
 from types import UnicodeType
 
-import ZODB
-from ZEO.ClientStorage import ClientStorage
-
 import pspam.database
-from spambayes.Options import options
 from spambayes.tokenizer import tokenize
 
 try:
