@@ -70,7 +70,7 @@ except NameError:
     except ImportError:
         from spambayes.compatsets import Set
 
-import UserInterface
+from spambayes import UserInterface
 from spambayes.Options import options, load_options, get_pathname_option, _
 ## no i18n yet...
 ##from spambayes import i18n
