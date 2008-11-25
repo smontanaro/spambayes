@@ -28,6 +28,7 @@ mailbox file.  All arguments except -h/--help are required.
 import sys
 import random
 import mailbox
+import email
 import getopt
 
 from spambayes import mboxutils

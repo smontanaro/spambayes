@@ -30,7 +30,7 @@ from spambayes import classifier
 from spambayes import msgs
 import email
 from email import Message
-from testtools import regimes
+import regimes
 
 try:
     True, False
@@ -76,10 +76,10 @@ class Test:
         # The number of test instances correctly and incorrectly classified.
         self.nham_right = 0
         self.nham_wrong = 0
-        self.nham_unsure = 0
+        self.nham_unsure = 0;
         self.nspam_right = 0
         self.nspam_wrong = 0
-        self.nspam_unsure = 0
+        self.nspam_unsure = 0;
 
         # Lists of bad predictions.
         self.ham_wrong_examples = []    # False positives:  ham called spam.

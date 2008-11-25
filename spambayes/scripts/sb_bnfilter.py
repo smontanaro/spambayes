@@ -157,44 +157,40 @@ def main():
     if error:
         sys.exit(error)
 
-def make_socket(server_options, filename):
+def make_socket(server_options, file):
     refused_count = 0
     no_server_count = 0
     while 1:
         try:
-            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            s.connect(filename)
+            s = socket.socket(socket.AF_UNIX,socket.SOCK_STREAM)
+            s.connect(file)
         except socket.error,e:
             if e[0] == errno.EAGAIN:
                 # baaah
                 pass
-            elif e[0] == errno.ENOENT or not os.path.exists(filename):
-                # We need to check os.path.exists for use on operating
-                # systems that never return ENOENT; linux 2.2.
+            elif e[0] == errno.ENOENT or not os.path.exists(file):
+                # We need to check os.path.exists for use on operating systems that
+                # never return ENOENT; linux 2.2.
                 #
                 # no such file.... no such server. create one.
                 no_server_count += 1
-                if no_server_count > 4:
+                if no_server_count>4:
                     raise
-                # Reset refused count to start the sleep process over.
-                # Otherwise we run the risk of waiting a *really* long time
-                # and/or hitting the refused_count limit.
-                refused_count = 0
                 fork_server(server_options)
             elif e[0] == errno.ECONNREFUSED:
                 # socket file exists but noone listening.
                 refused_count += 1
-                if refused_count == 4:
+                if refused_count == 6:
                     # We have been waiting ages and still havent been able
                     # to connect. Maybe that socket file has got
                     # orphaned. remove it, wait, and try again. We need to
                     # allow enough time for sb_bnserver to initialise the
                     # rest of spambayes
                     try:
-                        os.unlink(filename)
+                        os.unlink(file)
                     except EnvironmentError:
                         pass
-                elif refused_count > 6:
+                elif refused_count>6:
                     raise
             else:
                 raise # some other problem
@@ -216,9 +212,9 @@ def fork_server(options):
     os.setsid()
     # Use exec rather than import here because eventually it may be nice to
     # reimplement this one file in C
-    os.execv(sys.executable, [sys.executable,
-                              os.path.join(os.path.split(sys.argv[0])[0],
-                                           'sb_bnserver.py') ]+options)
+    os.execv(sys.executable,[sys.executable,
+                             os.path.join(os.path.split(sys.argv[0])[0],
+                                          'sb_bnserver.py') ]+options)
     # should never get here
     sys._exit(1)
     

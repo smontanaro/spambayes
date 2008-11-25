@@ -14,8 +14,6 @@ import os
 import binascii
 import urlparse
 import urllib
-import socket
-
 try:
     # We have three possibilities for Set:
     #  (a) With Python 2.2 and earlier, we use our compatsets class
@@ -41,7 +39,7 @@ except NameError:
 
 
 try:
-    from spambayes import dnscache
+    import dnscache
     cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
     cache.printStatsAtEnd = False
 except (IOError, ImportError):
@@ -683,8 +681,6 @@ received_host_re = re.compile(r'from ([a-z0-9._-]+[a-z])[)\s]')
 #       by m19.grp.scd.yahoo.com with QMQP; 19 Dec 2003 04:06:53 -0000
 received_ip_re = re.compile(r'[[(]((\d{1,3}\.?){4})[])]')
 
-received_nntp_ip_re = re.compile(r'((\d{1,3}\.?){4})')
-
 message_id_re = re.compile(r'\s*<[^@]+@([^>]+)>\s*')
 
 # I'm usually just splitting on whitespace, but for subject lines I want to
@@ -1088,12 +1084,19 @@ class URLStripper(Stripper):
             scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
 
             if cache is not None and options["Tokenizer", "x-lookup_ip"]:
-                ips = cache.lookup(netloc)
+                ips=cache.lookup(netloc)
                 if not ips:
                     pushclue("url-ip:lookup error")
                 else:
-                    for clue in gen_dotted_quad_clues("url-ip", ips):
-                        pushclue(clue)
+                    for ip in ips: # Should we limit to one A record?
+                        pushclue("url-ip:%s/32" % ip)
+                        dottedQuadList=ip.split(".")
+                        pushclue("url-ip:%s/8" % dottedQuadList[0])
+                        pushclue("url-ip:%s.%s/16" % (dottedQuadList[0],
+                                                      dottedQuadList[1]))
+                        pushclue("url-ip:%s.%s.%s/24" % (dottedQuadList[0],
+                                                         dottedQuadList[1],
+                                                         dottedQuadList[2]))
 
             # one common technique in bogus "please (re-)authorize yourself"
             # scams is to make it appear as if you're visiting a valid
@@ -1523,13 +1526,6 @@ class Tokenizer:
                         for tok in breakdown(m.group(1)):
                             yield 'received:' + tok
 
-        # Lots of spam gets posted on Usenet.  If it is then gatewayed to a
-        # mailing list perhaps the NNTP-Posting-Host info will yield some
-        # useful clues.
-        if options["Tokenizer", "x-mine_nntp_headers"]:
-            for clue in mine_nntp(msg):
-                yield clue
-
         # Message-Id:  This seems to be a small win and should not
         # adversely affect a mixed source corpus so it's always enabled.
         msgid = msg.get("message-id", "")
@@ -1701,57 +1697,6 @@ class Tokenizer:
 
             for t in self.tokenize_text(text):
                 yield t
-
-def mine_nntp(msg):
-    nntp_headers = msg.get_all("nntp-posting-host", ())
-    yield "has-nntp:%s" % not not nntp_headers
-    for header in nntp_headers:
-        try:
-            address = header.split()[1]
-        except IndexError:
-            continue
-        if received_nntp_ip_re.match(address):
-            for clue in gen_dotted_quad_clues("nntp-host", [address]):
-                yield clue
-            try:
-                h = socket.gethostbyaddr(address)
-            except socket.herror:
-                yield 'nntp-host-ip:has-no-reverse'
-            else:
-                yield 'nntp-host-ip:has-reverse'
-                yield 'nntp-host-name:%s' % h[0]
-                yield ('nntp-host-domain:%s' %
-                       '.'.join(h[0].split('.')[-2:]))
-        else:
-            # assume it's a hostname
-            name = address
-            yield 'nntp-host-name:%s' % name
-            yield ('nntp-host-domain:%s' %
-                   '.'.join(name.split('.')[-2:]))
-            try:
-                address = socket.gethostbyname(name)
-            except socket.gaierror:
-                yield 'nntp-host-name:invalid'
-            else:
-                for clue in gen_dotted_quad_clues("nntp-host-ip", [address]):
-                    yield clue
-                try:
-                    h = socket.gethostbyaddr(address)
-                except socket.herror:
-                    yield 'nntp-host-ip:has-no-reverse'
-                else:
-                    yield 'nntp-host-ip:has-reverse'
-
-def gen_dotted_quad_clues(pfx, ips):
-    for ip in ips:
-        yield "%s:%s/32" % (pfx, ip)
-        dottedQuadList = ip.split(".")
-        yield "%s:%s/8" % (pfx, dottedQuadList[0])
-        yield "%s:%s.%s/16" % (pfx, dottedQuadList[0],
-                               dottedQuadList[1])
-        yield "%s:%s.%s.%s/24" % (pfx, dottedQuadList[0],
-                                  dottedQuadList[1],
-                                  dottedQuadList[2])
 
 global_tokenizer = Tokenizer()
 tokenize = global_tokenizer.tokenize

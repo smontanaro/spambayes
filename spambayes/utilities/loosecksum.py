@@ -26,8 +26,10 @@ An MD5 checksum is then computed for the resulting text and written to stdout.
 
 import getopt
 import sys
+import email.Parser
 import md5
 import re
+import time
 import binascii
 
 from spambayes.mboxutils import getmbox

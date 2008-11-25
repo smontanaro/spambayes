@@ -20,6 +20,7 @@ import BaseHTTPServer
 import SimpleHTTPServer
 import urllib
 import cgi
+import shutil
 import mimetypes
 import re
 try:

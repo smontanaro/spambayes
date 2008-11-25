@@ -42,6 +42,7 @@ random, it's reproducible.
 import sys
 import random
 import mailbox
+import email
 import getopt
 
 from spambayes import mboxutils

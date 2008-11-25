@@ -22,8 +22,10 @@ Where:
         Port number to listen to.
 """
 
+import os
 import getopt
 import sys
+import traceback
 import xmlrpclib
 import SimpleXMLRPCServer
 

@@ -50,8 +50,8 @@ To Do:
 ### situations prints to sys.stdout will garble the message (e.g., in
 ### hammiefilter).
 
-__author__ = ("Neale Pickett <neale@woozle.org>,"
-              "Tim Stone <tim@fourstonesExpressions.com>")
+__author__ = "Neale Pickett <neale@woozle.org>, \
+Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "All the spambayes contributors."
 
 try:
@@ -69,11 +69,11 @@ import types
 import tempfile
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
+import cPickle as pickle
 import errno
 import shelve
 from spambayes import cdb
 from spambayes import dbmstorage
-from spambayes.safepickle import pickle_write
 
 # Make shelve use binary pickles by default.
 oldShelvePickler = shelve.Pickler
@@ -85,6 +85,36 @@ PICKLE_TYPE = 1
 NO_UPDATEPROBS = False   # Probabilities will not be autoupdated with training
 UPDATEPROBS = True       # Probabilities will be autoupdated with training
 
+def safe_pickle(filename, value, protocol=0):
+    '''Store value as a pickle without creating corruption'''
+
+    # Be as defensive as possible.  Always keep a safe copy.
+    tmp = filename + '.tmp'
+    fp = None
+    try: 
+        fp = open(tmp, 'wb') 
+        pickle.dump(value, fp, protocol) 
+        fp.close() 
+    except IOError, e: 
+        if options["globals", "verbose"]: 
+            print >> sys.stderr, 'Failed update: ' + str(e)
+        if fp is not None: 
+            os.remove(tmp) 
+        raise
+    try:
+        # With *nix we can just rename, and (as long as permissions
+        # are correct) the old file will vanish.  With win32, this
+        # won't work - the Python help says that there may not be
+        # a way to do an atomic replace, so we rename the old one,
+        # put the new one there, and then delete the old one.  If
+        # something goes wrong, there is at least a copy of the old
+        # one.
+        os.rename(tmp, filename)
+    except OSError:
+        os.rename(filename, filename + '.bak')
+        os.rename(tmp, filename)
+        os.remove(filename + '.bak')
+    
 class PickledClassifier(classifier.Classifier):
     '''Classifier object persisted in a pickle'''
 
@@ -106,12 +136,16 @@ class PickledClassifier(classifier.Classifier):
         # tempbayes object is reclaimed when load() returns.
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'pickle'
+            print >> sys.stderr, 'Loading state from',self.db_name,'pickle'
 
+        tempbayes = None
         try:
-            tempbayes = pickle_read(self.db_name)
-        except:
-            tempbayes = None
+            fp = open(self.db_name, 'rb')
+        except IOError, e:
+            if e.errno != errno.ENOENT: raise
+        else:
+            tempbayes = pickle.load(fp)
+            fp.close()
 
         if tempbayes:
             # Copy state from tempbayes.  The use of our base-class
@@ -135,9 +169,9 @@ class PickledClassifier(classifier.Classifier):
         '''Store self as a pickle'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Persisting', self.db_name, 'as a pickle'
+            print >> sys.stderr, 'Persisting',self.db_name,'as a pickle'
 
-        pickle_write(self.db_name, self, PICKLE_TYPE)
+        safe_pickle(self.db_name, self, PICKLE_TYPE)
 
     def close(self):
         # we keep no resources open - nothing to do
@@ -164,8 +198,7 @@ class DBDictClassifier(classifier.Classifier):
     def close(self):
         # Close our underlying database.  Better not assume all databases
         # have close functions!
-        def noop():
-            pass
+        def noop(): pass
         getattr(self.db, "close", noop)()
         getattr(self.dbm, "close", noop)()
         # should not be a need to drop the 'dbm' or 'db' attributes.
@@ -177,13 +210,13 @@ class DBDictClassifier(classifier.Classifier):
         if hasattr(self, "dbm"):
             del self.dbm
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Closed', self.db_name, 'database'
+            print >> sys.stderr, 'Closed',self.db_name,'database'
 
     def load(self):
         '''Load state from database'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.dbm = dbmstorage.open(self.db_name, self.mode)
         self.db = shelve.Shelf(self.dbm)
@@ -211,8 +244,7 @@ class DBDictClassifier(classifier.Classifier):
         '''Place state into persistent store'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Persisting', self.db_name,
-            print >> sys.stderr, 'state in database'
+            print >> sys.stderr, 'Persisting',self.db_name,'state in database'
 
         # Iterate over our changed word list.
         # This is *not* thread-safe - another thread changing our
@@ -439,7 +471,7 @@ class PGClassifier(SQLClassifier):
     def fetchall(self, c):
         return c.dictfetchall()
 
-    def commit(self, _c):
+    def commit(self, c):
         self.db.commit()
 
     def load(self):
@@ -448,7 +480,7 @@ class PGClassifier(SQLClassifier):
         import psycopg
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         self.db = psycopg.connect('dbname=' + self.db_name)
 
@@ -513,7 +545,7 @@ class mySQLClassifier(SQLClassifier):
     def fetchall(self, c):
         return c.fetchall()
 
-    def commit(self, _c):
+    def commit(self, c):
         self.db.commit()
 
     def load(self):
@@ -522,7 +554,7 @@ class mySQLClassifier(SQLClassifier):
         import MySQLdb
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print >> sys.stderr, 'Loading state from',self.db_name,'database'
 
         params = {
           'host': self.host, 'db': self.db_name,
@@ -692,11 +724,12 @@ class ZODBClassifier(object):
             object.__setattr__(self, att, value)
 
     def create_storage(self):
+        import ZODB
         from ZODB.FileStorage import FileStorage
         try:
             self.storage = FileStorage(self.db_filename,
                                        read_only=self.mode=='r')
-        except IOError:
+        except IOError, msg:
             print >> sys.stderr, ("Could not create FileStorage from",
                                   self.db_filename)
             raise
@@ -735,6 +768,7 @@ class ZODBClassifier(object):
     def store(self):
         '''Place state into persistent store'''
         try:
+            import ZODB
             import ZODB.Transaction
         except ImportError:
             import transaction
@@ -937,7 +971,7 @@ class Trainer(object):
         '''Untrain the database with the message'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'untraining with', message.key()
+            print >> sys.stderr, 'untraining with',message.key()
 
         self.bayes.unlearn(message.tokenize(), self.is_spam)
 #                           self.updateprobs)
@@ -971,7 +1005,6 @@ class HamTrainer(Trainer):
 
 class NoSuchClassifierError(Exception):
     def __init__(self, invalid_name):
-        Exception.__init__(self, invalid_name)
         self.invalid_name = invalid_name
     def __str__(self):
         return repr(self.invalid_name)
@@ -1055,7 +1088,7 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
         try:
             unused, unused, is_path = _storage_types[typ]
         except KeyError:
-            raise NoSuchClassifierError(typ)
+            raise NoSuchClassifierError(db_type)
         if is_path:
             nm = get_pathname_option(*default_name)
         else:
@@ -1109,7 +1142,7 @@ def ensureDir(dirname):
     try:
         os.mkdir(dirname)
         if options["globals", "verbose"]:
-            print >> sys.stderr, "Creating directory", dirname
+            print >>sys.stderr, "Creating directory", dirname
     except OSError, e:
         if e.errno != errno.EEXIST:
             raise

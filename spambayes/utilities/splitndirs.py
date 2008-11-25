@@ -47,6 +47,8 @@ that while the split is random, it's reproducible.
 import sys
 import os
 import random
+import mailbox
+import email
 import getopt
 import glob
 

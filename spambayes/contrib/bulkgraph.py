@@ -32,14 +32,14 @@ Where OPTIONS is one or more of:
         quiet mode; no output
 """
 
+import mboxutils
 import getopt
+import hammie
 import sys
 import os
 import re
 import time
 import filecmp
-
-from spambayes import mboxutils, hammie
 
 program = sys.argv[0]
 loud = True

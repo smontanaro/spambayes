@@ -144,15 +144,14 @@ except NameError:
         return not not val
 
 import sys
-import errno
-import getopt
-
-import win32com.client
-import pywintypes
-
 from spambayes import tokenizer, storage
 from spambayes.Options import options
-from spambayes.safepickle import pickle_read, pickle_write
+import cPickle as pickle
+import errno
+import win32com.client
+import pywintypes
+import getopt
+
 
 def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
 
@@ -188,18 +187,20 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
                 # probably due to this unicode problem.
                 options["Tokenizer", "generate_long_skips"] = False
                 tokens = tokenizer.tokenize(message)
-                prob = bayes.spamprob(tokens)
+                prob, clues = bayes.spamprob(tokens, evidence=True)
 
                 if prob < options["Categorization", "ham_cutoff"]:
+                    disposition = options["Headers", "header_ham_string"]
                     numham += 1
                 elif prob > options["Categorization", "spam_cutoff"]:
+                    disposition = options["Headers", "header_spam_string"]
                     docstomove += [doc]
                     numspam += 1
                 else:
+                    disposition = options["Headers", "header_unsure_string"]
                     numuns += 1
 
                 notesindex[nid] = 'classified'
-                subj = message["subject"]
                 try:
                     print "%s spamprob is %s" % (subj[:30], prob)
                     if log:
@@ -304,13 +305,16 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
     bayes = storage.open_storage(bdbname, useDBM)
 
     try:
-        notesindex = pickle_read(idxname)
+        fp = open(idxname, 'rb')
     except IOError, e:
         if e.errno != errno.ENOENT:
             raise
         notesindex = {}
         print "%s file not found, this is a first time run" % (idxname,)
         print "No classification will be performed"
+    else:
+        notesindex = pickle.load(fp)
+        fp.close()
 
     need_replicate = False
 
@@ -374,7 +378,9 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
 
     bayes.store()
 
-    pickle_write(idxname, notesindex)
+    fp = open(idxname, 'wb')
+    pickle.dump(notesindex, fp)
+    fp.close()
 
     if log:
         log.LogAction("Finished running spambayes")
@@ -384,7 +390,7 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'htcPd:p:l:r:f:o:i:W:L:')
     except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+        print >>sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     ldbname = None  # local notes database name
@@ -399,7 +405,7 @@ if __name__ == '__main__':
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print >>sys.stderr, __doc__
             sys.exit()
         elif opt == '-l':
             ldbname = arg
@@ -431,6 +437,9 @@ if __name__ == '__main__':
             sbfname, doTrain, doClassify, pwd, idxname, logname)
 
         if doPrompt:
-            raw_input("Press Enter to end ")
+            try:
+                key = input("Press Enter to end")
+            except SyntaxError:
+                pass
     else:
-        print >> sys.stderr, __doc__
+        print >>sys.stderr, __doc__

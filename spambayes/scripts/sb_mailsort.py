@@ -25,7 +25,7 @@ import email
 import time
 import signal
 import socket
-import errno
+import email
 
 DB_FILE = os.path.expanduser(DB_FILE)
 
@@ -65,7 +65,7 @@ def maketmp(dir):
         try:
             fd = os.open(pathname, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0600)
         except IOError, exc:
-            if exc[0] not in (errno.EINT, errno.EEXIST):
+            if exc[i] not in (errno.EINT, errno.EEXIST):
                 raise
         else:
             break
@@ -142,7 +142,7 @@ def print_message_score(msg_name, msg_fp):
     prob, evidence = bayes.spamprob(tokenize(msg), evidence=True)
     print msg_name, prob
     for word, prob in evidence:
-        print '  ', repr(word), prob
+        print '  ', `word`, prob
 
 def main():
     global DB_FILE, CONFIG_FILE

@@ -29,6 +29,7 @@ in whether it uses strict or lax parsing.
 
 import sys
 import mailbox
+import email
 import getopt
 import glob
 

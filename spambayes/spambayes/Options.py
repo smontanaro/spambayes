@@ -33,7 +33,7 @@ except NameError:
 __all__ = ['options', '_']
 
 # Grab the stuff from the core options class.
-from spambayes.OptionsClass import *
+from OptionsClass import *
 
 # A little magic.  We'd like to use ZODB as the default storage,
 # because we've had so many problems with bsddb, and we'd like to swap
@@ -197,12 +197,6 @@ defaults = {
      _("""A lot of clues can be gotten from IP addresses and names in
      Received: headers.  This can give spectacular results for bogus
      reasons if your corpora are from different sources."""),
-     BOOLEAN, RESTORE),
-
-    ("x-mine_nntp_headers", _("Mine NNTP-Posting-Host headers"), False,
-     _("""Usenet is host to a lot of spam.  Usenet/Mailing list gateways
-     can let it leak across.  Similar to mining received headers, we pick
-     apart the IP address or host name in this header for clues."""),
      BOOLEAN, RESTORE),
 
     ("address_headers", _("Address headers to mine"), ("from", "to", "cc",
@@ -609,8 +603,8 @@ defaults = {
     ("persistent_use_database", _("Database backend"), DB_TYPE[0],
      _("""SpamBayes can use either a ZODB or dbm database (quick to score
      one message) or a pickle (quick to train on huge amounts of messages).
-     There is also (experimental) ability to use a mySQL or PostgresSQL
-     database."""),
+     There is also (currently experimental) the ability to use a mySQL or
+     PostgrepSQL database."""),
      ("zeo", "zodb", "cdb", "mysql", "pgsql", "dbm", "pickle"), RESTORE),
 
     ("persistent_storage_file", _("Storage file name"), DB_TYPE[1],
@@ -1366,7 +1360,7 @@ def load_options():
                 # in the current directory, and no win32 extensions installed
                 # to locate the "user" directory - seeing things are so lamely
                 # setup, it is worth printing a warning
-                print >> sys.stderr, "NOTE: We can not locate an INI file " \
+                print >>sys.stderr, "NOTE: We can not locate an INI file " \
                       "for SpamBayes, and the Python for Windows extensions " \
                       "are not installed, meaning we can't locate your " \
                       "'user' directory.  An empty configuration file at " \

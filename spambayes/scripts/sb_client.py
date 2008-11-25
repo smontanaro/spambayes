@@ -10,7 +10,7 @@ with the spambayes score in a new X-Spambayes-Disposition header.
 import xmlrpclib
 import sys
 
-RPCBASE = "http://localhost:65000"
+RPCBASE="http://localhost:65000"
 
 def main():
     msg = sys.stdin.read()

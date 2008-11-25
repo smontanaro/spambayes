@@ -2,6 +2,9 @@ import getopt
 import os
 import sys
 
+import ZODB
+from ZEO.ClientStorage import ClientStorage
+
 import pspam.database
 from pspam.profile import Profile
 
