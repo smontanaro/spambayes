@@ -66,10 +66,10 @@ class Cdb(object):
         return self.__iter__()
 
     def iterkeys(self):
-        return self.__iter__(lambda k,v: k)
+        return self.__iter__(lambda k, v: k)
 
     def itervalues(self):
-        return self.__iter__(lambda k,v: v)
+        return self.__iter__(lambda k, v: v)
 
     def items(self):
         ret = []
@@ -150,7 +150,7 @@ class Cdb(object):
 def cdb_dump(infile):
     """dump a database in djb's cdbdump format"""
     db = Cdb(infile)
-    for key,value in db.iteritems():
+    for key, value in db.iteritems():
         print "+%d,%d:%s->%s" % (len(key), len(value), key, value)
     print
 
