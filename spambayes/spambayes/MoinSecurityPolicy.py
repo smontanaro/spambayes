@@ -48,7 +48,7 @@ from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
 
 from spambayes import hammie, storage
-from spambayes.tokenizer import Tokenizer, numeric_entity_re, \
+from spambayes.tokenizer import Tokenizer as _Tokenizer, numeric_entity_re, \
      numeric_entity_replacer, crack_urls, breaking_entity_re, html_re, \
      tokenize_word
 
@@ -191,7 +191,7 @@ is spam, do nothing.
 """ % locals()
         sendmail(request, emails, subject, text)
 
-class Tokenizer(Tokenizer):
+class Tokenizer(_Tokenizer):
     def tokenize(self, text):
         """Tokenize a chunk of text.
 
