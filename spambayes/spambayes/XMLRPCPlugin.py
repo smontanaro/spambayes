@@ -45,6 +45,7 @@ __credits__ = "All the Spambayes folk."
 
 import threading
 import xmlrpclib
+import time
 from email import Message, message_from_string
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
@@ -52,6 +53,8 @@ from spambayes.CorePlugin import Plugin, PluginUI
 from spambayes.Options import _, options
 from spambayes.tokenizer import tokenize
 import spambayes.message
+from spambayes import storage
+from spambayes import FileCorpus
 
 class XMLRPCUI(PluginUI):
     plugin_map = (
@@ -82,9 +85,9 @@ class XMLRPCPlugin(Plugin):
             raise xmlrpclib.Fault(404, '"%s" is not supported' % method)
 
     def train(self, form_dict, extra_tokens, attachments, is_spam=True):
-        newdict={}
+        newdict = {}
         for (i, k) in form_dict.items():
-            if type(k)==unicode:
+            if isinstance(k, unicode):
                 k = k.encode("utf-8")
             newdict[i] = k
         mime_message = form_to_mime(newdict, extra_tokens, attachments)
@@ -104,7 +107,6 @@ class XMLRPCPlugin(Plugin):
             msg_text = msg_text.encode("utf-8")
         msg = message_from_string(msg_text,
                                   _class=spambayes.message.SBHeaderMessage)
-        tokens = tokenize(msg)
         if is_spam:
             desired_corpus = "spamCorpus"
         else:
@@ -117,7 +119,7 @@ class XMLRPCPlugin(Plugin):
                 setattr(self, desired_corpus, corpus)
                 self.msg_name_func = self.state.getNewMessageName
             else:
-                if isSpam:
+                if is_spam:
                     fn = storage.get_pathname_option("Storage",
                                                      "spam_cache")
                 else:
@@ -130,7 +132,8 @@ class XMLRPCPlugin(Plugin):
                     factory = FileCorpus.FileMessageFactory()
                 age = options["Storage", "cache_expiry_days"]*24*60*60
                 corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
-                                                     '[0123456789\-]*', cacheSize=20)
+                                                     '[0123456789\-]*',
+                                                     cacheSize=20)
                 setattr(self, desired_corpus, corpus)
                 class UniqueNamer(object):
                     count = -1
@@ -159,9 +162,9 @@ class XMLRPCPlugin(Plugin):
 
     def score(self, form_dict, extra_tokens, attachments):
         """Score a dictionary + extra tokens."""
-        newdict={}
+        newdict = {}
         for (i, k) in form_dict.items():
-            if isinstance(k,unicode):
+            if isinstance(k, unicode):
                 k = k.encode("utf-8")
             newdict[i] = k
         mime_message = form_to_mime(newdict, extra_tokens, attachments)
