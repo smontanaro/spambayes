@@ -41,13 +41,13 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'ht:T:n:N:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     old_name = old_type = new_name = new_type = None
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == '-t':
             old_type = arg

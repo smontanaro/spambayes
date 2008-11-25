@@ -496,7 +496,6 @@ def configure_pegasus_mail(config_location):
     results = []
     for filename in os.listdir(config_location):
         if filename.lower().startswith("pop") or filename.lower().startswith("smt"):
-            full_filename = os.path.join(config_location, filename)
             working_filename = "%s.tmp" % (filename, )
             shutil.copyfile(filename, working_filename)
             c = OptionsClass.OptionsClass()

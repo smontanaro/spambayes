@@ -23,11 +23,11 @@ files containing messages with X-Spambayes-Evidence headers must be given.
 import sys
 import getopt
 import re
-import cPickle as pickle
 import locale
 from email.Header import make_header, decode_header
 
 from spambayes.mboxutils import getmbox
+from spambayes.safepickle import pickle_read, pickle_write
 
 prog = sys.argv[0]
 
@@ -115,7 +115,7 @@ def main(args):
         return 1
 
     try:
-        mapd = pickle.load(file(mapfile))
+        mapd = pickle_read(mapfile)
     except IOError:
         usage("Mapfile %s does not exist" % mapfile)
         return 1

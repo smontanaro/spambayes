@@ -138,7 +138,7 @@ if not hasattr(sys, "frozen"):
     try:
         # module imported by service manager, or 2.3 (in which __main__
         # exists, *and* sys.argv[0] is always already absolute)
-        this_filename=__file__
+        this_filename = __file__
     except NameError:
         this_filename = sys.argv[0]
     if not os.path.isabs(sys.argv[0]):

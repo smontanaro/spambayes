@@ -1,5 +1,11 @@
 [Note that all dates are in ISO 8601 format, e.g. YYYY-MM-DD to ease sorting]
 
+Release 1.1b1
+=============
+
+Skip Montanaro    2008-11-23  Route all pickle reads and writes through safepickle module.
+Skip Montanaro    2008-11-23  Pick off a bunch of pylint nit (still tons to do).
+
 Release 1.1a5
 =============
 

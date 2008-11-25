@@ -70,7 +70,7 @@ from spambayes import hammie, mboxutils, Options
 
 prog = os.path.basename(sys.argv[0])
 
-def help():
+def usage():
     print >> sys.stderr, __doc__ % globals()
 
 def main(args):
@@ -78,10 +78,9 @@ def main(args):
 
     for opt, arg in opts:
         if opt == '-h':
-            help()
+            usage()
             return 0
 
-    tagdb_list = []
     msg = mboxutils.get_message(sys.stdin)
     try:
         del msg["X-Spambayes-Classification"]

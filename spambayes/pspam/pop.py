@@ -27,7 +27,6 @@ POP3 is documented in RFC 1939.
 """
 
 import SocketServer
-import asyncore
 try:
     import cStringIO as StringIO
 except ImportError:
@@ -37,11 +36,8 @@ import email
 import re
 import socket
 import sys
-import threading
 import time
 
-import ZODB
-from ZEO.ClientStorage import ClientStorage
 import zLOG
 
 from spambayes.tokenizer import tokenize

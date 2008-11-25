@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import os
-
 import sys
+
+from setuptools import setup, find_packages
+
 if sys.version < '2.2':
     print "Error: Python version too old. You need at least Python 2.2 to use this package."
     print "(you're running version %s)"%sys.version
@@ -121,6 +123,9 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
+    install_requires = ["lockfile>=0.2",
+                        "pydns>=2.0"],
+##     packages=find_packages("spambayes"),
     cmdclass = {'install_scripts': install_scripts,
                 'sdist': sdist,
                 },

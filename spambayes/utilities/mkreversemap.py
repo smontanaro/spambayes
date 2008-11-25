@@ -17,13 +17,12 @@ sources.
 
 import sys
 import getopt
-import anydbm
-import cPickle as pickle
 
 from spambayes.mboxutils import getmbox
 from spambayes.tokenizer import tokenize
 from spambayes.Options import options
 from spambayes.classifier import Classifier
+from spambayes.safepickle import pickle_read, pickle_write
 
 prog = sys.argv[0]
 
@@ -99,13 +98,13 @@ def main(args):
         return 1
 
     try:
-        mapd = pickle.load(file(mapfile))
+        mapd = pickle_read(mapfile)
     except IOError:
         mapd = {}
 
     for f in args:
         mapmessages(f, mboxtype, mapd)
-    pickle.dump(mapd, file(mapfile, "w"))
+    pickle_write(mapfile, mapd)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

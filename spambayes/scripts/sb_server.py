@@ -102,16 +102,15 @@ Gimmicks:
  o NNTP proxy.
 """
 
-import os, sys, re, errno, getopt, time, traceback, socket, cStringIO, email
+import sys, re, getopt, time, socket, email
 from thread import start_new_thread
-from email.Header import Header
 
 import spambayes.message
 from spambayes import i18n
 from spambayes import Stats
 from spambayes import Dibbler
 from spambayes import storage
-from spambayes.FileCorpus import FileCorpus, ExpiryFileCorpus
+from spambayes.FileCorpus import ExpiryFileCorpus
 from spambayes.FileCorpus import FileMessageFactory, GzipFileMessageFactory
 from spambayes.Options import options, get_pathname_option, _
 from spambayes.UserInterface import UserInterfaceServer
@@ -191,7 +190,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
                 except socket.sslerror, why:
                     if why[0] == 1: # error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol'
                         # Probably not SSL after all.
-                        print >>sys.stderr, "Can't use SSL"
+                        print >> sys.stderr, "Can't use SSL"
                     else:
                         raise
                 else:
@@ -367,8 +366,7 @@ class POP3ProxyBase(Dibbler.BrighterAsyncChat):
             raise SystemExit
         elif verb == 'CRASH':
             # For testing
-            x = 0
-            y = 1/x
+            raise ZeroDivisionError
 
         self.serverSocket.push(self.request + '\r\n')
         if self.request.strip() == '':
@@ -568,8 +566,8 @@ class BayesProxy(POP3ProxyBase):
                       _class=spambayes.message.SBHeaderMessage)
             msg.setId(state.getNewMessageName())
             # Now find the spam disposition and add the header.
-            (prob, clues) = state.bayes.spamprob(msg.tokenize(),\
-                             evidence=True)
+            (prob, clues) = state.bayes.spamprob(msg.tokenize(),
+                                                 evidence=True)
 
             msg.addSBHeaders(prob, clues)
 
@@ -632,7 +630,7 @@ class BayesProxy(POP3ProxyBase):
                                    insert_exception_header(messageText)
 
             # Print the exception and a traceback.
-            print >>sys.stderr, details
+            print >> sys.stderr, details
 
         # Restore the +OK and the POP3 .\r\n terminator if there was one.
         retval = ok + "\n" + messageText
@@ -836,7 +834,6 @@ class State:
         nham = self.bayes.nham
         if nspam > 10 and nham > 10:
             db_ratio = nham/float(nspam)
-            big = small = None
             if db_ratio > 5.0:
                 self.warning = _("Warning: you have much more ham than " \
                                  "spam - SpamBayes works best with " \
@@ -988,8 +985,6 @@ def _createProxies(servers, proxyPorts):
         proxyListeners.append(listener)
 
 def _recreateState():
-    global state
-
     # Close the existing listeners and create new ones.  This won't
     # affect any running proxies - once a listener has created a proxy,
     # that proxy is then independent of it.
@@ -1057,13 +1052,12 @@ def run():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbd:p:l:u:o:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
-    runSelfTest = False
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == '-b':
             state.launchUI = True
@@ -1096,14 +1090,14 @@ def run():
         try:
             prepare()
         except AlreadyRunningException:
-            print  >>sys.stderr, \
+            print  >> sys.stderr, \
                    "ERROR: The proxy is already running on this machine."
-            print  >>sys.stderr, "Please stop the existing proxy and try again"
+            print  >> sys.stderr, "Please stop the existing proxy and try again"
             return
         start()
 
     else:
-        print >>sys.stderr, __doc__
+        print >> sys.stderr, __doc__
 
 if __name__ == '__main__':
     run()

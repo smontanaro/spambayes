@@ -101,8 +101,7 @@ else:
 
 import spambayes.storage
 from spambayes.Options import options
-import sys, os, getopt, errno, re
-import urllib
+import sys, os, getopt, errno
 from types import UnicodeType
 
 def uquote(s):
@@ -137,8 +136,8 @@ def runExport(dbFN, useDBM, outFN):
 
     writer = csv.writer(fp)
 
-    nham = bayes.nham;
-    nspam = bayes.nspam;
+    nham = bayes.nham
+    nspam = bayes.nspam
 
     print "Exporting database %s to file %s" % (dbFN, outFN)
     print "Database has %s ham, %s spam, and %s words" \
@@ -215,7 +214,7 @@ if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:p:f:o:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     useDBM = "pickle"
@@ -227,7 +226,7 @@ if __name__ == '__main__':
 
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == '-f':
             flatFN = arg
@@ -247,4 +246,4 @@ if __name__ == '__main__':
         if imp:
             runImport(dbFN, useDBM, newDBM, flatFN)
     else:
-        print >>sys.stderr, __doc__
+        print >> sys.stderr, __doc__

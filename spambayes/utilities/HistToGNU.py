@@ -18,13 +18,12 @@ set xtics 5
 set xrange [0.0:100.0]
 """
 
-dataSetOptions="smooth unique"
-
-from spambayes.Options import options
-from spambayes.TestDriver import Hist
+dataSetOptions = "smooth unique"
 
 import sys
-import cPickle as pickle
+
+from spambayes.Options import options
+from spambayes.safepickle import pickle_read, pickle_write
 
 program = sys.argv[0]
 
@@ -38,7 +37,7 @@ def usage(code, msg=''):
 
 def loadHist(path):
     """Load the histogram pickle object"""
-    return pickle.load(file(path))
+    return pickle_read(path)
 
 def outputHist(hist, f=sys.stdout):
     """Output the Hist object to file f"""
@@ -49,7 +48,7 @@ def outputHist(hist, f=sys.stdout):
 
 def plot(files):
     """given a list of files, create gnu-plot file"""
-    import cStringIO, os
+    import cStringIO
     cmd = cStringIO.StringIO()
     cmd.write(globalOptions)
     args = []

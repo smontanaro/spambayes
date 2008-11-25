@@ -30,20 +30,23 @@ Updated 2004/10/26
 This program requires Python 2.3 or newer.
 """
 
-import sets, traceback, md5, os
-import poplib
-import posixpath
-from email import Header, Utils
-from spambayes import mboxutils, hammie
-
 import socket
 socket.setdefaulttimeout(10)
+
+import traceback, md5, os
+import poplib
+import posixpath
+
+import sets
+from email import Header, Utils
+from spambayes import mboxutils, hammie
+from spambayes.Options import options
 
 DO_ACTIONS = 1
 VERBOSE_LEVEL = 1
 
 APPEND_TO_FILE = "append_to_file"
-DELETE = "delete"
+DELETE_FROM_MAILBOX = "delete"
 KEEP_IN_MAILBOX = "keep in mailbox"
 SPAM = "spam"
 VIRUS = "virus"
@@ -108,7 +111,7 @@ class AppendFile:
 
 def DELETE(mi, log):
     """Action: delete message from mailbox"""
-    log.do_action(DELETE)
+    log.do_action(DELETE_FROM_MAILBOX)
     if not DO_ACTIONS:
         return
     mi.mailbox.dele(mi.i)

@@ -100,7 +100,7 @@ except NameError:
 
 def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
           ratio):
-    smisses = hmisses = round = 0
+    round = 0
     ham_cutoff = Options.options["Categorization", "ham_cutoff"]
     spam_cutoff = Options.options["Categorization", "spam_cutoff"]
 
@@ -114,19 +114,19 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
         hambone_ = list(reversed(hambone_))
         spamcan_ = list(reversed(spamcan_))
     
-    nspam,nham = len(spamcan_),len(hambone_)
+    nspam, nham = len(spamcan_), len(hambone_)
     if ratio:
-        rspam,rham = ratio
+        rspam, rham = ratio
         # If the actual ratio of spam to ham in the database is better than
         # what was asked for, use that better ratio.
         if (rspam > rham) == (rspam * nham > rham * nspam):
-            rspam,rham = nspam,nham
+            rspam, rham = nspam, nham
 
     # define some indexing constants
     ham = 0
     spam = 1
     name = ('ham','spam')
-    misses = [0,0]
+    misses = [0, 0]
 
     misclassified = lambda is_spam, score: (
         is_spam and score < spam_cutoff or not is_spam and score > ham_cutoff)
@@ -140,9 +140,9 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
         hambone = iter(hambone_)
         spamcan = iter(spamcan_)
 
-        i = [0,0]
+        i = [0, 0]
         msgs_processed = 0
-        misses = [0,0]
+        misses = [0, 0]
         training_sets = [hambone, spamcan]
 
         while not maxmsgs or msgs_processed < maxmsgs:
@@ -153,7 +153,7 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
             try:
                 train_msg = training_sets[train_spam].next()
             except StopIteration:
-                break;
+                break
 
             i[train_spam] += 1
             msgs_processed += 1
@@ -164,7 +164,7 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
             score = store.spamprob(tokens)
             selector = train_msg["message-id"] or train_msg["subject"]
 
-            if misclassified(train_spam,score) and selector is not None:
+            if misclassified(train_spam, score) and selector is not None:
                 if verbose:
                     print >> sys.stderr, "\tmiss %s: %.6f %s" % (
                         name[train_spam], score, selector)
@@ -179,24 +179,25 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
         print "\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d, %.1fs" % \
               (round, msgs_processed, misses[0], misses[1], seconds)
 
-    training_sets = [hambone,spamcan]
+    training_sets = [hambone, spamcan]
     
     # We count all untrained messages so the user knows what was skipped.
     # We also tag them for saving so we don't lose messages which might have
     # value in a future run
-    for is_spam in ham,spam:
+    for is_spam in ham, spam:
         nleft = 0
         try:
             while True:
                 msg = training_sets[is_spam].next()
                 score = store.spamprob(tokenize(msg))
                 
-                if misclassified(is_spam,score):
+                if misclassified(is_spam, score):
                     tdict[msg["message-id"]] = True
                     nleft += 1
                     
         except StopIteration:
-            if nleft: print nleft, "untrained %ss" % name[is_spam]
+            if nleft:
+                print nleft, "untrained %ss" % name[is_spam]
 
 def cull(mbox_name, cullext, designation, tdict):
     print "writing new %s mbox..." % designation

@@ -19,13 +19,11 @@ import sys
 import getopt
 import re
 import sets
-import os
-import shelve
 import csv
 
-from spambayes.Options import options, get_pathname_option
+from spambayes.Options import options
 from spambayes.tokenizer import tokenize
-from spambayes.storage import STATE_KEY, database_type, open_storage
+from spambayes.storage import database_type, open_storage
 
 prog = sys.argv[0]
 

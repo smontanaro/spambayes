@@ -10,8 +10,8 @@ The makefile process for the website will execute this as a script, which
 will generate the "ConfigParser" version for the web.
 """
 
-import string, re
-from types import StringType
+import sys
+import re
 
 try:
     _
@@ -22,8 +22,8 @@ except NameError:
 # A reason for why the spambayes.org URL fails is given in a comment there.
 #LATEST_VERSION_HOME="http://www.spambayes.org/download/Version.cfg"
 # The SF URL instead works for Tim and xenogeist.
-LATEST_VERSION_HOME="http://spambayes.sourceforge.net/download/Version.cfg"
-DEFAULT_DOWNLOAD_PAGE="http://spambayes.sourceforge.net/windows.html"
+LATEST_VERSION_HOME = "http://spambayes.sourceforge.net/download/Version.cfg"
+DEFAULT_DOWNLOAD_PAGE = "http://spambayes.sourceforge.net/windows.html"
 
 # This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
@@ -66,7 +66,7 @@ def get_version(app = None,
             # and massage it into a string format that will compare properly
             # in update checks.
             try:
-                ver_num = float(version)
+                float(version)
                 # Version converted successfully to a float, which means it
                 # may be an old-format version number.  Old convention was to
                 # use 1.01 to represent "1.0.1", so check to see if there is
@@ -86,7 +86,8 @@ def get_version(app = None,
 
 def get_download_page(app = None,
                       version_dict = None):
-    if version_dict is None: version_dict = versions
+    if version_dict is None:
+        version_dict = versions
     dict = version_dict  # default to top level dictionary
     if app is not None:
         # attempt to get a sub-dict for the specific app
@@ -185,21 +186,21 @@ class SBVersion:
             releaselevel = "final"
             serial = 0
         else:
-            serial = string.atoi(prerelease_num)
+            serial = int(prerelease_num)
             if prerelease == "a":
                 releaselevel = "alpha"
             elif prerelease == "b":
                 releaselevel = "beta"
             elif prerelease == "rc":
                 releaselevel = "candidate"
-        self.version_info = tuple(map(string.atoi, [major, minor, patch]) + \
+        self.version_info = tuple(map(int, [major, minor, patch]) + \
                                   [releaselevel, serial])
 
     def __str__(self):
         if self.version_info[2] == 0:
-            vstring = string.join(map(str, self.version_info[0:2]), '.')
+            vstring = '.'.join(map(str, self.version_info[0:2]))
         else:
-            vstring = string.join(map(str, self.version_info[0:3]), '.')
+            vstring = '.'.join(map(str, self.version_info[0:3]))
 
         releaselevel = self.version_info[3][0]
         if releaselevel != 'f':
@@ -214,13 +215,14 @@ class SBVersion:
         return vstring
 
     def __cmp__(self, other):
-        if isinstance(other, StringType):
+        if isinstance(other, str):
             other = SBVersion(other)
 
         return cmp(self.version_info, other.version_info)
 
     def get_long_version(self, app_name = None):
-        if app_name is None: app_name = "SpamBayes"
+        if app_name is None:
+            app_name = "SpamBayes"
         return _("%s Version %s (%s)") % (app_name, str(self), self.date)
 
 #============================================================================
@@ -268,7 +270,7 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
     ret_dict = {}
     apps_dict = ret_dict["Apps"] = {}
     for sect in cfg.sections():
-        if sect=="SpamBayes":
+        if sect == "SpamBayes":
             target_dict = ret_dict
         else:
             target_dict = apps_dict.setdefault(sect, {})
@@ -348,7 +350,6 @@ def make_cfg(stream):
         _make_compatible_cfg_section(stream, appname, ver, versions["Apps"][appname])
 
 def main(args):
-    import sys
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
@@ -370,6 +371,5 @@ def main(args):
     print
     print "Latest version:", v_latest.get_long_version()
 
-if __name__=='__main__':
-    import sys
+if __name__ == '__main__':
     main(sys.argv)
