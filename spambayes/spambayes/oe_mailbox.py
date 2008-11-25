@@ -26,18 +26,19 @@ __credits__ = "All the SpamBayes folk"
 
 # Based on C++ work by Arne Schloh <oedbx@aroh.de>
 
+import sys
 import binascii
 import os
 import re
 import struct
-import mailbox
-import msgs
+import random
+from time import *
 try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
-import sys
-from time import *
+
+from spambayes import msgs
 
 try:
     import win32api
@@ -49,8 +50,7 @@ except ImportError:
     # Some functions will not work, but some will.
     win32api = win32con = win32gui = shell = shellcon = None
 
-import oe_mailbox
-import mboxutils
+from spambayes import oe_mailbox
 
 ###########################################################################
 ## DBX FILE HEADER
@@ -340,7 +340,8 @@ class dbxIndexedInfo:
         index = self.dbxBegin[dbxIndex]
         end = index
         for c in self.dbxBuffer[index:]:
-            if ord(c) == 0: break
+            if ord(c) == 0:
+                break
             end += 1
         return self.dbxBuffer[index:end]
 
@@ -693,19 +694,18 @@ class OESpamStream(msgs.SpamStream):
 ###########################################################################
 
 def test():
-    import sys
     import getopt
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hp')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     print_message = False
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >> sys.stderr, __doc__
             sys.exit()
         elif opt == '-p':
             print_message = True
