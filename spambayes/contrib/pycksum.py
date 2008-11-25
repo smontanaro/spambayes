@@ -39,7 +39,10 @@ import getopt
 import sys
 import email.Parser
 import email.generator
-import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import new as md5
 import anydbm
 import re
 import time
@@ -97,12 +100,12 @@ def generate_checksum(msg):
     body = text.split("\n\n", 1)[1]
     lines = clean(body).split("\n")
     chunksize = len(lines)//4+1
-    sum = []
+    digest = []
     for i in range(4):
         chunk = "\n".join(lines[i*chunksize:(i+1)*chunksize])
-        sum.append(md5.new(chunk).hexdigest())
+        digest.append(md5(chunk).hexdigest())
 
-    return ".".join(sum)
+    return ".".join(digest)
 
 def save_checksum(cksum, f):
     pieces = cksum.split('.')
@@ -118,12 +121,12 @@ def save_checksum(cksum, f):
         if not db.has_key(subsum):
             db[subsum] = str(time.time())
             if len(db) > maxdblen:
-                items = [(float(db[k]),k) for k in db.keys()]
+                items = [(float(db[k]), k) for k in db.keys()]
                 items.sort()
                 # the -20 brings us down a bit below the max so we aren't
                 # constantly running this chunk of code
                 items = items[:-(maxdblen-20)]
-                for v,k in items:
+                for v, k in items:
                     del db[k]
         else:
             result = 0

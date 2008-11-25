@@ -66,7 +66,6 @@ mail should that removal be tested against?]
 
 import sys
 import os
-import cPickle as pickle
 import getopt
 import math
 
@@ -75,6 +74,8 @@ from spambayes.classifier import Classifier
 from spambayes.hammie import Hammie
 from spambayes.tokenizer import tokenize
 from spambayes.Options import options
+from spambayes import storage
+from spambayes.safepickle import pickle_read, pickle_write
 
 cls = Classifier()
 h = Hammie(cls)
@@ -98,7 +99,6 @@ def learn(mbox, h, is_spam):
 def score(unsure, h, cls, scores, msgids=None, skipspam=False):
     """See what effect on others each msg in unsure has"""
 
-    ham_cutoff = options["Categorization", "ham_cutoff"]
     spam_cutoff = options["Categorization", "spam_cutoff"]
 
     # compute a base - number of messages in unsure already in the
@@ -223,7 +223,7 @@ def main(args):
     print "scoring"
 
     if best:
-        last_scores = pickle.load(file(bestfile))
+        last_scores = pickle_read(bestfile)
         last_scores = last_scores.items()
         last_scores.sort()
         msgids = set()
@@ -240,7 +240,7 @@ def main(args):
         pass
 
     if not best:
-        pickle.dump(scores, file(bestfile, 'w'))
+        pickle_write(bestfile, scores)
 
     return 0
 
