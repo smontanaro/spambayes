@@ -3,7 +3,7 @@
 # Part of the SpamBayes project.  Released under the Python Software
 # Foundation license; see http://www.python.org/
 
-import os, sys, re, random, textwrap
+import os, re, random, textwrap
 
 from spambayes import storage
 from spambayes import tokenizer

@@ -45,7 +45,7 @@ def run():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'vhf:')
     except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+        print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
 
     filename = "bayescustomize.ini"
@@ -53,7 +53,7 @@ def run():
 
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print >>  sys.stderr, __doc__
             sys.exit()
         elif opt == '-f':
             filename = arg
@@ -64,7 +64,6 @@ def run():
     if verbose:
         print "Loading defaults"
     o.load_defaults()
-    alts = []
     if verbose:
         print "Updating file:", filename
     if os.path.exists(filename):
