@@ -6,7 +6,8 @@
 # Version 0.1 2004 06 27
 # Version 0.11 2004 07 06 Fixed zero division error in __del__
 
-import DNS # From http://sourceforge.net/projects/pydns/
+# From http://sourceforge.net/projects/pydns/
+import DNS
 
 import sys
 import os
@@ -14,31 +15,28 @@ import operator
 import time
 import types
 import socket
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 from spambayes.Options import options
+from spambayes.safepickle import pickle_read, pickle_write
 
-kCheckForPruneEvery=20
-kMaxTTL=60 * 60 * 24 * 7                # One week
+kCheckForPruneEvery = 20
+kMaxTTL = 60 * 60 * 24 * 7                # One week
 # Some servers always return a TTL of zero.  We'll hold onto data a bit
 # longer.
-kMinTTL=24 * 60 * 60 * 1                # one day
-kPruneThreshold=5000 # May go over slightly; numbers chosen at random
-kPruneDownTo=2500
+kMinTTL = 24 * 60 * 60 * 1                # one day
+kPruneThreshold = 5000 # May go over slightly; numbers chosen at random
+kPruneDownTo = 2500
 
 
 class lookupResult(object):
     #__slots__=("qType","answer","question","expiresAt","lastUsed")
 
-    def __init__(self,qType,answer,question,expiresAt,now):
-        self.qType=qType
-        self.answer=answer
-        self.question=question
-        self.expiresAt=expiresAt
-        self.lastUsed=now
+    def __init__(self, qType, answer, question, expiresAt, now):
+        self.qType = qType
+        self.answer = answer
+        self.question = question
+        self.expiresAt = expiresAt
+        self.lastUsed = now
         return None
 
 
@@ -68,9 +66,9 @@ def sort_by_attr(seq, attr):
 
 
 class cache:
-    def __init__(self,dnsServer=None,cachefile=""):
+    def __init__(self, dnsServer=None, cachefile=""):
     # These attributes intended for user setting
-        self.printStatsAtEnd=False
+        self.printStatsAtEnd = False
 
         # As far as I can tell from the standards,
         # it's legal to have more than one PTR record
@@ -83,7 +81,7 @@ class cache:
         # lookups always return a list. Reverse
         # ("PTR") lookups return a single name unless
         # this attribute is set to False.
-        self.returnSinglePTR=True
+        self.returnSinglePTR = True
 
         # How long to cache an error as no data
         self.cacheErrorSecs=5*60
@@ -98,7 +96,7 @@ class cache:
 
         if self.cachefile and os.path.exists(self.cachefile):
             try:
-                self.caches = pickle.load(open(self.cachefile, "rb"))
+                self.caches = pickle_read(self.cachefile)
             except:
                 os.unlink(self.cachefile)
 
@@ -118,19 +116,18 @@ class cache:
         self.misses=0
         self.pruneTicker=0
 
-        if dnsServer==None:
+        if dnsServer == None:
             DNS.DiscoverNameServers()
-            self.queryObj=DNS.DnsRequest()
+            self.queryObj = DNS.DnsRequest()
         else:
-            self.queryObj=DNS.DnsRequest(server=dnsServer)
+            self.queryObj = DNS.DnsRequest(server=dnsServer)
         return None
 
     def close(self):
         if self.printStatsAtEnd:
             self.printStats()
         if self.cachefile:
-            from storage import safe_pickle
-            safe_pickle(self.cachefile, self.caches)
+            pickle_write(self.cachefile, self.caches)
 
     def printStats(self):
         for key,val in self.caches.items():
@@ -139,30 +136,30 @@ class cache:
                 totAnswers+=len(item)
             print >> sys.stderr, "cache", key, "has", len(self.caches[key]),
             print >> sys.stderr, "question(s) and", totAnswers, "answer(s)"
-        if self.hits+self.misses==0:
+        if self.hits+self.misses == 0:
             print >> sys.stderr, "No queries"
         else:
             print >> sys.stderr, self.hits, "hits,", self.misses, "misses",
             print >> sys.stderr, "(%.1f%% hits)" % \
                   (self.hits/float(self.hits+self.misses)*100)
 
-    def prune(self,now):
+    def prune(self, now):
         # I want this to be as fast as reasonably possible.
         # If I didn't, I'd probably do various things differently
         # Is there a faster way to do this?
-        allAnswers=[]
+        allAnswers = []
         for cache in self.caches.values():
             for val in cache.values():
                 allAnswers += val
 
-        allAnswers=sort_by_attr(allAnswers,"expiresAt")
+        allAnswers = sort_by_attr(allAnswers,"expiresAt")
         allAnswers.reverse()
 
         while True:
-            if allAnswers[-1].expiresAt>now:
+            if allAnswers[-1].expiresAt > now:
                 break
-            answer=allAnswers.pop()
-            c=self.caches[answer.qType]
+            answer = allAnswers.pop()
+            c = self.caches[answer.qType]
             c[answer.question].remove(answer)
             if  not c[answer.question]:
                 del c[answer.question]
@@ -177,12 +174,12 @@ class cache:
         # some entries least-recently-used-wise. I'm not by any means
         # sure that this is the best strategy, but as yet I don't have
         # data to test different strategies.
-        allAnswers=sort_by_attr(allAnswers,"lastUsed")
+        allAnswers = sort_by_attr(allAnswers, "lastUsed")
         allAnswers.reverse()
-        numToDelete=len(allAnswers)-kPruneDownTo
-        for count in range(numToDelete):
-            answer=allAnswers.pop()
-            c=self.caches[answer.qType]
+        numToDelete = len(allAnswers)-kPruneDownTo
+        for _count in xrange(numToDelete):
+            answer = allAnswers.pop()
+            c = self.caches[answer.qType]
             c[answer.question].remove(answer)
             if not c[answer.question]:
                 del c[answer.question]
@@ -190,86 +187,88 @@ class cache:
         return None
 
 
-    def formatForReturn(self,listOfObjs):
-        if len(listOfObjs)==1 and listOfObjs[0].answer==None:
+    def formatForReturn(self, listOfObjs):
+        if len(listOfObjs) == 1 and listOfObjs[0].answer == None:
             return []
 
-        if listOfObjs[0].qType=="PTR" and self.returnSinglePTR:
+        if listOfObjs[0].qType == "PTR" and self.returnSinglePTR:
             return listOfObjs[0].answer
 
         return [ obj.answer for obj in listOfObjs ]
 
 
     def lookup(self,question,qType="A"):
-        qType=qType.upper()
+        qType = qType.upper()
         if qType not in ("A","PTR"):
             raise ValueError,"Query type must be one of A, PTR"
 
-        now=int(time.time())
+        now = int(time.time())
 
         # Finding the len() of a dictionary isn't an expensive operation
         # but doing it twice for every lookup isn't necessary.
-        self.pruneTicker+=1
-        if self.pruneTicker==kCheckForPruneEvery:
-            self.pruneTicker=0
+        self.pruneTicker += 1
+        if self.pruneTicker == kCheckForPruneEvery:
+            self.pruneTicker = 0
             if len(self.caches["A"])+len(self.caches["PTR"])>kPruneThreshold:
                 self.prune(now)
 
-        cacheToLookIn=self.caches[qType]
+        cacheToLookIn = self.caches[qType]
 
         try:
-            answers=cacheToLookIn[question]
+            answers = cacheToLookIn[question]
         except KeyError:
             pass
         else:
             if answers:
-                ind=0
+                ind = 0
                 # No guarantee that expire has already been done
                 while ind<len(answers):
-                    thisAnswer=answers[ind]
+                    thisAnswer = answers[ind]
                     if thisAnswer.expiresAt<now:
                         del answers[ind]
                     else:
-                        thisAnswer.lastUsed=now
-                        ind+=1
+                        thisAnswer.lastUsed = now
+                        ind += 1
             else:
                 print >> sys.stderr, "lookup failure:", question
 
             if not answers:
                 del cacheToLookIn[question]
             else:
-                self.hits+=1
+                self.hits += 1
                 return self.formatForReturn(answers)
 
         # Not in cache or we just expired it
-        self.misses+=1
+        self.misses += 1
 
-        if qType=="PTR":
-            qList=question.split(".")
+        if qType == "PTR":
+            qList = question.split(".")
             qList.reverse()
-            queryQuestion=".".join(qList)+".in-addr.arpa"
+            queryQuestion = ".".join(qList)+".in-addr.arpa"
         else:
-            queryQuestion=question
+            queryQuestion = question
 
         # where do we get NXDOMAIN?
         try:
-            reply=self.queryObj.req(queryQuestion,qtype=qType,timeout=self.dnsTimeout)
+            reply = self.queryObj.req(queryQuestion, qtype=qType,
+                                      timeout=self.dnsTimeout)
         except DNS.Base.DNSError,detail:
-            if detail.args[0]<>"Timeout":
+            if detail.args[0] != "Timeout":
                 print >> sys.stderr, "Error, fixme", detail
                 print >> sys.stderr, "Question was", queryQuestion
                 print >> sys.stderr, "Original question was", question
                 print >> sys.stderr, "Type was", qType
-            objs=[ lookupResult(qType,None,question,self.cacheErrorSecs+now,now) ]
-            cacheToLookIn[question]=objs # Add to format for return?
+            objs = [lookupResult(qType, None, question,
+                                 self.cacheErrorSecs+now, now)]
+            cacheToLookIn[question] = objs # Add to format for return?
             return self.formatForReturn(objs)
         except socket.gaierror,detail:
             print >> sys.stderr, "DNS connection failure:", self.queryObj.ns, detail
             print >> sys.stderr, "Defaults:", DNS.defaults
 
-        objs=[]
+        objs = []
         for answer in reply.answers:
-            if answer["typename"]==qType:
+            if answer["typename"] == qType:
                 # PyDNS returns TTLs as longs but RFC 1035 says that the TTL
                 # value is a signed 32-bit value and must be positive, so it
                 # should be safe to coerce it to a Python integer.  And
@@ -277,22 +276,24 @@ class cache:
                 # (68 years and change) is drunk.  Arguably, I ought to
                 # impose a maximum rather than continuing with longs
                 # (int(long) returns long in recent versions of Python).
-                ttl=max(min(int(answer["ttl"]),kMaxTTL),kMinTTL)
+                ttl = max(min(int(answer["ttl"]), kMaxTTL), kMinTTL)
                 # RFC 2308 says that you should cache an NXDOMAIN for the
                 # minimum of the minimum field of the SOA record and the TTL
                 # of the SOA.
-                if ttl>0:
-                    item=lookupResult(qType,answer["data"],question,ttl+now,now)
+                if ttl > 0:
+                    item = lookupResult(qType, answer["data"], question,
+                                        ttl+now, now)
                     objs.append(item)
 
         if objs:
-            cacheToLookIn[question]=objs
+            cacheToLookIn[question] = objs
             return self.formatForReturn(objs)
 
         # Probably SERVFAIL or the like
         if not reply.authority:
-            objs=[ lookupResult(qType,None,question,self.cacheErrorSecs+now,now) ]
-            cacheToLookIn[question]=objs
+            objs = [lookupResult(qType, None, question,
+                                 self.cacheErrorSecs+now, now)]
+            cacheToLookIn[question] = objs
             return self.formatForReturn(objs)
 
 
@@ -303,44 +304,44 @@ class cache:
         #
         # RFC 2308 specifies that this how to decide how long to cache an
         # NXDOMAIN.
-        auth=reply.authority[0]
-        auTTL=int(auth["ttl"])
+        auth = reply.authority[0]
+        auTTL = int(auth["ttl"])
         for item in auth["data"]:
-            if type(item)==types.TupleType and item[0]=="minimum":
-                auMin=int(item[1])
-                cacheNeg=min(auMin,auTTL)
+            if type(item) == types.TupleType and item[0] == "minimum":
+                auMin = int(item[1])
+                cacheNeg = min(auMin,auTTL)
                 break
         else:
-            cacheNeg=auTTL
-        objs=[ lookupResult(qType,None,question,cacheNeg+now,now) ]
+            cacheNeg = auTTL
+        objs = [lookupResult(qType, None, question, cacheNeg+now, now)]
 
-        cacheToLookIn[question]=objs
+        cacheToLookIn[question] = objs
         return self.formatForReturn(objs)
 
 
 def main():
     import transaction
-    c=cache(cachefile=os.path.expanduser("~/.dnscache"))
-    c.printStatsAtEnd=True
+    c = cache(cachefile=os.path.expanduser("~/.dnscache"))
+    c.printStatsAtEnd = True
     for host in ["www.python.org", "www.timsbloggers.com",
                  "www.seeputofor.com", "www.completegarbage.tv",
                  "www.tradelinkllc.com"]:
         print >> sys.stderr, "checking", host
-        now=time.time()
-        ips=c.lookup(host)
-        print >> sys.stderr, ips,time.time()-now
-        now=time.time()
-        ips=c.lookup(host)
-        print >> sys.stderr, ips,time.time()-now
+        now = time.time()
+        ips = c.lookup(host)
+        print >> sys.stderr, ips, time.time()-now
+        now = time.time()
+        ips = c.lookup(host)
+        print >> sys.stderr, ips, time.time()-now
 
         if ips:
-            ip=ips[0]
-            now=time.time()
-            name=c.lookup(ip,qType="PTR")
-            print >> sys.stderr, name,time.time()-now
-            now=time.time()
-            name=c.lookup(ip,qType="PTR")
-            print >> sys.stderr, name,time.time()-now
+            ip = ips[0]
+            now = time.time()
+            name = c.lookup(ip, qType="PTR")
+            print >> sys.stderr, name, time.time()-now
+            now = time.time()
+            name = c.lookup(ip, qType="PTR")
+            print >> sys.stderr, name, time.time()-now
         else:
             print >> sys.stderr, "unknown"
 
@@ -348,5 +349,5 @@ def main():
 
     return None
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
