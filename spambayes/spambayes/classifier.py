@@ -58,7 +58,6 @@ import re
 import os
 import sys
 import socket
-import pickle
 import urllib2
 from email import message_from_string
 
@@ -78,6 +77,7 @@ URL_KEY_RE = re.compile(r"[\W]")
 
 from spambayes.Options import options
 from spambayes.chi2 import chi2Q
+from spambayes.safepickle import pickle_read, pickle_write
 
 try:
     True, False
@@ -226,7 +226,7 @@ class Classifier:
             prob = 0.5
 
         if evidence:
-            clues = [(w, p) for p, w, r in clues]
+            clues = [(w, p) for p, w, _r in clues]
             clues.sort(lambda a, b: cmp(a[1], b[1]))
             clues.insert(0, ('*S*', S))
             clues.insert(0, ('*H*', H))
@@ -250,7 +250,7 @@ class Classifier:
         if len(clues) < options["Classifier", "max_discriminators"] and \
            prob > h_cut and prob < s_cut and slurp_wordstream:
             slurp_tokens = list(self._generate_slurp())
-            slurp_tokens.extend([w for (w,p) in clues])
+            slurp_tokens.extend([w for (w, _p) in clues])
             sprob, sclues = self.chi2_spamprob(slurp_tokens, True)
             if sprob < h_cut or sprob > s_cut:
                 prob = sprob
@@ -602,7 +602,7 @@ class Classifier:
         if not os.path.exists(dir):
             # Create the directory.
             if options["globals", "verbose"]:
-                print >>sys.stderr, "Creating URL cache directory"
+                print >> sys.stderr, "Creating URL cache directory"
             os.makedirs(dir)
 
         self.urlCorpus = ExpiryFileCorpus(age, FileMessageFactory(),
@@ -614,18 +614,16 @@ class Classifier:
         self.bad_url_cache_name = os.path.join(dir, "bad_urls.pck")
         self.http_error_cache_name = os.path.join(dir, "http_error_urls.pck")
         if os.path.exists(self.bad_url_cache_name):
-            b_file = file(self.bad_url_cache_name, "r")
             try:
-                self.bad_urls = pickle.load(b_file)
-            except IOError, ValueError:
+                self.bad_urls = pickle_read(self.bad_url_cache_name)
+            except (IOError, ValueError):
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >>sys.stderr, "Bad URL pickle, using new."
+                    print >> sys.stderr, "Bad URL pickle, using new."
                 self.bad_urls = {"url:non_resolving": (),
                                  "url:non_html": (),
                                  "url:unknown_error": ()}
-            b_file.close()
         else:
             if options["globals", "verbose"]:
                 print "URL caches don't exist: creating"
@@ -633,16 +631,14 @@ class Classifier:
                         "url:non_html": (),
                         "url:unknown_error": ()}
         if os.path.exists(self.http_error_cache_name):
-            h_file = file(self.http_error_cache_name, "r")
             try:
-                self.http_error_urls = pickle.load(h_file)
+                self.http_error_urls = pickle_read(self.http_error_cache_name)
             except IOError, ValueError:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >>sys.stderr, "Bad HHTP error pickle, using new."
+                    print >> sys.stderr, "Bad HHTP error pickle, using new."
                 self.http_error_urls = {}
-            h_file.close()
         else:
             self.http_error_urls = {}
 
@@ -652,8 +648,7 @@ class Classifier:
         # XXX becomes valid, for example).
         for name, data in [(self.bad_url_cache_name, self.bad_urls),
                            (self.http_error_cache_name, self.http_error_urls),]:
-            from storage import safe_pickle
-            safe_pickle(name, data)
+            pickle_write(name, data)
 
     def slurp(self, proto, url):
         # We generate these tokens:
@@ -694,7 +689,7 @@ class Classifier:
         else:
             port = mo.group(3)
         try:
-            not_used = socket.getaddrinfo(domain, port)
+            _unused = socket.getaddrinfo(domain, port)
         except socket.error:
             self.bad_urls["url:non_resolving"] += (url,)
             return ["url:non_resolving"]
@@ -724,7 +719,7 @@ class Classifier:
                 pass
             try:
                 if options["globals", "verbose"]:
-                    print >>sys.stderr, "Slurping", url
+                    print >> sys.stderr, "Slurping", url
                 f = urllib2.urlopen("%s://%s" % (proto, url))
             except (urllib2.URLError, socket.error), details:
                 mo = HTTP_ERROR_RE.match(str(details))
@@ -792,7 +787,7 @@ class Classifier:
         # would become http://massey.ac.nz and http://id.example.com
         # would become http://example.com
         url += '/'
-        domain, garbage = url.split('/', 1)
+        domain = url.split('/', 1)[0]
         parts = domain.split('.')
         if len(parts) > 2:
             base_domain = parts[-2] + '.' + parts[-1]
