@@ -4,6 +4,8 @@ __version__ = '$Id$'
 # Optimize any parametric function.
 #
 import copy
+
+# XXX Numeric is obsolete.  Replace with numpy.
 import Numeric
 
 def SimplexMaximize(var, err, func, convcrit = 0.001, minerr = 0.001):
@@ -30,7 +32,7 @@ def SimplexMaximize(var, err, func, convcrit = 0.001, minerr = 0.001):
         if abs(value[bi] - value[wi]) <= convcrit:
             return simplex[bi]
         # Calculate average of non-worst
-        ave=Numeric.zeros(len(var), 'd')
+        ave = Numeric.zeros(len(var), 'd')
         for i in range(len(simplex)):
             if i != wi:
                 ave = ave + simplex[i]
