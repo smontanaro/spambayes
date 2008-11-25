@@ -81,7 +81,6 @@ except NameError:
     def bool(val):
         return not not val
 
-import os
 import sys
 import types
 import time
@@ -90,13 +89,9 @@ import re
 import errno
 import shelve
 import warnings
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import cPickle as pickle
 import traceback
 
-import email
 import email.Message
 import email.Parser
 import email.Header
@@ -104,8 +99,9 @@ import email.Generator
 
 from spambayes import storage
 from spambayes import dbmstorage
-from spambayes.Options import options, get_pathname_option
 from spambayes.tokenizer import tokenize
+from spambayes.Options import options
+from spambayes.safepickle import pickle_read, pickle_write
 
 try:
     import cStringIO as StringIO
@@ -220,25 +216,20 @@ class MessageInfoPickle(MessageInfoBase):
 
     def load(self):
         try:
-            fp = open(self.db_name, 'rb')
+            self.db = pickle_read(self.db_name)
         except IOError, e:
             if e.errno == errno.ENOENT:
                 # New pickle
                 self.db = {}
             else:
                 raise
-        else:
-            self.db = pickle.load(fp)
-            fp.close()
 
     def close(self):
         # we keep no resources open - nothing to do
         pass
 
     def store(self):
-        fp = open(self.db_name, 'wb')
-        pickle.dump(self.db, fp, self.mode)
-        fp.close()
+        pickle_write(self.db_name, self.db, self.mode)
 
 class MessageInfoDB(MessageInfoBase):
     def __init__(self, db_name, mode='c'):
@@ -264,7 +255,8 @@ class MessageInfoDB(MessageInfoBase):
     def close(self):
         # Close our underlying database.  Better not assume all databases
         # have close functions!
-        def noop(): pass
+        def noop():
+            pass
         getattr(self.db, "close", noop)()
         getattr(self.dbm, "close", noop)()
 
@@ -403,7 +395,8 @@ class Message(object, email.Message.Message):
 
     def setId(self, id):
         if self.id and self.id != id:
-            raise ValueError, "MsgId has already been set, cannot be changed" + `self.id` + `id`
+            raise ValueError, ("MsgId has already been set,"
+                               " cannot be changed %r %r") % (self.id, id)
 
         if id is None:
             raise ValueError, "MsgId must not be None"
@@ -453,22 +446,22 @@ class Message(object, email.Message.Message):
 
     def GetClassification(self):
         if self.c == PERSISTENT_SPAM_STRING:
-            return options['Headers','header_spam_string']
+            return options['Headers', 'header_spam_string']
         elif self.c == PERSISTENT_HAM_STRING:
-            return options['Headers','header_ham_string']
+            return options['Headers', 'header_ham_string']
         elif self.c == PERSISTENT_UNSURE_STRING:
-            return options['Headers','header_unsure_string']
+            return options['Headers', 'header_unsure_string']
         return None
 
     def RememberClassification(self, cls):
         # this must store state independent of options settings, as they
         # may change, which would really screw this database up
 
-        if cls == options['Headers','header_spam_string']:
+        if cls == options['Headers', 'header_spam_string']:
             self.c = PERSISTENT_SPAM_STRING
-        elif cls == options['Headers','header_ham_string']:
+        elif cls == options['Headers', 'header_ham_string']:
             self.c = PERSISTENT_HAM_STRING
-        elif cls == options['Headers','header_unsure_string']:
+        elif cls == options['Headers', 'header_unsure_string']:
             self.c = PERSISTENT_UNSURE_STRING
         else:
             raise ValueError, \
@@ -508,19 +501,19 @@ class SBHeaderMessage(Message):
 
     def setIdFromPayload(self):
         try:
-            self.setId(self[options['Headers','mailid_header_name']])
+            self.setId(self[options['Headers', 'mailid_header_name']])
         except ValueError:
             return None
 
         return self.id
 
     def setDisposition(self, prob):
-        if prob < options['Categorization','ham_cutoff']:
-            disposition = options['Headers','header_ham_string']
-        elif prob > options['Categorization','spam_cutoff']:
-            disposition = options['Headers','header_spam_string']
+        if prob < options['Categorization', 'ham_cutoff']:
+            disposition = options['Headers', 'header_ham_string']
+        elif prob > options['Categorization', 'spam_cutoff']:
+            disposition = options['Headers', 'header_spam_string']
         else:
-            disposition = options['Headers','header_unsure_string']
+            disposition = options['Headers', 'header_unsure_string']
         self.RememberClassification(disposition)
 
     def addSBHeaders(self, prob, clues):
@@ -528,26 +521,26 @@ class SBHeaderMessage(Message):
         add optional headers if needed."""
         self.setDisposition(prob)
         disposition = self.GetClassification()
-        self[options['Headers','classification_header_name']] = disposition
+        self[options['Headers', 'classification_header_name']] = disposition
 
-        if options['Headers','include_score']:
+        if options['Headers', 'include_score']:
             disp = "%.*f" % (options["Headers", "header_score_digits"], prob)
             if options["Headers", "header_score_logarithm"]:
-                if prob<=0.005 and prob>0.0:
-                    x=-math.log10(prob)
-                    disp += " (%d)"%x
-                if prob>=0.995 and prob<1.0:
-                    x=-math.log10(1.0-prob)
-                    disp += " (%d)"%x
-            self[options['Headers','score_header_name']] = disp
+                if prob <= 0.005 and prob > 0.0:
+                    x = -math.log10(prob)
+                    disp += " (%d)" % x
+                if prob >= 0.995 and prob < 1.0:
+                    x = -math.log10(1.0-prob)
+                    disp += " (%d)" % x
+            self[options['Headers', 'score_header_name']] = disp
 
-        if options['Headers','include_thermostat']:
+        if options['Headers', 'include_thermostat']:
             thermostat = '**********'
-            self[options['Headers','thermostat_header_name']] = \
+            self[options['Headers', 'thermostat_header_name']] = \
                                thermostat[:int(prob*10)]
 
-        if options['Headers','include_evidence']:
-            hco = options['Headers','clue_mailheader_cutoff']
+        if options['Headers', 'include_evidence']:
+            hco = options['Headers', 'clue_mailheader_cutoff']
             sco = 1 - hco
             evd = []
             for word, score in clues:
@@ -565,7 +558,7 @@ class SBHeaderMessage(Message):
             # use email.Header.Header because that can explode with unencoded
             # non-ASCII characters.  We can't use textwrap because that's 2.3.
             wrappedEvd = []
-            headerName = options['Headers','evidence_header_name']
+            headerName = options['Headers', 'evidence_header_name']
             lineLength = len(headerName) + len(': ')
             for component, index in zip(evd, range(len(evd))):
                 wrappedEvd.append(component)
@@ -578,8 +571,8 @@ class SBHeaderMessage(Message):
                         lineLength = 8
             self[headerName] = "".join(wrappedEvd)
 
-        if options['Headers','add_unique_id']:
-            self[options['Headers','mailid_header_name']] = self.id
+        if options['Headers', 'add_unique_id']:
+            self[options['Headers', 'mailid_header_name']] = self.id
 
         self.addNotations()            
 
@@ -669,13 +662,14 @@ class SBHeaderMessage(Message):
         SpamBayes headers.  This can be used to restore the values
         after using the delSBHeaders() function."""
         headers = {}
-        for header_name in [options['Headers','classification_header_name'],
-                            options['Headers','mailid_header_name'],
-                            options['Headers','classification_header_name'] + "-ID",
-                            options['Headers','thermostat_header_name'],
-                            options['Headers','evidence_header_name'],
-                            options['Headers','score_header_name'],
-                            options['Headers','trained_header_name'],
+        for header_name in [options['Headers', 'classification_header_name'],
+                            options['Headers', 'mailid_header_name'],
+                            (options['Headers', 'classification_header_name']
+                             + "-ID"),
+                            options['Headers', 'thermostat_header_name'],
+                            options['Headers', 'evidence_header_name'],
+                            options['Headers', 'score_header_name'],
+                            options['Headers', 'trained_header_name'],
                             ]:
             value = self[header_name]
             if value is not None:
@@ -683,13 +677,13 @@ class SBHeaderMessage(Message):
         return headers
 
     def delSBHeaders(self):
-        del self[options['Headers','classification_header_name']]
-        del self[options['Headers','mailid_header_name']]
-        del self[options['Headers','classification_header_name'] + "-ID"]  # test mode header
-        del self[options['Headers','thermostat_header_name']]
-        del self[options['Headers','evidence_header_name']]
-        del self[options['Headers','score_header_name']]
-        del self[options['Headers','trained_header_name']]
+        del self[options['Headers', 'classification_header_name']]
+        del self[options['Headers', 'mailid_header_name']]
+        del self[options['Headers', 'classification_header_name'] + "-ID"]  # test mode header
+        del self[options['Headers', 'thermostat_header_name']]
+        del self[options['Headers', 'evidence_header_name']]
+        del self[options['Headers', 'score_header_name']]
+        del self[options['Headers', 'trained_header_name']]
         # Also delete notations - typically this is called just before
         # training, and we don't want them there for that.
         self.delNotations()
