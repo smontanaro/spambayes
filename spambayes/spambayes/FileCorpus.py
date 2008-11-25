@@ -92,7 +92,7 @@ filter'''
             raise ValueError
 
         if options["globals", "verbose"]:
-            print 'adding',message.key(),'to corpus'
+            print 'adding', message.key(), 'to corpus'
 
         message.directory = self.directory
         message.store()
@@ -103,7 +103,7 @@ filter'''
     def removeMessage(self, message, observer_flags=0):
         '''Remove a Message from this corpus'''
         if options["globals", "verbose"]:
-            print 'removing',message.key(),'from corpus'
+            print 'removing', message.key(), 'from corpus'
 
         message.remove()
 
@@ -243,7 +243,7 @@ class FileMessage(object):
     def remove(self):
         '''Message hara-kiri'''
         if options["globals", "verbose"]:
-            print 'physically deleting file',self.pathname()
+            print 'physically deleting file', self.pathname()
         try:
             os.unlink(self.pathname())
         except OSError:
