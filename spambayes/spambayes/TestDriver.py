@@ -33,17 +33,11 @@ except NameError:
     except ImportError:
         from spambayes.compatsets import Set
 
-import cPickle as pickle
-
-try:
-    from heapq import heapreplace
-except ImportError:
-    from spambayes.compatheapq import heapreplace
-
 from spambayes.Options import options
 from spambayes import Tester
 from spambayes import classifier
 from spambayes.Histogram import Hist
+from spambayes.safepickle import pickle_write
 
 try:
     True, False
@@ -134,7 +128,7 @@ def printhist(tag, ham, spam, nbuckets=options["TestDriver", "nbuckets"]):
               num_fp*1e2 / ham.n, num_fn*1e2 / spam.n,
               (num_unh + num_uns)*1e2 / (ham.n + spam.n))
 
-    return float(bests[0][0])/n,float(bests[0][1])/n
+    return float(bests[0][0])/n, float(bests[0][1])/n
 
 def printmsg(msg, prob, clues):
     print msg.tag
@@ -159,7 +153,7 @@ class Driver:
         self.ntimes_finishtest_called = 0
         self.new_classifier()
         from spambayes import CostCounter
-        self.cc=CostCounter.default()
+        self.cc = CostCounter.default()
 
     def new_classifier(self):
         """Create and use a new, virgin classifier."""
@@ -200,15 +194,13 @@ class Driver:
             fname = "%s%d.pik" % (options["TestDriver", "pickle_basename"],
                                   self.ntimes_finishtest_called)
             print "    saving pickle to", fname
-            fp = file(fname, 'wb')
-            pickle.dump(self.classifier, fp, 1)
-            fp.close()
+            pickle_write(fname, self.classifier, 1)
 
     def alldone(self):
         if options["TestDriver", "show_histograms"]:
-            besthamcut,bestspamcut = printhist("all runs:",
-                                               self.global_ham_hist,
-                                               self.global_spam_hist)
+            besthamcut, bestspamcut = printhist("all runs:",
+                                                self.global_ham_hist,
+                                                self.global_spam_hist)
         else:
             besthamcut = options["Categorization", "ham_cutoff"]
             bestspamcut = options["Categorization", "spam_cutoff"]
@@ -239,10 +231,8 @@ class Driver:
                          ('spam', self.global_spam_hist)):
                 fname = "%s_%shist.pik" % (options["TestDriver",
                                                    "pickle_basename"], f)
-                print "    saving %s histogram pickle to %s" %(f, fname)
-                fp = file(fname, 'wb')
-                pickle.dump(h, fp, 1)
-                fp.close()
+                print "    saving %s histogram pickle to %s" % (f, fname)
+                pickle_write(fname, h, 1)
 
     def test(self, ham, spam):
         c = self.classifier
