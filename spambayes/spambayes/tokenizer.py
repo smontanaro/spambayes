@@ -39,7 +39,7 @@ except NameError:
 
 
 try:
-    import dnscache
+    from spambayes import dnscache
     cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
     cache.printStatsAtEnd = False
 except (IOError, ImportError):
@@ -681,6 +681,8 @@ received_host_re = re.compile(r'from ([a-z0-9._-]+[a-z])[)\s]')
 #       by m19.grp.scd.yahoo.com with QMQP; 19 Dec 2003 04:06:53 -0000
 received_ip_re = re.compile(r'[[(]((\d{1,3}\.?){4})[])]')
 
+received_nntp_ip_re = re.compile(r'((\d{1,3}\.?){4})')
+
 message_id_re = re.compile(r'\s*<[^@]+@([^>]+)>\s*')
 
 # I'm usually just splitting on whitespace, but for subject lines I want to
@@ -1084,19 +1086,12 @@ class URLStripper(Stripper):
             scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
 
             if cache is not None and options["Tokenizer", "x-lookup_ip"]:
-                ips=cache.lookup(netloc)
+                ips = cache.lookup(netloc)
                 if not ips:
                     pushclue("url-ip:lookup error")
                 else:
-                    for ip in ips: # Should we limit to one A record?
-                        pushclue("url-ip:%s/32" % ip)
-                        dottedQuadList=ip.split(".")
-                        pushclue("url-ip:%s/8" % dottedQuadList[0])
-                        pushclue("url-ip:%s.%s/16" % (dottedQuadList[0],
-                                                      dottedQuadList[1]))
-                        pushclue("url-ip:%s.%s.%s/24" % (dottedQuadList[0],
-                                                         dottedQuadList[1],
-                                                         dottedQuadList[2]))
+                    for clue in gen_dotted_quad_clues("url-ip", ips):
+                        pushclue(clue)
 
             # one common technique in bogus "please (re-)authorize yourself"
             # scams is to make it appear as if you're visiting a valid
@@ -1526,6 +1521,13 @@ class Tokenizer:
                         for tok in breakdown(m.group(1)):
                             yield 'received:' + tok
 
+        # Lots of spam gets posted on Usenet.  If it is then gatewayed to a
+        # mailing list perhaps the NNTP-Posting-Host info will yield some
+        # useful clues.
+        if options["Tokenizer", "x-mine_nntp_headers"]:
+            for clue in mine_nntp(msg):
+                yield clue
+
         # Message-Id:  This seems to be a small win and should not
         # adversely affect a mixed source corpus so it's always enabled.
         msgid = msg.get("message-id", "")
@@ -1697,6 +1699,53 @@ class Tokenizer:
 
             for t in self.tokenize_text(text):
                 yield t
+
+# Mine NNTP-Posting-Host headers.  This is part of an effort to put some
+# SpamBayes smarts into the Mailman gate_news program.  On mail.python.org
+# messages arriving via Usenet bypass all the barriers the Python
+# postmasters have erected against mail-borne spam, including not running
+# them through SpamBayes.
+
+# Anecdotal evidence on comp.lang.python suggests that certain posting hosts
+# (I won't name any names, but the one mentioned heavily starts with a
+# 'g'and has two 'o's in the middle) are more prone to let spam leak into
+# Usenet.  My initial testing (also hardly more than anecdotal) suggests
+# there are useful clues awaiting extractiotn from this header.
+def mine_nntp(msg):
+    nntp_headers = msg.get_all("nntp-posting-host", ())
+    for address in nntp_headers:
+        if received_nntp_ip_re.match(address):
+            for clue in gen_dotted_quad_clues("nntp-host", [address]):
+                yield clue
+            names = cache.lookup(address)
+            if names:
+                yield 'nntp-host-ip:has-reverse'
+                yield 'nntp-host-name:%s' % names[0]
+                yield ('nntp-host-domain:%s' %
+                       '.'.join(names[0].split('.')[-2:]))
+        else:
+            # assume it's a hostname
+            name = address
+            yield 'nntp-host-name:%s' % name
+            yield ('nntp-host-domain:%s' %
+                   '.'.join(name.split('.')[-2:]))
+            addresses = cache.lookup(name)
+            if addresses:
+                for clue in gen_dotted_quad_clues("nntp-host-ip", addresses):
+                    yield clue
+                if cache.lookup(addresses[0], qType="PTR") == name:
+                    yield 'nntp-host-ip:has-reverse'
+
+def gen_dotted_quad_clues(pfx, ips):
+    for ip in ips:
+        yield "%s:%s/32" % (pfx, ip)
+        dottedQuadList = ip.split(".")
+        yield "%s:%s/8" % (pfx, dottedQuadList[0])
+        yield "%s:%s.%s/16" % (pfx, dottedQuadList[0],
+                               dottedQuadList[1])
+        yield "%s:%s.%s.%s/24" % (pfx, dottedQuadList[0],
+                                  dottedQuadList[1],
+                                  dottedQuadList[2])
 
 global_tokenizer = Tokenizer()
 tokenize = global_tokenizer.tokenize
