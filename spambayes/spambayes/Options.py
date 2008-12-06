@@ -724,7 +724,7 @@ defaults = {
     # three words:
     ("header_spam_string", _("Spam disposition name"), _("spam"),
      _("""The header that Spambayes inserts into each email has a name,
-     (Classification eader name, above), and a value.  If the classifier
+     (Classification header name, above), and a value.  If the classifier
      determines that this email is probably spam, it places a header named
      as above with a value as specified by this string.  The default
      value should work just fine, but you may change it to anything
