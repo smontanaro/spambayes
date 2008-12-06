@@ -47,12 +47,6 @@ User interface improvements:
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import cgi
 import time
 import types

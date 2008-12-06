@@ -35,12 +35,6 @@ progname = sys.argv[0]
 __author__ = "Skip Montanaro <skip@pobox.com>"
 __credits__ = "Spambayes gang, Wade Leftwich"
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # appropriated verbatim from a recipe by Wade Leftwich in the Python
 # Cookbook: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/146306
 

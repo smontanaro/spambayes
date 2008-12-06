@@ -3,12 +3,6 @@
 # October, 2002
 # Copyright PSF, license under the PSF license
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # Action texts could be localized.
 # So comparing the action texts should be done using the same localized text.
 # These variables store the actions texts in the same localized form how the

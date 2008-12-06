@@ -5,12 +5,6 @@
 # Foundation license.
 __author__="Adam Walker"
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import sys, os, shlex
 import win32con
 #import win32gui

@@ -1,12 +1,5 @@
 from spambayes.Options import options
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 class Test:
     # Pass a classifier instance (an instance of Bayes).
     # Loop:

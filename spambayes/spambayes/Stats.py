@@ -33,12 +33,6 @@ To Do:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "Kenny Pitt, Mark Hammond, all the spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import time
 
 from spambayes.message import STATS_START_KEY, STATS_STORAGE_KEY

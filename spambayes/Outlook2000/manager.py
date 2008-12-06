@@ -18,12 +18,6 @@ import pythoncom
 
 import msgstore
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # Characters valid in a filename.  Used to nuke bad chars from the profile
 # name (which we try and use as a filename).
 # We assume characters > 127 are OK as they may be unicode

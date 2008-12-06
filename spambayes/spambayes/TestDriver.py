@@ -39,13 +39,6 @@ from spambayes import classifier
 from spambayes.Histogram import Hist
 from spambayes.safepickle import pickle_write
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 def printhist(tag, ham, spam, nbuckets=options["TestDriver", "nbuckets"]):
     print
     print "-> <stat> Ham scores for", tag,

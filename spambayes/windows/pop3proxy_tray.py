@@ -11,12 +11,6 @@ POP3 proxy.
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Adam Walker"
 __credits__ = "Mark Hammond, all the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # Heavily based on the win32gui_taskbar.py demo from Mark Hammond's
 # win32 extensions.
 

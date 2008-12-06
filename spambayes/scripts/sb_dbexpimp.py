@@ -77,12 +77,6 @@ from __future__ import generators
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
-# Python 2.2 compatibility stuff
-try:
-    True, False
-except NameError:
-    True, False = 1, 0
-
 try:
     import csv
     # might get the old object craft csv module - has no reader attr 

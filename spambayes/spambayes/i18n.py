@@ -15,12 +15,6 @@ Manages the internationalisation (i18n) aspects of SpamBayes.
 __author__ = "Hernan Martinez Foffani <hfoffani@yahoo.com>"
 __credits__ = "Tony Meyer, All the SpamBayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import os
 import sys
 from locale import getdefaultlocale

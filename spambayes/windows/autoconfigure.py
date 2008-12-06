@@ -44,12 +44,6 @@ To do:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "All the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 ## Tested with:
 ##  o Eudora 5.2 on Windows XP
 ##  o Mozilla 1.3 on Windows XP

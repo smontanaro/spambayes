@@ -29,12 +29,6 @@ Where:
 
 import os, getopt, sys, SocketServer, traceback, select, socket, errno
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # See Options.py for explanations of these properties
 program = sys.argv[0]
   

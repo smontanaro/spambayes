@@ -16,13 +16,6 @@ try:
 except NameError:
     _ = lambda arg: arg
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 0==0, 1==0
-
-
 FOLDER_ID = r"\(\'[a-fA-F0-9]+\', \'[a-fA-F0-9]+\'\)"
 FIELD_NAME = r"[a-zA-Z0-9 ]+"
 # These are stored in the INI file.  They must not be localized - we can't

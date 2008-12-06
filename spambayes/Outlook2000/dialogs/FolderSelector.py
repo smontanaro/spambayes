@@ -19,13 +19,6 @@ def INDEXTOSTATEIMAGEMASK(i): # from new commctrl.h
 IIL_UNCHECKED = 1
 IIL_CHECKED = 2
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 # Helpers for building the folder list
 class FolderSpec:
     def __init__(self, folder_id, name, ignore_eids = None):

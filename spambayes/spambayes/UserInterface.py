@@ -62,12 +62,6 @@ __author__ = """Richie Hindle <richie@entrian.com>,
                 Tim Stone <tim@fourstonesExpressions.com>"""
 __credits__ = "Tim Peters, Neale Pickett, Tony Meyer, all the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import re
 import os
 import sys

@@ -8,13 +8,6 @@ import sys
 import traceback
 from win32com.mapi import mapi
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 # Note our Message Database uses PR_SEARCH_KEY, *not* PR_ENTRYID, as the
 # latter changes after a Move operation - see msgstore.py
 def been_trained_as_ham(msg):

@@ -9,13 +9,6 @@ from types import UnicodeType
 import pspam.database
 from spambayes.tokenizer import tokenize
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 def main(fp):
     charset = locale.getdefaultlocale()[1]
     if not charset:

@@ -35,12 +35,6 @@ To do:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
 __credits__ = "All the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import cgi
 
 from spambayes import UserInterface

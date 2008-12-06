@@ -17,12 +17,6 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # MAPI imports etc.
 from win32com.client import Dispatch, constants
 from win32com.mapi import mapi, mapiutil

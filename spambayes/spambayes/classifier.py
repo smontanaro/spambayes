@@ -79,13 +79,6 @@ from spambayes.Options import options
 from spambayes.chi2 import chi2Q
 from spambayes.safepickle import pickle_read, pickle_write
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 LN2 = math.log(2)       # used frequently by chi-combining
 
 slurp_wordstream = None

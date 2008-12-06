@@ -27,12 +27,6 @@ Usage:
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "All the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # This code originally formed a part of pop3proxy.py.  If you are examining
 # the history of this file, you may need to go back to there.
 

@@ -42,12 +42,6 @@ Where OPTIONS is one or more of:
         set [section, option] in the options database to value
 """
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import sys, os, getopt, email
 import shutil
 from spambayes import hammie, storage, mboxutils

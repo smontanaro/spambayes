@@ -46,13 +46,6 @@ run sb_server.py
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "Tim Stone, all the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 todo = """
  o It would be nice if spam/ham could be bulk forwarded to the proxy,
    rather than one by one.  This would require separating the different

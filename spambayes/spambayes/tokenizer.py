@@ -32,13 +32,6 @@ from spambayes.Options import options
 from spambayes.mboxutils import get_message
 
 try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
-try:
     from spambayes import dnscache
     cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
     cache.printStatsAtEnd = False

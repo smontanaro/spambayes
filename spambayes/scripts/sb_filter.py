@@ -83,12 +83,6 @@ import getopt
 from spambayes import hammie, Options, mboxutils, storage
 from spambayes.Version import get_current_version
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # See Options.py for explanations of these properties
 program = sys.argv[0]
 

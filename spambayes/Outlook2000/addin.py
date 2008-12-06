@@ -10,12 +10,6 @@ from types import UnicodeType
 # that is implicit anyway, I gave up
 import encodings
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # We have lots of locale woes.  The short story:
 # * Outlook/MAPI will change the locale on us as some predictable
 #   times - but also at unpredictable times.

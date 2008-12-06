@@ -70,12 +70,6 @@ __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
 __credits__ = "All the SpamBayes folk. The original filter design owed " \
               "much to isbg by Roger Binns (http://www.rogerbinns.com/isbg)."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # If we are running as a frozen application, then chances are that
 # output is just lost.  We'd rather log this, like sb_server and Oulook
 # log, so that the user can pull up the output if possible.  We could just

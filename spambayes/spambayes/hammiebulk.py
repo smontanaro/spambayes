@@ -37,14 +37,6 @@ Where:
         Only meaningful with the -u option.
 """
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-    def bool(val):
-        return not not val
-
 import sys
 import os
 import getopt

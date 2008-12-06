@@ -13,13 +13,6 @@ from spambayes.Options import options
 
 import os
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 def open_folders(dir, names, klass):
     L = []
     for name in names:

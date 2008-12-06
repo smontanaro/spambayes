@@ -16,12 +16,6 @@ Where:
         Requires spambayes package on the PYTHONPATH.
 """
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import os
 import re
 import sys

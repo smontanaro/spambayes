@@ -45,12 +45,6 @@ command line, each will be processed according to the following rules:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "All the Spambayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 import cgi
 import sys
 import getopt

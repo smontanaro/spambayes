@@ -5,31 +5,13 @@ import sys
 
 from setuptools import setup, find_packages
 
-if sys.version < '2.2':
-    print "Error: Python version too old. You need at least Python 2.2 to use this package."
-    print "(you're running version %s)"%sys.version
+if sys.version_info < (2, 4):
+    print "Error: You need at least Python 2.4 to use SpamBayes."
+    print "You're running version %s." % sys.version
     sys.exit(0)
 
 # Install
 from distutils.core import setup
-
-import email
-if email.__version__ < '2.4.3':
-    print "Error: email package version < 2.4.3 found - need newer version"
-    print "See README.txt for download information for email package"
-    sys.exit(0)
-
-# patch distutils if it can't cope with the "classifiers" keyword.
-# this just makes it ignore it.
-if sys.version < '2.2.3':
-    from distutils.dist import DistributionMetadata
-    DistributionMetadata.classifiers = None
-
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
 
 from spambayes import __version__
 
@@ -116,6 +98,11 @@ if sys.platform == 'win32':
     scripts.append('windows/pop3proxy_service.py')
     scripts.append('windows/pop3proxy_tray.py')
 
+if sys.version_info >= (3, 0):
+    lf_min_version = "0.6"
+else:
+    lf_min_version = "0.2"
+
 setup(
     name='spambayes',
     version = __version__,
@@ -123,7 +110,7 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    install_requires = ["lockfile>=0.2",
+    install_requires = ["lockfile>=%s" % lf_min_version,
                         "pydns>=2.0"],
     cmdclass = {'install_scripts': install_scripts,
                 'sdist': sdist,

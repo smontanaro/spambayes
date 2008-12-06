@@ -177,12 +177,6 @@ try:
 except ImportError:
     from md5 import new as md5
 try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-try:
     "".rstrip("abc")
 except TypeError:
     # rstrip(chars) requires Python 2.2.2 or higher.  Apart from that

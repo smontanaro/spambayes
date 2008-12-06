@@ -81,14 +81,6 @@ from __future__ import generators
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "Richie Hindle, Tim Peters, all the spambayes contributors."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-    def bool(val):
-        return not not val
-
 import sys           # for output of docstring
 import time
 

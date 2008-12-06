@@ -24,12 +24,6 @@ Any other options runs this in the standard Python unittest form.
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "Richie Hindle, Mark Hammond, all the SpamBayes folk."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
 # One example of spam and one of ham - both are used to train, and are
 # then classified.  Not a good test of the classifier, but a perfectly
 # good test of the SMTP proxy.  These are the same messages as in the

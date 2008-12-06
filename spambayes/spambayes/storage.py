@@ -54,14 +54,6 @@ __author__ = ("Neale Pickett <neale@woozle.org>,"
               "Tim Stone <tim@fourstonesExpressions.com>")
 __credits__ = "All the spambayes contributors."
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-    def bool(val):
-        return not not val
-
 import os
 import sys
 import time

@@ -90,14 +90,6 @@ import types
 import locale
 
 try:
-    True, False, bool
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-    def bool(val):
-        return not not val
-
-try:
     import textwrap
 except ImportError:
     # textwrap was added in 2.3

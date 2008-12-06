@@ -7,13 +7,6 @@ from pspam.profile import Profile
 
 from spambayes.Options import options
 
-try:
-    True, False
-except NameError:
-    # Maintain compatibility with Python 2.2
-    True, False = 1, 0
-
-
 def folder_exists(L, p):
     """Return true folder with path p exists in list L."""
     for f in L:
