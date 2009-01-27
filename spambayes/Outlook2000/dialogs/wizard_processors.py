@@ -7,12 +7,6 @@
 import win32gui, win32con, win32api, commctrl
 from dialogs import ShowDialog, MakePropertyPage
 
-try:
-    enumerate
-except NameError:   # enumerate new in 2.3
-    def enumerate(seq):
-        return [(i, seq[i]) for i in xrange(len(seq))]
-
 import processors
 import opt_processors
 import async_processor

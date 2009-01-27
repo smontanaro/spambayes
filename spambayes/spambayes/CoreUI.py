@@ -52,18 +52,6 @@ import time
 import types
 import bisect
 
-try:
-    # We have three possibilities for Set:
-    #  (a) With Python 2.2 and earlier, we use our compatsets class
-    #  (b) With Python 2.3, we use the sets.Set class
-    #  (c) With Python 2.4 and later, we use the builtin set class
-    Set = set
-except NameError:
-    try:
-        from sets import Set
-    except ImportError:
-        from spambayes.compatsets import Set
-
 from spambayes import UserInterface
 from spambayes.Options import options, load_options, get_pathname_option, _
 ## no i18n yet...
@@ -325,7 +313,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         # that match those criteria.
         elif params.get('find') is not None:
             prior = next = 0
-            keys = Set()        # so we don't end up with duplicates
+            keys = set()        # so we don't end up with duplicates
             push = keys.add
             try:
                 max_results = int(params['max_results'])

@@ -77,21 +77,7 @@ from __future__ import generators
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
-try:
-    import csv
-    # might get the old object craft csv module - has no reader attr 
-    if not hasattr(csv, "reader"): 
-        raise ImportError 
-except ImportError:
-    import spambayes.compatcsv as csv
-
-try:
-    x = UnicodeDecodeError
-except NameError:
-    UnicodeDecodeError = UnicodeError
-else:
-    del x
-
+import csv
 
 import spambayes.storage
 from spambayes.Options import options

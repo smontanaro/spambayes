@@ -203,23 +203,10 @@ def suite():
     clses = (PickleStorageTestCase,
              CDBStorageTestCase,
              )
-    try:
-        import gdbm
-    except ImportError:
-        gdbm = None
-    if sys.platform != "win32" or sys.version_info > (2,3):
-        try:
-            import bsddb
-        except ImportError:
-            bsddb = None
-    else:
-        bsddb = None
-    try:
-        import bsddb3
-    except ImportError:
-        bsddb3 = None
-
-    if gdbm or bsddb or bsddb3:
+    from spambayes.port import bsddb
+    from spambayes.port import gdbm
+    
+    if gdbm or bsddb:
         clses += (DBStorageTestCase,)
     else:
         print "Skipping dbm tests, no dbm module available"

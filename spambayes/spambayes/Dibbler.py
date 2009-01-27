@@ -173,10 +173,6 @@ import sys, re, time, traceback, base64
 import socket, asyncore, asynchat, cgi, urlparse, webbrowser
 
 try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
-try:
     "".rstrip("abc")
 except TypeError:
     # rstrip(chars) requires Python 2.2.2 or higher.  Apart from that
@@ -185,6 +181,8 @@ except TypeError:
     RSTRIP_CHARS_AVAILABLE = False
 else:
     RSTRIP_CHARS_AVAILABLE = True
+
+from spambayes.port import md5
 
 class BrighterAsyncChat(asynchat.async_chat):
     """An asynchat.async_chat that doesn't give spurious warnings on

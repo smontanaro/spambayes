@@ -8,12 +8,6 @@ from urllib import urlopen, urlencode
 import sb_test_support
 sb_test_support.fix_sys_path()
 
-try:
-    True;False
-except NameError: # 2.2 compat
-    True=(None is None);
-    False=not True
-
 import sb_server
 
 from spambayes.Options import options

@@ -21,18 +21,6 @@
 # # Display stats against all runs.
 # alldone()
 
-try:
-    # We have three possibilities for Set:
-    #  (a) With Python 2.2 and earlier, we use our compatsets class
-    #  (b) With Python 2.3, we use the sets.Set class
-    #  (c) With Python 2.4 and later, we use the builtin set class
-    Set = set
-except NameError:
-    try:
-        from sets import Set
-    except ImportError:
-        from spambayes.compatsets import Set
-
 from spambayes.Options import options
 from spambayes import Tester
 from spambayes import classifier
@@ -138,9 +126,9 @@ def printmsg(msg, prob, clues):
 class Driver:
 
     def __init__(self):
-        self.falsepos = Set()
-        self.falseneg = Set()
-        self.unsure = Set()
+        self.falsepos = set()
+        self.falseneg = set()
+        self.unsure = set()
         self.global_ham_hist = Hist()
         self.global_spam_hist = Hist()
         self.ntimes_finishtest_called = 0
@@ -269,7 +257,7 @@ class Driver:
                (t.nham_unsure + t.nspam_unsure) *
                options["TestDriver", "best_cutoff_unsure_weight"])
 
-        newfpos = Set(t.false_positives()) - self.falsepos
+        newfpos = set(t.false_positives()) - self.falsepos
         self.falsepos |= newfpos
         print "-> <stat> %d new false positives" % len(newfpos)
         if newfpos:
@@ -281,7 +269,7 @@ class Driver:
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)
 
-        newfneg = Set(t.false_negatives()) - self.falseneg
+        newfneg = set(t.false_negatives()) - self.falseneg
         self.falseneg |= newfneg
         print "-> <stat> %d new false negatives" % len(newfneg)
         if newfneg:
@@ -293,7 +281,7 @@ class Driver:
             prob, clues = c.spamprob(e, True)
             printmsg(e, prob, clues)
 
-        newunsure = Set(t.unsures()) - self.unsure
+        newunsure = set(t.unsures()) - self.unsure
         self.unsure |= newunsure
         print "-> <stat> %d new unsure" % len(newunsure)
         if newunsure:

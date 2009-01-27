@@ -12,6 +12,11 @@ import unittest
 import asyncore
 import StringIO
 
+try:
+    IMAPError = imaplib.error
+except AttributeError:
+    IMAPError = imaplib.IMAP4.error
+
 import sb_test_support
 sb_test_support.fix_sys_path()
 
@@ -320,12 +325,14 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
 
 class BaseIMAPFilterTest(unittest.TestCase):
     def setUp(self):
+        # shorten for testing so we don't wait forever
+        IMAPSession.timeout = 5
         self.imap = IMAPSession("localhost", IMAP_PORT)
 
     def tearDown(self):
         try:
             self.imap.logout()
-        except imaplib.error:
+        except IMAPError:
             pass
 
 

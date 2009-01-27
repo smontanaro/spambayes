@@ -195,13 +195,6 @@ __author__ = "Richie Hindle <richie@entrian.com>"
 
 # Entrian.Coverage: Pragma Stop
 import sys, re, string
-try:
-    True, False, bool
-except NameError:
-    True = 1
-    False = 0
-    def bool(x):
-        return not not x
 # Entrian.Coverage: Pragma Start
 
 class _Fail:

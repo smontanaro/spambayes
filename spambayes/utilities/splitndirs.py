@@ -51,12 +51,9 @@ import os
 import random
 import getopt
 import glob
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
 
 from spambayes import mboxutils
+from spambayes.port import md5
 
 program = sys.argv[0]
 

@@ -74,6 +74,7 @@ import mailbox
 import types
 import StringIO
 from email.Iterators import typed_subpart_iterator
+from textwrap import wrap
 
 from spambayes import oe_mailbox
 
@@ -1136,7 +1137,7 @@ class UserInterface(BaseUserInterface):
             outer['From'] = from_addr
             v = Version.get_current_version()
             outer['X-Mailer'] = v.get_long_version(self.app_for_version)
-            outer.preamble = self._wrap(message)
+            outer.preamble = wrap(message)
             # To guarantee the message ends with a newline
             outer.epilogue = ''
 
@@ -1176,7 +1177,7 @@ class UserInterface(BaseUserInterface):
                 msg.add_header('Content-Disposition', 'attachment',
                                filename=os.path.basename(attach))
                 outer.attach(msg)
-            msg = MIMEText(self._wrap(message))
+            msg = MIMEText(wrap(message))
             outer.attach(msg)
 
             recips = []
@@ -1201,24 +1202,6 @@ class UserInterface(BaseUserInterface):
         if subject.endswith(_("[PROBLEM SUMMARY]")):
             return False
         return True
-
-    def _wrap(self, text, width=70):
-        """Wrap the text into lines no bigger than the specified width."""
-        try:
-            from textwrap import fill
-        except ImportError:
-            # No textwrap module, so do the same stuff (more-or-less)
-            # ourselves.
-            def fill(text, width):
-                if len(text) <= width:
-                    return text
-                wordsep_re = re.compile(r'(-*\w{2,}-(?=\w{2,})|' # hyphenated words
-                                        r'(?<=\S)-{2,}(?=\w))')  # em-dash
-                chunks = wordsep_re.split(text)
-                chunks = filter(None, chunks)
-            pass
-        return "\n".join([fill(paragraph, width) \
-                          for paragraph in text.split('\n')])
 
     def _wrap_chunks(self, chunks, width):
         """Stolen from textwrap; see that module in Python >= 2.3 for

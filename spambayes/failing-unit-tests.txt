@@ -1,0 +1,1116 @@
+spambayes.Tester.Test.reset_test_results ... ok
+test_basic_import.test_basic_import ... ERROR
+test_sb_server_default (test_programs.TestServer) ... port ('', 8880) in use
+SpamBayes POP3 Proxy Version 1.1b1 (November 23, 2008)
+
+Loading database...
+Traceback (most recent call last):
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1088, in <module>
+    run()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1082, in run
+    start()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1018, in start
+    main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 995, in main
+    httpServer = UserInterfaceServer(uiPort)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/UserInterface.py", line 110, in __init__
+    Dibbler.HTTPServer.__init__(self, uiPort)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/Dibbler.py", line 319, in __init__
+    (self, context), context._map)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/Dibbler.py", line 283, in __init__
+    self.bind(port)
+  File "/Users/skip/local/lib/python2.7/asyncore.py", line 322, in bind
+    return self.socket.bind(addr)
+  File "<string>", line 1, in bind
+socket.error: [Errno 48] Address already in use
+FAIL
+test_sb_server_restore (test_programs.TestServer) ... port ('', 8880) in use
+SpamBayes POP3 Proxy Version 1.1b1 (November 23, 2008)
+
+Loading database...
+Traceback (most recent call last):
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1088, in <module>
+    run()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1082, in run
+    start()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 1018, in start
+    main(state.servers, state.proxyPorts, state.uiPort, state.launchUI)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_server.py", line 995, in main
+    httpServer = UserInterfaceServer(uiPort)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/UserInterface.py", line 110, in __init__
+    Dibbler.HTTPServer.__init__(self, uiPort)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/Dibbler.py", line 319, in __init__
+    (self, context), context._map)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/spambayes/Dibbler.py", line 283, in __init__
+    self.bind(port)
+  File "/Users/skip/local/lib/python2.7/asyncore.py", line 322, in bind
+    return self.socket.bind(addr)
+  File "<string>", line 1, in bind
+socket.error: [Errno 48] Address already in use
+FAIL
+test_sb_server_ui_port (test_programs.TestServer) ... FAIL
+test_Filter (test_sb_imapfilter.IMAPFilterTest) ... ERROR
+test_Train (test_sb_imapfilter.IMAPFilterTest) ... ERROR
+test_Filter (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_Train (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_cmp (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_generate_id (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_getitem_new_id (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_getitem_new_style (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_getitem_old_style (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_iter (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+test_keys (test_sb_imapfilter.IMAPFolderTest) ... ERROR
+testMoveTo (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+test_Save (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+test_as_string_invalid (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+test_extract_time_bad_date (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+test_extract_time_date (test_sb_imapfilter.IMAPMessageTest) ... FAIL
+ERROR
+test_extract_time_no_date (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+test_get_bad_message (test_sb_imapfilter.IMAPMessageTest) ... FAIL
+ERROR
+test_get_full_message (test_sb_imapfilter.IMAPMessageTest) ... FAIL
+ERROR
+test_get_memory_error_message (test_sb_imapfilter.IMAPMessageTest) ... ERROR
+testBadLogin (test_sb_imapfilter.IMAPSessionTest) ... FAIL
+ERROR
+testConnection (test_sb_imapfilter.IMAPSessionTest) ... FAIL
+ERROR
+testGoodLogin (test_sb_imapfilter.IMAPSessionTest) ... FAIL
+ERROR
+testSelectFolder (test_sb_imapfilter.IMAPSessionTest) ... FAIL
+ERROR
+test_check_response (test_sb_imapfilter.IMAPSessionTest) ... ERROR
+test_extract_fetch_data (test_sb_imapfilter.IMAPSessionTest) ... ERROR
+test_folder_list (test_sb_imapfilter.IMAPSessionTest) ... FAIL
+ERROR
+test_safe_read (test_sb_imapfilter.IMAPSessionTest) ... ERROR
+ERROR
+test_UI (test_sb_imapfilter.InterfaceTest) ... option --verbose not recognized
+
+An IMAP filter.  An IMAP message box is scanned and all non-scored
+messages are scored and (where necessary) filtered.
+
+Usage:
+    sb_imapfilter [options]
+
+        note: option values with spaces in them must be enclosed
+              in double quotes
+
+        options:
+            -p  dbname  : pickled training database filename
+            -d  dbname  : dbm training database filename
+            -t          : train contents of spam folder and ham folder
+            -c          : classify inbox
+            -h          : display this message
+            -v          : verbose mode
+            -P          : security option to prompt for imap password,
+                          rather than look in options["imap", "password"]
+            -e y/n      : expunge/purge messages on exit (y) or not (n)
+            -i debuglvl : a somewhat mysterious imaplib debugging level
+                          (4 is a good level, and suitable for bug reports)
+            -l minutes  : period of time between filtering operations
+            -b          : Launch a web browser showing the user interface.
+            -o section:option:value :
+                          set [section, option] in the options database
+                          to value
+
+Examples:
+
+    Classify inbox, with dbm database
+        sb_imapfilter -c -d bayes.db
+
+    Train Spam and Ham, then classify inbox, with dbm database
+        sb_imapfilter -t -c -d bayes.db
+
+    Train Spam and Ham only, with pickled database
+        sb_imapfilter -t -p bayes.db
+
+Warnings:
+    o We never delete mail, unless you use the -e/purge option, but we do
+      mark a lot as deleted, and your mail client might remove that for
+      you.  We try to only mark as deleted once the moved/altered message
+      is correctly saved, but things might go wrong.  We *strongly*
+      recommend that you try this script out on mail that you can recover
+      from somewhere else, at least at first.
+
+FAIL
+test_802545 (test_sb_imapfilter.SFBugsTest) ... ERROR
+test_816400 (test_sb_imapfilter.SFBugsTest) ... ERROR
+test_818552 (test_sb_imapfilter.SFBugsTest) ... ERROR
+test_842984 (test_sb_imapfilter.SFBugsTest) ... ERROR
+test_886133 (test_sb_imapfilter.SFBugsTest) ... ERROR
+test_direct_connection (test_smtpproxy.SMTPProxyTest) ... ERROR
+test_disconnection (test_smtpproxy.SMTPProxyTest) ... ERROR
+test_ham_intercept (test_smtpproxy.SMTPProxyTest) ... ERROR
+test_proxy_connection (test_smtpproxy.SMTPProxyTest) ... ERROR
+test_sendmessage (test_smtpproxy.SMTPProxyTest) ... ERROR
+testCounts (test_storage.CDBStorageTestCase) ... ok
+testHapax (test_storage.CDBStorageTestCase) ... ok
+testLoadAndStore (test_storage.CDBStorageTestCase) ... ok
+test_bug777026 (test_storage.CDBStorageTestCase) ... ok
+testCounts (test_storage.DBStorageTestCase) ... ERROR
+testHapax (test_storage.DBStorageTestCase) ... ERROR
+testLoadAndStore (test_storage.DBStorageTestCase) ... ERROR
+testNoDBMAvailable (test_storage.DBStorageTestCase) ... ERROR
+test_bug777026 (test_storage.DBStorageTestCase) ... ERROR
+testCounts (test_storage.PickleStorageTestCase) ... ok
+testHapax (test_storage.PickleStorageTestCase) ... FAIL
+testLoadAndStore (test_storage.PickleStorageTestCase) ... FAIL
+test_bug777026 (test_storage.PickleStorageTestCase) ... ok
+testCounts (test_storage.ZODBStorageTestCase) ... ok
+testHapax (test_storage.ZODBStorageTestCase) ... ok
+testLoadAndStore (test_storage.ZODBStorageTestCase) ... ok
+test_bug777026 (test_storage.ZODBStorageTestCase) ... ok
+
+======================================================================
+ERROR: test_basic_import.test_basic_import
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/local/lib/python2.7/site-packages/nose-0.10.4-py2.7.egg/nose/case.py", line 182, in runTest
+    self.test(*self.arg)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_basic_import.py", line 36, in test_basic_import
+    from spambayes import optimize
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/optimize.py", line 9, in <module>
+    import Numeric
+ImportError: No module named Numeric
+
+======================================================================
+ERROR: test_Filter (test_sb_imapfilter.IMAPFilterTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 756, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_Train (test_sb_imapfilter.IMAPFilterTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 756, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_Filter (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_Train (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_cmp (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_generate_id (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_getitem_new_id (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_getitem_new_style (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_getitem_old_style (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_iter (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_keys (test_sb_imapfilter.IMAPFolderTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 669, in setUp
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: testMoveTo (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_Save (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_as_string_invalid (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_extract_time_bad_date (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_extract_time_date (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_extract_time_no_date (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_get_bad_message (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_get_full_message (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_get_memory_error_message (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: testBadLogin (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: testConnection (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: testGoodLogin (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: testSelectFolder (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_check_response (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_extract_fetch_data (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_folder_list (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_safe_read (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 547, in test_safe_read
+    saved_file = self.imap.file
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_safe_read (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+
+======================================================================
+ERROR: test_802545 (test_sb_imapfilter.SFBugsTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_816400 (test_sb_imapfilter.SFBugsTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_818552 (test_sb_imapfilter.SFBugsTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_842984 (test_sb_imapfilter.SFBugsTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_886133 (test_sb_imapfilter.SFBugsTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 334, in tearDown
+    self.imap.logout()
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 284, in logout
+    BaseIMAP.logout(self)  # superclass logout
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 531, in logout
+    self.shutdown()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 251, in shutdown
+    self.file.close()
+  File "/Users/skip/local/lib/python2.7/imaplib.py", line 214, in __getattr__
+    raise AttributeError("Unknown IMAP4 command: '%s'" % attr)
+AttributeError: Unknown IMAP4 command: 'file'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+ERROR: test_direct_connection (test_smtpproxy.SMTPProxyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_smtpproxy.py", line 194, in test_direct_connection
+    smtpServer.connect(('localhost', 8025))
+  File "<string>", line 1, in connect
+error: [Errno 61] Connection refused
+
+======================================================================
+ERROR: test_disconnection (test_smtpproxy.SMTPProxyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_smtpproxy.py", line 227, in test_disconnection
+    proxy.connect(('localhost', 8025))
+  File "<string>", line 1, in connect
+error: [Errno 61] Connection refused
+
+======================================================================
+ERROR: test_ham_intercept (test_smtpproxy.SMTPProxyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_smtpproxy.py", line 255, in test_ham_intercept
+    s = smtplib.SMTP('localhost', 8026)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 239, in __init__
+    (code, msg) = self.connect(host, port)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 295, in connect
+    self.sock = self._get_socket(host, port, self.timeout)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 273, in _get_socket
+    return socket.create_connection((port, host), timeout)
+  File "/Users/skip/local/lib/python2.7/socket.py", line 512, in create_connection
+    raise error, msg
+error: [Errno 61] Connection refused
+
+======================================================================
+ERROR: test_proxy_connection (test_smtpproxy.SMTPProxyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_smtpproxy.py", line 211, in test_proxy_connection
+    proxy.connect(('localhost', 8026))
+  File "<string>", line 1, in connect
+error: [Errno 61] Connection refused
+
+======================================================================
+ERROR: test_sendmessage (test_smtpproxy.SMTPProxyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_smtpproxy.py", line 249, in test_sendmessage
+    s = smtplib.SMTP('localhost', 8026)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 239, in __init__
+    (code, msg) = self.connect(host, port)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 295, in connect
+    self.sock = self._get_socket(host, port, self.timeout)
+  File "/Users/skip/local/lib/python2.7/smtplib.py", line 273, in _get_socket
+    return socket.create_connection((port, host), timeout)
+  File "/Users/skip/local/lib/python2.7/socket.py", line 512, in create_connection
+    raise error, msg
+error: [Errno 61] Connection refused
+
+======================================================================
+ERROR: testCounts (test_storage.DBStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+    self.classifier = self.StorageClass(self.db_name)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
+    self.load()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 180, in load
+    self.dbm = dbmstorage.open(self.db_name, self.mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 70, in open
+    return f(db_name, mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 37, in open_best
+    funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+NameError: global name 'open_db185hash' is not defined
+
+======================================================================
+ERROR: testHapax (test_storage.DBStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+    self.classifier = self.StorageClass(self.db_name)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
+    self.load()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 180, in load
+    self.dbm = dbmstorage.open(self.db_name, self.mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 70, in open
+    return f(db_name, mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 37, in open_best
+    funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+NameError: global name 'open_db185hash' is not defined
+
+======================================================================
+ERROR: testLoadAndStore (test_storage.DBStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+    self.classifier = self.StorageClass(self.db_name)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
+    self.load()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 180, in load
+    self.dbm = dbmstorage.open(self.db_name, self.mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 70, in open
+    return f(db_name, mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 37, in open_best
+    funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+NameError: global name 'open_db185hash' is not defined
+
+======================================================================
+ERROR: testNoDBMAvailable (test_storage.DBStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+    self.classifier = self.StorageClass(self.db_name)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
+    self.load()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 180, in load
+    self.dbm = dbmstorage.open(self.db_name, self.mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 70, in open
+    return f(db_name, mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 37, in open_best
+    funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+NameError: global name 'open_db185hash' is not defined
+
+======================================================================
+ERROR: test_bug777026 (test_storage.DBStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+    self.classifier = self.StorageClass(self.db_name)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
+    self.load()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 180, in load
+    self.dbm = dbmstorage.open(self.db_name, self.mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 70, in open
+    return f(db_name, mode)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/dbmstorage.py", line 37, in open_best
+    funcs = [open_db3hash, open_dbhash, open_gdbm, open_db185hash]
+NameError: global name 'open_db185hash' is not defined
+
+======================================================================
+FAIL: test_sb_server_default (test_programs.TestServer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 160, in test_sb_server_default
+    self._start_spawner(s)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 142, in _start_spawner
+    spawner.start()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 97, in start
+    if self.is_running() and is_any_sb_server_running():
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 72, in is_running
+    "My server stopped, but global server mutex held")
+AssertionError: My server stopped, but global server mutex held
+
+======================================================================
+FAIL: test_sb_server_restore (test_programs.TestServer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 174, in test_sb_server_restore
+    self._start_spawner(s)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 142, in _start_spawner
+    spawner.start()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 97, in start
+    if self.is_running() and is_any_sb_server_running():
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 72, in is_running
+    "My server stopped, but global server mutex held")
+AssertionError: My server stopped, but global server mutex held
+
+======================================================================
+FAIL: test_sb_server_ui_port (test_programs.TestServer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 166, in test_sb_server_ui_port
+    self._start_spawner(s)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 142, in _start_spawner
+    spawner.start()
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 97, in start
+    if self.is_running() and is_any_sb_server_running():
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_programs.py", line 72, in is_running
+    "My server stopped, but global server mutex held")
+AssertionError: My server stopped, but global server mutex held
+
+======================================================================
+FAIL: test_extract_time_date (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 589, in test_extract_time_date
+    self.assertEqual(date, '"19-May-2004 20:05:15 +1200"')
+AssertionError: '"19-May-2004 20:05:15 -0500"' != '"19-May-2004 20:05:15 +1200"'
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: test_get_bad_message (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 640, in test_get_bad_message
+    self.msg.imap_server.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: test_get_full_message (test_sb_imapfilter.IMAPMessageTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 616, in test_get_full_message
+    self.msg.imap_server.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: testBadLogin (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 352, in testBadLogin
+    "wrong password")
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+You should see a message indicating that login failed.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: testConnection (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 343, in testConnection
+    self.assert_(self.imap.connected)
+AssertionError: 
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: testGoodLogin (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 346, in testGoodLogin
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: testSelectFolder (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 365, in testSelectFolder
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: test_folder_list (test_sb_imapfilter.IMAPSessionTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 386, in test_folder_list
+    self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
+  File "/Users/skip/local/lib/python2.7/site-packages/spambayes-1.1b1-py2.7.egg/EGG-INFO/scripts/sb_imapfilter.py", line 246, in login
+    assert self.connected, "Must be connected before logging in."
+AssertionError: Must be connected before logging in.
+-------------------- >> begin captured stdout << ---------------------
+Cannot connect to server localhost on port 143
+If you are connecting to an SSL server, please ensure that you have the 'Use SSL' option enabled.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: test_UI (test_sb_imapfilter.InterfaceTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_sb_imapfilter.py", line 829, in test_UI
+    response))
+AssertionError: 
+-------------------- >> begin captured stdout << ---------------------
+
+This test takes slightly over one second.
+
+--------------------- >> end captured stdout << ----------------------
+
+======================================================================
+FAIL: testHapax (test_storage.PickleStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 91, in testHapax
+    self._dotestHapax(True)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 102, in _dotestHapax
+    do_persist)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 87, in _checkAllWordCounts
+    self._checkAllWordCounts(counts, False)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 83, in _checkAllWordCounts
+    self._checkWordCounts(*info)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 73, in _checkWordCounts
+    self.fail("_CheckWordCounts for '%s' got None!")
+AssertionError: _CheckWordCounts for '%s' got None!
+
+======================================================================
+FAIL: testLoadAndStore (test_storage.PickleStorageTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 42, in testLoadAndStore
+    ("ones", 1, 0)), False)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 83, in _checkAllWordCounts
+    self._checkWordCounts(*info)
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 73, in _checkWordCounts
+    self.fail("_CheckWordCounts for '%s' got None!")
+AssertionError: _CheckWordCounts for '%s' got None!
+
+----------------------------------------------------------------------
+Ran 61 tests in 18.063s
+
+FAILED (errors=45, failures=14)

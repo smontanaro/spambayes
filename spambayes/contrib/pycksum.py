@@ -39,10 +39,7 @@ import getopt
 import sys
 import email.Parser
 import email.generator
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
+
 import anydbm
 import re
 import time
@@ -50,6 +47,8 @@ try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
+
+from spambayes.port import md5
 
 def clean(data):
     """Clean the obviously variable stuff from a chunk of data.

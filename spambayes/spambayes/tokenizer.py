@@ -14,17 +14,6 @@ import os
 import binascii
 import urlparse
 import urllib
-try:
-    # We have three possibilities for Set:
-    #  (a) With Python 2.2 and earlier, we use our compatsets class
-    #  (b) With Python 2.3, we use the sets.Set class
-    #  (c) With Python 2.4 and later, we use the builtin set class
-    Set = set
-except NameError:
-    try:
-        from sets import Set
-    except ImportError:
-        from spambayes.compatsets import Set
 
 from spambayes import classifier
 from spambayes.Options import options
@@ -618,12 +607,12 @@ del aliases # Not needed any more
 # words in the msg, without regard to how many times a given word appears.
 def textparts(msg):
     """Return a set of all msg parts with content maintype 'text'."""
-    return Set(filter(lambda part: part.get_content_maintype() == 'text',
+    return set(filter(lambda part: part.get_content_maintype() == 'text',
                       msg.walk()))
 
 def octetparts(msg):
     """Return a set of all msg parts with type 'application/octet-stream'."""
-    return Set(filter(lambda part:
+    return set(filter(lambda part:
                       part.get_content_type() == 'application/octet-stream',
                       msg.walk()))
 
@@ -1559,7 +1548,7 @@ class Tokenizer:
     def tokenize_text(self, text, maxword=options["Tokenizer",
                                                   "skip_max_word_size"]):
         """Tokenize everything in the chunk of text we were handed."""
-        short_runs = Set()
+        short_runs = set()
         short_count = 0
         for w in text.split():
             n = len(w)

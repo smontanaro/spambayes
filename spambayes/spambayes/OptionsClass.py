@@ -88,20 +88,7 @@ except ImportError:
 import re
 import types
 import locale
-
-try:
-    import textwrap
-except ImportError:
-    # textwrap was added in 2.3
-    # We only use this for printing out errors and docstrings, so
-    # it doesn't need to be great (if you want it great, get a more
-    # recent Python!).  So we do it the dumb way; the textwrap code
-    # could be duplicated here if anyone cared.
-    def wrap(s):
-        length = 40
-        return [s[i:i+length].strip() for i in xrange(0, len(s), length)]
-else:
-    wrap = textwrap.wrap
+from textwrap import wrap
 
 __all__ = ['OptionsClass',
            'HEADER_NAME', 'HEADER_VALUE',

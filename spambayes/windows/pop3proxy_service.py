@@ -135,17 +135,7 @@ if not hasattr(sys, "frozen"):
     # We are in the 'spambayes\win32' directory.  We
     # need the parent on sys.path, so 'spambayes.spambayes' is a package,
     # and 'pop3proxy' is a module
-    try:
-        # module imported by service manager, or 2.3 (in which __main__
-        # exists, *and* sys.argv[0] is always already absolute)
-        this_filename = __file__
-    except NameError:
-        this_filename = sys.argv[0]
-    if not os.path.isabs(sys.argv[0]):
-        # Python 2.3 __main__
-        # patch up sys.argv, as our cwd will confuse service registration code
-        sys.argv[0] = os.path.abspath(sys.argv[0])
-        this_filename = sys.argv[0]
+    this_filename = __file__
 
     sb_dir = os.path.dirname(os.path.dirname(this_filename))
     sb_scripts_dir = os.path.join(sb_dir,"scripts")

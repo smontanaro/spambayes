@@ -89,15 +89,6 @@ def usage(msg=None):
         print >> sys.stderr, msg
     print >> sys.stderr, __doc__.strip() % globals()
 
-try:
-    reversed
-except NameError:
-    def reversed(seq):
-        seq = seq[:]
-        seq.reverse()
-        return iter(seq)
-
-
 def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
           ratio):
     round = 0

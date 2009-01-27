@@ -8,10 +8,6 @@ import sys
 import os
 import tempfile
 import math
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
 import atexit
 try:
     import cStringIO as StringIO
@@ -24,6 +20,7 @@ except ImportError:
     Image = None
 
 from spambayes.safepickle import pickle_read, pickle_write
+from spambayes.port import md5
 
 # The email mime object carrying the image data can have a special attribute
 # which indicates that a message had an image, but it was large (ie, larger
@@ -36,18 +33,6 @@ from spambayes.safepickle import pickle_read, pickle_write
 # chosen to avoid spammers getting wise and 'injecting' the header into the
 # message body of a mime section.
 image_large_size_attribute = "spambayes_image_large_size"
-
-try:
-    # We have three possibilities for Set:
-    #  (a) With Python 2.2 and earlier, we use our compatsets class
-    #  (b) With Python 2.3, we use the sets.Set class
-    #  (c) With Python 2.4 and later, we use the builtin set class
-    Set = set
-except NameError:
-    try:
-        from sets import Set
-    except ImportError:
-        from spambayes.compatsets import Set
 
 from spambayes.Options import options
 
@@ -113,7 +98,7 @@ def imconcattb(upper, lower):
 
 def PIL_decode_parts(parts):
     """Decode and assemble a bunch of images using PIL."""
-    tokens = Set()
+    tokens = set()
     rows = []
     max_image_size = options["Tokenizer", "max_image_size"]
     for part in parts:
@@ -313,7 +298,7 @@ class ImageStripper:
     def extract_ocr_info(self, pnmfiles):
         assert self.engine, "must have an engine!"
         textbits = []
-        tokens = Set()
+        tokens = set()
         for pnmfile in pnmfiles:
             preserve = False
             fhash = md5(open(pnmfile).read()).hexdigest()
@@ -367,15 +352,15 @@ class ImageStripper:
             # We only get here if explicitly enabled - spewing msgs is ok.
             print >> sys.stderr, "invalid engine name '%s' - OCR disabled" \
                                  % (engine_name,)
-            return "", Set()
+            return "", set()
 
         if not parts:
-            return "", Set()
+            return "", set()
 
         if Image is not None:
             pnmfiles, tokens = PIL_decode_parts(parts)
         else:
-            return "", Set()
+            return "", set()
 
         if pnmfiles:
             text, new_tokens = self.extract_ocr_info(pnmfiles)

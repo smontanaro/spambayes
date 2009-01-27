@@ -69,10 +69,7 @@ if hasattr(sys, "frozen"):
     assert sys.frozen == "dll", "outlook only supports inproc servers"
     this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
 else:
-    try:
-        this_filename = os.path.abspath(__file__)
-    except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
-        this_filename = os.path.abspath(sys.argv[0])
+    this_filename = os.path.abspath(__file__)
 
 # Ensure that a bsddb module is available if we are frozen.
 # See if we can use the new bsddb module. (The old one is unreliable

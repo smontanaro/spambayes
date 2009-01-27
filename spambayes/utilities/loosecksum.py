@@ -26,14 +26,11 @@ An MD5 checksum is then computed for the resulting text and written to stdout.
 
 import getopt
 import sys
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
 import re
 import binascii
 
 from spambayes.mboxutils import getmbox
+from spambayes.port import md5
 
 def flatten(obj):
     # I do not know how to use the email package very well - all I want here

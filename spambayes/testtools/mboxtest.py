@@ -24,10 +24,6 @@ import getopt
 import mailbox
 import random
 import re
-try:
-    from sets import Set
-except ImportError:
-    from spambayes.compatsets import Set
 import sys
 
 from spambayes.tokenizer import tokenize
@@ -106,7 +102,7 @@ def randindices(nelts, nresults):
     random.shuffle(L)
     chunk = nelts / nresults
     for i in range(nresults):
-        yield Set(L[:chunk])
+        yield set(L[:chunk])
         del L[:chunk]
 
 def sort(seq):

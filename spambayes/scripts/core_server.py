@@ -41,16 +41,6 @@ Usage:
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
 
-try:
-    reversed
-except NameError:
-    # Maintain compatibility with Python 2.2 and 2.3
-    def reversed(seq):
-        """for backwards compatibility w/ pre-2.4"""
-        seq = list(seq[:])
-        seq.reverse()
-        return iter(seq)
-
 _TODO = """
 
 Protocol plugin interface:

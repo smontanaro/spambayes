@@ -23,12 +23,6 @@ from test_sb_server import good1, spam1
 good1 = email.message_from_string(good1)
 spam1 = email.message_from_string(spam1)
 
-try:
-    __file__
-except NameError:
-    # Python 2.2
-    __file__ = os.path.abspath(sys.argv[0])
-
 TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
 # The chances of anyone having a file with this name in the test
 # directory is minute, but we don't want to wipe anything, so make

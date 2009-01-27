@@ -23,12 +23,6 @@ from spambayes.message import Message, SBHeaderMessage, MessageInfoPickle
 # randomly composed email messages.
 from test_sb_server import good1, spam1, malformed1
 
-try:
-    __file__
-except NameError:
-    # Python 2.2 compatibility.
-    __file__ = sys.argv[0]
-
 TEMP_PICKLE_NAME = os.path.join(os.path.dirname(__file__), "temp.pik")
 TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
 # The chances of anyone having files with these names in the test

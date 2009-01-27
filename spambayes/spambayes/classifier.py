@@ -38,17 +38,6 @@ from __future__ import generators
 # This implementation is due to Tim Peters et alia.
 
 import math
-try:
-    # We have three possibilities for Set:
-    #  (a) With Python 2.2 and earlier, we use our compatsets class
-    #  (b) With Python 2.3, we use the sets.Set class
-    #  (c) With Python 2.4 and later, we use the builtin set class
-    Set = set
-except NameError:
-    try:
-        from sets import Set
-    except ImportError:
-        from spambayes.compatsets import Set
 
 # XXX At time of writing, these are only necessary for the
 # XXX experimental url retrieving/slurping code.  If that
@@ -60,15 +49,6 @@ import sys
 import socket
 import urllib2
 from email import message_from_string
-
-try:
-    enumerate
-except NameError:
-    def enumerate(seq):
-        i = 0
-        for elt in seq:
-            yield (i, elt)
-            i += 1
 
 DOMAIN_AND_PORT_RE = re.compile(r"([^:/\\]+)(:([\d]+))?")
 HTTP_ERROR_RE = re.compile(r"HTTP Error ([\d]+)")
@@ -370,7 +350,7 @@ class Classifier:
         else:
             self.nham += 1
 
-        for word in Set(wordstream):
+        for word in set(wordstream):
             record = self._wordinfoget(word)
             if record is None:
                 record = self.WordInfoClass()
@@ -395,7 +375,7 @@ class Classifier:
                 raise ValueError("non-spam count would go negative!")
             self.nham -= 1
 
-        for word in Set(wordstream):
+        for word in set(wordstream):
             record = self._wordinfoget(word)
             if record is not None:
                 if is_spam:
@@ -447,9 +427,9 @@ class Classifier:
             push = raw.append
             pair = None
             # Keep track of which tokens we've already seen.
-            # Don't use a Set here!  This is an innermost loop, so speed is
+            # Don't use a set here!  This is an innermost loop, so speed is
             # important here (direct dict fiddling is much quicker than
-            # invoking Python-level Set methods; in Python 2.4 that will
+            # invoking Python-level set methods; in Python 2.4 that will
             # change).
             seen = {pair: 1} # so the bigram token is skipped on 1st loop trip
             for i, token in enumerate(wordstream):
@@ -484,11 +464,11 @@ class Classifier:
             clues.reverse()
 
         else:
-            # The all-unigram scheme just scores the tokens as-is.  A Set()
+            # The all-unigram scheme just scores the tokens as-is.  A set()
             # is used to weed out duplicates at high speed.
             clues = []
             push = clues.append
-            for word in Set(wordstream):
+            for word in set(wordstream):
                 tup = self._worddistanceget(word)
                 if tup[0] >= mindist:
                     push(tup)

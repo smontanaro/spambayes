@@ -72,17 +72,14 @@ except win32api_error:
 # Work out our "application directory", which is
 # the directory of our main .py/.exe file we
 # are running from.
-try:
-    if hasattr(sys, "frozen"):
-        if sys.frozen == "dll":
-            # Don't think we will ever run as a .DLL, but...
-            this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
-        else:
-            this_filename = os.path.abspath(sys.argv[0])
+if hasattr(sys, "frozen"):
+    if sys.frozen == "dll":
+        # Don't think we will ever run as a .DLL, but...
+        this_filename = win32api.GetModuleFileName(sys.frozendllhandle)
     else:
-        this_filename = os.path.abspath(__file__)
-except NameError: # no __file__
-    this_filename = os.path.abspath(sys.argv[0])
+        this_filename = os.path.abspath(sys.argv[0])
+else:
+    this_filename = os.path.abspath(__file__)
 
 this_dir = os.path.dirname(this_filename)
 if not hasattr(sys, "frozen"):

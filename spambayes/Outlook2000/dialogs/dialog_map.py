@@ -8,12 +8,6 @@ import wizard_processors as wiz
 
 from dialogs import ShowDialog, MakePropertyPage, ShowWizard
 
-try:
-    enumerate
-except NameError:   # enumerate new in 2.3
-    def enumerate(seq):
-        return [(i, seq[i]) for i in xrange(len(seq))]
-
 # "dialog specific" processors:
 class StatsProcessor(ControlProcessor):
     def __init__(self, window, control_ids):

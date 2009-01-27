@@ -24,9 +24,6 @@ def test_basic_import():
     from spambayes import cdb_classifier
     from spambayes import chi2
     from spambayes import classifier
-    from spambayes import compatcsv
-    from spambayes import compatheapq
-    from spambayes import compatsets
     from spambayes import dbmstorage
     from spambayes import dnscache
     from spambayes import hammie

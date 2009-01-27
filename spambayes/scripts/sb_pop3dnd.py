@@ -58,10 +58,6 @@ __credits__ = "All the Spambayes folk."
 import os
 import re
 import sys
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
 import time
 import errno
 import email
@@ -71,10 +67,7 @@ import socket
 import imaplib
 import email.Utils
 
-try:
-    import cStringIO as StringIO
-except NameError:
-    import StringIO
+import cStringIO as StringIO
 
 from twisted import cred
 import twisted.application.app
@@ -95,6 +88,7 @@ from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_current_version
 from sb_server import POP3ProxyBase, State, _addressPortStr
+from spambayes.port import md5
 
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it

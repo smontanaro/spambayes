@@ -19,14 +19,6 @@ import os
 import sys
 
 # Fix path so we can import from Outlook2000 directory.
-try:
-    __file__
-except NameError:
-    # Create __file__ for Python 2.2
-    __file__ = sys.argv[0]
-# Fix __file__ for Python 2.2 & 2.3
-__file__ = os.path.abspath(__file__)
-    
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import config

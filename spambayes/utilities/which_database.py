@@ -33,10 +33,7 @@ import whichdb
 try:
     import bsddb
 except ImportError:
-    try:
-        import bsddb3 as bsddb
-    except ImportError:
-        bsddb = None
+    bsddb = None
 
 def main():
     print "Pickle is available."

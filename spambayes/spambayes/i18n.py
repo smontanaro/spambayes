@@ -84,10 +84,7 @@ if hasattr(sys, "frozen"):
     LANG_DIR = os.path.join(os.path.dirname(__file__), "languages")
 
 else:
-    try:
-        this_filename = os.path.abspath(__file__)
-    except NameError: # no __file__ - means Py2.2 and __name__=='__main__'
-        this_filename = os.path.abspath(sys.argv[0])
+    this_filename = os.path.abspath(__file__)
     LANG_DIR = os.path.join(os.path.dirname(this_filename), "languages")
     LC_DIR = LANG_DIR
 
