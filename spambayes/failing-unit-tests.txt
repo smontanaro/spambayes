@@ -1,5 +1,5 @@
 spambayes.Tester.Test.reset_test_results ... ok
-test_basic_import.test_basic_import ... ERROR
+test_basic_import.test_basic_import ... ok
 test_sb_server_default (test_programs.TestServer) ... port ('', 8880) in use
 SpamBayes POP3 Proxy Version 1.1b1 (November 23, 2008)
 
@@ -155,25 +155,13 @@ testLoadAndStore (test_storage.DBStorageTestCase) ... ERROR
 testNoDBMAvailable (test_storage.DBStorageTestCase) ... ERROR
 test_bug777026 (test_storage.DBStorageTestCase) ... ERROR
 testCounts (test_storage.PickleStorageTestCase) ... ok
-testHapax (test_storage.PickleStorageTestCase) ... FAIL
-testLoadAndStore (test_storage.PickleStorageTestCase) ... FAIL
+testHapax (test_storage.PickleStorageTestCase) ... ok
+testLoadAndStore (test_storage.PickleStorageTestCase) ... ok
 test_bug777026 (test_storage.PickleStorageTestCase) ... ok
 testCounts (test_storage.ZODBStorageTestCase) ... ok
 testHapax (test_storage.ZODBStorageTestCase) ... ok
 testLoadAndStore (test_storage.ZODBStorageTestCase) ... ok
 test_bug777026 (test_storage.ZODBStorageTestCase) ... ok
-
-======================================================================
-ERROR: test_basic_import.test_basic_import
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/Users/skip/local/lib/python2.7/site-packages/nose-0.10.4-py2.7.egg/nose/case.py", line 182, in runTest
-    self.test(*self.arg)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_basic_import.py", line 36, in test_basic_import
-    from spambayes import optimize
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/optimize.py", line 9, in <module>
-    import Numeric
-ImportError: No module named Numeric
 
 ======================================================================
 ERROR: test_Filter (test_sb_imapfilter.IMAPFilterTest)
@@ -835,7 +823,7 @@ error: [Errno 61] Connection refused
 ERROR: testCounts (test_storage.DBStorageTestCase)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 20, in setUp
     self.classifier = self.StorageClass(self.db_name)
   File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
     self.load()
@@ -851,7 +839,7 @@ NameError: global name 'open_db185hash' is not defined
 ERROR: testHapax (test_storage.DBStorageTestCase)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 20, in setUp
     self.classifier = self.StorageClass(self.db_name)
   File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
     self.load()
@@ -867,7 +855,7 @@ NameError: global name 'open_db185hash' is not defined
 ERROR: testLoadAndStore (test_storage.DBStorageTestCase)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 20, in setUp
     self.classifier = self.StorageClass(self.db_name)
   File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
     self.load()
@@ -883,7 +871,7 @@ NameError: global name 'open_db185hash' is not defined
 ERROR: testNoDBMAvailable (test_storage.DBStorageTestCase)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 20, in setUp
     self.classifier = self.StorageClass(self.db_name)
   File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
     self.load()
@@ -899,7 +887,7 @@ NameError: global name 'open_db185hash' is not defined
 ERROR: test_bug777026 (test_storage.DBStorageTestCase)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 19, in setUp
+  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 20, in setUp
     self.classifier = self.StorageClass(self.db_name)
   File "/Users/skip/src/spambayes-svn/spambayes/spambayes/storage.py", line 154, in __init__
     self.load()
@@ -1082,35 +1070,7 @@ This test takes slightly over one second.
 
 --------------------- >> end captured stdout << ----------------------
 
-======================================================================
-FAIL: testHapax (test_storage.PickleStorageTestCase)
 ----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 91, in testHapax
-    self._dotestHapax(True)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 102, in _dotestHapax
-    do_persist)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 87, in _checkAllWordCounts
-    self._checkAllWordCounts(counts, False)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 83, in _checkAllWordCounts
-    self._checkWordCounts(*info)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 73, in _checkWordCounts
-    self.fail("_CheckWordCounts for '%s' got None!")
-AssertionError: _CheckWordCounts for '%s' got None!
+Ran 61 tests in 17.678s
 
-======================================================================
-FAIL: testLoadAndStore (test_storage.PickleStorageTestCase)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 42, in testLoadAndStore
-    ("ones", 1, 0)), False)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 83, in _checkAllWordCounts
-    self._checkWordCounts(*info)
-  File "/Users/skip/src/spambayes-svn/spambayes/spambayes/test/test_storage.py", line 73, in _checkWordCounts
-    self.fail("_CheckWordCounts for '%s' got None!")
-AssertionError: _CheckWordCounts for '%s' got None!
-
-----------------------------------------------------------------------
-Ran 61 tests in 18.063s
-
-FAILED (errors=45, failures=14)
+FAILED (errors=44, failures=12)
