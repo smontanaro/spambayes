@@ -1,6 +1,7 @@
 # Test the basic storage operations of the classifier.
 
 import unittest, os, sys
+import glob
 import tempfile
 import cStringIO as StringIO
 
@@ -21,8 +22,9 @@ class _StorageTestBase(unittest.TestCase):
     def tearDown(self):
         self.classifier.close()
         self.classifier = None
-        if os.path.isfile(self.db_name):
-            os.remove(self.db_name)
+        for name in glob.glob(self.db_name+"*"):
+            if os.path.isfile(name):
+                os.remove(name)
 
     def testLoadAndStore(self):
         # Simple test to verify that putting data in the db, storing and
@@ -70,7 +72,7 @@ class _StorageTestBase(unittest.TestCase):
         if info is None:
             if expected_ham == expected_spam == 0:
                 return
-            self.fail("_CheckWordCounts for '%s' got None!")
+            self.fail("_CheckWordCounts for '%s' got None!" % word)
         if info.hamcount != expected_ham:
             self.fail("Hamcount '%s' wrong - got %d, but expected %d" \
                         % (word, info.hamcount, expected_ham))
@@ -189,8 +191,9 @@ class DBStorageTestCase(_StorageTestBase):
         finally:
             DBDictClassifier.load = DBDictClassifier_load
 
-        if os.path.isfile(db_name):
-            os.remove(db_name)
+        for name in glob.glob(db_name+"*"):
+            if os.path.isfile(name):
+                os.remove(name)
 
 class CDBStorageTestCase(_StorageTestBase):
     StorageClass = CDBClassifier
