@@ -65,7 +65,7 @@ import errno
 import shelve
 from spambayes import cdb
 from spambayes import dbmstorage
-from spambayes.safepickle import pickle_write
+from spambayes.safepickle import pickle_write, pickle_read
 
 # Make shelve use binary pickles by default.
 oldShelvePickler = shelve.Pickler
