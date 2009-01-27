@@ -50,8 +50,6 @@ except ImportError:
     # Some functions will not work, but some will.
     win32api = win32con = win32gui = shell = shellcon = None
 
-from spambayes import oe_mailbox
-
 ###########################################################################
 ## DBX FILE HEADER
 ###########################################################################
@@ -599,7 +597,7 @@ def OEAccountKeys(permission = None):
     else:
         # This appears to be the place for OE6 and Win98
         # (So I'm guessing also for Win95)
-        possible_root_keys = oe_mailbox.OEIdentityKeys()
+        possible_root_keys = OEIdentityKeys()
 
     for key in possible_root_keys:
         reg = win32api.RegOpenKeyEx(win32con.HKEY_CURRENT_USER, key)
