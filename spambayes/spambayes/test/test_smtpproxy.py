@@ -178,6 +178,10 @@ class TestSMTPServer(Dibbler.BrighterAsyncChat):
 class SMTPProxyTest(unittest.TestCase):
     """Runs a self-test using TestSMTPServer, a minimal SMTP server
     that receives mail and discards it."""
+    def __init__(self, *args):
+        unittest.TestCase.__init__(self, *args)
+        self.bayes = Classifier()
+
     def setUp(self):
         pass
 
@@ -247,12 +251,12 @@ class SMTPProxyTest(unittest.TestCase):
         s.quit()
 
     def test_ham_intercept(self):
-        pre_ham_trained = bayes.nham
+        pre_ham_trained = self.bayes.nham
         s = smtplib.SMTP('localhost', 8026)
         s.sendmail("ta-meyer@ihug.co.nz",
                    options["smtpproxy", "ham_address"], good1)
         s.quit()
-        post_ham_trained = bayes.nham
+        post_ham_trained = self.bayes.nham
         self.assertEqual(pre_ham_trained+1, post_ham_trained)
 
 def suite():
@@ -290,9 +294,7 @@ def run():
             TestListener(socketMap=testSocketMap)
             asyncore.loop(map=testSocketMap)
         def runProxy():
-            global bayes
-            bayes = Classifier()
-            trainer = SMTPTrainer(bayes, state)
+            trainer = SMTPTrainer(Classifier(), state)
             BayesSMTPProxyListener('localhost', 8025, ('', 8026), trainer)
             Dibbler.run()
         thread.start_new_thread(runTestServer, ())
