@@ -5,11 +5,9 @@ __version__ = '$Id$'
 #
 import copy
 
-# XXX Numeric is obsolete.  Replace with numpy.
-import Numeric
-
 def SimplexMaximize(var, err, func, convcrit = 0.001, minerr = 0.001):
-    var = Numeric.array(var)
+    import numpy
+    var = numpy.array(var)
     simplex = [var]
     for i in range(len(var)):
         var2 = copy.copy(var)
@@ -32,14 +30,14 @@ def SimplexMaximize(var, err, func, convcrit = 0.001, minerr = 0.001):
         if abs(value[bi] - value[wi]) <= convcrit:
             return simplex[bi]
         # Calculate average of non-worst
-        ave = Numeric.zeros(len(var), 'd')
+        ave = numpy.zeros(len(var), dtype=numpy.float)
         for i in range(len(simplex)):
             if i != wi:
                 ave = ave + simplex[i]
         ave = ave / (len(simplex) - 1)
-        worst = Numeric.array(simplex[wi])
+        worst = numpy.array(simplex[wi])
         # Check for too-small simplex
-        simsize = Numeric.add.reduce(Numeric.absolute(ave - worst))
+        simsize = numpy.add.reduce(numpy.absolute(ave - worst))
         if simsize <= minerr:
             #print "Size of simplex too small:",simsize
             return simplex[bi]
@@ -66,6 +64,7 @@ def SimplexMaximize(var, err, func, convcrit = 0.001, minerr = 0.001):
         value[wi] = newv
 
 def DoubleSimplexMaximize(var, err, func, convcrit=0.001, minerr=0.001):
-    err = Numeric.array(err)
+    import numpy
+    err = numpy.array(err)
     var = SimplexMaximize(var, err, func, convcrit*5, minerr*5)
     return SimplexMaximize(var, 0.4 * err, func, convcrit, minerr)
