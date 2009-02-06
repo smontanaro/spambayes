@@ -327,7 +327,7 @@ class BaseIMAPFilterTest(unittest.TestCase):
     def setUp(self):
         # shorten for testing so we don't wait forever
         IMAPSession.timeout = 5
-        self.imap = IMAPSession("localhost", IMAP_PORT)
+        self.imap = IMAPSession("localhost:%d" % IMAP_PORT)
 
     def tearDown(self):
         try:
@@ -728,7 +728,6 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         self.assertEqual(msg3.as_string(), msg_correct.as_string())
 
     def test_generate_id(self):
-        print "\nThis test takes slightly over a second."
         id1 = self.folder._generate_id()
         id2 = self.folder._generate_id()
         id3 = self.folder._generate_id()
@@ -801,7 +800,6 @@ class SFBugsTest(BaseIMAPFilterTest):
 
 class InterfaceTest(unittest.TestCase):
     def setUp(self):
-        print "\nThis test takes slightly over one second."
         self.saved_server = options["imap", "server"]
         options["imap", "server"] = ""
         thread.start_new_thread(run, (True,))
