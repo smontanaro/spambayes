@@ -1133,7 +1133,8 @@ prompts the user for each server's password.
             
 def run(force_UI=False):
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:',
+                                   ["verbose"])
     except getopt.error, msg:
         print >> sys.stderr, str(msg) + '\n\n' + __doc__
         sys.exit()
@@ -1158,7 +1159,7 @@ def run(force_UI=False):
             promptForPass = True
         elif opt == '-c':
             doClassify = True
-        elif opt == '-v':
+        elif opt in ('-v', '--verbose'):
             options["globals", "verbose"] = True
         elif opt == '-e':
             if arg == 'y':
