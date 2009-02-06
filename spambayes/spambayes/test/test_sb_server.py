@@ -8,8 +8,8 @@ that pipelining is removed from the CAPA[bility] query, and that the
 web ui is present.
 
 The -t option runs a fake POP3 server on port 8110.  This is the
-same server that the -z option uses, and may be separately run for
-other testing purposes.
+same server that test uses, and may be separately run for other
+testing purposes.
 
 Usage:
 
@@ -100,6 +100,9 @@ from spambayes.Options import options
 HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % \
                  options["Headers", "classification_header_name"]
 
+# Our simulated slow POP3 server transmits about 100 characters per second.
+PER_CHAR_DELAY = 0.01
+
 class TestListener(Dibbler.Listener):
     """Listener for TestPOP3Server.  Works on port 8110, to co-exist
     with real POP3 servers."""
@@ -155,7 +158,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
                 self.close()
                 raise SystemExit
             elif command == 'SLOW':
-                self.push_delay = 1.0
+                self.push_delay = PER_CHAR_DELAY
         else:
             handler = self.handlers.get(command, self.onUnknown)
             self.push_slowly(handler(command, args))
@@ -276,9 +279,14 @@ def test():
         proxyReady.set()
         Dibbler.run()
 
-    threading.Thread(target=runTestServer).start()
+    testServerThread = threading.Thread(target=runTestServer)
+    testServerThread.setDaemon(True)
+    testServerThread.start()
     testServerReady.wait()
-    threading.Thread(target=runUIAndProxy).start()
+    
+    proxyThread = threading.Thread(target=runUIAndProxy)
+    proxyThread.setDaemon(True)
+    proxyThread.start()
     proxyReady.wait()
 
     # Connect to the proxy and the test server.
@@ -328,18 +336,21 @@ def test():
             response = response + proxy.recv(1000)
         assert response.find(options["Headers", "classification_header_name"]) >= 0
 
-    # Check that the proxy times out when it should.
-    options["pop3proxy", "retrieval_timeout"] = 30
+    # Check that the proxy times out when it should.  The consequence here
+    # is that the first packet we receive from the proxy will contain a
+    # partial message, so we assert for that.  At 100 characters per second
+    # with a 1-second timeout, the message needs to be significantly longer
+    # than 100 characters to ensure that the timeout fires, so we make sure
+    # we use a message that's at least 200 characters long.
+    assert len(spam1) >= 2 * (1/PER_CHAR_DELAY)
+    options["pop3proxy", "retrieval_timeout"] = 1
     options["Headers", "include_evidence"] = False
-    assert spam1.find('\n\n') > options["pop3proxy", "retrieval_timeout"]
-    print "This test is rather slow..."
     proxy.send("slow\r\n")
     response = proxy.recv(100)
     assert response.find("OK") != -1
     proxy.send("retr 1\r\n")
     response = proxy.recv(1000)
     assert len(response) < len(spam1)
-    print "Slow test done.  Thanks for waiting!"
 
     # Smoke-test the HTML UI.
     httpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
