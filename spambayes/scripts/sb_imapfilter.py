@@ -166,7 +166,7 @@ class IMAPSession(BaseIMAP):
 
     timeout = 60 # seconds
     def __init__(self, server, debug=0, do_expunge = options["imap", "expunge"] ):
-        if server.find(':') > -1:
+        if ":" in server:
             server, port = server.split(':', 1)
             port = int(port)
         else:
@@ -174,7 +174,7 @@ class IMAPSession(BaseIMAP):
                 port = 993
             else:
                 port = 143
-                    
+
         # There's a tricky situation where if use_ssl is False, but we
         # try to connect to a IMAP over SSL server, we will just hang
         # forever, waiting for a response that will never come.  To
@@ -187,10 +187,12 @@ class IMAPSession(BaseIMAP):
         try:
             BaseIMAP.__init__(self, server, port)
         except (BaseIMAP.error, socket.gaierror, socket.error):
-            print "Cannot connect to server %s on port %s" % (server, port)
-            if not hasattr(self, "ssl"):
-                print "If you are connecting to an SSL server, please " \
-                      "ensure that you have the 'Use SSL' option enabled."
+            if options["globals", "verbose"]:
+                print >> sys.stderr, "Cannot connect to server", server, "on port", port
+                if not hasattr(self, "ssl"):
+                    print >> sys.stderr, ("If you are connecting to an SSL server,"
+                                          "please ensure that you\n"
+                                          "have the 'Use SSL' option enabled.")
             self.connected = False
         else:
             self.connected = True
@@ -333,7 +335,8 @@ class IMAPSession(BaseIMAP):
         except BadIMAPResponseError:
             # We want to keep going, so just print out a warning, and
             # return an empty list.
-            print "Could not retrieve folder list."
+            if options["globals", "verbose"]:
+                print >> sys.stderr, "Could not retrieve folder list."
             return []
         folders = []
         for fol in all_folders:
@@ -359,9 +362,9 @@ class IMAPSession(BaseIMAP):
             # A bit of a hack, but we really need to know if this is
             # the case.
             if self.folder_delimiter == ',':
-                print "WARNING: Your imap server uses a comma as the " \
-                      "folder delimiter.  This may cause unpredictable " \
-                      "errors."
+                print >> sys.stderr, ("WARNING: Your imap server uses a comma as the "
+                                      "folder delimiter.  This may cause unpredictable " \
+                                      "errors.")
             folders.append(fol[m.end()+4:].strip('"'))
         folders.sort()
         return folders
@@ -721,12 +724,13 @@ class IMAPMessage(message.SBHeaderMessage):
             data = self.imap_server.check_response("recent", response)
             if data[0] is not None:
                 if options["globals", "verbose"]:
-                    print "[imapfilter] found saved message", self.uid,
-                    print "in iteration", i
+                    print >> sys.stderr, "[imapfilter] found saved message", self.uid,
+                    print >> sys.stderr, "in iteration", i
                 break
         else:
             if options["globals", "verbose"]:
-                print "[imapfilter] can't find saved message after 100 iterations:", self.uid
+                print >> sys.stderr, ("[imapfilter] can't find saved message after"
+                                      "100 iterations:"), self.uid
             # raise BadIMAPResponseError("recent", "Cannot find saved message")
 
         # We need to update the UID, as it will have changed.
@@ -866,7 +870,7 @@ class IMAPFolder(object):
         else:
             newid = self._generate_id()
             if options["globals", "verbose"]:
-                print "[imapfilter] saving %s with new id:" % msg.uid, newid
+                print >> sys.stderr, "[imapfilter] saving", msg.uid, "with new id:", newid
             msg.setId(newid)
             # Unfortunately, we now have to re-save this message, so that
             # our id is stored on the IMAP server.  The vast majority of
@@ -952,7 +956,7 @@ class IMAPFolder(object):
             cls = msg.GetClassification()
             if cls is None or hamfolder is not None:
                 if options["globals", "verbose"]:
-                    print "[imapfilter] classified as %s:" % cls, msg.uid
+                    print >> sys.stderr, "[imapfilter] classified as %s:" % cls, msg.uid
                 
                 msg = msg.get_full_message()
                 if msg.could_not_retrieve:
@@ -963,7 +967,7 @@ class IMAPFolder(object):
                     # the errors and move it soon enough.
 
                     if options["globals", "verbose"]:
-                        print "[imapfilter] could not retrieve:", msg.uid
+                        print >> sys.stderr, "[imapfilter] could not retrieve:", msg.uid
                     continue
                 
                 (prob, clues) = classifier.spamprob(msg.tokenize(),
@@ -977,24 +981,26 @@ class IMAPFolder(object):
                 if cls == options["Headers", "header_ham_string"]:
                     if hamfolder:
                         if options["globals", "verbose"]:
-                            print "[imapfilter] moving to ham folder:", msg.uid
+                            print >> sys.stderr, "[imapfilter] moving to ham folder:",
+                            print >> sys.stderr, msg.uid
                         msg.MoveTo(hamfolder)
                     # Otherwise, we leave ham alone.
                     count["ham"] += 1
                 elif cls == options["Headers", "header_spam_string"]:
                     if options["globals", "verbose"]:
-                        print "[imapfilter] moving to spam folder:", msg.uid
+                        print >> sys.stderr, "[imapfilter] moving to spam folder:",
+                        print >> sys.stderr, msg.uid
                     msg.MoveTo(spamfolder)
                     count["spam"] += 1
                 else:
                     if options["globals", "verbose"]:
-                        print "[imapfilter] moving to unsure folder:", msg.uid
+                        print >> sys.stderr, "[imapfilter] moving to unsure folder:", msg.uid
                     msg.MoveTo(unsurefolder)
                     count["unsure"] += 1
                 msg.Save()
             else:
                 if options["globals", "verbose"]:
-                    print "[imapfilter] already classified:", msg.uid
+                    print >> sys.stderr, "[imapfilter] already classified:", msg.uid
                 
         return count
 
@@ -1023,44 +1029,44 @@ class IMAPFilter(object):
                 try:
                     self.imap_server.SelectFolder(fol)
                 except BadIMAPResponseError:
-                    print "Skipping %s, as it cannot be selected." % (fol,)
+                    print >> sys.stderr, "Skipping", fol, "as it cannot be selected."
                     continue
 
                 if options['globals', 'verbose']:
-                    print "   Training %s folder %s" % \
-                          (["ham", "spam"][is_spam], fol)
+                    print >> sys.stderr, ("   Training %s folder %s" %
+                                          (["ham", "spam"][is_spam], fol))
                 folder = IMAPFolder(fol, self.imap_server, self.stats)
                 num_trained = folder.Train(self.classifier, is_spam)
                 total_trained += num_trained
                 if options['globals', 'verbose']:
-                    print "\n       %s trained." % (num_trained,)
+                    print >> sys.stderr, "\n      ", num_trained, "trained."
 
         if total_trained:
             self.classifier.store()
 
         if options["globals", "verbose"]:
-            print "Training took %.4f seconds, %s messages were trained." \
-                  % (time.time() - t, total_trained)
+            print >> sys.stderr, ("Training took %.4f seconds, %s messages were trained."
+                                  % (time.time() - t, total_trained))
 
     def Filter(self):
         assert self.imap_server, "Cannot do anything without IMAP server."
         if not self.spam_folder:
             spam_folder_name = options["imap", "spam_folder"]
             if options["globals", "verbose"]:
-                print "[imapfilter] spam folder:", spam_folder_name
+                print >> sys.stderr, "[imapfilter] spam folder:", spam_folder_name
             self.spam_folder = IMAPFolder(
                 spam_folder_name, self.imap_server, self.stats)
             
         if not self.unsure_folder:
             unsure_folder_name = options["imap", "unsure_folder"]
             if options["globals", "verbose"]:
-                print "[imapfilter] unsure folder:", unsure_folder_name
+                print >> sys.stderr, "[imapfilter] unsure folder:", unsure_folder_name
             self.unsure_folder = IMAPFolder(
                 unsure_folder_name, self.imap_server, self.stats)
 
         ham_folder_name = options["imap", "ham_folder"]
         if options["globals", "verbose"]:
-            print "[imapfilter] ham folder:", ham_folder_name
+            print >> sys.stderr, "[imapfilter] ham folder:", ham_folder_name
             
         if ham_folder_name and not self.ham_folder:
             self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server,
@@ -1078,18 +1084,18 @@ class IMAPFilter(object):
         try:
             self.imap_server.SelectFolder(self.spam_folder.name)
         except BadIMAPResponseError:
-            print "Cannot select spam folder.  Please check configuration."
+            print >> sys.stderr, "Cannot select spam folder.  Please check configuration."
             sys.exit(-1)
         try:
             self.imap_server.SelectFolder(self.unsure_folder.name)
         except BadIMAPResponseError:
-            print "Cannot select unsure folder.  Please check configuration."
+            print >> sys.stderr, "Cannot select unsure folder.  Please check configuration."
             sys.exit(-1)
         if self.ham_folder:
             try:
                 self.imap_server.SelectFolder(self.ham_folder.name)
             except BadIMAPResponseError:
-                print "Cannot select ham folder.  Please check configuration."
+                print >> sys.stderr, "Cannot select ham folder.  Please check configuration."
                 sys.exit(-1)
                 
         for filter_folder in options["imap", "filter_folders"]:
@@ -1097,7 +1103,7 @@ class IMAPFilter(object):
             try:
                 self.imap_server.SelectFolder(filter_folder)
             except BadIMAPResponseError:
-                print "Cannot select %s, skipping." % (filter_folder,)
+                print >> sys.stderr, "Cannot select", filter_folder, "... skipping." 
                 continue
 
             folder = IMAPFolder(filter_folder, self.imap_server, self.stats)
@@ -1108,9 +1114,9 @@ class IMAPFilter(object):
 
         if options["globals", "verbose"]:
             if count is not None:
-                print "\nClassified %s ham, %s spam, and %s unsure." % \
-                      (count["ham"], count["spam"], count["unsure"])
-            print "Classifying took %.4f seconds." % (time.time() - t,)
+                print >> sys.stderr, ("\nClassified %s ham, %s spam, and %s unsure." %
+                                      (count["ham"], count["spam"], count["unsure"]))
+            print >> sys.stderr, "Classifying took %.4f seconds." % (time.time() - t,)
 
 
 def servers(promptForPass = False):
