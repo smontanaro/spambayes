@@ -103,7 +103,7 @@ HEADER_EXAMPLE = '%s: xxxxxxxxxxxxxxxxxxxx\r\n' % \
 # Our simulated slow POP3 server transmits about 100 characters per second.
 PER_CHAR_DELAY = 0.01
 
-class TestListener(Dibbler.Listener):
+class Listener(Dibbler.Listener):
     """Listener for TestPOP3Server.  Works on port 8110, to co-exist
     with real POP3 servers."""
 
@@ -253,7 +253,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
         return "-ERR Unknown command: %s\r\n" % repr(command)
 
 
-def test():
+def helper():
     """Runs a self-test using TestPOP3Server, a minimal POP3 server
     that serves the example emails above.
     """
@@ -264,7 +264,7 @@ def test():
     testServerReady = threading.Event()
     def runTestServer():
         testSocketMap = {}
-        TestListener(socketMap=testSocketMap)
+        Listener(socketMap=testSocketMap)
         testServerReady.set()
         asyncore.loop(map=testSocketMap)
 
@@ -369,7 +369,7 @@ def test():
     pop3Server.sendall("kill\r\n")
     pop3Server.recv(100)
 
-def run():
+def test_run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'ht')
@@ -393,14 +393,14 @@ def run():
     if runSelfTest:
         print "\nRunning self-test...\n"
         state.buildServerStrings()
-        test()
+        helper()
         print "Self-test passed."   # ...else it would have asserted.
 
     elif state.runTestServer:
         print "Running a test POP3 server on port 8110..."
-        TestListener()
+        Listener()
         asyncore.loop()
 
 
 if __name__ == '__main__':
-    run()
+    test_run()
