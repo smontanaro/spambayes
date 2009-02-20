@@ -25,7 +25,10 @@ try:
     cache = dnscache.cache(cachefile=options["Tokenizer", "lookup_ip_cache"])
     cache.printStatsAtEnd = False
 except (IOError, ImportError):
-    cache = None
+    class cache:
+        @staticmethod
+        def lookup(*args):
+            return []
 else:
     import atexit
     atexit.register(cache.close)
@@ -1067,7 +1070,7 @@ class URLStripper(Stripper):
             url = urllib.unquote(url)
             scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
 
-            if cache is not None and options["Tokenizer", "x-lookup_ip"]:
+            if options["Tokenizer", "x-lookup_ip"]:
                 ips = cache.lookup(netloc)
                 if not ips:
                     pushclue("url-ip:lookup error")
