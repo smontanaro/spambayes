@@ -288,7 +288,7 @@ class FileCorpusTest(_FileCorpusBaseTest):
         self.corpus.addMessage(msg)
         self.assertEqual(msg.directory, self.directory)
         fn = os.path.join(self.directory, "9")
-        f = open(fn)
+        f = open(fn, "rU")
         content = f.read()
         f.close()
         self.assertEqual(content, good1)
