@@ -1482,7 +1482,7 @@ class BalloonCheckboxes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -1500,7 +1500,7 @@ class BalloonCheckboxes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', None, UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', None)
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -1570,7 +1570,7 @@ class BalloonLabels(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -1588,7 +1588,7 @@ class BalloonLabels(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', None, UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', None)
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -1662,7 +1662,7 @@ class COMAddIns(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((16396, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C033A-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C033A-0000-0000-C000-000000000046}')
 		return ret
 
 	def SetAppModal(self, varfModal=defaultNamedNotOptArg):
@@ -1685,7 +1685,7 @@ class COMAddIns(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((16396, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C033A-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C033A-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -1803,7 +1803,7 @@ class CommandBar(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874887, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17), (12, 17)),Type
 			, Id, Tag, Visible, Recursive)
 		if ret is not None:
-			ret = Dispatch(ret, 'FindControl', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'FindControl', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	# The method GetaccDefaultAction is actually a property, but must be used as a method to correctly pass the arguments
@@ -1879,7 +1879,7 @@ class CommandBar(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -1967,7 +1967,7 @@ class CommandBarControl(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874886, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Delete(self, Temporary=defaultNamedOptArg):
@@ -2033,7 +2033,7 @@ class CommandBarControl(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874902, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Reserved1(self):
@@ -2078,7 +2078,7 @@ class CommandBarControl(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -2175,7 +2175,7 @@ class CommandBarControls(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610809344, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17), (12, 17)),Type
 			, Id, Parameter, Before, Temporary)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type CommandBarControl
@@ -2184,7 +2184,7 @@ class CommandBarControls(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -2201,7 +2201,7 @@ class CommandBarControls(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -2242,7 +2242,7 @@ class CommandBarPopup(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874886, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Delete(self, Temporary=defaultNamedOptArg):
@@ -2308,7 +2308,7 @@ class CommandBarPopup(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874902, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Reserved1(self):
@@ -2353,7 +2353,7 @@ class CommandBarPopup(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -2699,7 +2699,7 @@ class FreeformBuilder(DispatchBaseClass):
 	def ConvertToShape(self):
 		ret = self._oleobj_.InvokeTypes(11, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'ConvertToShape', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ConvertToShape', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -2719,7 +2719,7 @@ class GroupShapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -2735,7 +2735,7 @@ class GroupShapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -2857,7 +2857,7 @@ class HTMLProjectItems(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((16396, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0358-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0358-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -2873,7 +2873,7 @@ class HTMLProjectItems(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((16396, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0358-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0358-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -2975,7 +2975,7 @@ class IAccessible(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -3365,7 +3365,7 @@ class PropertyTests(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0333-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0333-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -3384,7 +3384,7 @@ class PropertyTests(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0333-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0333-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -3473,7 +3473,7 @@ class Scripts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0341-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0341-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -3489,7 +3489,7 @@ class Scripts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0341-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0341-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -3570,7 +3570,7 @@ class Shape(DispatchBaseClass):
 	def Duplicate(self):
 		ret = self._oleobj_.InvokeTypes(12, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Duplicate', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Duplicate', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	def Flip(self, FlipCmd=defaultNamedNotOptArg):
@@ -3614,7 +3614,7 @@ class Shape(DispatchBaseClass):
 	def Ungroup(self):
 		ret = self._oleobj_.InvokeTypes(23, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Ungroup', '{000C031D-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Ungroup', '{000C031D-0000-0000-C000-000000000046}')
 		return ret
 
 	def ZOrder(self, ZOrderCmd=defaultNamedNotOptArg):
@@ -3718,7 +3718,7 @@ class ShapeNodes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0318-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0318-0000-0000-C000-000000000046}')
 		return ret
 
 	def SetEditingType(self, Index=defaultNamedNotOptArg, EditingType=defaultNamedNotOptArg):
@@ -3746,7 +3746,7 @@ class ShapeNodes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0318-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0318-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -3800,7 +3800,7 @@ class ShapeRange(DispatchBaseClass):
 	def Duplicate(self):
 		ret = self._oleobj_.InvokeTypes(14, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Duplicate', '{000C031D-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Duplicate', '{000C031D-0000-0000-C000-000000000046}')
 		return ret
 
 	def Flip(self, FlipCmd=defaultNamedNotOptArg):
@@ -3811,7 +3811,7 @@ class ShapeRange(DispatchBaseClass):
 	def Group(self):
 		ret = self._oleobj_.InvokeTypes(19, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Group', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Group', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	def IncrementLeft(self, Increment=defaultNamedNotOptArg):
@@ -3831,7 +3831,7 @@ class ShapeRange(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	def PickUp(self):
@@ -3841,7 +3841,7 @@ class ShapeRange(DispatchBaseClass):
 	def Regroup(self):
 		ret = self._oleobj_.InvokeTypes(21, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Regroup', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Regroup', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	def RerouteConnections(self):
@@ -3866,7 +3866,7 @@ class ShapeRange(DispatchBaseClass):
 	def Ungroup(self):
 		ret = self._oleobj_.InvokeTypes(27, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Ungroup', '{000C031D-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Ungroup', '{000C031D-0000-0000-C000-000000000046}')
 		return ret
 
 	def ZOrder(self, ZOrderCmd=defaultNamedNotOptArg):
@@ -3941,7 +3941,7 @@ class ShapeRange(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -3983,7 +3983,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(10, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1), (4, 1), (4, 1)),Type
 			, Left, Top, Width, Height)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddCallout', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddCallout', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -3992,7 +3992,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(11, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1), (4, 1), (4, 1)),Type
 			, BeginX, BeginY, EndX, EndY)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddConnector', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddConnector', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4000,7 +4000,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(12, LCID, 1, (9, 0), ((12, 1),),SafeArrayOfPoints
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddCurve', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddCurve', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4009,7 +4009,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(13, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1), (4, 1), (4, 1)),Orientation
 			, Left, Top, Width, Height)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddLabel', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddLabel', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4017,7 +4017,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(14, LCID, 1, (9, 0), ((4, 1), (4, 1), (4, 1), (4, 1)),BeginX
 			, BeginY, EndX, EndY)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddLine', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddLine', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4027,7 +4027,7 @@ class Shapes(DispatchBaseClass):
 			, LinkToFile, SaveWithDocument, Left, Top, Width
 			, Height)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddPicture', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddPicture', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4035,7 +4035,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(16, LCID, 1, (9, 0), ((12, 1),),SafeArrayOfPoints
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddPolyline', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddPolyline', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4044,7 +4044,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(17, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1), (4, 1), (4, 1)),Type
 			, Left, Top, Width, Height)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddShape', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddShape', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4054,7 +4054,7 @@ class Shapes(DispatchBaseClass):
 			, Text, FontName, FontSize, FontBold, FontItalic
 			, Left, Top)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddTextEffect', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddTextEffect', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4063,7 +4063,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(19, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1), (4, 1), (4, 1)),Orientation
 			, Left, Top, Width, Height)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddTextbox', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddTextbox', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type FreeformBuilder
@@ -4071,7 +4071,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(20, LCID, 1, (9, 0), ((3, 1), (4, 1), (4, 1)),EditingType
 			, X1, Y1)
 		if ret is not None:
-			ret = Dispatch(ret, 'BuildFreeform', '{000C0315-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'BuildFreeform', '{000C0315-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Shape
@@ -4079,7 +4079,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type ShapeRange
@@ -4087,7 +4087,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(21, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Range', '{000C031D-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Range', '{000C031D-0000-0000-C000-000000000046}')
 		return ret
 
 	def SelectAll(self):
@@ -4110,7 +4110,7 @@ class Shapes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C031C-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -4285,7 +4285,7 @@ class WebPageFonts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0913-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0913-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -4300,7 +4300,7 @@ class WebPageFonts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0913-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0913-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -4341,7 +4341,7 @@ class _CommandBarActiveX(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874886, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Delete(self, Temporary=defaultNamedOptArg):
@@ -4410,7 +4410,7 @@ class _CommandBarActiveX(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874902, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	# The method QueryControlInterface is actually a property, but must be used as a method to correctly pass the arguments
@@ -4423,7 +4423,7 @@ class _CommandBarActiveX(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'QueryControlInterface', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'QueryControlInterface', None)
 		return ret
 
 	def Reserved1(self):
@@ -4472,7 +4472,7 @@ class _CommandBarActiveX(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -4571,7 +4571,7 @@ class _CommandBarButton(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874886, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def CopyFace(self):
@@ -4640,7 +4640,7 @@ class _CommandBarButton(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874902, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def PasteFace(self):
@@ -4688,7 +4688,7 @@ class _CommandBarButton(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -4855,7 +4855,7 @@ class _CommandBarComboBox(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874886, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def Delete(self, Temporary=defaultNamedOptArg):
@@ -4927,7 +4927,7 @@ class _CommandBarComboBox(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610874902, LCID, 1, (9, 0), ((12, 17), (12, 17)),Bar
 			, Before)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	def RemoveItem(self, Index=defaultNamedNotOptArg):
@@ -4981,7 +4981,7 @@ class _CommandBarComboBox(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):
@@ -5142,7 +5142,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610809346, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17)),Name
 			, Position, MenuBar, Temporary)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{000C0304-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{000C0304-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type CommandBar
@@ -5151,7 +5151,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610809366, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17), (12, 17)),TbidOrName
 			, Position, MenuBar, Temporary, TbtrProtection)
 		if ret is not None:
-			ret = Dispatch(ret, 'AddEx', '{000C0304-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'AddEx', '{000C0304-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type CommandBarControl
@@ -5159,7 +5159,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610809352, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17)),Type
 			, Id, Tag, Visible)
 		if ret is not None:
-			ret = Dispatch(ret, 'FindControl', '{000C0308-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'FindControl', '{000C0308-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type CommandBarControls
@@ -5167,7 +5167,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(1610809365, LCID, 1, (9, 0), ((12, 17), (12, 17), (12, 17), (12, 17)),Type
 			, Id, Tag, Visible)
 		if ret is not None:
-			ret = Dispatch(ret, 'FindControls', '{000C0306-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'FindControls', '{000C0306-0000-0000-C000-000000000046}')
 		return ret
 
 	# The method IdsString is actually a property, but must be used as a method to correctly pass the arguments
@@ -5181,7 +5181,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{000C0304-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{000C0304-0000-0000-C000-000000000046}')
 		return ret
 
 	def ReleaseFocus(self):
@@ -5221,7 +5221,7 @@ class _CommandBars(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(0, LCID, 2, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, '__call__', '{000C0304-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, '__call__', '{000C0304-0000-0000-C000-000000000046}')
 		return ret
 
 	# str(ob) and int(ob) will use __call__
@@ -5386,7 +5386,7 @@ class _IMsoOleAccDispObj(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(-5002, LCID, 2, (9, 0), ((12, 1),),varChild
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'accChild', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'accChild', None)
 		return ret
 
 	def accDoDefaultAction(self, varChild=defaultNamedOptArg):

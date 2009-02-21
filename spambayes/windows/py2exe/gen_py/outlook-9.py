@@ -288,7 +288,7 @@ class Action(DispatchBaseClass):
 	def Execute(self):
 		ret = self._oleobj_.InvokeTypes(106, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Execute', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Execute', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -326,7 +326,7 @@ class Actions(DispatchBaseClass):
 	def Add(self):
 		ret = self._oleobj_.InvokeTypes(100, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063043-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063043-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Action
@@ -334,7 +334,7 @@ class Actions(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063043-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063043-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -371,35 +371,35 @@ class AddressEntries(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((8, 1), (12, 17), (12, 17)),Type
 			, Name, Address)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AddressEntry
 	def GetFirst(self):
 		ret = self._oleobj_.InvokeTypes(86, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetFirst', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetFirst', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AddressEntry
 	def GetLast(self):
 		ret = self._oleobj_.InvokeTypes(88, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetLast', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetLast', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AddressEntry
 	def GetNext(self):
 		ret = self._oleobj_.InvokeTypes(87, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetNext', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetNext', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AddressEntry
 	def GetPrevious(self):
 		ret = self._oleobj_.InvokeTypes(89, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetPrevious', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetPrevious', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AddressEntry
@@ -407,7 +407,7 @@ class AddressEntries(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{0006304B-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{0006304B-0000-0000-C000-000000000046}')
 		return ret
 
 	def Sort(self, Property=defaultNamedOptArg, Order=defaultNamedOptArg):
@@ -514,7 +514,7 @@ class AddressLists(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063049-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063049-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -624,7 +624,7 @@ class Attachments(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(101, LCID, 1, (9, 0), ((12, 1), (12, 17), (12, 17), (12, 17)),Source
 			, Type, Position, DisplayName)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063007-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063007-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Attachment
@@ -632,7 +632,7 @@ class Attachments(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063007-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063007-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -688,7 +688,7 @@ class Exceptions(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{0006304D-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{0006304D-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -1101,7 +1101,7 @@ class Links(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((9, 1),),Item
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063089-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063089-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Link
@@ -1109,7 +1109,7 @@ class Links(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063089-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063089-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -1149,7 +1149,7 @@ class MAPIFolder(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), ((9, 1),),DestinationFolder
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'CopyTo', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'CopyTo', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	def Delete(self):
@@ -1163,7 +1163,7 @@ class MAPIFolder(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(12545, LCID, 1, (9, 0), ((12, 17),),DisplayMode
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetExplorer', '{00063003-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetExplorer', '{00063003-0000-0000-C000-000000000046}')
 		return ret
 
 	def MoveTo(self, DestinationFolder=defaultNamedNotOptArg):
@@ -1458,14 +1458,14 @@ class Pages(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(300, LCID, 1, (9, 0), ((12, 17),),Name
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', None)
 		return ret
 
 	def Item(self, Index=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -1501,7 +1501,7 @@ class Panes(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -1565,7 +1565,7 @@ class PropertyPages(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -1646,7 +1646,7 @@ class Recipients(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(111, LCID, 1, (9, 0), ((8, 1),),Name
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063045-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063045-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Recipient
@@ -1654,7 +1654,7 @@ class Recipients(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063045-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063045-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -1699,7 +1699,7 @@ class RecurrencePattern(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetOccurrence', '{00061030-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetOccurrence', '{00061030-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -1751,7 +1751,7 @@ class Selection(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -1831,7 +1831,7 @@ class SyncObjects(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Item', '{00063084-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063084-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -1864,7 +1864,7 @@ class UserProperties(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(102, LCID, 1, (9, 0), ((8, 1), (3, 1), (12, 17), (12, 17)),Name
 			, Type, AddToFolderFields, DisplayFormat)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063042-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063042-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type UserProperty
@@ -1872,7 +1872,7 @@ class UserProperties(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(103, LCID, 1, (9, 0), ((8, 1), (12, 17)),Name
 			, Custom)
 		if ret is not None:
-			ret = Dispatch(ret, 'Find', '{00063042-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Find', '{00063042-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type UserProperty
@@ -1880,7 +1880,7 @@ class UserProperties(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063042-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063042-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -1957,41 +1957,41 @@ class _Application(DispatchBaseClass):
 	def ActiveExplorer(self):
 		ret = self._oleobj_.InvokeTypes(273, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'ActiveExplorer', '{00063003-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ActiveExplorer', '{00063003-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type _Inspector
 	def ActiveInspector(self):
 		ret = self._oleobj_.InvokeTypes(274, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'ActiveInspector', '{00063005-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ActiveInspector', '{00063005-0000-0000-C000-000000000046}')
 		return ret
 
 	def ActiveWindow(self):
 		ret = self._oleobj_.InvokeTypes(287, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'ActiveWindow', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'ActiveWindow', None)
 		return ret
 
 	def CreateItem(self, ItemType=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(266, LCID, 1, (9, 0), ((3, 1),),ItemType
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'CreateItem', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'CreateItem', None)
 		return ret
 
 	def CreateItemFromTemplate(self, TemplatePath=defaultNamedNotOptArg, InFolder=defaultNamedOptArg):
 		ret = self._oleobj_.InvokeTypes(267, LCID, 1, (9, 0), ((8, 1), (12, 17)),TemplatePath
 			, InFolder)
 		if ret is not None:
-			ret = Dispatch(ret, 'CreateItemFromTemplate', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'CreateItemFromTemplate', None)
 		return ret
 
 	def CreateObject(self, ObjectName=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(277, LCID, 1, (9, 0), ((8, 1),),ObjectName
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'CreateObject', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'CreateObject', None)
 		return ret
 
 	# Result is of type _NameSpace
@@ -1999,7 +1999,7 @@ class _Application(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(272, LCID, 1, (9, 0), ((8, 1),),Type
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetNamespace', '{00063002-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetNamespace', '{00063002-0000-0000-C000-000000000046}')
 		return ret
 
 	def Quit(self):
@@ -2047,7 +2047,7 @@ class _AppointmentItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -2066,21 +2066,21 @@ class _AppointmentItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'ForwardAsVcal', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ForwardAsVcal', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type RecurrencePattern
 	def GetRecurrencePattern(self):
 		ret = self._oleobj_.InvokeTypes(61604, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetRecurrencePattern', '{00063044-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetRecurrencePattern', '{00063044-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -2096,7 +2096,7 @@ class _AppointmentItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Respond', '{00061036-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Respond', '{00061036-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -2233,7 +2233,7 @@ class _ContactItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -2252,14 +2252,14 @@ class _ContactItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'ForwardAsVcard', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ForwardAsVcard', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -2656,7 +2656,7 @@ class _DistListItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -2671,14 +2671,14 @@ class _DistListItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(63749, LCID, 1, (9, 0), ((3, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetMember', '{00063045-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetMember', '{00063045-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -2769,7 +2769,7 @@ class _DocumentItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -2783,7 +2783,7 @@ class _DocumentItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -2915,7 +2915,7 @@ class _Explorers(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((12, 1), (3, 17)),Folder
 			, DisplayMode)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063003-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063003-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Explorer
@@ -2928,7 +2928,7 @@ class _Explorers(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Item', '{00063050-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063050-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -2961,35 +2961,35 @@ class _Folders(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((8, 1), (12, 17)),Name
 			, Type)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
 	def GetFirst(self):
 		ret = self._oleobj_.InvokeTypes(86, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetFirst', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetFirst', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
 	def GetLast(self):
 		ret = self._oleobj_.InvokeTypes(88, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetLast', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetLast', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
 	def GetNext(self):
 		ret = self._oleobj_.InvokeTypes(87, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetNext', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetNext', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
 	def GetPrevious(self):
 		ret = self._oleobj_.InvokeTypes(89, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetPrevious', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetPrevious', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
@@ -2997,7 +2997,7 @@ class _Folders(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -3126,7 +3126,7 @@ class _Inspectors(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((9, 1),),Item
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063005-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063005-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type Inspector
@@ -3139,7 +3139,7 @@ class _Inspectors(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Item', '{00063058-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063058-0000-0000-C000-000000000046}')
 		return ret
 
 	_prop_map_get_ = {
@@ -3171,51 +3171,51 @@ class _Items(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((12, 17),),Type
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', None)
 		return ret
 
 	def Find(self, Filter=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(98, LCID, 1, (9, 0), ((8, 1),),Filter
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Find', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Find', None)
 		return ret
 
 	def FindNext(self):
 		ret = self._oleobj_.InvokeTypes(99, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'FindNext', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'FindNext', None)
 		return ret
 
 	def GetFirst(self):
 		ret = self._oleobj_.InvokeTypes(86, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetFirst', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'GetFirst', None)
 		return ret
 
 	def GetLast(self):
 		ret = self._oleobj_.InvokeTypes(88, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetLast', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'GetLast', None)
 		return ret
 
 	def GetNext(self):
 		ret = self._oleobj_.InvokeTypes(87, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetNext', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'GetNext', None)
 		return ret
 
 	def GetPrevious(self):
 		ret = self._oleobj_.InvokeTypes(89, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetPrevious', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'GetPrevious', None)
 		return ret
 
 	def Item(self, Index=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', None)
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -3230,7 +3230,7 @@ class _Items(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(100, LCID, 1, (9, 0), ((8, 1),),Filter
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Restrict', '{00063041-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Restrict', '{00063041-0000-0000-C000-000000000046}')
 		return ret
 
 	def SetColumns(self, Columns=defaultNamedNotOptArg):
@@ -3276,7 +3276,7 @@ class _JournalItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -3295,14 +3295,14 @@ class _JournalItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -3317,7 +3317,7 @@ class _JournalItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MailItem
@@ -3329,7 +3329,7 @@ class _JournalItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -3434,7 +3434,7 @@ class _MailItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -3453,14 +3453,14 @@ class _MailItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -3475,7 +3475,7 @@ class _MailItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MailItem
@@ -3487,7 +3487,7 @@ class _MailItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -3631,7 +3631,7 @@ class _MeetingItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -3650,7 +3650,7 @@ class _MeetingItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Forward', '{00061036-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Forward', '{00061036-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type AppointmentItem
@@ -3663,14 +3663,14 @@ class _MeetingItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetAssociatedAppointment', '{00061030-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetAssociatedAppointment', '{00061030-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -3685,7 +3685,7 @@ class _MeetingItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MailItem
@@ -3697,7 +3697,7 @@ class _MeetingItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'ReplyAll', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -3811,7 +3811,7 @@ class _NameSpace(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(8458, LCID, 1, (9, 0), ((8, 1),),RecipientName
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'CreateRecipient', '{00063045-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'CreateRecipient', '{00063045-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
@@ -3819,7 +3819,7 @@ class _NameSpace(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(8459, LCID, 1, (9, 0), ((3, 1),),FolderType
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetDefaultFolder', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetDefaultFolder', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
@@ -3827,14 +3827,14 @@ class _NameSpace(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(8456, LCID, 1, (9, 0), ((8, 1), (12, 17)),EntryIDFolder
 			, EntryIDStore)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetFolderFromID', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetFolderFromID', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	def GetItemFromID(self, EntryIDItem=defaultNamedNotOptArg, EntryIDStore=defaultNamedOptArg):
 		ret = self._oleobj_.InvokeTypes(8457, LCID, 1, (9, 0), ((8, 1), (12, 17)),EntryIDItem
 			, EntryIDStore)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetItemFromID', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'GetItemFromID', None)
 		return ret
 
 	# Result is of type Recipient
@@ -3842,7 +3842,7 @@ class _NameSpace(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(8455, LCID, 1, (9, 0), ((8, 1),),EntryID
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetRecipientFromID', '{00063045-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetRecipientFromID', '{00063045-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type MAPIFolder
@@ -3850,7 +3850,7 @@ class _NameSpace(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(8460, LCID, 1, (9, 0), ((9, 1), (3, 1)),Recipient
 			, FolderType)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetSharedDefaultFolder', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetSharedDefaultFolder', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	def Logoff(self):
@@ -3864,7 +3864,7 @@ class _NameSpace(DispatchBaseClass):
 	def PickFolder(self):
 		ret = self._oleobj_.InvokeTypes(8462, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'PickFolder', '{00063006-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'PickFolder', '{00063006-0000-0000-C000-000000000046}')
 		return ret
 
 	def RefreshRemoteHeaders(self):
@@ -3905,7 +3905,7 @@ class _NoteItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -3919,7 +3919,7 @@ class _NoteItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -3978,7 +3978,7 @@ class _OutlookBarGroups(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((8, 1), (12, 17)),Name
 			, Index)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063073-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063073-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type OutlookBarGroup
@@ -3986,7 +3986,7 @@ class _OutlookBarGroups(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063073-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063073-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -4059,7 +4059,7 @@ class _OutlookBarShortcuts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(95, LCID, 1, (9, 0), ((12, 1), (8, 1), (12, 17)),Target
 			, Name, Index)
 		if ret is not None:
-			ret = Dispatch(ret, 'Add', '{00063075-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Add', '{00063075-0000-0000-C000-000000000046}')
 		return ret
 
 	# Result is of type OutlookBarShortcut
@@ -4067,7 +4067,7 @@ class _OutlookBarShortcuts(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(81, LCID, 1, (9, 0), ((12, 1),),Index
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Item', '{00063075-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Item', '{00063075-0000-0000-C000-000000000046}')
 		return ret
 
 	def Remove(self, Index=defaultNamedNotOptArg):
@@ -4109,7 +4109,7 @@ class _PostItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4128,14 +4128,14 @@ class _PostItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Forward', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def Post(self):
@@ -4153,7 +4153,7 @@ class _PostItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Reply', '{00061033-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -4236,7 +4236,7 @@ class _RemoteItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4250,7 +4250,7 @@ class _RemoteItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4333,7 +4333,7 @@ class _ReportItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4347,7 +4347,7 @@ class _ReportItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4450,7 +4450,7 @@ class _TaskItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Assign', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Assign', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def CancelResponseState(self):
@@ -4466,7 +4466,7 @@ class _TaskItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4480,7 +4480,7 @@ class _TaskItem(DispatchBaseClass):
 	def GetRecurrencePattern(self):
 		ret = self._oleobj_.InvokeTypes(61604, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'GetRecurrencePattern', '{00063044-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetRecurrencePattern', '{00063044-0000-0000-C000-000000000046}')
 		return ret
 
 	def MarkComplete(self):
@@ -4490,7 +4490,7 @@ class _TaskItem(DispatchBaseClass):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4506,7 +4506,7 @@ class _TaskItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'Respond', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'Respond', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def Save(self):
@@ -4525,7 +4525,7 @@ class _TaskItem(DispatchBaseClass):
 	def StatusReport(self):
 		ret = self._oleobj_.InvokeTypes(62994, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'StatusReport', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'StatusReport', None)
 		return ret
 
 	_prop_map_get_ = {
@@ -4647,7 +4647,7 @@ class _TaskRequestAcceptItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4667,14 +4667,14 @@ class _TaskRequestAcceptItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4753,7 +4753,7 @@ class _TaskRequestDeclineItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4773,14 +4773,14 @@ class _TaskRequestDeclineItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4859,7 +4859,7 @@ class _TaskRequestItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4879,14 +4879,14 @@ class _TaskRequestItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
@@ -4965,7 +4965,7 @@ class _TaskRequestUpdateItem(DispatchBaseClass):
 	def Copy(self):
 		ret = self._oleobj_.InvokeTypes(61490, LCID, 1, (9, 0), (),)
 		if ret is not None:
-			ret = Dispatch(ret, 'Copy', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Copy', None)
 		return ret
 
 	def Delete(self):
@@ -4985,14 +4985,14 @@ class _TaskRequestUpdateItem(DispatchBaseClass):
 				ret = ret.QueryInterface(pythoncom.IID_IDispatch)
 			except pythoncom.error:
 				return ret
-			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}', UnicodeToString=0)
+			ret = Dispatch(ret, 'GetAssociatedTask', '{00061032-0000-0000-C000-000000000046}')
 		return ret
 
 	def Move(self, DestFldr=defaultNamedNotOptArg):
 		ret = self._oleobj_.InvokeTypes(61492, LCID, 1, (9, 0), ((9, 1),),DestFldr
 			)
 		if ret is not None:
-			ret = Dispatch(ret, 'Move', None, UnicodeToString=0)
+			ret = Dispatch(ret, 'Move', None)
 		return ret
 
 	def PrintOut(self):
