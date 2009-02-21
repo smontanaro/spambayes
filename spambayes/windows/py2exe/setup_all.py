@@ -47,20 +47,21 @@ py2exe_options = dict(
                "spambayes.languages.fr,spambayes.languages.es.DIALOGS," \
                "spambayes.languages.es_AR.DIALOGS," \
                "spambayes.languages.fr.DIALOGS," \
-               "PIL",
+               "PIL,email",
     excludes = "Tkinter," # side-effect of PIL and markh doesn't have it :)
                 "win32ui,pywin,pywin.debugger," # *sob* - these still appear
                 # Keep zope out else outlook users lose training.
                "ZODB,ZEO,zope,persistent,BTrees",
     includes = "dialogs.resources.dialogs,weakref," # Outlook dynamic dialogs
                "BmpImagePlugin,JpegImagePlugin", # PIL modules not auto found
-    dll_excludes = "dapi.dll,mapi32.dll,"
+    dll_excludes = "dapi.dll,mapi32.dll,powrprof.dll,"
                    "tk84.dll,tcl84.dll", # No Tkinter == no tk/tcl dlls
     typelibs = [
         ('{00062FFF-0000-0000-C000-000000000046}', 0, 9, 0, 'gen_py/outlook-9.py'),
         ('{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}', 0, 2, 1, 'gen_py/office-9.py'),
         ('{AC0714F2-3D04-11D1-AE7D-00A0C90F26F4}', 0, 1, 0, 'gen_py/addin-designer.py'),
-    ]
+    ],
+    optimize = 1,
 )
 
 # These must be the same IDs as in the dialogs.  We really should just extract
@@ -95,9 +96,9 @@ outlook_dump_props = dict(
 
 # A "register" utility for Outlook.  This should not be necessary, as
 # 'regsvr32 dllname' does exactly the same thing.  However, Inno Setup
-# version 4 appears to, upon uninstall, do something that prevents the
-# files used by the unregister process to be deleted.  Unregistering via
-# this EXE solves the problem.
+# registers "in process", and as Python doesn't completely clean up as its
+# DLL is unloaded, we end up with the situation files remain in use.
+# Unregistering via this EXE solves the problem.
 outlook_addin_register = dict(
     script = os.path.join(sb_top_dir, r"Outlook2000\addin.py"),
     dest_base = "bin/outlook_addin_register",
@@ -179,7 +180,7 @@ common_data_files = [
     ["", [os.path.join(sb_top_dir, r"LICENSE.txt")]],
     # We insist gocr.exe is in the 'spambayes' package dir (we can make
     # this smarter as necessary)
-    ["bin", [os.path.join(sb_top_dir, "spambayes", "gocr.exe")]],
+    ["bin", [os.path.join(sb_top_dir, "gocr.exe")]],
     # Our .txt file with info on gocr itself.
     ["bin", [os.path.join(sb_top_dir, "windows", "py2exe", "gocr.txt")]],
 ]
