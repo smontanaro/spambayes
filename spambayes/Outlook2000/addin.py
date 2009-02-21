@@ -405,8 +405,8 @@ class SpamFolderItemsEvent(_BaseItemsEvent):
         # then it should be trained as such.
         self.manager.LogDebug(2, "OnItemAdd event for SPAM folder", self,
                               "with item", item.Subject.encode("mbcs", "ignore"))
-        assert(not self.manager.config.training.train_manual_spam,
-               "The folder shouldn't be hooked if this is False")
+        assert not self.manager.config.training.train_manual_spam, \
+               "The folder shouldn't be hooked if this is False"
         # XXX - Theoretically we could get "not found" exception here,
         # but we have never guarded for it, and never seen it.  If it does
         # happen life will go on, so for now we continue to ignore it.
