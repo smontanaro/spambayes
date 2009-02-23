@@ -43,7 +43,7 @@ package.  After downloading and installing nose, you can run the current
 unit tests on Unix-like systems like so from the SpamBayes top-level
 directory::
 
-    TMPDIR=/tmp BAYESCUSTOMIZE= nosetests2.7 -v . 2>&1 \
+    TMPDIR=/tmp BAYESCUSTOMIZE= nosetests -v . 2>&1 \
     | sed -e "s:$(pwd)/::" \
           -e "s:$(python -c 'import sys ; print sys.exec_prefix')/::" \
     | tee failing-unit-tests.txt
