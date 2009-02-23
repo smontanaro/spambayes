@@ -6,7 +6,7 @@ import time
 import email
 import types
 import socket
-import thread
+import threading
 import imaplib
 import unittest
 import asyncore
@@ -347,7 +347,6 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         self.assert_(self.imap.logged_in)
 
     def testBadLogin(self):
-        print "\nYou should see a message indicating that login failed."
         self.assertRaises(LoginFailure, self.imap.login, IMAP_USERNAME,
                           "wrong password")
 
@@ -802,7 +801,9 @@ class InterfaceTest(unittest.TestCase):
     def setUp(self):
         self.saved_server = options["imap", "server"]
         options["imap", "server"] = ""
-        thread.start_new_thread(run, (True,))
+        self._server = threading.Thread(target=run, args=(True,))
+        self._server.setDaemon(True)
+        self._server.start()
         # Wait for it to be ready.
         time.sleep(1)
 
@@ -843,5 +844,8 @@ if __name__=='__main__':
     def runTestServer():
         TestListener()
         asyncore.loop()
-    thread.start_new_thread(runTestServer, ())
+    server = threading.Thread(target=runTestServer, args=())
+    server.setDaemon(True)
+    server.start()
+    time.sleep(2)
     sb_test_support.unittest_main(argv=sys.argv + ['suite'])
