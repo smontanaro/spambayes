@@ -1,4 +1,4 @@
-Copyright (C) 2002-2007 Python Software Foundation; All Rights Reserved
+Copyright (C) 2002-2009 Python Software Foundation; All Rights Reserved
 
 The Python Software Foundation (PSF) holds copyright on all material
 in this project.  You may use it under the terms of the PSF license;
@@ -32,6 +32,26 @@ Getting Source Code
 
 The SpamBayes project source code is hosted at SourceForge
 (http://spambayes.sourceforge.net/).  Access is via Subversion.
+
+Running Unit Tests
+==================
+
+SpamBayes has a currently incomplete set of unit tests, not all of which
+pass, due, in part, to bit rot.  We are working on getting the unit tests to
+run using the `nose <http://somethingaboutorange.com/mrl/projects/nose/>`_
+package.  After downloading and installing nose, you can run the current
+unit tests on Unix-like systems like so from the SpamBayes top-level
+directory::
+
+    TMPDIR=/tmp BAYESCUSTOMIZE= nosetests2.7 -v . 2>&1 \
+    | sed -e "s:$(pwd)/::" \
+          -e "s:$(python -c 'import sys ; print sys.exec_prefix')/::" \
+    | tee failing-unit-tests.txt
+
+The file, failing-unit-tests.txt, is checked into the Subversion repository
+at the top level using Python from Subversion (currently 2.7a0).  You can
+look at it for any failing unit tests and work to get them passing, or write
+new tests.
 
 Primary Core Files
 ==================
