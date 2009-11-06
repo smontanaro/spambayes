@@ -253,7 +253,8 @@ class cache:
             reply = self.queryObj.req(queryQuestion, qtype=qType,
                                       timeout=self.dnsTimeout)
         except DNS.Base.DNSError,detail:
-            if detail.args[0] != "Timeout":
+            if detail.args[0] not in ("Timeout", "nothing to lookup"):
+                print >> sys.stderr, detail.args[0]
                 print >> sys.stderr, "Error, fixme", detail
                 print >> sys.stderr, "Question was", queryQuestion
                 print >> sys.stderr, "Original question was", question
