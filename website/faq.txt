@@ -51,20 +51,20 @@ What is the license? How much does it cost? Can I pay anyway?
 SpamBayes is free and open-source - there is no charge.  The software
 is released under `the PSF license`_.
 
-If you really feel that your life would be incomplete without giving 
+If you really feel that your life would be incomplete without giving
 something back to the project, you have a few options:
 
-* Donate your time to help improve the project.  This includes many 
+* Donate your time to help improve the project.  This includes many
   items that do not require much in the way of technical skills.  See
-  the `I'm not a programmer but still want to help`_ question for more 
+  the `I'm not a programmer but still want to help`_ question for more
   details.
 
-* Donate money to the `Python Software Foundation`_.  For more 
+* Donate money to the `Python Software Foundation`_.  For more
   information, including why you would want to donate to the PSF,
   please see our `donations page`_.
 
 * Investigate some of the commercial `programs based on the SpamBayes code`_.
-  This should give you some additional benefits like support or greater 
+  This should give you some additional benefits like support or greater
   ease-of-use.
 
 .. _the PSF license: http://spambayes.cvs.sourceforge.net/*checkout*/spambayes/spambayes/LICENSE.txt
@@ -473,8 +473,8 @@ setting directory, e.g.::
 10. Add the following two lines. Use whatever ports you assigned to
     pop3proxy and smtpproxy for the dominant personality::
 
-	POPPort=1110
-	SMTPPort=1115
+        POPPort=1110
+        SMTPPort=1115
 
 11. Setting for other personalities are kept in sections beginning with
     ``[Persona-personality_name]``. For each personality make the same
@@ -526,7 +526,7 @@ X.
 
 10. In "Action" area, top drop-down box, select "Transfer to"
 
-11. In target area immediately to the right, click, and select desired 
+11. In target area immediately to the right, click, and select desired
     target mailbox to match choice in 8.  (On Mac OS X, you will be prompted
     to select a mailbox from the Transfer menu in the toolbar.)
 
@@ -681,12 +681,12 @@ to make.
 How can I configure SpamBayes to delete spam rather than moving it?
 -------------------------------------------------------------------
 
-Sorry, but you can't.  However, Outlook has an excellent "auto-archive" 
+Sorry, but you can't.  However, Outlook has an excellent "auto-archive"
 facility which can be used to the same effect - simply configure
 auto-archive to periodically delete your Spam folder.
 
-It is recommended that you configure auto-archive to keep at least a 
-few days of Spam around, should the SpamBayes database become corrupt and 
+It is recommended that you configure auto-archive to keep at least a
+few days of Spam around, should the SpamBayes database become corrupt and
 require you to perform a full re-train.
 
 
@@ -699,7 +699,7 @@ the first is via an automatic 'Read Receipt' (but this is unusual, as
 the "from" address is generally forged so the receipt goes nowhere
 useful).  The second common trick is by sending HTML spam that
 references unique URLs (generally images) on the spammer's server.
-When this HTML message is rendered, the fetching of these URLs 
+When this HTML message is rendered, the fetching of these URLs
 identifies to the spammer the associated email address.
 
 As far as we are aware, SpamBayes does not generate a "read receipt"
@@ -1522,7 +1522,7 @@ people recommend a clean uninstall of ZoneAlarm and reverting to version
 
 We're also told that ZoneAlarm are aware of the issue with their 5.x
 release and were working on it, but that it might be the next release before
-they have it solved. 
+they have it solved.
 
 
 I get an error message "No filterable messages are selected".
@@ -1549,7 +1549,7 @@ messages for training (we do not recommend pre-training in bulk, in any
 case).
 
 .. _appropriate SourceForge tracker: http://sourceforge.net/tracker/index.php?func=detail&aid=854547&group_id=61702&atid=498103
-                                 
+
 
 Messages don't move after clicking until I change folder
 --------------------------------------------------------
@@ -1584,7 +1584,7 @@ After installing SpamBayes, Outlook crashes and then asks for the plug-in to be 
 Are you using an Athlon 64 or Core 2 Duo with DEP?  There are issues with
 DEP and Outlook with a SpamBayes-based plug-in.  Listing Outlook as a safe
 application on these processors should "solve" the problem.
-                                 
+
 
 Development
 ===========
@@ -1693,8 +1693,8 @@ Applying content based filtering on the server is complex, as everyone's
 feeling about content differs - this is why it is a client end role that
 tools like SpamBayes fill.
 
-If you really need whitelisting, consider implementing rules in your    
-mailer to intercept the messages before they're passed to SpamBayes.    
+If you really need whitelisting, consider implementing rules in your
+mailer to intercept the messages before they're passed to SpamBayes.
 
 Open Source software is developed by people scratching their own itches
 (and it can't be otherwise, since nobody is paid to endure things they
