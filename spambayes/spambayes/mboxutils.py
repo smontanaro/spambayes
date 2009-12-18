@@ -171,22 +171,20 @@ def get_message(obj):
     shouldn't matter.
     """
 
-    from spambayes.message import Message
-
-    if isinstance(obj, Message):
+    if isinstance(obj, email.Message.Message):
         return obj
     # Create an email Message object.
     if hasattr(obj, "read"):
         obj = obj.read()
     try:
-        msg = email.message_from_string(obj, _class=Message)
+        msg = email.message_from_string(obj)
     except email.Errors.MessageParseError:
         # Wrap the raw text in a bare Message object.  Since the
         # headers are most likely damaged, we can't use the email
         # package to parse them, so just get rid of them first.
         headers = extract_headers(obj)
         obj = obj[len(headers):]
-        msg = Message()
+        msg = email.Message.Message()
         msg.set_payload(obj)
     return msg
 
@@ -205,23 +203,10 @@ def as_string(msg, unixfrom=False):
     bit of rearranging, but that should work nicely, and mean that all
     this code is together in one place.
     """
-
-    from spambayes.message import Message
-
     if isinstance(msg, str):
         return msg
-
-    if isinstance(msg, Message):
-        return msg.as_string()
-
     try:
-        warnings.warn("Use spambayes.message.Message instead")
-        import email.generator
-        import StringIO
-        f = StringIO.StringIO()
-        gen = email.generator.Generator(f, mangle_from_=False)
-        gen.flatten(msg)
-        return f.getvalue()
+        return msg.as_string(unixfrom)
     except TypeError:
         ty, val, tb = sys.exc_info()
         exclines = traceback.format_exception(ty, val, tb)[1:]

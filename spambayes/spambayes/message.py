@@ -415,7 +415,7 @@ class Message(object, email.Message.Message):
         """Make sure data uses CRLF for line termination."""
         return CRLF_RE.sub('\r\n', data)
 
-    def as_string(self, unixfrom=False, mangle_from_=False):
+    def as_string(self, unixfrom=False, mangle_from_=True):
         # The email package stores line endings in the "internal" Python
         # format ('\n').  It is up to whoever transmits that information to
         # convert to appropriate line endings (according to RFC822, that is
