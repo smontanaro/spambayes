@@ -68,7 +68,7 @@ might work in some circumstances.)</td>
 <td>IncrediMail</td>
 <td>Windows&nbsp;XP/Vista</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.zip/download">1.1a6</a> (source)</td>
 <td>Completely untested.  May work with POP3.  Rudimentary IMAP support may prevent that protocol.</td>
 </tr>
 
@@ -84,15 +84,15 @@ might work in some circumstances.)</td>
 <td>Gmail</td>
 <td>Any</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
-<td>POP3 works.  IMAP maybe (untested).</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">1.1a6</a> (source)</td>
+<td>POP3 works.  IMAP probably not.</td>
 </tr>
 
 <tr>
 <td>Yahoo! Mail</td>
 <td>Any</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">1.1a6</a> (source)</td>
 <td>Completely untested.  POP3 &amp; IMAP?</td>
 </tr>
 
@@ -100,7 +100,7 @@ might work in some circumstances.)</td>
 <td>MSN Hotmail</td>
 <td>Any</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">1.1a6</a> (source)</td>
 <td>Completely untested.  POP3 &amp; IMAP?</td>
 </tr>
 
@@ -108,7 +108,7 @@ might work in some circumstances.)</td>
 <td>AOL Mail</td>
 <td>Any</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.zip/download">1.1a6</a> (source)</td>
 <td>Completely untested.  IMAP only?</td>
 </tr>
 
@@ -116,7 +116,7 @@ might work in some circumstances.)</td>
 <td>Any</td>
 <td>Mac&nbsp;OS&nbsp;X/Linux/Solaris</td>
 <td>&nbsp;</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">1.1a4</a> (source)</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">1.1a6</a> (source)</td>
 <td>POP3/IMAP, etc.</td>
 </tr>
 
@@ -126,8 +126,7 @@ might work in some circumstances.)</td>
 <p>SpamBayes 1.0.4 is now available!  (This includes both the source
 archives and a Windows binary installer).</p>
 <p>See the <a href="download.html">download</a> page for more.</p>
-<p>SpamBayes 1.1a4 is also now available!  (This currently includes only the
-source archives).  This is an <em>alpha</em>
+<p>SpamBayes 1.1a6 is also now available!  This is an <em>alpha</em>
 release, so you should only try it if you are willing to try out
 experimental releases - otherwise stick with 1.0.4.</p>
 <p>You may also like to see what <a href="quotes.html">other people have
