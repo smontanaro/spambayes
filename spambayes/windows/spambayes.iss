@@ -4,9 +4,9 @@
 
 [Setup]
 ; Version specific constants
-AppVerName=SpamBayes 1.1a5
-AppVersion=1.1a5
-OutputBaseFilename=spambayes-1.1a5
+AppVerName=SpamBayes 1.1a6
+AppVersion=1.1a6
+OutputBaseFilename=spambayes-1.1a6
 ; Normal constants.  Be careful about changing 'AppName'
 AppName=SpamBayes
 DefaultDirName={pf}\SpamBayes
@@ -15,14 +15,15 @@ OutputDir=.
 ShowComponentSizes=no
 UninstallDisplayIcon={app}\sbicon.ico
 LicenseFile=py2exe\dist\license.txt
+PrivilegesRequired=admin
 
 [Files]
 Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
-Source: "py2exe\dist\bin\python24.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
-; Needed when built with Python 2.4.  This must be manually copied to this directory
+Source: "py2exe\dist\bin\python25.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+; Needed when built with Python 2.4/2.5.  This must be manually copied to this directory
 ; from wherever it is being sourced from.
 Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
@@ -54,7 +55,7 @@ Source: "py2exe\dist\bin\convert_database.exe"; DestDir: "{app}\bin"; Flags: ign
 ; Include flavour-of-the-day OCR pacakge - currently gocr.
 ; Get from the spambayes package directory - its likely to exist
 ; there as the developer running a source version will have it there.
-Source: "..\spambayes\gocr.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "..\..\spambayes\gocr.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "py2exe\gocr.txt"; DestDir: "{app}\docs"; Flags: ignoreversion
 
 ; There is a problem attempting to get Inno to unregister our DLL.  If we mark our DLL
