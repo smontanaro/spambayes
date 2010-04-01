@@ -10,7 +10,7 @@ upcoming 1.1 release) we expect that this will be the last release in the
 1.0.x line. Feedback to
 <a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
 
-<p>The latest alpha release of 1.1 is 1.1a4.  At the moment it is only
+<p>The latest alpha release of 1.1 is 1.1a6.  At the moment it is only
 available as a source release.  There is no Windows installer. It is highly likely
 that there are new bugs in this release
 but if you are willing and able to give it a spin for us, that would be
@@ -73,14 +73,14 @@ public key</a>, which has a key id of F23F732A.</p>
 <hr />
 <li><tt></tt>
 <li><tt>35494ade1bf380651bcc3077bf108310</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.1a4.tar.gz?download">spambayes-1.1a4.tar.gz</a>
-(992,533 bytes,
-<a href="sigs/spambayes-1.1a4.tar.gz.asc">sig</a>)
+<a href="http://prdownloads.sourceforge.net/spambayes/1.1a6/spambayes-1.1a6.tar.gz?download">spambayes-1.1a6.tar.gz</a>
+(1,007,785 bytes,
+<a href="sigs/spambayes-1.1a6.tar.gz.asc">sig</a>)
 </li>
 <li><tt></tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/sb-1.1a4.zip?download">sb-1.1a4.zip</a>
-(1,128,015 bytes,
-<a href="sigs/sb-1.1a4.zip.asc">sig</a>)
+<a href="http://prdownloads.sourceforge.net/spambayes/sb-1.1a6.zip?download">sb-1.1a6.zip</a>
+(1,144,672 bytes,
+<a href="sigs/spambayes-1.1a6.zip.asc">sig</a>)
 </li>
 </ul>
 
