@@ -20,9 +20,9 @@ TARGETS =	$(filter-out *.html,$(SOURCES:%.ht=%.html)) $(EXTRA_TARGETS)
 
 # Where to upload stuff for make install.  LIVE_ROOT is the actual
 # physical location of files on the server.
-LIVE_HOST = 	shell1.sourceforge.net
-LIVE_ROOT =	/home/groups/s/sp/spambayes/htdocs/
-LIVE_DEST =	$(LIVE_HOST):$(LIVE_ROOT)/$(ROOT_OFFSET)
+LIVE_HOST = 	web.sourceforge.net
+LIVE_ROOT =	htdocs
+LIVE_DEST =	$(SFUSER),spambayes@$(LIVE_HOST):$(LIVE_ROOT)/$(ROOT_OFFSET)
 
 # rsync definitions.
 RSYNC_RSH =	ssh
@@ -81,6 +81,11 @@ realclean: clean
 	-rm $(GENERATED_HTML)
 
 install: all local_install
+	@if [ -z "$(SFUSER)" ]; then \
+	  echo "You have to specify a SourceForge username in SFUSER"; \
+	  echo "e.g., make install SFUSER=montanaro"; \
+	  false; \
+	fi
 	@if [ -z "$(ROOT_OFFSET)" ]; then \
 	  echo "You have to specify a value for 'ROOT_OFFSET' in the makefile!"; \
 	  false; \
