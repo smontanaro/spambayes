@@ -1,6 +1,6 @@
 [Note that all dates are in ISO 8601 format, e.g. YYYY-MM-DD to ease sorting]
 
-Release 1.1b1
+Release 1.1a6
 =============
 
 Skip Montanaro    2008-12-06  Start requiring Python >= 2.4.
