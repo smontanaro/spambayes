@@ -2,21 +2,14 @@ Title: SpamBayes: Download
 Author-Email: SpamBayes@python.org
 Author: SpamBayes
 
-<p>Version 1.0.4 of the SpamBayes project is now available.
-<p>This is a bugfix release - it is funtionally identical to 1.0, but includes
-fixes for a number of bugs.  We expect it to prove to be quite stable and
-usable by most people; as a result (and since we are hard at work on the
-upcoming 1.1 release) we expect that this will be the last release in the
-1.0.x line. Feedback to
-<a href="mailto:spambayes@python.org">spambayes@python.org</a>. 
+<p>Version 1.1a6 of the SpamBayes project is now available.  <p>Although
+this is still labelled as an alpha release it is really quite stable.  If
+you want to use an older version of SpamBayes, check the <a
+href="https://sourceforge.net/projects/spambayes/files/spambayes/">files
+section</a> of the project site.
 
-<p>The latest alpha release of 1.1 is 1.1a6.  At the moment it is only
-available as a source release.  There is no Windows installer. It is highly likely
-that there are new bugs in this release
-but if you are willing and able to give it a spin for us, that would be
-greatly appreciated.  You might like to look at this
-<a href="http://entrian.com/sbwiki/TryOutThePreRelease">list
-of things to try out</a>.</p>
+If you have any issues with the software, send feedback to <a
+href="mailto:spambayes@python.org">spambayes@python.org</a>.
 
 <p>You may like to view the <a href="https://sourceforge.net/project/shownotes.php?release_id=314901">release notes</a>
 or the <a href="https://sourceforge.net/project/showfiles.php?group_id=61702&package_id=58141&release_id=314901">
@@ -71,14 +64,18 @@ public key</a>, which has a key id of F23F732A.</p>
 <a href="sigs/spambayes-1.0.4.zip.asc">sig</a>)
 </li>
 <hr />
-<li><tt></tt>
-<li><tt>35494ade1bf380651bcc3077bf108310</tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/1.1a6/spambayes-1.1a6.tar.gz?download">spambayes-1.1a6.tar.gz</a>
+<li><tt>e7be822f158095e800706ee606f98be3</tt>
+<a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">spambayes-1.1a6.exe</a>
+(10,335,608 bytes,
+<a href="sigs/spambayes-1.1a6.exe.asc">sig</a>)
+</li>
+<li><tt>d06ed6d097911ddc8db31b4e9663df4b</tt>
+<a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">spambayes-1.1a6.tar.gz</a>
 (1,007,785 bytes,
 <a href="sigs/spambayes-1.1a6.tar.gz.asc">sig</a>)
 </li>
-<li><tt></tt>
-<a href="http://prdownloads.sourceforge.net/spambayes/sb-1.1a6.zip?download">sb-1.1a6.zip</a>
+<li><tt>4ff34bed1ca1ab9cf280b0b2a2a0375e</tt>
+<a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.zip/download">spambayes-1.1a6.zip</a>
 (1,144,672 bytes,
 <a href="sigs/spambayes-1.1a6.zip.asc">sig</a>)
 </li>
