@@ -152,8 +152,12 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
             sys.stdout.flush()
 
             tokens = list(tokenize(train_msg))
-            score = store.spamprob(tokens)
             selector = train_msg["message-id"] or train_msg["subject"]
+            try:
+                score = store.spamprob(tokens)
+            except UnicodeDecodeError:
+                print >> sys.stderr, "Unicode error while processing", selector
+                continue
 
             if misclassified(train_spam, score) and selector is not None:
                 if verbose:
