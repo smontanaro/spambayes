@@ -35,40 +35,34 @@ conversative/lazy about doing beta/final releases. <tt>;-)</tt></p>
 </tr>
 
 <tr>
-<td>Outlook 2000/2003/2007</td>
-<td>Windows&nbsp;XP</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td>Outlook&nbsp;2000/2003/2007/2010</td>
+<td>Windows&nbsp;XP/Vista/7</td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
-<td>&nbsp;</td>
-</tr>
-
-<tr>
-<td>Outlook 2003/2007</td>
-<td>Windows&nbsp;Vista</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
-<td>&nbsp;</td>
+<td>If some combination of Windows and Outlook versions isn't listed, please
+give it a try anyway...  64-bit support is currently problematic.  Windows
+3.1/ME are not supported, nor are Outlook versions < 2000.</td>
 </tr>
 
 <tr>
 <td>Outlook Express</td>
 <td>Windows&nbsp;XP</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
 <td>&nbsp;</td>
 </tr>
 
 <tr>
 <td>Windows Live Mail</td>
-<td>Windows&nbsp;Vista</td>
-<td><a href="http://prdownloads.sourceforge.net/spambayes/spambayes-1.0.4.exe?download">1.0.4</a></td>
+<td>Windows&nbsp;XP/Vista/7</td>
+<td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a></td>
 <td>Untested.  It should work at least as well as Outlook Express though.</td>
 </tr>
 
 <tr>
 <td>Other</td>
-<td>Windows&nbsp;XP/Vista</td>
+<td>Windows&nbsp;XP/Vista/7</td>
 <td>&nbsp;</td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.exe/download">1.1a6</a>&nbsp;(binary)<br>
 <a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.zip/download">1.1a6</a>&nbsp;(source)</td>
@@ -78,18 +72,26 @@ might work in some circumstances.)</td>
 
 <tr>
 <td>IncrediMail</td>
-<td>Windows&nbsp;XP/Vista</td>
+<td>Windows&nbsp;XP/Vista/7</td>
 <td>&nbsp;</td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.zip/download">1.1a6</a>&nbsp;(source)</td>
 <td>Completely untested.  May work with POP3.  Rudimentary IMAP support may prevent that protocol.</td>
 </tr>
 
 <tr>
-<td>Thunderbird</td>
+<td>Thunderbird 2.x</td>
 <td>Any</td>
 <td>&nbsp;</td>
 <td><a href="http://pieces.openpolitics.com/thunderbayes/">Thunderbayes</a></td>
 <td>Tighter integration similar to Outlook plugin.  Uses 1.0.4.</td>
+</tr>
+
+<tr>
+<td>Thunderbird 3.x</td>
+<td>Any</td>
+<td>&nbsp;</td>
+<td><a href="http://heapoverflow.com/f0rums/project.php?projectid=21">Thunderbayes++</a></td>
+<td>ThunderBayes extended to work with Thunderbird 3.x</td>
 </tr>
 
 <tr>
@@ -129,7 +131,7 @@ might work in some circumstances.)</td>
 <td>Mac&nbsp;OS&nbsp;X/Linux/Solaris</td>
 <td>&nbsp;</td>
 <td><a href="https://sourceforge.net/projects/spambayes/files/spambayes/1.1a6/spambayes-1.1a6.tar.gz/download">1.1a6</a>&nbsp;(source)</td>
-<td>POP3/IMAP, etc.</td>
+<td>POP3/IMAP, etc.  Be prepared to get your hands wet...</td>
 </tr>
 
 </table>
