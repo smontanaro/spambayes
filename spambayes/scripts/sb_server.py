@@ -974,6 +974,7 @@ def _recreateState():
     # affect any running proxies - once a listener has created a proxy,
     # that proxy is then independent of it.
     # (but won't closing the database screw them?)
+    global state
     for proxy in proxyListeners:
         proxy.close()
     del proxyListeners[:]
