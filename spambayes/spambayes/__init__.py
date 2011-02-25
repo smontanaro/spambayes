@@ -1,4 +1,4 @@
 # package marker.
 
-__version__ = "1.1a6"
-__date__ = "April 1, 2010"
+__version__ = "1.1b1"
+__date__ = "February, 25, 2011"
