@@ -218,7 +218,7 @@ def suite():
 
 if __name__=='__main__':
     def runTestServer():
-        import asyncore
+        from spambayes import asyncore
         asyncore.loop()
     TestListener()
     thread.start_new_thread(runTestServer, ())
