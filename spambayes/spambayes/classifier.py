@@ -606,7 +606,7 @@ class Classifier:
         if os.path.exists(self.http_error_cache_name):
             try:
                 self.http_error_urls = pickle_read(self.http_error_cache_name)
-            except IOError, ValueError:
+            except (IOError, ValueError):
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
