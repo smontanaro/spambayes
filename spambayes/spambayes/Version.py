@@ -239,10 +239,6 @@ except AttributeError: # No SafeConfigParser!
     MySafeConfigParser = None
 
 def fetch_latest_dict(url=LATEST_VERSION_HOME):
-    if MySafeConfigParser is None:
-        raise RuntimeError, \
-              "Sorry, but only Python 2.3+ can trust remote config files"
-
     import urllib2
     from spambayes.Options import options
     server = options["globals", "proxy_server"]
