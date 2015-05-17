@@ -993,21 +993,10 @@ def open_storage(data_source_name, db_type="dbm", mode=None):
         klass, supports_mode, unused = _storage_types[db_type]
     except KeyError:
         raise NoSuchClassifierError(db_type)
-    try:
-        if supports_mode and mode is not None:
-            return klass(data_source_name, mode)
-        else:
-            return klass(data_source_name)
-    except dbmstorage.error, e:
-        if str(e) == "No dbm modules available!":
-            # We expect this to hit a fair few people, so warn them nicely,
-            # rather than just printing the trackback.
-            print >> sys.stderr, "\nYou do not have a dbm module available " \
-                  "to use.  You need to either use a pickle (see the FAQ)" \
-                  ", use Python 2.3 (or above), or install a dbm module " \
-                  "such as bsddb (see http://sf.net/projects/pybsddb)."
-            sys.exit()
-        raise
+    if supports_mode and mode is not None:
+        return klass(data_source_name, mode)
+    else:
+        return klass(data_source_name)
 
 # The different database types that are available.
 # The key should be the command-line switch that is used to select this
