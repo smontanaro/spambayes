@@ -169,9 +169,6 @@ class Option(object):
             else:
                 return False
         else:
-            # special handling for booleans, thanks to Python 2.2
-            if self.is_boolean and (value == True or value == False):
-                return True
             if type(value) != type(self.value) and \
                type(self.value) not in MultiContainerTypes:
                 # This is very strict!  If the value is meant to be
@@ -310,12 +307,6 @@ class Option(object):
         if type(self.value) in types.StringTypes:
             # nothing to do
             return self.value
-        if self.is_boolean():
-            # A wee bit extra for Python 2.2
-            if self.value == True:
-                return "True"
-            else:
-                return "False"
         if type(self.value) == types.TupleType:
             if len(self.value) == 0:
                 return ""
@@ -367,25 +358,14 @@ class Option(object):
 
     def is_boolean(self):
         '''Return True iff the option is a boolean value.'''
-        # This is necessary because of the Python 2.2 True=1, False=0
-        # cheat.  The valid values are returned as 0 and 1, even if
-        # they are actually False and True - but 0 and 1 are not
-        # considered valid input (and 0 and 1 don't look as nice)
-        # So, just for the 2.2 people, we have this helper function
-        try:
-            if type(self.allowed_values) == types.TupleType and \
-               len(self.allowed_values) > 0 and \
-               type(self.allowed_values[0]) == types.BooleanType:
-                return True
-            return False
-        except AttributeError:
-            # If the user has Python 2.2 and an option has valid values
-            # of (0, 1) - i.e. integers, then this function will return
-            # the wrong value.  I don't know what to do about that without
-            # explicitly stating which options are boolean
-            if self.allowed_values == (False, True):
-                return True
-            return False
+        # Note: this function is used by the UserInterface to map
+        # True/False to Yes/No
+
+        if type(self.allowed_values) == types.TupleType and \
+                len(self.allowed_values) > 0 and \
+                type(self.allowed_values[0]) == types.BooleanType:
+            return True
+        return False
 
 
 class OptionsClass(object):
@@ -617,7 +597,7 @@ class OptionsClass(object):
         return self._options[sect, opt.lower()].multiple_values_allowed()
 
     def is_boolean(self, sect, opt):
-        '''The option is a boolean value. (Support for Python 2.2).'''
+        '''The option is a boolean value.'''
         return self._options[sect, opt.lower()].is_boolean()
 
     def convert(self, sect, opt, value):
