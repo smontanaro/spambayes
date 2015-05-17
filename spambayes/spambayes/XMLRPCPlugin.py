@@ -3,8 +3,7 @@
 XML-RPC plugin for SpamBayes core server.
 
 This plugin opens an XML-RPC server in a separate thread listening to the
-given host and port (default localhost:5001).  In Python 2.5 and later it
-also enforces a path (default /sbrpc).
+given host and port (default localhost:5001), on a path (default /sbrpc).
 
 SECURITY NOTE: The XML-RPC plugin provide *NO SECURITY*.  It would be
 unwise to listen to anything besides 'localhost'.  Similarly, when
@@ -71,7 +70,6 @@ class XMLRPCPlugin(Plugin):
         port = options["Plugin", "xmlrpc_port"]
         path = options["Plugin", "xmlrpc_path"]
         self.server = SimpleXMLRPCServer((host, port))
-        # Path is only enforced in Python 2.5 and later but we set it anyway.
         self.server.RequestHandlerClass.rpc_paths = (path,)
         self.server.register_instance(self)
         self.thread = threading.Thread(target=self.server.serve_forever)

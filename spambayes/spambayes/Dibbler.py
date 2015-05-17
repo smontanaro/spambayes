@@ -171,8 +171,8 @@ except ImportError:
 
 import sys, re, time, traceback, base64
 import socket, cgi, urlparse, webbrowser
+import md5
 
-from spambayes.port import md5
 from spambayes import asyncore, asynchat
 
 class BrighterAsyncChat(asynchat.async_chat):
