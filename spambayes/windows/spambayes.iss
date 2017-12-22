@@ -4,9 +4,9 @@
 
 [Setup]
 ; Version specific constants
-AppVerName=SpamBayes 1.1a6
-AppVersion=1.1a6
-OutputBaseFilename=spambayes-1.1a6
+AppVerName=SpamBayes 1.1b3
+AppVersion=1.1b3
+OutputBaseFilename=spambayes-1.1b3
 ; Normal constants.  Be careful about changing 'AppName'
 AppName=SpamBayes
 DefaultDirName={pf}\SpamBayes

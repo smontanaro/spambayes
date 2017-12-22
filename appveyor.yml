@@ -21,6 +21,13 @@ environment:
 init:
   - "ECHO %TOXENV%"
 
+install:
+  - echo "Downloading deps..."
+  - cd C:\
+  #Install Inno Setup
+  - choco install InnoSetup
+  - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
+
 build_script:
-    - ps: cd spambayes
-    - %CMD_IN_ENV% %PYTHON%\python setup.py bdist_wheel bdist_wininst
+  - ps: cd spambayes
+  - %CMD_IN_ENV% %PYTHON%\python setup.py bdist_wheel bdist_wininst
