@@ -29,6 +29,5 @@ install:
   - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
 
 build_script:
-  - echo %APPVEYOR_BUILD_FOLDER%
-  - ps: cd %APPVEYOR_BUILD_FOLDER%
+  - cd %APPVEYOR_BUILD_FOLDER%\spambayes
   - "%CMD_IN_ENV% %PYTHON%\\python setup.py bdist_wininst"
