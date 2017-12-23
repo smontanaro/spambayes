@@ -12,11 +12,11 @@ environment:
       PYTHON_VERSION: "2.7.14"
       PYTHON_ARCH: "32"
 
-    - JOB: "2.7 64-bit"
-      TOXENV: "py27"
-      PYTHON: "C:\\Python27.14-x64"
-      PYTHON_VERSION: "2.7.14"
-      PYTHON_ARCH: "64"
+    # - JOB: "2.7 64-bit"
+    #   TOXENV: "py27"
+    #   PYTHON: "C:\\Python27.14-x64"
+    #   PYTHON_VERSION: "2.7.14"
+    #   PYTHON_ARCH: "64"
 
 init:
   - "ECHO %TOXENV%"
@@ -30,5 +30,4 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes
-  - dir C:
   - "%CMD_IN_ENV% %PYTHON%\\python setup.py bdist_wininst"
