@@ -23,7 +23,7 @@ init:
 
 install:
   - echo "Downloading deps..."
-  - cd C:\projects\spambayes
+  - cd C:\
 
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
@@ -49,4 +49,4 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes
-  - "%CMD_IN_ENV% %PYTHON%\\python setup.py bdist_wininst"
+  - "%CMD_IN_ENV% python setup.py bdist_wininst"
