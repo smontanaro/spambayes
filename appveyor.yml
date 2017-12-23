@@ -24,6 +24,25 @@ init:
 install:
   - echo "Downloading deps..."
   - cd C:\
+
+# Install Python (from the official .msi of http://python.org) and pip when
+  # not already installed.
+  - ps: if (-not(Test-Path($env:PYTHON))) { & ci\install.ps1 }
+
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  # Check that we have the expected version and architecture for Python
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+
+  # Upgrade to the latest version of pip to avoid it displaying warnings
+  # about it being out of date.
+  - "pip install --disable-pip-version-check --user --upgrade pip"
+  # And upgrade virtualenv to get the latest pip inside .tox virtualenvs.
+  - "pip install --disable-pip-version-check --user --upgrade virtualenv"
   #Install Inno Setup
   - choco install InnoSetup
   - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
