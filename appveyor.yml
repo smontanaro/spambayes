@@ -30,4 +30,5 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes
+  - dir C:
   - "%CMD_IN_ENV% %PYTHON%\\python setup.py bdist_wininst"
