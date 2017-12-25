@@ -53,4 +53,4 @@ build_script:
   - dir dist
 
 artifacts:
-  - dist\*.exe
+  - path: dist\*.exe
