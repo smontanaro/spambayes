@@ -44,12 +44,14 @@ install:
   # And upgrade virtualenv to get the latest pip inside .tox virtualenvs.
   - "pip install --disable-pip-version-check --user --upgrade virtualenv"
   #Install Inno Setup
-  # - choco install InnoSetup
-  # - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
-
+  - choco install InnoSetup
+  - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
+  # Need py2exe
+  - pip install py2exe_py2
+  
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%\spambayes
-  - python setup.py bdist_wininst"
+  - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
+  - python setup_all.py
   - dir dist
 
 artifacts:
