@@ -46,8 +46,9 @@ install:
   #Install Inno Setup
   - choco install InnoSetup
   - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
-  # Need py2exe
-  - pip install py2exe_py2
+  # Need a couple additions
+  - pip install py2exe_py2 pywin32
+  
   
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
