@@ -13,12 +13,12 @@ environment:
       PYTHON_ARCH: "32"
       PYWIN32: "https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win32-py2.7.exe/download"
 
-    - JOB: "2.7 64-bit"
-      TOXENV: "py27"
-      PYTHON: "C:\\Python27.14-x64"
-      PYTHON_VERSION: "2.7.14"
-      PYTHON_ARCH: "64"
-      PYWIN32: "https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win-amd64-py2.7.exe/download"
+    # - JOB: "2.7 64-bit"
+    #   TOXENV: "py27"
+    #   PYTHON: "C:\\Python27.14-x64"
+    #   PYTHON_VERSION: "2.7.14"
+    #   PYTHON_ARCH: "64"
+    #   PYWIN32: "https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win-amd64-py2.7.exe/download"
 
 init:
   - "ECHO %TOXENV%"
