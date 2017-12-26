@@ -55,7 +55,7 @@ install:
   - dir "C:\Program Files (x86)"
   - "SET PATH=%PATH%;C:\\Program Files (x86)\\Inno Setup 5"
   - "python -c \"import os; print(os.environ['PATH'])\""
-  - "C:\Program Files (x86)\pywin32.exe"
+  - "C:\\Program Files (x86)\\pywin32.exe"
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
