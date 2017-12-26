@@ -50,7 +50,7 @@ install:
   - choco install InnoSetup
   # Need a couple other packages
   - pip install py2exe_py2
-  # pywin32 is weird, so we download matrix-dependent versions and run the
+  # pywin32 is weird, so download matrix-dependent versions and run the
   # installer manually.
   - curl -L -sS -o"C:\\Program Files (x86)\\mybin\\pywin32.exe" %PYWIN32%
   - pywin32.exe
