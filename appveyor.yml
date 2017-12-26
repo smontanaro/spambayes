@@ -53,7 +53,7 @@ install:
   # installer manually.
   - curl -L -sS -o"C:\Program Files (x86)\pywin32.exe" %PYWIN32%
   - dir "C:\Program Files (x86)"
-  - "SET PATH=%PATH%;C:\Program Files (x86)\Inno Setup 5"
+  - "SET PATH=%PATH%;C:\\Program Files (x86)\\Inno Setup 5"
   - "python -c \"import os; print(os.environ['PATH'])\""
   - "C:\Program Files (x86)\pywin32.exe"
 
