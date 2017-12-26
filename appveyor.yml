@@ -47,13 +47,13 @@ install:
   - "pip install --disable-pip-version-check --user --upgrade virtualenv"
   # A couple pkgs from Chocolatey
   - choco install InnoSetup
-  - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
   # Need a couple other packages
   - pip install py2exe_py2
   # pywin32 is weird, so we download matrix-dependent versions and run the
   # installer manually.
   - curl -L -sS -o"C:\Program Files (x86)\pywin32.exe" %PYWIN32%
   - dir "C:\Program Files (x86)"
+  - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5";"C:\Program Files (x86)"
   - pywin32
 
 build_script:
