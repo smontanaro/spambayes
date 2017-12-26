@@ -53,7 +53,7 @@ install:
   # pywin32 is weird, so download matrix-dependent versions and run the
   # installer manually.
   - curl -L -sS -o%PYTHON%\pywin32.exe %PYWIN32%
-  - pywin32.exe
+  - %PYTHON%\pywin32.exe
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
