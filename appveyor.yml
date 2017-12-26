@@ -34,7 +34,7 @@ install:
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
-  - mkdir "C:\Program Files (x86)\\mybin"
+  - mkdir "C:\\Program Files (x86)\\mybin"
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;C:\\Program Files (x86)\\mybin;%PATH%"
 
   # Check that we have the expected version and architecture for Python
@@ -52,9 +52,8 @@ install:
   - pip install py2exe_py2
   # pywin32 is weird, so we download matrix-dependent versions and run the
   # installer manually.
-  - mkdir pywin32
   - curl -L -sS -o"C:\\Program Files (x86)\\mybin\\pywin32.exe" %PYWIN32%
-  - "C:\\Program Files (x86)\\mybin\\pywin32.exe"
+  - pywin32.exe
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
