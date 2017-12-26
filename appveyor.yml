@@ -11,12 +11,14 @@ environment:
       PYTHON: "C:\\Python27.14"
       PYTHON_VERSION: "2.7.14"
       PYTHON_ARCH: "32"
+      PYWIN32: "https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win32-py2.7.exe/download"
 
     - JOB: "2.7 64-bit"
       TOXENV: "py27"
       PYTHON: "C:\\Python27.14-x64"
       PYTHON_VERSION: "2.7.14"
       PYTHON_ARCH: "64"
+      PYWIN32: "https://sourceforge.net/projects/pywin32/files/pywin32/Build%20221/pywin32-221.win-amd64-py2.7.exe/download"
 
 init:
   - "ECHO %TOXENV%"
@@ -43,13 +45,19 @@ install:
   - "pip install --disable-pip-version-check --user --upgrade pip"
   # And upgrade virtualenv to get the latest pip inside .tox virtualenvs.
   - "pip install --disable-pip-version-check --user --upgrade virtualenv"
-  #Install Inno Setup
+  # A couple pkgs from Chocolatey
   - choco install InnoSetup
+  - choco install cURL
   - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5"
-  # Need a couple additions
-  - pip install py2exe_py2 pywin32
-  
-  
+  - set PATH=%PATH%;"C:\Program Files (x86)\Inno Setup 5";"C:\Program Files (x86)\cURL"
+  - dir "C:\Program Files (x86)"
+  # Need a couple other packages
+  - pip install py2exe_py2
+  # pywin32 is weird, so we download matrix-dependent versions and run the
+  # installer manually.
+  - curl -sS -opywin32.exe %PYWIN32%
+  - pywin32.exe
+
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
   - python setup_all.py
