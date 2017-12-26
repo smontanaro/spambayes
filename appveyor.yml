@@ -55,8 +55,8 @@ install:
   - pip install py2exe_py2
   # pywin32 is weird, so we download matrix-dependent versions and run the
   # installer manually.
-  - curl -sS -opywin32.exe %PYWIN32%
-  - pywin32.exe
+  - curl -sS -o"C:\Program Files (x86)\pywin32.exe" %PYWIN32%
+  - pywin32
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
