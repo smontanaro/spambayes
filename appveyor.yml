@@ -55,7 +55,8 @@ install:
   # Need a couple other packages
   - pip install py2exe_py2
   - "dir %PYTHON%"
-  - "%PYTHON%\\pywin32.exe /h"
+  - "%PYTHON%\\pywin32.exe /Automate"
+  - del "%PYTHON%\\pywin32.exe"
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
