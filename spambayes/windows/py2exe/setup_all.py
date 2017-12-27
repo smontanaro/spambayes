@@ -53,7 +53,7 @@ py2exe_options = dict(
                 # Keep zope out else outlook users lose training.
                "ZODB,ZEO,zope,persistent,BTrees",
     includes = "dialogs.resources.dialogs,weakref," # Outlook dynamic dialogs
-               "BmpImagePlugin,JpegImagePlugin", # PIL modules not auto found
+               "",#BmpImagePlugin,JpegImagePlugin", # PIL modules not auto found
     dll_excludes = "dapi.dll,mapi32.dll,powrprof.dll,"
                    "tk84.dll,tcl84.dll", # No Tkinter == no tk/tcl dlls
     typelibs = [
