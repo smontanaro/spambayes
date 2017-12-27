@@ -53,7 +53,7 @@ install:
   # pywin32 is weird, so download matrix-dependent versions and run the
   # installer manually.
   - echo "%PYWIN32%"
-  - curl -o%PYTHON%\pywin32.exe %PYWIN32%
+  - ps: Start-FileDownload "%PYWIN32%" -FileName "$env:PYTHON"
   - "dir %PYTHON%"
   - "%PYTHON%\\pywin32.exe"
 
