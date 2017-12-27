@@ -31,7 +31,11 @@ install:
   # not already installed.
   - ps: if (-not(Test-Path($env:PYTHON))) { & projects\spambayes\spambayes\windows\appveyor\install.ps1 }
 
-  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # pywin32 is weird, so download matrix-dependent versions and run the
+  # installer manually.
+  - ps: Start-FileDownload "$env:PYWIN32" -FileName "$env:PYTHON"
+
+# Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
   - mkdir "C:\\Program Files (x86)\\mybin"
@@ -50,10 +54,6 @@ install:
   - choco install InnoSetup
   # Need a couple other packages
   - pip install py2exe_py2
-  # pywin32 is weird, so download matrix-dependent versions and run the
-  # installer manually.
-  - echo "%PYWIN32%"
-  - ps: Start-FileDownload "%PYWIN32%" -FileName "$env:PYTHON"
   - "dir %PYTHON%"
   - "%PYTHON%\\pywin32.exe"
 
