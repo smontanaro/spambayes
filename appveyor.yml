@@ -33,7 +33,7 @@ install:
 
   # pywin32 is weird, so download matrix-dependent versions and run the
   # installer manually.
-  - ps: Start-FileDownload "$env:PYWIN32" -FileName "$env:PYTHON"
+  - ps: Start-FileDownload "$env:PYWIN32" -FileName "$env:PYTHON"\pywin32.exe
 
 # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
