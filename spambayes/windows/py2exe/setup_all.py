@@ -47,7 +47,7 @@ py2exe_options = dict(
                "spambayes.languages.fr,spambayes.languages.es.DIALOGS," \
                "spambayes.languages.es_AR.DIALOGS," \
                "spambayes.languages.fr.DIALOGS," \
-               "pillow,email",
+               "PIL,email",
     excludes = "Tkinter," # side-effect of PIL and markh doesn't have it :)
                 "win32ui,pywin,pywin.debugger," # *sob* - these still appear
                 # Keep zope out else outlook users lose training.
