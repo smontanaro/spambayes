@@ -52,7 +52,7 @@ py2exe_options = dict(
                 "win32ui,pywin,pywin.debugger," # *sob* - these still appear
                 # Keep zope out else outlook users lose training.
                "ZODB,ZEO,zope,persistent,BTrees",
-    includes = "dialogs.resources.dialogs,weakref," # Outlook dynamic dialogs
+    includes = "dialogs.resources.dialogs,weakref" # Outlook dynamic dialogs
                "",#BmpImagePlugin,JpegImagePlugin", # PIL modules not auto found
     dll_excludes = "dapi.dll,mapi32.dll,powrprof.dll,"
                    "tk84.dll,tcl84.dll", # No Tkinter == no tk/tcl dlls
