@@ -49,7 +49,7 @@ install:
   # A couple pkgs from Chocolatey
   - choco install InnoSetup
   # Need a couple other packages
-  - pip install py2exe_py2 pypiwin32
+  - pip install py2exe_py2 pypiwin32 Pillow
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
