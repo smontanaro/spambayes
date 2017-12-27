@@ -52,7 +52,8 @@ install:
   - pip install py2exe_py2
   # pywin32 is weird, so download matrix-dependent versions and run the
   # installer manually.
-  - curl -L -o%PYTHON%\pywin32.exe %PYWIN32%
+  - echo "%PYWIN32%"
+  - curl -o%PYTHON%\pywin32.exe %PYWIN32%
   - "dir %PYTHON%"
   - "%PYTHON%\\pywin32.exe"
 
