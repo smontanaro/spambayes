@@ -61,4 +61,4 @@ build_script:
   - dir
 
 artifacts:
-  - path: spambayes*.exe
+  - path: spambayes\windows\spambayes*.exe
