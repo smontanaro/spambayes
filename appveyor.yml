@@ -47,7 +47,7 @@ install:
   # A couple pkgs from Chocolatey
   - choco install InnoSetup
   # Need a couple other packages
-  - pip install py2exe_py2 pypiwin32 Pillow lockfile
+  - pip -v install py2exe_py2 pypiwin32 Pillow lockfile
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes
   - curl -o gocr.exe -sSL http://www-e.uni-magdeburg.de/jschulen/ocr/gocr049.exe
 
