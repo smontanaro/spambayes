@@ -25,7 +25,7 @@ Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "py2exe\dist\bin\python27.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 ; Needed when built with Python 2.4/2.5.  This must be manually copied to this directory
 ; from wherever it is being sourced from.
-Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+; Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 
 ; Is there a cleverer way of including all of these?
 Source: "py2exe\dist\languages\es\LC_MESSAGES\*.mo"; DestDir: "{app}\languages\DIALOGS\es"; Flags: ignoreversion
