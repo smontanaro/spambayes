@@ -22,7 +22,7 @@ Source: "py2exe\dist\sbicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "py2exe\dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "py2exe\dist\lib\*.*"; DestDir: "{app}\lib"; Flags: ignoreversion
-Source: "py2exe\dist\bin\python25.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "py2exe\dist\bin\python27.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
 ; Needed when built with Python 2.4/2.5.  This must be manually copied to this directory
 ; from wherever it is being sourced from.
 Source: "py2exe\dist\bin\msvcr71.dll"; DestDir: "{app}\bin"; Flags: ignoreversion
