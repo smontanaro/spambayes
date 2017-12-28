@@ -50,11 +50,15 @@ install:
   - choco install InnoSetup
   # Need a couple other packages
   - pip install py2exe_py2 pypiwin32 Pillow
+  - cd %APPVEYOR_BUILD_FOLDER%\spambayes
+  - curl -o gocr.exe -sSL http://www-e.uni-magdeburg.de/jschulen/ocr/gocr049.exe
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows\py2exe
   - python setup_all.py
-  - dir dist
+  - cd %APPVEYOR_BUILD_FOLDER%\spambayes\windows
+  - "iscc spambayes.iss"
+  - dir
 
 artifacts:
   - path: spambayes\dist\*.exe
