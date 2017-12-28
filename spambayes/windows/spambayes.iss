@@ -319,20 +319,20 @@ var
 begin
   { Fill the 'Ready Memo' with the normal settings and the custom settings }
   S := 'Selected applications:' + NewLine;
-  if InstallOutlook then S := S + Space + 'Outlook Addin' + NewLine
-  if InstallProxy then S := S + Space + 'Server/Proxy Application' + NewLine
-  if InstallIMAP then S := S + Space + 'IMAP Filter Application' + NewLine
+  if InstallOutlook then S := S + Space + 'Outlook Addin' + NewLine;
+  if InstallProxy then S := S + Space + 'Server/Proxy Application' + NewLine;
+  if InstallIMAP then S := S + Space + 'IMAP Filter Application' + NewLine;
   S := S + NewLine;
   
   S := S + MemoDirInfo + NewLine + NewLine;
   S := S + MemoGroupInfo + NewLine + NewLine;
 
   S := S + 'Additional Tasks:' + NewLine;
-  if convert_db then S := S + Space + 'Convert database from 1.0 to 1.1 format' + NewLine
-  if startup then S := S + Space + 'Run Proxy on Startup' + NewLine
-  if desktop then S := S + Space + 'Install Proxy Desktop Icon' + NewLine
-  if allusers then S := S + Space + 'Install Addin for all users' + NewLine
-  if startup_imap then S := S + Space + 'Automatically run Filter' + NewLine
+  if convert_db then S := S + Space + 'Convert database from 1.0 to 1.1 format' + NewLine;
+  if startup then S := S + Space + 'Run Proxy on Startup' + NewLine;
+  if desktop then S := S + Space + 'Install Proxy Desktop Icon' + NewLine;
+  if allusers then S := S + Space + 'Install Addin for all users' + NewLine;
+  if startup_imap then S := S + Space + 'Automatically run Filter' + NewLine;
 
   Result := S;
 end;
