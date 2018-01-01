@@ -311,9 +311,9 @@ into and/or out of the reservoir directories.  The reverse works as well
 (finding ham in your spam directories).
 
 The hams are 20,000 msgs selected at random from a python-list archive.
-The spams are essentially all of Bruce Guenter's 2002 spam archive:
+The spams are essentially all of Bruce Guenter's spam archive:
 
-    <http://www.em.ca/~bruceg/spam/>
+    <http://untroubled.org:80/spam/>
 
 The sets are grouped into pairs in the obvious way:  Spam/Set1 with
 Ham/Set1, and so on.  For each such pair, timtest trains a classifier on
