@@ -1,0 +1,3 @@
+*.pyc
+spambayes/build
+spambayes/dist
