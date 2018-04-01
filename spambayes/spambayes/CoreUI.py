@@ -542,7 +542,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         self._writePostamble()
 
     def onPluginconfig(self):
-        html = self._buildConfigPage(self.plugin.plugin_map)
+        html = self._buildConfigPage(self.state.plugin.ui.plugin_map)
         html.title = _('Home &gt; Plugin Configuration')
         html.pagename = _('&gt; Plugin Configuration')
         html.plugin_button.name.value = _("Back to basic configuration")
