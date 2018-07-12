@@ -143,7 +143,8 @@ class Driver:
     def set_classifier(self, classifier):
         """Specify a classifier to be used for further testing."""
         self.classifier = classifier
-        self.tester = Tester.Test(classifier)
+        self.tester = Tester.Test()
+        self.tester.set_classifier(classifier)
         self.trained_ham_hist = Hist()
         self.trained_spam_hist = Hist()
 
