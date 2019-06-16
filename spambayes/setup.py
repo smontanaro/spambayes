@@ -63,7 +63,7 @@ class sdist(sdist_parent):
     """Like the standard sdist, but also prints out MD5 checksums and sizes
     for the created files, for convenience."""
     def run(self):
-        import md5
+        from hashlib import md5
         retval = sdist_parent.run(self)
         for archive in self.get_archive_files():
             data = file(archive, "rb").read()

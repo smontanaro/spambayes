@@ -20,7 +20,7 @@ except ImportError:
     Image = None
 
 from spambayes.safepickle import pickle_read, pickle_write
-import md5
+from hashlib import md5
 
 # The email mime object carrying the image data can have a special attribute
 # which indicates that a message had an image, but it was large (ie, larger

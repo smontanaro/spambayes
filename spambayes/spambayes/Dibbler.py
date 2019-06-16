@@ -171,8 +171,8 @@ except ImportError:
 
 import sys, re, time, traceback, base64
 import socket, cgi, urlparse, webbrowser
-import md5, asyncore, asynchat
-
+import asyncore, asynchat
+from hashlib import md5
 
 class Context:
     """See the main documentation for details of `Dibbler.Context`."""

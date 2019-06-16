@@ -33,9 +33,10 @@ This program requires Python 2.3 or newer.
 import socket
 socket.setdefaulttimeout(10)
 
-import traceback, md5, os
+import traceback, os
 import poplib
 import posixpath
+from hashlib import md5
 
 import sets
 from email import Header, Utils

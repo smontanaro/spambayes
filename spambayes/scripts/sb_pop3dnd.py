@@ -88,7 +88,7 @@ from spambayes.tokenizer import tokenize
 from spambayes import FileCorpus, Dibbler
 from spambayes.Version import get_current_version
 from sb_server import POP3ProxyBase, State, _addressPortStr
-from spambayes.port import md5
+from hashlib import md5
 
 def ensureDir(dirname):
     """Ensure that the given directory exists - in other words, if it
