@@ -19,4 +19,3 @@ try:
     import dbm.gnu
 except ImportError:
     gdbm = None
-

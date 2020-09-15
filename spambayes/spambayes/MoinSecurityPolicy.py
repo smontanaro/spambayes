@@ -242,4 +242,3 @@ class Hammie(hammie.Hammie):
 
     def train(self, msg, is_spam, add_header=False):
         self.bayes.learn(self.tokenizer.tokenize(msg), is_spam)
-
