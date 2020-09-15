@@ -102,7 +102,7 @@ __all__ = ['OptionsClass',
 
 MultiContainerTypes = (tuple, list)
 
-class Option(object):
+class Option:
     def __init__(self, name, nice_name="", default=None,
                  help_text="", allowed=None, restore=True):
         self.name = name
@@ -388,7 +388,7 @@ class Option(object):
             return False
 
 
-class OptionsClass(object):
+class OptionsClass:
     def __init__(self):
         self.verbose = None
         self._options = {}

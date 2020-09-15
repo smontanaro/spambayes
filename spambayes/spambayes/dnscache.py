@@ -28,7 +28,7 @@ kPruneThreshold = 5000 # May go over slightly; numbers chosen at random
 kPruneDownTo = 2500
 
 
-class lookupResult(object):
+class lookupResult:
     #__slots__=("qType","answer","question","expiresAt","lastUsed")
 
     def __init__(self, qType, answer, question, expiresAt, now):

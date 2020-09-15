@@ -108,7 +108,7 @@ PERSISTENT_HAM_STRING = 'h'
 PERSISTENT_SPAM_STRING = 's'
 PERSISTENT_UNSURE_STRING = 'u'
 
-class MessageInfoBase(object):
+class MessageInfoBase:
     def __init__(self, db_name=None):
         self.db_name = db_name
 
@@ -130,7 +130,7 @@ class MessageInfoBase(object):
             return self.db[STATS_STORAGE_KEY]
         else:
             return None
-            
+
     def set_persistent_statistics(self, stats):
         self.db[STATS_STORAGE_KEY] = stats
         self.store()
@@ -316,7 +316,7 @@ def database_type():
     return nm, typ
 
 
-class Message(object, email.Message.Message):
+class Message(email.Message.Message):
     '''An email.Message.Message extended for SpamBayes'''
 
     def __init__(self, id=None):
@@ -565,7 +565,7 @@ class SBHeaderMessage(Message):
         if options['Headers', 'add_unique_id']:
             self[options['Headers', 'mailid_header_name']] = self.id
 
-        self.addNotations()            
+        self.addNotations()
 
     def addNotations(self):
         """Add the appropriate string to the subject: and/or to: header.

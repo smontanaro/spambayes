@@ -913,7 +913,7 @@ def log2(n, log=math.log, c=math.log(2)):
     return log(n)/c
 
 
-class Stripper(object):
+class Stripper:
 
     # The retained portions are catenated together with self.separator.
     # CAUTION:  This used to be blank.  But then I noticed spam putting

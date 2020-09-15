@@ -628,7 +628,7 @@ class SpambayesInbox(SpambayesMailbox):
         return {}
 
 
-class Trainer(object):
+class Trainer:
     """Listens to a given mailbox and trains new messages as spam or
     ham."""
     __implements__ = (IMailboxListener,)

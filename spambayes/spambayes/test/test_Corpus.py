@@ -12,7 +12,7 @@ from spambayes.Corpus import Corpus, ExpiryCorpus, MessageFactory
 # We borrow the test messages that test_sb_server uses.
 from test_sb_server import good1, spam1, malformed1
 
-class simple_msg(object):
+class simple_msg:
     def __init__(self, key):
         self._key = key
         self.creation_time = time.time()
@@ -24,7 +24,7 @@ class simple_msg(object):
     def load(self):
         self.loaded = True
 
-class simple_observer(object):
+class simple_observer:
     # Just want to tell that they have been called, so raise particular
     # errors.
     def onAddMessage(self, msg, flags):

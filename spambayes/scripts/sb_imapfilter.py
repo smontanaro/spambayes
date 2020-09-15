@@ -789,7 +789,7 @@ class IMAPMessage(message.SBHeaderMessage):
         self.uid = new_id
 
 
-class IMAPFolder(object):
+class IMAPFolder:
     def __init__(self, folder_name, imap_server, stats):
         self.name = folder_name
         self.imap_server = imap_server
@@ -1005,7 +1005,7 @@ class IMAPFolder(object):
         return count
 
 
-class IMAPFilter(object):
+class IMAPFilter:
     def __init__(self, classifier, stats):
         self.spam_folder = None
         self.unsure_folder = None

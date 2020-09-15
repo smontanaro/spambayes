@@ -658,7 +658,7 @@ class _PersistentClassifier(classifier.Classifier, Persistent):
         classifier.Classifier.__init__(self)
         self.wordinfo = OOBTree()
 
-class ZODBClassifier(object):
+class ZODBClassifier:
     # Allow subclasses to override classifier class.
     ClassifierClass = _PersistentClassifier
 
@@ -889,7 +889,7 @@ class ZEOClassifier(ZODBClassifier):
 # values (i.e. 1, 2, 4, 8, etc.).
 NO_TRAINING_FLAG = 1
 
-class Trainer(object):
+class Trainer:
     '''Associates a Classifier object and one or more Corpora, \
     is an observer of the corpora'''
 

@@ -365,7 +365,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         return self.request
 
 
-class SMTPTrainer(object):
+class SMTPTrainer:
     def __init__(self, classifier, state=None, imap=None):
         self.classifier = classifier
         self.state = state

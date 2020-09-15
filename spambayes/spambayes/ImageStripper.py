@@ -186,7 +186,7 @@ def PIL_decode_parts(parts):
 
     return [pnmfile], tokens
 
-class OCREngine(object):
+class OCREngine:
     """Base class for an OCR "engine" that extracts text.  Ideally would
        also deal with image format (as different engines will have different
        requirements), but all currently supported ones deal with the PNM

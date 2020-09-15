@@ -59,7 +59,7 @@ what's tested is actually `z in y'.
 __all__ = ['BaseSet', 'Set', 'ImmutableSet']
 
 
-class BaseSet(object):
+class BaseSet:
     """Common base class for mutable and immutable sets."""
 
     __slots__ = ['_data']

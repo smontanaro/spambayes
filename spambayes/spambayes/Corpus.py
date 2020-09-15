@@ -260,7 +260,7 @@ class ExpiryCorpus:
                 self.expiry_due = timestamp + self.expireBefore
 
 
-class MessageFactory(object):
+class MessageFactory:
     '''Abstract Message Factory'''
     def create(self, key, content=None):
         '''Create a message instance'''

@@ -43,7 +43,7 @@ try:
 except NameError:
     _ = lambda arg: arg
 
-class Stats(object):
+class Stats:
     def __init__(self, options, messageinfo_db):
         self.messageinfo_db = messageinfo_db
         self.options = options

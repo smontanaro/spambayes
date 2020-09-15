@@ -278,7 +278,7 @@ class FileCorpusTest(_FileCorpusBaseTest):
         self.assertEqual(msg.as_string(), content.replace("\n", "\r\n"))
 
     def test_addMessage_invalid(self):
-        class msg(object):
+        class msg:
             def key(self):
                 return 'aa'
         self.assertRaises(ValueError, self.corpus.addMessage, msg())

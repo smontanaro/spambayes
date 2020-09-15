@@ -143,7 +143,7 @@ filter'''
         FileCorpus.__init__(self, factory, directory, filter, cacheSize)
 
 
-class FileMessage(object):
+class FileMessage:
     '''Message that persists as a file system artifact.'''
 
     message_class = message.SBHeaderMessage

@@ -27,7 +27,7 @@ def cdb_hash(buf):
         h ^= ord(c)
     return h
 
-class Cdb(object):
+class Cdb:
 
     def __init__(self, fp):
         self.fp = fp

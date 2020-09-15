@@ -65,7 +65,7 @@ slurp_wordstream = None
 
 PICKLE_VERSION = 5
 
-class WordInfo(object):
+class WordInfo:
     # A WordInfo is created for each distinct word.  spamcount is the
     # number of trained spam msgs in which the word appears, and hamcount
     # the number of trained ham msgs.

@@ -536,7 +536,7 @@ class UserInterface(BaseUserInterface):
                 setattr(self, desired_corpus, corpus)
                 # We need a function to create a new name for the message
                 # as sb_imapfilter doesn't have one.
-                class UniqueNamer(object):
+                class UniqueNamer:
                     count = -1
                     def generate_name(self):
                         self.count += 1

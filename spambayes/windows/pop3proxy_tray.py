@@ -114,7 +114,7 @@ def IsServerRunningAnywhere():
         # Mutex created by some other user - it does exist!
         return True
 
-class MainWindow(object):
+class MainWindow:
     def __init__(self):
         # The ordering here is important - it is the order that they will
         # appear in the menu.  As dicts don't have an order, this means

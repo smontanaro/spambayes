@@ -129,7 +129,7 @@ def outputset(Output):
     nspam_wrong = []
     nspam_unsure = []
 
-class SetOutputter(object):
+class SetOutputter:
     """Class to output set data in the correct format."""
     def __init__(self, sep=',', immediate_print=False):
         self.sep = sep

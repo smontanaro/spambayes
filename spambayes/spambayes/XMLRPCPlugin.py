@@ -135,7 +135,7 @@ class XMLRPCPlugin(Plugin):
                                                      '[0123456789\-]*',
                                                      cacheSize=20)
                 setattr(self, desired_corpus, corpus)
-                class UniqueNamer(object):
+                class UniqueNamer:
                     count = -1
                     def generate_name(self):
                         self.count += 1

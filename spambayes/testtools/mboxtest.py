@@ -63,7 +63,7 @@ class MboxMsg(Msg):
     def __iter__(self):
         return tokenize(self.guts)
 
-class mbox(object):
+class mbox:
 
     def __init__(self, path, indices=None):
         self.path = path

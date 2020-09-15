@@ -24,7 +24,7 @@ __all__ = ['SpambayesProxy']
 # stolen from sb_filter.py
 # XXX should probably be enhanced to select training database based upon
 # message recipients, but let's see how far a single database gets us.
-class HammieFilter(object):
+class HammieFilter:
     def __init__(self):
         options = Options.options
         # This is a bit of a hack to counter the default for

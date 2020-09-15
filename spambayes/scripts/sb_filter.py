@@ -139,7 +139,7 @@ def version():
     print(v.get_long_version("SpamBayes Command Line Filter"), file=sys.stderr)
     sys.exit(0)
 
-class HammieFilter(object):
+class HammieFilter:
     def __init__(self):
         options = Options.options
         # This is a bit of a hack to counter the default for
