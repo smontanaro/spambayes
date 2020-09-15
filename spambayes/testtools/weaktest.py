@@ -168,7 +168,7 @@ def drive(nsets,decision):
     hamtrain = 0
     spamtrain = 0
     n = 0
-    for dir,name, is_spam in allfns.keys():
+    for dir, name, is_spam in allfns:
         n += 1
         m=msgs.Msg(dir, name).guts
         if debug > 1:
