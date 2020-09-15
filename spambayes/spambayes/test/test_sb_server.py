@@ -284,7 +284,7 @@ def helper():
     testServerThread.setDaemon(True)
     testServerThread.start()
     testServerReady.wait()
-    
+
     proxyThread = threading.Thread(target=runUIAndProxy)
     proxyThread.setDaemon(True)
     proxyThread.start()
@@ -360,7 +360,8 @@ def helper():
     response = ''
     while 1:
         packet = httpServer.recv(1000)
-        if not packet: break
+        if not packet:
+            break
         response += packet
     assert re.search(r"(?s)<html>.*SpamBayes proxy.*</html>", response)
 

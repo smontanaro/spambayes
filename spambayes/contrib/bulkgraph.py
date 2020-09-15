@@ -164,7 +164,8 @@ def main():
     spamsizes = {}
 
     for s in spam:
-        if loud: print("Scanning spamdir (%s):" % s)
+        if loud:
+            print("Scanning spamdir (%s):" % s)
         files = os.listdir(s)
         for f in files:
             if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
@@ -184,7 +185,8 @@ def main():
     date_re = re.compile(
         r";.* (\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2,4})")
     now = time.mktime(time.strptime(time.strftime("%d %b %Y"), "%d %b %Y"))
-    if loud: print("Scanning everything")
+    if loud:
+        print("Scanning everything")
     for f in os.listdir(everything):
         if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
             name = os.path.join(everything, f)

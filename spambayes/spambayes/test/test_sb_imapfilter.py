@@ -60,7 +60,7 @@ Received: from  rly-xn05.mx.aol.com (rly-xn05.mail.aol.com [172.20.83.138]) by a
 Received: from 132.16.224.107 by 82.67.182.141; Tue, 27 Apr 2004 14:54:46 -0500
 From: " Gilliam" <.@doramail.com>
 To: To: user@example.com
-Subject: Your Source For Online Prescriptions....Soma-Watson..VALIUM-Roche    .		
+Subject: Your Source For Online Prescriptions....Soma-Watson..VALIUM-Roche    .
 Date: Wed, 28 Apr 2004 00:52:46 +0500
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
@@ -151,7 +151,7 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
                 self.in_literal = (0, None)
                 self.request = ''
             return
-        
+
         id, command = self.request.split(None, 1)
 
         if FAIL_NEXT:
@@ -341,7 +341,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # Connection is made in setup, just need to check
         # that it worked.
         self.assertTrue(self.imap.connected)
-        
+
     def testGoodLogin(self):
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
         self.assertTrue(self.imap.logged_in)
@@ -362,7 +362,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
     def testSelectFolder(self):
         # This test will fail if testGoodLogin fails.
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
-        
+
         # Check handling of Python (not SpamBayes) bug #845560.
         self.assertRaises(BadIMAPResponseError, self.imap.SelectFolder, "")
 
@@ -384,7 +384,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # This test will fail if testGoodLogin fails.
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
 
-        # Everything working.        
+        # Everything working.
         folders = self.imap.folder_list()
         correct = IMAP_FOLDER_LIST[:]
         correct.sort()
@@ -398,7 +398,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
 
         # Literals in response.
         # XXX TO DO!
-        
+
     def test_extract_fetch_data(self):
         response = "bad response"
         self.assertRaises(BadIMAPResponseError,
@@ -493,7 +493,7 @@ class IMAPSessionTest(BaseIMAPFilterTest):
                   "rtance: Normal\r\n\r\n"
         response = ['1 (FLAGS %s)' % flags,
                     ('2 (UID %s RFC822.HEADER {%d}' % (uid, len(headers)),
-                     headers), ')'] 
+                     headers), ')']
         data = self.imap.extract_fetch_data(response)
         self.assertEqual(data['1']["message_number"], '1')
         self.assertEqual(data['2']["message_number"], '2')
@@ -673,7 +673,7 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         folder3 = IMAPFolder("testfolder2", self.imap, None)
         self.assertEqual(self.folder, folder2)
         self.assertNotEqual(self.folder, folder3)
-        
+
     def test_iter(self):
         keys = list(self.folder.keys())
         for msg in self.folder:
@@ -739,7 +739,7 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         self.assertNotEqual(id2, id4)
         self.assertNotEqual(id3, id4)
         self.assertTrue('-' not in id4)
-        
+
     def test_Train(self):
         # XXX To-do
         pass
@@ -822,7 +822,8 @@ class InterfaceTest(unittest.TestCase):
         response = ''
         while 1:
             packet = httpServer.recv(1024)
-            if not packet: break
+            if not packet:
+                break
             response += packet
         self.assertTrue(re.search(r"(?s)<html>.*SpamBayes IMAP Filter.*</html>",
                                response))

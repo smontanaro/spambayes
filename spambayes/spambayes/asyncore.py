@@ -104,7 +104,9 @@ def poll(timeout=0.0, map=None):
     if map is None:
         map = socket_map
     if map:
-        r = []; w = []; e = []
+        r = []
+        w = []
+        e = []
         for fd, obj in list(map.items()):
             is_r = obj.readable()
             is_w = obj.writable()
