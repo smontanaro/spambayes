@@ -81,7 +81,7 @@ def outputset(Output):
     if report == "error":
         Output.output_title(title)
         Output.line_title(linelabel="fp", linecolor=0)
-        for k in xrange(len(nham_wrong)):
+        for k in range(len(nham_wrong)):
             n = nham_wrong[k]
             d = nham_tested[k]
             if span and k - span >= 0:
@@ -90,7 +90,7 @@ def outputset(Output):
             Output.add_line(k, (n * 100.0 / (d or 1)))
 
         Output.line_title(linelabel="fn", linecolor=1)
-        for k in xrange(len(nspam_wrong)):
+        for k in range(len(nspam_wrong)):
             n = nspam_wrong[k]
             d = nspam_tested[k]
             if span and k - span >= 0:
@@ -99,7 +99,7 @@ def outputset(Output):
             Output.add_line(k, (n * 100.0 / (d or 1)))
 
         Output.line_title(linelabel="unsure", linecolor=2)
-        for k in xrange(len(nspam_unsure)):
+        for k in range(len(nspam_unsure)):
             n = nham_unsure[k] + nspam_unsure[k]
             d = nham_tested[k] + nspam_tested[k]
             if span and k - span >= 0:
@@ -108,7 +108,7 @@ def outputset(Output):
             Output.add_line(k, (n * 100.0 / (d or 1)))
 
         Output.line_title(linelabel="training_is_ham", linecolor=3)
-        for k in xrange(len(nspam_unsure)):
+        for k in range(len(nspam_unsure)):
             n = nham_trained[k]
             d = nham_trained[k] + nspam_trained[k]
             if span and k - span >= 0:
@@ -139,41 +139,41 @@ class SetOutputter(object):
     def output_title(self, title):
         if self.immediate_print:
             title = '$ Data=Curve2d name="%s Counts"' % (title)
-        print title
+        print(title)
         if not self.immediate_print:
-            print self.sep.join(["group", "ham_tested", "ham_trained",
+            print(self.sep.join(["group", "ham_tested", "ham_trained",
                                  "ham_right", "ham_wrong", "ham_unsure",
                                  "spam_tested", "spam_trained",
                                  "spam_right", "spam_wrong",
-                                 "spam_unsure"])
+                                 "spam_unsure"]))
 
     def add_line(self, vals, linetype=1, linelabel="", markertype=0,
                  linecolor=0):
         if self.immediate_print:
-            print
-            print '%% linetype=%d linelabel="%s" markertype=%d linecolor=%s' % \
-                  (linetype, linelabel, markertype, linecolor)
-        for k in xrange(len(vals)):
+            print()
+            print('%% linetype=%d linelabel="%s" markertype=%d linecolor=%s' % \
+                  (linetype, linelabel, markertype, linecolor))
+        for k in range(len(vals)):
             n = vals[k]
             if span and k - span >= 0:
                 n -= vals[k - span]
-            if self.lines.has_key(k):
+            if k in self.lines:
                 self.lines[k].append(str(n))
             else:
                 self.lines[k] = [str(n)]
             if self.immediate_print:
-                print '%d %d' % (k, n)
+                print('%d %d' % (k, n))
 
     def output(self):
         if not self.immediate_print:
-            keys = self.lines.keys()
+            keys = list(self.lines.keys())
             keys.sort()
             for k in keys:
                 vals = [str(k)]
                 vals.extend(self.lines.get(k, []))
-                print self.sep.join(vals)
+                print(self.sep.join(vals))
         else:
-            print
+            print()
         self.reset()
 
     def reset(self):
@@ -183,28 +183,28 @@ class ErrorSetOutputter(SetOutputter):
     """Class to output set error data in the correct format."""
     def output_title(self, title):
         if self.immediate_print:
-            print '$ Data=Curve2d'
-            print '%% toplabel="%s Error Rates"' % (title)
-            print '% ymax=5'
-            print '% xlabel="Days"'
-            print '% ylabel="Percent"'
+            print('$ Data=Curve2d')
+            print('%% toplabel="%s Error Rates"' % (title))
+            print('% ymax=5')
+            print('% xlabel="Days"')
+            print('% ylabel="Percent"')
         else:
-            print title
-            print self.sep.join(["group", "fp", "fn", "unsure",
-                                 "training_is_ham"])
+            print(title)
+            print(self.sep.join(["group", "fp", "fn", "unsure",
+                                 "training_is_ham"]))
 
     def line_title(self, linetype=1, linelabel="", markertype=0,
                    linecolor=0):
         if self.immediate_print:
-            print '\n%% linetype=%d linelabel="%s" markertype=%d ' \
+            print('\n%% linetype=%d linelabel="%s" markertype=%d ' \
                   'linecolor=%d' % (linetype, linelabel, markertype,
-                                    linecolor)
+                                    linecolor))
 
     def add_line(self, k, v):
         if self.immediate_print:
-            print '%d %f' % (k, v)
+            print('%d %f' % (k, v))
         else:
-            if self.lines.has_key(k):
+            if k in self.lines:
                 self.lines[k].append(str(v))
             else:
                 self.lines[k] = [str(v)]
@@ -240,11 +240,11 @@ def main():
         elif opt == '-s':
             sep = arg
         elif opt == '-h':
-            print __doc__
+            print(__doc__)
             sys.exit()
 
     if report not in ("error", "counts"):
-        print >> sys.stderr, "Unrecognized report type"
+        print("Unrecognized report type", file=sys.stderr)
         sys.exit(1)
 
     if report == "counts":

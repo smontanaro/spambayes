@@ -32,9 +32,9 @@ TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
 # be ours.
 for fn in [TEMP_PICKLE_NAME, TEMP_DBM_NAME]:
     if os.path.exists(fn):
-        print fn, "already exists.  Please remove this file before " \
+        print(fn, "already exists.  Please remove this file before " \
               "running these tests (a file by that name will be " \
-              "created and destroyed as part of the tests)."
+              "created and destroyed as part of the tests).")
         sys.exit(1)
 
 class MessageTest(unittest.TestCase):
@@ -90,18 +90,18 @@ class MessageTest(unittest.TestCase):
         self.assertEqual(tuple(tokenize(spam1)), tuple(toks))
 
     def test_force_CRLF(self):
-        self.assert_('\r' not in good1)
+        self.assertTrue('\r' not in good1)
         lines = self.msg._force_CRLF(good1).split('\n')
         for line in lines:
             if line:
-                self.assert_(line.endswith('\r'))
+                self.assertTrue(line.endswith('\r'))
 
     def test_as_string_endings(self):
-        self.assert_('\r' not in spam1)
+        self.assertTrue('\r' not in spam1)
         lines = self.msg.as_string().split('\n')
         for line in lines:
             if line:
-                self.assert_(line.endswith('\r'))
+                self.assertTrue(line.endswith('\r'))
 
     def _fake_setState(self, state):
         self.done = True
@@ -237,9 +237,9 @@ class SBHeaderMessageTest(unittest.TestCase):
         options["Headers", "header_score_digits"] = 21
         options["Headers", "header_score_logarithm"] = True
         self.msg.addSBHeaders(self.s_prob, self.clues)
-        self.assert_(self.msg[options['Headers', 'score_header_name']].\
+        self.assertTrue(self.msg[options['Headers', 'score_header_name']].\
                      startswith("%.21f" % (self.s_prob,)))
-        self.assert_(self.msg[options['Headers', 'score_header_name']].\
+        self.assertTrue(self.msg[options['Headers', 'score_header_name']].\
                      endswith(" (%d)" % (-math.log10(1.0-self.s_prob),)))
 
     def test_thermostat_header_off(self):
@@ -278,7 +278,7 @@ class SBHeaderMessageTest(unittest.TestCase):
         header_clues = dict([(":".join(clue[:-1])[1:-1], float(clue[-1])) \
                              for clue in header_clues])
         for word, score in self.clues:
-            self.assert_(word in header_clues)
+            self.assertTrue(word in header_clues)
             self.assertEqual(round(score, 2), header_clues[word])
 
     def test_evidence_header_partial(self):
@@ -292,10 +292,10 @@ class SBHeaderMessageTest(unittest.TestCase):
                              for clue in header_clues])
         for word, score in self.clues:
             if score <= 0.1 or score >= 0.9:
-                self.assert_(word in header_clues)
+                self.assertTrue(word in header_clues)
                 self.assertEqual(round(score, 2), header_clues[word])
             else:
-                self.assert_(word not in header_clues)
+                self.assertTrue(word not in header_clues)
 
     def test_evidence_header_empty(self):
         options['Headers', 'include_evidence'] = True
@@ -308,10 +308,10 @@ class SBHeaderMessageTest(unittest.TestCase):
                              for clue in header_clues])
         for word, score in self.clues:
             if word == "*H*" or word == "*S*":
-                self.assert_(word in header_clues)
+                self.assertTrue(word in header_clues)
                 self.assertEqual(round(score, 2), header_clues[word])
             else:
-                self.assert_(word not in header_clues)
+                self.assertTrue(word not in header_clues)
 
     def test_evidence_header_off(self):
         options['Headers', 'include_evidence'] = False
@@ -432,7 +432,7 @@ class SBHeaderMessageTest(unittest.TestCase):
                    options['Headers', 'score_header_name'] : '6',
                    options['Headers', 'trained_header_name'] : '7',
                    }
-        for name, val in headers.items():
+        for name, val in list(headers.items()):
             self.msg[name] = val
         sbheaders = self.msg.currentSBHeaders()
         self.assertEqual(headers, sbheaders)
@@ -449,10 +449,10 @@ class SBHeaderMessageTest(unittest.TestCase):
         for header in headers:
             self.msg[header] = "test"
         for header in headers:
-            self.assert_(header in self.msg.keys())
+            self.assertTrue(header in list(self.msg.keys()))
         self.msg.delSBHeaders()
         for header in headers:
-            self.assert_(header not in self.msg.keys())
+            self.assertTrue(header not in list(self.msg.keys()))
 
     def test_delNotations(self):
         # Add each type of notation to each header and check that it
@@ -603,22 +603,22 @@ class MessageInfoBaseTest(unittest.TestCase):
         data = {"1" : ('a', 'b', 'c'),
                 "2" : ('d', 'e', 'f'),
                 "3" : "test"}
-        for k, v in data.items():
+        for k, v in list(data.items()):
             self.db.db[k] = v
         self.db.store()
         fn = self.db.db_name
         self.db.close()
         db2 = self.klass(fn, self.mode)
         try:
-            self.assertEqual(len(db2.db.keys()), len(data.keys()))
-            for k, v in data.items():
+            self.assertEqual(len(list(db2.db.keys())), len(list(data.keys())))
+            for k, v in list(data.items()):
                 self.assertEqual(db2.db[k], v)
         finally:
             db2.close()
 
     def test_load_new(self):
         # Load from a non-existing db (i.e. create new).
-        self.assertEqual(self.db.db.keys(), [])
+        self.assertEqual(list(self.db.db.keys()), [])
 
 
 class MessageInfoPickleTest(MessageInfoBaseTest):
@@ -737,7 +737,7 @@ def suite():
     try:
         dbmstorage.open_best()
     except dbmstorage.error:
-        print "Skipping MessageInfoDBTest - no dbm module available"
+        print("Skipping MessageInfoDBTest - no dbm module available")
         from spambayes import message
         def always_pickle():
             return "__test.pik", "pickle"

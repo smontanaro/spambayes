@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from __future__ import generators
+
 
 # An implementation of a Bayes-like spam classifier.
 #
@@ -47,7 +47,7 @@ import re
 import os
 import sys
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from email import message_from_string
 
 DOMAIN_AND_PORT_RE = re.compile(r"([^:/\\]+)(:([\d]+))?")
@@ -556,18 +556,18 @@ class Classifier:
             port = 8080
         if server:
             # Build a new opener that uses a proxy requiring authorization
-            proxy_support = urllib2.ProxyHandler({"http" : \
+            proxy_support = urllib.request.ProxyHandler({"http" : \
                                                   "http://%s:%s@%s:%d" % \
                                                   (username, password,
                                                    server, port)})
-            opener = urllib2.build_opener(proxy_support,
-                                          urllib2.HTTPHandler)
+            opener = urllib.request.build_opener(proxy_support,
+                                          urllib.request.HTTPHandler)
         else:
             # Build a new opener without any proxy information.
-            opener = urllib2.build_opener(urllib2.HTTPHandler)
+            opener = urllib.request.build_opener(urllib.request.HTTPHandler)
 
         # Install it
-        urllib2.install_opener(opener)
+        urllib.request.install_opener(opener)
 
         # Setup the cache for retrieved urls
         age = options["URLRetriever", "x-cache_expiry_days"]*24*60*60
@@ -575,7 +575,7 @@ class Classifier:
         if not os.path.exists(dir):
             # Create the directory.
             if options["globals", "verbose"]:
-                print >> sys.stderr, "Creating URL cache directory"
+                print("Creating URL cache directory", file=sys.stderr)
             os.makedirs(dir)
 
         self.urlCorpus = ExpiryFileCorpus(age, FileMessageFactory(),
@@ -593,13 +593,13 @@ class Classifier:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Bad URL pickle, using new."
+                    print("Bad URL pickle, using new.", file=sys.stderr)
                 self.bad_urls = {"url:non_resolving": (),
                                  "url:non_html": (),
                                  "url:unknown_error": ()}
         else:
             if options["globals", "verbose"]:
-                print "URL caches don't exist: creating"
+                print("URL caches don't exist: creating")
             self.bad_urls = {"url:non_resolving": (),
                         "url:non_html": (),
                         "url:unknown_error": ()}
@@ -610,7 +610,7 @@ class Classifier:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Bad HHTP error pickle, using new."
+                    print("Bad HHTP error pickle, using new.", file=sys.stderr)
                 self.http_error_urls = {}
         else:
             self.http_error_urls = {}
@@ -648,10 +648,10 @@ class Classifier:
             url = self._base_url(url)
 
         # Check the unretrievable caches
-        for err in self.bad_urls.keys():
+        for err in list(self.bad_urls.keys()):
             if url in self.bad_urls[err]:
                 return [err]
-        if self.http_error_urls.has_key(url):
+        if url in self.http_error_urls:
             return self.http_error_urls[url]
 
         # We check if the url will resolve first
@@ -692,9 +692,9 @@ class Classifier:
                 pass
             try:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Slurping", url
-                f = urllib2.urlopen("%s://%s" % (proto, url))
-            except (urllib2.URLError, socket.error), details:
+                    print("Slurping", url, file=sys.stderr)
+                f = urllib.request.urlopen("%s://%s" % (proto, url))
+            except (urllib.error.URLError, socket.error) as details:
                 mo = HTTP_ERROR_RE.match(str(details))
                 if mo:
                     self.http_error_urls[url] = "url:http_" + mo.group(1)
@@ -781,7 +781,7 @@ class Classifier:
             yield token
 
     def _wordinfokeys(self):
-        return self.wordinfo.keys()
+        return list(self.wordinfo.keys())
 
 
 Bayes = Classifier

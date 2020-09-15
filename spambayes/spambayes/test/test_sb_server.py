@@ -84,6 +84,7 @@ import getopt
 import sys, os
 
 import sb_test_support
+from functools import reduce
 sb_test_support.fix_sys_path()
 
 from spambayes import asyncore
@@ -194,7 +195,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
 
     def onStat(self, command, args):
         """POP3 STAT command."""
-        maildropSize = reduce(operator.add, map(len, self.maildrop))
+        maildropSize = reduce(operator.add, list(map(len, self.maildrop)))
         maildropSize += len(self.maildrop) * len(HEADER_EXAMPLE)
         return "+OK %d %d\r\n" % (len(self.maildrop), maildropSize)
 
@@ -243,7 +244,7 @@ class TestPOP3Server(Dibbler.BrighterAsyncChat):
     def onTop(self, command, args):
         """POP3 RETR command."""
         try:
-            number, lines = map(int, args.split())
+            number, lines = list(map(int, args.split()))
         except ValueError:
             number, lines = -1, -1
         return self._getMessage(number, lines)
@@ -324,7 +325,7 @@ def helper():
     # Stat the mailbox to get the number of messages.
     proxy.send("stat\r\n")
     response = proxy.recv(100)
-    count, totalSize = map(int, response.split()[1:3])
+    count, totalSize = list(map(int, response.split()[1:3]))
     assert count == 3
 
     # Loop through the messages ensuring that they have judgement
@@ -373,15 +374,15 @@ def test_run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'ht')
-    except getopt.error, msg:
-        print >>sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     state.isTest = True
     runSelfTest = True
     for opt, arg in opts:
         if opt == '-h':
-            print >>sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-t':
             state.isTest = True
@@ -391,13 +392,13 @@ def test_run():
     state.createWorkers()
 
     if runSelfTest:
-        print "\nRunning self-test...\n"
+        print("\nRunning self-test...\n")
         state.buildServerStrings()
         helper()
-        print "Self-test passed."   # ...else it would have asserted.
+        print("Self-test passed.")   # ...else it would have asserted.
 
     elif state.runTestServer:
-        print "Running a test POP3 server on port 8110..."
+        print("Running a test POP3 server on port 8110...")
         Listener()
         asyncore.loop()
 

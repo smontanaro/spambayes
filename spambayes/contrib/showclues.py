@@ -149,7 +149,7 @@ if __name__ == "__main__":
         if opt in ('-m', '--markup'):
             markup = True
         elif opt in ('-h', '--help'):
-            print __doc__
+            print(__doc__)
             sys.exit()
         elif opt in ('-o', '--option'):
             options.set_from_cmdline(arg, sys.stderr)
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     for fname in args:
         mbox = mboxutils.getmbox(fname)
         for msg in mbox:
-            print ShowClues(bayes, msg, markup)
+            print(ShowClues(bayes, msg, markup))

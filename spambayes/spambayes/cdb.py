@@ -6,7 +6,7 @@ see http://cr.yp.to/cdb.html
 
 """
 
-from __future__ import generators
+
 
 import os
 import struct
@@ -23,7 +23,7 @@ CDB_HASHSTART = 5381
 def cdb_hash(buf):
     h = CDB_HASHSTART
     for c in buf:
-        h = (h + (h << 5)) & 0xffffffffL
+        h = (h + (h << 5)) & 0xffffffff
         h ^= ord(c)
     return h
 
@@ -73,19 +73,19 @@ class Cdb(object):
 
     def items(self):
         ret = []
-        for i in self.iteritems():
+        for i in self.items():
             ret.append(i)
         return ret
 
     def keys(self):
         ret = []
-        for i in self.iterkeys():
+        for i in self.keys():
             ret.append(i)
         return ret
 
     def values(self):
         ret = []
-        for i in self.itervalues():
+        for i in self.values():
             ret.append(i)
         return ret
 
@@ -150,9 +150,9 @@ class Cdb(object):
 def cdb_dump(infile):
     """dump a database in djb's cdbdump format"""
     db = Cdb(infile)
-    for key, value in db.iteritems():
-        print "+%d,%d:%s->%s" % (len(key), len(value), key, value)
-    print
+    for key, value in db.items():
+        print("+%d,%d:%s->%s" % (len(key), len(value), key, value))
+    print()
 
 def cdb_make(outfile, items):
     pos = 2048
@@ -208,12 +208,12 @@ def test():
               ])
     db.close()
     db = Cdb(open("test.cdb", 'rb'))
-    print db['one']
-    print db['two']
-    print db['foo']
-    print db['us']
-    print db.get('ec')
-    print db.get('notthere')
+    print(db['one'])
+    print(db['two'])
+    print(db['foo'])
+    print(db['us'])
+    print(db.get('ec'))
+    print(db.get('notthere'))
 
 if __name__ == '__main__':
     test()

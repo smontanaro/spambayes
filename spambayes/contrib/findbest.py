@@ -94,7 +94,7 @@ def learn(mbox, h, is_spam):
         counter(tag, i)
         i += 1
         h.train(msg, is_spam)
-    print
+    print()
 
 def score(unsure, h, cls, scores, msgids=None, skipspam=False):
     """See what effect on others each msg in unsure has"""
@@ -116,10 +116,10 @@ def score(unsure, h, cls, scores, msgids=None, skipspam=False):
             total += prob
     first_mean = total/n
 
-    print len(okalready), "out of", n, "messages already score as spam"
-    print "initial mean spam prob: %.3f" % first_mean
+    print(len(okalready), "out of", n, "messages already score as spam")
+    print("initial mean spam prob: %.3f" % first_mean)
 
-    print "%5s %3s %5s %5s %s" % ("prob", "new", "mean", "sdev", "msgid")
+    print("%5s %3s %5s %5s %s" % ("prob", "new", "mean", "sdev", "msgid"))
 
     # one by one, train on each message and see what effect it has on
     # the other messages in the mailbox
@@ -159,19 +159,19 @@ def score(unsure, h, cls, scores, msgids=None, skipspam=False):
 
         sdev = math.sqrt(sum([(mean-prob)**2 for prob in probs])/n)
 
-        print "\r%.3f %3d %.3f %.3f %s" % (msgprob, j, mean, sdev, msgid)
+        print("\r%.3f %3d %.3f %.3f %s" % (msgprob, j, mean, sdev, msgid))
 
 prog = os.path.basename(sys.argv[0])
 
 def usage(msg=None):
     if msg is not None:
-        print >> sys.stderr, msg
-    print >> sys.stderr, __doc__.strip() % globals()
+        print(msg, file=sys.stderr)
+    print(__doc__.strip() % globals(), file=sys.stderr)
 
 def main(args):
     try:
         opts, args = getopt.getopt(args, "b:sh")
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(msg)
         return 1
 
@@ -215,16 +215,16 @@ def main(args):
         usage("can't find a place to write best.pck file")
         return 1
 
-    print "establish base training"
+    print("establish base training")
 
     learn(ham, h, False)
     learn(spam, h, True)
 
-    print "scoring"
+    print("scoring")
 
     if best:
         last_scores = pickle_read(bestfile)
-        last_scores = last_scores.items()
+        last_scores = list(last_scores.items())
         last_scores.sort()
         msgids = set()
         for (k, v) in last_scores[-best:]:

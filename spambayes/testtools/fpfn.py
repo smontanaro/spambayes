@@ -26,8 +26,8 @@ def cmpf(a, b):
     ma = re.search(r'(\d+)/(\d+)$', a)
     mb = re.search(r'(\d+)/(\d+)$', b)
     if ma and mb:
-        xa, ya = map(int, ma.groups())
-        xb, yb = map(int, mb.groups())
+        xa, ya = list(map(int, ma.groups()))
+        xb, yb = list(map(int, mb.groups()))
         return cmp((xa, ya), (xb, yb))
     else:
         return cmp(a, b)
@@ -37,15 +37,15 @@ program = sys.argv[0]
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hiuo:', [])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     interactive = False
@@ -68,7 +68,7 @@ def main():
             f = open(name + ".txt")
         except IOError:
             f = open(name)
-        print "===", name, "==="
+        print("===", name, "===")
         fp = []
         fn = []
         unsures = []
@@ -82,11 +82,11 @@ def main():
         fp.sort(cmpf)
         fn.sort(cmpf)
         unsures.sort(cmpf)
-        print "--- fp ---"
+        print("--- fp ---")
         for x in fp:
             if interactive and os.path.exists(x):
-                print open(x).read()
-                answer = raw_input('(S)pam, (R)emove or (L)eave : ').lower()
+                print(open(x).read())
+                answer = input('(S)pam, (R)emove or (L)eave : ').lower()
                 if answer == 's':
                     os.rename(x, os.path.join("Data", "Spam", "reservoir",
                                               os.path.basename(x)))
@@ -95,14 +95,14 @@ def main():
                 elif answer == 'l':
                     pass
                 else:
-                    print "Unknown answer. Left."
+                    print("Unknown answer. Left.")
             else:
-                print x
-        print "--- fn ---"
+                print(x)
+        print("--- fn ---")
         for x in fn:
             if interactive and os.path.exists(x):
-                print open(x).read()
-                answer = raw_input('(H)am, (R)emove or (L)eave : ').lower()
+                print(open(x).read())
+                answer = input('(H)am, (R)emove or (L)eave : ').lower()
                 if answer == 'h':
                     os.rename(x, os.path.join("Data", "Ham", "reservoir",
                                               os.path.basename(x)))
@@ -111,16 +111,16 @@ def main():
                 elif answer == 'l':
                     pass
                 else:
-                    print "Unknown answer. Left."
+                    print("Unknown answer. Left.")
             else:
-                print x
+                print(x)
         if do_unsures:
-            print "--- unsure ---"
+            print("--- unsure ---")
             for x in unsures:
                 if interactive and os.path.exists(x):
-                    print open(x).read()
-                    print x
-                    answer = raw_input('(H)am, (S)pam, (R)emove or (L)eave : ').lower()
+                    print(open(x).read())
+                    print(x)
+                    answer = input('(H)am, (S)pam, (R)emove or (L)eave : ').lower()
                     # One of these will move from a set to the reservoir,
                     # but not change ham/spam, depending on what it was.
                     if answer == 'h':
@@ -134,9 +134,9 @@ def main():
                     elif answer == 'l':
                         pass
                     else:
-                        print "Unknown answer. Left."
+                        print("Unknown answer. Left.")
                 else:
-                    print x
+                    print(x)
 
 if __name__ == '__main__':
     main()

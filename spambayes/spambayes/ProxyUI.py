@@ -205,7 +205,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         page or zero if there isn't one, likewise the start of the given page,
         and likewise the start of the next page."""
         # Fetch all the message keys
-        allKeys = state.unknownCorpus.keys()
+        allKeys = list(state.unknownCorpus.keys())
         # We have to sort here to split into days.
         # Later on, we also sort the messages that will be on the page
         # (by whatever column we wish).
@@ -221,8 +221,8 @@ class ProxyUserInterface(UserInterface.UserInterface):
         start, end, date = self._getTimeRange(timestamp)
 
         # Find the subset of the keys within this range.
-        startKeyIndex = bisect.bisect(allKeys, "%d" % long(start))
-        endKeyIndex = bisect.bisect(allKeys, "%d" % long(end))
+        startKeyIndex = bisect.bisect(allKeys, "%d" % int(start))
+        endKeyIndex = bisect.bisect(allKeys, "%d" % int(end))
         keys = allKeys[startKeyIndex:endKeyIndex]
         keys.reverse()
 
@@ -246,7 +246,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
         numTrained = 0
         numDeferred = 0
         if params.get('go') != _('Refresh'):
-            for key, value in params.items():
+            for key, value in list(params.items()):
                 if key.startswith('classify:'):
                     old_class, id = key.split(':')[1:3]
                     if value == _('spam'):
@@ -335,7 +335,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
             except ValueError:
                 max_results = 1
             key = params['find']
-            if params.has_key('ignore_case'):
+            if 'ignore_case' in params:
                 ic = True
             else:
                 ic = False
@@ -345,38 +345,38 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 page = _("<p>You must enter a search string.</p>")
             else:
                 if len(keys) < max_results and \
-                   params.has_key('id'):
+                   'id' in params:
                     if state.unknownCorpus.get(key):
                         push((key, state.unknownCorpus))
                     elif state.hamCorpus.get(key):
                         push((key, state.hamCorpus))
                     elif state.spamCorpus.get(key):
                         push((key, state.spamCorpus))
-                if params.has_key('subject') or params.has_key('body') or \
-                   params.has_key('headers'):
+                if 'subject' in params or 'body' in params or \
+                   'headers' in params:
                     # This is an expensive operation, so let the user know
                     # that something is happening.
                     self.write(_('<p>Searching...</p>'))
                     for corp in [state.unknownCorpus, state.hamCorpus,
                                    state.spamCorpus]:
-                        for k in corp.keys():
+                        for k in list(corp.keys()):
                             if len(keys) >= max_results:
                                 break
                             msg = corp[k]
                             msg.load()
-                            if params.has_key('subject'):
+                            if 'subject' in params:
                                 subj = str(msg['Subject'])
                                 if self._contains(subj, key, ic):
                                     push((k, corp))
-                            if params.has_key('body'):
+                            if 'body' in params:
                                 # For [ 906581 ] Assertion failed in search
                                 # subject.  Can the headers be a non-string?
                                 msg_body = msg.as_string()
                                 msg_body = msg_body[msg_body.index('\r\n\r\n'):]
                                 if self._contains(msg_body, key, ic):
                                     push((k, corp))
-                            if params.has_key('headers'):
-                                for nm, val in msg.items():
+                            if 'headers' in params:
+                                for nm, val in list(msg.items()):
                                     # For [ 906581 ] Assertion failed in
                                     # search subject.  Can the headers be
                                     # a non-string?
@@ -416,7 +416,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                             }
         invalid_keys = []
         for key in keys:
-            if isinstance(key, types.TupleType):
+            if isinstance(key, tuple):
                 key, sourceCorpus = key
             else:
                 sourceCorpus = state.unknownCorpus
@@ -560,10 +560,10 @@ class ProxyUserInterface(UserInterface.UserInterface):
         restores the defaults."""
         # Re-read the options.
         global state
-        import Options
+        from . import Options
         Options.load_options()
         global options
-        from Options import options
+        from .Options import options
 
         # Recreate the state.
         state = self.state_recreator()

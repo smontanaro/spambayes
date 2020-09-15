@@ -19,12 +19,12 @@ def main():
         db_file = os.path.expanduser(DB_FILE)
     db = Cdb(open(db_file, 'rb'))
     items = []
-    for k, v in db.iteritems():
+    for k, v in db.items():
         items.append((float(v), k))
 
     items.sort()
     for v, k in items:
-        print k, v
+        print(k, v)
 
 if __name__ == "__main__":
     main()

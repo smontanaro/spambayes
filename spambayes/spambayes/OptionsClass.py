@@ -81,9 +81,9 @@ import shutil
 from tempfile import TemporaryFile
 
 try:
-    import cStringIO as StringIO
+    import io as StringIO
 except ImportError:
-    import StringIO
+    import io
 
 import re
 import types
@@ -100,7 +100,7 @@ __all__ = ['OptionsClass',
            'OCRAD_CHARSET',
           ]
 
-MultiContainerTypes = (types.TupleType, types.ListType)
+MultiContainerTypes = (tuple, list)
 
 class Option(object):
     def __init__(self, name, nice_name="", default=None,
@@ -163,7 +163,7 @@ class Option(object):
     def is_valid_single(self, value):
         '''Return True iff value is a valid value for this option.
         Use when multiple values are not allowed.'''
-        if type(self.allowed_values) == types.TupleType:
+        if type(self.allowed_values) == tuple:
             if value in self.allowed_values:
                 return True
             else:
@@ -197,7 +197,7 @@ class Option(object):
         try:
             r = re.compile(self.allowed_values)
         except:
-            print >> sys.stderr, self.allowed_values
+            print(self.allowed_values, file=sys.stderr)
             raise
         s = str(value)
         i = 0
@@ -238,7 +238,7 @@ class Option(object):
         strval.append("\t<td>%s</td>" % \
                       ", ".join([str(s) for s in self.valid_input()]))
         default = self.default()
-        if isinstance(default, types.TupleType):
+        if isinstance(default, tuple):
             default = ", ".join([str(s) for s in default])
         else:
             default = str(default)
@@ -261,7 +261,7 @@ class Option(object):
         if svt == type(value):
             # already the correct type
             return value
-        if type(self.allowed_values) == types.TupleType and \
+        if type(self.allowed_values) == tuple and \
            value in self.allowed_values:
             # already correct type
             return value
@@ -270,44 +270,44 @@ class Option(object):
                 return True
             elif str(value) == "False" or value == 0:
                 return False
-            raise TypeError, self.name + " must be True or False"
+            raise TypeError(self.name + " must be True or False")
         if self.multiple_values_allowed():
             # This will fall apart if the allowed_value is a tuple,
             # but not a homogenous one...
-            if isinstance(self.allowed_values, types.StringTypes):
+            if isinstance(self.allowed_values, (str,)):
                 vals = list(self._split_values(value))
             else:
-                if isinstance(value, types.TupleType):
+                if isinstance(value, tuple):
                     vals = list(value)
                 else:
                     vals = value.split()
             if len(self.default_value) > 0:
                 to_type = type(self.default_value[0])
             else:
-                to_type = types.StringType
+                to_type = bytes
             for i in range(0, len(vals)):
                 vals[i] = self._convert(vals[i], to_type)
             return tuple(vals)
         else:
             return self._convert(value, svt)
-        raise TypeError, self.name + " has an invalid type."
+        raise TypeError(self.name + " has an invalid type.")
 
     def _convert(self, value, to_type):
         '''Convert an int, float or string to the specified type.'''
         if to_type == type(value):
             # already the correct type
             return value
-        if to_type == types.IntType:
+        if to_type == int:
             return locale.atoi(value)
-        if to_type == types.FloatType:
+        if to_type == float:
             return locale.atof(value)
-        if to_type in types.StringTypes:
+        if to_type in (str,):
             return str(value)
-        raise TypeError, "Invalid type."
+        raise TypeError("Invalid type.")
 
     def unconvert(self):
         '''Convert value from the appropriate type to a string.'''
-        if type(self.value) in types.StringTypes:
+        if type(self.value) in (str,):
             # nothing to do
             return self.value
         if self.is_boolean():
@@ -316,12 +316,12 @@ class Option(object):
                 return "True"
             else:
                 return "False"
-        if type(self.value) == types.TupleType:
+        if type(self.value) == tuple:
             if len(self.value) == 0:
                 return ""
             if len(self.value) == 1:
                 v = self.value[0]
-                if type(v) == types.FloatType:
+                if type(v) == float:
                     return locale.str(self.value[0])
                 return str(v)
             # We need to separate out the items
@@ -336,7 +336,7 @@ class Option(object):
             # the end so that this will crash and die if none of
             # the separators works <wink>.
             if self.delimiter is None:
-                if type(self.allowed_values) == types.TupleType:
+                if type(self.allowed_values) == tuple:
                     self.delimiter = ' '
                 else:
                     v0 = self.value[0]
@@ -354,7 +354,7 @@ class Option(object):
                     # cache this so we don't always need to do the above
                     self.delimiter = sep
             for v in self.value:
-                if type(v) == types.FloatType:
+                if type(v) == float:
                     v = locale.str(v)
                 else:
                     v = str(v)
@@ -373,9 +373,9 @@ class Option(object):
         # considered valid input (and 0 and 1 don't look as nice)
         # So, just for the 2.2 people, we have this helper function
         try:
-            if type(self.allowed_values) == types.TupleType and \
+            if type(self.allowed_values) == tuple and \
                len(self.allowed_values) > 0 and \
-               type(self.allowed_values[0]) == types.BooleanType:
+               type(self.allowed_values[0]) == bool:
                 return True
             return False
         except AttributeError:
@@ -423,8 +423,8 @@ class OptionsClass(object):
             # doesn't exist, so create it - all the changed options will
             # be added to it
             if self.verbose:
-                print >> sys.stderr, "Creating new configuration file",
-                print >> sys.stderr, filename
+                print("Creating new configuration file", end=' ', file=sys.stderr)
+                print(filename, file=sys.stderr)
             f = file(filename, "w")
             f.close()
             f = file(filename, "r")
@@ -474,7 +474,7 @@ class OptionsClass(object):
                         if optval == '""':
                             optval = ''
                         optname = optname.rstrip().lower()
-                        if self._options.has_key((sectname, optname)):
+                        if (sectname, optname) in self._options:
                             out.write(optname)
                             out.write(vi)
                             newval = self.unconvert(sectname, optname)
@@ -514,7 +514,7 @@ class OptionsClass(object):
 
     def load_defaults(self, defaults):
         '''Load default values (stored in Options.py).'''
-        for section, opts in defaults.items():
+        for section, opts in list(defaults.items()):
             for opt in opts:
                 # If first item of the tuple is a sub-class of Option, then
                 # instantiate that (with the rest as args).  Otherwise,
@@ -539,7 +539,7 @@ class OptionsClass(object):
         not persist over sessions.
         '''
         self.restore_point = {}
-        for key, opt_obj in self._options.iteritems():
+        for key, opt_obj in self._options.items():
             self.restore_point[key] = opt_obj.get()
 
     def revert_to_restore_point(self):
@@ -550,7 +550,7 @@ class OptionsClass(object):
         effect.  If new options have been added since set_restore_point,
         their values are not effected.
         '''
-        for key, value in self.restore_point.iteritems():
+        for key, value in self.restore_point.items():
             self._options[key].set(value)
 
     def merge_files(self, file_list):
@@ -562,19 +562,19 @@ class OptionsClass(object):
         self.set(section, option, value)
 
     def merge_file(self, filename):
-        import ConfigParser
-        c = ConfigParser.ConfigParser()
+        import configparser
+        c = configparser.ConfigParser()
         c.read(filename)
         for sect in c.sections():
             for opt in c.options(sect):
                 value = c.get(sect, opt)
                 section = sect
                 option = opt
-                if not self._options.has_key((section, option)):
+                if (section, option) not in self._options:
                     if option.startswith('x-'):
                         # try setting option without the x- prefix
                         option = option[2:]
-                        if self._options.has_key((section, option)):
+                        if (section, option) in self._options:
                             self.convert_and_set(section, option, value)
                         # not an error if an X- option is missing
                     else:
@@ -582,14 +582,14 @@ class OptionsClass(object):
                         # going the other way, if the option has been
                         # deprecated, set its x-prefixed version and
                         # emit a warning
-                        if self._options.has_key((section, option)):
+                        if (section, option) in self._options:
                             self.convert_and_set(section, option, value)
                             self._report_deprecated_error(section, opt)
                         else:
-                            print >> sys.stderr, (
+                            print((
                                 "warning: Invalid option %s in"
                                 " section %s in file %s" %
-                                (opt, sect, filename))
+                                (opt, sect, filename)), file=sys.stderr)
                 else:
                     self.convert_and_set(section, option, value)
 
@@ -630,13 +630,13 @@ class OptionsClass(object):
 
     def get_option(self, sect, opt):
         '''Get an option.'''
-        if self.conversion_table.has_key((sect, opt)):
+        if (sect, opt) in self.conversion_table:
             sect, opt = self.conversion_table[sect, opt]
         return self._options[sect, opt.lower()]
 
     def get(self, sect, opt):
         '''Get an option value.'''
-        if self.conversion_table.has_key((sect, opt.lower())):
+        if (sect, opt.lower()) in self.conversion_table:
             sect, opt = self.conversion_table[sect, opt.lower()]
         return self.get_option(sect, opt.lower()).get()
 
@@ -645,7 +645,7 @@ class OptionsClass(object):
 
     def set(self, sect, opt, val=None):
         '''Set an option.'''
-        if self.conversion_table.has_key((sect, opt.lower())):
+        if (sect, opt.lower()) in self.conversion_table:
             sect, opt = self.conversion_table[sect, opt.lower()]
             
         # Annoyingly, we have a special case.  The notate_to and
@@ -667,9 +667,9 @@ class OptionsClass(object):
         if self.is_valid(sect, opt, val):
             self._options[sect, opt.lower()].set(val)
         else:
-            print >> sys.stderr, ("Attempted to set [%s] %s with "
+            print(("Attempted to set [%s] %s with "
                                   "invalid value %s (%s)" %
-                                  (sect, opt.lower(), val, type(val)))
+                                  (sect, opt.lower(), val, type(val))), file=sys.stderr)
 
     def set_from_cmdline(self, arg, stream=None):
         """Set option from colon-separated sect:opt:val string.
@@ -681,7 +681,7 @@ class OptionsClass(object):
         opt = opt.lower()
         try:
             val = self.convert(sect, opt, val)
-        except (KeyError, TypeError), msg:
+        except (KeyError, TypeError) as msg:
             if stream is not None:
                 self._report_option_error(sect, opt, val, stream, msg)
             else:
@@ -690,9 +690,9 @@ class OptionsClass(object):
             self.set(sect, opt, val)
 
     def _report_deprecated_error(self, sect, opt):
-        print >> sys.stderr, (
+        print((
             "Warning: option %s in section %s is deprecated" %
-            (opt, sect))
+            (opt, sect)), file=sys.stderr)
 
     def _report_option_error(self, sect, opt, val, stream, msg):
         if sect in self.sections():
@@ -700,21 +700,21 @@ class OptionsClass(object):
             vopts = [v.split(']', 1)[1] for v in vopts
                        if v.startswith('[%s]'%sect)]
             if opt not in vopts:
-                print >> stream, "Invalid option:", opt
-                print >> stream, "Valid options for", sect, "are:"
+                print("Invalid option:", opt, file=stream)
+                print("Valid options for", sect, "are:", file=stream)
                 vopts = ', '.join(vopts)
                 vopts = wrap(vopts)
                 for line in vopts:
-                    print >> stream, '  ', line
+                    print('  ', line, file=stream)
             else:
-                print >> stream, "Invalid value:", msg
+                print("Invalid value:", msg, file=stream)
         else:
-            print >> stream, "Invalid section:", sect
-            print >> stream, "Valid sections are:"
+            print("Invalid section:", sect, file=stream)
+            print("Valid sections are:", file=stream)
             vsects = ', '.join(self.sections())
             vsects = wrap(vsects)
             for line in vsects:
-                print >> stream, '  ', line
+                print('  ', line, file=stream)
 
     def __setitem__(self, key, value):
         self.set(key[0], key[1], value)
@@ -722,7 +722,7 @@ class OptionsClass(object):
     def sections(self):
         '''Return an alphabetical list of all the sections.'''
         all = []
-        for sect, opt in self._options.keys():
+        for sect, opt in list(self._options.keys()):
             if sect not in all:
                 all.append(sect)
         all.sort()
@@ -731,7 +731,7 @@ class OptionsClass(object):
     def options_in_section(self, section):
         '''Return an alphabetical list of all the options in this section.'''
         all = []
-        for sect, opt in self._options.keys():
+        for sect, opt in list(self._options.keys()):
             if sect == section:
                 all.append(opt)
         all.sort()
@@ -741,7 +741,7 @@ class OptionsClass(object):
         '''Return an alphabetical list of all the options, optionally
         prefixed with [section_name]'''
         all = []
-        for sect, opt in self._options.keys():
+        for sect, opt in list(self._options.keys()):
             if prepend_section_name:
                 all.append('[' + sect + ']' + opt)
             else:
@@ -751,8 +751,8 @@ class OptionsClass(object):
 
     def display(self, add_comments=False):
         '''Display options in a config file form.'''
-        output = StringIO.StringIO()
-        keys = self._options.keys()
+        output = io.StringIO()
+        keys = list(self._options.keys())
         keys.sort()
         currentSection = None
         for sect, opt in keys:
@@ -777,7 +777,7 @@ class OptionsClass(object):
         # Given that the Options class is no longer as nice looking
         # as it once was, this returns all the information, i.e.
         # the doc, default values, and so on
-        output = StringIO.StringIO()
+        output = io.StringIO()
 
         # when section and option are both specified, this
         # is nothing more than a call to as_nice_string
@@ -786,7 +786,7 @@ class OptionsClass(object):
             output.write(getattr(opt, formatter)(section))
             return output.getvalue()
 
-        all = self._options.keys()
+        all = list(self._options.keys())
         all.sort()
         for sect, opt in all:
             if section is not None and sect != section:
@@ -834,7 +834,7 @@ IMAP_FOLDER = r"[^,]+"
 #   where number represents the number of CHAR8 octets
 # but this is too complex for us at the moment.
 IMAP_ASTRING = []
-for _i in xrange(1, 128):
+for _i in range(1, 128):
     if chr(_i) not in ['"', '\\', '\n', '\r']:
         IMAP_ASTRING.append(chr(_i))
 del _i

@@ -9,7 +9,7 @@ import socket
 import threading
 import imaplib
 import unittest
-import StringIO
+import io
 
 try:
     IMAPError = imaplib.error
@@ -304,13 +304,13 @@ class TestIMAP4Server(Dibbler.BrighterAsyncChat):
             except TypeError:
                 simple = []
                 for part in response[msg]:
-                    if isinstance(part, types.StringTypes):
+                    if isinstance(part, (str,)):
                         simple.append(part)
                     else:
                         simple.append('%s\r\n%s)' % (part[0], part[1]))
                 simple = " ".join(simple)
             response[msg] = "* %s %s" % (msg, simple)
-        response_text = "\r\n".join(response.values())
+        response_text = "\r\n".join(list(response.values()))
         return "%s\r\n%s OK FETCH completed\r\n" % (response_text, id)
 
     def onUID(self, id, command, args, uid=False):
@@ -340,11 +340,11 @@ class IMAPSessionTest(BaseIMAPFilterTest):
     def testConnection(self):
         # Connection is made in setup, just need to check
         # that it worked.
-        self.assert_(self.imap.connected)
+        self.assertTrue(self.imap.connected)
         
     def testGoodLogin(self):
         self.imap.login(IMAP_USERNAME, IMAP_PASSWORD)
-        self.assert_(self.imap.logged_in)
+        self.assertTrue(self.imap.logged_in)
 
     def testBadLogin(self):
         self.assertRaises(LoginFailure, self.imap.login, IMAP_USERNAME,
@@ -369,14 +369,14 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # Check selection.
         self.imap.SelectFolder("Inbox")
         response = self.imap.response('OK')
-        self.assertEquals(response[0], "OK")
-        self.assert_(response[1] != [None])
+        self.assertEqual(response[0], "OK")
+        self.assertTrue(response[1] != [None])
 
         # Check that we don't reselect if we are already in that folder.
         self.imap.SelectFolder("Inbox")
         response = self.imap.response('OK')
-        self.assertEquals(response[0], "OK")
-        self.assertEquals(response[1], [None])
+        self.assertEqual(response[0], "OK")
+        self.assertEqual(response[1], [None])
 
     def test_folder_list(self):
         global FAIL_NEXT
@@ -391,8 +391,8 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         self.assertEqual(folders, correct)
 
         # Bad command.
-        print "\nYou should see a message indicating that getting the " \
-              "folder list failed."
+        print("\nYou should see a message indicating that getting the " \
+              "folder list failed.")
         FAIL_NEXT = True
         self.assertEqual(self.imap.folder_list(), [])
 
@@ -544,8 +544,8 @@ class IMAPSessionTest(BaseIMAPFilterTest):
         # at a time, and that it does collect everything.
         # Setup a fake file to read from.
         saved_file = self.imap.file
-        self.imap.file = StringIO.StringIO()
-        self.imap.file.write("".join(IMAP_MESSAGES.values()*10))
+        self.imap.file = io.StringIO()
+        self.imap.file.write("".join(list(IMAP_MESSAGES.values())*10))
         self.imap.file.seek(0)
         try:
             # First check when the size is less than the maximum.
@@ -632,7 +632,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
 
         new_msg2 = new_msg.get_full_message()
         # These should be the same object, not just equal.
-        self.assert_(new_msg is new_msg2)
+        self.assertTrue(new_msg is new_msg2)
 
     def test_get_bad_message(self):
         self.msg.id = "unittest"
@@ -640,8 +640,8 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         self.msg.imap_server.select()
         self.msg.uid = 103 # id of malformed message in dummy server
         self.msg.folder = IMAPFolder("Inbox", self.msg.imap_server, None)
-        print "\nWith email package versions less than 3.0, you should " \
-              "see an error parsing the message."
+        print("\nWith email package versions less than 3.0, you should " \
+              "see an error parsing the message.")
         new_msg = self.msg.get_full_message()
         # With Python < 2.4 (i.e. email < 3.0) we get an exception
         # header.  With more recent versions, we get a defects attribute.
@@ -650,7 +650,7 @@ class IMAPMessageTest(BaseIMAPFilterTest):
         # Python 2.4/email 3.0.
         has_header = new_msg.as_string().find("X-Spambayes-Exception: ") != -1
         has_defect = hasattr(new_msg, "defects") and len(new_msg.defects) > 0
-        self.assert_(has_header or has_defect)
+        self.assertTrue(has_header or has_defect)
 
     def test_get_memory_error_message(self):
         # XXX Figure out a way to trigger a memory error - but not in
@@ -675,7 +675,7 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         self.assertNotEqual(self.folder, folder3)
         
     def test_iter(self):
-        keys = self.folder.keys()
+        keys = list(self.folder.keys())
         for msg in self.folder:
             msg = msg.get_full_message()
             msg_correct = email.message_from_string(IMAP_MESSAGES[int(keys[0])],
@@ -687,7 +687,7 @@ class IMAPFolderTest(BaseIMAPFilterTest):
             keys = keys[1:]
 
     def test_keys(self):
-        keys = self.folder.keys()
+        keys = list(self.folder.keys())
         # We get back UIDs, not IDs, so convert to check.
         correct_keys = [str(IMAP_UIDS[id]) for id in UNDELETED_IDS]
         self.assertEqual(keys, correct_keys)
@@ -738,7 +738,7 @@ class IMAPFolderTest(BaseIMAPFilterTest):
         self.assertNotEqual(id1, id4)
         self.assertNotEqual(id2, id4)
         self.assertNotEqual(id3, id4)
-        self.assert_('-' not in id4)
+        self.assertTrue('-' not in id4)
         
     def test_Train(self):
         # XXX To-do
@@ -809,8 +809,8 @@ class InterfaceTest(unittest.TestCase):
 
     def tearDown(self):
         options["imap", "server"] = self.saved_server
-        # Shutdown as though through the web UI.
-        from urllib import urlopen, urlencode
+        from urllib.request import urlopen
+        from urllib.parse import urlencode
         urlopen('http://localhost:%d/save' % options["html_ui", "port"],
                 urlencode({'how': _('Save & shutdown')})).read()
 
@@ -824,7 +824,7 @@ class InterfaceTest(unittest.TestCase):
             packet = httpServer.recv(1024)
             if not packet: break
             response += packet
-        self.assert_(re.search(r"(?s)<html>.*SpamBayes IMAP Filter.*</html>",
+        self.assertTrue(re.search(r"(?s)<html>.*SpamBayes IMAP Filter.*</html>",
                                response))
 
 

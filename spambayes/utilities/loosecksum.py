@@ -43,7 +43,7 @@ def flatten(obj):
         return flatten(obj.get_payload())
     if isinstance(obj, list):
         return "\n".join([flatten(b) for b in obj])
-    raise TypeError, ("unrecognized body type: %s" % type(obj))
+    raise TypeError("unrecognized body type: %s" % type(obj))
 
 def generate_checksum(msg):
     data = flatten(msg)
@@ -92,7 +92,7 @@ def main(args):
 
     for mbox in mboxes:
         for msg in mbox:
-            print generate_checksum(msg)
+            print(generate_checksum(msg))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

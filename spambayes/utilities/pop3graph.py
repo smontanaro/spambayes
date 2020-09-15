@@ -4,7 +4,7 @@
 classifier has been over time.  Only really meaningful if you started
 with an empty database."""
 
-from __future__ import division
+
 
 import sys
 import getopt
@@ -14,7 +14,7 @@ from spambayes.FileCorpus import FileCorpus, FileMessageFactory, GzipFileMessage
 from spambayes.Options import options
 
 def usage():
-    print __doc__
+    print(__doc__)
 
 def main(argv):
     opts, args = getopt.getopt(argv, "h", ["help"])
@@ -43,7 +43,7 @@ def main(argv):
 
     # Sort the messages into the order they arrived, then work out a scaling
     # factor for the graph - 'limit' is the widest it can be in characters.
-    keys = allTrained.keys()
+    keys = list(allTrained.keys())
     keys.sort()
     limit = 70
     if len(keys) < limit:
@@ -74,18 +74,18 @@ def main(argv):
     graph.reverse()
 
     # Print the graph.
-    print "\n   Success of the classifier over time:\n"
-    print "   . - Number of messages over time"
-    print "   * - Number of correctly classified messages over time\n\n"
+    print("\n   Success of the classifier over time:\n")
+    print("   . - Number of messages over time")
+    print("   * - Number of correctly classified messages over time\n\n")
     for row in range(size):
         line = ''.join(graph[row])
         if row == 0:
-            print line + " %d" % count
+            print(line + " %d" % count)
         elif row == (count - successful) // scale:
-            print line + " %d" % successful
+            print(line + " %d" % successful)
         else:
-            print line
-    print " " + "_" * (size+2)
+            print(line)
+    print(" " + "_" * (size+2))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

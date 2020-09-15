@@ -31,7 +31,7 @@ DB_FILE = os.path.expanduser(DB_FILE)
 
 def import_spambayes():
     global mboxutils, CdbClassifier, tokenize
-    if not os.environ.has_key('BAYESCUSTOMIZE'):
+    if 'BAYESCUSTOMIZE' not in os.environ:
         os.environ['BAYESCUSTOMIZE'] = os.path.expanduser(CONFIG_FILE)
     from spambayes import mboxutils
     from spambayes.cdb_classifier import CdbClassifier
@@ -43,28 +43,28 @@ program = sys.argv[0] # For usage(); referenced by docstring above
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def maketmp(dir):
     hostname = socket.gethostname()
     pid = os.getpid()
     fd = -1
-    for x in xrange(200):
+    for x in range(200):
         filename = "%d.%d.%s" % (time.time(), pid, hostname)
         pathname = "%s/tmp/%s" % (dir, filename)
         try:
-            fd = os.open(pathname, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0600)
-        except IOError, exc:
+            fd = os.open(pathname, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
+        except IOError as exc:
             if exc[0] not in (errno.EINT, errno.EEXIST):
                 raise
         else:
             break
         time.sleep(2)
     if fd == -1:
-        raise SystemExit, "could not create a mail file"
+        raise SystemExit("could not create a mail file")
     return (os.fdopen(fd, "wb"), pathname, filename)
 
 def train(bayes, msgs, is_spam):
@@ -78,18 +78,18 @@ def train_messages(ham_name, spam_name):
 
     rc_dir = os.path.expanduser(RC_DIR)
     if not os.path.exists(rc_dir):
-        print "Creating", RC_DIR, "directory..."
+        print("Creating", RC_DIR, "directory...")
         os.mkdir(rc_dir)
     bayes = CdbClassifier()
-    print 'Training with ham...'
+    print('Training with ham...')
     train(bayes, ham_name, False)
-    print 'Training with spam...'
+    print('Training with spam...')
     train(bayes, spam_name, True)
-    print 'Update probabilities and writing DB...'
+    print('Update probabilities and writing DB...')
     db = open(DB_FILE, "wb")
     bayes.save_wordinfo(db)
     db.close()
-    print 'done'
+    print('done')
 
 def filter_message(hamdir, spamdir):
     signal.signal(signal.SIGALRM, lambda s, f: sys.exit(1))
@@ -133,16 +133,16 @@ def print_message_score(msg_name, msg_fp):
     msg = email.message_from_file(msg_fp)
     bayes = CdbClassifier(open(DB_FILE, 'rb'))
     prob, evidence = bayes.spamprob(tokenize(msg), evidence=True)
-    print msg_name, prob
+    print(msg_name, prob)
     for word, prob in evidence:
-        print '  ', repr(word), prob
+        print('  ', repr(word), prob)
 
 def main():
     global DB_FILE, CONFIG_FILE
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'tsd:c:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     mode = 'sort'

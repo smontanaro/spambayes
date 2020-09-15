@@ -15,7 +15,7 @@ Functions:
         Trains a DBX file as spam or ham through Hammie
 """
 
-from __future__ import generators
+
 
 # This module is part of the spambayes project, which is Copyright 2002-2007
 # The Python Software Foundation and is covered by the Python Software
@@ -34,9 +34,9 @@ import struct
 import random
 from time import *
 try:
-    import cStringIO as StringIO
+    import io as StringIO
 except ImportError:
-    import StringIO
+    import io
 
 from spambayes import msgs
 
@@ -66,10 +66,10 @@ class dbxFileHeader:
     HEADER_SIZE    = 0x24bc              # total header size
     HEADER_ENTRIES = HEADER_SIZE >> 2    # total of entries in the header
 
-    MAGIC_NUMBER   = 0xfe12adcfL         # specific to DBX files
-    OFFLINE        = 0x26fe9d30L         # specific to offline.dbx
-    FOLDERS        = 0x6f74fdc6L         # specific to folders.dbx
-    POP3UIDL       = 0x6f74fdc7L         # specific to pop3uidl.dbx
+    MAGIC_NUMBER   = 0xfe12adcf         # specific to DBX files
+    OFFLINE        = 0x26fe9d30         # specific to offline.dbx
+    FOLDERS        = 0x6f74fdc6         # specific to folders.dbx
+    POP3UIDL       = 0x6f74fdc7         # specific to pop3uidl.dbx
 
     # various entries indexes
     FH_FILE_INFO_LENGTH       = 0x07     # file info length
@@ -256,13 +256,13 @@ class dbxIndexedInfo:
 
     def __init__(self, dbxStream, dbxAddress):
         """Reads the indexed infos from the passed stream."""
-        self.dbxBodyLength   = 0L
-        self.dbxObjectLength = 0L
-        self.dbxEntries      = 0L
-        self.dbxCounter      = 0L
+        self.dbxBodyLength   = 0
+        self.dbxObjectLength = 0
+        self.dbxEntries      = 0
+        self.dbxCounter      = 0
         self.dbxBuffer       = []
-        self.dbxIndexes      = 0L
-        self.dbxBegin        = [0L for i in range(dbxIndexedInfo.MAX_INDEX)]
+        self.dbxIndexes      = 0
+        self.dbxBegin        = [0 for i in range(dbxIndexedInfo.MAX_INDEX)]
         self.dbxLength       = [i  for i in self.dbxBegin]
         self.dbxAddress       = dbxAddress
         self.__readIndexedInfo(dbxStream)
@@ -422,7 +422,7 @@ class dbxMessage:
     def __init__(self, dbxStream, dbxAddress):
         self.dbxAddress = dbxAddress
         self.dbxText   = ""
-        self.dbxLength = 0L
+        self.dbxLength = 0
         self.__readMessageText(dbxStream)
 
     def __getEntry(self, dbxBuffer, dbxEntry):
@@ -462,7 +462,7 @@ def convertToMbox(content):
     into mbox format if so.  If it's already an mbox, return it unchanged.
     """
 
-    dbxStream = StringIO.StringIO(content)
+    dbxStream = io.StringIO(content)
     header = dbxFileHeader(dbxStream)
 
     if header.isValid() and header.isMessages():
@@ -625,9 +625,9 @@ def OEAccountKeys(permission = None):
                 index += 1
 
             # Yield, as appropriate.
-            if account.has_key("POP3 Server"):
+            if "POP3 Server" in account:
                 yield("POP3", subkey, account)
-            elif account.has_key("IMAP Server"):
+            elif "IMAP Server" in account:
                 yield("IMAP4", subkey, account)
 
 def OEIsInstalled():
@@ -696,14 +696,14 @@ def test():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hp')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     print_message = False
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-p':
             print_message = True
@@ -713,18 +713,18 @@ def test():
 
     for file in files:
         try:
-            print
-            print file
+            print()
+            print(file)
 
             dbx = open(file, "rb", 0)
             header = dbxFileHeader(dbx)
 
-            print "IS VALID DBX  :", header.isValid()
+            print("IS VALID DBX  :", header.isValid())
 
             if header.isMessages():
                 info = dbxFileInfo(dbx, header.getEntry(dbxFileHeader.FH_FILE_INFO_LENGTH))
-                print "MAILBOX NAME  :", info.getFolderName()
-                print "CREATION TIME :", info.getCreationTime()
+                print("MAILBOX NAME  :", info.getFolderName())
+                print("CREATION TIME :", info.getCreationTime())
 
                 entries = header.getEntry(dbxFileHeader.FH_ENTRIES)
                 address  = header.getEntry(dbxFileHeader.FH_TREE_ROOT_NODE_PTR)
@@ -741,16 +741,17 @@ def test():
                         message        = dbxMessage(dbx, messageAddress)
 
                         if print_message:
-                            print
-                            print "Message :", messageInfo.getString(dbxMessageInfo.MI_SUBJECT)
-                            print "=" * (len(messageInfo.getString(dbxMessageInfo.MI_SUBJECT)) + 9)
-                            print
-                            print message.getText()
+                            print()
+                            print("Message :", messageInfo.getString(dbxMessageInfo.MI_SUBJECT))
+                            print("=" * (len(messageInfo.getString(dbxMessageInfo.MI_SUBJECT)) + 9))
+                            print()
+                            print(message.getText())
 
             dbx.close()
 
-        except Exception, (strerror):
-            print strerror
+        except Exception as xxx_todo_changeme:
+            (strerror) = xxx_todo_changeme
+            print(strerror)
 
 
 if __name__ == '__main__':

@@ -37,9 +37,9 @@ nmess = None            # -m
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def distribute(dir):
@@ -102,7 +102,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hn:g:m:o:', ['option='])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     if args:
@@ -125,7 +125,7 @@ def main():
 
     distribute(hamdir)
     distribute(spamdir)
-    print
+    print()
 
 
 if __name__ == "__main__":

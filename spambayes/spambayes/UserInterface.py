@@ -72,7 +72,7 @@ import binascii
 import cgi
 import mailbox
 import types
-import StringIO
+import io
 from email.Iterators import typed_subpart_iterator
 from textwrap import wrap
 
@@ -108,7 +108,7 @@ class UserInterfaceServer(Dibbler.HTTPServer):
 
     def __init__(self, uiPort):
         Dibbler.HTTPServer.__init__(self, uiPort)
-        print _('User interface url is http://localhost:%d/') % (uiPort)
+        print(_('User interface url is http://localhost:%d/') % (uiPort))
 
     def requestAuthenticationMode(self):
         return options["html_ui", "http_authentication"]
@@ -232,8 +232,8 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     # If you are easily offended, look away now...
     for imageName in IMAGES:
-        exec "def %s(self): self._writeImage('%s')" % \
-             ("on%sGif" % imageName.capitalize(), imageName)
+        exec("def %s(self): self._writeImage('%s')" % \
+             ("on%sGif" % imageName.capitalize(), imageName))
 
     def _buildBox(self, heading, icon, content):
         """Builds a yellow-headed HTML box."""
@@ -444,7 +444,7 @@ class UserInterface(BaseUserInterface):
 
         self._writePreamble(_("Word query"))
         if len(stats) == 1:
-            if isinstance(stat, types.TupleType):
+            if isinstance(stat, tuple):
                 stat = self.html.wordStats.clone()
                 word = stats[0][0]
                 stat.spamcount = stats[0][1]
@@ -462,7 +462,7 @@ class UserInterface(BaseUserInterface):
             page.multiTable += self.html.multiHeader.clone()
             stripe = 0
             for stat in stats:
-                if isinstance(stat, types.TupleType):
+                if isinstance(stat, tuple):
                     row = self.html.statsRow.clone()
                     row.word, row.spamcount, row.hamcount = stat[:3]
                     row.spamprob = "%.6f" % stat[3]
@@ -540,7 +540,7 @@ class UserInterface(BaseUserInterface):
                     count = -1
                     def generate_name(self):
                         self.count += 1
-                        return "%10.10d-%d" % (long(time.time()), self.count)
+                        return "%10.10d-%d" % (int(time.time()), self.count)
                 Namer = UniqueNamer()
                 self.msg_name_func = Namer.generate_name
 
@@ -583,9 +583,9 @@ class UserInterface(BaseUserInterface):
             class SimpleMessage:
                 def __init__(self, fp):
                     self.guts = fp.read()
-            contentFile = StringIO.StringIO(content)
+            contentFile = io.StringIO(content)
             mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
-            return map(lambda m: m.guts, mbox)
+            return [m.guts for m in mbox]
         else:
             # Just the one message.
             return [content]
@@ -732,7 +732,7 @@ class UserInterface(BaseUserInterface):
                 valid_input = options.valid_input(sect, opt)
 
             # Populate the rows with the details and add them to the table.
-            if isinstance(valid_input, types.StringTypes):
+            if isinstance(valid_input, (str,)):
                 # we provide a text input
                 newConfigRow1 = configTextRow1.clone()
                 newConfigRow1.label = options.display_name(sect, opt)
@@ -780,7 +780,7 @@ class UserInterface(BaseUserInterface):
             newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]
 
-            if type(currentValue) in types.StringTypes:
+            if type(currentValue) in (str,):
                 currentValue = currentValue.replace(',', ', ')
                 newConfigRow2 = configTextRow2.clone()
             else:
@@ -811,7 +811,7 @@ class UserInterface(BaseUserInterface):
 
     def onChangeopts(self, **parms):
         pmap = self.parm_ini_map
-        if parms.has_key("how"):
+        if "how" in parms:
             if parms["how"] == _("Save advanced options"):
                 pmap = self.advanced_options_map
             elif parms["how"] == _("Save experimental options"):
@@ -836,7 +836,7 @@ class UserInterface(BaseUserInterface):
         old_database_type = options["Storage", "persistent_use_database"]
         old_name = options["Storage", "persistent_storage_file"]
 
-        for name, value in parms.items():
+        for name, value in list(parms.items()):
             sect, opt = name.split('_', 1)
             if (sect, opt) in pmap:
                 options.set(sect, opt, value)
@@ -920,9 +920,9 @@ class UserInterface(BaseUserInterface):
         # mumbo-jumbo to deal with the checkboxes
         # XXX This will break with more than 9 checkboxes
         # XXX A better solution is needed than this
-        for name, value in parms.items():
+        for name, value in list(parms.items()):
             if name[-2:-1] == '-':
-                if parms.has_key(name[:-2]):
+                if name[:-2] in parms:
                     parms[name[:-2]] += (value,)
                 else:
                     parms[name[:-2]] = (value,)
@@ -948,7 +948,7 @@ class UserInterface(BaseUserInterface):
                 valid_input = options.valid_input(sect, opt)
 
             html_key = sect + '_' + opt
-            if not parms.has_key(html_key):
+            if html_key not in parms:
                 # This is a set of checkboxes where none are selected
                 value = ()
                 entered_value = "None"
@@ -969,7 +969,7 @@ class UserInterface(BaseUserInterface):
                 errmsg += _('<li>\'%s\' is not a value valid for [%s] %s') % \
                           (entered_value, nice_section_name,
                            options.display_name(sect, opt))
-                if isinstance(valid_input, types.TupleType):
+                if isinstance(valid_input, tuple):
                     errmsg += _('. Valid values are: ')
                     for valid in valid_input:
                         errmsg += str(valid) + ','
@@ -1071,7 +1071,7 @@ class UserInterface(BaseUserInterface):
             if hasattr(sys, "frozen"):
                 temp_dir = win32api.GetTempPath()
                 for name in ["SpamBayesService", "SpamBayesServer"]:
-                    for i in xrange(3):
+                    for i in range(3):
                         pn = os.path.join(temp_dir, "%s%d.log" % (name,
                                                                   (i+1)))
                         if os.path.exists(pn):
@@ -1233,7 +1233,7 @@ class UserInterface(BaseUserInterface):
         """Given a message key (as seen in a Corpus), returns the timestamp
         for that message.  This is the time that the message was received,
         not the Date header."""
-        return long(key[:10])
+        return int(key[:10])
 
     def _getTimeRange(self, timestamp):
         """Given a unix timestamp, returns a 3-tuple: the start timestamp
@@ -1319,7 +1319,7 @@ class UserInterface(BaseUserInterface):
             # Apart from any message headers, we may also wish to display
             # the message score, and the time the message was received.
             if options["html_ui", "display_score"]:
-                if isinstance(messageInfo.score, types.StringTypes):
+                if isinstance(messageInfo.score, (str,)):
                     # Presumably either "?" or "Err".
                     row.score_ = messageInfo.score
                 else:
@@ -1350,8 +1350,8 @@ class UserInterface(BaseUserInterface):
 
     def _contains(self, a, b, ignore_case=False):
         """Return true if substring b is part of string a."""
-        assert isinstance(a, types.StringTypes)
-        assert isinstance(b, types.StringTypes)
+        assert isinstance(a, (str,))
+        assert isinstance(b, (str,))
         if ignore_case:
             a = a.lower()
             b = b.lower()
@@ -1390,11 +1390,11 @@ class UserInterface(BaseUserInterface):
             # We'll go with the latter.
             score = "?"
         try:
-            part = typed_subpart_iterator(message, 'text', 'plain').next()
+            part = next(typed_subpart_iterator(message, 'text', 'plain'))
             text = part.get_payload()
         except StopIteration:
             try:
-                part = typed_subpart_iterator(message, 'text', 'html').next()
+                part = next(typed_subpart_iterator(message, 'text', 'html'))
                 text = part.get_payload()
                 text, unused = tokenizer.crack_html_style(text)
                 text, unused = tokenizer.crack_html_comment(text)
@@ -1414,7 +1414,7 @@ class UserInterface(BaseUserInterface):
         class _MessageInfo:
             pass
         messageInfo = _MessageInfo()
-        for headerName, headerValue in headers.items():
+        for headerName, headerValue in list(headers.items()):
             headerValue = self._trimHeader(headerValue, 45, True)
             setattr(messageInfo, "%sHeader" % (headerName,), headerValue)
         messageInfo.score = score

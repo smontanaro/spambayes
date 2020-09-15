@@ -12,8 +12,8 @@ from pspam.message import PMessage
 def factory(fp):
     try:
         return email.message_from_file(fp, PMessage)
-    except email.Errors.MessageError, msg:
-        print msg
+    except email.Errors.MessageError as msg:
+        print(msg)
         return PMessage()
 
 class Folder(Persistent):
@@ -52,21 +52,21 @@ class Folder(Persistent):
         cur = OOSet()
         new = OOSet()
         while 1:
-            msg = mbox.next()
+            msg = next(mbox)
             if msg is None:
                 break
             msgid = msg["message-id"]
             cur.insert(msgid)
-            if not self.messages.has_key(msgid):
+            if msgid not in self.messages:
                 self.messages[msgid] = msg
                 new.insert(msg)
 
         removed = difference(self.messages, cur)
-        for msgid in removed.keys():
+        for msgid in list(removed.keys()):
             del self.messages[msgid]
 
         # XXX perhaps just return the OOBTree for removed?
-        return new, OOSet(removed.values())
+        return new, OOSet(list(removed.values()))
 
 if __name__ == "__main__":
     f = Folder("/home/jeremy/Mail/INBOX")

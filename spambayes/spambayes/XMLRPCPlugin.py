@@ -44,10 +44,10 @@ __credits__ = "All the Spambayes folk."
 # Foundation license.
 
 import threading
-import xmlrpclib
+import xmlrpc.client
 import time
 from email import Message, message_from_string
-from SimpleXMLRPCServer import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCServer
 
 from spambayes.CorePlugin import Plugin, PluginUI
 from spambayes.Options import _, options
@@ -82,16 +82,16 @@ class XMLRPCPlugin(Plugin):
         if method in ("score", "score_mime", "train", "train_mime"):
             return getattr(self, method)(*params)
         else:
-            raise xmlrpclib.Fault(404, '"%s" is not supported' % method)
+            raise xmlrpc.client.Fault(404, '"%s" is not supported' % method)
 
     def train(self, form_dict, extra_tokens, attachments, is_spam=True):
         newdict = {}
-        for (i, k) in form_dict.items():
-            if isinstance(k, unicode):
+        for (i, k) in list(form_dict.items()):
+            if isinstance(k, str):
                 k = k.encode("utf-8")
             newdict[i] = k
         mime_message = form_to_mime(newdict, extra_tokens, attachments)
-        mime_message = unicode(mime_message.as_string(), "utf-8").encode("utf-8")
+        mime_message = str(mime_message.as_string(), "utf-8").encode("utf-8")
         self.train_mime(mime_message, "utf-8", is_spam)
         return ""
     
@@ -101,9 +101,9 @@ class XMLRPCPlugin(Plugin):
         # Get msg_text into canonical string representation.
         # Make sure we have a unicode object...
         if isinstance(msg_text, str):
-            msg_text = unicode(msg_text, encoding)
+            msg_text = str(msg_text, encoding)
         # ... then encode it as utf-8.
-        if isinstance(msg_text, unicode):
+        if isinstance(msg_text, str):
             msg_text = msg_text.encode("utf-8")
         msg = message_from_string(msg_text,
                                   _class=spambayes.message.SBHeaderMessage)
@@ -139,11 +139,11 @@ class XMLRPCPlugin(Plugin):
                     count = -1
                     def generate_name(self):
                         self.count += 1
-                        return "%10.10d-%d" % (long(time.time()), self.count)
+                        return "%10.10d-%d" % (int(time.time()), self.count)
                 Namer = UniqueNamer()
                 self.msg_name_func = Namer.generate_name
         key = self.msg_name_func()
-        mime_message = unicode(msg.as_string(), "utf-8").encode("utf-8")
+        mime_message = str(msg.as_string(), "utf-8").encode("utf-8")
         msg = corpus.makeMessage(key, mime_message)
         msg.setId(key)
         corpus.addMessage(msg)
@@ -163,12 +163,12 @@ class XMLRPCPlugin(Plugin):
     def score(self, form_dict, extra_tokens, attachments):
         """Score a dictionary + extra tokens."""
         newdict = {}
-        for (i, k) in form_dict.items():
-            if isinstance(k, unicode):
+        for (i, k) in list(form_dict.items()):
+            if isinstance(k, str):
                 k = k.encode("utf-8")
             newdict[i] = k
         mime_message = form_to_mime(newdict, extra_tokens, attachments)
-        mime_message = unicode(mime_message.as_string(), "utf-8").encode("utf-8")
+        mime_message = str(mime_message.as_string(), "utf-8").encode("utf-8")
         return self.score_mime(mime_message, "utf-8")
 
     def score_mime(self, msg_text, encoding):
@@ -184,9 +184,9 @@ class XMLRPCPlugin(Plugin):
         # Get msg_text into canonical string representation.
         # Make sure we have a unicode object...
         if isinstance(msg_text, str):
-            msg_text = unicode(msg_text, encoding)
+            msg_text = str(msg_text, encoding)
         # ... then encode it as utf-8.
-        if isinstance(msg_text, unicode):
+        if isinstance(msg_text, str):
             msg_text = msg_text.encode("utf-8")
         msg = message_from_string(msg_text,
                                   _class=spambayes.message.SBHeaderMessage)
@@ -232,7 +232,7 @@ def form_to_mime(form, extra_tokens, attachments):
 
     main = Message.Message()
     main.set_type("text/plain")
-    main.set_payload("\n".join(["%s:%s" % (k, v) for (k, v) in form.items()]))
+    main.set_payload("\n".join(["%s:%s" % (k, v) for (k, v) in list(form.items())]))
     msg.attach(main)
 
     # Always add the extra tokens payload so we can reliably reverse the

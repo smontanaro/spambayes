@@ -20,7 +20,7 @@ import getopt
 
 def unheader(msg, pat):
     pat = re.compile(pat)
-    for hdr in msg.keys():
+    for hdr in list(msg.keys()):
         if pat.match(hdr):
             del msg[hdr]
 
@@ -34,12 +34,12 @@ class Message(email.Message.Message):
         KeyError is raised.
         """
         _name = _name.lower()
-        for i, (k, v) in zip(range(len(self._headers)), self._headers):
+        for i, (k, v) in zip(list(range(len(self._headers))), self._headers):
             if k.lower() == _name:
                 self._headers[i] = (k, _value)
                 break
         else:
-            raise KeyError, _name
+            raise KeyError(_name)
 
 class Parser(email.Parser.HeaderParser):
     def __init__(self):
@@ -88,25 +88,25 @@ def process_mailbox(f, dosa=1, pats=None):
 def process_maildir(d, dosa=1, pats=None):
     parser = Parser()
     for fn in glob.glob(os.path.join(d, "cur", "*")):
-        print ("reading from %s..." % fn),
+        print(("reading from %s..." % fn), end=' ')
         file = open(fn)
         msg = parser.parse(file)
         process_message(msg, dosa, pats)
 
         tmpfn = os.path.join(d, "tmp", os.path.basename(fn))
         tmpfile = open(tmpfn, "w")
-        print "writing to %s" % tmpfn
+        print("writing to %s" % tmpfn)
         gen = email.Generator.Generator(tmpfile, maxheaderlen=0)
         gen.flatten(msg, unixfrom=0)
 
         os.rename(tmpfn, fn)
 
 def usage():
-    print >> sys.stderr, "usage: unheader.py [ -p pat ... ] [ -s ] folder"
-    print >> sys.stderr, "-p pat gives a regex pattern used to eliminate unwanted headers"
-    print >> sys.stderr, "'-p pat' may be given multiple times"
-    print >> sys.stderr, "-s tells not to remove SpamAssassin headers"
-    print >> sys.stderr, "-d means treat folder as a Maildir"
+    print("usage: unheader.py [ -p pat ... ] [ -s ] folder", file=sys.stderr)
+    print("-p pat gives a regex pattern used to eliminate unwanted headers", file=sys.stderr)
+    print("'-p pat' may be given multiple times", file=sys.stderr)
+    print("-s tells not to remove SpamAssassin headers", file=sys.stderr)
+    print("-d means treat folder as a Maildir", file=sys.stderr)
 
 def main(args):
     headerpats = []

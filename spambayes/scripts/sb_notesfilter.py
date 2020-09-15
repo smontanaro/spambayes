@@ -130,7 +130,7 @@ To Do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-from __future__ import generators
+
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "Mark Hammond, for his remarkable win32 modules."
@@ -150,7 +150,7 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
 
     # the notesindex hash ensures that a message is looked at only once
 
-    if len(notesindex.keys()) == 0:
+    if len(list(notesindex.keys())) == 0:
         firsttime = 1
     else:
         firsttime = 0
@@ -167,7 +167,7 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
         if firsttime:
             notesindex[nid] = 'never classified'
         else:
-            if not notesindex.has_key(nid):
+            if nid not in notesindex:
                 numdocs += 1
 
                 # Notes returns strings in unicode, and the Python
@@ -193,12 +193,12 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
                 notesindex[nid] = 'classified'
                 subj = message["subject"]
                 try:
-                    print "%s spamprob is %s" % (subj[:30], prob)
+                    print("%s spamprob is %s" % (subj[:30], prob))
                     if log:
                         log.LogAction("%s spamprob is %s" % (subj[:30],
                                                              prob))
                 except UnicodeError:
-                    print "<subject not printed> spamprob is %s" % (prob)
+                    print("<subject not printed> spamprob is %s" % (prob))
                     if log:
                         log.LogAction("<subject not printed> spamprob " \
                                       "is %s" % (prob,))
@@ -215,10 +215,10 @@ def classifyInbox(v, vmoveto, bayes, ldbname, notesindex, log):
         doc.RemoveFromFolder(v.Name)
         doc.PutInFolder(vmoveto.Name)
 
-    print "%s documents processed" % (numdocs,)
-    print "   %s classified as spam" % (numspam,)
-    print "   %s classified as ham" % (numham,)
-    print "   %s classified as unsure" % (numuns,)
+    print("%s documents processed" % (numdocs,))
+    print("   %s classified as spam" % (numspam,))
+    print("   %s classified as ham" % (numham,))
+    print("   %s classified as unsure" % (numuns,))
     if log:
         log.LogAction("%s documents processed" % (numdocs,))
         log.LogAction("   %s classified as spam" % (numspam,))
@@ -254,7 +254,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex, log):
     else:
         header_str = options["Headers", "header_ham_string"]
 
-    print "Training %s" % (header_str,)
+    print("Training %s" % (header_str,))
 
     docstomove = []
     doc = v.GetFirstDocument()
@@ -265,7 +265,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex, log):
         tokens = tokenizer.tokenize(message)
 
         nid = doc.NOTEID
-        if notesindex.has_key(nid):
+        if nid in notesindex:
             trainedas = notesindex[nid]
             if trainedas == options["Headers", "header_spam_string"] and \
                not is_spam:
@@ -286,7 +286,7 @@ def processAndTrain(v, vmoveto, bayes, is_spam, notesindex, log):
         doc.RemoveFromFolder(v.Name)
         doc.PutInFolder(vmoveto.Name)
 
-    print "%s documents trained" % (len(docstomove),)
+    print("%s documents trained" % (len(docstomove),))
     if log:
         log.LogAction("%s documents trained" % (len(docstomove),))
 
@@ -297,12 +297,12 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
 
     try:
         notesindex = pickle_read(idxname)
-    except IOError, e:
+    except IOError as e:
         if e.errno != errno.ENOENT:
             raise
         notesindex = {}
-        print "%s file not found, this is a first time run" % (idxname,)
-        print "No classification will be performed"
+        print("%s file not found, this is a first time run" % (idxname,))
+        print("No classification will be performed")
 
     need_replicate = False
 
@@ -313,18 +313,18 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
         else:
             sess.initialize()
     except pywintypes.com_error:
-        print "Session aborted"
+        print("Session aborted")
         sys.exit()
     try:
         db = sess.GetDatabase(rdbname, ldbname)
     except pywintypes.com_error:
         if rdbname:
-            print "Could not open database remotely, trying locally"
+            print("Could not open database remotely, trying locally")
             try:
                 db = sess.GetDatabase("", ldbname)
                 need_replicate = True
             except pywintypes.com_error:
-                print "Could not open database"
+                print("Could not open database")
                 sys.exit()
         else:
             raise
@@ -333,7 +333,7 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
     try:
         log.OpenNotesLog("", logname)
     except pywintypes.com_error:
-        print "Could not open log"
+        print("Could not open log")
         log = None
 
     if log:
@@ -352,17 +352,17 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
 
     if need_replicate:
         try:
-            print "Replicating..."
+            print("Replicating...")
             db.Replicate(rdbname)
-            print "Done"
+            print("Done")
         except pywintypes.com_error:
-            print "Could not replicate"
+            print("Could not replicate")
 
     if doClassify:
         classifyInbox(vinbox, vtrainspam, bayes, ldbname, notesindex, log)
 
-    print "The Spambayes database currently has %s Spam and %s Ham" \
-          % (bayes.nspam, bayes.nham)
+    print("The Spambayes database currently has %s Spam and %s Ham" \
+          % (bayes.nspam, bayes.nham))
 
     bayes.store()
 
@@ -375,8 +375,8 @@ def run(bdbname, useDBM, ldbname, rdbname, foldname, doTrain, doClassify,
 if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'htcPd:p:l:r:f:o:i:W:L:')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     ldbname = None  # local notes database name
@@ -391,7 +391,7 @@ if __name__ == '__main__':
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-l':
             ldbname = arg
@@ -423,6 +423,6 @@ if __name__ == '__main__':
             sbfname, doTrain, doClassify, pwd, idxname, logname)
 
         if doPrompt:
-            raw_input("Press Enter to end ")
+            input("Press Enter to end ")
     else:
-        print >> sys.stderr, __doc__
+        print(__doc__, file=sys.stderr)

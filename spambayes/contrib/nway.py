@@ -71,7 +71,7 @@ from spambayes import hammie, mboxutils, Options
 prog = os.path.basename(sys.argv[0])
 
 def usage():
-    print >> sys.stderr, __doc__ % globals()
+    print(__doc__ % globals(), file=sys.stderr)
 
 def main(args):
     opts, args = getopt.getopt(args, "h")

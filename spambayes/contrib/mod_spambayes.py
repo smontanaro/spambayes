@@ -17,10 +17,10 @@ class SpambayesFilter(BufferAllFilter):
     def filter(self, s):
         if self.reply.split()[1] == '200':
             prob = self.checker.score("%s\r\n%s" % (self.serverheaders, s))
-            print "|  prob: %.5f" % prob
+            print("|  prob: %.5f" % prob)
             if prob >= Options.options["Categorization", "spam_cutoff"]:
-                print self.serverheaders
-                print "text:", s[0:40], "...", s[-40:]
+                print(self.serverheaders)
+                print("text:", s[0:40], "...", s[-40:])
                 return "not authorized"
         return s
 

@@ -16,7 +16,7 @@ except ImportError:
         bsddb = None
 
 try:
-    import gdbm
+    import dbm.gnu
 except ImportError:
     gdbm = None
 

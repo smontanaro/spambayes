@@ -109,8 +109,9 @@ def _addressAndPort(s):
     else:
         return '', int(s)
 
-def _addressPortStr((addr, port)):
+def _addressPortStr(xxx_todo_changeme):
     """Encode a string representing a port to bind to, with optional address."""
+    (addr, port) = xxx_todo_changeme
     if not addr:
         return str(port)
     else:
@@ -141,8 +142,8 @@ def run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbd:p:l:u:o:P:')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     state = CoreState()
@@ -150,7 +151,7 @@ def run():
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-b':
             state.launch_ui = True
@@ -166,13 +167,13 @@ def run():
             state.plugin = load_plugin(arg, state)
 
     if state.plugin is None:
-        print >> sys.stderr, "No plugin argument (-P) was given."
-        print >> sys.stderr, __doc__
+        print("No plugin argument (-P) was given.", file=sys.stderr)
+        print(__doc__, file=sys.stderr)
         sys.exit()
 
     # Let the user know what they are using...
     v = get_current_version()
-    print "%s\n" % (v.get_long_version("SpamBayes Core Proxy"),)
+    print("%s\n" % (v.get_long_version("SpamBayes Core Proxy"),))
 
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.
@@ -184,9 +185,8 @@ def run():
         try:
             state.prepare()
         except AlreadyRunningException:
-            print  >> sys.stderr, \
-                   "ERROR: The proxy is already running on this machine."
-            print  >> sys.stderr, "Please stop the existing proxy and try again"
+            print("ERROR: The proxy is already running on this machine.", file=sys.stderr)
+            print("Please stop the existing proxy and try again", file=sys.stderr)
             return
 
         # kick everything off
@@ -196,10 +196,10 @@ def run():
             state.close()
 
     else:
-        print >> sys.stderr, __doc__
+        print(__doc__, file=sys.stderr)
 
 if __name__ == '__main__':
     try:
         run()
     except KeyboardInterrupt:
-        print "bye!"
+        print("bye!")

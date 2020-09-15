@@ -20,7 +20,7 @@ class CdbClassifier(Classifier):
 
     def save_wordinfo(self, db_file):
         items = []
-        for word, record in self.wordinfo.iteritems():
+        for word, record in self.wordinfo.items():
             prob = Classifier.probability(self, record)
             items.append((word, str(prob)))
         cdb.cdb_make(db_file, items)

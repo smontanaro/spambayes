@@ -61,9 +61,9 @@ fre = re.compile(r'[\041-\071\073-\0176]+')
 
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)
     if msg:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
     sys.exit(code)
 
 
@@ -72,7 +72,7 @@ def escape_line(line, lineno, quiet, output):
     if output:
         sys.stdout.write('>' + line)
     if not quiet:
-        print >> sys.stderr, '[%d]' % lineno, line[:-1]
+        print('[%d]' % lineno, line[:-1], file=sys.stderr)
 
 
 
@@ -81,7 +81,7 @@ def main():
         opts, args = getopt.getopt(
             sys.argv[1:], 'hqns:',
             ['help', 'quiet', 'dry-run', 'status='])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     quiet = 0
@@ -147,10 +147,10 @@ def main():
             sys.stderr.write('#')
             statuscnt += 1
             if statuscnt > 50:
-                print >> sys.stderr
+                print(file=sys.stderr)
                 statuscnt = 0
 
-    print >> sys.stderr, messages, 'messages found'
+    print(messages, 'messages found', file=sys.stderr)
 
 
 

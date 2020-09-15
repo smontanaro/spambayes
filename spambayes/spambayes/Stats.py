@@ -148,7 +148,7 @@ class Stats(object):
         """
         self.ResetTotal()
         totals = self.totals
-        for msg_id in self.messageinfo_db.keys():
+        for msg_id in list(self.messageinfo_db.keys()):
             # Skip the date and persistent statistics keys.
             if msg_id == STATS_START_KEY:
                 continue
@@ -399,4 +399,4 @@ class Stats(object):
 
 if __name__ == '__main__':
     s = Stats()
-    print "\n".join(s.GetStats())
+    print("\n".join(s.GetStats()))

@@ -20,7 +20,7 @@ To do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-from __future__ import generators
+
 
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "All the Spambayes folk."
@@ -30,7 +30,7 @@ import sys
 import cgi
 import glob
 import random
-import StringIO
+import io
 
 from spambayes import ProxyUI
 from spambayes import oe_mailbox
@@ -165,8 +165,8 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         # timcv.py, just capture the output that normally goes to stdout
         # or stderr and return it.
         cout, cerr = sys.stdout, sys.stderr
-        sys.stdout = StringIO.StringIO()
-        sys.stderr = StringIO.StringIO()
+        sys.stdout = io.StringIO()
+        sys.stderr = io.StringIO()
 
         if options["TestToolsUI", "source"] == "Standard test setup":
             # Source the test data from the 'standard' test setup,
@@ -286,18 +286,18 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         # XXX at some point.
         cout = sys.stdout
         cerr = sys.stderr
-        sys.stdout = StringIO.StringIO()
-        sys.stderr = StringIO.StringIO()
+        sys.stdout = io.StringIO()
+        sys.stderr = io.StringIO()
 
-        interesting = filter(lambda line: line.startswith('-> '), ifile)
+        interesting = [line for line in ifile if line.startswith('-> ')]
         ifile.close()
 
-        ofile = StringIO.StringIO()
+        ofile = io.StringIO()
 
         def dump(*stuff):
             msg = ' '.join(map(str, stuff))
-            print msg
-            print >> ofile, msg
+            print(msg)
+            print(msg, file=ofile)
 
         ntests = nfn = nfp = 0
         sumfnrate = sumfprate = 0.0
@@ -350,8 +350,8 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         # XXX Stop being lazy and using the remapping cout/cerr cheat
         # XXX at some point.
         cout, cerr = sys.stdout, sys.stderr
-        sys.stdout = StringIO.StringIO()
-        sys.stderr = StringIO.StringIO()
+        sys.stdout = io.StringIO()
+        sys.stderr = io.StringIO()
 
         def suck(f):
             fns = []
@@ -364,7 +364,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
             while 1:
                 line = get()
                 if line.startswith('-> <stat> tested'):
-                    print line,
+                    print(line, end=' ')
                 if line.find(' items; mean ') != -1:
                     # -> <stat> Ham distribution for this pair: 1000 items; mean 0.05; sample sdev 0.68
                     # and later "sample " went away
@@ -391,7 +391,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
                 if len(line) == 0:
                     continue
                 # A line with an f-p rate and an f-n rate.
-                p, n = map(float, line.split())
+                p, n = list(map(float, line.split()))
                 fps.append(p)
                 fns.append(n)
 
@@ -439,16 +439,16 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
             alltags = ""
             for p1, p2 in zip(p1s, p2s):
                 t = tag(p1, p2)
-                print "    %5.3f  %5.3f  %s" % (p1, p2, t)
+                print("    %5.3f  %5.3f  %s" % (p1, p2, t))
                 alltags += t + " "
-            print
+            print()
             for t in "won", "tied", "lost":
-                print "%-4s %2d times" % (t, alltags.count(t))
-            print
+                print("%-4s %2d times" % (t, alltags.count(t)))
+            print()
 
         def dumpdev(meandev1, meandev2):
             for m1, m2 in zip(meandev1, meandev2):
-                print mtag(m1, m2)
+                print(mtag(m1, m2))
 
         (fp1, fn1, fptot1, fntot1, fpmean1, fnmean1,
          hamdev1, spamdev1, hamdevall1, spamdevall1) = suck(f1)
@@ -456,42 +456,42 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         (fp2, fn2, fptot2, fntot2, fpmean2, fnmean2,
          hamdev2, spamdev2, hamdevall2, spamdevall2) = suck(f2)
 
-        print
-        print "false positive percentages"
+        print()
+        print("false positive percentages")
         dump(fp1, fp2)
-        print "total unique fp went from", fptot1, "to", fptot2, tag(fptot1, fptot2)
-        print "mean fp % went from", fpmean1, "to", fpmean2, tag(fpmean1, fpmean2)
+        print("total unique fp went from", fptot1, "to", fptot2, tag(fptot1, fptot2))
+        print("mean fp % went from", fpmean1, "to", fpmean2, tag(fpmean1, fpmean2))
 
-        print
-        print "false negative percentages"
+        print()
+        print("false negative percentages")
         dump(fn1, fn2)
-        print "total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2)
-        print "mean fn % went from", fnmean1, "to", fnmean2, tag(fnmean1, fnmean2)
+        print("total unique fn went from", fntot1, "to", fntot2, tag(fntot1, fntot2))
+        print("mean fn % went from", fnmean1, "to", fnmean2, tag(fnmean1, fnmean2))
 
-        print
+        print()
         if len(hamdev1) == len(hamdev2) and len(spamdev1) == len(spamdev2):
-            print "ham mean                     ham sdev"
+            print("ham mean                     ham sdev")
             dumpdev(hamdev1, hamdev2)
-            print
-            print "ham mean and sdev for all runs"
+            print()
+            print("ham mean and sdev for all runs")
             dumpdev([hamdevall1], [hamdevall2])
 
 
-            print
-            print "spam mean                    spam sdev"
+            print()
+            print("spam mean                    spam sdev")
             dumpdev(spamdev1, spamdev2)
-            print
-            print "spam mean and sdev for all runs"
+            print()
+            print("spam mean and sdev for all runs")
             dumpdev([spamdevall1], [spamdevall2])
 
-            print
+            print()
             diff1 = spamdevall1[0] - hamdevall1[0]
             diff2 = spamdevall2[0] - hamdevall2[0]
-            print "ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,
+            print("ham/spam mean difference: %2.2f %2.2f %+2.2f" % (diff1,
                                                                     diff2,
-                                                                    diff2 - diff1)
+                                                                    diff2 - diff1))
         else:
-            print "[info about ham & spam means & sdevs not available in both files]"
+            print("[info about ham & spam means & sdevs not available in both files]")
 
         sys.stdout.seek(0)
         sys.stderr.seek(0)

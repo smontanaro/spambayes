@@ -23,14 +23,14 @@ prog = os.path.basename(sys.argv[0])
 
 def usage(msg=None):
     if msg is not None:
-        print >> sys.stderr, msg
-    print >> sys.stderr, __doc__.strip() % globals()
+        print(msg, file=sys.stderr)
+    print(__doc__.strip() % globals(), file=sys.stderr)
 
 def main(args):
     try:
         opts, args = getopt.getopt(args, "hd:p:",
                                    ["help", "database=", "pickle="])
-    except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
         usage(msg)
         return 1
 

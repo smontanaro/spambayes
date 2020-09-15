@@ -16,19 +16,19 @@ __all__ = ["SmarterHTTPRequestHandler"]
 
 import os
 import posixpath
-import BaseHTTPServer
-import SimpleHTTPServer
-import urllib
+import http.server
+import http.server
+import urllib.request, urllib.parse, urllib.error
 import cgi
 import mimetypes
 import re
 try:
-    import cStringIO as StringIO
+    import io as StringIO
 except ImportError:
-    import StringIO
+    import io
 
 
-class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+class SmarterHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     """Smarter HTTP request handler based on SimpleHTTPRequestHandler.
     Adds GET with parameters, which calls a method.
@@ -97,7 +97,7 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             if hasattr(self, methname):
                 self.send_response(200)
                 retstr = getattr(self, methname)(pdict)
-                f = StringIO.StringIO(retstr)
+                f = io.StringIO(retstr)
                 self.send_header("Content-type", 'text/html')
                 self.end_headers()
             else:
@@ -122,9 +122,9 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         else:
             path = url
             parms = None
-        path = posixpath.normpath(urllib.unquote(path))
+        path = posixpath.normpath(urllib.parse.unquote(path))
         words = path.split('/')
-        words = filter(None, words)
+        words = [_f for _f in words if _f]
         path = os.getcwd()
         for word in words:
             drive, word = os.path.splitdrive(word)
@@ -149,10 +149,10 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         """
 
         base, ext = posixpath.splitext(path)
-        if self.extensions_map.has_key(ext):
+        if ext in self.extensions_map:
             return self.extensions_map[ext]
         ext = ext.lower()
-        if self.extensions_map.has_key(ext):
+        if ext in self.extensions_map:
             return self.extensions_map[ext]
         else:
             return self.extensions_map['']
@@ -167,8 +167,8 @@ class SmarterHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         })
 
 def test(HandlerClass = SmarterHTTPRequestHandler,
-         ServerClass = BaseHTTPServer.HTTPServer):
-    BaseHTTPServer.test(HandlerClass, ServerClass)
+         ServerClass = http.server.HTTPServer):
+    http.server.test(HandlerClass, ServerClass)
 
 if __name__ == '__main__':
     test()

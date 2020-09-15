@@ -47,7 +47,7 @@ Warnings:
       from somewhere else, at least at first.
 """
 
-from __future__ import generators
+
 
 todo = """
     o IMAP supports authentication via other methods than the plain-text
@@ -125,7 +125,7 @@ import re
 import time
 import getopt
 import types
-import thread
+import _thread
 import email
 import email.Parser
 from getpass import getpass
@@ -188,11 +188,11 @@ class IMAPSession(BaseIMAP):
             BaseIMAP.__init__(self, server, port)
         except (BaseIMAP.error, socket.gaierror, socket.error):
             if options["globals", "verbose"]:
-                print >> sys.stderr, "Cannot connect to server", server, "on port", port
+                print("Cannot connect to server", server, "on port", port, file=sys.stderr)
                 if not hasattr(self, "ssl"):
-                    print >> sys.stderr, ("If you are connecting to an SSL server,"
+                    print(("If you are connecting to an SSL server,"
                                           "please ensure that you\n"
-                                          "have the 'Use SSL' option enabled.")
+                                          "have the 'Use SSL' option enabled."), file=sys.stderr)
             self.connected = False
         else:
             self.connected = True
@@ -226,11 +226,11 @@ class IMAPSession(BaseIMAP):
         while True:
             if (time.time() - st_time) > self.timeout:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "IMAP Timing out"
+                    print("IMAP Timing out", file=sys.stderr)
                 break
             try:
                 data = self.sock.recv(1)
-            except socket.error, e:
+            except socket.error as e:
                 if e[0] == 10035:
                     # Nothing to receive, keep going.
                     continue
@@ -256,7 +256,7 @@ class IMAPSession(BaseIMAP):
             description = "plain-text"
         try:
             login_func(*args)
-        except BaseIMAP.error, e:
+        except BaseIMAP.error as e:
             msg = "The username (%s) and/or password (sent in %s) may " \
                   "be incorrect." % (username, description)
             raise LoginFailure(msg)
@@ -336,13 +336,13 @@ class IMAPSession(BaseIMAP):
             # We want to keep going, so just print out a warning, and
             # return an empty list.
             if options["globals", "verbose"]:
-                print >> sys.stderr, "Could not retrieve folder list."
+                print("Could not retrieve folder list.", file=sys.stderr)
             return []
         folders = []
         for fol in all_folders:
             # Sigh.  Some servers may give us back the folder name as a
             # literal, so we need to crunch this out.
-            if isinstance(fol, types.TupleType):
+            if isinstance(fol, tuple):
                 m = self.number_re.search(fol[0])
                 if not m:
                     # Something is wrong here!  Skip this folder.
@@ -362,9 +362,9 @@ class IMAPSession(BaseIMAP):
             # A bit of a hack, but we really need to know if this is
             # the case.
             if self.folder_delimiter == ',':
-                print >> sys.stderr, ("WARNING: Your imap server uses a comma as the "
+                print(("WARNING: Your imap server uses a comma as the "
                                       "folder delimiter.  This may cause unpredictable " \
-                                      "errors.")
+                                      "errors."), file=sys.stderr)
             folders.append(fol[m.end()+4:].strip('"'))
         folders.sort()
         return folders
@@ -403,7 +403,7 @@ class IMAPSession(BaseIMAP):
         #  BODY.PEEK
         # All others are ignored.
 
-        if isinstance(response, types.StringTypes):
+        if isinstance(response, (str,)):
             response = (response,)
 
         data = {}
@@ -453,7 +453,7 @@ class IMAPSession(BaseIMAP):
         """
         # There may be more than one message number in the response, so
         # handle separately.
-        if isinstance(response, types.StringTypes):
+        if isinstance(response, (str,)):
             response = (response,)
 
         data = {}
@@ -539,8 +539,8 @@ class IMAPMessage(message.SBHeaderMessage):
             # Can't select the folder, so getting the substance will not
             # work.
             self.could_not_retrieve = True
-            print >> sys.stderr, "Could not select folder %s for message " \
-                  "%s (uid %s)" % (self.folder.name, self.id, self.uid)
+            print("Could not select folder %s for message " \
+                  "%s (uid %s)" % (self.folder.name, self.id, self.uid), file=sys.stderr)
             return self
 
         # Now try to fetch the substance of the message.
@@ -562,8 +562,8 @@ class IMAPMessage(message.SBHeaderMessage):
             # characters for classification.  For now, we just carry on,
             # warning the user and ignoring the message.
             self.could_not_retrieve = True
-            print >> sys.stderr, "MemoryError with message %s (uid %s)" % \
-                  (self.id, self.uid)
+            print("MemoryError with message %s (uid %s)" % \
+                  (self.id, self.uid), file=sys.stderr)
             return self
 
         command = "uid fetch %s" % (self.uid,)
@@ -574,7 +574,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # do not have (we use the UID instead).  So we look through the
         # message and use the first data of the right type we find.
         rfc822_data = None
-        for msg_data in data.itervalues():
+        for msg_data in data.values():
             if self.rfc822_key in msg_data:
                 rfc822_data = msg_data[self.rfc822_key]
                 break
@@ -605,7 +605,7 @@ class IMAPMessage(message.SBHeaderMessage):
             self.got_substance = True
 
             # Print the exception and a traceback.
-            print >> sys.stderr, details
+            print(details, file=sys.stderr)
 
             return self            
 
@@ -618,7 +618,7 @@ class IMAPMessage(message.SBHeaderMessage):
         new_msg.setId(self.id)
         new_msg.got_substance = True
 
-        if not new_msg.has_key(options["Headers", "mailid_header_name"]):
+        if options["Headers", "mailid_header_name"] not in new_msg:
             new_msg[options["Headers", "mailid_header_name"]] = self.id
 
         if options["globals", "verbose"]:
@@ -667,7 +667,7 @@ class IMAPMessage(message.SBHeaderMessage):
         # message and use the last data of the right type we find.
         msg_time = self.extractTime()
         flags = None
-        for msg_data in data.itervalues():
+        for msg_data in data.values():
             if "INTERNALDATE" in msg_data:
                 msg_time = msg_data["INTERNALDATE"]
             if "FLAGS" in msg_data:
@@ -719,18 +719,18 @@ class IMAPMessage(message.SBHeaderMessage):
         # 100 times, and then give up.  If a message arrives independantly,
         # and we are told about it before our message, then this could
         # cause trouble, but that would be one weird server.
-        for i in xrange(100):
+        for i in range(100):
             response = self.imap_server.recent()
             data = self.imap_server.check_response("recent", response)
             if data[0] is not None:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "[imapfilter] found saved message", self.uid,
-                    print >> sys.stderr, "in iteration", i
+                    print("[imapfilter] found saved message", self.uid, end=' ', file=sys.stderr)
+                    print("in iteration", i, file=sys.stderr)
                 break
         else:
             if options["globals", "verbose"]:
-                print >> sys.stderr, ("[imapfilter] can't find saved message after"
-                                      "100 iterations:"), self.uid
+                print(("[imapfilter] can't find saved message after"
+                                      "100 iterations:"), self.uid, file=sys.stderr)
             # raise BadIMAPResponseError("recent", "Cannot find saved message")
 
         # We need to update the UID, as it will have changed.
@@ -807,7 +807,7 @@ class IMAPFolder(object):
 
     def __iter__(self):
         """Iterate through the messages in this IMAP folder."""
-        for key in self.keys():
+        for key in list(self.keys()):
             yield self[key]
 
     def keys(self):
@@ -846,7 +846,7 @@ class IMAPFolder(object):
         # do not have (we use the UID instead).  So we look through the
         # message and use the first data of the right type we find.
         headers = None
-        for msg_data in data.itervalues():
+        for msg_data in data.values():
             if "RFC822.HEADER" in msg_data:
                 headers = msg_data["RFC822.HEADER"]
                 break
@@ -870,7 +870,7 @@ class IMAPFolder(object):
         else:
             newid = self._generate_id()
             if options["globals", "verbose"]:
-                print >> sys.stderr, "[imapfilter] saving", msg.uid, "with new id:", newid
+                print("[imapfilter] saving", msg.uid, "with new id:", newid, file=sys.stderr)
             msg.setId(newid)
             # Unfortunately, we now have to re-save this message, so that
             # our id is stored on the IMAP server.  The vast majority of
@@ -888,7 +888,7 @@ class IMAPFolder(object):
     def _generate_id(self):
         # The message id is the time it arrived, with a uniquifier
         # appended if two arrive within one clock tick of each other.
-        messageName = "%10.10d" % long(time.time())
+        messageName = "%10.10d" % int(time.time())
         if messageName == self.lastBaseMessageName:
             messageName = "%s-%d" % (messageName, self.uniquifier)
             self.uniquifier += 1
@@ -940,7 +940,7 @@ class IMAPFolder(object):
                     move_opt_name = "move_trained_ham_to_folder"
                 if options["imap", move_opt_name] != "":
                     # We need to restore the SpamBayes headers.
-                    for header, value in saved_headers.items():
+                    for header, value in list(saved_headers.items()):
                         msg[header] = value
                     msg.MoveTo(IMAPFolder(options["imap", move_opt_name],
                                            self.imap_server, self.stats))
@@ -956,7 +956,7 @@ class IMAPFolder(object):
             cls = msg.GetClassification()
             if cls is None or hamfolder is not None:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "[imapfilter] classified as %s:" % cls, msg.uid
+                    print("[imapfilter] classified as %s:" % cls, msg.uid, file=sys.stderr)
                 
                 msg = msg.get_full_message()
                 if msg.could_not_retrieve:
@@ -967,7 +967,7 @@ class IMAPFolder(object):
                     # the errors and move it soon enough.
 
                     if options["globals", "verbose"]:
-                        print >> sys.stderr, "[imapfilter] could not retrieve:", msg.uid
+                        print("[imapfilter] could not retrieve:", msg.uid, file=sys.stderr)
                     continue
                 
                 (prob, clues) = classifier.spamprob(msg.tokenize(),
@@ -981,26 +981,26 @@ class IMAPFolder(object):
                 if cls == options["Headers", "header_ham_string"]:
                     if hamfolder:
                         if options["globals", "verbose"]:
-                            print >> sys.stderr, "[imapfilter] moving to ham folder:",
-                            print >> sys.stderr, msg.uid
+                            print("[imapfilter] moving to ham folder:", end=' ', file=sys.stderr)
+                            print(msg.uid, file=sys.stderr)
                         msg.MoveTo(hamfolder)
                     # Otherwise, we leave ham alone.
                     count["ham"] += 1
                 elif cls == options["Headers", "header_spam_string"]:
                     if options["globals", "verbose"]:
-                        print >> sys.stderr, "[imapfilter] moving to spam folder:",
-                        print >> sys.stderr, msg.uid
+                        print("[imapfilter] moving to spam folder:", end=' ', file=sys.stderr)
+                        print(msg.uid, file=sys.stderr)
                     msg.MoveTo(spamfolder)
                     count["spam"] += 1
                 else:
                     if options["globals", "verbose"]:
-                        print >> sys.stderr, "[imapfilter] moving to unsure folder:", msg.uid
+                        print("[imapfilter] moving to unsure folder:", msg.uid, file=sys.stderr)
                     msg.MoveTo(unsurefolder)
                     count["unsure"] += 1
                 msg.Save()
             else:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "[imapfilter] already classified:", msg.uid
+                    print("[imapfilter] already classified:", msg.uid, file=sys.stderr)
                 
         return count
 
@@ -1029,44 +1029,44 @@ class IMAPFilter(object):
                 try:
                     self.imap_server.SelectFolder(fol)
                 except BadIMAPResponseError:
-                    print >> sys.stderr, "Skipping", fol, "as it cannot be selected."
+                    print("Skipping", fol, "as it cannot be selected.", file=sys.stderr)
                     continue
 
                 if options['globals', 'verbose']:
-                    print >> sys.stderr, ("   Training %s folder %s" %
-                                          (["ham", "spam"][is_spam], fol))
+                    print(("   Training %s folder %s" %
+                                          (["ham", "spam"][is_spam], fol)), file=sys.stderr)
                 folder = IMAPFolder(fol, self.imap_server, self.stats)
                 num_trained = folder.Train(self.classifier, is_spam)
                 total_trained += num_trained
                 if options['globals', 'verbose']:
-                    print >> sys.stderr, "\n      ", num_trained, "trained."
+                    print("\n      ", num_trained, "trained.", file=sys.stderr)
 
         if total_trained:
             self.classifier.store()
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, ("Training took %.4f seconds, %s messages were trained."
-                                  % (time.time() - t, total_trained))
+            print(("Training took %.4f seconds, %s messages were trained."
+                                  % (time.time() - t, total_trained)), file=sys.stderr)
 
     def Filter(self):
         assert self.imap_server, "Cannot do anything without IMAP server."
         if not self.spam_folder:
             spam_folder_name = options["imap", "spam_folder"]
             if options["globals", "verbose"]:
-                print >> sys.stderr, "[imapfilter] spam folder:", spam_folder_name
+                print("[imapfilter] spam folder:", spam_folder_name, file=sys.stderr)
             self.spam_folder = IMAPFolder(
                 spam_folder_name, self.imap_server, self.stats)
             
         if not self.unsure_folder:
             unsure_folder_name = options["imap", "unsure_folder"]
             if options["globals", "verbose"]:
-                print >> sys.stderr, "[imapfilter] unsure folder:", unsure_folder_name
+                print("[imapfilter] unsure folder:", unsure_folder_name, file=sys.stderr)
             self.unsure_folder = IMAPFolder(
                 unsure_folder_name, self.imap_server, self.stats)
 
         ham_folder_name = options["imap", "ham_folder"]
         if options["globals", "verbose"]:
-            print >> sys.stderr, "[imapfilter] ham folder:", ham_folder_name
+            print("[imapfilter] ham folder:", ham_folder_name, file=sys.stderr)
             
         if ham_folder_name and not self.ham_folder:
             self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server,
@@ -1084,18 +1084,18 @@ class IMAPFilter(object):
         try:
             self.imap_server.SelectFolder(self.spam_folder.name)
         except BadIMAPResponseError:
-            print >> sys.stderr, "Cannot select spam folder.  Please check configuration."
+            print("Cannot select spam folder.  Please check configuration.", file=sys.stderr)
             sys.exit(-1)
         try:
             self.imap_server.SelectFolder(self.unsure_folder.name)
         except BadIMAPResponseError:
-            print >> sys.stderr, "Cannot select unsure folder.  Please check configuration."
+            print("Cannot select unsure folder.  Please check configuration.", file=sys.stderr)
             sys.exit(-1)
         if self.ham_folder:
             try:
                 self.imap_server.SelectFolder(self.ham_folder.name)
             except BadIMAPResponseError:
-                print >> sys.stderr, "Cannot select ham folder.  Please check configuration."
+                print("Cannot select ham folder.  Please check configuration.", file=sys.stderr)
                 sys.exit(-1)
                 
         for filter_folder in options["imap", "filter_folders"]:
@@ -1103,20 +1103,20 @@ class IMAPFilter(object):
             try:
                 self.imap_server.SelectFolder(filter_folder)
             except BadIMAPResponseError:
-                print >> sys.stderr, "Cannot select", filter_folder, "... skipping." 
+                print("Cannot select", filter_folder, "... skipping.", file=sys.stderr) 
                 continue
 
             folder = IMAPFolder(filter_folder, self.imap_server, self.stats)
             subcount = folder.Filter(self.classifier, self.spam_folder,
                                      self.unsure_folder, self.ham_folder)
-            for key in count.keys():
+            for key in list(count.keys()):
                 count[key] += subcount.get(key, 0)
 
         if options["globals", "verbose"]:
             if count is not None:
-                print >> sys.stderr, ("\nClassified %s ham, %s spam, and %s unsure." %
-                                      (count["ham"], count["spam"], count["unsure"]))
-            print >> sys.stderr, "Classifying took %.4f seconds." % (time.time() - t,)
+                print(("\nClassified %s ham, %s spam, and %s unsure." %
+                                      (count["ham"], count["spam"], count["unsure"])), file=sys.stderr)
+            print("Classifying took %.4f seconds." % (time.time() - t,), file=sys.stderr)
 
 
 def servers(promptForPass = False):
@@ -1135,14 +1135,14 @@ prompts the user for each server's password.
         for u in usernames:
             pwds.append(getpass("Enter password for %s:" % (u,)))
             
-    return zip(servers, usernames, pwds)
+    return list(zip(servers, usernames, pwds))
             
 def run(force_UI=False):
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:',
                                    ["verbose"])
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     doTrain = False
@@ -1155,7 +1155,7 @@ def run(force_UI=False):
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == "-b":
             launchUI = True
@@ -1182,19 +1182,19 @@ def run(force_UI=False):
 
     # Let the user know what they are using...
     v = get_current_version();
-    print "%s.\n" % (v.get_long_version("SpamBayes IMAP Filter"),)
+    print("%s.\n" % (v.get_long_version("SpamBayes IMAP Filter"),))
 
     if options["globals", "verbose"]:
-        print "Loading database %s..." % (bdbname),
+        print("Loading database %s..." % (bdbname), end=' ')
 
     classifier = storage.open_storage(bdbname, useDBM)
     message_db = message.Message().message_info_db
 
     if options["globals", "verbose"]:
-        print "Done."
+        print("Done.")
 
     if not ( launchUI or force_UI or options["imap", "server"] ):
-        print "You need to specify both a server and a username."
+        print("You need to specify both a server and a username.")
         sys.exit()
 
     servers_data = servers(promptForPass)
@@ -1247,7 +1247,7 @@ def run(force_UI=False):
         launchBrowser = launchUI or options["html_ui", "launch_browser"]
         if sleepTime:
             # Run in a separate thread, as we have more work to do.
-            thread.start_new_thread(Dibbler.run, (),
+            _thread.start_new_thread(Dibbler.run, (),
                                     {"launchBrowser":launchBrowser})
         else:
             Dibbler.run(launchBrowser=launchBrowser)
@@ -1272,7 +1272,7 @@ def run(force_UI=False):
             for (server, imapDebug, doExpunge), username, password in imaps:
                 imap = IMAPSession(server, imapDebug, doExpunge)
                 if options["globals", "verbose"]:
-                    print "Account: %s:%s" % (imap.server, imap.port)
+                    print("Account: %s:%s" % (imap.server, imap.port))
                 if imap.connected:
                     # As above, we load a separate configuration file
                     # for each server, if it exists.  We look for a
@@ -1291,18 +1291,18 @@ def run(force_UI=False):
 
                     try:                    
                         imap.login(username, password)
-                    except LoginFailure, e:
-                        print str(e)
+                    except LoginFailure as e:
+                        print(str(e))
                         continue
                     imap_filter.imap_server = imap
 
                     if doTrain:
                         if options["globals", "verbose"]:
-                            print "Training"
+                            print("Training")
                         imap_filter.Train()
                     if doClassify:
                         if options["globals", "verbose"]:
-                            print "Classifying"
+                            print("Classifying")
                         imap_filter.Filter()
 
                     imap.logout()

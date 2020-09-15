@@ -70,27 +70,27 @@ class CorpusTest(unittest.TestCase):
         msg = simple_msg(0)
         self.corpus.cacheMessage(msg)
         self.assertEqual(self.corpus.msgs[0], msg)
-        self.assert_(0 in self.corpus.keysInMemory)
+        self.assertTrue(0 in self.corpus.keysInMemory)
 
     def test_flush_cache(self):
         self.corpus.cacheSize = 1
         msg = simple_msg(0)
         self.corpus.cacheMessage(msg)
         self.assertEqual(self.corpus.msgs[0], msg)
-        self.assert_(0 in self.corpus.keysInMemory)
+        self.assertTrue(0 in self.corpus.keysInMemory)
         msg = simple_msg(1)
         self.corpus.cacheMessage(msg)
         self.assertEqual(self.corpus.msgs[1], msg)
-        self.assert_(1 in self.corpus.keysInMemory)
-        self.assert_(0 not in self.corpus.keysInMemory)
+        self.assertTrue(1 in self.corpus.keysInMemory)
+        self.assertTrue(0 not in self.corpus.keysInMemory)
 
     def test_unCacheMessage(self):
         msg = simple_msg(0)
         self.corpus.cacheMessage(msg)
         self.assertEqual(self.corpus.msgs[0], msg)
-        self.assert_(0 in self.corpus.keysInMemory)
+        self.assertTrue(0 in self.corpus.keysInMemory)
         self.corpus.unCacheMessage(msg)
-        self.assert_(0 in self.corpus.keysInMemory)
+        self.assertTrue(0 in self.corpus.keysInMemory)
 
     def test_takeMessage(self):
         other_corpus = Corpus(self.factory, self.cacheSize)
@@ -133,11 +133,11 @@ class CorpusTest(unittest.TestCase):
         self.assertRaises(KeyError, self.corpus.__getitem__, 4)
 
     def test_keys(self):
-        self.assertEqual(self.corpus.keys(), [])
+        self.assertEqual(list(self.corpus.keys()), [])
         ids = [0, 1, 2]
         for id in ids:
             self.corpus.addMessage(simple_msg(id))
-        self.assertEqual(self.corpus.keys(), ids)
+        self.assertEqual(list(self.corpus.keys()), ids)
 
     def test___iter__(self):
         self.assertEqual(tuple(self.corpus), ())

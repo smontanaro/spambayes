@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """Module to tokenize email messages for spam filtering."""
 
-from __future__ import generators
+
 
 import email
 import email.Message
@@ -12,8 +12,8 @@ import re
 import math
 import os
 import binascii
-import urlparse
-import urllib
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
 
 from spambayes import classifier
 from spambayes.Options import options
@@ -36,7 +36,7 @@ else:
  
 # Patch encodings.aliases to recognize 'ansi_x3_4_1968'
 from encodings.aliases import aliases # The aliases dictionary
-if not aliases.has_key('ansi_x3_4_1968'):
+if 'ansi_x3_4_1968' not in aliases:
     aliases['ansi_x3_4_1968'] = 'ascii'
 del aliases # Not needed any more
 
@@ -610,22 +610,17 @@ del aliases # Not needed any more
 # words in the msg, without regard to how many times a given word appears.
 def textparts(msg):
     """Return a set of all msg parts with content maintype 'text'."""
-    return set(filter(lambda part: part.get_content_maintype() == 'text',
-                      msg.walk()))
+    return set([part for part in msg.walk() if part.get_content_maintype() == 'text'])
 
 def octetparts(msg):
     """Return a set of all msg parts with type 'application/octet-stream'."""
-    return set(filter(lambda part:
-                      part.get_content_type() == 'application/octet-stream',
-                      msg.walk()))
+    return set([part for part in msg.walk() if part.get_content_type() == 'application/octet-stream'])
 
 def imageparts(msg):
     """Return a list of all msg parts with type 'image/*'."""
     # Don't want a set here because we want to be able to process them in
     # order.
-    return filter(lambda part:
-                  part.get_content_type().startswith('image/'),
-                  msg.walk())
+    return [part for part in msg.walk() if part.get_content_type().startswith('image/')]
 
 has_highbit_char = re.compile(r"[\x80-\xff]").search
 
@@ -1067,10 +1062,10 @@ class URLStripper(Stripper):
             tokens.extend(["url:" + escape for escape in escapes])
 
             # now remove any obfuscation and probe around a bit
-            url = urllib.unquote(url)
+            url = urllib.parse.unquote(url)
             try:
                 (scheme, netloc, path, params,
-                 query, frag) = urlparse.urlparse(url)
+                 query, frag) = urllib.parse.urlparse(url)
             except ValueError:
                 pushclue("url:invalid-url")
             else:
@@ -1093,11 +1088,11 @@ class URLStripper(Stripper):
                 # appear in URLs (perhaps in a local bookmark you established),
                 # and never in a URL you receive from an unsolicited email or
                 # another website.
-                user_pwd, host_port = urllib.splituser(netloc)
+                user_pwd, host_port = urllib.parse.splituser(netloc)
                 if user_pwd is not None:
                     pushclue("url:has user")
 
-                host, port = urllib.splitport(host_port)
+                host, port = urllib.parse.splitport(host_port)
                 # web servers listening on non-standard ports are suspicious ...
                 if port is not None:
                     if (scheme == "http" and port != '80' or
@@ -1295,7 +1290,7 @@ class Tokenizer:
         # the best discriminators.
         # (Not just Date, but Received and X-From_.)
         if options["Tokenizer", "basic_header_tokenize"]:
-            for k, v in msg.items():
+            for k, v in list(msg.items()):
                 k = k.lower()
                 for rx in self.basic_skip:
                     if rx.match(k):
@@ -1534,7 +1529,7 @@ class Tokenizer:
         # X-Complaints-To a strong ham clue.
         x2n = {}
         if options["Tokenizer", "count_all_header_lines"]:
-            for x in msg.keys():
+            for x in list(msg.keys()):
                 x2n[x] = x2n.get(x, 0) + 1
         else:
             # Do a "safe" approximation to that.  When spam and ham are
@@ -1542,10 +1537,10 @@ class Tokenizer:
             # lines can be a too strong a discriminator for accidental
             # reasons.
             safe_headers = options["Tokenizer", "safe_headers"]
-            for x in msg.keys():
+            for x in list(msg.keys()):
                 if x.lower() in safe_headers:
                     x2n[x] = x2n.get(x, 0) + 1
-        for x in x2n.items():
+        for x in list(x2n.items()):
             yield "header:%s:%d" % x
         if options["Tokenizer", "record_header_absence"]:
             for k in x2n:

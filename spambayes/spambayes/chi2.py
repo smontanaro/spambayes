@@ -104,7 +104,7 @@ def main():
             self.next = baserandom()
 
         def random(self):
-            result = self.next
+            result = self.__next__
             i = int(result * self.n)
             self.next = self.tab[i]
             self.tab[i] = self.baserandom()
@@ -144,28 +144,28 @@ def main():
     s = Hist(20, lo=0.0, hi=1.0)
     score = Hist(20, lo=0.0, hi=1.0)
 
-    for _i in xrange(5000):
-        ps = [random() for _j in xrange(50)]
+    for _i in range(5000):
+        ps = [random() for _j in range(50)]
         s1, h1, score1 = judge(ps + [bias] * warp)
         s.add(s1)
         h.add(h1)
         score.add(score1)
 
-    print "Result for random vectors of 50 probs, +", warp, "forced to", bias
+    print("Result for random vectors of 50 probs, +", warp, "forced to", bias)
 
     # Should be uniformly distributed on all-random data.
-    print
-    print 'H',
+    print()
+    print('H', end=' ')
     h.display()
 
     # Should be uniformly distributed on all-random data.
-    print
-    print 'S',
+    print()
+    print('S', end=' ')
     s.display()
 
     # Distribution doesn't really matter.
-    print
-    print '(S-H+1)/2',
+    print()
+    print('(S-H+1)/2', end=' ')
     score.display()
 
 def showscore(ps, ln=_math.log, ln2=_math.log(2), frexp=_math.frexp):
@@ -186,15 +186,15 @@ def showscore(ps, ln=_math.log, ln2=_math.log(2), frexp=_math.frexp):
     n = len(ps)
     probS = chi2Q(-2*S, 2*n)
     probH = chi2Q(-2*H, 2*n)
-    print "P(chisq >= %10g | v=%3d) = %10g" % (-2*S, 2*n, probS)
-    print "P(chisq >= %10g | v=%3d) = %10g" % (-2*H, 2*n, probH)
+    print("P(chisq >= %10g | v=%3d) = %10g" % (-2*S, 2*n, probS))
+    print("P(chisq >= %10g | v=%3d) = %10g" % (-2*H, 2*n, probH))
 
     S = 1.0 - probS
     H = 1.0 - probH
     score = (S-H + 1.0) / 2.0
-    print "spam prob", S
-    print " ham prob", H
-    print "(S-H+1)/2", score
+    print("spam prob", S)
+    print(" ham prob", H)
+    print("(S-H+1)/2", score)
 
 if __name__ == '__main__':
     main()

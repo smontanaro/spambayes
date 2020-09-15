@@ -3,7 +3,7 @@
 import unittest, os, sys
 import glob
 import tempfile
-import cStringIO as StringIO
+import io as StringIO
 
 import sb_test_support
 sb_test_support.fix_sys_path()
@@ -49,19 +49,19 @@ class _StorageTestBase(unittest.TestCase):
         # Check that nham and nspam are correctedly adjusted.
         c = self.classifier
         count = 30
-        for i in xrange(count):
+        for i in range(count):
             c.learn(["tony"], True)
             self.assertEqual(c.nspam, i+1)
             self.assertEqual(c.nham, 0)
-        for i in xrange(count):
+        for i in range(count):
             c.learn(["tony"], False)
             self.assertEqual(c.nham, i+1)
             self.assertEqual(c.nspam, count)
-        for i in xrange(count):
+        for i in range(count):
             c.unlearn(["tony"], True)
             self.assertEqual(c.nham, count)
             self.assertEqual(c.nspam, count-i-1)
-        for i in xrange(count):
+        for i in range(count):
             c.unlearn(["tony"], False)
             self.assertEqual(c.nham, count-i-1)
             self.assertEqual(c.nspam, 0)
@@ -185,7 +185,7 @@ class DBStorageTestCase(_StorageTestBase):
         db_name = tempfile.mktemp("nodbmtest")
         DBDictClassifier_load = DBDictClassifier.load
         DBDictClassifier.load = self._fail_open_best
-        print "This test will print out an error, which can be ignored."
+        print("This test will print out an error, which can be ignored.")
         try:
             self.assertRaises(SystemExit, open_storage, (db_name, "dbm"))
         finally:
@@ -212,12 +212,12 @@ def suite():
     if gdbm or bsddb:
         clses += (DBStorageTestCase,)
     else:
-        print "Skipping dbm tests, no dbm module available"
+        print("Skipping dbm tests, no dbm module available")
 
     try:
         import ZODB
     except ImportError:
-        print "Skipping ZODB tests, ZODB not available"
+        print("Skipping ZODB tests, ZODB not available")
     else:
          clses += (ZODBStorageTestCase,)
         

@@ -13,7 +13,7 @@ usage %(prog)s [ options ] token ...
       - set [section, option] in the options database to value
 """
 
-from __future__ import division
+
 
 import sys
 import getopt
@@ -29,8 +29,8 @@ prog = sys.argv[0]
 
 def usage(msg=None):
     if msg is not None:
-        print >> sys.stderr, msg
-    print >> sys.stderr, __doc__.strip() % globals()
+        print(msg, file=sys.stderr)
+    print(__doc__.strip() % globals(), file=sys.stderr)
 
 def print_spamcounts(tokens, db, use_re):
     if use_re:
@@ -62,7 +62,7 @@ def main(args):
     try:
         opts, args = getopt.getopt(args, "hrto:",
                                    ["help", "re", "tokenize", "option="])
-    except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
         usage(msg)
         return 1
 

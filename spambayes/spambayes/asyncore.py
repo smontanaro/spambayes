@@ -105,7 +105,7 @@ def poll(timeout=0.0, map=None):
         map = socket_map
     if map:
         r = []; w = []; e = []
-        for fd, obj in map.items():
+        for fd, obj in list(map.items()):
             is_r = obj.readable()
             is_w = obj.writable()
             if is_r:
@@ -119,7 +119,7 @@ def poll(timeout=0.0, map=None):
         else:
             try:
                 r, w, e = select.select(r, w, e, timeout)
-            except select.error, err:
+            except select.error as err:
                 if err[0] != EINTR:
                     raise
                 else:
@@ -152,7 +152,7 @@ def poll2(timeout=0.0, map=None):
         timeout = int(timeout*1000)
     pollster = select.poll()
     if map:
-        for fd, obj in map.items():
+        for fd, obj in list(map.items()):
             flags = 0
             if obj.readable():
                 flags |= select.POLLIN | select.POLLPRI
@@ -165,7 +165,7 @@ def poll2(timeout=0.0, map=None):
                 pollster.register(fd, flags)
         try:
             r = pollster.poll(timeout)
-        except select.error, err:
+        except select.error as err:
             if err[0] != EINTR:
                 raise
             r = []
@@ -247,7 +247,7 @@ class dispatcher:
         fd = self._fileno
         if map is None:
             map = self._map
-        if map.has_key(fd):
+        if fd in map:
             #self.log_info('closing channel %d:%s' % (fd, self))
             del map[fd]
         self._fileno = None
@@ -313,14 +313,14 @@ class dispatcher:
             self.connected = True
             self.handle_connect()
         else:
-            raise socket.error, (err, errorcode[err])
+            raise socket.error(err, errorcode[err])
 
     def accept(self):
         # XXX can return either an address pair or None
         try:
             conn, addr = self.socket.accept()
             return conn, addr
-        except socket.error, why:
+        except socket.error as why:
             if why[0] == EWOULDBLOCK:
                 pass
             else:
@@ -330,7 +330,7 @@ class dispatcher:
         try:
             result = self.socket.send(data)
             return result
-        except socket.error, why:
+        except socket.error as why:
             if why[0] == EWOULDBLOCK:
                 return 0
             else:
@@ -347,7 +347,7 @@ class dispatcher:
                 return ''
             else:
                 return data
-        except socket.error, why:
+        except socket.error as why:
             # winsock sometimes throws ENOTCONN
             if why[0] in [ECONNRESET, ENOTCONN, ESHUTDOWN]:
                 self.handle_close()
@@ -373,7 +373,7 @@ class dispatcher:
 
     def log_info(self, message, type='info'):
         if __debug__ or type != 'info':
-            print '%s: %s' % (type, message)
+            print('%s: %s' % (type, message))
 
     def handle_read_event(self):
         if self.accepting:
@@ -492,7 +492,7 @@ def compact_traceback():
 def close_all(map=None):
     if map is None:
         map = socket_map
-    for x in map.values():
+    for x in list(map.values()):
         x.socket.close()
     map.clear()
 
