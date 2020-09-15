@@ -66,7 +66,7 @@ class sdist(sdist_parent):
         import md5
         retval = sdist_parent.run(self)
         for archive in self.get_archive_files():
-            data = file(archive, "rb").read()
+            data = open(archive, "rb").read()
             print '\n', archive, "\n\tMD5:", md5.md5(data).hexdigest()
             print "\tLength:", len(data)
         return retval

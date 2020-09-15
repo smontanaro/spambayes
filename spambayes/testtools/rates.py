@@ -37,14 +37,14 @@ def doit(basename):
     if basename.endswith('.txt'):
         basename = basename[:-4]
     try:
-        ifile = file(basename + '.txt')
+        ifile = open(basename + '.txt')
     except IOError:
-        ifile = file(basename)
+        ifile = open(basename)
     interesting = [line for line in ifile if line.startswith('-> ')]
     ifile.close()
 
     oname = basename + 's.txt'
-    ofile = file(oname, 'w')
+    ofile = open(oname, 'w')
     print(basename, '->', oname)
 
     def dump(*stuff):

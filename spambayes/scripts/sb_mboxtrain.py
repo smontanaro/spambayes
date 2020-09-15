@@ -127,7 +127,7 @@ def maildir_train(h, path, is_spam, force, removetrained):
         if loud and counter % 10 == 0:
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
-        f = file(cfn, "rb")
+        f = open(cfn, "rb")
         msg = get_message(f)
         f.close()
         if not msg:
@@ -138,7 +138,7 @@ def maildir_train(h, path, is_spam, force, removetrained):
         trained += 1
         if not options["Headers", "include_trained"]:
             continue
-        f = file(tfn, "wb")
+        f = open(tfn, "wb")
         f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)
@@ -165,7 +165,7 @@ def mbox_train(h, path, is_spam, force):
 
     # Open and lock the mailbox.  Some systems require it be opened for
     # writes in order to assert an exclusive lock.
-    f = file(path, "r+b")
+    f = open(path, "r+b")
     fcntl.flock(f, fcntl.LOCK_EX)
     mbox = mailbox.PortableUnixMailbox(f, get_message)
 
@@ -231,7 +231,7 @@ def mhdir_train(h, path, is_spam, force):
         if loud and counter % 10 == 0:
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
-        f = file(fn, "rb")
+        f = open(fn, "rb")
         msg = get_message(f)
         f.close()
         if not msg:
@@ -241,7 +241,7 @@ def mhdir_train(h, path, is_spam, force):
         trained += 1
         if not options["Headers", "include_trained"]:
             continue
-        f = file(tfn, "wb")
+        f = open(tfn, "wb")
         f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)

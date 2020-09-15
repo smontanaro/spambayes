@@ -144,9 +144,9 @@ def main(args):
             return 1
 
     if spamfile is not None:
-        spamfile = file(spamfile, "w")
+        spamfile = open(spamfile, "w")
     if hamfile is not None:
-        hamfile = file(hamfile, "w")
+        hamfile = open(hamfile, "w")
 
     extractmessages(features, mapd, hamfile, spamfile)
 

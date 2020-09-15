@@ -418,16 +418,16 @@ class OptionsClass:
         optname = None
         out = TemporaryFile()
         if os.path.exists(filename):
-            f = file(filename, "r")
+            f = open(filename, "r")
         else:
             # doesn't exist, so create it - all the changed options will
             # be added to it
             if self.verbose:
                 print("Creating new configuration file", end=' ', file=sys.stderr)
                 print(filename, file=sys.stderr)
-            f = file(filename, "w")
+            f = open(filename, "w")
             f.close()
-            f = file(filename, "r")
+            f = open(filename, "r")
         written = []
         vi = ": " # default; uses the one from the file where possible
         while True:
@@ -489,7 +489,7 @@ class OptionsClass:
             # save a backup of the old file
             shutil.copyfile(filename, filename + ".bak")
         # copy the new file across
-        f = file(filename, "w")
+        f = open(filename, "w")
         out.seek(0)
         shutil.copyfileobj(out, f)
         out.close()

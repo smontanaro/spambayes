@@ -205,7 +205,7 @@ def main(args):
         if os.path.exists(bestfile):
             break
         try:
-            file(bestfile, "w")
+            open(bestfile, "w")
         except IOError:
             pass
         else:
@@ -231,7 +231,7 @@ def main(args):
             msgids.update(set(v))
     else:
         msgids = None
-        
+
     scores = {}
     try:
         score(unsure, h, cls, scores, msgids, skipspam)

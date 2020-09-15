@@ -79,7 +79,7 @@ def main():
         usage(1, "input mbox name and output base path are required")
     inputpath, outputbasepath = args
 
-    infile = file(inputpath, 'rb')
+    infile = open(inputpath, 'rb')
     outfiles = [file(outputbasepath + ("%d.mbox" % i), 'wb')
                 for i in range(1, n+1)]
 

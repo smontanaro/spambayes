@@ -48,8 +48,8 @@ def emlx_to_rfc2822(in_fn, out_fn):
     Mail uses (subject, flags, sender, and so forth).  We ignore
     this plist data).
     """
-    fin = file(in_fn)
-    fout = file(out_fn, "w")
+    fin = open(in_fn)
+    fout = open(out_fn, "w")
     length = int(fin.readline().rstrip())
     fout.write(fin.read(length))
     plist = fin.read()

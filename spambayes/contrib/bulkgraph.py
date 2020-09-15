@@ -191,7 +191,7 @@ def main():
         if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
             name = os.path.join(everything, f)
 
-            fh = file(name, "rb")
+            fh = open(name, "rb")
             msg = mboxutils.get_message(fh)
             fh.close()
             # Figure out how old the message is

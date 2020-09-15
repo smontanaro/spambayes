@@ -135,7 +135,7 @@ def main(args):
             sys.exit(1)
 
         if ismbox:
-            f = file(args[0])
+            f = open(args[0])
             process_mailbox(f, dosa, pats)
         else:
             process_maildir(args[0], dosa, pats)

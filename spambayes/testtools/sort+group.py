@@ -37,7 +37,7 @@ SECONDS_PER_DAY = 24 * 60 * 60
 # (can't find a Received header; can't parse the date), return None.
 # This is the best guess about when we received the msg.
 def get_time(fpath):
-    fh = file(fpath, 'rb')
+    fh = open(fpath, 'rb')
     lines = iter(fh)
     # Find first Received header.
     for line in lines:

@@ -253,7 +253,7 @@ def main():
         Output = ErrorSetOutputter(sep, not all_together)
 
     if filename:
-        source = file(filename)
+        source = open(filename)
     else:
         source = sys.stdin
 

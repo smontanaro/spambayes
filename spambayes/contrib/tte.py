@@ -104,7 +104,7 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     if reverse:
         hambone_ = list(reversed(hambone_))
         spamcan_ = list(reversed(spamcan_))
-    
+
     nspam, nham = len(spamcan_), len(hambone_)
     if ratio:
         rspam, rham = ratio
@@ -175,7 +175,7 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
               (round, msgs_processed, misses[0], misses[1], seconds))
 
     training_sets = [hambone, spamcan]
-    
+
     # We count all untrained messages so the user knows what was skipped.
     # We also tag them for saving so we don't lose messages which might have
     # value in a future run
@@ -185,11 +185,11 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
             while True:
                 msg = next(training_sets[is_spam])
                 score = store.spamprob(tokenize(msg))
-                
+
                 if misclassified(is_spam, score):
                     tdict[msg["message-id"]] = True
                     nleft += 1
-                    
+
         except StopIteration:
             if nleft:
                 print(nleft, "untrained %ss" % name[is_spam])
@@ -198,8 +198,8 @@ def cull(mbox_name, cullext, designation, tdict):
     print("writing new %s mbox..." % designation)
     n = m = 0
     if cullext:
-        culled_mbox = file(mbox_name + cullext, "w")
-        
+        culled_mbox = open(mbox_name + cullext, "w")
+
     for msg in mboxutils.getmbox(mbox_name):
         m += 1
         if msg["message-id"] in tdict:
@@ -211,15 +211,15 @@ def cull(mbox_name, cullext, designation, tdict):
                 "STORE", msg.uid, "+FLAGS.SILENT", "(\\Deleted \\Seen)")
             command = "set %s to be deleted and seen" % (msg.uid,)
             msg.imap_server.check_response(command, response)
-        
+
         sys.stdout.write("\r%5d of %5d" % (n, m))
         sys.stdout.flush()
-        
+
     sys.stdout.write("\n")
-    
+
     if cullext:
         culled_mbox.close()
-    
+
 def main(args):
     try:
         opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:vRuC",
@@ -265,7 +265,7 @@ def main(args):
         elif opt == '--ratio':
             arg = arg.split(":")
             sh_ratio = (int(arg[0]), int(arg[1]))
-            
+
     if ham is None or spam is None:
         usage("require both ham and spam piles")
         return 1
