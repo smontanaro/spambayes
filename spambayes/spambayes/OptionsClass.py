@@ -312,7 +312,7 @@ class Option:
             return self.value
         if self.is_boolean():
             # A wee bit extra for Python 2.2
-            if self.value == True:
+            if self.value:
                 return "True"
             else:
                 return "False"
@@ -647,7 +647,7 @@ class OptionsClass:
         '''Set an option.'''
         if (sect, opt.lower()) in self.conversion_table:
             sect, opt = self.conversion_table[sect, opt.lower()]
-            
+
         # Annoyingly, we have a special case.  The notate_to and
         # notate_subject allowed values have to be set to the same
         # values as the header_x_ options, but this can't be done
@@ -798,7 +798,7 @@ class OptionsClass:
     def display_full(self, section=None, option=None):
         '''Display options including all information.'''
         return self._display_nice(section, option, 'as_nice_string')
-        
+
     def output_for_docs(self, section=None, option=None):
         '''Return output suitable for inserting into documentation for
         the available options.'''

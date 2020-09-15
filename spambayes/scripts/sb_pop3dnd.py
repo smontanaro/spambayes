@@ -513,9 +513,9 @@ class SpambayesMailbox(IMAPMailbox):
             for flag in flags or (): # flags might be None
                 if flag == '(' or flag == ')':
                     continue
-                if flag == "SEEN" and value == True and msg.seen == False:
+                if flag == "SEEN" and value and not msg.seen:
                     self.unseen_count -= 1
-                if flag == "SEEN" and value == False and msg.seen == True:
+                if flag == "SEEN" and not value and msg.seen:
                     self.unseen_count += 1
                 msg.set_flag(flag, value)
             stored_messages[id] = msg.flags()
@@ -976,7 +976,7 @@ def stop():
     state.bayes.store()
     # Explicitly closing the db is a good idea, though.
     state.bayes.close()
-    
+
     # Stop the POP3 proxy.
     if state.proxyPorts:
         killer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

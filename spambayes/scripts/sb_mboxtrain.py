@@ -88,12 +88,12 @@ def msg_train(h, msg, is_spam, force):
     oldtxt = msg.get(options["Headers", "trained_header_name"])
     if force:
         # Train no matter what.
-        if oldtxt != None:
+        if oldtxt is not None:
             del msg[options["Headers", "trained_header_name"]]
     elif oldtxt == spamtxt:
         # Skip this one, we've already trained with it.
         return False
-    elif oldtxt != None:
+    elif oldtxt is not None:
         # It's been trained, but as something else.  Untrain.
         del msg[options["Headers", "trained_header_name"]]
         h.untrain(msg, not is_spam)
@@ -319,7 +319,7 @@ def main():
     if args:
         usage(2, "Positional arguments not allowed")
 
-    if usedb == None:
+    if usedb is None:
         # Use settings in configuration file.
         usedb = options["Storage", "persistent_use_database"]
         pck = get_pathname_option("Storage",

@@ -221,13 +221,13 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             self.command = splitCommand[0]
             self.args = splitCommand[1:]
 
-        if self.inData == True:
+        if self.inData:
             self.data.append(self.request + '\r\n')
             if self.request == ".":
                 self.inData = False
                 cooked = self.onProcessData("".join(self.data))
                 self.data = []
-                if self.blockData == False:
+                if not self.blockData:
                     self.serverSocket.push(cooked)
                 else:
                     self.push("250 OK\r\n")
@@ -350,7 +350,7 @@ class BayesSMTPProxy(SMTPProxyBase):
 
     def onData(self, command, args):
         self.inData = True
-        if self.train_as_ham == True or self.train_as_spam == True:
+        if self.train_as_ham or self.train_as_spam:
             self.push("354 Enter data ending with a . on a line by itself\r\n")
             return None
         return command + ' ' + ' '.join(args)
@@ -460,7 +460,7 @@ class SMTPTrainer:
                 break
         if corpus is None:
             return False
-        if isSpam == True:
+        if isSpam:
             targetCorpus = self.state.spamCorpus
         else:
             targetCorpus = self.state.hamCorpus

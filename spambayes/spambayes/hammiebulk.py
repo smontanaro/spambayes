@@ -171,7 +171,7 @@ def main():
     if args:
         usage(2, "Positional arguments not allowed")
 
-    if usedb == None:
+    if usedb is None:
         usage(2, "Must specify one of -d or -D")
 
     save = False

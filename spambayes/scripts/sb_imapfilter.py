@@ -211,7 +211,7 @@ class IMAPSession(BaseIMAP):
         self.current_folder = None
 
         # We override the base read so that we only read a certain amount
-        # of data at a time.  OS X and Python has problems with getting 
+        # of data at a time.  OS X and Python has problems with getting
         # large amounts of memory at a time, so maybe this will be a way we
         # can work around that (I don't know, and don't have a mac to test,
         # but we need to try something).
@@ -301,7 +301,7 @@ class IMAPSession(BaseIMAP):
         This is essentially a wrapper around the IMAP select command, which
         ignores the command if the folder is already selected."""
         if self.current_folder != folder:
-            if self.current_folder != None and self.do_expunge:
+            if self.current_folder is not None and self.do_expunge:
                 # It is faster to do close() than a single
                 # expunge when we log out (because expunge returns
                 # a list of all the deleted messages which we don't do
@@ -410,7 +410,7 @@ class IMAPSession(BaseIMAP):
         expected_literal = None
         if self.UID_RE2.match(response[-1]):
             response = response[:-1]
-            
+
         for part in response:
             # We ignore parentheses by themselves, for convenience.
             if part == ')':
@@ -432,7 +432,7 @@ class IMAPSession(BaseIMAP):
                 rest = mo.group(2)
             else:
                 raise BadIMAPResponseError("FETCH response", response)
-            
+
             for r in [self.FLAGS_RE, self.INTERNALDATE_RE, self.RFC822_RE,
                       self.UID_RE, self.RFC822_HEADER_RE, self.BODY_PEEK_RE]:
                 mo = r.search(rest)
@@ -607,7 +607,7 @@ class IMAPMessage(message.SBHeaderMessage):
             # Print the exception and a traceback.
             print(details, file=sys.stderr)
 
-            return self            
+            return self
 
         new_msg.folder = self.folder
         new_msg.previous_folder = self.previous_folder
@@ -675,7 +675,7 @@ class IMAPMessage(message.SBHeaderMessage):
                 # The \Recent flag can be fetched, but cannot be stored
                 # We must remove it from the list if it is there.
                 flags = self.recent_re.sub("", flags)
-                
+
         # We try to save with flags and time, then with just the
         # time, then with the flags and the current time, then with just
         # the current time.  The first should work, but the first three
@@ -957,7 +957,7 @@ class IMAPFolder:
             if cls is None or hamfolder is not None:
                 if options["globals", "verbose"]:
                     print("[imapfilter] classified as %s:" % cls, msg.uid, file=sys.stderr)
-                
+
                 msg = msg.get_full_message()
                 if msg.could_not_retrieve:
                     # Something went wrong, and we couldn't even get
@@ -969,7 +969,7 @@ class IMAPFolder:
                     if options["globals", "verbose"]:
                         print("[imapfilter] could not retrieve:", msg.uid, file=sys.stderr)
                     continue
-                
+
                 (prob, clues) = classifier.spamprob(msg.tokenize(),
                                                     evidence=True)
                 # Add headers and remember classification.
@@ -1001,7 +1001,7 @@ class IMAPFolder:
             else:
                 if options["globals", "verbose"]:
                     print("[imapfilter] already classified:", msg.uid, file=sys.stderr)
-                
+
         return count
 
 
@@ -1016,7 +1016,7 @@ class IMAPFilter:
 
     def Train(self):
         assert self.imap_server, "Cannot do anything without IMAP server."
-        
+
         if options["globals", "verbose"]:
             t = time.time()
 
@@ -1056,7 +1056,7 @@ class IMAPFilter:
                 print("[imapfilter] spam folder:", spam_folder_name, file=sys.stderr)
             self.spam_folder = IMAPFolder(
                 spam_folder_name, self.imap_server, self.stats)
-            
+
         if not self.unsure_folder:
             unsure_folder_name = options["imap", "unsure_folder"]
             if options["globals", "verbose"]:
@@ -1067,7 +1067,7 @@ class IMAPFilter:
         ham_folder_name = options["imap", "ham_folder"]
         if options["globals", "verbose"]:
             print("[imapfilter] ham folder:", ham_folder_name, file=sys.stderr)
-            
+
         if ham_folder_name and not self.ham_folder:
             self.ham_folder = IMAPFolder(ham_folder_name, self.imap_server,
                                          self.stats)
@@ -1097,13 +1097,13 @@ class IMAPFilter:
             except BadIMAPResponseError:
                 print("Cannot select ham folder.  Please check configuration.", file=sys.stderr)
                 sys.exit(-1)
-                
+
         for filter_folder in options["imap", "filter_folders"]:
             # Select the folder to make sure it exists.
             try:
                 self.imap_server.SelectFolder(filter_folder)
             except BadIMAPResponseError:
-                print("Cannot select", filter_folder, "... skipping.", file=sys.stderr) 
+                print("Cannot select", filter_folder, "... skipping.", file=sys.stderr)
                 continue
 
             folder = IMAPFolder(filter_folder, self.imap_server, self.stats)
@@ -1125,7 +1125,7 @@ def servers(promptForPass = False):
 If promptForPass is True or at least on password is missing from options,
 prompts the user for each server's password.
 """
-    
+
     servers = options["imap", "server"]
     usernames = options["imap", "username"]
     pwds = options["imap", "password"]
@@ -1134,9 +1134,9 @@ prompts the user for each server's password.
         pwds = []
         for u in usernames:
             pwds.append(getpass("Enter password for %s:" % (u,)))
-            
+
     return list(zip(servers, usernames, pwds))
-            
+
 def run(force_UI=False):
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbPtcvl:e:i:d:p:o:',
@@ -1198,10 +1198,10 @@ def run(force_UI=False):
         sys.exit()
 
     servers_data = servers(promptForPass)
-    
+
     # Load stats manager.
     stats = Stats.Stats(options, message_db)
-    
+
     imap_filter = IMAPFilter(classifier, stats)
 
     # Web interface.  We have changed the rules about this many times.
@@ -1289,7 +1289,7 @@ def run(force_UI=False):
                         if os.path.exists(fn):
                             options.merge_file(fn)
 
-                    try:                    
+                    try:
                         imap.login(username, password)
                     except LoginFailure as e:
                         print(str(e))

@@ -116,7 +116,7 @@ class cache:
         self.misses=0
         self.pruneTicker=0
 
-        if dnsServer == None:
+        if dnsServer is None:
             DNS.DiscoverNameServers()
             self.queryObj = DNS.DnsRequest()
         else:
@@ -188,7 +188,7 @@ class cache:
 
 
     def formatForReturn(self, listOfObjs):
-        if len(listOfObjs) == 1 and listOfObjs[0].answer == None:
+        if len(listOfObjs) == 1 and listOfObjs[0].answer is None:
             return []
 
         if listOfObjs[0].qType == "PTR" and self.returnSinglePTR:

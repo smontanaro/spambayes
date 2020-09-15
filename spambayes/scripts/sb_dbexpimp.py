@@ -179,7 +179,8 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     bayes.store()
     print("Finished storing database")
 
-    if useDBM == "dbm" or useDBM == True:
+    # XXX This if statement is fishy...
+    if useDBM == "dbm" or useDBM:
         words = list(bayes.db.keys())
         words.remove(bayes.statekey)
     else:

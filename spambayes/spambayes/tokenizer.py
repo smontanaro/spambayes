@@ -33,7 +33,7 @@ else:
     import atexit
     atexit.register(cache.close)
 
- 
+
 # Patch encodings.aliases to recognize 'ansi_x3_4_1968'
 from encodings.aliases import aliases # The aliases dictionary
 if 'ansi_x3_4_1968' not in aliases:
@@ -998,15 +998,15 @@ crack_uuencode = UUencodeStripper().analyze
 
 # Strip and specially tokenize embedded URLish thingies.
 
-url_fancy_re = re.compile(r""" 
+url_fancy_re = re.compile(r"""
     \b                      # the preceeding character must not be alphanumeric
-    (?: 
+    (?:
         (?:
             (https? | ftp)  # capture the protocol
             ://             # skip the boilerplate
         )|
         (?= ftp\.[^\.\s<>"'\x7f-\xff] )|  # allow the protocol to be missing, but only if
-        (?= www\.[^\.\s<>"'\x7f-\xff] )   # the rest of the url starts "www.x" or "ftp.x" 
+        (?= www\.[^\.\s<>"'\x7f-\xff] )   # the rest of the url starts "www.x" or "ftp.x"
     )
     # Do a reasonable attempt at detecting the end.  It may or may not
     # be in HTML, may or may not be in quotes, etc.  If it's full of %
@@ -1335,7 +1335,7 @@ class Tokenizer:
                 # If there was any invalid line, we record as invalid.
                 # If all nine lines were correct, we record as valid.
                 # Otherwise we ignore.
-                if invalid_habeas == True:
+                if invalid_habeas:
                     yield "x-habeas-swe:invalid"
                 elif valid_habeas == 9:
                     yield "x-habeas-swe:valid"
