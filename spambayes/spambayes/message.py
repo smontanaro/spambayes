@@ -341,17 +341,19 @@ class Message(email.Message.Message):
     # a classmethod property, we have to jump through some hoops, which we
     # deserve for not doing it right in the first place.
     _message_info_db = None
-    def _get_class_message_info_db(klass):
+    @classmethod
+    def _get_class_message_info_db(cls):
         # If, the first time we access the attribute, it hasn't been
         # set, then we load up the default one.
-        if klass._message_info_db is None:
+        if cls._message_info_db is None:
             nm, typ = database_type()
-            klass._message_info_db = open_storage(nm, typ)
-        return klass._message_info_db
-    _get_class_message_info_db = classmethod(_get_class_message_info_db)
-    def _set_class_message_info_db(klass, value):
-        klass._message_info_db = value
-    _set_class_message_info_db = classmethod(_set_class_message_info_db)
+            cls._message_info_db = open_storage(nm, typ)
+        return cls._message_info_db
+
+    @classmethod
+    def _set_class_message_info_db(cls, value):
+        cls._message_info_db = value
+
     def _get_message_info_db(self):
         return self._get_class_message_info_db()
     def _set_message_info_db(self, value):
