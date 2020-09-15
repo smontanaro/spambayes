@@ -181,7 +181,7 @@ class SBVersion:
 
         if not patch:
             patch = "0"
-            
+
         if not prerelease:
             releaselevel = "final"
             serial = 0
@@ -296,11 +296,11 @@ shared_cfg_opts = {
 }
 def _write_cfg_opts(stream, this_dict):
     for name, val in list(this_dict.items()):
-        if type(val)==type(''):
+        if isinstance(val, str):
             val_str = repr(val)[1:-1]
-        elif type(val)==type(0.0):
+        elif isinstance(val, float):
             val_str = str(val)
-        elif type(val)==type({}):
+        elif isinstance(val, dict):
             val_str = None # sub-dict
         else:
             print("Skipping unknown value type: %r" % val)
@@ -352,7 +352,7 @@ def main(args):
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
-        
+
     v_this = get_current_version()
     print("Current version:", v_this.get_long_version())
 

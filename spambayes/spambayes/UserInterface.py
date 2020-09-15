@@ -879,7 +879,7 @@ class UserInterface(BaseUserInterface):
                 os.rename(options["Storage", "messageinfo_storage_file"],
                           options["Storage",
                                   "messageinfo_storage_file"] + ".old")
-            
+
         self.reReadOptions()
 
         html.mainContent.heading = _("Options Changed")
@@ -1402,7 +1402,7 @@ class UserInterface(BaseUserInterface):
                 text = _('(this message only has an HTML body)\n') + text
             except StopIteration:
                 text = _('(this message has no text body)')
-        if type(text) == type([]):  # gotta be a 'right' way to do this
+        if isinstance(text, list):  # gotta be a 'right' way to do this
             text = _("(this message is a digest of %s messages)") % (len(text))
         elif text is None:
             text = _("(this message has no body)")

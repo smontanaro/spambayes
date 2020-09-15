@@ -163,7 +163,7 @@ class Option:
     def is_valid_single(self, value):
         '''Return True iff value is a valid value for this option.
         Use when multiple values are not allowed.'''
-        if type(self.allowed_values) == tuple:
+        if isinstance(self.allowed_values, tuple):
             if value in self.allowed_values:
                 return True
             else:
@@ -261,8 +261,8 @@ class Option:
         if svt == type(value):
             # already the correct type
             return value
-        if type(self.allowed_values) == tuple and \
-           value in self.allowed_values:
+        if (isinstance(self.allowed_values, tuple) and
+            value in self.allowed_values):
             # already correct type
             return value
         if self.is_boolean():
@@ -316,12 +316,12 @@ class Option:
                 return "True"
             else:
                 return "False"
-        if type(self.value) == tuple:
+        if isinstance(self.value, tuple):
             if len(self.value) == 0:
                 return ""
             if len(self.value) == 1:
                 v = self.value[0]
-                if type(v) == float:
+                if isinstance(v, float):
                     return locale.str(self.value[0])
                 return str(v)
             # We need to separate out the items
@@ -336,7 +336,7 @@ class Option:
             # the end so that this will crash and die if none of
             # the separators works <wink>.
             if self.delimiter is None:
-                if type(self.allowed_values) == tuple:
+                if isinstance(self.allowed_values, tuple):
                     self.delimiter = ' '
                 else:
                     v0 = self.value[0]
@@ -354,7 +354,7 @@ class Option:
                     # cache this so we don't always need to do the above
                     self.delimiter = sep
             for v in self.value:
-                if type(v) == float:
+                if isinstance(v, float):
                     v = locale.str(v)
                 else:
                     v = str(v)
@@ -373,9 +373,9 @@ class Option:
         # considered valid input (and 0 and 1 don't look as nice)
         # So, just for the 2.2 people, we have this helper function
         try:
-            if type(self.allowed_values) == tuple and \
-               len(self.allowed_values) > 0 and \
-               type(self.allowed_values[0]) == bool:
+            if (isinstance(self.allowed_values, tuple) and
+                self.allowed_values and
+                isinstance(self.allowed_values[0], bool)):
                 return True
             return False
         except AttributeError:

@@ -278,7 +278,7 @@ class Listener(asyncore.dispatcher):
         s.setblocking(False)
         self.set_socket(s, self.socketMap)
         self.set_reuse_addr()
-        if type(port) != type(()):
+        if not isinstance(port, tuple):
             port = ('', port)
         try:
             self.bind(port)
@@ -417,7 +417,7 @@ class _HTTPHandler(BrighterAsyncChat):
 
         # Have we just read the body of a POSTed request?  Decode the body,
         # which will contain parameters and possibly uploaded files.
-        if type(self.get_terminator()) is type(1):
+        if isinstance(self.get_terminator(), int):
             self.set_terminator('\r\n\r\n')
             body = self._request.split('\r\n\r\n', 1)[1]
             match = re.search(r'(?i)content-type:\s*([^\r\n]+)', headers)

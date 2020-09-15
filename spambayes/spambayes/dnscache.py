@@ -308,7 +308,7 @@ class cache:
         auth = reply.authority[0]
         auTTL = int(auth["ttl"])
         for item in auth["data"]:
-            if type(item) == tuple and item[0] == "minimum":
+            if isinstance(item, tuple) and item[0] == "minimum":
                 auMin = int(item[1])
                 cacheNeg = min(auMin,auTTL)
                 break
