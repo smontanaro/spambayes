@@ -30,7 +30,7 @@ import re
 import binascii
 
 from spambayes.mboxutils import getmbox
-from spambayes.port import md5
+from hashlib import md5
 
 def flatten(obj):
     # I do not know how to use the email package very well - all I want here

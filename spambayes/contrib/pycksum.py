@@ -48,7 +48,7 @@ try:
 except ImportError:
     import StringIO
 
-from spambayes.port import md5
+from hashlib import md5
 
 def clean(data):
     """Clean the obviously variable stuff from a chunk of data.

@@ -53,7 +53,7 @@ import getopt
 import glob
 
 from spambayes import mboxutils
-from spambayes.port import md5
+from hashlib import md5
 
 program = sys.argv[0]
 

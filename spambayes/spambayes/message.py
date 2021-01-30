@@ -579,14 +579,7 @@ class SBHeaderMessage(Message):
         disposition = self.GetClassification()
         # options["Headers", "notate_to"] (and notate_subject) can be
         # either a single string (like "spam") or a tuple (like
-        # ("unsure", "spam")).  In Python 2.3 checking for a string in
-        # something that could be a string or a tuple works fine, but
-        # it dies in Python 2.2, because you can't do 'string in string',
-        # only 'character in string', so we allow for that.
-        if isinstance(options["Headers", "notate_to"], types.StringTypes):
-            notate_to = (options["Headers", "notate_to"],)
-        else:
-            notate_to = options["Headers", "notate_to"]
+        # ("unsure", "spam")).
         if disposition in notate_to:
             # Once, we treated the To: header just like the Subject: one,
             # but that doesn't really make sense - and OE stripped the

@@ -171,59 +171,8 @@ except ImportError:
 
 import sys, re, time, traceback, base64
 import socket, cgi, urlparse, webbrowser
-
-try:
-    "".rstrip("abc")
-except TypeError:
-    # rstrip(chars) requires Python 2.2.2 or higher.  Apart from that
-    # we probably work with Python 2.2 (and say we do), so provide the
-    # ability to do this for that case.
-    RSTRIP_CHARS_AVAILABLE = False
-else:
-    RSTRIP_CHARS_AVAILABLE = True
-
-from spambayes.port import md5
-from spambayes import asyncore, asynchat
-
-class BrighterAsyncChat(asynchat.async_chat):
-    """An asynchat.async_chat that doesn't give spurious warnings on
-    receiving an incoming connection, lets SystemExit cause an exit, can
-    flush its output, and will correctly remove itself from a non-default
-    socket map on `close()`."""
-
-    def __init__(self, conn=None, map=None):
-        """See `asynchat.async_chat`."""
-        asynchat.async_chat.__init__(self, conn)
-        self.__map = map
-        self._closed = False
-
-    def handle_connect(self):
-        """Suppresses the asyncore "unhandled connect event" warning."""
-        pass
-
-    def handle_error(self):
-        """Let SystemExit cause an exit."""
-        type, v, t = sys.exc_info()
-        if type == SystemExit:
-            raise
-        else:
-            asynchat.async_chat.handle_error(self)
-
-    def flush(self):
-        """Flush everything in the output buffer."""
-        # We check self._closed here because of the case where
-        # self.initiate_send() raises an exception, causing self.close()
-        # to be called.  If we didn't check, we could end up in an infinite
-        # loop.
-        while (self.producer_fifo or self.ac_out_buffer) and not self._closed:
-            self.initiate_send()
-
-    def close(self):
-        """Remove this object from the correct socket map."""
-        self._closed = True
-        self.del_channel(self.__map)
-        self.socket.close()
-
+import asyncore, asynchat
+from hashlib import md5
 
 class Context:
     """See the main documentation for details of `Dibbler.Context`."""
@@ -355,7 +304,7 @@ class HTTPServer(Listener):
         return "You must log in."
 
 
-class _HTTPHandler(BrighterAsyncChat):
+class _HTTPHandler(asynchat.async_chat):
     """This is a helper for the HTTP server class - one of these is created
     for each incoming request, and does the job of decoding the HTTP traffic
     and driving the plugins."""
@@ -367,8 +316,7 @@ class _HTTPHandler(BrighterAsyncChat):
     def __init__(self, clientSocket, server, context):
         # Grumble: asynchat.__init__ doesn't take a 'map' argument,
         # hence the two-stage construction.
-        BrighterAsyncChat.__init__(self, map=context._map)
-        BrighterAsyncChat.set_socket(self, clientSocket, context._map)
+        asynchat.async_chat.__init__(self, clientSocket, context._map)
         self._context = context
         self._server = server
         self._request = ''
@@ -609,18 +557,7 @@ class _HTTPHandler(BrighterAsyncChat):
         of current time plus 20 minutes. This means the nonce will expire 20
         minutes from now."""
         timeString = time.asctime(time.localtime(time.time() + 20*60))
-        if RSTRIP_CHARS_AVAILABLE:
-            return base64.encodestring(timeString).rstrip('\n=')
-        else:
-            # Python pre 2.2.2, so can't do a rstrip(chars).  Do it
-            # manually instead.
-            def rstrip(s, chars):
-                if not s:
-                    return s
-                if s[-1] in chars:
-                    return rstrip(s[:-1])
-                return s
-            return rstrip(base64.encodestring(timeString), '\n=')
+        return base64.encodestring(timeString).rstrip('\n=')
 
     def _isValidNonce(self, nonce):
         """Check if the specified nonce is still valid. A nonce is invalid

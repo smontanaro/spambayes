@@ -681,19 +681,13 @@ class Classifier:
                 self.bad_urls["url:non_html"] += (url,)
                 return ["url:non_html"]
 
-            # Waiting for the default timeout period slows everything
-            # down far too much, so try and reduce it for just this
-            # call (this will only work with Python 2.3 and above).
-            try:
-                timeout = socket.getdefaulttimeout()
-                socket.setdefaulttimeout(5)
-            except AttributeError:
-                # Probably Python 2.2.
-                pass
             try:
                 if options["globals", "verbose"]:
                     print >> sys.stderr, "Slurping", url
-                f = urllib2.urlopen("%s://%s" % (proto, url))
+
+                # Waiting for the default timeout takes way too long
+                # Use a specific timeout for this call
+                f = urllib2.urlopen("%s://%s" % (proto, url), timeout=5)
             except (urllib2.URLError, socket.error), details:
                 mo = HTTP_ERROR_RE.match(str(details))
                 if mo:
@@ -701,12 +695,6 @@ class Classifier:
                     return ["url:http_" + mo.group(1)]
                 self.bad_urls["url:unknown_error"] += (url,)
                 return ["url:unknown_error"]
-            # Restore the timeout
-            try:
-                socket.setdefaulttimeout(timeout)
-            except AttributeError:
-                # Probably Python 2.2.
-                pass
 
             try:
                 # Anything that isn't text/html is ignored
