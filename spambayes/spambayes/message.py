@@ -580,6 +580,7 @@ class SBHeaderMessage(Message):
         # options["Headers", "notate_to"] (and notate_subject) can be
         # either a single string (like "spam") or a tuple (like
         # ("unsure", "spam")).
+        notate_to = options["Headers", "notate_to"]
         if disposition in notate_to:
             # Once, we treated the To: header just like the Subject: one,
             # but that doesn't really make sense - and OE stripped the
