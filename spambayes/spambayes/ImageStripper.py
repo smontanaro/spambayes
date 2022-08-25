@@ -226,7 +226,7 @@ class OCRExecutableEngine(OCREngine):
         if not self._program:
             self._program = find_program(self.engine_name)
         return self._program
-    
+
     program = property(get_program)
 
     def get_command_line(self, pnmfile):
@@ -294,7 +294,7 @@ class ImageStripper:
         if self.cachefile:
             atexit.register(self.close)
         self.engine = None
-    
+
     def extract_ocr_info(self, pnmfiles):
         assert self.engine, "must have an engine!"
         textbits = []

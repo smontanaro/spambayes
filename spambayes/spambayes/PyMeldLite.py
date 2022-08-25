@@ -786,7 +786,7 @@ class Meld:
     def __setitem__(self, name, value):
         """`object[<name>] = value` sets the XML content of the element with an
         `id` of `name`.
-        
+
         If no such element exists, a KeyError is raised because there is no
         info about the type of element to add.
 

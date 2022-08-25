@@ -239,7 +239,7 @@ class ExpiryCorpus:
 
     def removeExpiredMessages(self):
         '''Kill expired messages'''
-        
+
         # Only check for expired messages after this time.  We set this to the
         # closest-to-expiry message's expiry time, so that this method can be
         # called very regularly, and most of the time it will just immediately

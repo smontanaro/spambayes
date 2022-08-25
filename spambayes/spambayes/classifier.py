@@ -641,7 +641,7 @@ class Classifier:
         # "http://)" will trigger this.
         if not url:
             return ["url:non_resolving"]
-        
+
         from spambayes.tokenizer import Tokenizer
 
         if options["URLRetriever", "x-only_slurp_base"]:
@@ -723,7 +723,7 @@ class Classifier:
                 # This is probably a temporary error, like a timeout.
                 # For now, just bail out.
                 return []
-            
+
             fake_message_string = headers + "\r\n" + page
 
             # Retrieving the same messages over and over again will tire

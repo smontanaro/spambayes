@@ -311,7 +311,7 @@ class MessageFactory(Corpus.MessageFactory):
             msg.loaded = True
             return msg
         return self.klass(key, directory)
-    
+
 
 class FileMessageFactory(MessageFactory):
     '''MessageFactory for FileMessage objects'''

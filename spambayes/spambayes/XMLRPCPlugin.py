@@ -94,7 +94,7 @@ class XMLRPCPlugin(Plugin):
         mime_message = str(mime_message.as_string(), "utf-8").encode("utf-8")
         self.train_mime(mime_message, "utf-8", is_spam)
         return ""
-    
+
     def train_mime(self, msg_text, encoding, is_spam):
         if self.state.bayes is None:
             self.state.create_workers()

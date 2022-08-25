@@ -782,7 +782,7 @@ class ZODBClassifier:
         if pack and self.mode != 'r':
             self.pack(time.time()-60*60*24, retain_backup)
 
-        # Do the closing.        
+        # Do the closing.
         self.DB.close()
         self.storage.close()
 

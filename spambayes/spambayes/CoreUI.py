@@ -374,7 +374,7 @@ class CoreUserInterface(UserInterface.UserInterface):
                 if len(keys):
                     if len(keys) == 1:
                         title = _("Found message")
-                    else:                      
+                    else:
                         title = _("Found messages")
                     keys = list(keys)
                 else:
@@ -809,7 +809,7 @@ class CoreState:
         cls should match one of the options["Headers", "header_*_string"]
         values.
 
-        score is the score the message received.        
+        score is the score the message received.
         """
         if cls == options["Headers", "header_ham_string"]:
             self.numHams += 1
@@ -823,7 +823,7 @@ class CoreState:
         return ""
 
     def recreate_state(self):
-        if self.prepared:    
+        if self.prepared:
             # Close the state (which saves if necessary)
             self.close()
         # And get a new one going.

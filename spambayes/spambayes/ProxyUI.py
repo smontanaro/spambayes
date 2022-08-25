@@ -388,7 +388,7 @@ class ProxyUserInterface(UserInterface.UserInterface):
                 if len(keys):
                     if len(keys) == 1:
                         title = _("Found message")
-                    else:                      
+                    else:
                         title = _("Found messages")
                     keys = list(keys)
                 else:

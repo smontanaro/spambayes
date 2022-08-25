@@ -101,14 +101,14 @@ class LanguageManager:
         self.current_langs_codes = [ lang_code ]
         self._rebuild_syspath_for_dialogs()
         self._install_gettext()
-        
+
     def locale_default_lang(self):
         """Get the default language for the locale."""
         # Note that this may return None.
         try:
             return os.environ["SPAMBAYES_LANG"]
         except KeyError:
-            return getdefaultlocale()[0] 
+            return getdefaultlocale()[0]
 
     def add_language(self, lang_code=None):
         """Add a language to the current languages list.

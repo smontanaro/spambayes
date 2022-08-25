@@ -220,7 +220,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
             if imap_logged_in:
                 new_imaps.append(imap_logged_in)
         self.imaps = new_imaps
-            
+
     def _login_to_imap_server(self, imap, i):
         if imap and imap.logged_in:
             return imap
