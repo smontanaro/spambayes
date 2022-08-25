@@ -55,7 +55,7 @@ To Do:
 __credits__ = "All the Spambayes folk."
 # blame for the new format: Tony Meyer <ta-meyer@ihug.co.nz>
 
-__issues__ = """Things that should be considered further and by
+__issues__ = r"""Things that should be considered further and by
 other people:
 
 We are very generous in checking validity when multiple values are
@@ -79,26 +79,32 @@ import sys
 import os
 import shutil
 from tempfile import TemporaryFile
-
-try:
-    import io as StringIO
-except ImportError:
-    import io
-
+import io
 import re
-import types
 import locale
 from textwrap import wrap
 
-__all__ = ['OptionsClass',
-           'HEADER_NAME', 'HEADER_VALUE',
-           'INTEGER', 'REAL', 'BOOLEAN',
-           'SERVER', 'PORT', 'EMAIL_ADDRESS',
-           'PATH', 'VARIABLE_PATH', 'FILE', 'FILE_WITH_PATH',
-           'IMAP_FOLDER', 'IMAP_ASTRING',
-           'RESTORE', 'DO_NOT_RESTORE', 'IP_LIST',
-           'OCRAD_CHARSET',
-          ]
+__all__ = [
+    'OptionsClass',
+    'HEADER_NAME',
+    'HEADER_VALUE',
+    'INTEGER',
+    'REAL',
+    'BOOLEAN',
+    'SERVER',
+    'PORT',
+    'EMAIL_ADDRESS',
+    'PATH',
+    'VARIABLE_PATH',
+    'FILE',
+    'FILE_WITH_PATH',
+    'IMAP_FOLDER',
+    'IMAP_ASTRING',
+    'RESTORE',
+    'DO_NOT_RESTORE',
+    'IP_LIST',
+    'OCRAD_CHARSET',
+]
 
 MultiContainerTypes = (tuple, list)
 
@@ -169,11 +175,8 @@ class Option:
             else:
                 return False
         else:
-            # special handling for booleans, thanks to Python 2.2
-            if self.is_boolean and (value == True or value == False):
-                return True
-            if type(value) != type(self.value) and \
-               type(self.value) not in MultiContainerTypes:
+            if (type(value) != type(self.value) and
+                type(self.value) not in MultiContainerTypes):
                 # This is very strict!  If the value is meant to be
                 # a real number and an integer is passed in, it will fail.
                 # (So pass 1. instead of 1, for example)
@@ -310,12 +313,6 @@ class Option:
         if type(self.value) in (str,):
             # nothing to do
             return self.value
-        if self.is_boolean():
-            # A wee bit extra for Python 2.2
-            if self.value:
-                return "True"
-            else:
-                return "False"
         if isinstance(self.value, tuple):
             if len(self.value) == 0:
                 return ""
@@ -347,9 +344,9 @@ class Option:
                         # with as special cases
                         test_str = str(v0) + sep + str(v1)
                         test_tuple = self._split_values(test_str)
-                        if test_tuple[0] == str(v0) and \
-                           test_tuple[1] == str(v1) and \
-                           len(test_tuple) == 2:
+                        if (test_tuple[0] == str(v0) and
+                            test_tuple[1] == str(v1) and
+                            len(test_tuple) == 2):
                             break
                     # cache this so we don't always need to do the above
                     self.delimiter = sep
@@ -367,25 +364,9 @@ class Option:
 
     def is_boolean(self):
         '''Return True iff the option is a boolean value.'''
-        # This is necessary because of the Python 2.2 True=1, False=0
-        # cheat.  The valid values are returned as 0 and 1, even if
-        # they are actually False and True - but 0 and 1 are not
-        # considered valid input (and 0 and 1 don't look as nice)
-        # So, just for the 2.2 people, we have this helper function
-        try:
-            if (isinstance(self.allowed_values, tuple) and
+        return (isinstance(self.allowed_values, tuple) and
                 self.allowed_values and
-                isinstance(self.allowed_values[0], bool)):
-                return True
-            return False
-        except AttributeError:
-            # If the user has Python 2.2 and an option has valid values
-            # of (0, 1) - i.e. integers, then this function will return
-            # the wrong value.  I don't know what to do about that without
-            # explicitly stating which options are boolean
-            if self.allowed_values == (False, True):
-                return True
-            return False
+                isinstance(self.allowed_values[0], bool))
 
 
 class OptionsClass:
@@ -399,10 +380,8 @@ class OptionsClass:
     # Lifted straight from ConfigParser
     #
     SECTCRE = re.compile(
-        r'\['                                 # [
-        r'(?P<header>[^]]+)'                  # very permissive!
-        r'\]'                                 # ]
-        )
+        r'\[' r'(?P<header>[^]]+)' r'\]'  # [  # very permissive!  # ]
+    )
     OPTCRE = re.compile(
         r'(?P<option>[^:=\s][^:=]*)'          # very permissive!
         r'\s*(?P<vi>[:=])\s*'                 # any number of space/tab,
@@ -423,7 +402,8 @@ class OptionsClass:
             # doesn't exist, so create it - all the changed options will
             # be added to it
             if self.verbose:
-                print("Creating new configuration file", end=' ', file=sys.stderr)
+                print("Creating new configuration file", end=' ',
+                      file=sys.stderr)
                 print(filename, file=sys.stderr)
             f = open(filename, "w")
             f.close()
@@ -467,7 +447,7 @@ class OptionsClass:
                             # ';' is a comment delimiter only if it follows
                             # a spacing character
                             pos = optval.find(';')
-                            if pos != -1 and optval[pos-1].isspace():
+                            if pos != -1 and optval[pos - 1].isspace():
                                 optval = optval[:pos]
                         optval = optval.strip()
                         # allow empty values
@@ -498,8 +478,8 @@ class OptionsClass:
     def _add_missing(self, out, written, sect, vi, label=True):
         # add any missing ones, where the value does not equal the default
         for opt in self.options_in_section(sect):
-            if not (sect, opt) in written and \
-               self.get(sect, opt) != self.default(sect, opt):
+            if (not (sect, opt) in written and \
+                self.get(sect, opt) != self.default(sect, opt)):
                 if label:
                     out.write('[')
                     out.write(sect)
@@ -514,7 +494,7 @@ class OptionsClass:
 
     def load_defaults(self, defaults):
         '''Load default values (stored in Options.py).'''
-        for section, opts in list(defaults.items()):
+        for section, opts in defaults.items():
             for opt in opts:
                 # If first item of the tuple is a sub-class of Option, then
                 # instantiate that (with the rest as args).  Otherwise,
@@ -617,7 +597,7 @@ class OptionsClass:
         return self._options[sect, opt.lower()].multiple_values_allowed()
 
     def is_boolean(self, sect, opt):
-        '''The option is a boolean value. (Support for Python 2.2).'''
+        '''The option is a boolean value.'''
         return self._options[sect, opt.lower()].is_boolean()
 
     def convert(self, sect, opt, value):
@@ -722,7 +702,7 @@ class OptionsClass:
     def sections(self):
         '''Return an alphabetical list of all the sections.'''
         all = []
-        for sect, opt in list(self._options.keys()):
+        for sect, opt in self._options.keys():
             if sect not in all:
                 all.append(sect)
         all.sort()
@@ -731,7 +711,7 @@ class OptionsClass:
     def options_in_section(self, section):
         '''Return an alphabetical list of all the options in this section.'''
         all = []
-        for sect, opt in list(self._options.keys()):
+        for sect, opt in self._options.keys():
             if sect == section:
                 all.append(opt)
         all.sort()
@@ -741,7 +721,7 @@ class OptionsClass:
         '''Return an alphabetical list of all the options, optionally
         prefixed with [section_name]'''
         all = []
-        for sect, opt in list(self._options.keys()):
+        for sect, opt in self._options.keys():
             if prepend_section_name:
                 all.append('[' + sect + ']' + opt)
             else:
@@ -819,9 +799,11 @@ PATH = r"[\w \$\.\-~:\\/\*\@\=]+"
 VARIABLE_PATH = PATH + r"%"
 FILE = r"[\S]+"
 FILE_WITH_PATH = PATH
-IP_LIST = r"\*|localhost|((\*|[01]?\d\d?|2[0-4]\d|25[0-5])\.(\*|[01]?\d" \
-          r"\d?|2[0-4]\d|25[0-5])\.(\*|[01]?\d\d?|2[0-4]\d|25[0-5])\.(\*" \
-          r"|[01]?\d\d?|2[0-4]\d|25[0-5]),?)+"
+IP_LIST = (
+    r"\*|localhost|((\*|[01]?\d\d?|2[0-4]\d|25[0-5])\.(\*|[01]?\d"
+    r"\d?|2[0-4]\d|25[0-5])\.(\*|[01]?\d\d?|2[0-4]\d|25[0-5])\.(\*"
+    r"|[01]?\d\d?|2[0-4]\d|25[0-5]),?)+"
+)
 # IMAP seems to allow any character at all in a folder name,
 # but we want to use the comma as a delimiter for lists, so
 # we don't allow this.  If anyone has folders with commas in the

@@ -74,7 +74,9 @@ def normIQ(p, sqrt=_math.sqrt, ln=_math.log):
         z = 8.3
     else:
         t = sqrt(-2.0 * ln(p))
-        z = t - (2.30753 + .27061*t) / (1. + .99229*t + .04481*t**2)
+        z = t - (
+            (2.30753 + 0.27061 * t) / (1.0 + 0.99229 * t + 0.04481 * t ** 2)
+        )
 
     if flipped:
         z = -z
@@ -129,9 +131,9 @@ def main():
         S = ln(S) + Sexp * ln2
         H = ln(H) + Hexp * ln2
         n = len(ps)
-        S = 1.0 - chi2Q(-2.0 * S, 2*n)
-        H = 1.0 - chi2Q(-2.0 * H, 2*n)
-        return S, H, (S-H + 1.0) / 2.0
+        S = 1.0 - chi2Q(-2.0 * S, 2 * n)
+        H = 1.0 - chi2Q(-2.0 * H, 2 * n)
+        return S, H, (S - H + 1.0) / 2.0
 
     warp = 0
     bias = 0.99
@@ -191,7 +193,7 @@ def showscore(ps, ln=_math.log, ln2=_math.log(2), frexp=_math.frexp):
 
     S = 1.0 - probS
     H = 1.0 - probH
-    score = (S-H + 1.0) / 2.0
+    score = (S - H + 1.0) / 2.0
     print("spam prob", S)
     print(" ham prob", H)
     print("(S-H+1)/2", score)

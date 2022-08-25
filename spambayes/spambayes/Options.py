@@ -1349,8 +1349,8 @@ def load_options():
 
     if not optionsPathname:
         optionsPathname = os.path.abspath('bayescustomize.ini')
-        if sys.platform.startswith("win") and \
-           not os.path.isfile(optionsPathname):
+        if (sys.platform.startswith("win") and
+            not os.path.isfile(optionsPathname)):
             # If we are on Windows and still don't have an INI, default to the
             # 'per-user' directory.
             try:
@@ -1360,11 +1360,12 @@ def load_options():
                 # in the current directory, and no win32 extensions installed
                 # to locate the "user" directory - seeing things are so lamely
                 # setup, it is worth printing a warning
-                print("NOTE: We can not locate an INI file " \
-                      "for SpamBayes, and the Python for Windows extensions " \
-                      "are not installed, meaning we can't locate your " \
-                      "'user' directory.  An empty configuration file at " \
-                      "'%s' will be used." % optionsPathname.encode('mbcs'), file=sys.stderr)
+                print("NOTE: We can not locate an INI file "
+                      "for SpamBayes, and the Python for Windows extensions "
+                      "are not installed, meaning we can't locate your "
+                      "'user' directory.  An empty configuration file at "
+                      "'%s' will be used." % optionsPathname.encode('mbcs'),
+                      file=sys.stderr)
             else:
                 windowsUserDirectory = os.path.join(
                         shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),

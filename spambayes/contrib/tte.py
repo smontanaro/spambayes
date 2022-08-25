@@ -119,8 +119,13 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
     name = ('ham','spam')
     misses = [0, 0]
 
-    misclassified = lambda is_spam, score: (
-        is_spam and score < spam_cutoff or not is_spam and score > ham_cutoff)
+    def misclassified(is_spam, score):
+        return (
+            is_spam
+            and score < spam_cutoff
+            or not is_spam
+            and score > ham_cutoff
+        )
 
     while round < maxrounds and (misses[ham] or misses[spam] or round == 0):
         round += 1
@@ -168,8 +173,8 @@ def train(store, hambox, spambox, maxmsgs, maxrounds, tdict, reverse, verbose,
                 tdict[train_msg["message-id"]] = True
                 store.learn(tokens, train_spam)
 
-        delta = datetime.datetime.now()-start
-        seconds = delta.seconds + delta.microseconds/1000000
+        delta = datetime.datetime.now() - start
+        seconds = delta.seconds + delta.microseconds / 1000000
 
         print("\rround: %2d, msgs: %4d, ham misses: %3d, spam misses: %3d, %.1fs" % \
               (round, msgs_processed, misses[0], misses[1], seconds))
@@ -222,12 +227,26 @@ def cull(mbox_name, cullext, designation, tdict):
 
 def main(args):
     try:
-        opts, args = getopt.getopt(args, "hg:s:d:p:o:m:r:c:vRuC",
-                                   ["help", "good=", "spam=",
-                                    "database=", "pickle=", "verbose",
-                                    "option=", "max=", "maxrounds=",
-                                    "cullext=", "cull", "reverse",
-                                    "ratio=", "unbalanced"])
+        opts, args = getopt.getopt(
+            args,
+            "hg:s:d:p:o:m:r:c:vRuC",
+            [
+                "help",
+                "good=",
+                "spam=",
+                "database=",
+                "pickle=",
+                "verbose",
+                "option=",
+                "max=",
+                "maxrounds=",
+                "cullext=",
+                "cull",
+                "reverse",
+                "ratio=",
+                "unbalanced",
+            ],
+        )
     except getopt.GetoptError as msg:
         usage(msg)
         return 1

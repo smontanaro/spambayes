@@ -25,7 +25,6 @@ import sys
 import glob
 import email
 import mailbox
-import email.Message
 import re
 import traceback
 
@@ -53,13 +52,13 @@ class DirOfTxtFileMailbox:
                 for mbox in DirOfTxtFileMailbox(name, self.factory):
                     yield mbox
             elif os.path.splitext(name)[1] == ".emlx":
-                f = open(name)
+                f = open(name, 'rb')
                 length = int(f.readline().rstrip())
                 yield self.factory(f.read(length))
                 f.close()
             else:
                 try:
-                    f = open(name)
+                    f = open(name, 'rb')
                 except IOError:
                     continue
                 yield self.factory(f)
@@ -117,7 +116,7 @@ def getmbox(name):
         ).match(name).groupdict()
 
         from scripts.sb_imapfilter import IMAPSession, IMAPFolder
-        from spambayes import Stats, message
+        from spambayes import Stats
         from spambayes.Options import options
 
         session = IMAPSession(parts['server'])
@@ -129,7 +128,7 @@ def getmbox(name):
         else:
             names = parts['name'].split(',')
 
-        message_db = message.Message().message_info_db
+        message_db = email.message.Message().message_info_db
         stats = Stats.Stats(options, message_db)
         mboxes = [IMAPFolder(n, session, stats) for n in names]
 
@@ -148,8 +147,7 @@ def getmbox(name):
         else:
             mbox = DirOfTxtFileMailbox(name, get_message)
     else:
-        fp = open(name, "rb")
-        mbox = mailbox.PortableUnixMailbox(fp, get_message)
+        mbox = mailbox.mbox(name, get_message)
     return iter(mbox)
 
 def get_message(obj):
@@ -162,7 +160,7 @@ def get_message(obj):
     the email package is used to create a Message object from it.  This
     can fail if the message is malformed.  In that case, the headers
     (everything through the first blank line) are thrown out, and the
-    rest of the text is wrapped in a bare email.Message.Message.
+    rest of the text is wrapped in a bare email.message.Message.
 
     Note that we can't use our own message class here, because this
     function is imported by tokenizer, and our message class imports
@@ -171,20 +169,20 @@ def get_message(obj):
     shouldn't matter.
     """
 
-    if isinstance(obj, email.Message.Message):
+    if isinstance(obj, email.message.Message):
         return obj
     # Create an email Message object.
     if hasattr(obj, "read"):
         obj = obj.read()
     try:
-        msg = email.message_from_string(obj)
-    except email.Errors.MessageParseError:
+        msg = email.message_from_bytes(obj)
+    except email.errors.MessageParseError:
         # Wrap the raw text in a bare Message object.  Since the
         # headers are most likely damaged, we can't use the email
         # package to parse them, so just get rid of them first.
         headers = extract_headers(obj)
         obj = obj[len(headers):]
-        msg = email.Message.Message()
+        msg = email.message.Message()
         msg.set_payload(obj)
     return msg
 
@@ -195,7 +193,7 @@ def as_string(msg, unixfrom=False):
     TypeError for some malformed messages.  This catches that and attempts
     to return something approximating the original message.
 
-    To Do: This really should be done by subclassing email.Message.Message
+    To Do: This really should be done by subclassing email.message.Message
     and making this function the as_string() method.  After 1.0.
 
     [Tony] Better: sb_filter & sb_mboxtrain should stop using this and
@@ -214,7 +212,7 @@ def as_string(msg, unixfrom=False):
         headers = []
         if unixfrom:
             headers.append(msg.get_unixfrom())
-        for (hdr, val) in list(msg.items()):
+        for (hdr, val) in msg.items():
             headers.append("%s: %s" % (hdr, val))
         headers.append("X-Spambayes-Exception: %s" % excstr)
         parts = ["%s\n" % "\n".join(headers)]

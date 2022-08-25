@@ -23,12 +23,21 @@ CDB_HASHSTART = 5381
 def cdb_hash(buf):
     h = CDB_HASHSTART
     for c in buf:
-        h = (h + (h << 5)) & 0xffffffff
-        h ^= ord(c)
+        h = (h + (h << 5)) & 0xFFFFFFFF
+        h ^= c
     return h
 
 class Cdb:
 
+def _encode(v):
+    return v.encode('utf-8')
+
+
+def _decode(v):
+    return v.decode('utf-8')
+
+
+class BytesCdb:
     def __init__(self, fp):
         self.fp = fp
         fd = fp.fileno()
@@ -62,32 +71,14 @@ class Cdb:
             else:
                 yield (key, val)
 
-    def iteritems(self):
+    def items(self):
         return self.__iter__()
 
-    def iterkeys(self):
+    def keys(self):
         return self.__iter__(lambda k, v: k)
 
-    def itervalues(self):
-        return self.__iter__(lambda k, v: v)
-
-    def items(self):
-        ret = []
-        for i in self.items():
-            ret.append(i)
-        return ret
-
-    def keys(self):
-        ret = []
-        for i in self.keys():
-            ret.append(i)
-        return ret
-
     def values(self):
-        ret = []
-        for i in self.values():
-            ret.append(i)
-        return ret
+        return self.__iter__(lambda k, v: v)
 
     def findstart(self):
         self.loop = 0
@@ -147,6 +138,25 @@ class Cdb:
         except KeyError:
             return default
 
+
+class Cdb(BytesCdb):
+    """Subclass of CDB that uses str keys and values."""
+
+    def findnext(self, key):
+        key = _encode(key)
+        val = BytesCdb.findnext(self, key)
+        return _decode(val)
+
+    def __iter__(self, fn=None):
+        for key, val in BytesCdb.__iter__(self):
+            key = _decode(key)
+            val = _decode(val)
+            if fn:
+                yield fn(key, val)
+            else:
+                yield (key, val)
+
+
 def cdb_dump(infile):
     """dump a database in djb's cdbdump format"""
     db = Cdb(infile)
@@ -154,7 +164,8 @@ def cdb_dump(infile):
         print("+%d,%d:%s->%s" % (len(key), len(value), key, value))
     print()
 
-def cdb_make(outfile, items):
+
+def cdb_make_bytes(outfile, items):
     pos = 2048
     tables = {} # { h & 255 : [(h, p)] }
 
@@ -168,7 +179,7 @@ def cdb_make(outfile, items):
         tables.setdefault(h & 255, []).append((h, pos))
         pos += 8 + len(key) + len(value)
 
-    final = ''
+    final = b''
     # write hash tables
     for i in range(256):
         entries = tables.get(i, [])
@@ -191,6 +202,12 @@ def cdb_make(outfile, items):
     outfile.write(final)
 
 
+def cdb_make(outfile, items):
+    # Make CDB database with str keys and values.
+    items = [(_encode(key), _encode(val)) for (key, val) in items]
+    return cdb_make_bytes(outfile, items)
+
+
 def test():
     #db = Cdb(open("t"))
     #print db['one']
@@ -200,19 +217,22 @@ def test():
     #print db.get('ec')
     #print db.get('notthere')
     db = open('test.cdb', 'wb')
-    cdb_make(db,
-             [('one', 'Hello'),
-              ('two', 'Goodbye'),
-              ('foo', 'Bar'),
-              ('us', 'United States'),
-              ])
+    cdb_make(
+        db,
+        [
+            ('one', 'Hello'),
+            ('two', 'Goodbye'),
+            ('foo', 'Bar'),
+            ('us', 'United States'),
+        ],
+    )
     db.close()
     db = Cdb(open("test.cdb", 'rb'))
     print(db['one'])
     print(db['two'])
     print(db['foo'])
     print(db['us'])
-    print(db.get('ec'))
+    print(db.get('us'))
     print(db.get('notthere'))
 
 if __name__ == '__main__':

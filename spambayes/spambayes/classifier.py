@@ -194,13 +194,13 @@ class Classifier:
             # that H was much smaller.
             # Rob Hooft stared at these problems and invented the measure
             # we use now, the simpler S-H, scaled into [0., 1.].
-            prob = (S-H + 1.0) / 2.0
+            prob = (S - H + 1.0) / 2.0
         else:
             prob = 0.5
 
         if evidence:
             clues = [(w, p) for p, w, _r in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            clues.sort(key=lambda a: a[1])
             clues.insert(0, ('*S*', S))
             clues.insert(0, ('*H*', H))
             return prob, clues
@@ -220,8 +220,12 @@ class Classifier:
 
         # If necessary, enhance it with the tokens from whatever is
         # at the URL's destination.
-        if len(clues) < options["Classifier", "max_discriminators"] and \
-           prob > h_cut and prob < s_cut and slurp_wordstream:
+        if (
+            len(clues) < options["Classifier", "max_discriminators"]
+            and prob > h_cut
+            and prob < s_cut
+            and slurp_wordstream
+        ):
             slurp_tokens = list(self._generate_slurp())
             slurp_tokens.extend([w for (w, _p) in clues])
             sprob, sclues = self.chi2_spamprob(slurp_tokens, True)
@@ -287,7 +291,9 @@ class Classifier:
         assert hamcount <= nham, "Token seen in more ham than ham trained."
         hamratio = hamcount / nham
 
-        assert spamcount <= nspam, "Token seen in more spam than spam trained."
+        assert (
+            spamcount <= nspam
+        ), "Token seen in more spam than spam trained."
         spamratio = spamcount / nspam
 
         prob = spamratio / (hamratio + spamratio)
@@ -438,8 +444,8 @@ class Classifier:
                     # _enhance_wordstream().
                     pair = "bi:%s %s" % (last_token, token)
                 last_token = token
-                for clue, indices in (token, (i,)), (pair, (i-1, i)):
-                    if clue not in seen:    # as always, skip duplicates
+                for clue, indices in (token, (i,)), (pair, (i - 1, i)):
+                    if clue not in seen:  # as always, skip duplicates
                         seen[clue] = 1
                         tup = self._worddistanceget(clue)
                         if tup[0] >= mindist:
@@ -556,12 +562,15 @@ class Classifier:
             port = 8080
         if server:
             # Build a new opener that uses a proxy requiring authorization
-            proxy_support = urllib.request.ProxyHandler({"http" : \
-                                                  "http://%s:%s@%s:%d" % \
-                                                  (username, password,
-                                                   server, port)})
-            opener = urllib.request.build_opener(proxy_support,
-                                          urllib.request.HTTPHandler)
+            proxy_support = urllib.request.ProxyHandler(
+                {
+                    "http": "http://%s:%s@%s:%d"
+                    % (username, password, server, port)
+                }
+            )
+            opener = urllib.request.build_opener(
+                proxy_support, urllib.request.HTTPHandler
+            )
         else:
             # Build a new opener without any proxy information.
             opener = urllib.request.build_opener(urllib.request.HTTPHandler)
@@ -594,15 +603,19 @@ class Classifier:
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
                     print("Bad URL pickle, using new.", file=sys.stderr)
-                self.bad_urls = {"url:non_resolving": (),
-                                 "url:non_html": (),
-                                 "url:unknown_error": ()}
+                self.bad_urls = {
+                    "url:non_resolving": (),
+                    "url:non_html": (),
+                    "url:unknown_error": (),
+                }
         else:
             if options["globals", "verbose"]:
                 print("URL caches don't exist: creating")
-            self.bad_urls = {"url:non_resolving": (),
-                        "url:non_html": (),
-                        "url:unknown_error": ()}
+            self.bad_urls = {
+                "url:non_resolving": (),
+                "url:non_html": (),
+                "url:unknown_error": (),
+            }
         if os.path.exists(self.http_error_cache_name):
             try:
                 self.http_error_urls = pickle_read(self.http_error_cache_name)
@@ -610,7 +623,9 @@ class Classifier:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print("Bad HHTP error pickle, using new.", file=sys.stderr)
+                    print(
+                        "Bad HHTP error pickle, using new.", file=sys.stderr
+                    )
                 self.http_error_urls = {}
         else:
             self.http_error_urls = {}
@@ -619,8 +634,10 @@ class Classifier:
         # XXX Note that these caches are never refreshed, which might not
         # XXX be a good thing long-term (if a previously invalid URL
         # XXX becomes valid, for example).
-        for name, data in [(self.bad_url_cache_name, self.bad_urls),
-                           (self.http_error_cache_name, self.http_error_urls),]:
+        for name, data in [
+            (self.bad_url_cache_name, self.bad_urls),
+            (self.http_error_cache_name, self.http_error_urls),
+        ]:
             pickle_write(name, data)
 
     def slurp(self, proto, url):
@@ -648,7 +665,7 @@ class Classifier:
             url = self._base_url(url)
 
         # Check the unretrievable caches
-        for err in list(self.bad_urls.keys()):
+        for err in self.bad_urls.keys():
             if url in self.bad_urls[err]:
                 return [err]
         if url in self.http_error_urls:
@@ -681,19 +698,15 @@ class Classifier:
                 self.bad_urls["url:non_html"] += (url,)
                 return ["url:non_html"]
 
-            # Waiting for the default timeout period slows everything
-            # down far too much, so try and reduce it for just this
-            # call (this will only work with Python 2.3 and above).
-            try:
-                timeout = socket.getdefaulttimeout()
-                socket.setdefaulttimeout(5)
-            except AttributeError:
-                # Probably Python 2.2.
-                pass
             try:
                 if options["globals", "verbose"]:
                     print("Slurping", url, file=sys.stderr)
-                f = urllib.request.urlopen("%s://%s" % (proto, url))
+
+                # Waiting for the default timeout takes way too long
+                # Use a specific timeout for this call
+                f = urllib.request.urlopen(
+                    "%s://%s" % (proto, url), timeout=5
+                )
             except (urllib.error.URLError, socket.error) as details:
                 mo = HTTP_ERROR_RE.match(str(details))
                 if mo:
@@ -701,18 +714,12 @@ class Classifier:
                     return ["url:http_" + mo.group(1)]
                 self.bad_urls["url:unknown_error"] += (url,)
                 return ["url:unknown_error"]
-            # Restore the timeout
-            try:
-                socket.setdefaulttimeout(timeout)
-            except AttributeError:
-                # Probably Python 2.2.
-                pass
 
             try:
                 # Anything that isn't text/html is ignored
                 content_type = f.info().get('content-type')
-                if content_type is None or \
-                   not content_type.startswith("text/html"):
+                if (content_type is None or
+                    not content_type.startswith("text/html")):
                     self.bad_urls["url:non_html"] += (url,)
                     return ["url:non_html"]
 

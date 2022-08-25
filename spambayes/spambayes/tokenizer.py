@@ -4,10 +4,9 @@
 
 
 import email
-import email.Message
-import email.Header
-import email.Utils
-import email.Errors
+import email.header
+import email.utils
+import email.errors
 import re
 import math
 import os
@@ -659,7 +658,7 @@ received_host_re = re.compile(r'from ([a-z0-9._-]+[a-z])[)\s]')
 # parens.  Yahoo seems to be guilty of this minor infraction:
 #   Received: from unknown (66.218.66.218)
 #       by m19.grp.scd.yahoo.com with QMQP; 19 Dec 2003 04:06:53 -0000
-received_ip_re = re.compile(r'[[(]((\d{1,3}\.?){4})[])]')
+received_ip_re = re.compile(r'[\[\(]((\d{1,3}\.?){4})[\]\)]')
 
 received_nntp_ip_re = re.compile(r'((\d{1,3}\.?){4})')
 
@@ -1100,7 +1099,7 @@ class URLStripper(Stripper):
                         pushclue("url:non-standard %s port" % scheme)
 
                 # ... as are web servers associated with raw ip addresses
-                if re.match("(\d+\.?){4,4}$", host) is not None:
+                if re.match(r"(\d+\.?){4,4}$", host) is not None:
                     pushclue("url:ip addr")
 
                 # make sure we later tokenize the unobfuscated url bits
@@ -1290,7 +1289,7 @@ class Tokenizer:
         # the best discriminators.
         # (Not just Date, but Received and X-From_.)
         if options["Tokenizer", "basic_header_tokenize"]:
-            for k, v in list(msg.items()):
+            for k, v in msg.items():
                 k = k.lower()
                 for rx in self.basic_skip:
                     if rx.match(k):
@@ -1346,10 +1345,12 @@ class Tokenizer:
         # but real benefit to keeping case intact in this specific context.
         x = msg.get('subject', '')
         try:
-            subjcharsetlist = email.Header.decode_header(x)
-        except (binascii.Error, email.Errors.HeaderParseError, ValueError):
+            subjcharsetlist = email.header.decode_header(x)
+        except (binascii.Error, email.errors.HeaderParseError, ValueError):
             subjcharsetlist = [(x, 'invalid')]
         for x, subjcharset in subjcharsetlist:
+            if isinstance(x, bytes):
+                x = x.decode('latin1')  # FIXME
             if subjcharset is not None:
                 yield 'subjectcharset:' + subjcharset
             # this is a workaround for a bug in the csv module in Python
@@ -1378,12 +1379,15 @@ class Tokenizer:
                 continue
 
             noname_count = 0
-            for name, addr in email.Utils.getaddresses(addrlist):
+            for name, addr in email.utils.getaddresses(addrlist):
                 if name:
                     try:
-                        subjcharsetlist = email.Header.decode_header(name)
-                    except (binascii.Error, email.Errors.HeaderParseError,
-                            ValueError):
+                        subjcharsetlist = email.header.decode_header(name)
+                    except (
+                        binascii.Error,
+                        email.errors.HeaderParseError,
+                        ValueError,
+                    ):
                         subjcharsetlist = [(name, 'invalid')]
                     for name, charset in subjcharsetlist:
                         yield "%s:name:%s" % (field, name.lower())
@@ -1398,8 +1402,10 @@ class Tokenizer:
                     yield field + ":addr:none"
 
             if noname_count:
-                yield "%s:no real name:2**%d" % (field,
-                                                 round(log2(noname_count)))
+                yield "%s:no real name:2**%d" % (
+                    field,
+                    round(log2(noname_count)),
+                )
 
         # Spammers sometimes send out mail alphabetically to fairly large
         # numbers of addresses.  This results in headers like:
@@ -1417,7 +1423,7 @@ class Tokenizer:
         if options["Tokenizer", "summarize_email_prefixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
-            for name, addr in email.Utils.getaddresses(addresses):
+            for name, addr in email.utils.getaddresses(addresses):
                 all_addrs.append(addr.lower())
 
             if len(all_addrs) > 1:
@@ -1444,7 +1450,7 @@ class Tokenizer:
         if options["Tokenizer", "summarize_email_suffixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
-            for name, addr in email.Utils.getaddresses(addresses):
+            for name, addr in email.utils.getaddresses(addresses):
                 # flip address code so following logic is the same as
                 # that for prefixes
                 addr = list(addr)
@@ -1529,7 +1535,7 @@ class Tokenizer:
         # X-Complaints-To a strong ham clue.
         x2n = {}
         if options["Tokenizer", "count_all_header_lines"]:
-            for x in list(msg.keys()):
+            for x in msg.keys():
                 x2n[x] = x2n.get(x, 0) + 1
         else:
             # Do a "safe" approximation to that.  When spam and ham are
@@ -1537,10 +1543,10 @@ class Tokenizer:
             # lines can be a too strong a discriminator for accidental
             # reasons.
             safe_headers = options["Tokenizer", "safe_headers"]
-            for x in list(msg.keys()):
+            for x in msg.keys():
                 if x.lower() in safe_headers:
                     x2n[x] = x2n.get(x, 0) + 1
-        for x in list(x2n.items()):
+        for x in x2n.items():
             yield "header:%s:%d" % x
         if options["Tokenizer", "record_header_absence"]:
             for k in x2n:
@@ -1643,6 +1649,9 @@ class Tokenizer:
             if text is None:
                 yield 'control: payload is None'
                 continue
+
+            if isinstance(text, bytes):
+                text = text.decode('latin1')  # FIXME
 
             # Replace numeric character entities (like &#97; for the letter
             # 'a').
