@@ -74,7 +74,6 @@ __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "Mark Hammond, Tony Meyer, all the spambayes contributors."
 
 import sys
-import types
 import time
 import math
 import re
@@ -95,10 +94,7 @@ from spambayes.tokenizer import tokenize
 from spambayes.Options import options
 from spambayes.safepickle import pickle_read, pickle_write
 
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
