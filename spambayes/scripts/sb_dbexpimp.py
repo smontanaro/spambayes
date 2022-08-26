@@ -82,12 +82,9 @@ import csv
 import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno
-from types import UnicodeType
 
 def uquote(s):
-    if isinstance(s, UnicodeType):
-        s = s.encode('utf-8')
-    return s
+    return s.encode('utf-8')
 
 # Heaven only knows what encoding non-ASCII stuff will be in
 # Try a few common western encodings and punt if they all fail
