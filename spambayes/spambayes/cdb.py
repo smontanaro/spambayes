@@ -27,8 +27,6 @@ def cdb_hash(buf):
         h ^= c
     return h
 
-class Cdb:
-
 def _encode(v):
     return v.encode('utf-8')
 
