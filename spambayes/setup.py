@@ -5,8 +5,8 @@ import sys
 
 from setuptools import setup, find_packages
 
-if sys.version_info < (2, 4):
-    print("Error: You need at least Python 2.4 to use SpamBayes.")
+if sys.version_info < (3, 9):
+    print("Error: You need at least Python 3.9 to use SpamBayes.")
     print("You're running version %s." % sys.version)
     sys.exit(0)
 
@@ -70,7 +70,7 @@ class sdist(sdist_parent):
             print('\n', archive, "\n\tMD5:", md5.md5(data).hexdigest())
             print("\tLength:", len(data))
         return retval
-        
+
 scripts=['scripts/sb_client.py',
          'scripts/sb_dbexpimp.py',
          'scripts/sb_evoscore.py',
@@ -110,8 +110,7 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    install_requires = ["lockfile>=%s" % lf_min_version,
-                        "pydns>=2.0"],
+    install_requires = ["lockfile>=%s" % lf_min_version,],
     cmdclass = {'install_scripts': install_scripts,
                 'sdist': sdist,
                 },
