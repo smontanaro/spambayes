@@ -213,7 +213,7 @@ class POP3RequestHandler(socketserver.StreamRequestHandler):
             return firstline, resp
         try:
             msg = email.message_from_string(resp)
-        except email.Errors.MessageParseError as err:
+        except email.errors.MessageParseError as err:
             zLOG.LOG("POP3", zLOG.WARNING,
                      "Failed to parse msg: %s" % err, error=sys.exc_info())
             resp = self.message_parse_error(resp)

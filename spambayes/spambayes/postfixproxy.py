@@ -16,7 +16,7 @@ if not hasattr(smtpd, "PureProxy"):
     import smtpd
 
 import time
-import email.Parser
+import email.parser
 from spambayes import Options, hammie, storage
 
 __all__ = ['SpambayesProxy']
@@ -69,7 +69,7 @@ class SpambayesProxy(smtpd.PureProxy):
     def process_message(self, peer, mailfrom, rcpttos, data):
         t1 = time.time()
         try:
-            msg = email.Parser.Parser().parsestr(data)
+            msg = email.parser.Parser().parsestr(data)
         except:
             pass
         else:

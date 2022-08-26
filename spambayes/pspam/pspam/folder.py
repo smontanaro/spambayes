@@ -12,7 +12,7 @@ from pspam.message import PMessage
 def factory(fp):
     try:
         return email.message_from_file(fp, PMessage)
-    except email.Errors.MessageError as msg:
+    except email.errors.MessageError as msg:
         print(msg)
         return PMessage()
 

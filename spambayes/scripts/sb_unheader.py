@@ -13,9 +13,9 @@ import sys
 import os
 import glob
 import mailbox
-import email.Parser
-import email.Message
-import email.Generator
+import email.parser
+import email.message
+import email.generator
 import getopt
 
 def unheader(msg, pat):
@@ -25,7 +25,7 @@ def unheader(msg, pat):
             del msg[hdr]
 
 # remain compatible with 2.2.1 - steal replace_header from 2.3 source
-class Message(email.Message.Message):
+class Message(email.message.Message):
     def replace_header(self, _name, _value):
         """Replace a header.
 
@@ -41,9 +41,9 @@ class Message(email.Message.Message):
         else:
             raise KeyError(_name)
 
-class Parser(email.Parser.HeaderParser):
+class Parser(email.parser.HeaderParser):
     def __init__(self):
-        email.Parser.Parser.__init__(self, Message)
+        email.parser.Parser.__init__(self, Message)
 
 def deSA(msg):
     if msg['X-Spam-Status']:
@@ -80,7 +80,7 @@ def process_message(msg, dosa, pats):
         deSA(msg)
 
 def process_mailbox(f, dosa=1, pats=None):
-    gen = email.Generator.Generator(sys.stdout, maxheaderlen=0)
+    gen = email.generator.Generator(sys.stdout, maxheaderlen=0)
     for msg in mailbox.PortableUnixMailbox(f, Parser().parse):
         process_message(msg, dosa, pats)
         gen.flatten(msg, unixfrom=1)
@@ -96,7 +96,7 @@ def process_maildir(d, dosa=1, pats=None):
         tmpfn = os.path.join(d, "tmp", os.path.basename(fn))
         tmpfile = open(tmpfn, "w")
         print("writing to %s" % tmpfn)
-        gen = email.Generator.Generator(tmpfile, maxheaderlen=0)
+        gen = email.generator.Generator(tmpfile, maxheaderlen=0)
         gen.flatten(msg, unixfrom=0)
 
         os.rename(tmpfn, fn)

@@ -211,7 +211,7 @@ def replaceHighCharacters(match):
 
 # Map meaningless low characters to '?'
 badxml_chars = ''.join([chr(c) for c in range(0, 32) if c not in [9, 10, 13]])
-badxml_map = string.maketrans(badxml_chars, '?' * len(badxml_chars))
+badxml_map = badxml_chars.maketrans(badxml_chars, '?' * len(badxml_chars))
 
 
 ###########################################################################

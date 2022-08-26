@@ -5,12 +5,12 @@ import locale
 from time import timezone
 
 import email
-from email.MIMEImage import MIMEImage
-from email.Message import Message
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.Parser import HeaderParser
-from email.Utils import formatdate
+from email.mime.image import MIMEImage
+from email.message import Message
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.parser import HeaderParser
+from email.utils import formatdate
 
 try:
     from cStringIO import StringIO
@@ -657,7 +657,7 @@ class MAPIMsgStoreFolder:
             return folder.GetContentsTable(0).GetRowCount(0)
         except pythoncom.com_error, details:
             raise MsgStoreExceptionFromCOMException(details)
-        
+
     # EmptyFolder() *permanently* deletes ALL messages and subfolders from
     # this folder without deleting the folder itself.
     #
@@ -1120,7 +1120,7 @@ class MAPIMsgStoreMsg:
         return attachments
 
     def GetEmailPackageObject(self, strip_mime_headers=True):
-        # Return an email.Message object.
+        # Return an email.message object.
         #
         # strip_mime_headers is a hack, and should be left True unless you're
         # trying to display all the headers for diagnostic purposes.  If we
@@ -1190,7 +1190,7 @@ class MAPIMsgStoreMsg:
 
             try:
                 root_msg = HeaderParser(_class=_class).parsestr(header_text)
-            except email.Errors.HeaderParseError:
+            except email.errors.HeaderParseError:
                 raise # sob
                 # ack - it is about here we need to do what the old code did
                 # below:  But - the fact the code below is dealing only
@@ -1213,7 +1213,7 @@ class MAPIMsgStoreMsg:
                 #    butchered = text[:butcher_pos] + "\nSpamBayes-" + \
                 #                text[butcher_pos+1:] + "\n\n"
                 #    msg = email.message_from_string(butchered)
-    
+
             # patch up mime stuff - these headers will confuse the email
             # package as it walks the attachments.
             if strip_mime_headers:
@@ -1230,9 +1230,9 @@ class MAPIMsgStoreMsg:
             root_msg.set_payload(payload)
 
             # We used to call email.message_from_string(text) and catch:
-            # email.Errors.BoundaryError: should no longer happen - we no longer
+            # email.errors.BoundaryError: should no longer happen - we no longer
             # ask the email package to parse anything beyond headers.
-            # email.Errors.HeaderParseError: caught above
+            # email.errors.HeaderParseError: caught above
         except:
             text = '\r\n'.join([header_text, body, html])
             print "FAILED to create email.message from: ", `text`
@@ -1246,7 +1246,7 @@ class MAPIMsgStoreMsg:
     # Use 'sandbox/export.py -o' to export to the testdata directory
     # in the old format, then run the cross-validation tests.
     def OldGetEmailPackageObject(self, strip_mime_headers=True):
-        # Return an email.Message object.
+        # Return an email.message object.
         #
         # strip_mime_headers is a hack, and should be left True unless you're
         # trying to display all the headers for diagnostic purposes.  If we
@@ -1280,7 +1280,7 @@ class MAPIMsgStoreMsg:
         try:
             try:
                 msg = email.message_from_string(text)
-            except email.Errors.BoundaryError:
+            except email.errors.BoundaryError:
                 # In case this is the
                 #    "No terminating boundary and no trailing empty line"
                 # flavor of BoundaryError, we can supply a trailing empty
@@ -1290,9 +1290,9 @@ class MAPIMsgStoreMsg:
                 # much good in trying to suppress this error.
                 try:
                     msg = email.message_from_string(text + "\n\n")
-                except email.Errors.BoundaryError:
+                except email.errors.BoundaryError:
                     msg = None
-            except email.Errors.HeaderParseError:
+            except email.errors.HeaderParseError:
                 # This exception can come from parsing the header *or* the
                 # body of a mime message.
                 msg = None
@@ -1324,7 +1324,7 @@ class MAPIMsgStoreMsg:
 
         return msg
     # end of OLD GetEmailPackageObject
-    
+
     def SetField(self, prop, val):
         # Future optimization note - from GetIDsFromNames doco
         # Name-to-identifier mapping is represented by an object's

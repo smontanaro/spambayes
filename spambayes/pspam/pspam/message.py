@@ -1,6 +1,6 @@
 import ZODB
 from Persistence import Persistent
-from email.Message import Message
+from email.message import Message
 
 class PMessage(Message, Persistent):
 

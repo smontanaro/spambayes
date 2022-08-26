@@ -127,9 +127,9 @@ import getopt
 import types
 import _thread
 import email
-import email.Parser
+import email.parser
 from getpass import getpass
-from email.Utils import parsedate
+from email.utils import parsedate
 
 from spambayes import Stats
 from spambayes import message
@@ -584,7 +584,7 @@ class IMAPMessage(message.SBHeaderMessage):
         try:
             new_msg = email.message_from_string(rfc822_data, IMAPMessage)
         # We use a general 'except' because the email package doesn't
-        # always return email.Errors (it can return a TypeError, for
+        # always return email.errors (it can return a TypeError, for
         # example) if the email is invalid.  In any case, we want
         # to keep going, and not crash, because we might leave the
         # user's mailbox in a bad state if we do.  Better to soldier on.
@@ -635,7 +635,7 @@ class IMAPMessage(message.SBHeaderMessage):
     def as_string(self, unixfrom=False):
         # Basically the same as the parent class's except that we handle
         # the case where the data was unparsable, so we haven't done any
-        # filtering, and we are not actually a proper email.Message object.
+        # filtering, and we are not actually a proper email.message object.
         # We also don't mangle the from line; the server must take care of
         # this.
         if self.invalid:

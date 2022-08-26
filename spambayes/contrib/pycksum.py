@@ -37,7 +37,7 @@ addresses funnels into skip@mojam.com.)
 
 import getopt
 import sys
-import email.Parser
+import email.parser
 import email.generator
 
 import dbm
@@ -145,7 +145,7 @@ def main(args):
     else:
         dbf = args[0]
 
-    msg = email.Parser.Parser().parse(sys.stdin)
+    msg = email.parser.Parser().parse(sys.stdin)
     cksum = generate_checksum(msg)
     if dbf is None:
         print(cksum)

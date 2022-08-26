@@ -105,7 +105,7 @@ class MessageTest(unittest.TestCase):
 
     def _fake_setState(self, state):
         self.done = True
-        
+
     def test_modified(self):
         saved = self.msg.message_info_db.store_msg
         try:
@@ -355,7 +355,7 @@ class SBHeaderMessageTest(unittest.TestCase):
         self.msg.addSBHeaders(self.s_prob, self.clues)
         self.assertEqual(self.msg["Subject"], subject)
 
-    def test_notate_subject_ham(self):        
+    def test_notate_subject_ham(self):
         subject = self.msg["Subject"]
         options["Headers", "notate_subject"] = (self.ham,)
         self.msg.addSBHeaders(self.g_prob, self.clues)
@@ -504,7 +504,7 @@ class SBHeaderMessageTest(unittest.TestCase):
 
     def test_delNotations_only_once_to(self):
         self._test_delNotations_only_once("to")
-        
+
     def _test_delNotations_only_once(self, headername):
         # Check that only one disposition is removed, even if more than
         # one is present.
@@ -583,7 +583,7 @@ class MessageInfoBaseTest(unittest.TestCase):
 
     def _fake_store(self):
         self.done = True
-        
+
     def test_remove_msg(self):
         msg = email.message_from_string(good1, _class=Message)
         msg.id = "Test"
@@ -597,7 +597,7 @@ class MessageInfoBaseTest(unittest.TestCase):
             self.db.store = saved
         self.assertEqual(self.done, True)
         self.assertRaises(KeyError, self.db.db.__getitem__, msg.id)
-        
+
     def test_load(self):
         # Create a db to try and load.
         data = {"1" : ('a', 'b', 'c'),
@@ -657,7 +657,7 @@ class MessageInfoDBTest(MessageInfoBaseTest):
 
     def _fake_close(self):
         self.done += 1
-        
+
     def test_close(self):
         saved_db = self.db.db.close
         saved_dbm = self.db.dbm.close
@@ -681,11 +681,11 @@ class UtilitiesTest(unittest.TestCase):
         loc = details.find("Exception: Test")
         self.assertNotEqual(loc, -1)
 
-    def _verify_exception_header(self, msg, details):        
+    def _verify_exception_header(self, msg, details):
         msg = email.message_from_string(msg)
         details = "\r\n.".join(details.strip().split('\n'))
         headerName = 'X-Spambayes-Exception'
-        header = email.Header.Header(details, header_name=headerName)
+        header = email.header.Header(details, header_name=headerName)
         self.assertEqual(msg[headerName].replace('\r\n', '\n'),
                          str(header).replace('\r\n', '\n'))
 
@@ -712,7 +712,7 @@ class UtilitiesTest(unittest.TestCase):
         # Check that ID header is inserted.
         msg = email.message_from_string(msg)
         headerName = options["Headers", "mailid_header_name"]
-        header = email.Header.Header(id, header_name=headerName)
+        header = email.header.Header(id, header_name=headerName)
         self.assertEqual(msg[headerName], str(header).replace('\n', '\r\n'))
 
     def test_insert_exception_header_no_separator(self):
@@ -724,7 +724,7 @@ class UtilitiesTest(unittest.TestCase):
         msg, details = insert_exception_header(malformed1)
         self._verify_details(details)
         self._verify_exception_header(msg, details)
-    
+
 
 def suite():
     suite = unittest.TestSuite()

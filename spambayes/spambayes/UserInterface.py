@@ -73,7 +73,7 @@ import cgi
 import mailbox
 import types
 import io
-from email.Iterators import typed_subpart_iterator
+from email.iterators import typed_subpart_iterator
 from textwrap import wrap
 
 from spambayes import oe_mailbox
@@ -206,14 +206,14 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def _trimHeader(self, field, limit, quote=False):
         """Trims a string, adding an ellipsis if necessary and HTML-quoting
-        on request.  Also pumps it through email.Header.decode_header, which
+        on request.  Also pumps it through email.header.decode_header, which
         understands charset sections in email headers - I suspect this will
         only work for Latin character sets, but hey, it works for Francois
         Granger's name.  8-)"""
 
         try:
-            sections = email.Header.decode_header(field)
-        except (binascii.Error, email.Errors.HeaderParseError, ValueError):
+            sections = email.header.decode_header(field)
+        except (binascii.Error, email.errors.HeaderParseError, ValueError):
             sections = [(field, None)]
         field = ' '.join([text for text, unused in sections])
         if len(field) > limit:
@@ -1108,12 +1108,12 @@ class UserInterface(BaseUserInterface):
         # For guessing MIME type based on file name extension
         import mimetypes
 
-        from email import Encoders
-        from email.MIMEBase import MIMEBase
-        from email.MIMEAudio import MIMEAudio
-        from email.MIMEMultipart import MIMEMultipart
-        from email.MIMEImage import MIMEImage
-        from email.MIMEText import MIMEText
+        from email import encoders
+        from email.mime.base import MIMEBase
+        from email.mime.audio import MIMEAudio
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.image import MIMEImage
+        from email.mime.text import MIMEText
 
         if not self._verifyEnteredDetails(from_addr, subject, message):
             self._writePreamble(_("Error"), ("help", _("Help")))
@@ -1358,9 +1358,9 @@ class UserInterface(BaseUserInterface):
         return a.find(b) >= 0
 
     def _makeMessageInfo(self, message):
-        """Given an email.Message, return an object with subjectHeader,
+        """Given an email.message, return an object with subjectHeader,
         bodySummary and other header (as needed) attributes.  These objects
-        are passed into appendMessages by onReview - passing email.Message
+        are passed into appendMessages by onReview - passing email.message
         objects directly uses too much memory.
         """
         # Remove notations before displaying - see:

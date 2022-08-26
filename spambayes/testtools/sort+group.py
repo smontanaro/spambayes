@@ -26,7 +26,7 @@ import glob
 import time
 import getopt
 
-from email.Utils import parsedate_tz, mktime_tz
+from email.utils import parsedate_tz, mktime_tz
 
 from spambayes.Options import options
 

@@ -24,7 +24,7 @@ import sys
 import getopt
 import re
 import locale
-from email.Header import make_header, decode_header
+from email.header import make_header, decode_header
 
 from spambayes.mboxutils import getmbox
 from spambayes.safepickle import pickle_read, pickle_write

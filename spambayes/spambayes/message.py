@@ -3,7 +3,7 @@
 """message.py - Core Spambayes classes.
 
 Classes:
-    Message - an email.Message.Message, extended with spambayes methods
+    Message - an email.message.Message, extended with spambayes methods
     SBHeaderMessage - A Message with spambayes header manipulations
     MessageInfoDB - persistent state storage for Message, using dbm
     MessageInfoZODB - persistent state storage for Message, using ZODB
@@ -84,10 +84,10 @@ import warnings
 import pickle as pickle
 import traceback
 
-import email.Message
-import email.Parser
-import email.Header
-import email.Generator
+import email.message
+import email.parser
+import email.header
+import email.generator
 
 from spambayes import storage
 from spambayes import dbmstorage
@@ -316,14 +316,14 @@ def database_type():
     return nm, typ
 
 
-class Message(email.Message.Message):
-    '''An email.Message.Message extended for SpamBayes'''
+class Message(email.message.Message):
+    '''An email.message.Message extended for SpamBayes'''
 
     def __init__(self, id=None):
-        email.Message.Message.__init__(self)
+        email.message.Message.__init__(self)
 
         # persistent state
-        # (non-persistent state includes all of email.Message.Message state)
+        # (non-persistent state includes all of email.message.Message state)
         self.stored_attributes = ['c', 't', 'date_modified', ]
         self.getDBKey = self.getId
         self.id = None
@@ -425,13 +425,13 @@ class Message(email.Message.Message):
         # append function), but does not, so we do it here
         try:
             fp = io.StringIO()
-            g = email.Generator.Generator(fp, mangle_from_=mangle_from_)
+            g = email.generator.Generator(fp, mangle_from_=mangle_from_)
             g.flatten(self, unixfrom)
             return self._force_CRLF(fp.getvalue())
         except TypeError:
             parts = []
             for part in self.get_payload():
-                parts.append(email.Message.Message.as_string(part, unixfrom))
+                parts.append(email.message.Message.as_string(part, unixfrom))
             return self._force_CRLF("\n".join(parts))
 
     def modified(self):
@@ -540,7 +540,7 @@ class SBHeaderMessage(Message):
                 if (word == '*H*' or word == '*S*' \
                     or score <= hco or score >= sco):
                     if isinstance(word, str):
-                        word = email.Header.Header(word,
+                        word = email.header.Header(word,
                                                    charset='utf-8').encode()
                     try:
                         evd.append("%r: %.2f" % (word, score))
@@ -548,7 +548,7 @@ class SBHeaderMessage(Message):
                         evd.append("%r: %s" % (word, score))
 
             # Line-wrap this header, because it can get very long.  We don't
-            # use email.Header.Header because that can explode with unencoded
+            # use email.header.Header because that can explode with unencoded
             # non-ASCII characters.  We can't use textwrap because that's 2.3.
             wrappedEvd = []
             headerName = options['Headers', 'evidence_header_name']
@@ -697,7 +697,7 @@ def insert_exception_header(string_msg, msg_id=None):
     detailLines = details.strip().split('\n')
     dottedDetails = '\n.'.join(detailLines)
     headerName = 'X-Spambayes-Exception'
-    header = email.Header.Header(dottedDetails, header_name=headerName)
+    header = email.header.Header(dottedDetails, header_name=headerName)
 
     # Insert the exception header, and optionally also insert the id header,
     # otherwise we might keep doing this message over and over again.

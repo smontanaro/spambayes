@@ -46,7 +46,7 @@ __credits__ = "All the Spambayes folk."
 import threading
 import xmlrpc.client
 import time
-from email import Message, message_from_string
+from email import message, message_from_string
 from xmlrpc.server import SimpleXMLRPCServer
 
 from spambayes.CorePlugin import Plugin, PluginUI

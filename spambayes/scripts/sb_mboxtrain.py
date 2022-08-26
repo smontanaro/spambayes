@@ -59,21 +59,21 @@ def get_message(obj):
 
     """
 
-    if isinstance(obj, email.Message.Message):
+    if isinstance(obj, email.message.Message):
         return obj
     # Create an email Message object.
     if hasattr(obj, "read"):
         obj = obj.read()
     try:
         msg = email.message_from_string(obj)
-    except email.Errors.MessageParseError:
+    except email.errors.MessageParseError:
         msg = None
     return msg
 
 def msg_train(h, msg, is_spam, force):
     """Train bayes with a single message."""
 
-    # XXX: big hack -- why is email.Message unable to represent
+    # XXX: big hack -- why is email.message unable to represent
     # multipart/alternative?
     try:
         mboxutils.as_string(msg)
