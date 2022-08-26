@@ -98,11 +98,6 @@ if sys.platform == 'win32':
     scripts.append('windows/pop3proxy_service.py')
     scripts.append('windows/pop3proxy_tray.py')
 
-if sys.version_info >= (3, 0):
-    lf_min_version = "0.6"
-else:
-    lf_min_version = "0.2"
-
 setup(
     name='spambayes',
     version = __version__,
@@ -110,7 +105,6 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    install_requires = ["lockfile>=%s" % lf_min_version,],
     cmdclass = {'install_scripts': install_scripts,
                 'sdist': sdist,
                 },
