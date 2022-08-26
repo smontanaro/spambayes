@@ -46,7 +46,8 @@ __credits__ = "All the Spambayes folk."
 import threading
 import xmlrpc.client
 import time
-from email import message, message_from_string
+from email.message import Message
+from email import message_from_string
 from xmlrpc.server import SimpleXMLRPCServer
 
 from spambayes.CorePlugin import Plugin, PluginUI
@@ -225,19 +226,19 @@ def form_to_mime(form, extra_tokens, attachments):
       is given it will be added to the headers of the attachment.  Note that
       the keys are case-sensitive and must be lower case.
     """
-    msg = Message.Message()
+    msg = Message()
     msg.set_type("multipart/digest")
     msg.add_header("Subject", "Form submission")
     msg.add_header("From", "SpamBayes XMLRPC Plugin <webmaster@localhost>")
 
-    main = Message.Message()
+    main = Message()
     main.set_type("text/plain")
     main.set_payload("\n".join(["%s:%s" % (k, v) for (k, v) in list(form.items())]))
     msg.attach(main)
 
     # Always add the extra tokens payload so we can reliably reverse the
     # conversion.
-    extra = Message.Message()
+    extra = Message()
     extra.set_type("text/plain")
     extra.set_payload("\n".join(extra_tokens))
     msg.attach(extra)
@@ -245,7 +246,7 @@ def form_to_mime(form, extra_tokens, attachments):
     # Any further payloads are for the attachments.
     for content in attachments:
         mime_type = content.get("content-type") or "application/octet-stream"
-        attachment = Message.Message()
+        attachment = Message()
         if "content-transfer-encoding" in content:
             attachment.add_header("Content-Transfer-Encoding",
                                   content["content-transfer-encoding"])
