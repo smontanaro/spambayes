@@ -43,10 +43,7 @@ import email.generator
 import dbm
 import re
 import time
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 from spambayes.port import md5
 

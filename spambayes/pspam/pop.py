@@ -27,10 +27,7 @@ POP3 is documented in RFC 1939.
 """
 
 import socketserver
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 import email
 import re

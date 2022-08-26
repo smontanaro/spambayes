@@ -33,10 +33,7 @@ import re
 import struct
 import random
 from time import *
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 from spambayes import msgs
 

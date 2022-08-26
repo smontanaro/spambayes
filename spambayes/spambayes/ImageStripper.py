@@ -9,10 +9,7 @@ import os
 import tempfile
 import math
 import atexit
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 try:
     from PIL import Image, ImageSequence

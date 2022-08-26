@@ -3,7 +3,6 @@
 import unittest, os, sys
 import glob
 import tempfile
-import io as StringIO
 
 import sb_test_support
 sb_test_support.fix_sys_path()

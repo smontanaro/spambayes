@@ -22,10 +22,7 @@ import urllib.request, urllib.parse, urllib.error
 import cgi
 import mimetypes
 import re
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 
 class SmarterHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):

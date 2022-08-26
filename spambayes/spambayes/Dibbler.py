@@ -164,10 +164,7 @@ plus a self-test.
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Stone"
 
-try:
-    import io as StringIO
-except ImportError:
-    import io
+import io
 
 import sys, re, time, traceback, base64
 import socket, cgi, urllib.parse, webbrowser

@@ -67,7 +67,7 @@ import socket
 import imaplib
 import email.utils
 
-import io as StringIO
+import io
 
 from twisted import cred
 import twisted.application.app
@@ -153,7 +153,7 @@ class IMAPMessage(message.Message):
     def getBodyFile(self):
         """Retrieve a file object containing the body of this message."""
         # Note: only body, not headers!
-        s = StringIO.StringIO()
+        s = io.StringIO()
         s.write(self.body())
         s.seek(0)
         return s
@@ -844,7 +844,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                         dest_folder = self.unsure_folder
                         state.numUnsure += 1
                     if dest_folder:
-                        msg = StringIO.StringIO(msg.as_string())
+                        msg = io.StringIO(msg.as_string())
                         date = imaplib.Time2Internaldate(time.time())[1:-1]
                         dest_folder.addMessage(msg, (), date)
 
