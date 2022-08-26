@@ -575,7 +575,7 @@ def OEStoreRoot():
 def OEDBXFilesList():
     """Returns a list of DBX files for current user."""
     path = OEStoreRoot()
-    dbx_re = re.compile('.+\.dbx')
+    dbx_re = re.compile('.+[.]dbx')
     dbxs = [f for f in os.listdir(path) if dbx_re.search(f) is not None]
     return dbxs
 
