@@ -86,8 +86,8 @@ def getmbox(name):
     if name.startswith("+"):
         # MH folder name: +folder, +f1,f2,f2, or +ALL
         name = name[1:]
-        import mhlib
-        mh = mhlib.MH()
+        from mailbox import MH
+        mh = MH()
         if name == "ALL":
             names = mh.listfolders()
         elif ',' in name:
