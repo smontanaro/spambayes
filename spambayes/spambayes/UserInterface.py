@@ -247,16 +247,19 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def readUIResources(self):
         """Returns ui.html and a dictionary of Gifs."""
-        if self.lang_manager:
-            ui_html = self.lang_manager.import_ui_html()
-        else:
-            from spambayes.resources import ui_html
+        # if self.lang_manager:
+        #     ui_html = self.lang_manager.import_ui_html()
+        # else:
+        #     from spambayes.resources import ui_html
+        from spambayes import resources
+        rdir = os.path.dirname(resources.__file__)
+        html = f"{rdir}/ui.html"
         images = {}
         for baseName in IMAGES:
             moduleName = '%s.%s_gif' % ('spambayes.resources', baseName)
             module = __import__(moduleName, {}, {}, ('spambayes', 'resources'))
             images[baseName] = module.data
-        return ui_html.data, images
+        return open(html, "r", encoding="utf-8").read(), images
 
 
 class UserInterface(BaseUserInterface):
