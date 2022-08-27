@@ -69,7 +69,7 @@ import time
 import email
 import smtplib
 import binascii
-import cgi
+from html import escape as html_escape
 import mailbox
 import io
 from email.iterators import typed_subpart_iterator
@@ -218,7 +218,7 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
         if len(field) > limit:
             field = field[:limit-3] + "..."
         if quote:
-            field = cgi.escape(field)
+            field = html_escape(field)
         return field
 
     def onHome(self):
@@ -317,7 +317,7 @@ class UserInterface(BaseUserInterface):
                 wordProb = "-"
             else:
                 wordProb = round(float(wordProb), accuracy)
-            cluesTable += cluesRow % (cgi.escape(word), wordProb,
+            cluesTable += cluesRow % (html_escape(word), wordProb,
                                       nham, nspam)
         return cluesTable
 
@@ -409,7 +409,7 @@ class UserInterface(BaseUserInterface):
                         self.classifier.probability(wordinfo))
             else:
                 stat = _("%r does not exist in the database.") % \
-                       cgi.escape(word)
+                       html_escape(word)
             stats.append(stat)
         else:
             if query_type != _("regex"):
@@ -456,7 +456,7 @@ class UserInterface(BaseUserInterface):
                 stat = stats[0]
                 word = original_word
             row = self._buildBox(_("Statistics for '%s'") % \
-                                 cgi.escape(word), 'status.gif', stat)
+                                 html_escape(word), 'status.gif', stat)
             self.write(row)
         else:
             page = self.html.multiStats.clone()
@@ -473,10 +473,10 @@ class UserInterface(BaseUserInterface):
                     page.multiTable += row
                 else:
                     self.write(self._buildBox(_("Statistics for '%s'") % \
-                                              cgi.escape(original_word),
+                                              html_escape(original_word),
                                               'status.gif', stat))
             self.write(self._buildBox(_("Statistics for '%s'") % \
-                                      cgi.escape(original_word), 'status.gif',
+                                      html_escape(original_word), 'status.gif',
                                       page))
         self.write(queryBox)
         self._writePostamble()
@@ -679,7 +679,7 @@ class UserInterface(BaseUserInterface):
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.configForm.clone()
         html.mainContent.configFormContent = ""
-        html.mainContent.optionsPathname = cgi.escape(optionsPathname)
+        html.mainContent.optionsPathname = html_escape(optionsPathname)
         return self._buildConfigPageBody(html, parm_map)
 
     def _buildConfigPageBody(self, html, parm_map):
@@ -777,7 +777,7 @@ class UserInterface(BaseUserInterface):
             newConfigRow1.helpCell = '<strong>' + \
                                      options.display_name(sect, opt) + \
                                      ':</strong> ' + \
-                                     cgi.escape(options.doc(sect, opt))
+                                     html_escape(options.doc(sect, opt))
 
             newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]

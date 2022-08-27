@@ -400,13 +400,12 @@ class _HTTPHandler(BrighterAsyncChat):
 
         # Parse the URL, and deal with POST vs. GET requests.
         method = method.upper()
-        print("***", method, url)
         unused, unused, path, unused, query, unused = urllib.parse.urlparse(url)
         cgiParams = urllib.parse.parse_qs(query, keep_blank_values=True)
         if self.get_terminator() == b'\r\n\r\n' and method == 'POST':
             # We need to read the body - set a numeric async_chat terminator
             # equal to the Content-Length.
-            match = re.search(r'(?i)content-length:\s*(\d+)', headers)
+            match = re.search(rb'(?i)content-length:\s*(\d+)', headers)
             contentLength = int(match.group(1))
             if contentLength > 0:
                 self.set_terminator(contentLength)
@@ -418,7 +417,7 @@ class _HTTPHandler(BrighterAsyncChat):
         if isinstance(self.get_terminator(), int):
             self.set_terminator(b'\r\n\r\n')
             body = self._request.split(b'\r\n\r\n', 1)[1]
-            match = re.search(r'(?i)content-type:\s*([^\r\n]+)', headers)
+            match = re.search(rb'(?i)content-type:\s*([^\r\n]+)', headers)
             contentTypeHeader = match.group(1)
             contentType, pdict = cgi.parse_header(contentTypeHeader)
             if contentType == 'multipart/form-data':

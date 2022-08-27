@@ -47,7 +47,7 @@ __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
 
 import sys
-import cgi
+import html
 import time
 import types
 import bisect
@@ -509,7 +509,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         if sourceCorpus is not None:
             message = sourceCorpus.get(key)
         if message is not None:
-            self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
+            self.write("<pre>%s</pre>" % html.escape(message.as_string()))
         else:
             self.write(_("<p>Can't find message %r. Maybe it expired.</p>") %
                        key)

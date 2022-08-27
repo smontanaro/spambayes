@@ -27,7 +27,7 @@ __credits__ = "All the Spambayes folk."
 
 import os
 import sys
-import cgi
+import html
 import glob
 import random
 import io
@@ -156,7 +156,7 @@ class TestToolsUserInterface(ProxyUI.ProxyUserInterface):
         # XXX at the moment - it could be prettied up a bit.
         comp = comp.read()
         box = self._buildBox('Cross-validation test', None,
-                             cgi.escape(comp).replace("\n", "<br />"))
+                             html.escape(comp).replace("\n", "<br />"))
         self.write(box)
         self._writePostamble()
 

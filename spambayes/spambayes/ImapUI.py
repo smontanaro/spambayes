@@ -35,7 +35,7 @@ To do:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
 __credits__ = "All the Spambayes folk."
 
-import cgi
+import html
 
 from spambayes import UserInterface
 from spambayes.Options import options, optionsPathname, _
@@ -336,7 +336,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         del folderTable.folderRow
         firstRow = True
         for folder in available_folders:
-            folder = cgi.escape(folder)
+            folder = html.escape(folder)
             folderRow = self.html.configTable.folderRow.clone()
             if firstRow:
                 folderRow.helpCell = options.doc(section, option)
