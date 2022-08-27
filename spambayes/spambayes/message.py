@@ -80,7 +80,7 @@ import re
 import errno
 import shelve
 import warnings
-import pickle as pickle
+import pickle
 import traceback
 
 import email.message
