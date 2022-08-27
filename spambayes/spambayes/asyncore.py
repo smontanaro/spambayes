@@ -330,7 +330,7 @@ class dispatcher:
 
     def send(self, data):
         try:
-            result = self.socket.send(data)
+            result = self.socket.send(data.encode(encoding="utf-8"))
             return result
         except socket.error as why:
             if why[0] == EWOULDBLOCK:

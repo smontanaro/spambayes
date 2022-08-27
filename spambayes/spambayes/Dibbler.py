@@ -167,7 +167,7 @@ __credits__ = "Tim Stone"
 import io
 
 import sys, re, time, traceback, base64
-import socket, cgi, urllib.parse, webbrowser
+import socket, cgi, urllib.parse, webbrowser, html
 
 try:
     "".rstrip("abc")
@@ -368,8 +368,8 @@ class _HTTPHandler(BrighterAsyncChat):
         BrighterAsyncChat.set_socket(self, clientSocket, context._map)
         self._context = context
         self._server = server
-        self._request = ''
-        self.set_terminator('\r\n\r\n')
+        self._request = b''
+        self.set_terminator(b'\r\n\r\n')
 
         # Because a methlet is likely to call `writeOKHeaders` before doing
         # anything else, an unexpected exception won't send back a 500, which
@@ -390,9 +390,9 @@ class _HTTPHandler(BrighterAsyncChat):
     def found_terminator(self):
         """Asynchat override."""
         # Parse the HTTP request.
-        requestLine, headers = (self._request+'\r\n').split('\r\n', 1)
+        requestLine, headers = (self._request + b'\r\n').split(b'\r\n', 1)
         try:
-            method, url, version = requestLine.strip().split()
+            method, url, version = requestLine.decode(encoding="utf-8").strip().split()
         except ValueError:
             self.writeError(400, "Malformed request: '%s'" % requestLine)
             self.close_when_done()
@@ -400,23 +400,24 @@ class _HTTPHandler(BrighterAsyncChat):
 
         # Parse the URL, and deal with POST vs. GET requests.
         method = method.upper()
+        print("***", method, url)
         unused, unused, path, unused, query, unused = urllib.parse.urlparse(url)
-        cgiParams = cgi.parse_qs(query, keep_blank_values=True)
-        if self.get_terminator() == '\r\n\r\n' and method == 'POST':
+        cgiParams = urllib.parse.parse_qs(query, keep_blank_values=True)
+        if self.get_terminator() == b'\r\n\r\n' and method == 'POST':
             # We need to read the body - set a numeric async_chat terminator
             # equal to the Content-Length.
             match = re.search(r'(?i)content-length:\s*(\d+)', headers)
             contentLength = int(match.group(1))
             if contentLength > 0:
                 self.set_terminator(contentLength)
-                self._request = self._request + '\r\n\r\n'
+                self._request = self._request + b'\r\n\r\n'
                 return
 
         # Have we just read the body of a POSTed request?  Decode the body,
         # which will contain parameters and possibly uploaded files.
         if isinstance(self.get_terminator(), int):
-            self.set_terminator('\r\n\r\n')
-            body = self._request.split('\r\n\r\n', 1)[1]
+            self.set_terminator(b'\r\n\r\n')
+            body = self._request.split(b'\r\n\r\n', 1)[1]
             match = re.search(r'(?i)content-type:\s*([^\r\n]+)', headers)
             contentTypeHeader = match.group(1)
             contentType, pdict = cgi.parse_header(contentTypeHeader)
@@ -426,7 +427,7 @@ class _HTTPHandler(BrighterAsyncChat):
                 cgiParams.update(cgi.parse_multipart(bodyFile, pdict))
             else:
                 # A normal x-www-form-urlencoded.
-                cgiParams.update(cgi.parse_qs(body, keep_blank_values=True))
+                cgiParams.update(urllib.parse.parse_qs(body, keep_blank_values=True))
 
         # Convert the cgi params into a simple dictionary.
         params = {}
@@ -434,9 +435,9 @@ class _HTTPHandler(BrighterAsyncChat):
             params[name] = value[0]
 
         # Parse the headers.
-        headersRegex = re.compile('([^:]*):\s*(.*)')
+        headersRegex = re.compile(b'([^:]*):\s*(.*)')
         headersDict = dict([headersRegex.match(line).groups(2)
-                           for line in headers.split('\r\n')
+                           for line in headers.split(b'\r\n')
                            if headersRegex.match(line)])
 
         # HTTP Basic/Digest Authentication support.
@@ -507,7 +508,7 @@ class _HTTPHandler(BrighterAsyncChat):
                     message = """<h3>500 Server error</h3><pre>%s</pre>"""
                     details = traceback.format_exception(eType, eValue, eTrace)
                     details = '\n'.join(details)
-                    self.writeError(500, message % cgi.escape(details))
+                    self.writeError(500, message % html.escape(details))
                 plugin._handler = None
                 break
         else:

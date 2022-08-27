@@ -60,7 +60,7 @@ class async_chat (asyncore.dispatcher):
     ac_out_buffer_size      = 4096
 
     def __init__ (self, conn=None):
-        self.ac_in_buffer = ''
+        self.ac_in_buffer = b''
         self.ac_out_buffer = ''
         self.producer_fifo = fifo()
         asyncore.dispatcher.__init__ (self, conn)
