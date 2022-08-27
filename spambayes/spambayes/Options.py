@@ -43,7 +43,7 @@ from spambayes.OptionsClass import *
 try:
     import ZODB
 except ImportError:
-    DB_TYPE = "dbm", "hammie.db", "spambayes.messageinfo.db"
+    DB_TYPE = "pickle", "hammie.pck", "spambayes.messageinfo.pck"
 else:
     del ZODB
     DB_TYPE = "zodb", "hammie.fs", "messageinfo.fs"
