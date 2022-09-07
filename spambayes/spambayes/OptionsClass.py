@@ -287,7 +287,7 @@ class Option:
             if len(self.default_value) > 0:
                 to_type = type(self.default_value[0])
             else:
-                to_type = bytes
+                to_type = str
             for i in range(0, len(vals)):
                 vals[i] = self._convert(vals[i], to_type)
             return tuple(vals)
@@ -395,7 +395,7 @@ class OptionsClass:
         '''Update the specified configuration file.'''
         sectname = None
         optname = None
-        out = TemporaryFile()
+        out = TemporaryFile(mode="w")
         if os.path.exists(filename):
             f = open(filename, "r", encoding="utf-8")
         else:
