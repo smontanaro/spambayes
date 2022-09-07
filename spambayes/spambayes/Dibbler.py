@@ -418,7 +418,7 @@ class _HTTPHandler(BrighterAsyncChat):
             self.set_terminator(b'\r\n\r\n')
             body = self._request.split(b'\r\n\r\n', 1)[1]
             match = re.search(rb'(?i)content-type:\s*([^\r\n]+)', headers)
-            contentTypeHeader = match.group(1)
+            contentTypeHeader = match.group(1).decode(encoding="utf-8")
             contentType, pdict = cgi.parse_header(contentTypeHeader)
             if contentType == 'multipart/form-data':
                 # multipart/form-data - probably a file upload.
@@ -431,7 +431,7 @@ class _HTTPHandler(BrighterAsyncChat):
         # Convert the cgi params into a simple dictionary.
         params = {}
         for name, value in cgiParams.items():
-            params[name] = value[0]
+            params[name.decode(encoding="utf-8")] = value[0].decode(encoding="utf-8")
 
         # Parse the headers.
         headersRegex = re.compile(b'([^:]*):\s*(.*)')
