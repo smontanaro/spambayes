@@ -231,7 +231,7 @@ class IMAPSession(BaseIMAP):
             try:
                 data = self.sock.recv(1)
             except socket.error as e:
-                if e[0] == 10035:
+                if e.args[0] == 10035:
                     # Nothing to receive, keep going.
                     continue
                 raise
