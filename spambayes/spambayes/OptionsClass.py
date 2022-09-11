@@ -395,7 +395,7 @@ class OptionsClass:
         '''Update the specified configuration file.'''
         sectname = None
         optname = None
-        out = TemporaryFile(mode="w")
+        out = TemporaryFile(mode="w+")
         if os.path.exists(filename):
             f = open(filename, "r", encoding="utf-8")
         else:
