@@ -112,7 +112,7 @@ def getmbox(name):
         #   :username:password@server:ALL
         #   :username:password@server:port:ALL
         parts = re.compile(
-':(?P<user>[^@:]+):(?P<pwd>[^@]+)@(?P<server>[^:]+(:[0-9]+)?):(?P<name>[^:]+)'
+            ':(?P<user>[^@:]+):(?P<pwd>[^@]+)@(?P<server>[^:]+(:[0-9]+)?):(?P<name>[^:]+)'
         ).match(name).groupdict()
 
         from scripts.sb_imapfilter import IMAPSession, IMAPFolder
@@ -137,7 +137,7 @@ def getmbox(name):
         else:
             return _cat([full_messages(x) for x in mboxes])
 
-    if os.path.isdir(name):
+    elif os.path.isdir(name):
         # XXX Bogus: use a Maildir if /cur is a subdirectory, else a MHMailbox
         # if the pathname contains /Mail/, else a DirOfTxtFileMailbox.
         if os.path.exists(os.path.join(name, 'cur')):
