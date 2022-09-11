@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 if sys.version_info < (3, 9):
     print("Error: You need at least Python 3.9 to use SpamBayes.")
     print("You're running version %s." % sys.version)
-    sys.exit(0)
+    sys.exit(39)
 
 # Install
 from distutils.core import setup
