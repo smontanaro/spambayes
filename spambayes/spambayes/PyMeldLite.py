@@ -343,192 +343,85 @@ class _TextNode(_Node):
         return self._text
 
 
-# For XML parsing we use xmllib in versions prior to 2.3, because we can't
-# be sure that expat will be there, or that it will be a decent version.
-# We use expat in versions 2.3 and above, because we can be sure it will
-# be there and xmllib is deprecated from 2.3.
+# Entrian.Coverage: Pragma Stop
+import xml.parsers.expat
+class _TreeGenerator:
+    # Entrian.Coverage: Pragma Start
+    """An XML parser that generates a lightweight DOM tree.  Call `feed()`
+    with XML source, then `close()`, then `getTree()` will give you the
+    tree's `_RootNode`:
 
-# The slightly odd Entrian.Coverage pragmas in this section make sure that
-# whichever branch is taken, we get code coverage for that branch and no
-# coverage failures for the other.
-if sys.hexversion >> 16 < 0x203:
-    # Entrian.Coverage: Pragma Stop
-    import xmllib
-    class _TreeGenerator(xmllib.XMLParser):
-        # Entrian.Coverage: Pragma Start
-        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
-        with XML source, then `close()`, then `getTree()` will give you the
-        tree's `_RootNode`:
+    >>> g = _TreeGenerator()
+    >>> g.feed("<xml>Stuff. ")
+    >>> g.feed("More stuff.</xml>")
+    >>> g.close()
+    >>> tree = g.getTree()
+    >>> print tree.toText()
+    <xml>Stuff. More stuff.</xml>
+    """
 
-        >>> g = _TreeGenerator()
-        >>> g.feed("<xml>Stuff. ")
-        >>> g.feed("More stuff.</xml>")
-        >>> g.close()
-        >>> tree = g.getTree()
-        >>> print tree.toText()
-        <xml>Stuff. More stuff.</xml>
-        """
+    def __init__(self):
+        self._tree = _RootNode()
+        self._currentNode = self._tree
+        self._pendingText = []
+        self._parser = xml.parsers.expat.ParserCreate()
+        self._parser.buffer_text = True
+        self._parser.DefaultHandler = self.DefaultHandler
+        self._parser.StartElementHandler = self.StartElementHandler
+        self._parser.EndElementHandler = self.EndElementHandler
 
-        def __init__(self):
-            xmllib.XMLParser.__init__(self,
-                                      translate_attribute_references=False)
-            self.entitydefs = {}    # This is an xmllib.XMLParser attribute.
-            self._tree = _RootNode()
-            self._currentNode = self._tree
-            self._pendingText = []
+    # All entities and charrefs, like &bull; and &#160;, are considered
+    # valid - who are we to argue?  Expat thinks it knows better, so we
+    # fool it here.
+    def _mungeEntities(self, data):
+        return re.sub(r'&([A-Za-z0-9#]+);', r':PyMeldEntity:\1:', data)
 
-        def getTree(self):
-            """Returns the generated tree; call `feed` then `close` first."""
-            return self._tree
+    def _unmungeEntities(self, data):
+        return re.sub(r':PyMeldEntity:([A-Za-z0-9#]+):', r'&\1;', data)
 
-        def _collapsePendingText(self):
-            """Text (any content that isn't an open/close element) is built up
-            in `self._pendingText` until an open/close element is seen, at
-            which point it gets collapsed into a `_TextNode`."""
+    def feed(self, data):
+        """Call this with XML content to be parsed."""
+        data = self._mungeEntities(data)
+        self._parser.Parse(data)
 
-            data = ''.join(self._pendingText)
-            self._currentNode.children.append(_TextNode(data))
-            self._pendingText = []
+    def close(self):
+        """Call this when you've passed all your XML content to `feed`."""
+        self._parser.Parse("", True)
 
-        def handle_xml(self, encoding, standalone):
-            xml = '<?xml version="1.0"'
-            if encoding:
-                xml += ' encoding="%s"' % encoding
-            if standalone:
-                xml += ' standalone="%s"' % standalone
-            xml += '?>'
-            self._pendingText.append(xml)
+    def getTree(self):
+        """Returns the generated tree; call `feed` then `close` first."""
+        return self._tree
 
-        def handle_doctype(self, tag, pubid, syslit, data):
-            doctype = '<!DOCTYPE %s' % tag
-            if pubid:
-                doctype += ' PUBLIC "%s"' % pubid
-            elif syslit:
-                doctype += ' SYSTEM'
-            if syslit:
-                doctype += ' "%s"' % syslit
-            if data:
-                doctype += ' [%s]>' % data
-            else:
-                doctype += '>'
-            self._pendingText.append(doctype)
+    def _collapsePendingText(self):
+        """Text (any content that isn't an open/close element) is built up
+        in `self._pendingText` until an open/close element is seen, at
+        which point it gets collapsed into a `_TextNode`."""
 
-        def handle_comment(self, data):
-            self._pendingText.append('<!--%s-->' % data)
+        data = ''.join(self._pendingText)
+        data = self._unmungeEntities(data)
+        self._currentNode.children.append(_TextNode(data))
+        self._pendingText = []
 
-        def handle_proc(self, name, data):
-            self._pendingText.append('<?%s %s ?>' % (name, data.strip()))
+    def DefaultHandler(self, data):
+        """Expat handler."""
+        self._pendingText.append(str(data))
 
-        def handle_data(self, data):
-            self._pendingText.append(data)
+    def StartElementHandler(self, tag, attributes):
+        """Expat handler."""
+        if self._pendingText:
+            self._collapsePendingText()
+        newAttributes = {}
+        for name, value in attributes.items():
+            newAttributes[str(name)] = self._unmungeEntities(str(value))
+        newNode = _ElementNode(self._currentNode, str(tag), newAttributes)
+        self._currentNode.children.append(newNode)
+        self._currentNode = newNode
 
-        def handle_charref(self, ref):
-            self._pendingText.append('&#%s;' % ref)
-
-        unknown_charref = handle_charref
-
-        def handle_entityref(self, ref):
-            self._pendingText.append('&%s;' % ref)
-
-        unknown_entityref = handle_entityref
-
-        def handle_cdata(self, data):
-            if self._pendingText:
-                self._collapsePendingText()
-            self._pendingText.append('<![CDATA[%s]]>' % data)
-
-        def unknown_starttag(self, tag, attributes):
-            if self._pendingText:
-                self._collapsePendingText()
-            newNode = _ElementNode(self._currentNode, tag, attributes)
-            self._currentNode.children.append(newNode)
-            self._currentNode = newNode
-
-        def unknown_endtag(self, tag):
-            if self._pendingText:
-                self._collapsePendingText()
-            self._currentNode = self._currentNode.parent
-
-else:
-    # Entrian.Coverage: Pragma Stop
-    import xml.parsers.expat
-    class _TreeGenerator:
-        # Entrian.Coverage: Pragma Start
-        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
-        with XML source, then `close()`, then `getTree()` will give you the
-        tree's `_RootNode`:
-
-        >>> g = _TreeGenerator()
-        >>> g.feed("<xml>Stuff. ")
-        >>> g.feed("More stuff.</xml>")
-        >>> g.close()
-        >>> tree = g.getTree()
-        >>> print tree.toText()
-        <xml>Stuff. More stuff.</xml>
-        """
-
-        def __init__(self):
-            self._tree = _RootNode()
-            self._currentNode = self._tree
-            self._pendingText = []
-            self._parser = xml.parsers.expat.ParserCreate()
-            self._parser.buffer_text = True
-            self._parser.DefaultHandler = self.DefaultHandler
-            self._parser.StartElementHandler = self.StartElementHandler
-            self._parser.EndElementHandler = self.EndElementHandler
-
-        # All entities and charrefs, like &bull; and &#160;, are considered
-        # valid - who are we to argue?  Expat thinks it knows better, so we
-        # fool it here.
-        def _mungeEntities(self, data):
-            return re.sub(r'&([A-Za-z0-9#]+);', r':PyMeldEntity:\1:', data)
-
-        def _unmungeEntities(self, data):
-            return re.sub(r':PyMeldEntity:([A-Za-z0-9#]+):', r'&\1;', data)
-
-        def feed(self, data):
-            """Call this with XML content to be parsed."""
-            data = self._mungeEntities(data)
-            self._parser.Parse(data)
-
-        def close(self):
-            """Call this when you've passed all your XML content to `feed`."""
-            self._parser.Parse("", True)
-
-        def getTree(self):
-            """Returns the generated tree; call `feed` then `close` first."""
-            return self._tree
-
-        def _collapsePendingText(self):
-            """Text (any content that isn't an open/close element) is built up
-            in `self._pendingText` until an open/close element is seen, at
-            which point it gets collapsed into a `_TextNode`."""
-
-            data = ''.join(self._pendingText)
-            data = self._unmungeEntities(data)
-            self._currentNode.children.append(_TextNode(data))
-            self._pendingText = []
-
-        def DefaultHandler(self, data):
-            """Expat handler."""
-            self._pendingText.append(str(data))
-
-        def StartElementHandler(self, tag, attributes):
-            """Expat handler."""
-            if self._pendingText:
-                self._collapsePendingText()
-            newAttributes = {}
-            for name, value in attributes.items():
-                newAttributes[str(name)] = self._unmungeEntities(str(value))
-            newNode = _ElementNode(self._currentNode, str(tag), newAttributes)
-            self._currentNode.children.append(newNode)
-            self._currentNode = newNode
-
-        def EndElementHandler(self, tag):
-            """Expat handler."""
-            if self._pendingText:
-                self._collapsePendingText()
-            self._currentNode = self._currentNode.parent
+    def EndElementHandler(self, tag):
+        """Expat handler."""
+        if self._pendingText:
+            self._collapsePendingText()
+        self._currentNode = self._currentNode.parent
 
 
 def _generateTree(source):
