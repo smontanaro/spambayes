@@ -766,13 +766,13 @@ class CoreState:
                 factory = FileMessageFactory()
             age = options["Storage", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
-                                               '[0123456789\-]*',
+                                               '[-0123456789]*',
                                                cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory, hc,
-                                              '[0123456789\-]*',
+                                              '[-0123456789]*',
                                               cacheSize=20)
             self.unknownCorpus = ExpiryFileCorpus(age, factory, uc,
-                                                  '[0123456789\-]*',
+                                                  '[-0123456789]*',
                                                   cacheSize=20)
 
             # Given that (hopefully) users will get to the stage
