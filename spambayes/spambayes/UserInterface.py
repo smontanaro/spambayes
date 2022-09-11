@@ -289,11 +289,11 @@ class UserInterface(BaseUserInterface):
         self.write(results)
         self._writePostamble()
 
-    ev_re = re.compile("%s:(.*?)(?:\n\S|\n\n)" % \
+    ev_re = re.compile(r"%s:(.*?)(?:\n\S|\n\n)" % \
                        re.escape(options["Headers",
                                          "evidence_header_name"]),
                        re.DOTALL)
-    sc_re = re.compile("%s:\s*([\d.]+)" % \
+    sc_re = re.compile(r"%s:\s*([\d.]+)" % \
                        re.escape(options["Headers", "score_header_name"]))
 
     def _fillCluesTable(self, clues):
@@ -534,7 +534,7 @@ class UserInterface(BaseUserInterface):
                     factory = FileCorpus.FileMessageFactory()
                 age = options["Storage", "cache_expiry_days"]*24*60*60
                 corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
-                                          '[0123456789\-]*', cacheSize=20)
+                                          '[-0123456789]*', cacheSize=20)
                 setattr(self, desired_corpus, corpus)
                 # We need a function to create a new name for the message
                 # as sb_imapfilter doesn't have one.
