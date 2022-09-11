@@ -60,7 +60,7 @@ class async_chat (asyncore.dispatcher):
     ac_out_buffer_size      = 4096
 
     def __init__ (self, conn=None):
-        self.ac_in_buffer = b''
+        self.ac_in_buffer = ''
         self.ac_out_buffer = ''
         self.producer_fifo = fifo()
         asyncore.dispatcher.__init__ (self, conn)
@@ -86,12 +86,12 @@ class async_chat (asyncore.dispatcher):
     def handle_read (self):
 
         try:
-            data = self.recv (self.ac_in_buffer_size)
+            data = self.recv (self.ac_in_buffer_size).decode(encoding="utf-8")
         except socket.error as why:
             self.handle_error()
             return
 
-        self.ac_in_buffer = self.ac_in_buffer + data
+        self.ac_in_buffer += data
 
         # Continue to search for self.terminator in self.ac_in_buffer,
         # while calling self.collect_incoming_data.  The while loop

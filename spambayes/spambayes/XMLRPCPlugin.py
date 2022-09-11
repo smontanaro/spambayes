@@ -133,7 +133,7 @@ class XMLRPCPlugin(Plugin):
                     factory = FileCorpus.FileMessageFactory()
                 age = options["Storage", "cache_expiry_days"]*24*60*60
                 corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
-                                                     '[0123456789\-]*',
+                                                     r'[0123456789-]*',
                                                      cacheSize=20)
                 setattr(self, desired_corpus, corpus)
                 class UniqueNamer:
