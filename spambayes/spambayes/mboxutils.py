@@ -81,7 +81,7 @@ def getmbox(name):
     """Return an mbox iterator given a file/directory/folder name."""
 
     if name == "-":
-        return [get_message(sys.stdin)]
+        return [get_message(sys.stdin.buffer)]
 
     if name.startswith("+"):
         # MH folder name: +folder, +f1,f2,f2, or +ALL
