@@ -65,7 +65,11 @@ def get_message(obj):
     if hasattr(obj, "read"):
         obj = obj.read()
     try:
-        msg = email.message_from_string(obj)
+        # decode as iso-8859-1 (aka latin-1) to avoid
+        # email failing to decode based info in the
+        # headers. For example trying to use "cp-1251"
+        # that does not exist, its spelt "cp1251" in python.
+        msg = email.message_from_string(obj.decode('iso-8859-1'))
     except email.errors.MessageParseError:
         msg = None
     return msg
