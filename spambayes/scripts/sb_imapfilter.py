@@ -120,6 +120,7 @@ if hasattr(sys, "frozen"):
     sys.stdout = open(os.path.join(temp_dir,"SpamBayesIMAP1.log"), "wt", 0)
     sys.stderr = sys.stdout
 
+import imaplib
 import socket
 import re
 import time
@@ -140,17 +141,16 @@ from spambayes.ImapUI import IMAPUserInterface, LoginFailure
 
 from spambayes.Version import get_current_version
 
-from imaplib import IMAP4
-from imaplib import Time2Internaldate
 try:
     if options["imap", "use_ssl"]:
-        from imaplib import IMAP4_SSL as BaseIMAP
+        BaseIMAP = imaplib.IMAP4_SSL
     else:
-        from imaplib import IMAP4 as BaseIMAP
+        BaseIMAP = imaplib.IMAP4
 except ImportError:
-    from imaplib import IMAP4 as BaseIMAP
+    BaseIMAP = imaplib.IMAP4
 
 
+DEFAULT_TIMEOUT = 60            # seconds
 class BadIMAPResponseError(Exception):
     """An IMAP command returned a non-"OK" response."""
     def __init__(self, command, response):
@@ -164,7 +164,6 @@ class BadIMAPResponseError(Exception):
 class IMAPSession(BaseIMAP):
     '''A class extending the IMAP4 class, with a few optimizations'''
 
-    timeout = 60 # seconds
     def __init__(self, server, debug=0, do_expunge = options["imap", "expunge"] ):
         if ":" in server:
             server, port = server.split(':', 1)
@@ -186,10 +185,11 @@ class IMAPSession(BaseIMAP):
             self.readline = self.readline_timeout
         try:
             BaseIMAP.__init__(self, server, port)
-        except (BaseIMAP.error, socket.gaierror, socket.error):
+        except (BaseIMAP.error, socket.gaierror, socket.error) as exc:
             if options["globals", "verbose"]:
-                print("Cannot connect to server", server, "on port", port, file=sys.stderr)
-                if not hasattr(self, "ssl"):
+                print(f"Cannot connect to server {server} on port {port} ({exc.args})",
+                      file=sys.stderr)
+                if not hasattr(self, "ssl_context") or self.ssl_context is None:
                     print(("If you are connecting to an SSL server,"
                                           "please ensure that you\n"
                                           "have the 'Use SSL' option enabled."), file=sys.stderr)
@@ -218,13 +218,19 @@ class IMAPSession(BaseIMAP):
         self._read = self.read
         self.read = self.safe_read
 
+    def open(self, host="", port=imaplib.IMAP4_SSL_PORT, timeout=None):
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+
+        return BaseIMAP.open(self, host, port, timeout)
+
     def readline_timeout(self):
         """Read line from remote, possibly timing out."""
         st_time = time.time()
         self.sock.setblocking(False)
         buffer = []
         while True:
-            if (time.time() - st_time) > self.timeout:
+            if (time.time() - st_time) > DEFAULT_TIMEOUT:
                 if options["globals", "verbose"]:
                     print("IMAP Timing out", file=sys.stderr)
                 break
@@ -505,7 +511,7 @@ class IMAPMessage(message.SBHeaderMessage):
             parsed_date = parsedate(message_date)
             if parsed_date is not None:
                 try:
-                    return Time2Internaldate(time.mktime(parsed_date))
+                    return imaplib.Time2Internaldate(time.mktime(parsed_date))
                 except ValueError:
                     # Invalid dates can cause mktime() to raise a
                     # ValueError, for example:
