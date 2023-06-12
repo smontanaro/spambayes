@@ -81,7 +81,7 @@ sb_xmlrpcserver.py.
 """
 
 import sys
-import xmlrpclib
+import xmlrpc.client
 from spambayes.Options import options
 
 RPCURL = 'http://localhost:8881'
@@ -90,8 +90,8 @@ RPCURL = 'http://localhost:8881'
 def main():
     msg = sys.stdin.read()
     try:
-        server = xmlrpclib.ServerProxy(RPCURL)
-        score = server.score(xmlrpclib.Binary(msg))
+        server = xmlrpc.client.ServerProxy(RPCURL)
+        score = server.score(xmlrpc.client.Binary(msg))
     except:
         import traceback
         traceback.print_exc()

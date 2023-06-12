@@ -84,7 +84,7 @@ class ServiceEventLogHandler(logging.Handler):
             del ei
 
 
-class ServiceEventLogHandlerWrapper(object):
+class ServiceEventLogHandlerWrapper:
     """Pretend that the ServiceEventLogHandler is a file-like object,
     so we can use it while we don't use the proper logging module."""
     def __init__(self, service_name, level=logging.INFO):

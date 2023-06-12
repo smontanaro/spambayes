@@ -24,7 +24,7 @@ Options:
 """
 
 import sys
-import httplib
+import http.client
 import mimetypes
 import getopt
 import random
@@ -46,7 +46,7 @@ def post_multipart(host, selector, fields, files):
     as files.  Return the server's response page.
     """
     content_type, body = encode_multipart_formdata(fields, files)
-    h = httplib.HTTP(host)
+    h = http.client.HTTP(host)
     h.putrequest('POST', selector)
     h.putheader('content-type', content_type)
     h.putheader('content-length', str(len(body)))
@@ -89,7 +89,7 @@ def usage(*args):
     defaults = {}
     for d in args:
         defaults.update(d)
-    print __doc__ % defaults
+    print(__doc__ % defaults)
 
 def main(argv):
     null = False

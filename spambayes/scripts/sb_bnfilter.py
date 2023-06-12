@@ -82,15 +82,15 @@ import sys, getopt, socket, errno, os, time
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     sys.exit(code)
         
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hfgstGSd:p:o:a:A:k:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     # build the default socket filename from environment variables
@@ -151,8 +151,8 @@ def main():
     # tries to handle errors internally by constructing a stdout that is
     # the same as stdin was.
     if total_size != expected_size:
-        print >> sys.stderr, 'size mismatch %d != %d' % (total_size,
-                                                         expected_size)
+        print('size mismatch %d != %d' % (total_size,
+                                                         expected_size), file=sys.stderr)
         sys.exit(3)
     if error:
         sys.exit(error)
@@ -164,7 +164,7 @@ def make_socket(server_options, filename):
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.connect(filename)
-        except socket.error,e:
+        except socket.error as e:
             if e[0] == errno.EAGAIN:
                 # baaah
                 pass

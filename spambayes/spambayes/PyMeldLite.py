@@ -211,7 +211,7 @@ def replaceHighCharacters(match):
 
 # Map meaningless low characters to '?'
 badxml_chars = ''.join([chr(c) for c in range(0, 32) if c not in [9, 10, 13]])
-badxml_map = string.maketrans(badxml_chars, '?' * len(badxml_chars))
+badxml_map = badxml_chars.maketrans(badxml_chars, '?' * len(badxml_chars))
 
 
 ###########################################################################
@@ -312,12 +312,12 @@ class _ElementNode(_Node):
     def toText(self):
         """Generates the XML source for the node."""
         text = ['<%s' % self.tag]
-        attributes = self.attributes.items()
+        attributes = list(self.attributes.items())
         attributes.sort()
         for attribute, value in attributes:
             text.append(' %s="%s"' % (attribute, value))
         childText = self.childrenToText()
-        if childText or nonSelfClose.has_key(self.tag):
+        if childText or self.tag in nonSelfClose:
             text.append('>')
             text.append(childText)
             text.append('</%s>' % self.tag)
@@ -343,192 +343,85 @@ class _TextNode(_Node):
         return self._text
 
 
-# For XML parsing we use xmllib in versions prior to 2.3, because we can't
-# be sure that expat will be there, or that it will be a decent version.
-# We use expat in versions 2.3 and above, because we can be sure it will
-# be there and xmllib is deprecated from 2.3.
+# Entrian.Coverage: Pragma Stop
+import xml.parsers.expat
+class _TreeGenerator:
+    # Entrian.Coverage: Pragma Start
+    """An XML parser that generates a lightweight DOM tree.  Call `feed()`
+    with XML source, then `close()`, then `getTree()` will give you the
+    tree's `_RootNode`:
 
-# The slightly odd Entrian.Coverage pragmas in this section make sure that
-# whichever branch is taken, we get code coverage for that branch and no
-# coverage failures for the other.
-if sys.hexversion >> 16 < 0x203:
-    # Entrian.Coverage: Pragma Stop
-    import xmllib
-    class _TreeGenerator(xmllib.XMLParser):
-        # Entrian.Coverage: Pragma Start
-        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
-        with XML source, then `close()`, then `getTree()` will give you the
-        tree's `_RootNode`:
+    >>> g = _TreeGenerator()
+    >>> g.feed("<xml>Stuff. ")
+    >>> g.feed("More stuff.</xml>")
+    >>> g.close()
+    >>> tree = g.getTree()
+    >>> print tree.toText()
+    <xml>Stuff. More stuff.</xml>
+    """
 
-        >>> g = _TreeGenerator()
-        >>> g.feed("<xml>Stuff. ")
-        >>> g.feed("More stuff.</xml>")
-        >>> g.close()
-        >>> tree = g.getTree()
-        >>> print tree.toText()
-        <xml>Stuff. More stuff.</xml>
-        """
+    def __init__(self):
+        self._tree = _RootNode()
+        self._currentNode = self._tree
+        self._pendingText = []
+        self._parser = xml.parsers.expat.ParserCreate()
+        self._parser.buffer_text = True
+        self._parser.DefaultHandler = self.DefaultHandler
+        self._parser.StartElementHandler = self.StartElementHandler
+        self._parser.EndElementHandler = self.EndElementHandler
 
-        def __init__(self):
-            xmllib.XMLParser.__init__(self,
-                                      translate_attribute_references=False)
-            self.entitydefs = {}    # This is an xmllib.XMLParser attribute.
-            self._tree = _RootNode()
-            self._currentNode = self._tree
-            self._pendingText = []
+    # All entities and charrefs, like &bull; and &#160;, are considered
+    # valid - who are we to argue?  Expat thinks it knows better, so we
+    # fool it here.
+    def _mungeEntities(self, data):
+        return re.sub(r'&([A-Za-z0-9#]+);', r':PyMeldEntity:\1:', data)
 
-        def getTree(self):
-            """Returns the generated tree; call `feed` then `close` first."""
-            return self._tree
+    def _unmungeEntities(self, data):
+        return re.sub(r':PyMeldEntity:([A-Za-z0-9#]+):', r'&\1;', data)
 
-        def _collapsePendingText(self):
-            """Text (any content that isn't an open/close element) is built up
-            in `self._pendingText` until an open/close element is seen, at
-            which point it gets collapsed into a `_TextNode`."""
+    def feed(self, data):
+        """Call this with XML content to be parsed."""
+        data = self._mungeEntities(data)
+        self._parser.Parse(data)
 
-            data = ''.join(self._pendingText)
-            self._currentNode.children.append(_TextNode(data))
-            self._pendingText = []
+    def close(self):
+        """Call this when you've passed all your XML content to `feed`."""
+        self._parser.Parse("", True)
 
-        def handle_xml(self, encoding, standalone):
-            xml = '<?xml version="1.0"'
-            if encoding:
-                xml += ' encoding="%s"' % encoding
-            if standalone:
-                xml += ' standalone="%s"' % standalone
-            xml += '?>'
-            self._pendingText.append(xml)
+    def getTree(self):
+        """Returns the generated tree; call `feed` then `close` first."""
+        return self._tree
 
-        def handle_doctype(self, tag, pubid, syslit, data):
-            doctype = '<!DOCTYPE %s' % tag
-            if pubid:
-                doctype += ' PUBLIC "%s"' % pubid
-            elif syslit:
-                doctype += ' SYSTEM'
-            if syslit:
-                doctype += ' "%s"' % syslit
-            if data:
-                doctype += ' [%s]>' % data
-            else:
-                doctype += '>'
-            self._pendingText.append(doctype)
+    def _collapsePendingText(self):
+        """Text (any content that isn't an open/close element) is built up
+        in `self._pendingText` until an open/close element is seen, at
+        which point it gets collapsed into a `_TextNode`."""
 
-        def handle_comment(self, data):
-            self._pendingText.append('<!--%s-->' % data)
+        data = ''.join(self._pendingText)
+        data = self._unmungeEntities(data)
+        self._currentNode.children.append(_TextNode(data))
+        self._pendingText = []
 
-        def handle_proc(self, name, data):
-            self._pendingText.append('<?%s %s ?>' % (name, data.strip()))
+    def DefaultHandler(self, data):
+        """Expat handler."""
+        self._pendingText.append(str(data))
 
-        def handle_data(self, data):
-            self._pendingText.append(data)
+    def StartElementHandler(self, tag, attributes):
+        """Expat handler."""
+        if self._pendingText:
+            self._collapsePendingText()
+        newAttributes = {}
+        for name, value in attributes.items():
+            newAttributes[str(name)] = self._unmungeEntities(str(value))
+        newNode = _ElementNode(self._currentNode, str(tag), newAttributes)
+        self._currentNode.children.append(newNode)
+        self._currentNode = newNode
 
-        def handle_charref(self, ref):
-            self._pendingText.append('&#%s;' % ref)
-
-        unknown_charref = handle_charref
-
-        def handle_entityref(self, ref):
-            self._pendingText.append('&%s;' % ref)
-
-        unknown_entityref = handle_entityref
-
-        def handle_cdata(self, data):
-            if self._pendingText:
-                self._collapsePendingText()
-            self._pendingText.append('<![CDATA[%s]]>' % data)
-
-        def unknown_starttag(self, tag, attributes):
-            if self._pendingText:
-                self._collapsePendingText()
-            newNode = _ElementNode(self._currentNode, tag, attributes)
-            self._currentNode.children.append(newNode)
-            self._currentNode = newNode
-
-        def unknown_endtag(self, tag):
-            if self._pendingText:
-                self._collapsePendingText()
-            self._currentNode = self._currentNode.parent
-
-else:
-    # Entrian.Coverage: Pragma Stop
-    import xml.parsers.expat
-    class _TreeGenerator:
-        # Entrian.Coverage: Pragma Start
-        """An XML parser that generates a lightweight DOM tree.  Call `feed()`
-        with XML source, then `close()`, then `getTree()` will give you the
-        tree's `_RootNode`:
-
-        >>> g = _TreeGenerator()
-        >>> g.feed("<xml>Stuff. ")
-        >>> g.feed("More stuff.</xml>")
-        >>> g.close()
-        >>> tree = g.getTree()
-        >>> print tree.toText()
-        <xml>Stuff. More stuff.</xml>
-        """
-
-        def __init__(self):
-            self._tree = _RootNode()
-            self._currentNode = self._tree
-            self._pendingText = []
-            self._parser = xml.parsers.expat.ParserCreate()
-            self._parser.buffer_text = True
-            self._parser.DefaultHandler = self.DefaultHandler
-            self._parser.StartElementHandler = self.StartElementHandler
-            self._parser.EndElementHandler = self.EndElementHandler
-
-        # All entities and charrefs, like &bull; and &#160;, are considered
-        # valid - who are we to argue?  Expat thinks it knows better, so we
-        # fool it here.
-        def _mungeEntities(self, data):
-            return re.sub(r'&([A-Za-z0-9#]+);', r':PyMeldEntity:\1:', data)
-
-        def _unmungeEntities(self, data):
-            return re.sub(r':PyMeldEntity:([A-Za-z0-9#]+):', r'&\1;', data)
-
-        def feed(self, data):
-            """Call this with XML content to be parsed."""
-            data = self._mungeEntities(data)
-            self._parser.Parse(data)
-
-        def close(self):
-            """Call this when you've passed all your XML content to `feed`."""
-            self._parser.Parse("", True)
-
-        def getTree(self):
-            """Returns the generated tree; call `feed` then `close` first."""
-            return self._tree
-
-        def _collapsePendingText(self):
-            """Text (any content that isn't an open/close element) is built up
-            in `self._pendingText` until an open/close element is seen, at
-            which point it gets collapsed into a `_TextNode`."""
-
-            data = ''.join(self._pendingText)
-            data = self._unmungeEntities(data)
-            self._currentNode.children.append(_TextNode(data))
-            self._pendingText = []
-
-        def DefaultHandler(self, data):
-            """Expat handler."""
-            self._pendingText.append(str(data))
-
-        def StartElementHandler(self, tag, attributes):
-            """Expat handler."""
-            if self._pendingText:
-                self._collapsePendingText()
-            newAttributes = {}
-            for name, value in attributes.iteritems():
-                newAttributes[str(name)] = self._unmungeEntities(str(value))
-            newNode = _ElementNode(self._currentNode, str(tag), newAttributes)
-            self._currentNode.children.append(newNode)
-            self._currentNode = newNode
-
-        def EndElementHandler(self, tag):
-            """Expat handler."""
-            if self._pendingText:
-                self._collapsePendingText()
-            self._currentNode = self._currentNode.parent
+    def EndElementHandler(self, tag):
+        """Expat handler."""
+        if self._pendingText:
+            self._collapsePendingText()
+        self._currentNode = self._currentNode.parent
 
 
 def _generateTree(source):
@@ -602,7 +495,7 @@ class Meld:
         elif isinstance(source, _Node): # For internal use only.
             self._tree = source
         else:
-            raise TypeError, "Melds must be constructed from ASCII strings"
+            raise TypeError("Melds must be constructed from ASCII strings")
 
     def _findByID(self, node, name):
         """Returns the node with the given ID, or None."""
@@ -693,14 +586,14 @@ class Meld:
             try:
                 return self.__dict__[name]
             except KeyError:
-                raise AttributeError, name
+                raise AttributeError(name)
         node = self._findByID(self._tree, name)
         if node:
             return Meld(node, self._readonly)
         attribute = self._tree.getElementNode().attributes.get(name, _fail)
         if attribute is not _fail:
             return self._unquoteAttribute(attribute)
-        raise AttributeError, "No element or attribute named %r" % name
+        raise AttributeError("No element or attribute named %r" % name)
 
     def __setattr__(self, name, value):
         """`object.<name> = value` sets the XML content of the element with an
@@ -721,7 +614,7 @@ class Meld:
             self.__dict__[name] = value
             return
         if self._readonly:
-            raise ReadOnlyError, READ_ONLY_MESSAGE
+            raise ReadOnlyError(READ_ONLY_MESSAGE)
         node = self._findByID(self._tree, name)
         if hasattr(value, '_tree') and value._tree is node:
             return   # x.y = x.y
@@ -751,9 +644,9 @@ class Meld:
                 del self.__dict__[name]
                 return
             except KeyError:
-                raise AttributeError, name
+                raise AttributeError(name)
         if self._readonly:
-            raise ReadOnlyError, READ_ONLY_MESSAGE
+            raise ReadOnlyError(READ_ONLY_MESSAGE)
         node = self._findByID(self._tree, name)
         if node:
             node.parent.children.remove(node)
@@ -763,7 +656,7 @@ class Meld:
         if attribute is not _fail:
             del node.attributes[name]
         else:
-            raise AttributeError, "No element or attribute named %r" % name
+            raise AttributeError("No element or attribute named %r" % name)
 
     def __getitem__(self, name):
         """`object[<name>]`, if this Meld contains an element with an `id`
@@ -781,12 +674,12 @@ class Meld:
         node = self._findByID(self._tree, name)
         if node:
             return Meld(node, self._readonly)
-        raise KeyError, "No element named %r" % name
+        raise KeyError("No element named %r" % name)
 
     def __setitem__(self, name, value):
         """`object[<name>] = value` sets the XML content of the element with an
         `id` of `name`.
-        
+
         If no such element exists, a KeyError is raised because there is no
         info about the type of element to add.
 
@@ -798,14 +691,14 @@ class Meld:
         """
 
         if self._readonly:
-            raise ReadOnlyError, READ_ONLY_MESSAGE
+            raise ReadOnlyError(READ_ONLY_MESSAGE)
         node = self._findByID(self._tree, name)
         if hasattr(value, '_tree') and value._tree is node:
             return   # x["y"] = x.y
         if node:
             self._replaceNodeContent(node, value)
             return
-        raise KeyError, "No element named %r" % name
+        raise KeyError("No element named %r" % name)
 
     def __delitem__(self, name):
         """Deletes the named element from the `Meld`:
@@ -817,12 +710,12 @@ class Meld:
         """
 
         if self._readonly:
-            raise ReadOnlyError, READ_ONLY_MESSAGE
+            raise ReadOnlyError(READ_ONLY_MESSAGE)
         node = self._findByID(self._tree, name)
         if node:
             node.parent.children.remove(node)
             return
-        raise KeyError, "No element named %r" % name
+        raise KeyError("No element named %r" % name)
 
     def __iadd__(self, other):
         """`object1 += object2` appends a string or a clone of a Meld to
@@ -831,7 +724,7 @@ class Meld:
         rows).  See *Real-world example* in the main documentation."""
 
         if self._readonly:
-            raise ReadOnlyError, READ_ONLY_MESSAGE
+            raise ReadOnlyError(READ_ONLY_MESSAGE)
         if isinstance(other, Meld):
             nodes = [other._tree.getElementNode().clone()]
         else:
@@ -894,8 +787,8 @@ class Meld:
         returnObject = self.clone()
         if hasattr(values, 'values') and callable(values.values):
             # It's a dictionary.
-            keys = values.keys()
-            sequence = values.values()
+            keys = list(values.keys())
+            sequence = list(values.values())
         elif hasattr(values, '__getitem__') and \
              not isinstance(values, str):
             # It's a sequence.
@@ -922,17 +815,17 @@ class Meld:
             sequence.reverse()
             while stack and sequence:
                 element = stack.pop()
-                if element.attributes.has_key('id'):
+                if 'id' in element.attributes:
                     self._replaceNodeContent(element, sequence.pop())
                 else:
                     for index in range(len(element.children)):
                         stack.append(element.children[-1 - index])
 
             if sequence:
-                raise TypeError, "not all arguments converted"
+                raise TypeError("not all arguments converted")
             while stack:
-                if stack.pop().attributes.has_key('id'):
-                    raise TypeError, "not enough arguments"
+                if 'id' in stack.pop().attributes:
+                    raise TypeError("not enough arguments")
 
         return returnObject
 
@@ -1223,7 +1116,7 @@ def test():
     except ImportError:
         Coverage = False
 
-    import PyMeldLite
+    from . import PyMeldLite
     result = doctest.testmod(PyMeldLite)
 
     if Coverage:
@@ -1234,4 +1127,4 @@ def test():
 if __name__ == '__main__':
     failed, total = test()
     if failed == 0:     # Else `doctest.testmod` prints the failures.
-        print "All %d tests passed." % total
+        print("All %d tests passed." % total)

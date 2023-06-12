@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from __future__ import generators
+
 
 # An implementation of a Bayes-like spam classifier.
 #
@@ -47,7 +47,7 @@ import re
 import os
 import sys
 import socket
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from email import message_from_string
 
 DOMAIN_AND_PORT_RE = re.compile(r"([^:/\\]+)(:([\d]+))?")
@@ -65,7 +65,7 @@ slurp_wordstream = None
 
 PICKLE_VERSION = 5
 
-class WordInfo(object):
+class WordInfo:
     # A WordInfo is created for each distinct word.  spamcount is the
     # number of trained spam msgs in which the word appears, and hamcount
     # the number of trained ham msgs.
@@ -194,13 +194,13 @@ class Classifier:
             # that H was much smaller.
             # Rob Hooft stared at these problems and invented the measure
             # we use now, the simpler S-H, scaled into [0., 1.].
-            prob = (S-H + 1.0) / 2.0
+            prob = (S - H + 1.0) / 2.0
         else:
             prob = 0.5
 
         if evidence:
             clues = [(w, p) for p, w, _r in clues]
-            clues.sort(lambda a, b: cmp(a[1], b[1]))
+            clues.sort(key=lambda a: a[1])
             clues.insert(0, ('*S*', S))
             clues.insert(0, ('*H*', H))
             return prob, clues
@@ -220,8 +220,12 @@ class Classifier:
 
         # If necessary, enhance it with the tokens from whatever is
         # at the URL's destination.
-        if len(clues) < options["Classifier", "max_discriminators"] and \
-           prob > h_cut and prob < s_cut and slurp_wordstream:
+        if (
+            len(clues) < options["Classifier", "max_discriminators"]
+            and prob > h_cut
+            and prob < s_cut
+            and slurp_wordstream
+        ):
             slurp_tokens = list(self._generate_slurp())
             slurp_tokens.extend([w for (w, _p) in clues])
             sprob, sclues = self.chi2_spamprob(slurp_tokens, True)
@@ -287,7 +291,9 @@ class Classifier:
         assert hamcount <= nham, "Token seen in more ham than ham trained."
         hamratio = hamcount / nham
 
-        assert spamcount <= nspam, "Token seen in more spam than spam trained."
+        assert (
+            spamcount <= nspam
+        ), "Token seen in more spam than spam trained."
         spamratio = spamcount / nspam
 
         prob = spamratio / (hamratio + spamratio)
@@ -438,8 +444,8 @@ class Classifier:
                     # _enhance_wordstream().
                     pair = "bi:%s %s" % (last_token, token)
                 last_token = token
-                for clue, indices in (token, (i,)), (pair, (i-1, i)):
-                    if clue not in seen:    # as always, skip duplicates
+                for clue, indices in (token, (i,)), (pair, (i - 1, i)):
+                    if clue not in seen:  # as always, skip duplicates
                         seen[clue] = 1
                         tup = self._worddistanceget(clue)
                         if tup[0] >= mindist:
@@ -556,18 +562,21 @@ class Classifier:
             port = 8080
         if server:
             # Build a new opener that uses a proxy requiring authorization
-            proxy_support = urllib2.ProxyHandler({"http" : \
-                                                  "http://%s:%s@%s:%d" % \
-                                                  (username, password,
-                                                   server, port)})
-            opener = urllib2.build_opener(proxy_support,
-                                          urllib2.HTTPHandler)
+            proxy_support = urllib.request.ProxyHandler(
+                {
+                    "http": "http://%s:%s@%s:%d"
+                    % (username, password, server, port)
+                }
+            )
+            opener = urllib.request.build_opener(
+                proxy_support, urllib.request.HTTPHandler
+            )
         else:
             # Build a new opener without any proxy information.
-            opener = urllib2.build_opener(urllib2.HTTPHandler)
+            opener = urllib.request.build_opener(urllib.request.HTTPHandler)
 
         # Install it
-        urllib2.install_opener(opener)
+        urllib.request.install_opener(opener)
 
         # Setup the cache for retrieved urls
         age = options["URLRetriever", "x-cache_expiry_days"]*24*60*60
@@ -575,7 +584,7 @@ class Classifier:
         if not os.path.exists(dir):
             # Create the directory.
             if options["globals", "verbose"]:
-                print >> sys.stderr, "Creating URL cache directory"
+                print("Creating URL cache directory", file=sys.stderr)
             os.makedirs(dir)
 
         self.urlCorpus = ExpiryFileCorpus(age, FileMessageFactory(),
@@ -593,16 +602,20 @@ class Classifier:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Bad URL pickle, using new."
-                self.bad_urls = {"url:non_resolving": (),
-                                 "url:non_html": (),
-                                 "url:unknown_error": ()}
+                    print("Bad URL pickle, using new.", file=sys.stderr)
+                self.bad_urls = {
+                    "url:non_resolving": (),
+                    "url:non_html": (),
+                    "url:unknown_error": (),
+                }
         else:
             if options["globals", "verbose"]:
-                print "URL caches don't exist: creating"
-            self.bad_urls = {"url:non_resolving": (),
-                        "url:non_html": (),
-                        "url:unknown_error": ()}
+                print("URL caches don't exist: creating")
+            self.bad_urls = {
+                "url:non_resolving": (),
+                "url:non_html": (),
+                "url:unknown_error": (),
+            }
         if os.path.exists(self.http_error_cache_name):
             try:
                 self.http_error_urls = pickle_read(self.http_error_cache_name)
@@ -610,7 +623,9 @@ class Classifier:
                 # Something went wrong loading it (bad pickle,
                 # probably).  Start afresh.
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Bad HHTP error pickle, using new."
+                    print(
+                        "Bad HHTP error pickle, using new.", file=sys.stderr
+                    )
                 self.http_error_urls = {}
         else:
             self.http_error_urls = {}
@@ -619,8 +634,10 @@ class Classifier:
         # XXX Note that these caches are never refreshed, which might not
         # XXX be a good thing long-term (if a previously invalid URL
         # XXX becomes valid, for example).
-        for name, data in [(self.bad_url_cache_name, self.bad_urls),
-                           (self.http_error_cache_name, self.http_error_urls),]:
+        for name, data in [
+            (self.bad_url_cache_name, self.bad_urls),
+            (self.http_error_cache_name, self.http_error_urls),
+        ]:
             pickle_write(name, data)
 
     def slurp(self, proto, url):
@@ -641,7 +658,7 @@ class Classifier:
         # "http://)" will trigger this.
         if not url:
             return ["url:non_resolving"]
-        
+
         from spambayes.tokenizer import Tokenizer
 
         if options["URLRetriever", "x-only_slurp_base"]:
@@ -651,7 +668,7 @@ class Classifier:
         for err in self.bad_urls.keys():
             if url in self.bad_urls[err]:
                 return [err]
-        if self.http_error_urls.has_key(url):
+        if url in self.http_error_urls:
             return self.http_error_urls[url]
 
         # We check if the url will resolve first
@@ -683,12 +700,14 @@ class Classifier:
 
             try:
                 if options["globals", "verbose"]:
-                    print >> sys.stderr, "Slurping", url
+                    print("Slurping", url, file=sys.stderr)
 
                 # Waiting for the default timeout takes way too long
                 # Use a specific timeout for this call
-                f = urllib2.urlopen("%s://%s" % (proto, url), timeout=5)
-            except (urllib2.URLError, socket.error), details:
+                f = urllib.request.urlopen(
+                    "%s://%s" % (proto, url), timeout=5
+                )
+            except (urllib.error.URLError, socket.error) as details:
                 mo = HTTP_ERROR_RE.match(str(details))
                 if mo:
                     self.http_error_urls[url] = "url:http_" + mo.group(1)
@@ -699,8 +718,8 @@ class Classifier:
             try:
                 # Anything that isn't text/html is ignored
                 content_type = f.info().get('content-type')
-                if content_type is None or \
-                   not content_type.startswith("text/html"):
+                if (content_type is None or
+                    not content_type.startswith("text/html")):
                     self.bad_urls["url:non_html"] += (url,)
                     return ["url:non_html"]
 
@@ -711,7 +730,7 @@ class Classifier:
                 # This is probably a temporary error, like a timeout.
                 # For now, just bail out.
                 return []
-            
+
             fake_message_string = headers + "\r\n" + page
 
             # Retrieving the same messages over and over again will tire
@@ -769,7 +788,7 @@ class Classifier:
             yield token
 
     def _wordinfokeys(self):
-        return self.wordinfo.keys()
+        return list(self.wordinfo.keys())
 
 
 Bayes = Classifier

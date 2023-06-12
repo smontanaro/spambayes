@@ -11,6 +11,8 @@ from spambayes.classifier import Classifier
 
 class CdbClassifier(Classifier):
     def __init__(self, cdbfile=None):
+        if isinstance(cdbfile, str):
+            cdbfile = open(cdbfile, 'rb')
         Classifier.__init__(self)
         if cdbfile is not None:
             self.wordinfo = cdb.Cdb(cdbfile)
@@ -20,7 +22,7 @@ class CdbClassifier(Classifier):
 
     def save_wordinfo(self, db_file):
         items = []
-        for word, record in self.wordinfo.iteritems():
+        for word, record in self.wordinfo.items():
             prob = Classifier.probability(self, record)
             items.append((word, str(prob)))
         cdb.cdb_make(db_file, items)

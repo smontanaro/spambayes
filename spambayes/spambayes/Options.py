@@ -43,7 +43,7 @@ from spambayes.OptionsClass import *
 try:
     import ZODB
 except ImportError:
-    DB_TYPE = "dbm", "hammie.db", "spambayes.messageinfo.db"
+    DB_TYPE = "pickle", "hammie.pck", "spambayes.messageinfo.pck"
 else:
     del ZODB
     DB_TYPE = "zodb", "hammie.fs", "messageinfo.fs"
@@ -1184,7 +1184,7 @@ defaults = {
      be moved.  However, if you wish to have ham messages moved, you can
      select a folder here."""),
      IMAP_FOLDER, DO_NOT_RESTORE),
-    
+
     ("ham_train_folders", _("Folders with mail to be trained as ham"), (),
      _("""Comma delimited list of folders that will be examined for messages
      to train as ham."""),
@@ -1349,8 +1349,8 @@ def load_options():
 
     if not optionsPathname:
         optionsPathname = os.path.abspath('bayescustomize.ini')
-        if sys.platform.startswith("win") and \
-           not os.path.isfile(optionsPathname):
+        if (sys.platform.startswith("win") and
+            not os.path.isfile(optionsPathname)):
             # If we are on Windows and still don't have an INI, default to the
             # 'per-user' directory.
             try:
@@ -1360,11 +1360,12 @@ def load_options():
                 # in the current directory, and no win32 extensions installed
                 # to locate the "user" directory - seeing things are so lamely
                 # setup, it is worth printing a warning
-                print >> sys.stderr, "NOTE: We can not locate an INI file " \
-                      "for SpamBayes, and the Python for Windows extensions " \
-                      "are not installed, meaning we can't locate your " \
-                      "'user' directory.  An empty configuration file at " \
-                      "'%s' will be used." % optionsPathname.encode('mbcs')
+                print("NOTE: We can not locate an INI file "
+                      "for SpamBayes, and the Python for Windows extensions "
+                      "are not installed, meaning we can't locate your "
+                      "'user' directory.  An empty configuration file at "
+                      "'%s' will be used." % optionsPathname.encode('mbcs'),
+                      file=sys.stderr)
             else:
                 windowsUserDirectory = os.path.join(
                         shell.SHGetFolderPath(0,shellcon.CSIDL_APPDATA,0,0),

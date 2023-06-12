@@ -16,7 +16,7 @@ if not hasattr(smtpd, "PureProxy"):
     import smtpd
 
 import time
-import email.Parser
+import email.parser
 from spambayes import Options, hammie, storage
 
 __all__ = ['SpambayesProxy']
@@ -24,7 +24,7 @@ __all__ = ['SpambayesProxy']
 # stolen from sb_filter.py
 # XXX should probably be enhanced to select training database based upon
 # message recipients, but let's see how far a single database gets us.
-class HammieFilter(object):
+class HammieFilter:
     def __init__(self):
         options = Options.options
         # This is a bit of a hack to counter the default for
@@ -69,7 +69,7 @@ class SpambayesProxy(smtpd.PureProxy):
     def process_message(self, peer, mailfrom, rcpttos, data):
         t1 = time.time()
         try:
-            msg = email.Parser.Parser().parsestr(data)
+            msg = email.parser.Parser().parsestr(data)
         except:
             pass
         else:
@@ -80,14 +80,14 @@ class SpambayesProxy(smtpd.PureProxy):
             try:
                 if prob >= self.spam_cutoff:
                     self.log_message(data)
-                    print >> smtpd.DEBUGSTREAM, 'probable spam: %.2f' % prob
+                    print('probable spam: %.2f' % prob, file=smtpd.DEBUGSTREAM)
                     return '503 Error: probable spam'
 
                 refused = self._deliver(mailfrom, rcpttos, data)
                 t4 = time.time()
                 # TBD: what to do with refused addresses?
-                print >> smtpd.DEBUGSTREAM, 'we got some refusals:', refused
-                print >> smtpd.DEBUGSTREAM, 'deliver time:', t4-t3
+                print('we got some refusals:', refused, file=smtpd.DEBUGSTREAM)
+                print('deliver time:', t4-t3, file=smtpd.DEBUGSTREAM)
             finally:
-                print >> smtpd.DEBUGSTREAM, 'parse time:', t2-t1
-                print >> smtpd.DEBUGSTREAM, 'score time:', t3-t2
+                print('parse time:', t2-t1, file=smtpd.DEBUGSTREAM)
+                print('score time:', t3-t2, file=smtpd.DEBUGSTREAM)

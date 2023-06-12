@@ -47,7 +47,7 @@ __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Peters, Neale Pickett, Tim Stone, all the Spambayes folk."
 
 import sys
-import cgi
+import html
 import time
 import types
 import bisect
@@ -190,7 +190,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         page or zero if there isn't one, likewise the start of the given page,
         and likewise the start of the next page."""
         # Fetch all the message keys
-        allKeys = self.state.unknownCorpus.keys()
+        allKeys = list(self.state.unknownCorpus.keys())
         # We have to sort here to split into days.
         # Later on, we also sort the messages that will be on the page
         # (by whatever column we wish).
@@ -206,8 +206,8 @@ class CoreUserInterface(UserInterface.UserInterface):
         start, end, date = self._getTimeRange(timestamp)
 
         # Find the subset of the keys within this range.
-        startKeyIndex = bisect.bisect(allKeys, "%d" % long(start))
-        endKeyIndex = bisect.bisect(allKeys, "%d" % long(end))
+        startKeyIndex = bisect.bisect(allKeys, "%d" % int(start))
+        endKeyIndex = bisect.bisect(allKeys, "%d" % int(end))
         keys = allKeys[startKeyIndex:endKeyIndex]
         keys.reverse()
 
@@ -231,7 +231,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         numTrained = 0
         numDeferred = 0
         if params.get('go') != _('Refresh'):
-            for key, value in params.items():
+            for key, value in list(params.items()):
                 if key.startswith('classify:'):
                     old_class, id = key.split(':')[1:3]
                     if value == _('spam'):
@@ -320,7 +320,7 @@ class CoreUserInterface(UserInterface.UserInterface):
             except ValueError:
                 max_results = 1
             key = params['find']
-            if params.has_key('ignore_case'):
+            if 'ignore_case' in params:
                 ic = True
             else:
                 ic = False
@@ -330,39 +330,39 @@ class CoreUserInterface(UserInterface.UserInterface):
                 page = _("<p>You must enter a search string.</p>")
             else:
                 if len(keys) < max_results and \
-                   params.has_key('id'):
+                   'id' in params:
                     if self.state.unknownCorpus.get(key):
                         push((key, self.state.unknownCorpus))
                     elif self.state.hamCorpus.get(key):
                         push((key, self.state.hamCorpus))
                     elif self.state.spamCorpus.get(key):
                         push((key, self.state.spamCorpus))
-                if params.has_key('subject') or params.has_key('body') or \
-                   params.has_key('headers'):
+                if 'subject' in params or 'body' in params or \
+                   'headers' in params:
                     # This is an expensive operation, so let the user know
                     # that something is happening.
                     self.write(_('<p>Searching...</p>'))
                     for corp in [self.state.unknownCorpus,
                                  self.state.hamCorpus,
                                  self.state.spamCorpus]:
-                        for k in corp.keys():
+                        for k in list(corp.keys()):
                             if len(keys) >= max_results:
                                 break
                             msg = corp[k]
                             msg.load()
-                            if params.has_key('subject'):
+                            if 'subject' in params:
                                 subj = str(msg['Subject'])
                                 if self._contains(subj, key, ic):
                                     push((k, corp))
-                            if params.has_key('body'):
+                            if 'body' in params:
                                 # For [ 906581 ] Assertion failed in search
                                 # subject.  Can the headers be a non-string?
                                 msg_body = msg.as_string()
                                 msg_body = msg_body[msg_body.index('\r\n\r\n'):]
                                 if self._contains(msg_body, key, ic):
                                     push((k, corp))
-                            if params.has_key('headers'):
-                                for nm, val in msg.items():
+                            if 'headers' in params:
+                                for nm, val in list(msg.items()):
                                     # For [ 906581 ] Assertion failed in
                                     # search subject.  Can the headers be
                                     # a non-string?
@@ -374,7 +374,7 @@ class CoreUserInterface(UserInterface.UserInterface):
                 if len(keys):
                     if len(keys) == 1:
                         title = _("Found message")
-                    else:                      
+                    else:
                         title = _("Found messages")
                     keys = list(keys)
                 else:
@@ -402,7 +402,7 @@ class CoreUserInterface(UserInterface.UserInterface):
                             }
         invalid_keys = []
         for key in keys:
-            if isinstance(key, types.TupleType):
+            if isinstance(key, tuple):
                 key, sourceCorpus = key
             else:
                 sourceCorpus = self.state.unknownCorpus
@@ -509,7 +509,7 @@ class CoreUserInterface(UserInterface.UserInterface):
         if sourceCorpus is not None:
             message = sourceCorpus.get(key)
         if message is not None:
-            self.write("<pre>%s</pre>" % cgi.escape(message.as_string()))
+            self.write("<pre>%s</pre>" % html.escape(message.as_string()))
         else:
             self.write(_("<p>Can't find message %r. Maybe it expired.</p>") %
                        key)
@@ -766,13 +766,13 @@ class CoreState:
                 factory = FileMessageFactory()
             age = options["Storage", "cache_expiry_days"]*24*60*60
             self.spamCorpus = ExpiryFileCorpus(age, factory, sc,
-                                               '[0123456789\-]*',
+                                               '[-0123456789]*',
                                                cacheSize=20)
             self.hamCorpus = ExpiryFileCorpus(age, factory, hc,
-                                              '[0123456789\-]*',
+                                              '[-0123456789]*',
                                               cacheSize=20)
             self.unknownCorpus = ExpiryFileCorpus(age, factory, uc,
-                                                  '[0123456789\-]*',
+                                                  '[-0123456789]*',
                                                   cacheSize=20)
 
             # Given that (hopefully) users will get to the stage
@@ -794,7 +794,7 @@ class CoreState:
         """The message name is the time it arrived with a uniquifier
         appended if two arrive within one clock tick of each other.
         """
-        message_name = "%10.10d" % long(time.time())
+        message_name = "%10.10d" % int(time.time())
         if message_name == self.last_base_message_name:
             message_name = "%s-%d" % (message_name, self.uniquifier)
             self.uniquifier += 1
@@ -809,7 +809,7 @@ class CoreState:
         cls should match one of the options["Headers", "header_*_string"]
         values.
 
-        score is the score the message received.        
+        score is the score the message received.
         """
         if cls == options["Headers", "header_ham_string"]:
             self.numHams += 1
@@ -823,7 +823,7 @@ class CoreState:
         return ""
 
     def recreate_state(self):
-        if self.prepared:    
+        if self.prepared:
             # Close the state (which saves if necessary)
             self.close()
         # And get a new one going.
@@ -856,7 +856,7 @@ class CoreState:
                 # an installer can check if we are running
                 try:
                     hmutex = win32event.CreateMutex(None, True, mutex_name)
-                except win32event.error, details:
+                except win32event.error as details:
                     # If another user has the mutex open, we get an "access
                     # denied" error - this is still telling us what we need
                     # to know.

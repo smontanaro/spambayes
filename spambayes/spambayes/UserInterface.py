@@ -69,11 +69,10 @@ import time
 import email
 import smtplib
 import binascii
-import cgi
+from html import escape as html_escape
 import mailbox
-import types
-import StringIO
-from email.Iterators import typed_subpart_iterator
+import io
+from email.iterators import typed_subpart_iterator
 from textwrap import wrap
 
 from spambayes import oe_mailbox
@@ -108,7 +107,7 @@ class UserInterfaceServer(Dibbler.HTTPServer):
 
     def __init__(self, uiPort):
         Dibbler.HTTPServer.__init__(self, uiPort)
-        print _('User interface url is http://localhost:%d/') % (uiPort)
+        print(_('User interface url is http://localhost:%d/') % (uiPort))
 
     def requestAuthenticationMode(self):
         return options["html_ui", "http_authentication"]
@@ -206,20 +205,20 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def _trimHeader(self, field, limit, quote=False):
         """Trims a string, adding an ellipsis if necessary and HTML-quoting
-        on request.  Also pumps it through email.Header.decode_header, which
+        on request.  Also pumps it through email.header.decode_header, which
         understands charset sections in email headers - I suspect this will
         only work for Latin character sets, but hey, it works for Francois
         Granger's name.  8-)"""
 
         try:
-            sections = email.Header.decode_header(field)
-        except (binascii.Error, email.Errors.HeaderParseError, ValueError):
+            sections = email.header.decode_header(field)
+        except (binascii.Error, email.errors.HeaderParseError, ValueError):
             sections = [(field, None)]
         field = ' '.join([text for text, unused in sections])
         if len(field) > limit:
             field = field[:limit-3] + "..."
         if quote:
-            field = cgi.escape(field)
+            field = html_escape(field)
         return field
 
     def onHome(self):
@@ -232,8 +231,8 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     # If you are easily offended, look away now...
     for imageName in IMAGES:
-        exec "def %s(self): self._writeImage('%s')" % \
-             ("on%sGif" % imageName.capitalize(), imageName)
+        exec("def %s(self): self._writeImage('%s')" % \
+             ("on%sGif" % imageName.capitalize(), imageName))
 
     def _buildBox(self, heading, icon, content):
         """Builds a yellow-headed HTML box."""
@@ -248,16 +247,19 @@ class BaseUserInterface(Dibbler.HTTPPlugin):
 
     def readUIResources(self):
         """Returns ui.html and a dictionary of Gifs."""
-        if self.lang_manager:
-            ui_html = self.lang_manager.import_ui_html()
-        else:
-            from spambayes.resources import ui_html
+        # if self.lang_manager:
+        #     ui_html = self.lang_manager.import_ui_html()
+        # else:
+        #     from spambayes.resources import ui_html
+        from spambayes import resources
+        rdir = os.path.dirname(resources.__file__)
+        html = f"{rdir}/ui.html"
         images = {}
         for baseName in IMAGES:
             moduleName = '%s.%s_gif' % ('spambayes.resources', baseName)
             module = __import__(moduleName, {}, {}, ('spambayes', 'resources'))
             images[baseName] = module.data
-        return ui_html.data, images
+        return open(html, "r", encoding="utf-8").read(), images
 
 
 class UserInterface(BaseUserInterface):
@@ -287,11 +289,11 @@ class UserInterface(BaseUserInterface):
         self.write(results)
         self._writePostamble()
 
-    ev_re = re.compile("%s:(.*?)(?:\n\S|\n\n)" % \
+    ev_re = re.compile(r"%s:(.*?)(?:\n\S|\n\n)" % \
                        re.escape(options["Headers",
                                          "evidence_header_name"]),
                        re.DOTALL)
-    sc_re = re.compile("%s:\s*([\d.]+)" % \
+    sc_re = re.compile(r"%s:\s*([\d.]+)" % \
                        re.escape(options["Headers", "score_header_name"]))
 
     def _fillCluesTable(self, clues):
@@ -315,7 +317,7 @@ class UserInterface(BaseUserInterface):
                 wordProb = "-"
             else:
                 wordProb = round(float(wordProb), accuracy)
-            cluesTable += cluesRow % (cgi.escape(word), wordProb,
+            cluesTable += cluesRow % (html_escape(word), wordProb,
                                       nham, nspam)
         return cluesTable
 
@@ -407,7 +409,7 @@ class UserInterface(BaseUserInterface):
                         self.classifier.probability(wordinfo))
             else:
                 stat = _("%r does not exist in the database.") % \
-                       cgi.escape(word)
+                       html_escape(word)
             stats.append(stat)
         else:
             if query_type != _("regex"):
@@ -444,7 +446,7 @@ class UserInterface(BaseUserInterface):
 
         self._writePreamble(_("Word query"))
         if len(stats) == 1:
-            if isinstance(stat, types.TupleType):
+            if isinstance(stat, tuple):
                 stat = self.html.wordStats.clone()
                 word = stats[0][0]
                 stat.spamcount = stats[0][1]
@@ -454,7 +456,7 @@ class UserInterface(BaseUserInterface):
                 stat = stats[0]
                 word = original_word
             row = self._buildBox(_("Statistics for '%s'") % \
-                                 cgi.escape(word), 'status.gif', stat)
+                                 html_escape(word), 'status.gif', stat)
             self.write(row)
         else:
             page = self.html.multiStats.clone()
@@ -462,7 +464,7 @@ class UserInterface(BaseUserInterface):
             page.multiTable += self.html.multiHeader.clone()
             stripe = 0
             for stat in stats:
-                if isinstance(stat, types.TupleType):
+                if isinstance(stat, tuple):
                     row = self.html.statsRow.clone()
                     row.word, row.spamcount, row.hamcount = stat[:3]
                     row.spamprob = "%.6f" % stat[3]
@@ -471,10 +473,10 @@ class UserInterface(BaseUserInterface):
                     page.multiTable += row
                 else:
                     self.write(self._buildBox(_("Statistics for '%s'") % \
-                                              cgi.escape(original_word),
+                                              html_escape(original_word),
                                               'status.gif', stat))
             self.write(self._buildBox(_("Statistics for '%s'") % \
-                                      cgi.escape(original_word), 'status.gif',
+                                      html_escape(original_word), 'status.gif',
                                       page))
         self.write(queryBox)
         self._writePostamble()
@@ -532,15 +534,15 @@ class UserInterface(BaseUserInterface):
                     factory = FileCorpus.FileMessageFactory()
                 age = options["Storage", "cache_expiry_days"]*24*60*60
                 corpus = FileCorpus.ExpiryFileCorpus(age, factory, fn,
-                                          '[0123456789\-]*', cacheSize=20)
+                                          '[-0123456789]*', cacheSize=20)
                 setattr(self, desired_corpus, corpus)
                 # We need a function to create a new name for the message
                 # as sb_imapfilter doesn't have one.
-                class UniqueNamer(object):
+                class UniqueNamer:
                     count = -1
                     def generate_name(self):
                         self.count += 1
-                        return "%10.10d-%d" % (long(time.time()), self.count)
+                        return "%10.10d-%d" % (int(time.time()), self.count)
                 Namer = UniqueNamer()
                 self.msg_name_func = Namer.generate_name
 
@@ -583,9 +585,9 @@ class UserInterface(BaseUserInterface):
             class SimpleMessage:
                 def __init__(self, fp):
                     self.guts = fp.read()
-            contentFile = StringIO.StringIO(content)
+            contentFile = io.StringIO(content)
             mbox = mailbox.PortableUnixMailbox(contentFile, SimpleMessage)
-            return map(lambda m: m.guts, mbox)
+            return [m.guts for m in mbox]
         else:
             # Just the one message.
             return [content]
@@ -677,7 +679,7 @@ class UserInterface(BaseUserInterface):
         html.shutdownTableCell = "&nbsp;"
         html.mainContent = self.html.configForm.clone()
         html.mainContent.configFormContent = ""
-        html.mainContent.optionsPathname = cgi.escape(optionsPathname)
+        html.mainContent.optionsPathname = html_escape(optionsPathname)
         return self._buildConfigPageBody(html, parm_map)
 
     def _buildConfigPageBody(self, html, parm_map):
@@ -732,7 +734,7 @@ class UserInterface(BaseUserInterface):
                 valid_input = options.valid_input(sect, opt)
 
             # Populate the rows with the details and add them to the table.
-            if isinstance(valid_input, types.StringTypes):
+            if isinstance(valid_input, (str,)):
                 # we provide a text input
                 newConfigRow1 = configTextRow1.clone()
                 newConfigRow1.label = options.display_name(sect, opt)
@@ -775,12 +777,12 @@ class UserInterface(BaseUserInterface):
             newConfigRow1.helpCell = '<strong>' + \
                                      options.display_name(sect, opt) + \
                                      ':</strong> ' + \
-                                     cgi.escape(options.doc(sect, opt))
+                                     html_escape(options.doc(sect, opt))
 
             newConfigRow2 = configRow2.clone()
             currentValue = options[sect, opt]
 
-            if type(currentValue) in types.StringTypes:
+            if type(currentValue) in (str,):
                 currentValue = currentValue.replace(',', ', ')
                 newConfigRow2 = configTextRow2.clone()
             else:
@@ -811,7 +813,7 @@ class UserInterface(BaseUserInterface):
 
     def onChangeopts(self, **parms):
         pmap = self.parm_ini_map
-        if parms.has_key("how"):
+        if "how" in parms:
             if parms["how"] == _("Save advanced options"):
                 pmap = self.advanced_options_map
             elif parms["how"] == _("Save experimental options"):
@@ -836,7 +838,7 @@ class UserInterface(BaseUserInterface):
         old_database_type = options["Storage", "persistent_use_database"]
         old_name = options["Storage", "persistent_storage_file"]
 
-        for name, value in parms.items():
+        for name, value in list(parms.items()):
             sect, opt = name.split('_', 1)
             if (sect, opt) in pmap:
                 options.set(sect, opt, value)
@@ -879,7 +881,7 @@ class UserInterface(BaseUserInterface):
                 os.rename(options["Storage", "messageinfo_storage_file"],
                           options["Storage",
                                   "messageinfo_storage_file"] + ".old")
-            
+
         self.reReadOptions()
 
         html.mainContent.heading = _("Options Changed")
@@ -920,9 +922,9 @@ class UserInterface(BaseUserInterface):
         # mumbo-jumbo to deal with the checkboxes
         # XXX This will break with more than 9 checkboxes
         # XXX A better solution is needed than this
-        for name, value in parms.items():
+        for name, value in list(parms.items()):
             if name[-2:-1] == '-':
-                if parms.has_key(name[:-2]):
+                if name[:-2] in parms:
                     parms[name[:-2]] += (value,)
                 else:
                     parms[name[:-2]] = (value,)
@@ -948,7 +950,7 @@ class UserInterface(BaseUserInterface):
                 valid_input = options.valid_input(sect, opt)
 
             html_key = sect + '_' + opt
-            if not parms.has_key(html_key):
+            if html_key not in parms:
                 # This is a set of checkboxes where none are selected
                 value = ()
                 entered_value = "None"
@@ -969,7 +971,7 @@ class UserInterface(BaseUserInterface):
                 errmsg += _('<li>\'%s\' is not a value valid for [%s] %s') % \
                           (entered_value, nice_section_name,
                            options.display_name(sect, opt))
-                if isinstance(valid_input, types.TupleType):
+                if isinstance(valid_input, tuple):
                     errmsg += _('. Valid values are: ')
                     for valid in valid_input:
                         errmsg += str(valid) + ','
@@ -1071,7 +1073,7 @@ class UserInterface(BaseUserInterface):
             if hasattr(sys, "frozen"):
                 temp_dir = win32api.GetTempPath()
                 for name in ["SpamBayesService", "SpamBayesServer"]:
-                    for i in xrange(3):
+                    for i in range(3):
                         pn = os.path.join(temp_dir, "%s%d.log" % (name,
                                                                   (i+1)))
                         if os.path.exists(pn):
@@ -1108,12 +1110,12 @@ class UserInterface(BaseUserInterface):
         # For guessing MIME type based on file name extension
         import mimetypes
 
-        from email import Encoders
-        from email.MIMEBase import MIMEBase
-        from email.MIMEAudio import MIMEAudio
-        from email.MIMEMultipart import MIMEMultipart
-        from email.MIMEImage import MIMEImage
-        from email.MIMEText import MIMEText
+        from email import encoders
+        from email.mime.base import MIMEBase
+        from email.mime.audio import MIMEAudio
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.image import MIMEImage
+        from email.mime.text import MIMEText
 
         if not self._verifyEnteredDetails(from_addr, subject, message):
             self._writePreamble(_("Error"), ("help", _("Help")))
@@ -1233,7 +1235,7 @@ class UserInterface(BaseUserInterface):
         """Given a message key (as seen in a Corpus), returns the timestamp
         for that message.  This is the time that the message was received,
         not the Date header."""
-        return long(key[:10])
+        return int(key[:10])
 
     def _getTimeRange(self, timestamp):
         """Given a unix timestamp, returns a 3-tuple: the start timestamp
@@ -1319,7 +1321,7 @@ class UserInterface(BaseUserInterface):
             # Apart from any message headers, we may also wish to display
             # the message score, and the time the message was received.
             if options["html_ui", "display_score"]:
-                if isinstance(messageInfo.score, types.StringTypes):
+                if isinstance(messageInfo.score, (str,)):
                     # Presumably either "?" or "Err".
                     row.score_ = messageInfo.score
                 else:
@@ -1350,17 +1352,17 @@ class UserInterface(BaseUserInterface):
 
     def _contains(self, a, b, ignore_case=False):
         """Return true if substring b is part of string a."""
-        assert isinstance(a, types.StringTypes)
-        assert isinstance(b, types.StringTypes)
+        assert isinstance(a, (str,))
+        assert isinstance(b, (str,))
         if ignore_case:
             a = a.lower()
             b = b.lower()
         return a.find(b) >= 0
 
     def _makeMessageInfo(self, message):
-        """Given an email.Message, return an object with subjectHeader,
+        """Given an email.message, return an object with subjectHeader,
         bodySummary and other header (as needed) attributes.  These objects
-        are passed into appendMessages by onReview - passing email.Message
+        are passed into appendMessages by onReview - passing email.message
         objects directly uses too much memory.
         """
         # Remove notations before displaying - see:
@@ -1390,11 +1392,11 @@ class UserInterface(BaseUserInterface):
             # We'll go with the latter.
             score = "?"
         try:
-            part = typed_subpart_iterator(message, 'text', 'plain').next()
+            part = next(typed_subpart_iterator(message, 'text', 'plain'))
             text = part.get_payload()
         except StopIteration:
             try:
-                part = typed_subpart_iterator(message, 'text', 'html').next()
+                part = next(typed_subpart_iterator(message, 'text', 'html'))
                 text = part.get_payload()
                 text, unused = tokenizer.crack_html_style(text)
                 text, unused = tokenizer.crack_html_comment(text)
@@ -1402,7 +1404,7 @@ class UserInterface(BaseUserInterface):
                 text = _('(this message only has an HTML body)\n') + text
             except StopIteration:
                 text = _('(this message has no text body)')
-        if type(text) == type([]):  # gotta be a 'right' way to do this
+        if isinstance(text, list):  # gotta be a 'right' way to do this
             text = _("(this message is a digest of %s messages)") % (len(text))
         elif text is None:
             text = _("(this message has no body)")
@@ -1414,7 +1416,7 @@ class UserInterface(BaseUserInterface):
         class _MessageInfo:
             pass
         messageInfo = _MessageInfo()
-        for headerName, headerValue in headers.items():
+        for headerName, headerValue in list(headers.items()):
             headerValue = self._trimHeader(headerValue, 45, True)
             setattr(messageInfo, "%sHeader" % (headerName,), headerValue)
         messageInfo.score = score

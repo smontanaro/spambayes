@@ -153,7 +153,7 @@ def configure_eudora(config_location):
                 # Setup imapfilter instead
                 pass
 
-    out = file(ini_filename, "w")
+    out = open(ini_filename, "w")
     c.write(out)
     out.close()
     options.update_file(optionsPathname)
@@ -192,7 +192,7 @@ def configure_eudora(config_location):
                    "verb contains\n" \
                    "value \n" % (spam_folder_name, header_name, spam_tag,
                                  unsure_folder_name, header_name, unsure_tag)
-    filter_file = file(filter_filename, "a")
+    filter_file = open(filter_filename, "a")
     filter_file.write(filter_rules)
     filter_file.close()
     return results
@@ -201,7 +201,7 @@ def configure_mozilla(config_location):
     """Configure Mozilla to use the SpamBayes POP3 and SMTP proxies, and
     configure SpamBayes to proxy the servers that Mozilla was connecting
     to."""
-    prefs_file = file("%s%sprefs.js" % (config_location, os.sep), "r")
+    prefs_file = open("%s%sprefs.js" % (config_location, os.sep), "r")
     prefs = prefs_file.read()
     prefs_file.close()
     save_prefs = prefs
@@ -323,7 +323,7 @@ def configure_mozilla(config_location):
         results.append("[%s] Proxy %s on localhost:%s" % \
                        (num, server, proxy_port))
 
-    prefs_file = file("%s%sprefs.js" % (config_location, os.sep), "w")
+    prefs_file = open("%s%sprefs.js" % (config_location, os.sep), "w")
     prefs_file.write(save_prefs)
     prefs_file.close()
     options.update_file(optionsPathname)
@@ -364,7 +364,7 @@ def configure_m2(config_location):
     proxies, and configure SpamBayes to proxy the servers that M2 was
     connecting to."""
     ini_filename = os.path.join(config_location, "Mail", "accounts.ini")
-    ini_file = file(ini_filename, "r")
+    ini_file = open(ini_filename, "r")
     faked_up = StringIO.StringIO()
     faked_up.write(";") # Missing at the start
     faked_up.write(ini_file.read())
@@ -411,7 +411,7 @@ def configure_m2(config_location):
                 # Setup imapfilter instead
                 pass
 
-    out = file(ini_filename, "w")
+    out = open(ini_filename, "w")
     c.write(out)
     out.close()
     options.update_file(optionsPathname)
@@ -532,7 +532,7 @@ def configure_pegasus_mail(config_location):
            (header_name, spam_tag, spam_weight,
             header_name, unsure_tag, unsure_weight,
             header_name, ham_tag, ham_weight)
-    rules_file = file(rules_filename, "a")
+    rules_file = open(rules_filename, "a")
     rules_file.write(rule)
     rules_file.close()
     return results

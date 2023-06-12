@@ -49,15 +49,15 @@ from spambayes import mboxutils
 program = sys.argv[0]
 
 def usage(code, msg=''):
-    print >> sys.stderr, __doc__ % globals()
+    print(__doc__ % globals(), file=sys.stderr)
     if msg:
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
     sys.exit(code)
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hn:s:v', ['help'])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     n = None
@@ -79,7 +79,7 @@ def main():
         usage(1, "input mbox name and output base path are required")
     inputpath, outputbasepath = args
 
-    infile = file(inputpath, 'rb')
+    infile = open(inputpath, 'rb')
     outfiles = [file(outputbasepath + ("%d.mbox" % i), 'wb')
                 for i in range(1, n+1)]
 
@@ -92,11 +92,11 @@ def main():
         counter += 1
         if verbose:
             if counter % 100 == 0:
-                print '.',
+                print('.', end=' ')
 
     if verbose:
-        print
-        print counter, "messages split into", n, "files"
+        print()
+        print(counter, "messages split into", n, "files")
     infile.close()
     for f in outfiles:
         f.close()

@@ -17,20 +17,19 @@ import os
 import getopt
 from spambayes import cdb
 from spambayes import storage
-from spambayes.cdb_classifier import CdbClassifier
 
 prog = os.path.basename(sys.argv[0])
 
 def usage(msg=None):
     if msg is not None:
-        print >> sys.stderr, msg
-    print >> sys.stderr, __doc__.strip() % globals()
+        print(msg, file=sys.stderr)
+    print(__doc__.strip() % globals(), file=sys.stderr)
 
 def main(args):
     try:
         opts, args = getopt.getopt(args, "hd:p:",
                                    ["help", "database=", "pickle="])
-    except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
         usage(msg)
         return 1
 
@@ -44,11 +43,10 @@ def main(args):
         if opt in ("-h", "--help"):
             usage()
             return 0
-            
+
     dbname, usedb = storage.database_type(opts)
     store = storage.open_storage(dbname, usedb)
 
-    bayes = CdbClassifier()
     items = []
     for word in store._wordinfokeys():
         record = store._wordinfoget(word)

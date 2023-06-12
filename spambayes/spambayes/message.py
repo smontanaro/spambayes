@@ -3,7 +3,7 @@
 """message.py - Core Spambayes classes.
 
 Classes:
-    Message - an email.Message.Message, extended with spambayes methods
+    Message - an email.message.Message, extended with spambayes methods
     SBHeaderMessage - A Message with spambayes header manipulations
     MessageInfoDB - persistent state storage for Message, using dbm
     MessageInfoZODB - persistent state storage for Message, using ZODB
@@ -68,26 +68,25 @@ To Do:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-from __future__ import generators
+
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 __credits__ = "Mark Hammond, Tony Meyer, all the spambayes contributors."
 
 import sys
-import types
 import time
 import math
 import re
 import errno
 import shelve
 import warnings
-import cPickle as pickle
+import pickle
 import traceback
 
-import email.Message
-import email.Parser
-import email.Header
-import email.Generator
+import email.message
+import email.parser
+import email.header
+import email.generator
 
 from spambayes import storage
 from spambayes import dbmstorage
@@ -95,10 +94,7 @@ from spambayes.tokenizer import tokenize
 from spambayes.Options import options
 from spambayes.safepickle import pickle_read, pickle_write
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import io
 
 CRLF_RE = re.compile(r'\r\n|\r|\n')
 
@@ -108,15 +104,15 @@ PERSISTENT_HAM_STRING = 'h'
 PERSISTENT_SPAM_STRING = 's'
 PERSISTENT_UNSURE_STRING = 'u'
 
-class MessageInfoBase(object):
+class MessageInfoBase:
     def __init__(self, db_name=None):
         self.db_name = db_name
 
     def __len__(self):
-        return len(self.keys())
+        return len(list(self.keys()))
 
     def get_statistics_start_date(self):
-        if self.db.has_key(STATS_START_KEY):
+        if STATS_START_KEY in self.db:
             return self.db[STATS_START_KEY]
         else:
             return None
@@ -126,11 +122,11 @@ class MessageInfoBase(object):
         self.store()
 
     def get_persistent_statistics(self):
-        if self.db.has_key(STATS_STORAGE_KEY):
+        if STATS_STORAGE_KEY in self.db:
             return self.db[STATS_STORAGE_KEY]
         else:
             return None
-            
+
     def set_persistent_statistics(self, stats):
         self.db[STATS_STORAGE_KEY] = stats
         self.store()
@@ -162,21 +158,21 @@ class MessageInfoBase(object):
                     if not hasattr(msg, att):
                         setattr(msg, att, None)
             else:
-                if not isinstance(attributes, types.ListType):
+                if not isinstance(attributes, list):
                     # Old-style message info db
-                    if isinstance(attributes, types.TupleType):
+                    if isinstance(attributes, tuple):
                         # sb_server/sb_imapfilter, which only handled
                         # storing 'c' and 't'.
                         (msg.c, msg.t) = attributes
                         return
-                    elif isinstance(attributes, types.StringTypes):
+                    elif isinstance(attributes, (str,)):
                         # Outlook plug-in, which only handled storing 't',
                         # and did it as a string.
                         msg.t = {"0" : False, "1" : True}[attributes]
                         return
                     else:
-                        print >> sys.stderr, "Unknown message info type", \
-                              attributes
+                        print("Unknown message info type", \
+                              attributes, file=sys.stderr)
                         sys.exit(1)
                 for att, val in attributes:
                     setattr(msg, att, val)
@@ -198,7 +194,7 @@ class MessageInfoBase(object):
             self.store()
 
     def keys(self):
-        return self.db.keys()
+        return list(self.db.keys())
 
 class MessageInfoPickle(MessageInfoBase):
     def __init__(self, db_name, pickle_type=1):
@@ -209,7 +205,7 @@ class MessageInfoPickle(MessageInfoBase):
     def load(self):
         try:
             self.db = pickle_read(self.db_name)
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.ENOENT:
                 # New pickle
                 self.db = {}
@@ -238,7 +234,7 @@ class MessageInfoDB(MessageInfoBase):
             # available.  Print out a warning, and continue on
             # (not persisting any of this data).
             if options["globals", "verbose"]:
-                print "Warning: no dbm modules available for MessageInfoDB"
+                print("Warning: no dbm modules available for MessageInfoDB")
             self.dbm = self.db = None
 
     def __del__(self):
@@ -311,19 +307,19 @@ def database_type():
     # so we try and be more robust.  If we can't use the same storage
     # method, then we fall back to pickle.
     nm, typ = storage.database_type((), default_name=dn)
-    if typ not in _storage_types.keys():
+    if typ not in list(_storage_types.keys()):
         typ = "pickle"
     return nm, typ
 
 
-class Message(object, email.Message.Message):
-    '''An email.Message.Message extended for SpamBayes'''
+class Message(email.message.Message):
+    '''An email.message.Message extended for SpamBayes'''
 
     def __init__(self, id=None):
-        email.Message.Message.__init__(self)
+        email.message.Message.__init__(self)
 
         # persistent state
-        # (non-persistent state includes all of email.Message.Message state)
+        # (non-persistent state includes all of email.message.Message state)
         self.stored_attributes = ['c', 't', 'date_modified', ]
         self.getDBKey = self.getId
         self.id = None
@@ -341,17 +337,19 @@ class Message(object, email.Message.Message):
     # a classmethod property, we have to jump through some hoops, which we
     # deserve for not doing it right in the first place.
     _message_info_db = None
-    def _get_class_message_info_db(klass):
+    @classmethod
+    def _get_class_message_info_db(cls):
         # If, the first time we access the attribute, it hasn't been
         # set, then we load up the default one.
-        if klass._message_info_db is None:
+        if cls._message_info_db is None:
             nm, typ = database_type()
-            klass._message_info_db = open_storage(nm, typ)
-        return klass._message_info_db
-    _get_class_message_info_db = classmethod(_get_class_message_info_db)
-    def _set_class_message_info_db(klass, value):
-        klass._message_info_db = value
-    _set_class_message_info_db = classmethod(_set_class_message_info_db)
+            cls._message_info_db = open_storage(nm, typ)
+        return cls._message_info_db
+
+    @classmethod
+    def _set_class_message_info_db(cls, value):
+        cls._message_info_db = value
+
     def _get_message_info_db(self):
         return self._get_class_message_info_db()
     def _set_message_info_db(self, value):
@@ -387,20 +385,20 @@ class Message(object, email.Message.Message):
 
     def setId(self, id):
         if self.id and self.id != id:
-            raise ValueError, ("MsgId has already been set,"
-                               " cannot be changed %r %r") % (self.id, id)
+            raise ValueError(("MsgId has already been set,"
+                               " cannot be changed %r %r") % (self.id, id))
 
         if id is None:
-            raise ValueError, "MsgId must not be None"
+            raise ValueError("MsgId must not be None")
 
-        if not type(id) in types.StringTypes:
-            raise TypeError, "Id must be a string"
+        if not type(id) in (str,):
+            raise TypeError("Id must be a string")
 
         if id == STATS_START_KEY:
-            raise ValueError, "MsgId must not be " + STATS_START_KEY
+            raise ValueError("MsgId must not be " + STATS_START_KEY)
 
         if id == STATS_STORAGE_KEY:
-            raise ValueError, "MsgId must not be " + STATS_STORAGE_KEY
+            raise ValueError("MsgId must not be " + STATS_STORAGE_KEY)
 
         self.id = id
         self.message_info_db.load_msg(self)
@@ -422,14 +420,14 @@ class Message(object, email.Message.Message):
         # \r\n *only*).  imaplib *should* take care of this for us (in the
         # append function), but does not, so we do it here
         try:
-            fp = StringIO.StringIO()
-            g = email.Generator.Generator(fp, mangle_from_=mangle_from_)
+            fp = io.StringIO()
+            g = email.generator.Generator(fp, mangle_from_=mangle_from_)
             g.flatten(self, unixfrom)
             return self._force_CRLF(fp.getvalue())
         except TypeError:
             parts = []
             for part in self.get_payload():
-                parts.append(email.Message.Message.as_string(part, unixfrom))
+                parts.append(email.message.Message.as_string(part, unixfrom))
             return self._force_CRLF("\n".join(parts))
 
     def modified(self):
@@ -456,8 +454,7 @@ class Message(object, email.Message.Message):
         elif cls == options['Headers', 'header_unsure_string']:
             self.c = PERSISTENT_UNSURE_STRING
         else:
-            raise ValueError, \
-                  "Classification must match header strings in options"
+            raise ValueError("Classification must match header strings in options")
         self.modified()
 
     def GetTrained(self):
@@ -538,8 +535,8 @@ class SBHeaderMessage(Message):
             for word, score in clues:
                 if (word == '*H*' or word == '*S*' \
                     or score <= hco or score >= sco):
-                    if isinstance(word, types.UnicodeType):
-                        word = email.Header.Header(word,
+                    if isinstance(word, str):
+                        word = email.header.Header(word,
                                                    charset='utf-8').encode()
                     try:
                         evd.append("%r: %.2f" % (word, score))
@@ -547,12 +544,12 @@ class SBHeaderMessage(Message):
                         evd.append("%r: %s" % (word, score))
 
             # Line-wrap this header, because it can get very long.  We don't
-            # use email.Header.Header because that can explode with unencoded
+            # use email.header.Header because that can explode with unencoded
             # non-ASCII characters.  We can't use textwrap because that's 2.3.
             wrappedEvd = []
             headerName = options['Headers', 'evidence_header_name']
             lineLength = len(headerName) + len(': ')
-            for component, index in zip(evd, range(len(evd))):
+            for component, index in zip(evd, list(range(len(evd)))):
                 wrappedEvd.append(component)
                 lineLength += len(component)
                 if index < len(evd)-1:
@@ -566,7 +563,7 @@ class SBHeaderMessage(Message):
         if options['Headers', 'add_unique_id']:
             self[options['Headers', 'mailid_header_name']] = self.id
 
-        self.addNotations()            
+        self.addNotations()
 
     def addNotations(self):
         """Add the appropriate string to the subject: and/or to: header.
@@ -579,8 +576,14 @@ class SBHeaderMessage(Message):
         disposition = self.GetClassification()
         # options["Headers", "notate_to"] (and notate_subject) can be
         # either a single string (like "spam") or a tuple (like
-        # ("unsure", "spam")).
-        notate_to = options["Headers", "notate_to"]
+        # ("unsure", "spam")).  In Python 2.3 checking for a string in
+        # something that could be a string or a tuple works fine, but
+        # it dies in Python 2.2, because you can't do 'string in string',
+        # only 'character in string', so we allow for that.
+        if isinstance(options["Headers", "notate_to"], (str,)):
+            notate_to = (options["Headers", "notate_to"],)
+        else:
+            notate_to = options["Headers", "notate_to"]
         if disposition in notate_to:
             # Once, we treated the To: header just like the Subject: one,
             # but that doesn't really make sense - and OE stripped the
@@ -593,7 +596,7 @@ class SBHeaderMessage(Message):
             except KeyError:
                 self["To"] = address
 
-        if isinstance(options["Headers", "notate_subject"], types.StringTypes):
+        if isinstance(options["Headers", "notate_subject"], (str,)):
             notate_subject = (options["Headers", "notate_subject"],)
         else:
             notate_subject = options["Headers", "notate_subject"]
@@ -681,7 +684,7 @@ def insert_exception_header(string_msg, msg_id=None):
     """Insert an exception header into the given RFC822 message (as text).
 
     Returns a tuple of the new message text and the exception details."""
-    stream = StringIO.StringIO()
+    stream = io.StringIO()
     traceback.print_exc(None, stream)
     details = stream.getvalue()
 
@@ -690,7 +693,7 @@ def insert_exception_header(string_msg, msg_id=None):
     detailLines = details.strip().split('\n')
     dottedDetails = '\n.'.join(detailLines)
     headerName = 'X-Spambayes-Exception'
-    header = email.Header.Header(dottedDetails, header_name=headerName)
+    header = email.header.Header(dottedDetails, header_name=headerName)
 
     # Insert the exception header, and optionally also insert the id header,
     # otherwise we might keep doing this message over and over again.

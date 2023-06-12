@@ -48,7 +48,7 @@ In addition, an attempt is made to merge bayescustomize.ini into the options.
 If that exists, it can be used to change the settings in Options.options.
 """
 
-from __future__ import generators
+
 
 import os
 import sys
@@ -66,13 +66,13 @@ program = sys.argv[0]
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def drive(nsets):
-    print options.display()
+    print(options.display())
 
     hamdirs  = [get_pathname_option("TestDriver", "ham_directories") % \
                 i for i in range(1, nsets+1)]
@@ -133,7 +133,7 @@ def main():
                                    'HamTest=', 'SpamTest=',
                                    'ham-keep=', 'spam-keep=',
                                    'option='])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     nsets = seed = hamtrain = spamtrain = None

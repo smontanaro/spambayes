@@ -26,7 +26,7 @@ class reader:
             line = line[:-1]
         return line
 
-    def next(self):
+    def __next__(self):
         line = self._readline()
         if not line:
             raise StopIteration
@@ -66,7 +66,7 @@ class reader:
                         field.append("\n")
                         line = self._readline()
                         if not line:
-                            raise IOError, "end-of-file during parsing"
+                            raise IOError("end-of-file during parsing")
             else:
                 # unquoted field
                 field = []
@@ -88,7 +88,7 @@ class writer:
     def writerow(self, row):
         result = []
         for item in row:
-            if isinstance(item, unicode):
+            if isinstance(item, str):
                 item = item.encode("utf-8")
             else:
                 item = str(item)
@@ -101,20 +101,20 @@ class writer:
 
 if __name__ == "__main__":
     import unittest
-    import StringIO
+    import io
 
     class TestCase(unittest.TestCase):
         def test_reader(self):
-            f = StringIO.StringIO('''\
+            f = io.StringIO('''\
 """rare""",1,0
 "beginning;
 	end=""itinhh.txt""",1,0
 ''')
             f.seek(0)
             rdr = reader(f)
-            self.assertEqual(rdr.next(), ['"rare"', '1', '0'])
-            self.assertEqual(rdr.next(),
+            self.assertEqual(next(rdr), ['"rare"', '1', '0'])
+            self.assertEqual(next(rdr),
                              ['beginning;\n\tend="itinhh.txt"','1', '0'])
-            self.assertRaises(StopIteration, rdr.next)
+            self.assertRaises(StopIteration, rdr.__next__)
 
     unittest.main()

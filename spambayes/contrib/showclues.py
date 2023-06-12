@@ -45,7 +45,7 @@ command line, each will be processed according to the following rules:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>"
 __credits__ = "All the Spambayes folk."
 
-import cgi
+import html
 import sys
 import getopt
 
@@ -62,7 +62,7 @@ def ShowClues(bayes, msg, as_html=False):
         br = "<br />"
         pre = "<pre>", "</pre>"
         strong = "<strong>", "</strong>"
-        escape = cgi.escape
+        escape = html.escape
         code = "<code>", "</code>"
         wrapper = "<html>\n<head>\n<style>\n\n    h2 {color: green}\n" \
                   "</stytle>\n</head>\n<body>", "</body></html>"
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         if opt in ('-m', '--markup'):
             markup = True
         elif opt in ('-h', '--help'):
-            print __doc__
+            print(__doc__)
             sys.exit()
         elif opt in ('-o', '--option'):
             options.set_from_cmdline(arg, sys.stderr)
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     for fname in args:
         mbox = mboxutils.getmbox(fname)
         for msg in mbox:
-            print ShowClues(bayes, msg, markup)
+            print(ShowClues(bayes, msg, markup))

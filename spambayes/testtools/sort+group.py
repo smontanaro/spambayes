@@ -26,7 +26,7 @@ import glob
 import time
 import getopt
 
-from email.Utils import parsedate_tz, mktime_tz
+from email.utils import parsedate_tz, mktime_tz
 
 from spambayes.Options import options
 
@@ -37,14 +37,14 @@ SECONDS_PER_DAY = 24 * 60 * 60
 # (can't find a Received header; can't parse the date), return None.
 # This is the best guess about when we received the msg.
 def get_time(fpath):
-    fh = file(fpath, 'rb')
+    fh = open(fpath, 'rb')
     lines = iter(fh)
     # Find first Received header.
     for line in lines:
         if line.lower().startswith("received:"):
             break
     else:
-        print "\nNo Received header found."
+        print("\nNo Received header found.")
         fh.close()
         return None
     # Paste on continuation lines, if any.
@@ -58,8 +58,8 @@ def get_time(fpath):
     # RFC 2822 says the date-time field must follow a semicolon at the end.
     i = received.rfind(';')
     if i < 0:
-        print "\n" + received
-        print "No semicolon found in Received header."
+        print("\n" + received)
+        print("No semicolon found in Received header.")
         return None
     # We only want the part after the semicolon.
     datestring = received[i+1:]
@@ -67,17 +67,17 @@ def get_time(fpath):
     datestring = ' '.join(datestring.split())
     as_tuple = parsedate_tz(datestring)
     if as_tuple is None:
-        print "\n" + received
-        print "Couldn't parse the date: %r" % datestring
+        print("\n" + received)
+        print("Couldn't parse the date: %r" % datestring)
         return None
     return mktime_tz(as_tuple)
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def main():
@@ -88,7 +88,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hqao:', ['option='])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     loud = True
@@ -105,7 +105,7 @@ def main():
 
     data = []   # list of (time_received, dirname, basename) triples
     if loud:
-        print "Scanning everything"
+        print("Scanning everything")
     now = time.time()
     hdir = os.path.dirname(options["TestDriver", "ham_directories"])
     sdir = os.path.dirname(options["TestDriver", "spam_directories"])
@@ -126,21 +126,21 @@ def main():
         data.append((when_received,) + split(name))
 
     if loud:
-        print ""
-        print "Sorting ..."
+        print("")
+        print("Sorting ...")
     data.sort()
 
     # First rename all the files to a form we can't produce in the end.
     # This is to protect against name clashes in case the files are
     # already named according to the scheme we use.
     if loud:
-        print "Renaming first pass ..."
+        print("Renaming first pass ...")
     for dummy, dirname, basename in data:
         os.rename(join(dirname, basename),
                   join(dirname, "-" + basename))
 
     if loud:
-        print "Renaming second pass ..."
+        print("Renaming second pass ...")
     earliest = data[0][0]  # timestamp of earliest msg received
     i = 0
     for when_received, dirname, basename in data:

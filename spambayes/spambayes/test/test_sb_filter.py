@@ -30,9 +30,9 @@ TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
 # of our copy (whether the tests pass or fail) so it shouldn't
 # be ours.
 if os.path.exists(TEMP_DBM_NAME):
-    print TEMP_DBM_NAME, "already exists.  Please remove this file " \
+    print(TEMP_DBM_NAME, "already exists.  Please remove this file " \
           "before running these tests (a file by that name will be " \
-          "created and destroyed as part of the tests)."
+          "created and destroyed as part of the tests).")
     sys.exit(1)
 
 class HammieFilterTest(unittest.TestCase):
@@ -56,7 +56,7 @@ class HammieFilterTest(unittest.TestCase):
         self.h.open(mode)
         self.assertEqual(self.h.mode, mode)
         # Check the underlying classifier exists.
-        self.assert_(self.h.h is not None)
+        self.assertTrue(self.h.h is not None)
         # This can also be called when there is an
         # existing classifier, but we want to change
         # mode.  Verify that we store the old database
@@ -66,7 +66,7 @@ class HammieFilterTest(unittest.TestCase):
         mode = 'r'
         self.h.open(mode)
         self.assertEqual(self.h.mode, mode)
-        self.assert_(self.done)
+        self.assertTrue(self.done)
 
     def test_close_readonly(self):
         # Must open with 'c' first, because otherwise it doesn't exist.
@@ -77,7 +77,7 @@ class HammieFilterTest(unittest.TestCase):
         # Verify that the classifier is not stored if we are
         # in readonly mode.
         self.h.close()
-        self.assert_(not self.done)
+        self.assertTrue(not self.done)
         self.assertEqual(self.h.h, None)
 
     def test_close(self):
@@ -87,7 +87,7 @@ class HammieFilterTest(unittest.TestCase):
         # Verify that the classifier is stored if we are
         # not in readonly mode.
         self.h.close()
-        self.assert_(self.done)
+        self.assertTrue(self.done)
         self.assertEqual(self.h.h, None)
 
     def test_newdb(self):
@@ -118,11 +118,11 @@ class HammieFilterTest(unittest.TestCase):
         self.h.h.bayes.learn(tokenize(spam1), True)
         self.h.h.store()
         result = email.message_from_string(self.h.filter(spam1))
-        self.assert_(result[options["Headers",
+        self.assertTrue(result[options["Headers",
                                     "classification_header_name"]].\
                      startswith(options["Headers", "header_spam_string"]))
         result = email.message_from_string(self.h.filter(good1))
-        self.assert_(result[options["Headers",
+        self.assertTrue(result[options["Headers",
                                     "classification_header_name"]].\
                      startswith(options["Headers", "header_ham_string"]))
 
@@ -134,12 +134,12 @@ class HammieFilterTest(unittest.TestCase):
         self.h.h.bayes.learn(tokenize(spam1), True)
         self.h.h.store()
         result = email.message_from_string(self.h.filter_train(spam1))
-        self.assert_(result[options["Headers",
+        self.assertTrue(result[options["Headers",
                                     "classification_header_name"]].\
                      startswith(options["Headers", "header_spam_string"]))
         self.assertEqual(self.h.h.bayes.nspam, 2)
         result = email.message_from_string(self.h.filter_train(good1))
-        self.assert_(result[options["Headers",
+        self.assertTrue(result[options["Headers",
                                     "classification_header_name"]].\
                      startswith(options["Headers", "header_ham_string"]))
         self.assertEqual(self.h.h.bayes.nham, 2)

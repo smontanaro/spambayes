@@ -1,19 +1,18 @@
 #! /usr/bin/env python
 """Module to tokenize email messages for spam filtering."""
 
-from __future__ import generators
+
 
 import email
-import email.Message
-import email.Header
-import email.Utils
-import email.Errors
+import email.header
+import email.utils
+import email.errors
 import re
 import math
 import os
 import binascii
-import urlparse
-import urllib
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
 
 from spambayes import classifier
 from spambayes.Options import options
@@ -33,10 +32,10 @@ else:
     import atexit
     atexit.register(cache.close)
 
- 
+
 # Patch encodings.aliases to recognize 'ansi_x3_4_1968'
 from encodings.aliases import aliases # The aliases dictionary
-if not aliases.has_key('ansi_x3_4_1968'):
+if 'ansi_x3_4_1968' not in aliases:
     aliases['ansi_x3_4_1968'] = 'ascii'
 del aliases # Not needed any more
 
@@ -610,22 +609,17 @@ del aliases # Not needed any more
 # words in the msg, without regard to how many times a given word appears.
 def textparts(msg):
     """Return a set of all msg parts with content maintype 'text'."""
-    return set(filter(lambda part: part.get_content_maintype() == 'text',
-                      msg.walk()))
+    return set([part for part in msg.walk() if part.get_content_maintype() == 'text'])
 
 def octetparts(msg):
     """Return a set of all msg parts with type 'application/octet-stream'."""
-    return set(filter(lambda part:
-                      part.get_content_type() == 'application/octet-stream',
-                      msg.walk()))
+    return set([part for part in msg.walk() if part.get_content_type() == 'application/octet-stream'])
 
 def imageparts(msg):
     """Return a list of all msg parts with type 'image/*'."""
     # Don't want a set here because we want to be able to process them in
     # order.
-    return filter(lambda part:
-                  part.get_content_type().startswith('image/'),
-                  msg.walk())
+    return [part for part in msg.walk() if part.get_content_type().startswith('image/')]
 
 has_highbit_char = re.compile(r"[\x80-\xff]").search
 
@@ -664,7 +658,7 @@ received_host_re = re.compile(r'from ([a-z0-9._-]+[a-z])[)\s]')
 # parens.  Yahoo seems to be guilty of this minor infraction:
 #   Received: from unknown (66.218.66.218)
 #       by m19.grp.scd.yahoo.com with QMQP; 19 Dec 2003 04:06:53 -0000
-received_ip_re = re.compile(r'[[(]((\d{1,3}\.?){4})[])]')
+received_ip_re = re.compile(r'[\[\(]((\d{1,3}\.?){4})[\]\)]')
 
 received_nntp_ip_re = re.compile(r'((\d{1,3}\.?){4})')
 
@@ -918,7 +912,7 @@ def log2(n, log=math.log, c=math.log(2)):
     return log(n)/c
 
 
-class Stripper(object):
+class Stripper:
 
     # The retained portions are catenated together with self.separator.
     # CAUTION:  This used to be blank.  But then I noticed spam putting
@@ -1003,15 +997,15 @@ crack_uuencode = UUencodeStripper().analyze
 
 # Strip and specially tokenize embedded URLish thingies.
 
-url_fancy_re = re.compile(r""" 
+url_fancy_re = re.compile(r"""
     \b                      # the preceeding character must not be alphanumeric
-    (?: 
+    (?:
         (?:
             (https? | ftp)  # capture the protocol
             ://             # skip the boilerplate
         )|
         (?= ftp\.[^\.\s<>"'\x7f-\xff] )|  # allow the protocol to be missing, but only if
-        (?= www\.[^\.\s<>"'\x7f-\xff] )   # the rest of the url starts "www.x" or "ftp.x" 
+        (?= www\.[^\.\s<>"'\x7f-\xff] )   # the rest of the url starts "www.x" or "ftp.x"
     )
     # Do a reasonable attempt at detecting the end.  It may or may not
     # be in HTML, may or may not be in quotes, etc.  If it's full of %
@@ -1067,10 +1061,10 @@ class URLStripper(Stripper):
             tokens.extend(["url:" + escape for escape in escapes])
 
             # now remove any obfuscation and probe around a bit
-            url = urllib.unquote(url)
+            url = urllib.parse.unquote(url)
             try:
                 (scheme, netloc, path, params,
-                 query, frag) = urlparse.urlparse(url)
+                 query, frag) = urllib.parse.urlparse(url)
             except ValueError:
                 pushclue("url:invalid-url")
             else:
@@ -1093,11 +1087,11 @@ class URLStripper(Stripper):
                 # appear in URLs (perhaps in a local bookmark you established),
                 # and never in a URL you receive from an unsolicited email or
                 # another website.
-                user_pwd, host_port = urllib.splituser(netloc)
+                user_pwd, host_port = urllib.parse.splituser(netloc)
                 if user_pwd is not None:
                     pushclue("url:has user")
 
-                host, port = urllib.splitport(host_port)
+                host, port = urllib.parse.splitport(host_port)
                 # web servers listening on non-standard ports are suspicious ...
                 if port is not None:
                     if (scheme == "http" and port != '80' or
@@ -1105,7 +1099,7 @@ class URLStripper(Stripper):
                         pushclue("url:non-standard %s port" % scheme)
 
                 # ... as are web servers associated with raw ip addresses
-                if re.match("(\d+\.?){4,4}$", host) is not None:
+                if re.match(r"(\d+\.?){4,4}$", host) is not None:
                     pushclue("url:ip addr")
 
                 # make sure we later tokenize the unobfuscated url bits
@@ -1340,7 +1334,7 @@ class Tokenizer:
                 # If there was any invalid line, we record as invalid.
                 # If all nine lines were correct, we record as valid.
                 # Otherwise we ignore.
-                if invalid_habeas == True:
+                if invalid_habeas:
                     yield "x-habeas-swe:invalid"
                 elif valid_habeas == 9:
                     yield "x-habeas-swe:valid"
@@ -1351,10 +1345,12 @@ class Tokenizer:
         # but real benefit to keeping case intact in this specific context.
         x = msg.get('subject', '')
         try:
-            subjcharsetlist = email.Header.decode_header(x)
-        except (binascii.Error, email.Errors.HeaderParseError, ValueError):
+            subjcharsetlist = email.header.decode_header(x)
+        except (binascii.Error, email.errors.HeaderParseError, ValueError):
             subjcharsetlist = [(x, 'invalid')]
         for x, subjcharset in subjcharsetlist:
+            if isinstance(x, bytes):
+                x = x.decode('latin1')  # FIXME
             if subjcharset is not None:
                 yield 'subjectcharset:' + subjcharset
             # this is a workaround for a bug in the csv module in Python
@@ -1383,12 +1379,15 @@ class Tokenizer:
                 continue
 
             noname_count = 0
-            for name, addr in email.Utils.getaddresses(addrlist):
+            for name, addr in email.utils.getaddresses(addrlist):
                 if name:
                     try:
-                        subjcharsetlist = email.Header.decode_header(name)
-                    except (binascii.Error, email.Errors.HeaderParseError,
-                            ValueError):
+                        subjcharsetlist = email.header.decode_header(name)
+                    except (
+                        binascii.Error,
+                        email.errors.HeaderParseError,
+                        ValueError,
+                    ):
                         subjcharsetlist = [(name, 'invalid')]
                     for name, charset in subjcharsetlist:
                         yield "%s:name:%s" % (field, name.lower())
@@ -1403,8 +1402,10 @@ class Tokenizer:
                     yield field + ":addr:none"
 
             if noname_count:
-                yield "%s:no real name:2**%d" % (field,
-                                                 round(log2(noname_count)))
+                yield "%s:no real name:2**%d" % (
+                    field,
+                    round(log2(noname_count)),
+                )
 
         # Spammers sometimes send out mail alphabetically to fairly large
         # numbers of addresses.  This results in headers like:
@@ -1422,7 +1423,7 @@ class Tokenizer:
         if options["Tokenizer", "summarize_email_prefixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
-            for name, addr in email.Utils.getaddresses(addresses):
+            for name, addr in email.utils.getaddresses(addresses):
                 all_addrs.append(addr.lower())
 
             if len(all_addrs) > 1:
@@ -1449,7 +1450,7 @@ class Tokenizer:
         if options["Tokenizer", "summarize_email_suffixes"]:
             all_addrs = []
             addresses = msg.get_all('to', []) + msg.get_all('cc', [])
-            for name, addr in email.Utils.getaddresses(addresses):
+            for name, addr in email.utils.getaddresses(addresses):
                 # flip address code so following logic is the same as
                 # that for prefixes
                 addr = list(addr)
@@ -1648,6 +1649,9 @@ class Tokenizer:
             if text is None:
                 yield 'control: payload is None'
                 continue
+
+            if isinstance(text, bytes):
+                text = text.decode('latin1')  # FIXME
 
             # Replace numeric character entities (like &#97; for the letter
             # 'a').

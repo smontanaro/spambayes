@@ -59,21 +59,21 @@ def get_message(obj):
 
     """
 
-    if isinstance(obj, email.Message.Message):
+    if isinstance(obj, email.message.Message):
         return obj
     # Create an email Message object.
     if hasattr(obj, "read"):
         obj = obj.read()
     try:
         msg = email.message_from_string(obj)
-    except email.Errors.MessageParseError:
+    except email.errors.MessageParseError:
         msg = None
     return msg
 
 def msg_train(h, msg, is_spam, force):
     """Train bayes with a single message."""
 
-    # XXX: big hack -- why is email.Message unable to represent
+    # XXX: big hack -- why is email.message unable to represent
     # multipart/alternative?
     try:
         mboxutils.as_string(msg)
@@ -88,12 +88,12 @@ def msg_train(h, msg, is_spam, force):
     oldtxt = msg.get(options["Headers", "trained_header_name"])
     if force:
         # Train no matter what.
-        if oldtxt != None:
+        if oldtxt is not None:
             del msg[options["Headers", "trained_header_name"]]
     elif oldtxt == spamtxt:
         # Skip this one, we've already trained with it.
         return False
-    elif oldtxt != None:
+    elif oldtxt is not None:
         # It's been trained, but as something else.  Untrain.
         del msg[options["Headers", "trained_header_name"]]
         h.untrain(msg, not is_spam)
@@ -106,7 +106,7 @@ def maildir_train(h, path, is_spam, force, removetrained):
     """Train bayes with all messages from a maildir."""
 
     if loud:
-        print "  Reading %s as Maildir" % (path,)
+        print("  Reading %s as Maildir" % (path,))
 
     import time
     import socket
@@ -127,18 +127,18 @@ def maildir_train(h, path, is_spam, force, removetrained):
         if loud and counter % 10 == 0:
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
-        f = file(cfn, "rb")
+        f = open(cfn, "rb")
         msg = get_message(f)
         f.close()
         if not msg:
-            print "Malformed message: %s.  Skipping..." % cfn
+            print("Malformed message: %s.  Skipping..." % cfn)
             continue
         if not msg_train(h, msg, is_spam, force):
             continue
         trained += 1
         if not options["Headers", "include_trained"]:
             continue
-        f = file(tfn, "wb")
+        f = open(tfn, "wb")
         f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)
@@ -158,14 +158,14 @@ def mbox_train(h, path, is_spam, force):
     """Train bayes with a Unix mbox"""
 
     if loud:
-        print "  Reading as Unix mbox"
+        print("  Reading as Unix mbox")
 
     import mailbox
     import fcntl
 
     # Open and lock the mailbox.  Some systems require it be opened for
     # writes in order to assert an exclusive lock.
-    f = file(path, "r+b")
+    f = open(path, "r+b")
     fcntl.flock(f, fcntl.LOCK_EX)
     mbox = mailbox.PortableUnixMailbox(f, get_message)
 
@@ -175,7 +175,7 @@ def mbox_train(h, path, is_spam, force):
 
     for msg in mbox:
         if not msg:
-            print "Malformed message number %d.  I can't train on this mbox, sorry." % counter
+            print("Malformed message number %d.  I can't train on this mbox, sorry." % counter)
             return
         counter += 1
         if loud and counter % 10 == 0:
@@ -194,15 +194,15 @@ def mbox_train(h, path, is_spam, force):
             f.seek(0)
         except:
             # If anything goes wrong, don't try to write
-            print "Problem truncating mbox--nothing written"
+            print("Problem truncating mbox--nothing written")
             raise
         try:
-            for line in outf.xreadlines():
+            for line in outf:
                 f.write(line)
         except:
-            print >> sys.stderr ("Problem writing mbox!  Sorry, "
+            print(file=sys.stderr ("Problem writing mbox!  Sorry, "
                                  "I tried my best, but your mail "
-                                 "may be corrupted.")
+                                 "may be corrupted."))
             raise
 
     fcntl.flock(f, fcntl.LOCK_UN)
@@ -216,7 +216,7 @@ def mhdir_train(h, path, is_spam, force):
     """Train bayes with an mh directory"""
 
     if loud:
-        print "  Reading as MH mailbox"
+        print("  Reading as MH mailbox")
 
     import glob
 
@@ -231,17 +231,17 @@ def mhdir_train(h, path, is_spam, force):
         if loud and counter % 10 == 0:
             sys.stdout.write("\r%6d" % counter)
             sys.stdout.flush()
-        f = file(fn, "rb")
+        f = open(fn, "rb")
         msg = get_message(f)
         f.close()
         if not msg:
-            print "Malformed message: %s.  Skipping..." % cfn
+            print("Malformed message: %s.  Skipping..." % cfn)
             continue
         msg_train(h, msg, is_spam, force)
         trained += 1
         if not options["Headers", "include_trained"]:
             continue
-        f = file(tfn, "wb")
+        f = open(tfn, "wb")
         f.write(mboxutils.as_string(msg))
         f.close()
         shutil.copystat(cfn, tfn)
@@ -275,9 +275,9 @@ def train(h, path, is_spam, force, trainnew, removetrained):
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def main():
@@ -287,7 +287,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hfqnrd:p:g:s:o:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     if not opts:
@@ -319,7 +319,7 @@ def main():
     if args:
         usage(2, "Positional arguments not allowed")
 
-    if usedb == None:
+    if usedb is None:
         # Use settings in configuration file.
         usedb = options["Storage", "persistent_use_database"]
         pck = get_pathname_option("Storage",
@@ -329,14 +329,14 @@ def main():
 
     for g in good:
         if loud:
-            print "Training ham (%s):" % g
+            print("Training ham (%s):" % g)
         train(h, g, False, force, trainnew, removetrained)
         sys.stdout.flush()
         save = True
 
     for s in spam:
         if loud:
-            print "Training spam (%s):" % s
+            print("Training spam (%s):" % s)
         train(h, s, True, force, trainnew, removetrained)
         sys.stdout.flush()
         save = True

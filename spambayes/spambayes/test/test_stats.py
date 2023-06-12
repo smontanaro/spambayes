@@ -264,7 +264,7 @@ class StatsTest(unittest.TestCase):
                          data["total_cost"])
 
     def test_AddPercentStrings(self):
-        for i in xrange(10):
+        for i in range(10):
             self._test_AddPercentStrings(i)
 
     def _test_AddPercentStrings(self, dp):
@@ -481,7 +481,7 @@ class StatsTest(unittest.TestCase):
     def test_with_html(self):
         s = self._stuff_with_data(True)
         for line in s:
-            self.assert_('\t' not in line)
+            self.assertTrue('\t' not in line)
 
     def test_without_html(self):
         s = self._stuff_with_data(False)

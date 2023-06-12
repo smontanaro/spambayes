@@ -24,13 +24,13 @@ Where:
 
 import getopt
 import sys
-import xmlrpclib
-import SimpleXMLRPCServer
+import xmlrpc.client
+import xmlrpc.server
 
 from spambayes import hammie, Options
 from spambayes import storage
 
-class ReusableSimpleXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+class ReusableSimpleXMLRPCServer(xmlrpc.server.SimpleXMLRPCServer):
     allow_reuse_address = True
 
 
@@ -49,15 +49,15 @@ class XMLHammie(hammie.Hammie):
             msg = msg.data
         except AttributeError:
             pass
-        return xmlrpclib.Binary(hammie.Hammie.filter(self, msg, *extra))
+        return xmlrpc.client.Binary(hammie.Hammie.filter(self, msg, *extra))
 
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     sys.exit(code)
 
 
@@ -65,7 +65,7 @@ def main():
     """Main program; parse options and go."""
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hd:p:o:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     options = Options.options
@@ -88,7 +88,7 @@ def main():
 
     server = ReusableSimpleXMLRPCServer(
         (ip, port),
-        SimpleXMLRPCServer.SimpleXMLRPCRequestHandler)
+        xmlrpc.server.SimpleXMLRPCRequestHandler)
     server.register_instance(h)
     server.serve_forever()
 

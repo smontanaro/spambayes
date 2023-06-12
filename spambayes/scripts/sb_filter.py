@@ -118,28 +118,28 @@ distribution for other neat mutt tricks.
 """
 
 def examples():
-    print example_doc % globals()
+    print(example_doc % globals())
     sys.exit(0)
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     # Include version info in usage
     v = get_current_version()
-    print >> sys.stderr, v.get_long_version("SpamBayes Command Line Filter")
-    print >> sys.stderr
+    print(v.get_long_version("SpamBayes Command Line Filter"), file=sys.stderr)
+    print(file=sys.stderr)
     
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def version():
     v = get_current_version()
-    print >> sys.stderr, v.get_long_version("SpamBayes Command Line Filter")
+    print(v.get_long_version("SpamBayes Command Line Filter"), file=sys.stderr)
     sys.exit(0)
 
-class HammieFilter(object):
+class HammieFilter:
     def __init__(self):
         options = Options.options
         # This is a bit of a hack to counter the default for
@@ -252,7 +252,7 @@ def main(profiling=False):
 
     if create_newdb or not os.path.exists(h.dbname):
         h.newdb()
-        print >> sys.stderr, "Created new database in", h.dbname
+        print("Created new database in", h.dbname, file=sys.stderr)
         if create_newdb:
             sys.exit(0)
 

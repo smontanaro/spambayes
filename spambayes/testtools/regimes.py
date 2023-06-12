@@ -162,7 +162,7 @@ class nonedge:
     def guess_action(self, which, test, guess, actual, msg):
         if guess[0] != actual:
             return actual
-        if 0.005 < guess[1] and guess[1] < 0.995:
+        if 0.005 < guess[1] < 0.995:
             return actual
         return 0
 
@@ -194,4 +194,4 @@ class expire4months:
         return actual
 
 if __name__ == "__main__":
-    print __doc__
+    print(__doc__)

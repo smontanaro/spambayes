@@ -59,7 +59,7 @@ what's tested is actually `z in y'.
 __all__ = ['BaseSet', 'Set', 'ImmutableSet']
 
 
-class BaseSet(object):
+class BaseSet:
     """Common base class for mutable and immutable sets."""
 
     __slots__ = ['_data']
@@ -70,7 +70,7 @@ class BaseSet(object):
         """This is an abstract class."""
         # Don't call this from a concrete subclass!
         if self.__class__ is BaseSet:
-            raise TypeError, ("BaseSet is an abstract class.  "
+            raise TypeError("BaseSet is an abstract class.  "
                               "Use Set or ImmutableSet.")
 
     # Standard protocols: __len__, __repr__, __str__, __iter__
@@ -90,7 +90,7 @@ class BaseSet(object):
     __str__ = __repr__
 
     def _repr(self, sorted=False):
-        elements = self._data.keys()
+        elements = list(self._data.keys())
         if sorted:
             elements.sort()
         return '%s(%r)' % (self.__class__.__name__, elements)
@@ -100,7 +100,7 @@ class BaseSet(object):
 
         This is the keys iterator for the underlying dict.
         """
-        return self._data.iterkeys()
+        return iter(self._data.keys())
 
     # Equality comparisons using the underlying dicts
 
@@ -177,7 +177,7 @@ class BaseSet(object):
             little, big = self, other
         else:
             little, big = other, self
-        common = filter(big._data.has_key, little._data.iterkeys())
+        common = list(filter(big._data.has_key, iter(little._data.keys())))
         return self.__class__(common)
 
     def intersection(self, other):
@@ -294,7 +294,7 @@ class BaseSet(object):
         # Check that the other argument to a binary operation is also
         # a set, raising a TypeError otherwise.
         if not isinstance(other, BaseSet):
-            raise TypeError, "Binary operation only permitted between sets"
+            raise TypeError("Binary operation only permitted between sets")
 
     def _compute_hash(self):
         # Calculate hash code for a set by xor'ing the hash codes of
@@ -369,7 +369,7 @@ class Set(BaseSet):
     def __hash__(self):
         """A Set cannot be hashed."""
         # We inherit object.__hash__, so we must deny this explicitly
-        raise TypeError, "Can't hash a Set, only an ImmutableSet."
+        raise TypeError("Can't hash a Set, only an ImmutableSet.")
 
     # In-place union, intersection, differences.
     # Subtle:  The xyz_update() functions deliberately return None,

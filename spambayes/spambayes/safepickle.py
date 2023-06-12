@@ -2,15 +2,32 @@
 
 import sys
 import os
-import cPickle as pickle
+import pickle
 
-import lockfile
+try:
+    from fasteners import InterProcessLock as _InterProcessLock
+except ImportError:
 
-from spambayes.Options import options
+    # Dummy locking class
+
+    class _InterProcessLock:
+        def __init__(self, filename):
+            import warnings
+
+            warnings.warn(
+                "Missing 'fasteners', using dummy locking for safepickle"
+            )
+
+        def acquire(self, timeout=0):
+            pass
+
+        def release(self):
+            pass
+
 
 def pickle_read(filename):
     """Read pickle file contents with a lock."""
-    lock = lockfile.FileLock(filename)
+    lock = _InterProcessLock(filename)
     lock.acquire(timeout=20)
     try:
         return pickle.load(open(filename, 'rb'))
@@ -20,22 +37,22 @@ def pickle_read(filename):
 def pickle_write(filename, value, protocol=0):
     '''Store value as a pickle without creating corruption'''
 
-    lock = lockfile.FileLock(filename)
+    lock = _InterProcessLock(filename)
     lock.acquire(timeout=20)
 
     try:
         # Be as defensive as possible.  Always keep a safe copy.
         tmp = filename + '.tmp'
         fp = None
-        try: 
-            fp = open(tmp, 'wb') 
-            pickle.dump(value, fp, protocol) 
-            fp.close() 
-        except IOError, e: 
-            if options["globals", "verbose"]: 
-                print >> sys.stderr, 'Failed update: ' + str(e)
-            if fp is not None: 
-                os.remove(tmp) 
+        try:
+            fp = open(tmp, 'wb')
+            pickle.dump(value, fp, protocol)
+            fp.close()
+        except IOError as e:
+            if options["globals", "verbose"]:
+                print('Failed update: %s' % str(e), file=sys.stderr)
+            if fp is not None:
+                os.remove(tmp)
             raise
         try:
             # With *nix we can just rename, and (as long as permissions
@@ -52,4 +69,3 @@ def pickle_write(filename, value, protocol=0):
             os.remove(filename + '.bak')
     finally:
         lock.release()
-

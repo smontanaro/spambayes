@@ -35,7 +35,7 @@ To do:
 __author__ = "Tony Meyer <ta-meyer@ihug.co.nz>, Tim Stone"
 __credits__ = "All the Spambayes folk."
 
-import cgi
+import html
 
 from spambayes import UserInterface
 from spambayes.Options import options, optionsPathname, _
@@ -169,10 +169,10 @@ class IMAPUserInterface(UserInterface.UserInterface):
         """Called by the config page when the user saves some new options, or
         restores the defaults."""
         # Re-read the options.
-        import Options
+        from . import Options
         Options.load_options()
         global options
-        from Options import options
+        from .Options import options
         self.change_db()
 
     def onSave(self, how):
@@ -214,13 +214,13 @@ class IMAPUserInterface(UserInterface.UserInterface):
 
     def _login_to_imap(self):
         new_imaps = []
-        for i in xrange(len(self.imaps)):
+        for i in range(len(self.imaps)):
             imap = self.imaps[i]
             imap_logged_in = self._login_to_imap_server(imap, i)
             if imap_logged_in:
                 new_imaps.append(imap_logged_in)
         self.imaps = new_imaps
-            
+
     def _login_to_imap_server(self, imap, i):
         if imap and imap.logged_in:
             return imap
@@ -267,7 +267,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
                                      _("Please check username/password details."))
             self.write(content)
             return None
-        except LoginFailure, e:
+        except LoginFailure as e:
             content = self._buildBox(_("Error"), None, str(e))
             self.write(content)
             return None
@@ -310,7 +310,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
            parms["how"] == _("Save Filter Folders"):
             del parms["how"]
             self.parm_ini_map = ()
-            for opt, value in parms.items():
+            for opt, value in list(parms.items()):
                 del parms[opt]
                 # Under strange circumstances this could break,
                 # so if we can think of a better way to do this,
@@ -319,7 +319,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
                     opt = opt[:-len(value)]
                 self.parm_ini_map += ("imap", opt),
                 key = "imap_" + opt
-                if parms.has_key(key):
+                if key in parms:
                     parms[key] += ',' + value
                 else:
                     parms[key] = value
@@ -336,7 +336,7 @@ class IMAPUserInterface(UserInterface.UserInterface):
         del folderTable.folderRow
         firstRow = True
         for folder in available_folders:
-            folder = cgi.escape(folder)
+            folder = html.escape(folder)
             folderRow = self.html.configTable.folderRow.clone()
             if firstRow:
                 folderRow.helpCell = options.doc(section, option)

@@ -38,7 +38,7 @@ containing the event-log file.
 
 import os
 import atexit
-import urlparse
+import urllib.parse
 
 from MoinMoin.security import Permissions
 from MoinMoin.wikidicts import Group
@@ -80,7 +80,7 @@ class SecurityPolicy(Permissions):
         self.open_spamdb(request)
         nham = nspam = 0
         for url in Group(request, "HamPages").members():
-            scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
+            scheme, netloc, path, params, query, frag = urllib.parse.urlparse(url)
             rev = 0
             for pair in query.split("&"):
                 key, val = pair.split("=")
@@ -91,7 +91,7 @@ class SecurityPolicy(Permissions):
             self.sbayes.train_ham(pg.get_raw_body())
             nham += 1
         for url in Group(request, "SpamPages").members():
-            scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
+            scheme, netloc, path, params, query, frag = urllib.parse.urlparse(url)
             rev = 0
             for pair in query.split("&"):
                 key, val = pair.split("=")
@@ -143,10 +143,10 @@ class SecurityPolicy(Permissions):
                            action="SAVE/REVERT",
                            extra=revstr)
             pg.clean_acl_cache()
-        except pg.SaveError, msg:
+        except pg.SaveError as msg:
             pass
         # msg contain a unicode string
-        savemsg = unicode(msg)
+        savemsg = str(msg)
         request.reset()
         pg.send_page(request, msg=savemsg)
         return None
@@ -242,4 +242,3 @@ class Hammie(hammie.Hammie):
 
     def train(self, msg, is_spam, add_header=False):
         self.bayes.learn(self.tokenizer.tokenize(msg), is_spam)
-

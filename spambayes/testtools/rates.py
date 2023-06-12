@@ -37,20 +37,20 @@ def doit(basename):
     if basename.endswith('.txt'):
         basename = basename[:-4]
     try:
-        ifile = file(basename + '.txt')
+        ifile = open(basename + '.txt')
     except IOError:
-        ifile = file(basename)
-    interesting = filter(lambda line: line.startswith('-> '), ifile)
+        ifile = open(basename)
+    interesting = [line for line in ifile if line.startswith('-> ')]
     ifile.close()
 
     oname = basename + 's.txt'
-    ofile = file(oname, 'w')
-    print basename, '->', oname
+    ofile = open(oname, 'w')
+    print(basename, '->', oname)
 
     def dump(*stuff):
         msg = ' '.join(map(str, stuff))
-        print msg
-        print >> ofile, msg
+        print(msg)
+        print(msg, file=ofile)
 
     ntests = nfn = nfp = 0
     sumfnrate = sumfprate = 0.0

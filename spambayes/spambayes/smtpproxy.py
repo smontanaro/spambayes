@@ -221,13 +221,13 @@ class SMTPProxyBase(Dibbler.BrighterAsyncChat):
             self.command = splitCommand[0]
             self.args = splitCommand[1:]
 
-        if self.inData == True:
+        if self.inData:
             self.data.append(self.request + '\r\n')
             if self.request == ".":
                 self.inData = False
                 cooked = self.onProcessData("".join(self.data))
                 self.data = []
-                if self.blockData == False:
+                if not self.blockData:
                     self.serverSocket.push(cooked)
                 else:
                     self.push("250 OK\r\n")
@@ -257,8 +257,8 @@ class BayesSMTPProxyListener(Dibbler.Listener):
         proxyArgs = (serverName, serverPort, trainer)
         Dibbler.Listener.__init__(self, proxyPort, BayesSMTPProxy,
                                   proxyArgs)
-        print 'SMTP Listener on port %s is proxying %s:%d' % \
-               (_addressPortStr(proxyPort), serverName, serverPort)
+        print('SMTP Listener on port %s is proxying %s:%d' % \
+               (_addressPortStr(proxyPort), serverName, serverPort))
 
 
 class BayesSMTPProxy(SMTPProxyBase):
@@ -350,7 +350,7 @@ class BayesSMTPProxy(SMTPProxyBase):
 
     def onData(self, command, args):
         self.inData = True
-        if self.train_as_ham == True or self.train_as_spam == True:
+        if self.train_as_ham or self.train_as_spam:
             self.push("354 Enter data ending with a . on a line by itself\r\n")
             return None
         return command + ' ' + ' '.join(args)
@@ -365,7 +365,7 @@ class BayesSMTPProxy(SMTPProxyBase):
         return self.request
 
 
-class SMTPTrainer(object):
+class SMTPTrainer:
     def __init__(self, classifier, state=None, imap=None):
         self.classifier = classifier
         self.state = state
@@ -419,7 +419,7 @@ class SMTPTrainer(object):
         if use_cached:
             id = self.extractSpambayesID(msg)
             if id is None:
-                print "Could not extract id"
+                print("Could not extract id")
                 return
             self.train_cached_message(id, isSpam)
         # Otherwise, train on the forwarded/bounced message.
@@ -445,9 +445,9 @@ class SMTPTrainer(object):
     def train_cached_message(self, id, isSpam):
         if not self.train_message_in_pop3proxy_cache(id, isSpam) and \
            not self.train_message_on_imap_server(id, isSpam):
-            print "Could not find message (%s); perhaps it was " \
+            print("Could not find message (%s); perhaps it was " \
                   "deleted from the POP3Proxy cache or the IMAP " \
-                  "server.  This means that no training was done." % (id, )
+                  "server.  This means that no training was done." % (id, ))
 
     def train_message_in_pop3proxy_cache(self, id, isSpam):
         if self.state is None:
@@ -460,7 +460,7 @@ class SMTPTrainer(object):
                 break
         if corpus is None:
             return False
-        if isSpam == True:
+        if isSpam:
             targetCorpus = self.state.spamCorpus
         else:
             targetCorpus = self.state.hamCorpus
@@ -501,10 +501,10 @@ def LoadServerInfo():
             servers.append((server, int(port)))
     if options["smtpproxy", "listen_ports"]:
         splitPorts = options["smtpproxy", "listen_ports"]
-        proxyPorts = map(_addressAndPort, splitPorts)
+        proxyPorts = list(map(_addressAndPort, splitPorts))
     if len(servers) != len(proxyPorts):
-        print "smtpproxy:remote_servers & smtpproxy:listen_ports are " + \
-              "different lengths!"
+        print("smtpproxy:remote_servers & smtpproxy:listen_ports are " + \
+              "different lengths!")
         sys.exit()
     return servers, proxyPorts
 

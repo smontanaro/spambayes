@@ -29,7 +29,7 @@ work with an IMAP account and POP3 account side-by-side (and move messages
 between them), then it should work equally as well.
 """
 
-from __future__ import generators
+
 
 todo = """
  o The RECENT flag should be unset at some point, but when?  The
@@ -61,13 +61,13 @@ import sys
 import time
 import errno
 import email
-import thread
+import _thread
 import getopt
 import socket
 import imaplib
-import email.Utils
+import email.utils
 
-import cStringIO as StringIO
+import io
 
 from twisted import cred
 import twisted.application.app
@@ -96,8 +96,8 @@ def ensureDir(dirname):
     try:
         os.mkdir(dirname)
         if options["globals", "verbose"]:
-            print "Creating directory", dirname
-    except OSError, e:
+            print("Creating directory", dirname)
+    except OSError as e:
         if e.errno != errno.EEXIST:
             raise
 
@@ -120,7 +120,7 @@ class IMAPMessage(message.Message):
     def getHeaders(self, negate, *names):
         """Retrieve a group of message headers."""
         headers = {}
-        for header, value in self.items():
+        for header, value in list(self.items()):
             if (header.upper() in names and not negate) or \
                (header.upper() not in names and negate) or names == ():
                 headers[header.lower()] = value
@@ -153,7 +153,7 @@ class IMAPMessage(message.Message):
     def getBodyFile(self):
         """Retrieve a file object containing the body of this message."""
         # Note: only body, not headers!
-        s = StringIO.StringIO()
+        s = io.StringIO()
         s.write(self.body())
         s.seek(0)
         return s
@@ -206,7 +206,7 @@ class IMAPMessage(message.Message):
         elif flag == "\\DRAFT":
             self.draft = value
         else:
-            print "Tried to set invalid flag", flag, "to", value
+            print("Tried to set invalid flag", flag, "to", value)
 
     def flags(self):
         """Return the message flags."""
@@ -342,10 +342,10 @@ class SpambayesMailbox(IMAPMailbox):
         self.storage = FileCorpus.FileCorpus(IMAPFileMessageFactory(),
                                              directory, r"[0123456789]*")
         # UIDs are required to be strictly ascending.
-        if len(self.storage.keys()) == 0:
+        if len(list(self.storage.keys())) == 0:
             self.nextUID = 1
         else:
-            self.nextUID = long(self.storage.keys()[-1]) + 1
+            self.nextUID = int(list(self.storage.keys())[-1]) + 1
         # Calculate initial recent and unseen counts
         self.unseen_count = 0
         self.recent_count = 0
@@ -367,7 +367,7 @@ class SpambayesMailbox(IMAPMailbox):
         """Return the UID of a message in the mailbox."""
         # Note that IMAP messages are 1-based, our messages are 0-based.
         d = self.storage
-        return long(d.keys()[msg - 1])
+        return int(list(d.keys())[msg - 1])
 
     def getFlags(self):
         """Return the flags defined in this mailbox."""
@@ -376,7 +376,7 @@ class SpambayesMailbox(IMAPMailbox):
 
     def getMessageCount(self):
         """Return the number of messages in this mailbox."""
-        return len(self.storage.keys())
+        return len(list(self.storage.keys()))
 
     def getRecentCount(self):
         """Return the number of messages with the 'Recent' flag."""
@@ -423,7 +423,7 @@ class SpambayesMailbox(IMAPMailbox):
                                        content.read())
         msg.date = date
         self.storage.addMessage(msg)
-        self.store(MessageSet(long(msg.id), long(msg.id)), flags, 1, True)
+        self.store(MessageSet(int(msg.id), int(msg.id)), flags, 1, True)
         msg.recent = True
         msg.store()
         self.recent_count += 1
@@ -433,7 +433,7 @@ class SpambayesMailbox(IMAPMailbox):
             listener.newMessages(self.getMessageCount(),
                                  self.getRecentCount())
         d = defer.Deferred()
-        reactor.callLater(0, d.callback, self.storage.keys().index(msg.id))
+        reactor.callLater(0, d.callback, list(self.storage.keys()).index(msg.id))
         return d
 
     def expunge(self):
@@ -445,7 +445,7 @@ class SpambayesMailbox(IMAPMailbox):
                     self.unseen_count -= 1
                 if msg.recent:
                     self.recent_count -= 1
-                deleted_messages.append(long(msg.id))
+                deleted_messages.append(int(msg.id))
                 self.storage.removeMessage(msg)
         if deleted_messages != []:
             for listener in self.listeners:
@@ -465,8 +465,8 @@ class SpambayesMailbox(IMAPMailbox):
         """
         if self.getMessageCount() == 0:
             return []
-        all_msgs = MessageSet(long(self.storage.keys()[0]),
-                              long(self.storage.keys()[-1]))
+        all_msgs = MessageSet(int(list(self.storage.keys())[0]),
+                              int(list(self.storage.keys())[-1]))
         matches = []
         for id, msg in self._messagesIter(all_msgs, uid):
             for q in query:
@@ -477,9 +477,9 @@ class SpambayesMailbox(IMAPMailbox):
 
     def _messagesIter(self, messages, uid):
         if uid:
-            if not self.storage.keys():
+            if not list(self.storage.keys()):
                 return
-            messages.last = long(self.storage.keys()[-1])
+            messages.last = int(list(self.storage.keys())[-1])
         else:
             messages.last = self.getMessageCount()
         for id in messages:
@@ -513,9 +513,9 @@ class SpambayesMailbox(IMAPMailbox):
             for flag in flags or (): # flags might be None
                 if flag == '(' or flag == ')':
                     continue
-                if flag == "SEEN" and value == True and msg.seen == False:
+                if flag == "SEEN" and value and not msg.seen:
                     self.unseen_count -= 1
-                if flag == "SEEN" and value == False and msg.seen == True:
+                if flag == "SEEN" and not value and msg.seen:
                     self.unseen_count += 1
                 msg.set_flag(flag, value)
             stored_messages[id] = msg.flags()
@@ -614,7 +614,7 @@ class SpambayesInbox(SpambayesMailbox):
         msg.id = self.getUIDNext(True)
         self.storage[msg.id] = msg
         d = defer.Deferred()
-        reactor.callLater(0, d.callback, self.storage.keys().index(msg.id))
+        reactor.callLater(0, d.callback, list(self.storage.keys()).index(msg.id))
         return d
 
     def expunge(self):
@@ -628,7 +628,7 @@ class SpambayesInbox(SpambayesMailbox):
         return {}
 
 
-class Trainer(object):
+class Trainer:
     """Listens to a given mailbox and trains new messages as spam or
     ham."""
     __implements__ = (IMailboxListener,)
@@ -832,7 +832,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                     if cls == options["Headers", "header_ham_string"]:
                         state.numHams += 1
                         headers = []
-                        for name, value in msg.items():
+                        for name, value in list(msg.items()):
                             header = "%s: %s" % (name, value)
                             headers.append(re.sub(r'\r?\n', '\r\n', header))
                         body = re.split(r'\n\r?\n', messageText, 1)[1]
@@ -844,7 +844,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                         dest_folder = self.unsure_folder
                         state.numUnsure += 1
                     if dest_folder:
-                        msg = StringIO.StringIO(msg.as_string())
+                        msg = io.StringIO(msg.as_string())
                         date = imaplib.Time2Internaldate(time.time())[1:-1]
                         dest_folder.addMessage(msg, (), date)
 
@@ -857,7 +857,7 @@ class RedirectingBayesProxy(POP3ProxyBase):
                              message.insert_exception_header(messageText)
 
                 # Print the exception and a traceback.
-                print >> sys.stderr, details
+                print(details, file=sys.stderr)
             retval = ok + "\n" + messageText
             if terminatingDotPresent:
                 retval += '.\r\n'
@@ -879,8 +879,8 @@ class RedirectingBayesProxyListener(Dibbler.Listener):
         proxyArgs = (serverName, serverPort, spam, unsure)
         Dibbler.Listener.__init__(self, proxyPort, RedirectingBayesProxy,
                                   proxyArgs)
-        print 'Listener on port %s is proxying %s:%d' % \
-               (_addressPortStr(proxyPort), serverName, serverPort)
+        print('Listener on port %s is proxying %s:%d' % \
+               (_addressPortStr(proxyPort), serverName, serverPort))
 
 
 class IMAPState(State):
@@ -968,7 +968,7 @@ def start():
     assert state.prepared, "Must prepare before starting"
     # The asyncore stuff doesn't play nicely with twisted (or vice-versa),
     # so put them in separate threads.
-    thread.start_new_thread(Dibbler.run, ())
+    _thread.start_new_thread(Dibbler.run, ())
     reactor.run()
 
 def stop():
@@ -976,7 +976,7 @@ def stop():
     state.bayes.store()
     # Explicitly closing the db is a good idea, though.
     state.bayes.close()
-    
+
     # Stop the POP3 proxy.
     if state.proxyPorts:
         killer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -987,7 +987,7 @@ def stop():
         except socket.error:
             # Well, we did our best to shut down gracefully.  Warn the user
             # and just die when the thread we are in does.
-            print "Could not shut down POP3 proxy gracefully."
+            print("Could not shut down POP3 proxy gracefully.")
     # Stop the IMAP4 server.
     reactor.stop()
 
@@ -995,22 +995,22 @@ def run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'ho:')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-o':
             options.set_from_cmdline(arg, sys.stderr)
 
     # Let the user know what they are using...
     v = get_current_version()
-    print v.get_long_version()
+    print(v.get_long_version())
     from twisted.copyright import version as twisted_version
-    print "Twisted version %s.\n" % (twisted_version,)
+    print("Twisted version %s.\n" % (twisted_version,))
 
     # Setup everything.
     prepare()

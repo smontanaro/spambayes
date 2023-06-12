@@ -188,4 +188,4 @@ if __name__ == "__main__":
     cc.spam(0.5)
     options["Categorization", "spam_cutoff"] = 0.7
     options["Categorization", "ham_cutoff"] = 0.4
-    print cc
+    print(cc)

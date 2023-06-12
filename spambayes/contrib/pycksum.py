@@ -37,16 +37,13 @@ addresses funnels into skip@mojam.com.)
 
 import getopt
 import sys
-import email.Parser
+import email.parser
 import email.generator
 
-import anydbm
+import dbm
 import re
 import time
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import io
 
 from hashlib import md5
 
@@ -92,7 +89,7 @@ def generate_checksum(msg):
     # processes can split those chunks into pieces and consider them
     # separately or in various combinations if desired.
 
-    fp = StringIO.StringIO()
+    fp = io.StringIO()
     g = email.generator.Generator(fp, mangle_from_=False, maxheaderlen=60)
     g.flatten(msg)
     text = fp.getvalue()
@@ -109,7 +106,7 @@ def generate_checksum(msg):
 def save_checksum(cksum, f):
     pieces = cksum.split('.')
     result = 1
-    db = anydbm.open(f, "c")
+    db = dbm.open(f, "c")
     maxdblen = 2**14
     # consider the first two pieces, the middle two pieces and the last two
     # pieces - one or more will likely eliminate attempts at disrupting the
@@ -117,10 +114,10 @@ def save_checksum(cksum, f):
     for subsum in (".".join(pieces[:-2]),
                    ".".join(pieces[1:-1]),
                    ".".join(pieces[2:])):
-        if not db.has_key(subsum):
+        if subsum not in db:
             db[subsum] = str(time.time())
             if len(db) > maxdblen:
-                items = [(float(db[k]), k) for k in db.keys()]
+                items = [(float(db[k]), k) for k in list(db.keys())]
                 items.sort()
                 # the -20 brings us down a bit below the max so we aren't
                 # constantly running this chunk of code
@@ -145,10 +142,10 @@ def main(args):
     else:
         dbf = args[0]
 
-    msg = email.Parser.Parser().parse(sys.stdin)
+    msg = email.parser.Parser().parse(sys.stdin)
     cksum = generate_checksum(msg)
     if dbf is None:
-        print cksum
+        print(cksum)
         result = 1
         disp = 'nodb'
     else:

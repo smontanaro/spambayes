@@ -174,14 +174,14 @@ class SBVersion:
     def parse(self, vstring):
         match = self.version_re.match(vstring)
         if not match:
-            raise ValueError, "invalid version number '%s'" % vstring
+            raise ValueError("invalid version number '%s'" % vstring)
 
         (major, minor, patch, prerelease, prerelease_num) = \
             match.group(1, 2, 4, 6, 7)
 
         if not patch:
             patch = "0"
-            
+
         if not prerelease:
             releaselevel = "final"
             serial = 0
@@ -193,7 +193,7 @@ class SBVersion:
                 releaselevel = "beta"
             elif prerelease == "rc":
                 releaselevel = "candidate"
-        self.version_info = tuple(map(int, [major, minor, patch]) + \
+        self.version_info = tuple(list(map(int, [major, minor, patch])) + \
                                   [releaselevel, serial])
 
     def __str__(self):
@@ -231,15 +231,18 @@ class SBVersion:
 # Assumes that a 'config' version of this file exists at the given URL
 # No exceptions are caught
 try:
-    import ConfigParser
-    class MySafeConfigParser(ConfigParser.SafeConfigParser):
+    import configparser
+    class MySafeConfigParser(configparser.SafeConfigParser):
         def optionxform(self, optionstr):
             return optionstr # no lower!
 except AttributeError: # No SafeConfigParser!
     MySafeConfigParser = None
 
 def fetch_latest_dict(url=LATEST_VERSION_HOME):
-    import urllib2
+    if MySafeConfigParser is None:
+        raise RuntimeError("Sorry, but only Python 2.3+ can trust remote config files")
+
+    import urllib.request, urllib.error, urllib.parse
     from spambayes.Options import options
     server = options["globals", "proxy_server"]
     if server != "":
@@ -254,13 +257,13 @@ def fetch_latest_dict(url=LATEST_VERSION_HOME):
                                 options["globals", "proxy_password"])
         else:
             user_pass_string = ""
-        proxy_support = urllib2.ProxyHandler({"http" :
+        proxy_support = urllib.request.ProxyHandler({"http" :
                                               "http://%s@%s:%d" % \
                                               (user_pass_string, server,
                                                port)})
-        opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
-        urllib2.install_opener(opener)
-    stream = urllib2.urlopen(url)
+        opener = urllib.request.build_opener(proxy_support, urllib.request.HTTPHandler)
+        urllib.request.install_opener(opener)
+    stream = urllib.request.urlopen(url)
     cfg = MySafeConfigParser()
     cfg.readfp(stream)
     ret_dict = {}
@@ -292,15 +295,15 @@ shared_cfg_opts = {
     "Download Page": "http://spambayes.sourceforge.net/windows.html",
 }
 def _write_cfg_opts(stream, this_dict):
-    for name, val in this_dict.items():
-        if type(val)==type(''):
+    for name, val in list(this_dict.items()):
+        if isinstance(val, str):
             val_str = repr(val)[1:-1]
-        elif type(val)==type(0.0):
+        elif isinstance(val, float):
             val_str = str(val)
-        elif type(val)==type({}):
+        elif isinstance(val, dict):
             val_str = None # sub-dict
         else:
-            print "Skipping unknown value type: %r" % val
+            print("Skipping unknown value type: %r" % val)
             val_str = None
         if val_str is not None:
             stream.write("%s:%s\n" % (name, val_str))
@@ -349,23 +352,23 @@ def main(args):
     if '-g' in args:
         make_cfg(sys.stdout)
         sys.exit(0)
-        
-    v_this = get_current_version()
-    print "Current version:", v_this.get_long_version()
 
-    print
-    print "Fetching the lastest version information..."
+    v_this = get_current_version()
+    print("Current version:", v_this.get_long_version())
+
+    print()
+    print("Fetching the lastest version information...")
     try:
         latest_dict = fetch_latest_dict()
     except:
-        print "FAILED to fetch the latest version"
+        print("FAILED to fetch the latest version")
         import traceback
         traceback.print_exc()
         sys.exit(1)
 
     v_latest = get_version(version_dict=latest_dict)
-    print
-    print "Latest version:", v_latest.get_long_version()
+    print()
+    print("Latest version:", v_latest.get_long_version())
 
 if __name__ == '__main__':
     main(sys.argv)

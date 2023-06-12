@@ -85,10 +85,10 @@ class ServerUserInterface(UserInterface.UserInterface):
         or restores the defaults."""
         # Reload the options.
         self.state.bayes.store()
-        import Options
+        from . import Options
         Options.load_options()
         global options
-        from Options import options
+        from .Options import options
 
         # Recreate the state.
         self.state = self.state_recreator()

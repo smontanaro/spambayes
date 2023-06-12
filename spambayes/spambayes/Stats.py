@@ -43,7 +43,7 @@ try:
 except NameError:
     _ = lambda arg: arg
 
-class Stats(object):
+class Stats:
     def __init__(self, options, messageinfo_db):
         self.messageinfo_db = messageinfo_db
         self.options = options
@@ -128,7 +128,7 @@ class Stats(object):
 
     def LoadPersistentStats(self):
         """Load the persistent statistics from the messageinfo db.
-        
+
         If the persistent statistics have not yet been stored in the db
         then we need to recalculate them by iterating through all the
         messages.  This will result in a one-time performance hit, but
@@ -148,7 +148,7 @@ class Stats(object):
         """
         self.ResetTotal()
         totals = self.totals
-        for msg_id in self.messageinfo_db.keys():
+        for msg_id in list(self.messageinfo_db.keys()):
             # Skip the date and persistent statistics keys.
             if msg_id == STATS_START_KEY:
                 continue
@@ -168,28 +168,28 @@ class Stats(object):
 
             classification = m.GetClassification()
             trained = m.GetTrained()
-            
+
             if classification == self.options["Headers",
                                               "header_spam_string"]:
                 # Classified as spam.
                 totals["num_spam"] += 1
-                if trained == False:
+                if not trained:
                     # False positive (classified as spam, trained as ham)
                     totals["num_trained_ham_fp"] += 1
             elif classification == self.options["Headers",
                                                 "header_ham_string"]:
                 # Classified as ham.
                 totals["num_ham"] += 1
-                if trained == True:
+                if trained:
                     # False negative (classified as ham, trained as spam)
                     totals["num_trained_spam_fn"] += 1
             elif classification == self.options["Headers",
                                                 "header_unsure_string"]:
                 # Classified as unsure.
                 totals["num_unsure"] += 1
-                if trained == False:
+                if not trained:
                     totals["num_trained_ham"] += 1
-                elif trained == True:
+                else:
                     totals["num_trained_spam"] += 1
 
         self.messageinfo_db.set_persistent_statistics(totals)
@@ -343,7 +343,7 @@ class Stats(object):
 
         data = self._CalculateAdditional(data)
         format_dict = self._AddPercentStrings(data, decimal_points)
-        
+
         # Possibly use HTML for tabs.
         if use_html:
             format_dict["tab"] = "&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -368,7 +368,7 @@ class Stats(object):
             push((_("%(tab)sFalse negatives:%(tab)s%(num_trained_spam_fn)d (%(perc_fn_s)s of total)") \
                  % format_dict) % format_dict)
         push("")
-        
+
         push(_("Manually classified as good:%(tab)s%(num_trained_ham)d") % format_dict)
         push(_("Manually classified as spam:%(tab)s%(num_trained_spam)d") % format_dict)
         push("")
@@ -399,4 +399,4 @@ class Stats(object):
 
 if __name__ == '__main__':
     s = Stats()
-    print "\n".join(s.GetStats())
+    print("\n".join(s.GetStats()))

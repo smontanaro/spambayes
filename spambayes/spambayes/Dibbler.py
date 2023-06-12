@@ -164,15 +164,63 @@ plus a self-test.
 __author__ = "Richie Hindle <richie@entrian.com>"
 __credits__ = "Tim Stone"
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+import io
 
 import sys, re, time, traceback, base64
-import socket, cgi, urlparse, webbrowser
-import asyncore, asynchat
-from hashlib import md5
+import socket, cgi, urllib.parse, webbrowser, html
+
+try:
+    "".rstrip("abc")
+except TypeError:
+    # rstrip(chars) requires Python 2.2.2 or higher.  Apart from that
+    # we probably work with Python 2.2 (and say we do), so provide the
+    # ability to do this for that case.
+    RSTRIP_CHARS_AVAILABLE = False
+else:
+    RSTRIP_CHARS_AVAILABLE = True
+
+from spambayes.port import md5
+from spambayes import asyncore, asynchat
+
+class BrighterAsyncChat(asynchat.async_chat):
+    """An asynchat.async_chat that doesn't give spurious warnings on
+    receiving an incoming connection, lets SystemExit cause an exit, can
+    flush its output, and will correctly remove itself from a non-default
+    socket map on `close()`."""
+
+    def __init__(self, conn=None, map=None):
+        """See `asynchat.async_chat`."""
+        asynchat.async_chat.__init__(self, conn)
+        self.__map = map
+        self._closed = False
+
+    def handle_connect(self):
+        """Suppresses the asyncore "unhandled connect event" warning."""
+        pass
+
+    def handle_error(self):
+        """Let SystemExit cause an exit."""
+        type, v, t = sys.exc_info()
+        if type == SystemExit:
+            raise
+        else:
+            asynchat.async_chat.handle_error(self)
+
+    def flush(self):
+        """Flush everything in the output buffer."""
+        # We check self._closed here because of the case where
+        # self.initiate_send() raises an exception, causing self.close()
+        # to be called.  If we didn't check, we could end up in an infinite
+        # loop.
+        while (self.producer_fifo or self.ac_out_buffer) and not self._closed:
+            self.initiate_send()
+
+    def close(self):
+        """Remove this object from the correct socket map."""
+        self._closed = True
+        self.del_channel(self.__map)
+        self.socket.close()
+
 
 class Context:
     """See the main documentation for details of `Dibbler.Context`."""
@@ -182,7 +230,7 @@ class Context:
     def pop(self, key):
         return self._map.pop(key)
     def keys(self):
-        return self._map.keys()
+        return list(self._map.keys())
     def __len__(self):
         return len(self._map)
 
@@ -227,12 +275,12 @@ class Listener(asyncore.dispatcher):
         s.setblocking(False)
         self.set_socket(s, self.socketMap)
         self.set_reuse_addr()
-        if type(port) != type(()):
+        if not isinstance(port, tuple):
             port = ('', port)
         try:
             self.bind(port)
         except socket.error:
-            print >> sys.stderr, "port", port, "in use"
+            print("port", port, "in use", file=sys.stderr)
             raise
         self.listen(5)
 
@@ -336,12 +384,12 @@ class _HTTPHandler(asynchat.async_chat):
 
     def collect_incoming_data(self, data):
         """Asynchat override."""
-        self._request = self._request + data
+        self._request += data
 
     def found_terminator(self):
         """Asynchat override."""
         # Parse the HTTP request.
-        requestLine, headers = (self._request+'\r\n').split('\r\n', 1)
+        requestLine, headers = (self._request + '\r\n').split('\r\n', 1)
         try:
             method, url, version = requestLine.strip().split()
         except ValueError:
@@ -351,8 +399,8 @@ class _HTTPHandler(asynchat.async_chat):
 
         # Parse the URL, and deal with POST vs. GET requests.
         method = method.upper()
-        unused, unused, path, unused, query, unused = urlparse.urlparse(url)
-        cgiParams = cgi.parse_qs(query, keep_blank_values=True)
+        unused, unused, path, unused, query, unused = urllib.parse.urlparse(url)
+        cgiParams = urllib.parse.parse_qs(query, keep_blank_values=True)
         if self.get_terminator() == '\r\n\r\n' and method == 'POST':
             # We need to read the body - set a numeric async_chat terminator
             # equal to the Content-Length.
@@ -360,12 +408,12 @@ class _HTTPHandler(asynchat.async_chat):
             contentLength = int(match.group(1))
             if contentLength > 0:
                 self.set_terminator(contentLength)
-                self._request = self._request + '\r\n\r\n'
+                self._request += '\r\n\r\n'
                 return
 
         # Have we just read the body of a POSTed request?  Decode the body,
         # which will contain parameters and possibly uploaded files.
-        if type(self.get_terminator()) is type(1):
+        if isinstance(self.get_terminator(), int):
             self.set_terminator('\r\n\r\n')
             body = self._request.split('\r\n\r\n', 1)[1]
             match = re.search(r'(?i)content-type:\s*([^\r\n]+)', headers)
@@ -373,19 +421,19 @@ class _HTTPHandler(asynchat.async_chat):
             contentType, pdict = cgi.parse_header(contentTypeHeader)
             if contentType == 'multipart/form-data':
                 # multipart/form-data - probably a file upload.
-                bodyFile = StringIO.StringIO(body)
+                bodyFile = io.StringIO(body)
                 cgiParams.update(cgi.parse_multipart(bodyFile, pdict))
             else:
                 # A normal x-www-form-urlencoded.
-                cgiParams.update(cgi.parse_qs(body, keep_blank_values=True))
+                cgiParams.update(urllib.parse.parse_qs(body, keep_blank_values=True))
 
         # Convert the cgi params into a simple dictionary.
         params = {}
-        for name, value in cgiParams.iteritems():
+        for name, value in cgiParams.items():
             params[name] = value[0]
 
         # Parse the headers.
-        headersRegex = re.compile('([^:]*):\s*(.*)')
+        headersRegex = re.compile(r'([^:]*):\s*(.*)')
         headersDict = dict([headersRegex.match(line).groups(2)
                            for line in headers.split('\r\n')
                            if headersRegex.match(line)])
@@ -405,7 +453,7 @@ class _HTTPHandler(asynchat.async_chat):
                 elif authenticationMode == HTTPServer.DIGEST_AUTHENTICATION:
                     authResult = self._digestAuthentication(login, method)
                 else:
-                    print >> sys.stderr, "Unknown mode: %s" % authenticationMode
+                    print("Unknown mode: %s" % authenticationMode, file=sys.stderr)
 
             if not authResult:
                 self.writeUnauthorizedAccess(serverAuthMode)
@@ -438,7 +486,7 @@ class _HTTPHandler(asynchat.async_chat):
                         # Close all the listeners so that no further incoming
                         # connections appear.
                         contextMap = self._context._map
-                        for dispatcher in contextMap.values():
+                        for dispatcher in list(contextMap.values()):
                             if isinstance(dispatcher, Listener):
                                 dispatcher.close()
 
@@ -450,7 +498,7 @@ class _HTTPHandler(asynchat.async_chat):
                         def isProtected(dispatcher):
                             return not isinstance(dispatcher, _HTTPHandler)
 
-                        while len(filter(isProtected, contextMap.values())) > 0:
+                        while len(list(filter(isProtected, list(contextMap.values())))) > 0:
                             asyncore.poll(timeout=1, map=contextMap)
 
                         raise SystemExit
@@ -458,7 +506,7 @@ class _HTTPHandler(asynchat.async_chat):
                     message = """<h3>500 Server error</h3><pre>%s</pre>"""
                     details = traceback.format_exception(eType, eValue, eTrace)
                     details = '\n'.join(details)
-                    self.writeError(500, message % cgi.escape(details))
+                    self.writeError(500, message % html.escape(details))
                 plugin._handler = None
                 break
         else:
@@ -484,7 +532,7 @@ class _HTTPHandler(asynchat.async_chat):
         headers.append("Connection: close")
         headers.append('Content-Type: %s; charset="utf-8"' % contentType)
         headers.append("Date: %s" % httpNow)
-        for name, value in extraHeaders.items():
+        for name, value in list(extraHeaders.items()):
             headers.append("%s: %s" % (name, value))
         headers.append("")
         headers.append("")
@@ -594,7 +642,7 @@ class _HTTPHandler(asynchat.async_chat):
         HA2 = md5(A2).hexdigest()
 
         unhashedDigest = ""
-        if options.has_key("qop"):
+        if "qop" in options:
             # IE 6.0 doesn't give nc back correctly?
             if not options["nc"]:
                 options["nc"] = "00000001"
@@ -667,8 +715,8 @@ def run(launchBrowser=False, context=_defaultContext):
         try:
             url = "http://localhost:%d/" % context._HTTPPort
             webbrowser.open_new(url)
-        except webbrowser.Error, e:
-            print "\n%s.\nPlease point your web browser at %s." % (e, url)
+        except webbrowser.Error as e:
+            print("\n%s.\nPlease point your web browser at %s." % (e, url))
     asyncore.loop(map=context._map)
 
 
@@ -706,27 +754,27 @@ def runTestServer(readyEvent=None):
 def test():
     """Run a self-test."""
     # Run the calendar server in a separate thread.
-    import threading, urllib
+    import threading, urllib.request, urllib.parse, urllib.error
     testServerReady = threading.Event()
     threading.Thread(target=runTestServer, args=(testServerReady,)).start()
     testServerReady.wait()
 
     # Connect to the server and ask for a calendar.
-    page = urllib.urlopen("http://localhost:8888/?year=2003").read()
+    page = urllib.request.urlopen("http://localhost:8888/?year=2003").read()
     if page.find('January') != -1:
-        print "Self test passed."
+        print("Self test passed.")
     else:
-        print "Self-test failed!"
+        print("Self-test failed!")
 
     # Wait for a key while the user plays with his browser.
-    raw_input("Press any key to shut down the application server...")
+    input("Press any key to shut down the application server...")
 
     # Ask the server to shut down.
-    page = urllib.urlopen("http://localhost:8888/shutdown").read()
+    page = urllib.request.urlopen("http://localhost:8888/shutdown").read()
     if page.find('OK') != -1:
-        print "Shutdown OK."
+        print("Shutdown OK.")
     else:
-        print "Shutdown failed!"
+        print("Shutdown failed!")
 
 if __name__ == '__main__':
     test()

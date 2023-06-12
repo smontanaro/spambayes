@@ -26,13 +26,13 @@ def log(s):
     global _start
     if _start is None:
         _start = time.time()
-    print round(time.time() - _start, 2), s
+    print(round(time.time() - _start, 2), s)
 
 
 class IterOOBTree(OOBTree):
 
     def iteritems(self):
-        return self.items()
+        return list(self.items())
 
 class WordInfo(Persistent):
 
@@ -104,12 +104,12 @@ class Profile(Persistent):
             # It's important not to commit a transaction until
             # after update_probabilities is called in update().
             # Otherwise some new entries will cause scoring to fail.
-            for msg in added.keys():
+            for msg in list(added.keys()):
                 self.classifier.learn(tokenize(msg), is_spam)
             del added
             get_transaction().commit(1)
             log("learned")
-            for msg in removed.keys():
+            for msg in list(removed.keys()):
                 self.classifier.unlearn(tokenize(msg), is_spam)
             if removed:
                 log("unlearned")

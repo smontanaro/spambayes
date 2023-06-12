@@ -88,7 +88,7 @@ Gimmicks:
 """
 
 import sys, re, getopt, time, socket, email
-from thread import start_new_thread
+from _thread import start_new_thread
 
 import spambayes.message
 from spambayes import i18n
@@ -145,7 +145,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
         self.socket.setblocking(1)
         try:
             self.connect((serverName, serverPort))
-        except socket.error, e:
+        except socket.error as e:
             error = "Can't connect to %s:%d: %s" % (serverName, serverPort, e)
             # Some people have their system setup to check mail very
             # frequently, but without being clever enough to check whether
@@ -159,7 +159,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
             if error not in state.reported_errors or \
                options["globals", "verbose"] or \
                state.reported_errors[error] < then:
-                print >>sys.stderr, error
+                print(error, file=sys.stderr)
 
                 # Record this error in the list of ones we have seen this
                 # session.
@@ -172,10 +172,10 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
             if ssl:
                 try:
                     self.ssl_socket = socket.ssl(self.socket)
-                except socket.sslerror, why:
+                except socket.sslerror as why:
                     if why[0] == 1: # error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol'
                         # Probably not SSL after all.
-                        print >> sys.stderr, "Can't use SSL"
+                        print("Can't use SSL", file=sys.stderr)
                     else:
                         raise
                 else:
@@ -190,7 +190,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
         # Python 2.4's system of continuously pumping error messages
         # is stupid.  Print an error once, and then ignore.
         if not self.handled_exception:
-            print >> sys.stderr, "Unhandled exception in ServerLineReader"
+            print("Unhandled exception in ServerLineReader", file=sys.stderr)
             self.handled_exception = True
 
     def recv_ssl(self, buffer_size):
@@ -203,7 +203,7 @@ class ServerLineReader(Dibbler.BrighterAsyncChat):
                 return ''
             else:
                 return data
-        except socket.sslerror, why:
+        except socket.sslerror as why:
             if why[0] == 6: # 'TLS/SSL connection has been closed'
                 self.handle_close()
                 return ''
@@ -401,8 +401,8 @@ class BayesProxyListener(Dibbler.Listener):
     def __init__(self, serverName, serverPort, proxyPort, ssl=False):
         proxyArgs = (serverName, serverPort, ssl)
         Dibbler.Listener.__init__(self, proxyPort, BayesProxy, proxyArgs)
-        print 'Listener on port %s is proxying %s:%d' % \
-               (_addressPortStr(proxyPort), serverName, serverPort)
+        print('Listener on port %s is proxying %s:%d' % \
+               (_addressPortStr(proxyPort), serverName, serverPort))
 
 
 class BayesProxy(POP3ProxyBase):
@@ -595,7 +595,7 @@ class BayesProxy(POP3ProxyBase):
             # be dealing with partial message here because of the timeout
             # code in onServerLine.
             headers = []
-            for name, value in msg.items():
+            for name, value in list(msg.items()):
                 header = "%s: %s" % (name, value)
                 headers.append(re.sub(r'\r?\n', '\r\n', header))
             try:
@@ -615,7 +615,7 @@ class BayesProxy(POP3ProxyBase):
                                    insert_exception_header(messageText)
 
             # Print the exception and a traceback.
-            print >> sys.stderr, details
+            print(details, file=sys.stderr)
 
         # Restore the +OK and the POP3 .\r\n terminator if there was one.
         retval = ok + "\n" + messageText
@@ -664,7 +664,7 @@ def open_platform_mutex(mutex_name="SpamBayesServer"):
             # an installer can check if we are running
             try:
                 hmutex = win32event.CreateMutex(None, True, mutex_name)
-            except win32event.error, details:
+            except win32event.error as details:
                 # If another user has the mutex open, we get an "access denied"
                 # error - this is still telling us what we need to know.
                 if details[0] != winerror.ERROR_ACCESS_DENIED:
@@ -722,10 +722,10 @@ class State:
             # back on if necessary.
             self.lang_manager.add_language(language)
         if options["globals", "verbose"]:
-            print "Asked to add languages: " + \
-                  ", ".join(options["globals", "language"])
-            print "Set language to " + \
-                  str(self.lang_manager.current_langs_codes)
+            print("Asked to add languages: " + \
+                  ", ".join(options["globals", "language"]))
+            print("Set language to " + \
+                  str(self.lang_manager.current_langs_codes))
 
         # Open the log file.
         if options["globals", "verbose"]:
@@ -748,10 +748,10 @@ class State:
             self.proxyPorts = []
             if options["pop3proxy", "listen_ports"]:
                 splitPorts = options["pop3proxy", "listen_ports"]
-                self.proxyPorts = map(_addressAndPort, splitPorts)
+                self.proxyPorts = list(map(_addressAndPort, splitPorts))
 
         if len(self.servers) != len(self.proxyPorts):
-            print "pop3proxy_servers & pop3proxy_ports are different lengths!"
+            print("pop3proxy_servers & pop3proxy_ports are different lengths!")
             sys.exit()
 
         # Remember reported errors.
@@ -858,7 +858,7 @@ class State:
         """Using the options that were initialised in __init__ and then
         possibly overridden by the driver code, create the Bayes object,
         the Corpuses, the Trainers and so on."""
-        print "Loading database...",
+        print("Loading database...", end=' ')
         if self.isTest:
             self.useDB = "pickle"
             self.DBName = '_pop3proxy_test.pickle'   # This is never saved.
@@ -880,7 +880,7 @@ class State:
             sc = get_pathname_option("Storage", "spam_cache")
             hc = get_pathname_option("Storage", "ham_cache")
             uc = get_pathname_option("Storage", "unknown_cache")
-            map(storage.ensureDir, [sc, hc, uc])
+            list(map(storage.ensureDir, [sc, hc, uc]))
             if self.gzipCache:
                 factory = GzipFileMessageFactory()
             else:
@@ -914,7 +914,7 @@ class State:
     def getNewMessageName(self):
         # The message name is the time it arrived, with a uniquifier
         # appended if two arrive within one clock tick of each other.
-        messageName = "%10.10d" % long(time.time())
+        messageName = "%10.10d" % int(time.time())
         if messageName == self.lastBaseMessageName:
             messageName = "%s-%d" % (messageName, self.uniquifier)
             self.uniquifier += 1
@@ -950,8 +950,9 @@ def _addressAndPort(s):
     else:
         return '', int(s)
 
-def _addressPortStr((addr, port)):
+def _addressPortStr(xxx_todo_changeme):
     """Encode a string representing a port to bind to, with optional address."""
+    (addr, port) = xxx_todo_changeme
     if not addr:
         return str(port)
     else:
@@ -1023,7 +1024,8 @@ def start():
 def stop():
     # Shutdown as though through the web UI.  This will save the DB, allow
     # any open proxy connections to complete, etc.
-    from urllib import urlopen, urlencode
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
     urlopen('http://localhost:%d/save' % state.uiPort,
             urlencode({'how': _('Save & shutdown')})).read()
 
@@ -1037,13 +1039,13 @@ def run():
     # Read the arguments.
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hbd:p:l:u:o:')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-b':
             state.launchUI = True
@@ -1060,7 +1062,7 @@ def run():
 
     # Let the user know what they are using...
     v = get_current_version()
-    print "%s\n" % (v.get_long_version("SpamBayes POP3 Proxy"),)
+    print("%s\n" % (v.get_long_version("SpamBayes POP3 Proxy"),))
 
     if 0 <= len(args) <= 2:
         # Normal usage, with optional server name and port number.
@@ -1076,14 +1078,13 @@ def run():
         try:
             prepare()
         except AlreadyRunningException:
-            print  >> sys.stderr, \
-                   "ERROR: The proxy is already running on this machine."
-            print  >> sys.stderr, "Please stop the existing proxy and try again"
+            print("ERROR: The proxy is already running on this machine.", file=sys.stderr)
+            print("Please stop the existing proxy and try again", file=sys.stderr)
             return
         start()
 
     else:
-        print >> sys.stderr, __doc__
+        print(__doc__, file=sys.stderr)
 
 if __name__ == '__main__':
     run()

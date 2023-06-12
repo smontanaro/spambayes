@@ -76,7 +76,7 @@ def train(h, msgs, is_spam):
         h.train(msg, is_spam)
     sys.stdout.write("\r%6d" % i)
     sys.stdout.flush()
-    print
+    print()
 
 def untrain(h, msgs, is_spam):
     """Untrain bayes with all messages from a mailbox."""
@@ -90,7 +90,7 @@ def untrain(h, msgs, is_spam):
         h.untrain(msg, is_spam)
     sys.stdout.write("\r%6d" % i)
     sys.stdout.flush()
-    print
+    print()
 
 def score(h, msgs, reverse=0):
     """Score (judge) all messages from a mailbox."""
@@ -110,32 +110,32 @@ def score(h, msgs, reverse=0):
         if isspam:
             spams += 1
             if not reverse:
-                print "%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."),
-                print h.formatclues(clues)
+                print("%6s %4.2f %1s" % (msgno, prob, isspam and "S" or "."), end=' ')
+                print(h.formatclues(clues))
         elif isham:
             hams += 1
             if reverse:
-                print "%6s %4.2f %1s" % (msgno, prob, isham and "S" or "."),
-                print h.formatclues(clues)
+                print("%6s %4.2f %1s" % (msgno, prob, isham and "S" or "."), end=' ')
+                print(h.formatclues(clues))
         else:
             unsures += 1
-            print "%6s %4.2f U" % (msgno, prob),
-            print h.formatclues(clues)
+            print("%6s %4.2f U" % (msgno, prob), end=' ')
+            print(h.formatclues(clues))
     return (spams, hams, unsures)
 
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def main():
     """Main program; parse options and go."""
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hd:Ufg:s:p:u:r')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     if not opts:
@@ -171,7 +171,7 @@ def main():
     if args:
         usage(2, "Positional arguments not allowed")
 
-    if usedb == None:
+    if usedb is None:
         usage(2, "Must specify one of -d or -D")
 
     save = False
@@ -180,22 +180,22 @@ def main():
 
     if not untrain_mode:
         for g in good:
-            print "Training ham (%s):" % g
+            print("Training ham (%s):" % g)
             train(h, g, False)
             save = True
 
         for s in spam:
-            print "Training spam (%s):" % s
+            print("Training spam (%s):" % s)
             train(h, s, True)
             save = True
     else:
         for g in good:
-            print "Untraining ham (%s):" % g
+            print("Untraining ham (%s):" % g)
             untrain(h, g, False)
             save = True
 
         for s in spam:
-            print "Untraining spam (%s):" % s
+            print("Untraining spam (%s):" % s)
             untrain(h, s, True)
             save = True
 
@@ -211,12 +211,12 @@ def main():
         spams = hams = unsures = 0
         for u in unknown:
             if len(unknown) > 1:
-                print "Scoring", u
+                print("Scoring", u)
             s, g, u = score(h, u, reverse)
             spams += s
             hams += g
             unsures += u
-        print "Total %d spam, %d ham, %d unsure" % (spams, hams, unsures)
+        print("Total %d spam, %d ham, %d unsure" % (spams, hams, unsures))
 
 if __name__ == "__main__":
     main()

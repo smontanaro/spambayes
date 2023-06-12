@@ -33,9 +33,9 @@ from spambayes.Options import options
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def emlx_to_rfc2822(in_fn, out_fn):
@@ -48,8 +48,8 @@ def emlx_to_rfc2822(in_fn, out_fn):
     Mail uses (subject, flags, sender, and so forth).  We ignore
     this plist data).
     """
-    fin = file(in_fn)
-    fout = file(out_fn, "w")
+    fin = open(in_fn)
+    fout = open(out_fn, "w")
     length = int(fin.readline().rstrip())
     fout.write(fin.read(length))
     plist = fin.read()
@@ -109,12 +109,12 @@ def export_directory(parent, dirname, exclude, quiet):
                 if not quiet:
                     sys.stdout.write('.')
     if not quiet:
-        print
+        print()
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hqe:o:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     quiet = False

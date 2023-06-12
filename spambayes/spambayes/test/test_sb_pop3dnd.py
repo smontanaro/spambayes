@@ -3,7 +3,7 @@
 import sys
 import email
 import time
-import thread
+import _thread
 import imaplib
 import unittest
 
@@ -30,7 +30,7 @@ class IMAPMessageTest(unittest.TestCase):
         self.assertEqual(msg.date, "fake date")
         for att in ["date", "deleted", "flagged", "seen", "draft",
                     "recent", "answered"]:
-            self.assert_(att in msg.stored_attributes)
+            self.assertTrue(att in msg.stored_attributes)
         for flag in ["deleted", "answered", "flagged", "seen", "draft",
                      "recent"]:
             self.assertEqual(getattr(msg, flag), False)
@@ -42,11 +42,11 @@ class IMAPMessageTest(unittest.TestCase):
         # We get them in lowercase, because this is a twisted
         # requirement.
         headers = msg.getHeaders(False)
-        for k, v in correct_msg.items():
+        for k, v in list(correct_msg.items()):
             self.assertEqual(headers[k.lower()], v)
         # Should work the same with negate
         headers = msg.getHeaders(True)
-        for k, v in correct_msg.items():
+        for k, v in list(correct_msg.items()):
             self.assertEqual(headers[k.lower()], v)
         
     def testGetIndividualHeaders(self):
@@ -60,8 +60,8 @@ class IMAPMessageTest(unittest.TestCase):
         self.assertEqual(headers["subject"], correct_msg["Subject"])
         # Negate should get all the other headers.
         headers = msg.getHeaders(True, "SUBJECT")
-        self.assert_("subject" not in headers)
-        for k, v in correct_msg.items():
+        self.assertTrue("subject" not in headers)
+        for k, v in list(correct_msg.items()):
             if k == "Subject":
                 continue
             self.assertEqual(headers[k.lower()], v)
@@ -74,7 +74,7 @@ class IMAPMessageTest(unittest.TestCase):
             setattr(msg, flag, True)
         flags = list(msg.getFlags())
         for flag in all_flags:
-            self.assert_("\\%s" % (flag.upper(),) in flags)
+            self.assertTrue("\\%s" % (flag.upper(),) in flags)
         for flag in all_flags:
             setattr(msg, flag, False)
         flags = list(msg.getFlags())
@@ -134,7 +134,7 @@ class IMAPMessageTest(unittest.TestCase):
             setattr(msg, flag, True)
         flags = list(msg.flags())
         for flag in all_flags:
-            self.assert_("\\%s" % (flag.upper(),) in flags)
+            self.assertTrue("\\%s" % (flag.upper(),) in flags)
         for flag in all_flags:
             setattr(msg, flag, False)
         flags = list(msg.flags())
@@ -162,7 +162,7 @@ class IMAPMessageTest(unittest.TestCase):
         correct_msg = email.message_from_string(good1)
         headers = msg.headers()
         correct_headers = "\r\b".join(["%s: %s" % (k, v) \
-                                       for k, v in correct_msg.items()])
+                                       for k, v in list(correct_msg.items())])
 
 
 class DynamicIMAPMessageTest(unittest.TestCase):
@@ -204,7 +204,7 @@ class IMAPFileMessageFactoryTest(unittest.TestCase):
         factory = IMAPFileMessageFactory()
         msg = factory.create("key", "directory")
         self.assertEqual(msg.id, key)
-        self.assert_(isinstance(msg, type(IMAPFileMessage())))
+        self.assertTrue(isinstance(msg, type(IMAPFileMessage())))
 
         
 def suite():
@@ -221,5 +221,5 @@ if __name__=='__main__':
         from spambayes import asyncore
         asyncore.loop()
     TestListener()
-    thread.start_new_thread(runTestServer, ())
+    _thread.start_new_thread(runTestServer, ())
     sb_test_support.unittest_main(argv=sys.argv + ['suite'])

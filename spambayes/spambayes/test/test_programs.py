@@ -3,7 +3,8 @@ import sys
 import errno
 import unittest
 import time
-from urllib import urlopen, urlencode
+from urllib.request import urlopen
+from urllib.parse import urlencode
 
 import sb_test_support
 sb_test_support.fix_sys_path()
@@ -19,9 +20,9 @@ def call_web_function(url, **kw):
     got = urlopen(url, urlencode(kw)).read()
     # Very simple - just look for tracebacks
     if got.find("Traceback (most recent call last)")>=0:
-        print "FAILED calling URL", url
-        print got
-        raise AssertionError, "Opening URL %s appeared to fail" % (url,)
+        print("FAILED calling URL", url)
+        print(got)
+        raise AssertionError("Opening URL %s appeared to fail" % (url,))
 
 class Spawner:
     def __init__(self, test_case, spawn_args):
@@ -55,7 +56,7 @@ class Spawner:
             try:
                 os.waitpid(self.pid, os.WNOHANG)
                 result = True
-            except os.error, details:
+            except os.error as details:
                 if details.errno == errno.ECHILD:
                     result = False
                 # other exceptions invalid?
@@ -68,10 +69,10 @@ class Spawner:
         # Check the platform agrees (could do xor, but even I wont be able
         # to read it in a few weeks <wink>
         if result:
-            self.test_case.failUnless(is_any_sb_server_running(),
+            self.test_case.assertTrue(is_any_sb_server_running(),
                     "My server stopped, but global server mutex held")
         else:
-            self.test_case.failUnless(not is_any_sb_server_running(),
+            self.test_case.assertTrue(not is_any_sb_server_running(),
                     "My server running, but no global server mutex held")
         return result
 
@@ -83,17 +84,17 @@ class Spawner_sb_server(Spawner):
             f = f[:-1]
         Spawner.__init__(self, test_case, [f]+args)
     def start(self):
-        self.test_case.failUnless(not is_any_sb_server_running(),
+        self.test_case.assertTrue(not is_any_sb_server_running(),
                                   "Should be no server running")
         if verbose > 1:
-            print "Spawning", self.spawn_args
+            print("Spawning", self.spawn_args)
         self.pid = self._spawn(self.spawn_args)
         # wait for it to start - 5 secs, 0.25 per check
         for i in range(20):
             time.sleep(0.25)
             if verbose > 1:
-                print "Waiting for start flags: running=%s, global_mutex=%s" \
-                       % (self.is_running(), is_any_sb_server_running())
+                print("Waiting for start flags: running=%s, global_mutex=%s" \
+                       % (self.is_running(), is_any_sb_server_running()))
             if self.is_running() and is_any_sb_server_running():
                 return
         # gave up waiting.
@@ -128,29 +129,29 @@ def is_any_sb_server_running():
 
 class TestServer(unittest.TestCase):
     def setUp(self):
-        self.failUnless(not is_any_sb_server_running(),
+        self.assertTrue(not is_any_sb_server_running(),
                         "Can't do sb_server tests while a server is running "\
                         "(platform mutex held)")
     def tearDown(self):
         # If we cause failure here, we mask the underlying error which left
         # the server running - so just print the warning.
         if is_any_sb_server_running():
-            print "WARNING:", self, "completed with the platform mutex held"
+            print("WARNING:", self, "completed with the platform mutex held")
     def _start_spawner(self, spawner):
-        self.failUnless(not spawner.is_running(),
+        self.assertTrue(not spawner.is_running(),
                         "this spawneer can't be running")
         spawner.start()
-        self.failUnless(spawner.is_running(),
+        self.assertTrue(spawner.is_running(),
                         "this spawner must be running after successful start")
-        self.failUnless(is_any_sb_server_running(),
+        self.assertTrue(is_any_sb_server_running(),
                 "Platform mutex not held after starting")
     def _stop_spawner(self, spawner):
-        self.failUnless(spawner.is_running(), "must be running to stop")
-        self.failUnless(is_any_sb_server_running(),
+        self.assertTrue(spawner.is_running(), "must be running to stop")
+        self.assertTrue(is_any_sb_server_running(),
                 "Platform mutex must be held to stop")
         spawner.stop()
-        self.failUnless(not spawner.is_running(), "didn't stop after stop")
-        self.failUnless(not is_any_sb_server_running(),
+        self.assertTrue(not spawner.is_running(), "didn't stop after stop")
+        self.assertTrue(not is_any_sb_server_running(),
                 "Platform mutex still held after stop")
     def test_sb_server_default(self):
         # Should be using the default port from the options file.
@@ -186,18 +187,18 @@ if sys.platform.startswith("win"):
         def setUp(self):
             try:
                 win32serviceutil.QueryServiceStatus(service_name)
-            except win32service.error, details:
+            except win32service.error as details:
                 if details[0]==winerror.ERROR_SERVICE_DOES_NOT_EXIST:
                     self.was_installed = False
                 raise
             else:
                 self.was_installed = True
-            self.failUnless(not is_any_sb_server_running(),
+            self.assertTrue(not is_any_sb_server_running(),
                             "Can't do service tests while a server is running "\
                             "(platform mutex held)")
         def tearDown(self):
             if is_any_sb_server_running():
-                print "WARNING:", self, "completed with the platform mutex held"
+                print("WARNING:", self, "completed with the platform mutex held")
         def _start_service(self):
             win32serviceutil.StartService(service_name)
             for i in range(10):
@@ -206,7 +207,7 @@ if sys.platform.startswith("win"):
                 if status[1] == win32service.SERVICE_RUNNING:
                     break
                 if verbose > 1:
-                    print "Service status is %d - still waiting" % status[1]
+                    print("Service status is %d - still waiting" % status[1])
             else:
                 self.fail("Gave up waiting for service to start")
         def _stop_service(self):
@@ -233,7 +234,7 @@ if sys.platform.startswith("win"):
                     break
             else:
                 self.fail("Gave up waiting for service to stop")
-            self.failUnless(not is_any_sb_server_running(),
+            self.assertTrue(not is_any_sb_server_running(),
                             "Should be no platform mutex held after stopping")
 
 if __name__=='__main__':

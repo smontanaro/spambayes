@@ -1,4 +1,4 @@
-from __future__ import generators
+
 
 import os
 import random
@@ -11,7 +11,7 @@ HAMTRAIN  = None
 SPAMTRAIN = None
 SEED = random.randrange(2000000000)
 
-class Msg(object):
+class Msg:
     __slots__ = 'tag', 'guts'
 
     def __init__(self, dir, name):
@@ -42,7 +42,7 @@ class Msg(object):
 
 # The iterator yields a stream of Msg objects, taken from a list of
 # directories.
-class MsgStream(object):
+class MsgStream:
     __slots__ = 'tag', 'directories', 'keep'
 
     def __init__(self, tag, directories, keep=None):

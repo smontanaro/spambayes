@@ -30,9 +30,9 @@ TEMP_DBM_NAME = os.path.join(os.path.dirname(__file__), "temp.dbm")
 # be ours.
 for fn in [TEMP_PICKLE_NAME, TEMP_CSV_NAME, TEMP_DBM_NAME]:
     if os.path.exists(fn):
-        print fn, "already exists.  Please remove this file before " \
+        print(fn, "already exists.  Please remove this file before " \
               "running these tests (a file by that name will be " \
-              "created and destroyed as part of the tests)."
+              "created and destroyed as part of the tests).")
         sys.exit(1)
 
 class dbexpimpTest(unittest.TestCase):
@@ -52,7 +52,7 @@ class dbexpimpTest(unittest.TestCase):
         
     def test_csv_module_import(self):
         """Check that we don't import the old object craft csv module."""
-        self.assert_(hasattr(sb_dbexpimp.csv, "reader"))
+        self.assertTrue(hasattr(sb_dbexpimp.csv, "reader"))
 
     def test_pickle_export(self):
         # Create a pickled classifier to export.
@@ -68,12 +68,12 @@ class dbexpimpTest(unittest.TestCase):
         # the CSV module to open it, that it is valid CSV data).
         fp = open(TEMP_CSV_NAME, "rb")
         reader = sb_dbexpimp.csv.reader(fp)
-        (nham, nspam) = reader.next()
+        (nham, nspam) = next(reader)
         self.assertEqual(int(nham), bayes.nham)
         self.assertEqual(int(nspam), bayes.nspam)
         for (word, hamcount, spamcount) in reader:
             word = sb_dbexpimp.uunquote(word)
-            self.assert_(word in bayes._wordinfokeys())
+            self.assertTrue(word in bayes._wordinfokeys())
             wi = bayes._wordinfoget(word)
             self.assertEqual(int(hamcount), wi.hamcount)
             self.assertEqual(int(spamcount), wi.spamcount)
@@ -95,12 +95,12 @@ class dbexpimpTest(unittest.TestCase):
         # the CSV module to open it, that it is valid CSV data).
         fp = open(TEMP_CSV_NAME, "rb")
         reader = sb_dbexpimp.csv.reader(fp)
-        (nham, nspam) = reader.next()
+        (nham, nspam) = next(reader)
         self.assertEqual(int(nham), bayes.nham)
         self.assertEqual(int(nspam), bayes.nspam)
         for (word, hamcount, spamcount) in reader:
             word = sb_dbexpimp.uunquote(word)
-            self.assert_(word in bayes._wordinfokeys())
+            self.assertTrue(word in bayes._wordinfokeys())
             wi = bayes._wordinfoget(word)
             self.assertEqual(int(hamcount), wi.hamcount)
             self.assertEqual(int(spamcount), wi.spamcount)
@@ -111,7 +111,7 @@ class dbexpimpTest(unittest.TestCase):
         temp.write("3,4\n")
         csv_data = {"this":(2,1), "is":(0,1), "a":(3,4), 'test':(1,1),
                     "of":(1,0), "the":(1,2), "import":(3,1)}
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             temp.write("%s,%s,%s\n" % (word, ham, spam))
         temp.close()
         sb_dbexpimp.runImport(TEMP_PICKLE_NAME, "pickle", True,
@@ -121,9 +121,9 @@ class dbexpimpTest(unittest.TestCase):
         bayes = open_storage(TEMP_PICKLE_NAME, "pickle")
         self.assertEqual(bayes.nham, 3)
         self.assertEqual(bayes.nspam, 4)
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             word = sb_dbexpimp.uquote(word)
-            self.assert_(word in bayes._wordinfokeys())
+            self.assertTrue(word in bayes._wordinfokeys())
             wi = bayes._wordinfoget(word)
             self.assertEqual(wi.hamcount, ham)
             self.assertEqual(wi.spamcount, spam)
@@ -134,7 +134,7 @@ class dbexpimpTest(unittest.TestCase):
         temp.write("3,4\n")
         csv_data = {"this":(2,1), "is":(0,1), "a":(3,4), 'test':(1,1),
                     "of":(1,0), "the":(1,2), "import":(3,1)}
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             temp.write("%s,%s,%s\n" % (word, ham, spam))
         temp.close()
         sb_dbexpimp.runImport(TEMP_DBM_NAME, "dbm", True, TEMP_CSV_NAME)
@@ -143,9 +143,9 @@ class dbexpimpTest(unittest.TestCase):
         bayes = open_storage(TEMP_DBM_NAME, "dbm")
         self.assertEqual(bayes.nham, 3)
         self.assertEqual(bayes.nspam, 4)
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             word = sb_dbexpimp.uquote(word)
-            self.assert_(word in bayes._wordinfokeys())
+            self.assertTrue(word in bayes._wordinfokeys())
             wi = bayes._wordinfoget(word)
             self.assertEqual(wi.hamcount, ham)
             self.assertEqual(wi.spamcount, spam)
@@ -164,7 +164,7 @@ class dbexpimpTest(unittest.TestCase):
         temp.write("%d,%d\n" % (nham, nspam))
         csv_data = {"this":(2,1), "is":(0,1), "a":(3,4), 'test':(1,1),
                     "of":(1,0), "the":(1,2), "import":(3,1)}
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             temp.write("%s,%s,%s\n" % (word, ham, spam))
         temp.close()
         sb_dbexpimp.runImport(TEMP_PICKLE_NAME, "pickle", False,
@@ -176,10 +176,10 @@ class dbexpimpTest(unittest.TestCase):
         self.assertEqual(bayes2.nham, nham + bayes.nham)
         self.assertEqual(bayes2.nspam, nspam + bayes.nspam)
         words = bayes._wordinfokeys()
-        words.extend(csv_data.keys())
+        words.extend(list(csv_data.keys()))
         for word in words:
             word = sb_dbexpimp.uquote(word)
-            self.assert_(word in bayes2._wordinfokeys())
+            self.assertTrue(word in bayes2._wordinfokeys())
             h, s = csv_data.get(word, (0,0))
             wi = bayes._wordinfoget(word)
             if wi:
@@ -210,7 +210,7 @@ class dbexpimpTest(unittest.TestCase):
         temp.write("%d,%d\n" % (nham, nspam))
         csv_data = {"this":(2,1), "is":(0,1), "a":(3,4), 'test':(1,1),
                     "of":(1,0), "the":(1,2), "import":(3,1)}
-        for word, (ham, spam) in csv_data.items():
+        for word, (ham, spam) in list(csv_data.items()):
             temp.write("%s,%s,%s\n" % (word, ham, spam))
         temp.close()
         sb_dbexpimp.runImport(TEMP_DBM_NAME, "dbm", False, TEMP_CSV_NAME)
@@ -220,11 +220,11 @@ class dbexpimpTest(unittest.TestCase):
         bayes2 = open_storage(TEMP_DBM_NAME, "dbm")
         self.assertEqual(bayes2.nham, nham + original_nham)
         self.assertEqual(bayes2.nspam, nspam + original_nspam)
-        words = original_data.keys()[:]
-        words.extend(csv_data.keys())
+        words = list(original_data.keys())[:]
+        words.extend(list(csv_data.keys()))
         for word in words:
             word = sb_dbexpimp.uquote(word)
-            self.assert_(word in bayes2._wordinfokeys())
+            self.assertTrue(word in bayes2._wordinfokeys())
             h, s = csv_data.get(word, (0,0))
             wi = original_data.get(word, None)
             if wi:

@@ -21,14 +21,14 @@ def main(fp):
 
     msg = email.message_from_file(fp)
     prob, evidence = p.classifier.spamprob(tokenize(msg), True)
-    print "Score:", prob
-    print
-    print "Clues"
-    print "-----"
+    print("Score:", prob)
+    print()
+    print("Clues")
+    print("-----")
     for clue, prob in evidence:
         if isinstance(clue, UnicodeType):
             clue = clue.encode(charset, 'replace')
-        print clue, prob
+        print(clue, prob)
 ##    print
 ##    print msg
 

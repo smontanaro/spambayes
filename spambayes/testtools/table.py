@@ -47,7 +47,7 @@ def suck(f):
         if line.startswith('-> <stat> tested'):
             # <stat> tested 1910 hams & 948 spams against 2741 hams & 948 spams
             #      1      2    3    4 5   6
-            print line,
+            print(line, end=' ')
 
         elif line.find(' items; mean ') > 0 and line.find('for all runs') > 0:
             # <stat> Ham scores for all runs: 2741 items; mean 0.86; sdev 6.28
@@ -206,26 +206,26 @@ def table():
         meand += "%12.2f" % (tmeand/nfiles)
         kval  += "%12.2f" % (tkval/nfiles)
 
-    print fname
+    print(fname)
     if len(fnam2.strip()) > 0:
-        print fnam2
-    print ratio
+        print(fnam2)
+    print(ratio)
     if len(rat2.strip()) > 0:
-        print rat2
-    print fptot
-    print fpper
-    print fntot
-    print fnper
-    print untot
-    print unper
-    print rcost
-    print bcost
-    print hmean
-    print hsdev
-    print smean
-    print ssdev
-    print meand
-    print kval
+        print(rat2)
+    print(fptot)
+    print(fpper)
+    print(fntot)
+    print(fnper)
+    print(untot)
+    print(unper)
+    print(rcost)
+    print(bcost)
+    print(hmean)
+    print(hsdev)
+    print(smean)
+    print(ssdev)
+    print(meand)
+    print(kval)
 
 if __name__ == "__main__":
     table()

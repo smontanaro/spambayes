@@ -5,10 +5,10 @@ import sys
 
 from setuptools import setup, find_packages
 
-if sys.version_info < (2, 4):
-    print "Error: You need at least Python 2.4 to use SpamBayes."
-    print "You're running version %s." % sys.version
-    sys.exit(0)
+if sys.version_info < (3, 9):
+    print("Error: You need at least Python 3.9 to use SpamBayes.")
+    print("You're running version %s." % sys.version)
+    sys.exit(39)
 
 # Install
 from distutils.core import setup
@@ -40,19 +40,19 @@ class install_scripts(parent):
             s = os.path.join(self.install_dir, s)
             for e in (".py", ".pyc", ".pyo"):
                 if os.path.exists(s+e):
-                    print >> sys.stderr, "Error: old script", s+e,
-                    print >> sys.stderr, "still exists."
+                    print("Error: old script", s+e, end=' ', file=sys.stderr)
+                    print("still exists.", file=sys.stderr)
                     err = True
         if err:
-            print >>sys.stderr, "Do you want to delete these scripts? (y/n)"
-            answer = raw_input("")
+            print("Do you want to delete these scripts? (y/n)", file=sys.stderr)
+            answer = input("")
             if answer == "y":
                 for s in self.old_scripts:
                     s = os.path.join(self.install_dir, s)
                     for e in (".py", ".pyc", ".pyo"):
                         try:
                             os.remove(s+e)
-                            print "Removed", s+e
+                            print("Removed", s+e)
                         except OSError:
                             pass
         return parent.run(self)
@@ -66,11 +66,11 @@ class sdist(sdist_parent):
         from hashlib import md5
         retval = sdist_parent.run(self)
         for archive in self.get_archive_files():
-            data = file(archive, "rb").read()
-            print '\n', archive, "\n\tMD5:", md5.md5(data).hexdigest()
-            print "\tLength:", len(data)
+            data = open(archive, "rb").read()
+            print('\n', archive, "\n\tMD5:", md5.md5(data).hexdigest())
+            print("\tLength:", len(data))
         return retval
-        
+
 scripts=['scripts/sb_client.py',
          'scripts/sb_dbexpimp.py',
          'scripts/sb_evoscore.py',
@@ -98,11 +98,6 @@ if sys.platform == 'win32':
     scripts.append('windows/pop3proxy_service.py')
     scripts.append('windows/pop3proxy_tray.py')
 
-if sys.version_info >= (3, 0):
-    lf_min_version = "0.6"
-else:
-    lf_min_version = "0.2"
-
 setup(
     name='spambayes',
     version = __version__,
@@ -110,8 +105,6 @@ setup(
     author = "the spambayes project",
     author_email = "spambayes@python.org",
     url = "http://spambayes.sourceforge.net",
-    install_requires = ["lockfile>=%s" % lf_min_version,
-                        "pydns>=2.0"],
     cmdclass = {'install_scripts': install_scripts,
                 'sdist': sdist,
                 },
@@ -125,12 +118,12 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Environment :: Plugins',
-        'Environment :: Win32 (MS Windows)',
+        # 'Environment :: Win32 (MS Windows)',
         'License :: OSI Approved :: Python Software Foundation License',
         'Operating System :: POSIX',
         'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows :: Windows 95/98/2000',
-        'Operating System :: Microsoft :: Windows :: Windows NT/2000',
+        # 'Operating System :: Microsoft :: Windows :: Windows 95/98/2000',
+        # 'Operating System :: Microsoft :: Windows :: Windows NT/2000',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: C',
@@ -139,4 +132,5 @@ setup(
         'Topic :: Communications :: Email :: Post-Office :: POP3',
         'Topic :: Communications :: Email :: Post-Office :: IMAP',
         ],
+    include_package_data=True,
     )

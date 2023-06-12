@@ -4,10 +4,8 @@
 
 Classes:
     PickledClassifier - Classifier that uses a pickle db
-    DBDictClassifier - Classifier that uses a shelve db
     PGClassifier - Classifier that uses postgres
     mySQLClassifier - Classifier that uses mySQL
-    CBDClassifier - Classifier that uses CDB
     ZODBClassifier - Classifier that uses ZODB
     ZEOClassifier - Classifier that uses ZEO
     Trainer - Classifier training observer
@@ -23,9 +21,6 @@ Abstract:
     PickledClassifier is a Classifier class that uses a cPickle
     datastore.  This database is relatively small, but slower than other
     databases.
-
-    DBDictClassifier is a Classifier class that uses a database
-    store.
 
     Trainer is concrete class that observes a Corpus and trains a
     Classifier object based upon movement of messages between corpora  When
@@ -57,14 +52,11 @@ __credits__ = "All the spambayes contributors."
 import os
 import sys
 import time
-import types
 import tempfile
 from spambayes import classifier
 from spambayes.Options import options, get_pathname_option
 import errno
 import shelve
-from spambayes import cdb
-from spambayes import dbmstorage
 from spambayes.safepickle import pickle_write, pickle_read
 
 # Make shelve use binary pickles by default.
@@ -98,7 +90,7 @@ class PickledClassifier(classifier.Classifier):
         # tempbayes object is reclaimed when load() returns.
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'pickle'
+            print('Loading state from', self.db_name, 'pickle', file=sys.stderr)
 
         try:
             tempbayes = pickle_read(self.db_name)
@@ -112,13 +104,13 @@ class PickledClassifier(classifier.Classifier):
             classifier.Classifier.__setstate__(self,
                                                tempbayes.__getstate__())
             if options["globals", "verbose"]:
-                print >> sys.stderr, ('%s is an existing pickle,'
+                print(('%s is an existing pickle,'
                                       ' with %d ham and %d spam') \
-                      % (self.db_name, self.nham, self.nspam)
+                      % (self.db_name, self.nham, self.nspam), file=sys.stderr)
         else:
             # new pickle
             if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name,'is a new pickle'
+                print(self.db_name,'is a new pickle', file=sys.stderr)
             self.wordinfo = {}
             self.nham = 0
             self.nspam = 0
@@ -127,7 +119,7 @@ class PickledClassifier(classifier.Classifier):
         '''Store self as a pickle'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Persisting', self.db_name, 'as a pickle'
+            print('Persisting', self.db_name, 'as a pickle', file=sys.stderr)
 
         pickle_write(self.db_name, self, PICKLE_TYPE)
 
@@ -140,163 +132,6 @@ WORD_DELETED = "D"
 WORD_CHANGED = "C"
 
 STATE_KEY = 'saved state'
-
-class DBDictClassifier(classifier.Classifier):
-    '''Classifier object persisted in a caching database'''
-
-    def __init__(self, db_name, mode='c'):
-        '''Constructor(database name)'''
-
-        classifier.Classifier.__init__(self)
-        self.statekey = STATE_KEY
-        self.mode = mode
-        self.db_name = db_name
-        self.load()
-
-    def close(self):
-        # Close our underlying database.  Better not assume all databases
-        # have close functions!
-        def noop():
-            pass
-        getattr(self.db, "close", noop)()
-        getattr(self.dbm, "close", noop)()
-        # should not be a need to drop the 'dbm' or 'db' attributes.
-        # but we do anyway, because it makes it more clear what has gone
-        # wrong if we try to keep using the database after we have closed
-        # it.
-        if hasattr(self, "db"):
-            del self.db
-        if hasattr(self, "dbm"):
-            del self.dbm
-        if options["globals", "verbose"]:
-            print >> sys.stderr, 'Closed', self.db_name, 'database'
-
-    def load(self):
-        '''Load state from database'''
-
-        if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
-
-        self.dbm = dbmstorage.open(self.db_name, self.mode)
-        self.db = shelve.Shelf(self.dbm)
-
-        if self.db.has_key(self.statekey):
-            t = self.db[self.statekey]
-            if t[0] != classifier.PICKLE_VERSION:
-                raise ValueError("Can't unpickle -- version %s unknown" % t[0])
-            (self.nspam, self.nham) = t[1:]
-
-            if options["globals", "verbose"]:
-                print >> sys.stderr, ('%s is an existing database,'
-                                      ' with %d spam and %d ham') \
-                      % (self.db_name, self.nspam, self.nham)
-        else:
-            # new database
-            if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name,'is a new database'
-            self.nspam = 0
-            self.nham = 0
-        self.wordinfo = {}
-        self.changed_words = {} # value may be one of the WORD_ constants
-
-    def store(self):
-        '''Place state into persistent store'''
-
-        if options["globals", "verbose"]:
-            print >> sys.stderr, 'Persisting', self.db_name,
-            print >> sys.stderr, 'state in database'
-
-        # Iterate over our changed word list.
-        # This is *not* thread-safe - another thread changing our
-        # changed_words could mess us up a little.  Possibly a little
-        # lock while we copy and reset self.changed_words would be appropriate.
-        # For now, just do it the naive way.
-        for key, flag in self.changed_words.iteritems():
-            if flag is WORD_CHANGED:
-                val = self.wordinfo[key]
-                self.db[key] = val.__getstate__()
-            elif flag is WORD_DELETED:
-                assert key not in self.wordinfo, \
-                       "Should not have a wordinfo for words flagged for delete"
-                # Word may be deleted before it was ever written.
-                try:
-                    del self.db[key]
-                except KeyError:
-                    pass
-            else:
-                raise RuntimeError, "Unknown flag value"
-
-        # Reset the changed word list.
-        self.changed_words = {}
-        # Update the global state, then do the actual save.
-        self._write_state_key()
-        self.db.sync()
-
-    def _write_state_key(self):
-        self.db[self.statekey] = (classifier.PICKLE_VERSION,
-                                  self.nspam, self.nham)
-
-    def _post_training(self):
-        """This is called after training on a wordstream.  We ensure that the
-        database is in a consistent state at this point by writing the state
-        key."""
-        self._write_state_key()
-
-    def _wordinfoget(self, word):
-        if isinstance(word, unicode):
-            word = word.encode("utf-8")
-        try:
-            return self.wordinfo[word]
-        except KeyError:
-            ret = None
-            if self.changed_words.get(word) is not WORD_DELETED:
-                r = self.db.get(word)
-                if r:
-                    ret = self.WordInfoClass()
-                    ret.__setstate__(r)
-                    self.wordinfo[word] = ret
-            return ret
-
-    def _wordinfoset(self, word, record):
-        # "Singleton" words (i.e. words that only have a single instance)
-        # take up more than 1/2 of the database, but are rarely used
-        # so we don't put them into the wordinfo cache, but write them
-        # directly to the database
-        # If the word occurs again, then it will be brought back in and
-        # never be a singleton again.
-        # This seems to reduce the memory footprint of the DBDictClassifier by
-        # as much as 60%!!!  This also has the effect of reducing the time it
-        # takes to store the database
-        if isinstance(word, unicode):
-            word = word.encode("utf-8")
-        if record.spamcount + record.hamcount <= 1:
-            self.db[word] = record.__getstate__()
-            try:
-                del self.changed_words[word]
-            except KeyError:
-                # This can happen if, e.g., a new word is trained as ham
-                # twice, then untrained once, all before a store().
-                pass
-
-            try:
-                del self.wordinfo[word]
-            except KeyError:
-                pass
-
-        else:
-            self.wordinfo[word] = record
-            self.changed_words[word] = WORD_CHANGED
-
-    def _wordinfodel(self, word):
-        if isinstance(word, unicode):
-            word = word.encode("utf-8")
-        del self.wordinfo[word]
-        self.changed_words[word] = WORD_DELETED
-
-    def _wordinfokeys(self):
-        wordinfokeys = self.db.keys()
-        del wordinfokeys[wordinfokeys.index(self.statekey)]
-        return wordinfokeys
 
 
 class SQLClassifier(classifier.Classifier):
@@ -316,7 +151,7 @@ class SQLClassifier(classifier.Classifier):
 
     def load(self):
         '''Load state from the database'''
-        raise NotImplementedError, "must be implemented in subclass"
+        raise NotImplementedError("must be implemented in subclass")
 
     def store(self):
         '''Save state to the database'''
@@ -324,15 +159,15 @@ class SQLClassifier(classifier.Classifier):
 
     def cursor(self):
         '''Return a new db cursor'''
-        raise NotImplementedError, "must be implemented in subclass"
+        raise NotImplementedError("must be implemented in subclass")
 
     def fetchall(self, c):
         '''Return all rows as a dict'''
-        raise NotImplementedError, "must be implemented in subclass"
+        raise NotImplementedError("must be implemented in subclass")
 
     def commit(self, c):
         '''Commit the current transaction - may commit at db or cursor'''
-        raise NotImplementedError, "must be implemented in subclass"
+        raise NotImplementedError("must be implemented in subclass")
 
     def create_bayes(self):
         '''Create a new bayes table'''
@@ -347,8 +182,8 @@ class SQLClassifier(classifier.Classifier):
             c.execute("select * from bayes"
                       "  where word=%s",
                       (word,))
-        except Exception, e:
-            print >> sys.stderr, "error:", (e, word)
+        except Exception as e:
+            print("error:", (e, word), file=sys.stderr)
             raise
         rows = self.fetchall(c)
 
@@ -386,7 +221,7 @@ class SQLClassifier(classifier.Classifier):
         return len(self.fetchall(c)) > 0
 
     def _wordinfoget(self, word):
-        if isinstance(word, unicode):
+        if isinstance(word, str):
             word = word.encode("utf-8")
 
         row = self._get_row(word)
@@ -398,12 +233,12 @@ class SQLClassifier(classifier.Classifier):
             return self.WordInfoClass()
 
     def _wordinfoset(self, word, record):
-        if isinstance(word, unicode):
+        if isinstance(word, str):
             word = word.encode("utf-8")
         self._set_row(word, record.spamcount, record.hamcount)
 
     def _wordinfodel(self, word):
-        if isinstance(word, unicode):
+        if isinstance(word, str):
             word = word.encode("utf-8")
         self._delete_row(word)
 
@@ -440,7 +275,7 @@ class PGClassifier(SQLClassifier):
         import psycopg
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print('Loading state from', self.db_name, 'database', file=sys.stderr)
 
         self.db = psycopg.connect('dbname=' + self.db_name)
 
@@ -456,13 +291,13 @@ class PGClassifier(SQLClassifier):
             self.nspam = row["nspam"]
             self.nham = row["nham"]
             if options["globals", "verbose"]:
-                print >> sys.stderr, ('%s is an existing database,'
+                print(('%s is an existing database,'
                                       ' with %d spam and %d ham') \
-                      % (self.db_name, self.nspam, self.nham)
+                      % (self.db_name, self.nspam, self.nham), file=sys.stderr)
         else:
             # new database
             if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name,'is a new database'
+                print(self.db_name,'is a new database', file=sys.stderr)
             self.nspam = 0
             self.nham = 0
 
@@ -514,12 +349,14 @@ class mySQLClassifier(SQLClassifier):
         import MySQLdb
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Loading state from', self.db_name, 'database'
+            print('Loading state from', self.db_name, 'database', file=sys.stderr)
 
         params = {
-          'host': self.host, 'db': self.db_name,
-          'user': self.username, 'passwd': self.password,
-          'charset': self.charset
+            'host': self.host,
+            'db': self.db_name,
+            'user': self.username,
+            'passwd': self.password,
+            'charset': self.charset,
         }
         self.db = MySQLdb.connect(**params)
 
@@ -541,18 +378,18 @@ class mySQLClassifier(SQLClassifier):
             self.nspam = int(row[1])
             self.nham = int(row[2])
             if options["globals", "verbose"]:
-                print >> sys.stderr, ('%s is an existing database,'
+                print(('%s is an existing database,'
                                       ' with %d spam and %d ham') \
-                      % (self.db_name, self.nspam, self.nham)
+                      % (self.db_name, self.nspam, self.nham), file=sys.stderr)
         else:
             # new database
             if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name,'is a new database'
+                print(self.db_name,'is a new database', file=sys.stderr)
             self.nspam = 0
             self.nham = 0
 
     def _wordinfoget(self, word):
-        if isinstance(word, unicode):
+        if isinstance(word, str):
             word = word.encode("utf-8")
 
         row = self._get_row(word)
@@ -562,81 +399,6 @@ class mySQLClassifier(SQLClassifier):
             return item
         else:
             return None
-
-
-class CDBClassifier(classifier.Classifier):
-    """A classifier that uses a CDB database.
-
-    A CDB wordinfo database is quite small and fast but is slow to update.
-    It is appropriate if training is done rarely (e.g. monthly or weekly
-    using archived ham and spam).
-    """
-    def __init__(self, db_name):
-        classifier.Classifier.__init__(self)
-        self.db_name = db_name
-        self.statekey = STATE_KEY
-        self.load()
-
-    def _WordInfoFactory(self, counts):
-        # For whatever reason, WordInfo's cannot be created with
-        # constructor ham/spam counts, so we do the work here.
-        # Since we're doing the work, we accept the ham/spam count
-        # in the form of a comma-delimited string, as that's what
-        # we get.
-        ham, spam = counts.split(',')
-        wi = classifier.WordInfo()
-        wi.hamcount = int(ham)
-        wi.spamcount = int(spam)
-        return wi
-
-    # Stolen from sb_dbexpimp.py
-    # Heaven only knows what encoding non-ASCII stuff will be in
-    # Try a few common western encodings and punt if they all fail
-    def uunquote(self, s):
-        for encoding in ("utf-8", "cp1252", "iso-8859-1"):
-            try:
-                return unicode(s, encoding)
-            except UnicodeDecodeError:
-                pass
-        # punt
-        return s
-
-    def load(self):
-        if os.path.exists(self.db_name):
-            db = open(self.db_name, "rb")
-            data = dict(cdb.Cdb(db))
-            db.close()
-            self.nham, self.nspam = [int(i) for i in \
-                                     data[self.statekey].split(',')]
-            self.wordinfo = dict([(self.uunquote(k),
-                                   self._WordInfoFactory(v)) \
-                                  for k, v in data.iteritems() \
-                                      if k != self.statekey])
-            if options["globals", "verbose"]:
-                print >> sys.stderr, ('%s is an existing CDB,'
-                                      ' with %d ham and %d spam') \
-                                      % (self.db_name, self.nham,
-                                         self.nspam)
-        else:
-            if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name, 'is a new CDB'
-            self.wordinfo = {}
-            self.nham = 0
-            self.nspam = 0
-
-    def store(self):
-        items = [(self.statekey, "%d,%d" % (self.nham, self.nspam))]
-        for word, wi in self.wordinfo.iteritems():
-            if isinstance(word, types.UnicodeType):
-                word = word.encode("utf-8")
-            items.append((word, "%d,%d" % (wi.hamcount, wi.spamcount)))
-        db = open(self.db_name, "wb")
-        cdb.cdb_make(db, items)
-        db.close()
-
-    def close(self):
-        # We keep no resources open - nothing to do.
-        pass
 
 
 # If ZODB isn't available, then this class won't be useable, but we
@@ -658,7 +420,7 @@ class _PersistentClassifier(classifier.Classifier, Persistent):
         classifier.Classifier.__init__(self)
         self.wordinfo = OOBTree()
 
-class ZODBClassifier(object):
+class ZODBClassifier:
     # Allow subclasses to override classifier class.
     ClassifierClass = _PersistentClassifier
 
@@ -689,8 +451,8 @@ class ZODBClassifier(object):
             self.storage = FileStorage(self.db_filename,
                                        read_only=self.mode=='r')
         except IOError:
-            print >> sys.stderr, ("Could not create FileStorage from",
-                                  self.db_filename)
+            print(("Could not create FileStorage from",
+                                  self.db_filename), file=sys.stderr)
             raise
 
     def load(self):
@@ -698,8 +460,8 @@ class ZODBClassifier(object):
         import ZODB
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, "Loading state from %s (%s) database" % \
-                  (self.db_filename, self.db_name)
+            print("Loading state from %s (%s) database" % \
+                  (self.db_filename, self.db_name), file=sys.stderr)
 
         # If we are not closed, then we need to close first before we
         # reload.
@@ -715,13 +477,13 @@ class ZODBClassifier(object):
         if self.classifier is None:
             # There is no classifier, so create one.
             if options["globals", "verbose"]:
-                print >> sys.stderr, self.db_name, 'is a new ZODB'
+                print(self.db_name, 'is a new ZODB', file=sys.stderr)
             self.classifier = root[self.db_name] = self.ClassifierClass()
         else:
             if options["globals", "verbose"]:
-                print >> sys.stderr, '%s is an existing ZODB, with %d ' \
+                print('%s is an existing ZODB, with %d ' \
                       'ham and %d spam' % (self.db_name, self.nham,
-                                           self.nspam)
+                                           self.nspam), file=sys.stderr)
         self.closed = False
 
     def store(self):
@@ -745,7 +507,7 @@ class ZODBClassifier(object):
         assert not self.closed, "Can't store a closed database"
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Persisting', self.db_name, 'state in database'
+            print('Persisting', self.db_name, 'state in database', file=sys.stderr)
 
         try:
             commit()
@@ -754,16 +516,16 @@ class ZODBClassifier(object):
             # hard-crash, but that's unlikely, and not a particularly big
             # deal.
             if options["globals", "verbose"]:
-                print >> sys.stderr, "Conflict on commit", self.db_name
+                print("Conflict on commit", self.db_name, file=sys.stderr)
             abort()
         except TransactionFailedError:
             # Saving isn't working.  Try to abort, but chances are that
             # restarting is needed.
-            print >> sys.stderr, "Storing failed.  Need to restart.", \
-                  self.db_name
+            print("Storing failed.  Need to restart.", \
+                  self.db_name, file=sys.stderr)
             abort()
         except ReadOnlyError:
-            print >> sys.stderr, "Can't store transaction to read-only db."
+            print("Can't store transaction to read-only db.", file=sys.stderr)
             abort()
 
     def close(self, pack=True, retain_backup=True):
@@ -780,9 +542,9 @@ class ZODBClassifier(object):
         # each time it is closed, to save as much disk space as possible.
         # Pack it up to where it was 'yesterday'.
         if pack and self.mode != 'r':
-            self.pack(time.time()-60*60*24, retain_backup)
+            self.pack(time.time() - 60 * 60 * 24, retain_backup)
 
-        # Do the closing.        
+        # Do the closing.
         self.DB.close()
         self.storage.close()
 
@@ -791,7 +553,7 @@ class ZODBClassifier(object):
 
         self.closed = True
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'Closed', self.db_name, 'database'
+            print('Closed', self.db_name, 'database', file=sys.stderr)
 
     def pack(self, t, retain_backup=True):
         """Like FileStorage pack(), but optionally remove the .old
@@ -823,9 +585,9 @@ class ZEOClassifier(ZODBClassifier):
                 try:
                     # ZEO only accepts strings, not unicode.
                     self.host = str(info[5:])
-                except UnicodeDecodeError, e:
-                    print >> sys.stderr, "Couldn't set host", \
-                          info[5:], str(e)
+                except UnicodeDecodeError as e:
+                    print("Couldn't set host", \
+                          info[5:], str(e), file=sys.stderr)
             elif info.startswith("port"):
                 self.port = int(info[5:])
             elif info.startswith("dbname"):
@@ -849,8 +611,8 @@ class ZEOClassifier(ZODBClassifier):
         else:
             addr = self.host
         if options["globals", "verbose"]:
-            print >> sys.stderr, "Connecting to ZEO server", addr, \
-                  self.username, self.password
+            print("Connecting to ZEO server", addr, \
+                  self.username, self.password, file=sys.stderr)
         # Use persistent caches, with the cache in the temp directory.
         # If the temp directory is cleared out, we lose the cache, but
         # that doesn't really matter, and we should always be able to
@@ -869,17 +631,20 @@ class ZEOClassifier(ZODBClassifier):
             # Probably bad cache; remove it and try without the cache.
             try:
                 os.remove(os.path.join(tempfile.gettempdir(),
-                                       self.db_name + \
+                                       self.db_name +
                                        self.storage_name + ".zec"))
             except OSError:
                 pass
-            self.storage = ClientStorage(addr, name=self.db_name,
-                                         read_only=self.mode=='r',
-                                         username=self.username,
-                                         wait=self.wait,
-                                         wait_timeout=self.wait_timeout,
-                                         storage=self.storage_name,
-                                         password=self.password)
+            self.storage = ClientStorage(
+                addr,
+                name=self.db_name,
+                read_only=self.mode == 'r',
+                username=self.username,
+                wait=self.wait,
+                wait_timeout=self.wait_timeout,
+                storage=self.storage_name,
+                password=self.password,
+            )
 
     def is_connected(self):
         return self.storage.is_connected()
@@ -889,7 +654,7 @@ class ZEOClassifier(ZODBClassifier):
 # values (i.e. 1, 2, 4, 8, etc.).
 NO_TRAINING_FLAG = 1
 
-class Trainer(object):
+class Trainer:
     '''Associates a Classifier object and one or more Corpora, \
     is an observer of the corpora'''
 
@@ -910,7 +675,7 @@ class Trainer(object):
         '''Train the database with the message'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'training with ', message.key()
+            print('training with ', message.key(), file=sys.stderr)
 
         self.bayes.learn(message.tokenize(), self.is_spam)
         message.setId(message.key())
@@ -929,7 +694,7 @@ class Trainer(object):
         '''Untrain the database with the message'''
 
         if options["globals", "verbose"]:
-            print >> sys.stderr, 'untraining with', message.key()
+            print('untraining with', message.key(), file=sys.stderr)
 
         self.bayes.unlearn(message.tokenize(), self.is_spam)
 #                           self.updateprobs)
@@ -974,14 +739,14 @@ class MutuallyExclusiveError(Exception):
 
 # values are classifier class, True if it accepts a mode
 # arg, and True if the argument is a pathname
-_storage_types = {"dbm" : (DBDictClassifier, True, True),
-                  "pickle" : (PickledClassifier, False, True),
-                  "pgsql" : (PGClassifier, False, False),
-                  "mysql" : (mySQLClassifier, False, False),
-                  "cdb" : (CDBClassifier, False, True),
-                  "zodb" : (ZODBClassifier, True, True),
-                  "zeo" : (ZEOClassifier, False, False),
-                  }
+_storage_types = {
+    "pickle": (PickledClassifier, False, True),
+    "pgsql": (PGClassifier, False, False),
+    "mysql": (mySQLClassifier, False, False),
+    "zodb": (ZODBClassifier, True, True),
+    "zeo": (ZEOClassifier, False, False),
+}
+
 
 def open_storage(data_source_name, db_type="dbm", mode=None):
     """Return a storage object appropriate to the given parameters.
@@ -998,13 +763,16 @@ def open_storage(data_source_name, db_type="dbm", mode=None):
     else:
         return klass(data_source_name)
 
+
 # The different database types that are available.
 # The key should be the command-line switch that is used to select this
 # type, and the value should be the name of the type (which
 # must be a valid key for the _storage_types dictionary).
-_storage_options = { "-p" : "pickle",
-                     "-d" : "dbm",
-                     }
+_storage_options = {
+    "-p": "pickle",
+    "-d": "dbm",
+}
+
 
 def database_type(opts, default_type=("Storage", "persistent_use_database"),
                   default_name=("Storage", "persistent_storage_file")):
@@ -1026,7 +794,7 @@ def database_type(opts, default_type=("Storage", "persistent_use_database"),
     """
     nm, typ = None, None
     for opt, arg in opts:
-        if _storage_options.has_key(opt):
+        if opt in _storage_options:
             if nm is None and typ is None:
                 nm, typ = arg, _storage_options[opt]
             else:
@@ -1070,18 +838,18 @@ def convert(old_name=None, old_type=None, new_name=None, new_type=None):
     except AttributeError:
         new_bayes.nspam = 0
 
-    print >> sys.stderr, "Converting %s (%s database) to " \
-          "%s (%s database)." % (old_name, old_type, new_name, new_type)
-    print >> sys.stderr, "Database has %s ham, %s spam, and %s words." % \
-          (new_bayes.nham, new_bayes.nspam, len(words))
+    print("Converting %s (%s database) to " \
+          "%s (%s database)." % (old_name, old_type, new_name, new_type), file=sys.stderr)
+    print("Database has %s ham, %s spam, and %s words." % \
+          (new_bayes.nham, new_bayes.nspam, len(words)), file=sys.stderr)
 
     for word in words:
         new_bayes._wordinfoset(word, old_bayes._wordinfoget(word))
     old_bayes.close()
 
-    print >> sys.stderr, "Storing database, please be patient..."
+    print("Storing database, please be patient...", file=sys.stderr)
     new_bayes.store()
-    print >> sys.stderr, "Conversion complete."
+    print("Conversion complete.", file=sys.stderr)
     new_bayes.close()
 
 def ensureDir(dirname):
@@ -1090,10 +858,10 @@ def ensureDir(dirname):
     try:
         os.mkdir(dirname)
         if options["globals", "verbose"]:
-            print >> sys.stderr, "Creating directory", dirname
-    except OSError, e:
+            print("Creating directory", dirname, file=sys.stderr)
+    except OSError as e:
         if e.errno != errno.EEXIST:
             raise
 
 if __name__ == '__main__':
-    print >> sys.stderr, __doc__
+    print(__doc__, file=sys.stderr)

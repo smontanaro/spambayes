@@ -73,7 +73,7 @@ Examples:
 # The Python Software Foundation and is covered by the Python Software
 # Foundation license.
 
-from __future__ import generators
+
 
 __author__ = "Tim Stone <tim@fourstonesExpressions.com>"
 
@@ -82,19 +82,16 @@ import csv
 import spambayes.storage
 from spambayes.Options import options
 import sys, os, getopt, errno
-from types import UnicodeType
 
 def uquote(s):
-    if isinstance(s, UnicodeType):
-        s = s.encode('utf-8')
-    return s
+    return s.encode('utf-8')
 
 # Heaven only knows what encoding non-ASCII stuff will be in
 # Try a few common western encodings and punt if they all fail
 def uunquote(s):
     for encoding in ("utf-8", "cp1252", "iso-8859-1"):
         try:
-            return unicode(s, encoding)
+            return str(s, encoding)
         except UnicodeDecodeError:
             pass
     # punt
@@ -103,14 +100,14 @@ def uunquote(s):
 def runExport(dbFN, useDBM, outFN):
     bayes = spambayes.storage.open_storage(dbFN, useDBM)
     if useDBM == "dbm":
-        words = bayes.db.keys()
+        words = list(bayes.db.keys())
         words.remove(bayes.statekey)
     else:
-        words = bayes.wordinfo.keys()
+        words = list(bayes.wordinfo.keys())
 
     try:
         fp = open(outFN, 'wb')
-    except IOError, e:
+    except IOError as e:
         if e.errno != errno.ENOENT:
             raise
 
@@ -119,9 +116,9 @@ def runExport(dbFN, useDBM, outFN):
     nham = bayes.nham
     nspam = bayes.nspam
 
-    print "Exporting database %s to file %s" % (dbFN, outFN)
-    print "Database has %s ham, %s spam, and %s words" \
-            % (nham, nspam, len(words))
+    print("Exporting database %s to file %s" % (dbFN, outFN))
+    print("Database has %s ham, %s spam, and %s words" \
+            % (nham, nspam, len(words)))
 
     writer.writerow([nham, nspam])
 
@@ -144,7 +141,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
     fp = open(inFN, 'rb')
     rdr = csv.reader(fp)
-    (nham, nspam) = rdr.next()
+    (nham, nspam) = next(rdr)
 
     if newDBM:
         bayes.nham = int(nham)
@@ -158,7 +155,7 @@ def runImport(dbFN, useDBM, newDBM, inFN):
     else:
         impType = "Merging"
 
-    print "%s file %s into database %s" % (impType, inFN, dbFN)
+    print("%s file %s into database %s" % (impType, inFN, dbFN))
 
     for (word, hamcount, spamcount) in rdr:
         word = uunquote(word)
@@ -174,27 +171,28 @@ def runImport(dbFN, useDBM, newDBM, inFN):
 
         bayes._wordinfoset(word, wi)
 
-    print "Storing database, please be patient.  Even moderately sized"
-    print "databases may take a very long time to store."
+    print("Storing database, please be patient.  Even moderately sized")
+    print("databases may take a very long time to store.")
     bayes.store()
-    print "Finished storing database"
+    print("Finished storing database")
 
-    if useDBM == "dbm" or useDBM == True:
-        words = bayes.db.keys()
+    # XXX This if statement is fishy...
+    if useDBM == "dbm" or useDBM:
+        words = list(bayes.db.keys())
         words.remove(bayes.statekey)
     else:
-        words = bayes.wordinfo.keys()
+        words = list(bayes.wordinfo.keys())
 
-    print "Database has %s ham, %s spam, and %s words" \
-           % (bayes.nham, bayes.nspam, len(words))
+    print("Database has %s ham, %s spam, and %s words" \
+           % (bayes.nham, bayes.nspam, len(words)))
 
 
 if __name__ == '__main__':
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'iehmvd:p:f:o:')
-    except getopt.error, msg:
-        print >> sys.stderr, str(msg) + '\n\n' + __doc__
+    except getopt.error as msg:
+        print(str(msg) + '\n\n' + __doc__, file=sys.stderr)
         sys.exit()
 
     useDBM = "pickle"
@@ -206,7 +204,7 @@ if __name__ == '__main__':
 
     for opt, arg in opts:
         if opt == '-h':
-            print >> sys.stderr, __doc__
+            print(__doc__, file=sys.stderr)
             sys.exit()
         elif opt == '-f':
             flatFN = arg
@@ -226,4 +224,4 @@ if __name__ == '__main__':
         if imp:
             runImport(dbFN, useDBM, newDBM, flatFN)
     else:
-        print >> sys.stderr, __doc__
+        print(__doc__, file=sys.stderr)

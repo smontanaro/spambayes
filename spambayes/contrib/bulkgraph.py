@@ -51,9 +51,9 @@ grouping = 2
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def row(value, spamday, hamday, unsureday):
@@ -125,7 +125,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hfqd:D:s:e:')
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(2, msg)
 
     if not opts:
@@ -156,7 +156,7 @@ def main():
     if args:
         usage(2, "Positional arguments not allowed")
 
-    if usedb == None:
+    if usedb is None:
         usage(2, "Must specify one of -d or -D")
 
     h = hammie.open(pck, usedb, "c")
@@ -164,7 +164,8 @@ def main():
     spamsizes = {}
 
     for s in spam:
-        if loud: print "Scanning spamdir (%s):" % s
+        if loud:
+            print("Scanning spamdir (%s):" % s)
         files = os.listdir(s)
         for f in files:
             if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
@@ -184,12 +185,13 @@ def main():
     date_re = re.compile(
         r";.* (\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2,4})")
     now = time.mktime(time.strptime(time.strftime("%d %b %Y"), "%d %b %Y"))
-    if loud: print "Scanning everything"
+    if loud:
+        print("Scanning everything")
     for f in os.listdir(everything):
         if f[0] in ('1', '2', '3', '4', '5', '6', '7', '8', '9'):
             name = os.path.join(everything, f)
 
-            fh = file(name, "rb")
+            fh = open(name, "rb")
             msg = mboxutils.get_message(fh)
             fh.close()
             # Figure out how old the message is
@@ -246,19 +248,19 @@ def main():
             h.train(msg, isspam)
 
     if loud:
-        print
+        print()
 
         mval = max(max(spamday), max(hamday), max(unsureday))
         scale = (mval + 19) // 20
-        print "%5d" % mval
+        print("%5d" % mval)
         for j in range(19, -1, -1):
-            print row(scale * j, spamday, hamday, unsureday)
-        print "     +" + ('-' * 60)
-        print "      " + legend()
-        print
+            print(row(scale * j, spamday, hamday, unsureday))
+        print("     +" + ('-' * 60))
+        print("      " + legend())
+        print()
 
-        print "Total: %d ham, %d spam (%.2f%% spam)" % (
-            hamcount, spamcount, spamcount * 100.0 / (hamcount + spamcount))
+        print("Total: %d ham, %d spam (%.2f%% spam)" % (
+            hamcount, spamcount, spamcount * 100.0 / (hamcount + spamcount)))
 
     h.store()
 

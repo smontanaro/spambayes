@@ -30,9 +30,9 @@ program = sys.argv[0]
 def usage(code, msg=''):
     """Print usage message and sys.exit(code)."""
     if msg:
-        print >> sys.stderr, msg
-        print >> sys.stderr
-    print >> sys.stderr, __doc__ % globals()
+        print(msg, file=sys.stderr)
+        print(file=sys.stderr)
+    print(__doc__ % globals(), file=sys.stderr)
     sys.exit(code)
 
 def loadHist(path):
@@ -48,8 +48,8 @@ def outputHist(hist, f=sys.stdout):
 
 def plot(files):
     """given a list of files, create gnu-plot file"""
-    import cStringIO
-    cmd = cStringIO.StringIO()
+    import io
+    cmd = io.StringIO()
     cmd.write(globalOptions)
     args = []
     for file in files:
@@ -60,14 +60,14 @@ def plot(files):
         cmd.write('e\n')
 
     cmd.write('pause 100\n')
-    print cmd.getvalue()
+    print(cmd.getvalue())
 
 def main():
     import getopt
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], '', [])
-    except getopt.error, msg:
+    except getopt.error as msg:
         usage(1, msg)
 
     if not args and options["TestDriver", "save_histogram_pickles"]:
@@ -80,7 +80,7 @@ def main():
     if args:
         plot(args)
     else:
-        print "could not locate any files to plot"
+        print("could not locate any files to plot")
 
 if __name__ == "__main__":
     main()
